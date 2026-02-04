@@ -47,6 +47,9 @@ const salesDataFromServer = @json($salesData);
    //  REAL DATA from backend
     window.damageAlerts = @json($damagedOrderAlerts);
 
+    window.fuelAlerts = @json($fuelChargeAlerts);
+
+
     window.AUTH_USER_ID = {{ auth()->id() }};
 
     window.chartData = @json($chartData);
@@ -90,14 +93,14 @@ const salesDataFromServer = @json($salesData);
          *      DEFAULT DATA
          --------------------------*/
         defaultFuelAlerts() {
-            return [
-                { id: 1, customerName: 'ABC Events LLC', orderId: 'ORD-2024-001', amountOwed: 'Pending', date: '2024-01-27', type: 'fuel', notes: '' },
-                { id: 2, customerName: 'Wedding Bliss Co', orderId: 'ORD-2024-002', amountOwed: '$45.00', date: '2024-01-26', type: 'fuel', notes: 'Customer disputed charge initially' },
-                { id: 3, customerName: 'Corporate Solutions', orderId: 'ORD-2024-003', amountOwed: 'Pending', date: '2024-01-25', type: 'fuel', notes: '' },
-                { id: 4, customerName: 'Party Time Rentals', orderId: 'ORD-2024-004', amountOwed: '$32.50', date: '2024-01-24', type: 'fuel', notes: 'Awaiting payment confirmation' },
-                { id: 5, customerName: 'Elite Celebrations', orderId: 'ORD-2024-005', amountOwed: 'Pending', date: '2024-01-23', type: 'fuel', notes: 'Need to calculate mileage' },
-                { id: 6, customerName: 'Dream Weddings Inc', orderId: 'ORD-2024-006', amountOwed: '$28.75', date: '2024-01-22', type: 'fuel', notes: '' },
-            ];
+        
+            // Prefer backend data
+            if (Array.isArray(window.fuelAlerts) && window.fuelAlerts.length) {
+                return window.fuelAlerts;
+            }
+
+            // Optional fallback (dev / empty state)
+            return [];
         }
 
         updateFuelAlertHeader() {
@@ -157,7 +160,15 @@ const salesDataFromServer = @json($salesData);
                 item.querySelector("[data-order-id]").textContent = alert.orderId;
 
                 // Order click
-                item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
+                // item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
+
+                item.querySelector("[data-order-btn]").onclick = () => {
+                    if (alert.orderLink) {
+                        // window.location.href = alert.orderLink;
+                        window.open(alert.orderLink, "_blank");
+
+                    }
+                };
 
                 // Edit amount
                 item.querySelector("[data-edit-amount]").onclick = () => {
@@ -176,15 +187,26 @@ const salesDataFromServer = @json($salesData);
 
                 // Status actions
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "paid");
-                item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
+                // item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
 
                 // Edit notes
+                // item.querySelector("[data-edit-notes]").onclick = () => {
+                //     this.editingAlert = alert;
+                //     // this.tempNotes = alert.notes || "";
+
+                //     this.tempNotes = alert.notes || "";
+                    
+                //     this.activeOrderUniqueId = alert.orderId;
+
+                //     this.openNotesModal(alert);
+
+                // };
+
+
                 item.querySelector("[data-edit-notes]").onclick = () => {
                     this.editingAlert = alert;
-                    // this.tempNotes = alert.notes || "";
-
-                    this.tempNotes = alert.notes || "";
-                    
+                    this.tempNotes = "";
+                    // this.showNotesModal = true;
                     this.activeOrderUniqueId = alert.orderId;
 
                     this.openNotesModal(alert);
@@ -194,26 +216,48 @@ const salesDataFromServer = @json($salesData);
                 // Amount display
                 const amountEl = item.querySelector("[data-amount]");
                 amountEl.textContent = alert.amountOwed;
+                amountEl.className =
+                    alert.amountOwed === "Pending"
+                        ? "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full"
+                        : "text-sm font-semibold text-green-700";
 
-                if (alert.amountOwed === "Pending") {
-                    amountEl.className = "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full";
-                } else {
-                    amountEl.className = "text-sm font-semibold text-green-700";
+                           // Notes (multiple notes, same design, clean)
+                if (Array.isArray(alert.notes) && alert.notes.length > 0) {
+                    const container = item.querySelector("[data-notes-container]");
+
+                    container.classList.remove("hidden");
+                    container.innerHTML = ""; // clear old notes
+
+                    alert.notes.forEach(note => {
+                        const noteEl = document.createElement("div");
+                        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
+                        noteEl.innerHTML = `
+                            <strong>Notes:</strong> ${note.note}
+                        `;
+
+                        container.appendChild(noteEl);
+                    });
                 }
 
-                // Notes
-                if (alert.notes) {
-                    item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
-                    item.querySelector("[data-notes]").textContent = alert.notes;
-                }
+                // if (alert.amountOwed === "Pending") {
+                //     amountEl.className = "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full";
+                // } else {
+                //     amountEl.className = "text-sm font-semibold text-green-700";
+                // }
+
+                // // Notes
+                // if (alert.notes) {
+                //     item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
+                //     item.querySelector("[data-notes]").textContent = alert.notes;
+                // }
 
                 wrapper.appendChild(item);
             });
         }
 
-       openAmountModal(alert) {
-            // console.log(alert);
-
+         openAmountModal(alert) {
+            console.log(alert);
+            
             this.editingAlert = alert;
 
             const input   = document.getElementById("amount-input");
@@ -248,16 +292,13 @@ const salesDataFromServer = @json($salesData);
             document.getElementById("amount-modal").classList.remove("hidden");
         }
 
-
-
         closeAmountModal() {
             document.getElementById("amount-modal").classList.add("hidden");
         }
 
-
         // DamageAlerts
 
-    defaultDamageAlerts() {
+         defaultDamageAlerts() {
             // Prefer backend data
             if (Array.isArray(window.damageAlerts) && window.damageAlerts.length) {
                 return window.damageAlerts;
@@ -298,7 +339,7 @@ const salesDataFromServer = @json($salesData);
                 item.querySelector("[data-order-id]").textContent = alert.orderId;
 
                 // Buttons
-            item.querySelector("[data-order-btn]").onclick = () => {
+                item.querySelector("[data-order-btn]").onclick = () => {
                     if (alert.orderLink) {
                         // window.location.href = alert.orderLink;
                         window.open(alert.orderLink, "_blank");
@@ -341,23 +382,23 @@ const salesDataFromServer = @json($salesData);
 
 
               
-// Notes (multiple notes, same design, clean)
-if (Array.isArray(alert.notes) && alert.notes.length > 0) {
-    const container = item.querySelector("[data-notes-container]");
+                // Notes (multiple notes, same design, clean)
+                if (Array.isArray(alert.notes) && alert.notes.length > 0) {
+                    const container = item.querySelector("[data-notes-container]");
 
-    container.classList.remove("hidden");
-    container.innerHTML = ""; // clear old notes
+                    container.classList.remove("hidden");
+                    container.innerHTML = ""; // clear old notes
 
-    alert.notes.forEach(note => {
-        const noteEl = document.createElement("div");
-        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
-        noteEl.innerHTML = `
-            <strong>Notes:</strong> ${note.note}
-        `;
+                    alert.notes.forEach(note => {
+                        const noteEl = document.createElement("div");
+                        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
+                        noteEl.innerHTML = `
+                            <strong>Notes:</strong> ${note.note}
+                        `;
 
-        container.appendChild(noteEl);
-    });
-}
+                        container.appendChild(noteEl);
+                    });
+                }
 
 
 
@@ -390,19 +431,19 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
         }
 
         openNotesModal(alert) {
-        // this.editingAlert = alert;
-        this.tempNotes =  "";
+            // this.editingAlert = alert;
+            this.tempNotes =  "";
 
-        document.getElementById("notes-input").value = this.tempNotes;
-        document.getElementById("notes-modal-title").textContent =
-            alert.notes ? "Add Notes" : "Add Notes";
+            document.getElementById("notes-input").value = this.tempNotes;
+            document.getElementById("notes-modal-title").textContent =
+                alert.notes ? "Add Notes" : "Add Notes";
 
-        document.getElementById("notes-modal").classList.remove("hidden");
-    }
+            document.getElementById("notes-modal").classList.remove("hidden");
+        }
 
-    closeNotesModal() {
-        document.getElementById("notes-modal").classList.add("hidden");
-    }
+        closeNotesModal() {
+            document.getElementById("notes-modal").classList.add("hidden");
+        }
 
 
     /** ------------------------
@@ -470,20 +511,6 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
         this.updateSalesChart();
     }
 
-
-    /** ------------------------
-     *      CURRENCY FORMATTER
-     --------------------------*/
-    // formatCurrency(val) {
-    //     return (
-    //         "$" +
-    //         val.toLocaleString("en-US", {
-    //             minimumFractionDigits: 0,
-    //             maximumFractionDigits: 0,
-    //         })
-    //     );
-    // }
-
     formatCurrency(value) {
         if (value === null || value === undefined) return `${window.APP_CURRENCY}0.00`;
 
@@ -502,25 +529,20 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
      --------------------------*/
     handleStatusUpdate(type, id, status) {
         if (type === "fuel") {
-            this.fuelAlerts = this.fuelAlerts.filter((a) => a.id !== id);
+            // this.fuelAlerts = this.fuelAlerts.filter((a) => a.id !== id);
 
-               this.updateFuelAlertHeader();
-        this.updateFuelAlertBadge();
-        this.renderFuelAlerts();
+        //        this.updateFuelAlertHeader();
+        // this.updateFuelAlertBadge();
+        // this.renderFuelAlerts();
+
+         this.selectedfuelAlert = this.fuelAlerts.find(a => a.id === id);  
+              // Open payment modal
+                this.openPaymentModal(this.selectedfuelAlert);
 
         } else {
-            // this.damageAlerts = this.damageAlerts.filter((a) => a.id !== id);
-            // this.updateDamageAlertHeader();  // NEW
-            // this.updateDamageAlertBadge();   // NEW
-            // this.renderDamageAlerts();
-
-
-
+          
               this.selectedDamageAlert = this.damageAlerts.find(a => a.id === id);  
               // Open payment modal
-
-
-
                 this.openPaymentModal(this.selectedDamageAlert);
 
         }
@@ -528,11 +550,7 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
 
     openPaymentModal(alert) {
 
-              
-                 window.resetCreditCardState();
-
-
-        // console.log(alert);
+        window.resetCreditCardState();
 
         const modal = document.getElementById('PaymentModal');
         modal.classList.remove('hidden');
@@ -573,7 +591,7 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
         const cardSelect = document.getElementById('existing_card_id');
         const cardOption = document.getElementById('cardOption');
         const cardOnFileDropdown = document.getElementById('cardOnFileDropdown');
-const paymentType = document.getElementById('payment_type');
+        const paymentType = document.getElementById('payment_type');
 
        cardSelect.innerHTML = `<option value="">-- Select a saved card --</option>`;
 
@@ -686,27 +704,6 @@ const paymentType = document.getElementById('payment_type');
             saveBtn.textContent = originalText;
         });
 }
-
-
-        // const formatted = this.tempAmount
-        //     ? `$${parseFloat(this.tempAmount).toFixed(2)}`
-        //     : "Pending";
-
-        // const list =
-        //     this.editingAlert.type === "fuel"
-        //         ? this.fuelAlerts
-        //         : this.damageAlerts;
-
-        // const index = list.findIndex((a) => a.id === this.editingAlert.id);
-        // if (index !== -1) list[index].amountOwed = formatted;
-
-        // this.editingAlert = null;
-        // this.tempAmount = "";
-        // this.closeAmountModal();
-        // this.renderFuelAlerts();
-        // this.renderDamageAlerts();
-
-    // }
 
     saveNotes() {
         if (!this.activeOrderUniqueId) {
@@ -938,14 +935,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 document.addEventListener('livewire:init', () => {
-    Livewire.on('alerts-updated', ({ alerts }) => {
+    Livewire.on('alerts-updated', ({ alerts , fuelAlerts  }) => {
 
         if (!window.dashboardApp) return;
-
+        // Damage
         window.dashboardApp.damageAlerts = alerts;
         window.dashboardApp.updateDamageAlertHeader();
         window.dashboardApp.updateDamageAlertBadge();
         window.dashboardApp.renderDamageAlerts();
+
+        
+        // Fuel
+        window.dashboardApp.fuelAlerts = fuelAlerts;
+        window.dashboardApp.updateFuelAlertHeader();
+        window.dashboardApp.updateFuelAlertBadge();
+        window.dashboardApp.renderFuelAlerts();
     });
 });
 

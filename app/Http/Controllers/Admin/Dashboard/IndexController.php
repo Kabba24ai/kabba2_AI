@@ -106,10 +106,78 @@ class IndexController extends Controller
                         'current_damage_charge' => $currentDamage,
                     ],
                 ];
-            });
+        });
 
+       $fuelChargeAlerts = OrderProduct::with([
+            'order.customer.cards',
+            'equipment',
+        ])
+        ->whereNotNull('fuel_total_charge')
+        ->where('fuel_total_charge', '>', 0)
+        ->where('fuel_charge_status', '!=', 'completed')
+        ->whereHas('equipment', function ($q) {
+            $q->where('not_for_rent', 0)
+            ->whereNull('deleted_at');
+        })
+        ->whereHas('order')
+        ->latest('id')
+        ->get()
+        ->unique('order_id') // one alert per order
+        ->values()
+        ->map(function ($orderProduct, $index) {
 
-        // Get sales data for different periods
+            $order = $orderProduct->order;
+            $equipment = $orderProduct->equipment;
+
+            $latestNote = $order?->notes()
+                ->dashboard()
+                ->latest()
+                ->get(['id', 'note', 'created_at']);
+
+            $fuelCharge = (float) ($orderProduct->fuel_total_charge ?? 0);
+
+            return [
+                'id' => $index + 1,
+
+                'customer' => [
+                    'id' => $order?->customer?->id,
+                    'full_name' => $order?->customer?->full_name,
+                    'cards' => $order?->customer?->cards?->map(fn ($card) => [
+                        'id' => $card->unique_id,
+                        'label' => $card->card_number,
+                    ])->values(),
+                ],
+
+                'customerName' => $order?->customer?->full_name ?? '—',
+                'orderId' => $order?->unique_id ?? '—',
+
+                'orderLink' => $order
+                    ? route('admin.order-management.orders.edit', $order->unique_id)
+                    : null,
+
+                'amountOwed' => '$' . number_format($fuelCharge, 2),
+
+                'date' => optional($order?->created_at)->toDateString(),
+                'type' => 'fuel',
+
+                'notes' => $latestNote,
+
+                'equipment' => [
+                    'id' => $equipment?->unique_id,
+                    'name' => $equipment?->equipment_name,
+                ],
+
+                'order_product' => [
+                    'id' => $orderProduct->id,
+                    'unique_id' => $orderProduct->unique_id,
+                    'fuel_total_charge' => $fuelCharge,
+                ],
+            ];
+        });
+
+        // dd($fuelChargeAlerts);
+
+            // Get sales data for different periods
         $salesData = $this->getSalesData();
 
         $chartData = $this->getMaintenanceChartData();
@@ -120,7 +188,7 @@ class IndexController extends Controller
 
         // dd($salesData);
         
-        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting'));
+        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts'));
                         
     }
 

@@ -236,6 +236,8 @@ class OrderProduct extends Model
         )->latest();
     }
 
+    
+
 
     /**
      * Current damage owed (base + adjustments)
@@ -250,5 +252,26 @@ class OrderProduct extends Model
         return max(0, $base + $adjustments);
 
     }
+
+
+    public function fuelChargeLogs()
+{
+    return $this->hasMany(OrderProductFuelChargeLog::class)->latest();
+}
+
+
+/**
+ * Current fuel owed (base + adjustments)
+ */
+public function getCurrentFuelChargeAttribute(): float
+{
+    $base = (float) ($this->fuel_total_charge ?? 0);
+
+    $adjustments = (float) $this->fuelChargeLogs()
+        ->sum('change_amount');
+
+    return max(0, $base + $adjustments);
+}
+
 
 }

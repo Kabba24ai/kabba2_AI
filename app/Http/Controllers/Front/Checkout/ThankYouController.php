@@ -21,6 +21,8 @@ class ThankYouController extends Controller
             abort(403, 'Invalid or tampered order parameter.');
         }
 
+        $encryptedid = $order ;
+
         // Find order by unique id (or fail if not found)
         $order = Order::with(['customer', 'billingAddress', 'shippingAddress'])->where('unique_id', $uniqueId)->firstOrFail();
 
@@ -38,6 +40,7 @@ class ThankYouController extends Controller
             'title' => 'Thank-You',
             'order' => $order,
             'thankYouComponent' => $thankYouComponent,
+            'encryptedid' => $encryptedid
         ]);
     }
 }

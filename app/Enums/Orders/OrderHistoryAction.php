@@ -26,6 +26,9 @@ enum OrderHistoryAction : string
     case ChecklistReturned = 'checklist_returned';
     case ChecklistRemoved = 'checklist_removed';
 
+    case PaymentCollected = 'payment_collected';
+    case PaymentUncollectable = 'payment_uncollectable';
+
     public function label(): string
     {
         return match($this) {
@@ -50,6 +53,9 @@ enum OrderHistoryAction : string
             self::ChecklistDelivered => 'Customer Checklist Delivered',
             self::ChecklistReturned => 'Customer Checklist Returned',
             self::ChecklistRemoved => 'Customer Checklist Removed',
+
+             self::PaymentCollected => 'Payment Collected',
+        self::PaymentUncollectable => 'Payment Marked Uncollectable',
         };
     }
 

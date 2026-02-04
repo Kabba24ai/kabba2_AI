@@ -45,7 +45,10 @@ class IndexController extends Controller
         })
         ->whereHas('order')
         ->whereHas('orderProduct', function ($q) {
-            $q->where('damage_status', '!=', 'completed');
+            $q->whereNotIn('damage_status', [
+                'completed',
+                'uncollectible',
+            ]);
         })
         ->latest('id')
         ->get()
@@ -111,10 +114,14 @@ class IndexController extends Controller
        $fuelChargeAlerts = OrderProduct::with([
             'order.customer.cards',
             'equipment',
+            'fuelChargeLogs',
         ])
         ->whereNotNull('fuel_total_charge')
         ->where('fuel_total_charge', '>', 0)
-        ->where('fuel_charge_status', '!=', 'completed')
+        ->whereNotIn('fuel_charge_status', [
+            'completed',
+            'uncollectible',
+        ])
         ->whereHas('equipment', function ($q) {
             $q->where('not_for_rent', 0)
             ->whereNull('deleted_at');
@@ -134,7 +141,10 @@ class IndexController extends Controller
                 ->latest()
                 ->get(['id', 'note', 'created_at']);
 
-            $fuelCharge = (float) ($orderProduct->fuel_total_charge ?? 0);
+$baseFuelCharge = (float) ($orderProduct->fuel_total_charge ?? 0);
+$fuelAdjustments = $orderProduct->fuelChargeLogs->sum('change_amount');
+$currentFuelCharge = max(0, $baseFuelCharge + $fuelAdjustments);
+
 
             return [
                 'id' => $index + 1,
@@ -155,7 +165,9 @@ class IndexController extends Controller
                     ? route('admin.order-management.orders.edit', $order->unique_id)
                     : null,
 
-                'amountOwed' => '$' . number_format($fuelCharge, 2),
+                 'amountOwed' => $currentFuelCharge > 0  
+                        ? '$' . number_format($currentFuelCharge, 2)
+                        : 'Pending',
 
                 'date' => optional($order?->created_at)->toDateString(),
                 'type' => 'fuel',
@@ -167,11 +179,12 @@ class IndexController extends Controller
                     'name' => $equipment?->equipment_name,
                 ],
 
-                'order_product' => [
-                    'id' => $orderProduct->id,
-                    'unique_id' => $orderProduct->unique_id,
-                    'fuel_total_charge' => $fuelCharge,
-                ],
+              'order_product' => [
+                'id' => $orderProduct->id,
+                'unique_id' => $orderProduct->unique_id,
+                'base_fuel_charge' => $baseFuelCharge,
+                'current_fuel_charge' => $currentFuelCharge ,
+            ],
             ];
         });
 

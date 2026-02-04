@@ -197,33 +197,6 @@
     </div>
 </div>
 
-<!-- Amount Modal -->
-<!-- <div id="amount-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
-
-        <h3 id="amount-modal-title" class="text-lg font-semibold px-6 pt-4"></h3>
-
-        <div class="px-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-            <input id="amount-input" type="number" step="0.01"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0.00" >
-        </div>
-
-        <div class="flex justify-end gap-2 px-6 pb-4">
-            <button onclick="dashboardApp.closeAmountModal()"
-                class="px-6 py-3 text-md rounded-lg font-medium  border border-gray-300 bg-white text-gray-700">
-                Cancel
-            </button>
-
-            <button onclick="dashboardApp.saveAmount()" id="save-btn-amount"
-                class="px-6 py-3 text-md rounded-lg font-medium  bg-blue-600 text-white hover:bg-blue-700">
-                Save
-            </button>
-        </div>
-    </div>
-</div> -->
-
 
 <!-- Amount Modal -->
 <div id="amount-modal"

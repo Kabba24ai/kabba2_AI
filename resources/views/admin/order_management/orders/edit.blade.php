@@ -1826,6 +1826,46 @@
                                             </tr>
                                         @endif
 
+                                        @php
+                                            $fuelBaseTotal = 0;
+                                            $fuelAdjustmentTotal = 0;
+
+                                            foreach ($order->products as $product) {
+                                                $base = (float) ($product->fuel_total_charge ?? 0);
+                                                $adjustments = $product->fuelChargeLogs?->sum('change_amount') ?? 0;
+
+                                                $fuelBaseTotal += $base;
+                                                $fuelAdjustmentTotal += $adjustments;
+                                            }
+
+                                            $finalFuelTotal = max(0, $fuelBaseTotal + $fuelAdjustmentTotal);
+                                        @endphp
+
+                                        @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0)
+                                            <tr class="border-b">
+                                                <td class="py-2 px-2">
+                                                    Fuel Amount Initialized
+                                                </td>
+
+                                                <td class="py-2 px-2">
+                                                    Base Amount (${{ number_format($fuelBaseTotal, 2) }})
+                                                </td>
+
+                                                <td class="py-2 px-2 {{ $fuelAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                    Adjust Amount (
+                                                    {{ $fuelAdjustmentTotal >= 0 ? '+' : '-' }}
+                                                    ${{ number_format(abs($fuelAdjustmentTotal), 2) }} )
+                                                </td>
+
+                                                <td class="py-2 px-2 text-right text-gray-800">
+                                                    ${{ number_format($finalFuelTotal, 2) }}
+                                                </td>
+                                            </tr>
+                                            @endif
+
+
+
+
 
 
                                     </tbody>
@@ -1915,12 +1955,32 @@
                                             </tr>
                                         @endif
 
+                                        @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0)
+                                            <tr>
+                                                <td colspan="7" class="py-2 px-2 text-right">
+                                                    Final Fuel Charge:
+                                                </td>
+                                                <td class="py-2 px-2 text-right">
+                                                    ${{ number_format($finalFuelTotal, 2) }}
+                                                </td>
+                                            </tr>
+                                        @endif
+
+
                                         <tr class="font-bold border-t">
                                             <td colspan="7" class="py-3 px-2 text-right">
                                                 Grand Total:
                                             </td>
                                             <td class="py-3 px-2 text-right text-gray-900">
-                                                {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal, 2) }}
+                                                {{-- {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal, 2) }} --}}
+                                                {{ number_format(
+                                                    $checklistTotal
+                                                    + $hourTrackingTotal
+                                                    + $finalDamageTotal
+                                                    + $finalFuelTotal,
+                                                    2
+                                                ) }}
+
                                             </td>
                                         </tr>
 

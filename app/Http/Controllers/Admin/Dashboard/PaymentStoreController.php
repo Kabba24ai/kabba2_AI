@@ -21,7 +21,7 @@ use App\Models\Orders\OrderExtraCharges;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderProduct;
 
-
+use App\Events\Admin\Orders\OrderExtraChargeEvent;
 
 class PaymentStoreController extends Controller
 {
@@ -83,6 +83,34 @@ if (
         'order_product_id' => $orderProduct->id,
     ]);
 }
+
+
+
+// Mark damage as paid if this is a damage charge
+if (
+    ($validated['type'] ?? null) === 'fuel'
+    && $orderProduct
+) {
+    $orderProduct->fuel_charge_status = 'completed';
+    $orderProduct->save();
+
+    Log::debug('OrderProduct fuel status updated to Completed', [
+        'order_product_id' => $orderProduct->id,
+    ]);
+}
+
+
+
+            $employee = auth()->user();
+
+            $action = 'collected' ;
+
+    event(new OrderExtraChargeEvent(
+    $order,
+    $record,
+    $employee,
+    $action
+));
 
 
 
@@ -224,6 +252,8 @@ if (
 
                 Log::debug('---- CreditCard payment process completed successfully ----');
             }
+
+
 
                 flash('Payment recorded successfully.')->success();
 

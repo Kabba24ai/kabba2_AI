@@ -21,6 +21,7 @@ use App\Events\Admin\Orders\OrderNoteEvent;
 // Requests
 use App\Http\Requests\Admin\OrderManagement\Orders\Notes\PostRequest;
 use App\Models\Orders\OrderProductDamageChargeLog;
+use App\Models\Orders\OrderProductFuelChargeLog;
 use App\Helpers\CustomHelper;
 
 
@@ -71,11 +72,43 @@ class AmountUpdateController extends Controller
                     'note'             => $request->note,
                 ]);
             });
-        }
+        } 
+
+        
+    // FUEL
+    if ($request->type == 'fuel') {
+
+        DB::transaction(function () use ($orderProduct, $request) {
+
+            $base = (float) ($orderProduct->fuel_total_charge ?? 0);
+
+            $adjustments = $orderProduct
+                ->fuelChargeLogs()
+                ->sum('change_amount');
+
+            $before = $base + $adjustments;
+
+            $change = (float) $request->amount;
+            $after  = max(0, $before + $change);
+
+            $action = $change > 0 ? 'add' : ($change < 0 ? 'subtract' : 'review');
+
+            OrderProductFuelChargeLog::create([
+                'order_product_id' => $orderProduct->id,
+                'before_amount'    => $before,
+                'change_amount'    => $change,
+                'after_amount'     => $after,
+                'action'           => $action,
+                'user_id'          => auth()->id(),
+                'note'             => $request->note,
+            ]);
+        });
+    }
+
 
     return response()->json([
         'success' => true,
-        'message' => 'Damage charge updated',
+        'message' => ucfirst($request->type) . ' charge updated',
     ]);
 }
 

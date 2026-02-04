@@ -187,7 +187,8 @@ const salesDataFromServer = @json($salesData);
 
                 // Status actions
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "paid");
-                // item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
+
+                item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
 
                 // Edit notes
                 // item.querySelector("[data-edit-notes]").onclick = () => {
@@ -264,10 +265,24 @@ const salesDataFromServer = @json($salesData);
             const baseEl  = document.getElementById("base-damage-amount");
             const currEl  = document.getElementById("current-damage-amount");
             const prevEl  = document.getElementById("preview-damage-amount");
+                const titleEl = document.getElementById("amount-modal-title");
 
-            // Base & current values must come from backend
-            const baseAmount    = Number(alert.order_product.base_damage_charge ?? 0);
-            const currentAmount = Number(alert.order_product.current_damage_charge ?? baseAmount);
+
+                
+    const isFuel = alert.type === "fuel";
+
+    
+
+       let baseAmount, currentAmount;
+
+if (isFuel) {
+    baseAmount = Number(alert.order_product.base_fuel_charge ?? 0);
+    currentAmount = Number(alert.order_product.current_fuel_charge ?? baseAmount);
+} else {
+    baseAmount = Number(alert.order_product.base_damage_charge ?? 0);
+    currentAmount = Number(alert.order_product.current_damage_charge ?? baseAmount);
+}
+
 
             // Fill static values
             baseEl.textContent = `$${baseAmount.toFixed(2)}`;
@@ -286,8 +301,12 @@ const salesDataFromServer = @json($salesData);
             };
 
             // Title is always adjustment-based
-            document.getElementById("amount-modal-title").textContent =
-                "Adjust Damage Charge";
+            // document.getElementById("amount-modal-title").textContent =
+            //     "Adjust Damage Charge";
+
+            titleEl.textContent = isFuel
+        ? "Adjust Fuel Charge"
+        : "Adjust Damage Charge";
 
             document.getElementById("amount-modal").classList.remove("hidden");
         }
@@ -360,7 +379,7 @@ const salesDataFromServer = @json($salesData);
                 item.querySelector("[data-status-btn]").onclick = () => dropdown.classList.toggle("hidden");
 
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("damage", alert.id, "paid");
-                // item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
+                item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
 
                 item.querySelector("[data-edit-notes]").onclick = () => {
                     this.editingAlert = alert;
@@ -528,6 +547,44 @@ const salesDataFromServer = @json($salesData);
      *         ALERTS
      --------------------------*/
     handleStatusUpdate(type, id, status) {
+
+        
+      // UNCOLLECTIBLE → confirm first
+if (status === "uncollectible") {
+
+    const label = type === "fuel" ? "Fuel" : "Damage";
+
+    //  get correct alert object
+    const alertItem =
+        type === "fuel"
+            ? this.fuelAlerts.find(a => a.id === id)
+            : this.damageAlerts.find(a => a.id === id);
+
+    if (!alertItem || !alertItem.order_product?.id) {
+        notyf.error("Unable to process this payment.");
+        return;
+    }
+
+    window.showConfirm(
+        `Are you sure you want to mark this ${label} payment as uncollectible?`,
+        'Mark Payment Uncollectible'
+    ).then((result) => {
+        if (result.isConfirmed) {
+
+            //  send real order_product.id
+            this.markPaymentUncollectible(
+                type,
+                alertItem.order_product.id, // correct ID
+                id 
+            );
+        }
+    });
+
+    return;
+}
+
+
+
         if (type === "fuel") {
             // this.fuelAlerts = this.fuelAlerts.filter((a) => a.id !== id);
 
@@ -547,6 +604,52 @@ const salesDataFromServer = @json($salesData);
 
         }
     }
+
+   markPaymentUncollectible(type, orderProductId, alertId) {
+
+    const url =
+        "{{ route('admin.dashboard.extra-charges.uncollectible', ':id') }}"
+            .replace(':id', orderProductId);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document
+                .querySelector('meta[name="csrf-token"]')
+                .getAttribute('content')
+        },
+        body: JSON.stringify({
+            type: type // fuel | damage
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            notyf.success(data.message || 'Marked as uncollectible');
+
+            // Remove alert from UI
+            if (type === "fuel") {
+                this.fuelAlerts = this.fuelAlerts.filter(a => a.id !== alertId);
+                this.renderFuelAlerts();
+                this.updateFuelAlertBadge();
+            } else {
+                this.damageAlerts = this.damageAlerts.filter(a => a.id !== alertId);
+                this.renderDamageAlerts();
+                this.updateDamageAlertBadge();
+            }
+        } else {
+            notyf.error(data.message || 'Something went wrong');
+        }
+    })
+    .catch(() => {
+        notyf.error('Failed to mark payment as uncollectible');
+    });
+}
+
+
+
+
 
     openPaymentModal(alert) {
 
@@ -646,45 +749,45 @@ const salesDataFromServer = @json($salesData);
 
 
     saveAmount() {
-        if (!this.editingAlert) {
-        notyf.error("Alert not found.");
-        return;
-    }
+            if (!this.editingAlert) {
+            notyf.error("Alert not found.");
+            return;
+        }
 
         const amount = document.getElementById("amount-input").value.trim();
 
         
-    if (!amount || isNaN(amount)) {
-        notyf.error("Please enter a valid amount.");
-        return;
-    }
+        if (!amount || isNaN(amount)) {
+            notyf.error("Please enter a valid amount.");
+            return;
+        }
 
 
     
-    const url =
+     const url =
         "{{ route('admin.dashboard.amount.update', ':unique_id') }}"
             .replace(":unique_id", this.editingAlert.order_product.unique_id);
 
-    const saveBtn = document.querySelector("#amount-modal #save-btn-amount");
-    const originalText = saveBtn.textContent;
+        const saveBtn = document.querySelector("#amount-modal #save-btn-amount");
+        const originalText = saveBtn.textContent;
 
-    saveBtn.disabled = true;
-    saveBtn.textContent = "Saving...";
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
 
-    apiFetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": document
-                .querySelector('meta[name="csrf-token"]')
-                .getAttribute("content"),
-        },
-        body: JSON.stringify({
-            amount: parseFloat(amount),
-            type: this.editingAlert.type, // fuel | damage
-            user_id: window.AUTH_USER_ID,
-        }),
-    })
+        apiFetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute("content"),
+            },
+            body: JSON.stringify({
+                amount: parseFloat(amount),
+                type: this.editingAlert.type, // fuel | damage
+                user_id: window.AUTH_USER_ID,
+            }),
+        })
         .then((res) => {
             if (res && res.success) {
                 notyf.success(res.message || "Amount updated");
@@ -703,7 +806,7 @@ const salesDataFromServer = @json($salesData);
             saveBtn.disabled = false;
             saveBtn.textContent = originalText;
         });
-}
+    }
 
     saveNotes() {
         if (!this.activeOrderUniqueId) {

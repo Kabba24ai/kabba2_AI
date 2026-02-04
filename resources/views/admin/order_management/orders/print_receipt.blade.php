@@ -239,6 +239,27 @@
                                     </tr>
                                     @endforeach
 
+                                         @if (!empty($item->orderProduct->distance_range))
+
+                                         <tr style="border-bottom:1px solid #d1d5db;">
+                                            <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:10px;">
+                                                + Distance Range
+                                                <span class="text-xs text-gray-400">( {{ ucfirst($item->orderProduct->distance_type) }}
+                                                            ({{ ucfirst($item->orderProduct->distance_range) }}))</span>
+                                            </td>
+                                            <td></td>
+                                            <td align="right" style="font-size:12px; color:#6b7280;">
+                                               
+
+                                                             {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
+                                            </td>
+                                            <td align="right" style="font-size:12px; color:#6b7280;">
+                                                 {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
+                                            </td>
+                                        </tr>
+
+                                        @endif
+
                                     {{-- Option Items --}}
                                     @foreach ($item->orderProduct->product_data['product_option_items'] ?? [] as $option)
                                     <tr style="border-bottom:1px solid #d1d5db;">

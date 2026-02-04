@@ -48,7 +48,12 @@
                                     <button data-status-btn class="p-1.5 text-sm text-green-600 hover:text-green-800 hover:bg-green-100 rounded transition-colors"><svg fill="currentColor" class="w-5 h-5 " xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M297.4 470.6C309.9 483.1 330.2 483.1 342.7 470.6L534.7 278.6C547.2 266.1 547.2 245.8 534.7 233.3C522.2 220.8 501.9 220.8 489.4 233.3L320 402.7L150.6 233.4C138.1 220.9 117.8 220.9 105.3 233.4C92.8 245.9 92.8 266.2 105.3 278.7L297.3 470.7z"/></svg> </button>
 
                                     <div data-status-dropdown class="hidden absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px]">
-                                        <button data-paid class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 mark-a-payment" >Mark a Payment</button>
+                                        
+                                        <button data-paid class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100" >Make a Payment</button>
+
+
+                                          {{-- <button data-paid class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100">Make a Payment</button> --}}
+
                                         <button data-uncollectible class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Mark as Uncollectible</button>
                                     </div>
                                 </div>
@@ -67,6 +72,11 @@
                                     <strong>Notes:</strong> <span data-notes></span>
                                 </div>
                             </div>
+
+                            
+                            <div data-notes-container class="px-3 pb-3 space-y-2 hidden"></div>
+
+
                         </div>
                     </template>
 

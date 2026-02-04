@@ -80,14 +80,14 @@
                                 'cost' => $part->primary_part_cost
                             ],
                             [
-                                'label' => 'Alt 1 Part Number / Supplier',
+                                'label' => 'Alt Part Number / Supplier',
                                 'supplier' => $part->alt1Supplier,
                                 'brand' => $part->alt1Brand,
                                 'part_number' => $part->alt_1_part_number,
                                 'cost' => $part->alt_1_part_cost
                             ],
                             [
-                                'label' => 'Alt 2 Part Number / Supplier',
+                                'label' => 'Alt Part Number / Supplier',
                                 'supplier' => $part->alt2Supplier,
                                 'brand' => $part->alt2Brand,
                                 'part_number' => $part->alt_2_part_number,
@@ -137,8 +137,8 @@
                                     @php
                                         $fieldMap = [
                                             'Part Number' => 'primary_part_cost',
-                                            'Alt 1 Part Number / Supplier' => 'alt_1_part_cost',
-                                            'Alt 2 Part Number / Supplier' => 'alt_2_part_cost',
+                                            'Alt Part Number / Supplier' => 'alt_1_part_cost',
+                                            'Alt Part Number / Supplier' => 'alt_2_part_cost',
                                         ];
                                     @endphp
 

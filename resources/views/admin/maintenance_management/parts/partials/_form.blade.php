@@ -281,7 +281,7 @@
 
                     <div class="flex items-center justify-between mb-1">
                         <label for="part_number_alt_1" class="text-sm font-medium text-gray-700">
-                            Alt 1 Part Number
+                            Alt Part Number / Supplier
                         </label>
 
                         <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
@@ -371,7 +371,7 @@
                  
 <div class="flex items-center justify-between mb-1">
     <label for="part_number_alt_2" class="text-sm font-medium text-gray-700">
-        Alt 2 Part Number
+       Alt Part Number / Supplier 
     </label>
 
     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">

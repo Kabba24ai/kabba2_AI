@@ -62,6 +62,7 @@ class OrderProduct extends Model
         'fuel_initial_reading',
         'fuel_final_reading',
         'fuel_total_charge',
+        'fuel_charge_status',
         'total_charge',
         'damage_charge',
         'damage_status',

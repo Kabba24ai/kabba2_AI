@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\Dashboard\NotesStoreController;
 use App\Http\Controllers\Admin\Dashboard\AmountUpdateController;
 use App\Http\Controllers\Admin\Dashboard\PaymentStoreController;
 use App\Http\Controllers\Admin\Dashboard\MarkUncollectibleController;
+use App\Http\Controllers\Admin\Dashboard\ExtraChargesShowController;
 
 
 Route::prefix('dashboard')
@@ -22,5 +23,7 @@ Route::prefix('dashboard')
     Route::post('/payment-store', PaymentStoreController::class)->name('paymentstore');
 
       Route::post('/extra-charges/uncollectible/{unique_id}', MarkUncollectibleController::class)->name('extra-charges.uncollectible');
+
+      Route::get('/extra-charges/show/{unique_id}', ExtraChargesShowController::class)->name('extra-charges.show');
 
 });

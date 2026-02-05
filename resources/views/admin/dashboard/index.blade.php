@@ -375,6 +375,17 @@ if (isFuel) {
 
                 };
 
+
+                const viewBtn = item.querySelector('[data-view-charges]');
+                    if (viewBtn) {
+                    viewBtn.addEventListener('click', () => {
+                        // pass the alert object
+                        this.openChargesModal(alert);
+                    });
+                    }
+
+
+
                 const dropdown = item.querySelector("[data-status-dropdown]");
                 item.querySelector("[data-status-btn]").onclick = () => dropdown.classList.toggle("hidden");
 
@@ -604,6 +615,153 @@ if (status === "uncollectible") {
 
         }
     }
+
+    
+ openChargesModal(alert) {
+    const modal = document.getElementById('ChargesModal');
+    const loading = document.getElementById('chargesModalLoading');
+    const empty = document.getElementById('chargesModalEmpty');
+    const header = document.getElementById('chargesModalHeader');
+    const tbody = document.getElementById('chargesTableBody');
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    // reset UI
+    tbody.innerHTML = '';
+    empty.classList.add('hidden');
+    loading.classList.remove('hidden');
+
+    header.textContent = `Order #${alert.orderId || '-'} • ${alert.customer?.name || ''}`;
+
+    const orderProductId = alert?.order_product?.id;
+    if (!orderProductId) {
+      loading.classList.add('hidden');
+      notyf.error('Order product id not found');
+      return;
+    }
+
+    this.fetchCharges(orderProductId)
+      .then(data => {
+        loading.classList.add('hidden');
+
+        const rows = data?.checklist?.rows || [];
+
+       const hasChecklist = rows.length > 0;
+        const hasDamage = data?.damage?.final > 0;
+        const hasHours = (data?.hour_tracking?.rows || []).length > 0;
+
+        if (!hasChecklist && !hasDamage && !hasHours) {
+        empty.classList.remove('hidden');
+        return;
+        }
+
+
+        rows.forEach(row => {
+          tbody.insertAdjacentHTML('beforeend', `
+            <tr class="border-b">
+              <td class="py-2 px-2">${this.escapeHtml(row.item)}</td>
+
+              <td class="py-2 px-2">
+                <div class="max-w-[200px] whitespace-normal break-words">
+                  ${this.escapeHtml(row.delivered ?? 'Admin Override')}
+                </div>
+              </td>
+
+              <td class="py-2 px-2">
+                <div class="max-w-[200px] whitespace-normal break-words">
+                  ${this.escapeHtml(row.returned ?? '-')}
+                </div>
+              </td>
+
+              <td class="py-2 px-2 text-right text-red-600">
+                ${this.formatCurrency(row.amount)}
+              </td>
+            </tr>
+          `);
+        });
+
+
+        // DAMAGE SUMMARY ROW (same as Blade)
+    if (data?.damage?.final > 0) {
+    tbody.insertAdjacentHTML('beforeend', `
+        <tr class="border-b bg-gray-50 font-medium">
+        <td class="py-2 px-2">Damage Amount Initialized</td>
+
+        <td class="py-2 px-2">
+            Base (${this.formatCurrency(data.damage.base)})
+        </td>
+
+        <td class="py-2 px-2 ${
+            data.damage.adjustment < 0 ? 'text-red-600' : 'text-green-600'
+        }">
+            Adjust (
+            ${data.damage.adjustment >= 0 ? '+' : '-'}
+            ${this.formatCurrency(Math.abs(data.damage.adjustment))}
+            )
+        </td>
+
+        <td class="py-2 px-2 text-right text-gray-900">
+            ${this.formatCurrency(data.damage.final)}
+        </td>
+        </tr>
+    `);
+    }
+
+    // GRAND TOTAL ROW (same as Blade)
+    tbody.insertAdjacentHTML('beforeend', `
+    <tr class="font-bold border-t bg-gray-100">
+        <td colspan="3" class="py-3 px-2 text-right text-gray-800">
+        Grand Total:
+        </td>
+        <td class="py-3 px-2 text-right text-gray-900">
+        ${this.formatCurrency(data.grand_total)}
+        </td>
+    </tr>
+    `);
+
+
+
+      })
+      .catch(() => {
+        loading.classList.add('hidden');
+        notyf.error('Failed to load charges');
+      });
+  }
+
+
+  fetchCharges(orderProductId) {
+    const url =
+      "{{ route('admin.dashboard.extra-charges.show', ':id') }}"
+        .replace(':id', orderProductId);
+
+    return fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document
+          .querySelector('meta[name="csrf-token"]')
+          .getAttribute('content'),
+      },
+    }).then(res => res.json());
+  }
+
+
+  closeChargesModal() {
+    const modal = document.getElementById('ChargesModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+
+  escapeHtml(str) {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
 
    markPaymentUncollectible(type, orderProductId, alertId) {
 

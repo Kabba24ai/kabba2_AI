@@ -32,6 +32,9 @@ class IndexController extends Controller
 
             if ($request->filled('unassigned_equipment')) {
                 $query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
+                $query->where(function ($q)  {
+                    $q->where('delivery_status', 'Pending')->orWhere('pickup_status', 'Pending');
+                });
             }
 
             if ($request->filled('order_number')) {

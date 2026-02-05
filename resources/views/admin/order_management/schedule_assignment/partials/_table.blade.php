@@ -142,7 +142,7 @@ if ($isBooked && !$isReturnDay) {
 
                                 @if ($isBooked)
                                     <div class="px-2 font-bold group relative {{ $textColor }} bg-{{ $color }} rounded w-full text-center"
-                                        title="Hard assigned - cannot be changed">
+                                        title="{{ $eq->lastOrderProduct?->order?->customer_name }}">
                                         @if ($isReturnDay)
                                             <span
                                                 class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>

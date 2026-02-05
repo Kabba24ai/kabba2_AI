@@ -137,31 +137,6 @@ class IndexController extends Controller
             ]);
         }
 
-        $query2 = OrderProduct::query()
-            ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment')
-            ->where('product_data->product_type', 'Rental')
-            ->whereNotNull('delivery_date')
-            ->where(function ($q) {
-                $q->where(function ($subQ) {
-                    $subQ->where('delivery_status', '!=', 'Completed')->orWhere('pickup_status', '!=', 'Completed');
-                })->whereNot(function ($subQ) {
-                    $subQ->where('delivery_status', 'Completed')->where('pickup_status', 'Completed');
-                });
-            })
-            ->whereDoesntHave('softAssignment')
-            ->whereDoesntHave('equipment')
-            ->when($request->filled('category'), function ($q) use ($request) {
-                $q->whereHas('product.categories', function ($catQ) use ($request) {
-                    $catQ->where('id', $request->category);
-                });
-            });
-
-        $orderProducts = $query2
-            //->whereBetween('order_id', [100, 130])
-            ->orderBy('delivery_date', 'asc')
-            ->paginate(max(1, $query2->count()))
-            ->withQueryString();
-
         $users = User::orderBy('first_name', 'asc')
             ->get()
             ->map(function ($user) {
@@ -173,6 +148,6 @@ class IndexController extends Controller
 
         $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
 
-        return view('admin.order_management.schedule_assignment.index', compact('categories', 'stores', 'dates', 'statuses', 'orderProducts', 'employees'));
+        return view('admin.order_management.schedule_assignment.index', compact('categories', 'stores', 'dates', 'statuses', 'employees'));
     }
 }

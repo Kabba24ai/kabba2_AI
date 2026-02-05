@@ -180,20 +180,19 @@
         </div>
 
         {{-- Schedule table (only if there are unassigned orders) --}}
-        @if ($orderProducts->total() > 0)
-            <div class="bg-white shadow-sm rounded-lg {{ $orderProducts->total() > 4 ? 'flex-1' : '' }} flex flex-col min-h-0"
-                id="unassignedOrder">
-                <h2 class="text-lg font-semibold p-5">
-                    Unassigned Orders <span id="unassignedOrderCount">({{ $orderProducts->total() }})</span>
-                </h2>
 
-                <div id="schedule-table-wrapper" class="overflow-x-auto overflow-y-auto flex-1 min-h-0">
-                    @include('admin.order_management.schedule_assignment.partials._schedule_table', [
-                        'orderProducts' => $orderProducts,
-                    ])
-                </div>
+        <div class="bg-white shadow-sm rounded-lg flex-1 flex flex-col min-h-0"
+            id="unassignedOrder">
+            <h2 class="text-lg font-semibold p-5">
+                Unassigned Orders <span id="unassignedOrderCount"></span>
+            </h2>
+
+            <div id="schedule-table-wrapper" class="overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                @include('admin.order_management.schedule_assignment.partials._schedule_table', [
+                    'orderProducts' => [],
+                ])
             </div>
-        @endif
+        </div>
     </div>
 
     <!-- Equipment Assign Modal -->
@@ -511,7 +510,7 @@
             let loadingIndicator = document.querySelector('#schedule-loading');
             let scheduleTableWrapper = document.querySelector('#schedule-table-wrapper');
             let unassignedOrderCount = document.getElementById('unassignedOrderCount');
-
+            fetchSchedules(); // initial fetch for schedules
             function fetchSchedules() {
                 const params = new URLSearchParams();
                 params.append('unassigned_equipment', 1);

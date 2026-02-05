@@ -30,7 +30,7 @@ class IndexController extends Controller
                 ->whereNotNull('delivery_date');
 
 
-            $query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
+            //$query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
 
             if ($request->filled('order_number')) {
                 $query->whereHas('order', function ($q) use ($request) {

@@ -1842,19 +1842,46 @@
                                         @endphp
 
                                         @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0)
+
+                                        @php
+                                            $arrFuelDelivery = [
+                                                ['id' => 10, 'name' => 'Prepaid'],
+                                                ['id' => 9,  'name' => 'Full'],
+                                                ['id' => 8,  'name' => '7/8'],
+                                                ['id' => 7,  'name' => '3/4'],
+                                                ['id' => 6,  'name' => '5/8'],
+                                                ['id' => 5,  'name' => '1/2'],
+                                                ['id' => 4,  'name' => '3/8'],
+                                                ['id' => 3,  'name' => '1/4'],
+                                                ['id' => 2,  'name' => '1/8'],
+                                                ['id' => 1,  'name' => 'Empty'],
+                                            ];
+
+                                            $fuelMap = collect($arrFuelDelivery)->pluck('name', 'id');
+
+                                            $initialFuel = $fuelMap[$product->fuel_initial_reading ?? null] ?? '-';
+                                            $finalFuel   = $fuelMap[$product->fuel_final_reading ?? null] ?? '-';
+                                        @endphp
+
+
                                             <tr class="border-b">
                                                 <td class="py-2 px-2">
-                                                    Fuel Amount Initialized
+                                         Fuel (
+                                                {{ 
+                                                    $product->equipment?->power_source_type
+                                                        ? ucfirst($product->equipment->power_source_type->value)
+                                                        : 'Select Power Source'
+                                                }})
+
+
                                                 </td>
 
                                                 <td class="py-2 px-2">
-                                                    Base Amount (${{ number_format($fuelBaseTotal, 2) }})
+                                                   {{ $initialFuel }}
                                                 </td>
 
                                                 <td class="py-2 px-2 {{ $fuelAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
-                                                    Adjust Amount (
-                                                    {{ $fuelAdjustmentTotal >= 0 ? '+' : '-' }}
-                                                    ${{ number_format(abs($fuelAdjustmentTotal), 2) }} )
+                                                   {{ $finalFuel }} 
                                                 </td>
 
                                                 <td class="py-2 px-2 text-right text-gray-800">
@@ -1892,8 +1919,9 @@
                                     </thead>
                                     <tbody class="text-gray-800">
                                         @foreach ($order->products as $product)
-                                            <!-- {{ $product->unique_id }}  -->
-                                            @if ($product->hour_tracking == 'Yes')
+                                            
+                                          @if (($product->equipment?->is_tracked ?? 'No') === 'Yes')
+
                                                 @php
                                                     $startHours = (float) $product->start_hours;
                                                     $endHours = (float) $product->end_hours;

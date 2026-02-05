@@ -131,6 +131,20 @@
                                     </button>
                                 </div>
 
+                                <div class="px-1">
+                                    <button
+                                        data-view-charges
+                                        class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded transition-colors"
+                                        title="View Charges"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-5 h-5" viewBox="0 0 640 640">
+                                            <path d="M160 64C124.7 64 96 92.7 96 128L96 576L160 544L224 576L288 544L352 576L416 544L480 576L544 544L544 128C544 92.7 515.3 64 480 64L160 64zM208 176C208 158.3 222.3 144 240 144L400 144C417.7 144 432 158.3 432 176C432 193.7 417.7 208 400 208L240 208C222.3 208 208 193.7 208 176zM208 272C208 254.3 222.3 240 240 240L400 240C417.7 240 432 254.3 432 272C432 289.7 417.7 304 400 304L240 304C222.3 304 208 289.7 208 272zM208 368C208 350.3 222.3 336 240 336L336 336C353.7 336 368 350.3 368 368C368 385.7 353.7 400 336 400L240 400C222.3 400 208 385.7 208 368z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+
+
                                 <div class="px-1 relative">
                                     <button data-status-btn class="p-1.5 text-sm text-green-600 hover:text-green-800 hover:bg-green-100 rounded">
                                       <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-5 h-5 " viewBox="0 0 640 640"><path d="M297.4 470.6C309.9 483.1 330.2 483.1 342.7 470.6L534.7 278.6C547.2 266.1 547.2 245.8 534.7 233.3C522.2 220.8 501.9 220.8 489.4 233.3L320 402.7L150.6 233.4C138.1 220.9 117.8 220.9 105.3 233.4C92.8 245.9 92.8 266.2 105.3 278.7L297.3 470.7z"/></svg>
@@ -480,6 +494,55 @@
            </div>
        </div>
    </div>
+
+<div id="ChargesModal"
+     class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+
+  <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-xl
+              border border-gray-200 overflow-hidden flex flex-col max-h-full">
+
+    <!-- Header -->
+    <div class="px-6 pt-4 border-b flex justify-between items-center">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800">Charges</h3>
+        <p id="chargesModalHeader" class="text-xs text-gray-500 mt-1"></p>
+      </div>
+      <button onclick="dashboardApp.closeChargesModal()"
+              class="p-2 hover:bg-gray-100 rounded">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-4 overflow-auto">
+
+      <div id="chargesModalLoading"
+           class="hidden text-sm text-gray-600 py-4">
+        Loading...
+      </div>
+
+      <div id="chargesModalBody">
+        <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
+          <thead class="bg-gray-100 text-gray-600">
+            <tr class="text-left border-b">
+              <th class="py-2 px-2">Checklist Item</th>
+              <th class="py-2 px-2">Delivered</th>
+              <th class="py-2 px-2">Returned</th>
+              <th class="py-2 px-2 text-right">Customer Owes</th>
+            </tr>
+          </thead>
+          <tbody id="chargesTableBody" class="text-gray-800"></tbody>
+        </table>
+      </div>
+
+      <div id="chargesModalEmpty"
+           class="hidden text-sm text-gray-500 text-center py-4">
+        No charges found.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 
 @push('js')
 

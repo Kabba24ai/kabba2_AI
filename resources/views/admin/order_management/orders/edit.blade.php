@@ -1926,10 +1926,12 @@
                                                     $startHours = (float) $product->start_hours;
                                                     $endHours = (float) $product->end_hours;
                                                     $allocatedHours = (float) $product->allocated_hours;
-                                                    $hourRate = (float) $product->hour_rate;
+                                                    $hourRate    = (float) ($product->equipment?->overage_rate ?? 0);
+
 
                                                     $usedHours = max(0, $endHours - $startHours);
-                                                    $additionalHours = max(0, $usedHours - $allocatedHours);
+                                                  $additionalHours = max(0, ceil($usedHours - $allocatedHours));
+
                                                     $charge = $additionalHours * $hourRate;
                                                     $totalAmount = $charge;
 

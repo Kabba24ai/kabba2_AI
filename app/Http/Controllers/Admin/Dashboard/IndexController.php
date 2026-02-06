@@ -87,7 +87,7 @@ class IndexController extends Controller
                     'orderLink' => $order
                         ? route('admin.order-management.orders.edit', $order->unique_id)
                         : null,
-
+   'order_number' => $order?->order_number ?? '—',
                     'amountOwed' => $currentDamage > 0  
                         ? '$' . number_format($currentDamage, 2)
                         : 'Pending',
@@ -160,7 +160,7 @@ $currentFuelCharge = max(0, $baseFuelCharge + $fuelAdjustments);
 
                 'customerName' => $order?->customer?->full_name ?? '—',
                 'orderId' => $order?->unique_id ?? '—',
-
+                'order_number' => $order?->order_number ?? '—',
                 'orderLink' => $order
                     ? route('admin.order-management.orders.edit', $order->unique_id)
                     : null,

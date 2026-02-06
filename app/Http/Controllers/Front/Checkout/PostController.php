@@ -14,6 +14,8 @@ use App\Services\AuthorizeNetService;
 
 // Events
 use App\Events\Front\Checkout\OrderPlacedEvent;
+use App\Events\Front\Checkout\OrderPlacedEmailEvent;
+
 
 // Helpers
 use App\Helpers\CartHelper;
@@ -502,6 +504,9 @@ class PostController extends Controller
 
             // Fire OrderPlaced event
             event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+
+            // after order is successfully placed
+            event(new OrderPlacedEmailEvent($order));
 
             // Generate a signed URL for the thank you page with order unique id
             // $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);

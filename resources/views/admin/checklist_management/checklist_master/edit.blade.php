@@ -16,7 +16,7 @@
     <div class="flex items-start gap-3">
         <x-heroicon-o-document class="w-8 h-8 text-blue-600" />
         <div>
-            <h2 class="text-xl font-semibold text-gray-900">Edit Checklist System :<span class="checklist-title-display"> - </span> </h2>
+            <h2 class="text-xl font-semibold text-gray-900">Edit Checklist Master System <span class="checklist-title-display"> - </span> </h2>
             <p class="text-sm text-gray-600" id="stepSubtitle">Update the name of your checklist system</p>
 
         </div>
@@ -41,8 +41,8 @@
         <div class="flex items-center gap-3 flex-1 min-w-[240px]" id="step-1-redirect">
             <div id="stepIcon1" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">1</div>
             <div>
-                <p class="font-semibold">Name Your Checklist</p>
-                <p class="text-xs text-gray-500">Create and name your checklist system</p>
+                <p class="font-semibold">Name Your Checklist Master</p>
+                <p class="text-xs text-gray-500">Create and name your checklist master system</p>
             </div>
         </div>
 
@@ -54,7 +54,7 @@
             <div id="stepIcon2" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">2</div>
             <div>
                 <p class="font-semibold">Assign Rental Ready Template</p>
-                <p class="text-xs text-gray-500">Select rental ready checklist template</p>
+                <p class="text-xs text-gray-500">Select rental ready checklist master template</p>
             </div>
         </div>
 
@@ -66,7 +66,7 @@
             <div id="stepIcon3" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">3</div>
             <div>
                 <p class="font-semibold">Assign Customer Template</p>
-                <p class="text-xs text-gray-500">Select customer checklist template</p>
+                <p class="text-xs text-gray-500">Select customer checklist master template</p>
             </div>
         </div>
 
@@ -103,18 +103,40 @@
                     <path d="M8 16h.01"></path>
                 </svg>
                 <h2 class="text-2xl font-bold text-gray-900">Edit System Name</h2>
-                <p class="text-gray-600 text-sm">Update the name of this checklist system. This change will be reflected
+                <p class="text-gray-600 text-sm">Update the name of this checklist master system. This change will be reflected
                     wherever this system is used.</p>
             </div>
 
 
 
-            <!-- Input -->
-            <div class="space-y-1 mb-6">
-                <label for="systemName" class="text-sm font-medium text-gray-700 mb-1">Checklist System Name <span class="text-red-500">*</span></label>
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+             <!-- Checklist System Name -->
+          
+            <div class="space-y-1">
+                <label for="systemName" class="text-sm font-medium text-gray-700 mb-1">Checklist Master System Name <span class="text-red-500">*</span></label>
                 <input id="systemName" oninput="toggleContinue()" value="{{ $checklistmaster->checklist_system_name }}" type="text" placeholder="e.g., Standard Heavy Equipment System" class="w-full border px-3 py-2 rounded-md text-sm text-sm border-gray-300" />
                 <p class="text-sm text-gray-500 mt-2 ">Choose a descriptive name that identifies this checklist system. </p>
             </div>
+            <!-- Equipment Category -->
+            <div class="space-y-1">
+                <label class="text-sm font-medium text-gray-700 block">
+                  Assign To Equipment Category <span class="text-red-500">*</span>
+                </label>
+
+               {!! html()->select(
+                    'checklist_category',
+                    ['' => '--Select Category--'] + $equipmentCategories,
+                    old('checklist_category', $checklistmaster->equipment_category_id ?? '')
+                )
+                ->id('checklist_category')
+                ->class('w-full border px-3 py-2 rounded-md text-sm border-gray-300')
+                ->attribute('onchange', 'storeCategoryId(this)')
+                !!}
+
+                
+              
+            </div>
+        </div>
 
             <!-- System Information -->
             <div class="bg-blue-50 border border-blue-100 rounded-md p-4 mb-6">
@@ -128,18 +150,8 @@
                 </ul>
             </div>
 
-            <!-- System Assignment -->
-            <div class="bg-gray-50 border border-gray-200 rounded-md p-4 flex items-start gap-3 mb-6">
-                <x-heroicon-o-document-text class="w-4 h-6 sm:w-6 sm:h-6 md:w-4 md:h-6 text-gray-900 flex-shrink-0" />
-                <div>
-                    <p class="font-semibold text-gray-700">System Assignment</p>
-                    <p class="text-sm text-gray-600">This checklist system can be assigned to multiple equipment items through the
-                        Equipment Profile screen. Changing the name will update it everywhere this
-                        system is used.</p>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-center gap-6 pt-6 w-full max-w-3xl mx-auto">
+            
+            <div class="flex items-center justify-center gap-6 pt-6 pb-6 w-full max-w-3xl mx-auto">
                 <!-- Left group: Save + Edit buttons centered -->
                 <div class="flex flex-1 justify-center gap-4">
                     <button id="savethetemp"
@@ -180,6 +192,18 @@
                 </a>
             </div>
 
+            <!-- System Assignment -->
+            <div class="bg-gray-50 border border-gray-200 rounded-md p-4 flex items-start gap-3 mb-6">
+                <x-heroicon-o-document-text class="w-4 h-6 sm:w-6 sm:h-6 md:w-4 md:h-6 text-gray-900 flex-shrink-0" />
+                <div>
+                    <p class="font-semibold text-gray-700">Checklist Master System Assignment</p>
+                    <p class="text-sm text-gray-600">This checklist master system can be assigned to multiple equipment items through the
+                        Equipment Profile screen. Changing the name will update it everywhere this
+                        system is used.</p>
+                </div>
+            </div>
+
+
         </div>
     </div>
 
@@ -212,7 +236,7 @@
                 <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
                 {!! html()->select(
                 'equipment_category',
-                ['' => 'All Categorys'] + $equipmentCategories,
+                ['' => 'All Categories'] + $equipmentCategories,
                 old('equipment_category')
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm')
@@ -356,7 +380,7 @@
                 <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
                 {!! html()->select(
                 'customer_equipment_category',
-                ['' => 'All Categorys'] + $equipmentCategories,
+                ['' => 'All Categories'] + $equipmentCategories,
                 old('customer_equipment_category')
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm') !!}
@@ -488,9 +512,9 @@
             </div>
 
             <!-- Heading and Description -->
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Checklist System Complete!</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Checklist Master System Complete!</h1>
             <p class="text-gray-600 text-sm sm:text-base mb-6">
-                Your checklist system "<strong class="font-semibold text-gray-800 "> <span class="Named-checklist-system"> aa </span> </strong>" has been successfully edited with both rental ready and customer checklist templates.
+                Your checklist master system "<strong class="font-semibold text-gray-800 "> <span class="Named-checklist-system"> aa </span> </strong>" has been successfully edited with both rental ready and customer checklist templates.
             </p>
 
             <!-- What You've Created -->
@@ -501,7 +525,7 @@
                         <svg class="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span class="flex-1">Named checklist system: <span class="font-medium Named-checklist-system">"aa"</span></span>
+                        <span class="flex-1">Named checklist master system: <span class="font-medium Named-checklist-system">"aa"</span></span>
                     </li>
                     <li class="flex items-start sm:items-center gap-2 text-green-800 flex-wrap">
                         <svg class="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -625,6 +649,34 @@
             btn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'cursor-pointer');
             btn.disabled = true;
         }
+
+         toggleContinueWithCategory();
+    }
+
+    
+    function storeCategoryId(select) {
+        const hiddenCategoryId = document.getElementById('hiddenCategoryId');
+        hiddenCategoryId.value = select.value;
+
+        // console.log('Selected Category ID:', hiddenCategoryId.value);
+
+        toggleContinueWithCategory();
+    }
+
+    function toggleContinueWithCategory() {
+        const systemName = document.getElementById('systemName').value.trim();
+        const categoryId = document.getElementById('hiddenCategoryId').value;
+        const btn = document.getElementById('continueBtn');
+
+        if (systemName !== '' && categoryId !== '') {
+            btn.classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+            btn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'cursor-pointer');
+            btn.disabled = false;
+        } else {
+            btn.classList.add('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+            btn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'cursor-pointer');
+            btn.disabled = true;
+        }
     }
 
     function updateStepHeaderTitle(name) {
@@ -699,12 +751,12 @@
     function validateStep2BeforeContinue() {
 
         const selectedTemplate = document.querySelector('input[name="template"]:checked');
-        const hiddenCategoryId = document.getElementById('hiddenCategoryId');
+        // const hiddenCategoryId = document.getElementById('hiddenCategoryId');
         const hiddenRentalTemplateId = document.getElementById('hiddenRentalTemplateId');
 
         if (selectedTemplate) {
             // Assign category ID from selected card
-            hiddenCategoryId.value = selectedTemplate.getAttribute('data-category-id');
+            // hiddenCategoryId.value = selectedTemplate.getAttribute('data-category-id');
 
             // console.log('Category ID:', hiddenCategoryId.value);
 
@@ -754,9 +806,8 @@
             const assignedrentalreadytemplate = document.getElementById('Assigned-rental-ready-template');
             document.getElementById('hiddenRentalTemplateId').value = radio.dataset.id;
 
-            document.getElementById('hiddenCategoryId').value = radio.dataset.categoryId;
 
-
+            // document.getElementById('hiddenCategoryId').value = radio.dataset.categoryId;
 
             if (assignedrentalreadytemplate) {
                 assignedrentalreadytemplate.textContent = '"' + radio.value + '"';

@@ -776,9 +776,6 @@
                                                     <option value="Completed"
                                                         {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'selected' : '' }}>
                                                         Completed</option>
-                                                    <option value="Close as Completed"
-                                                        {{ ($orderProduct->pickup_status ?? '') === 'Close as Completed' ? 'selected' : '' }}>
-                                                        Close as Completed</option>
                                                     {{-- <option value="Reschedule"
                                 {{ ($orderProduct->pickup_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
                                 Reschedule</option> --}}
@@ -2705,6 +2702,13 @@
                     deliveryStatus.addEventListener('change', function() {
                         const previousValue = this.getAttribute('data-previous-value') || '';
                         const newValue = this.value;
+
+                        if (newValue === 'Close as Completed' && returnStatus) {
+                            if (returnStatus.value !== 'Completed') {
+                                returnStatus.value = 'Completed';
+                                returnStatus.dispatchEvent(new Event('change'));
+                            }
+                        }
 
                         // Check if status changed to Completed
                         if (newValue === 'Completed' && previousValue !== 'Completed') {

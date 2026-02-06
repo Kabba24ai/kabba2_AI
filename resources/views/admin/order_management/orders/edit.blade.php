@@ -1522,10 +1522,16 @@
                                     \App\Enums\Customers\PaymentMethod::BankTransfer->value => 'Bank Transfer',
                                     \App\Enums\Customers\PaymentMethod::Other->value => 'Other',
                                 ];
-                                if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card->value) {
-                                    $refundOptions[\App\Enums\Customers\PaymentMethod::CreditCard->value] =
-                                        'Credit / Debit Card';
+
+                                if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card) {
+                                    $refundOptions =
+                                        array_slice($refundOptions, 0, 1, true)
+                                        + [
+                                            \App\Enums\Customers\PaymentMethod::CreditCard->value => 'Credit / Debit Card',
+                                        ]
+                                        + array_slice($refundOptions, 1, null, true);
                                 }
+
                             @endphp
                             {!! html()->select('payment_type', $refundOptions)->id('refund_payment_type')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
                             <small class="text-gray-500 mt-1 block">Note: Credit/Debit Card option is only available if the

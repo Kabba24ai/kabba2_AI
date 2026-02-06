@@ -75,7 +75,7 @@ class AlertsSection extends Component
             'orderLink' => $order
                 ? route('admin.order-management.orders.edit', $order->unique_id)
                 : null,
-
+   'order_number' => $order?->order_number ?? '—',
         
             'amountOwed' => $currentDamage > 0
                 ? '$' . number_format($currentDamage, 2)
@@ -155,7 +155,7 @@ class AlertsSection extends Component
                 'orderLink' => $order
                     ? route('admin.order-management.orders.edit', $order->unique_id)
                     : null,
-
+   'order_number' => $order?->order_number ?? '—',
                  'amountOwed' => $currentFuelCharge > 0  
                         ? '$' . number_format($currentFuelCharge, 2)
                         : 'Pending',

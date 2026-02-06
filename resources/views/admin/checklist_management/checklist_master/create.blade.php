@@ -16,7 +16,7 @@
     <div class="flex items-start gap-3">
         <x-heroicon-o-document class="w-8 h-8 text-blue-600" />
         <div>
-            <h2 class="text-xl font-semibold text-gray-900">Create New Checklist System :<span class="checklist-title-display"> - </span> </h2>
+            <h2 class="text-xl font-semibold text-gray-900">Create New Checklist Master System <span class="checklist-title-display"> - </span> </h2>
             <p class="text-sm text-gray-600" id="stepSubtitle">Manage complete checklist systems for equipment</p>
             <!-- <h2 class="text-xl font-semibold text-gray-900">Create Checklist System: <span class="checklist-title-display">-</span></h2>
                 <p class="text-sm text-gray-600">Set up a complete checklist system for equipment</p> -->
@@ -42,8 +42,8 @@
         <div class="flex items-center gap-3 flex-1 min-w-[240px]" id="step-1-redirect">
             <div id="stepIcon1" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">1</div>
             <div>
-                <p class="font-semibold">Name Your Checklist</p>
-                <p class="text-xs text-gray-500">Create and name your checklist system</p>
+                <p class="font-semibold">Name Your Checklist Master</p>
+                <p class="text-xs text-gray-500">Create and name your checklist master system</p>
             </div>
         </div>
 
@@ -55,7 +55,7 @@
             <div id="stepIcon2" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">2</div>
             <div>
                 <p class="font-semibold">Assign Rental Ready Template</p>
-                <p class="text-xs text-gray-500">Select rental ready checklist template</p>
+                <p class="text-xs text-gray-500">Select rental ready checklist master template</p>
             </div>
         </div>
 
@@ -67,7 +67,7 @@
             <div id="stepIcon3" class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center font-bold">3</div>
             <div>
                 <p class="font-semibold">Assign Customer Template</p>
-                <p class="text-xs text-gray-500">Select customer checklist template</p>
+                <p class="text-xs text-gray-500">Select customer checklist master template</p>
             </div>
         </div>
 
@@ -103,8 +103,8 @@
                     <path d="M8 11h.01"></path>
                     <path d="M8 16h.01"></path>
                 </svg>
-                <h2 class="text-2xl font-bold text-gray-900">Name Your Checklist System</h2>
-                <p class="text-gray-600 text-sm">Create a complete checklist system by selecting from existing templates.</p>
+                <h2 class="text-2xl font-bold text-gray-900">Name Your Checklist Master System</h2>
+                <p class="text-gray-600 text-sm">Create a complete checklist master system by selecting from existing templates.</p>
             </div>
 
             <!-- Warning Box -->
@@ -113,7 +113,7 @@
                     <div>
                         <p class="font-semibold mb-2">⚠️ Before You Continue</p>
                         <p class="text-sm">
-                            You will need to select from existing Rental Ready and Customer Checklists. If you need to create a new Rental Ready or Customer Checklist, please do this now before creating a new Checklist System.
+                            You will need to select from existing Rental Ready and Customer Checklists. If you need to create a new Rental Ready or Customer Checklist, please do this now before creating a new checklist master System.
                         </p>
                     </div>
                 </div>
@@ -122,16 +122,49 @@
                     <button class="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-users class="w-4 h-4" />Customer Admin</button>
                 </div>
             </div>
-
-            <!-- Input -->
-            <div class="space-y-1 mb-6">
-                <label for="systemName" class="text-sm font-medium text-gray-700 mb-1">Checklist System Name <span class="text-red-500">*</span></label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+             <!-- Checklist System Name -->
+          
+            <div class="space-y-1">
+                <label for="systemName" class="text-sm font-medium text-gray-700 mb-1">Checklist Master System Name <span class="text-red-500">*</span></label>
                 <input id="systemName" oninput="toggleContinue()" type="text" placeholder="e.g., Standard Heavy Equipment System" class="w-full border px-3 py-2 rounded-md text-sm text-sm border-gray-300" />
-                <p class="text-sm text-gray-500 mt-2 ">Choose a descriptive name that identifies this checklist system. You can assign it to multiple equipment items later.</p>
+                <p class="text-sm text-gray-500 mt-2 ">Choose a descriptive name that identifies this checklist master system. You can assign it to multiple equipment items later.</p>
+            </div>
+
+            <!-- Equipment Category -->
+            <div class="space-y-1">
+                <label class="text-sm font-medium text-gray-700 block">
+                  Assign To Equipment Category <span class="text-red-500">*</span>
+                </label>
+
+                {!! html()->select(
+                    'checklist_category',
+                    ['' => '--Select Category--'] + $equipmentCategories,
+                    old('checklist_category')
+                )->id('checklist_category')->attribute('onchange', 'storeCategoryId(this)')
+                ->class('w-full border px-3 py-2 rounded-md text-sm border-gray-300')
+                !!}
+                
+              
+            </div>
+        </div>
+            <div class="flex justify-center gap-6 pt-6 pb-6">
+                <button id="continueBtn" onclick="goToStep(2)" disabled class="flex items-center gap-2 px-6 py-2 bg-gray-200  rounded-md text-gray-500 cursor-not-allowed w-64 justify-center text-sm font-medium ">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Continue to Templates  
+                </button>
+                <a href="{{ route('admin.checklist-management.checklist-master.index') }}" class="flex items-center justify-center w-64 px-6 py-2 text-sm  border border-gray-300 rounded-md hover:bg-gray-100 text-gray-600 font-medium hover:underline">Cancel</a>
+
             </div>
 
             <!-- What Happens Next -->
-            <div class="bg-blue-50 border border-blue-100 rounded-md p-4 mb-6">
+            {{-- <div class="bg-blue-50 border border-blue-100 rounded-md p-4 mb-6">
                 <h4 class="text-sm font-semibold text-blue-900 mb-2">What happens next?</h4>
                 <ul class="text-sm text-blue-900 list-decimal list-inside space-y-1">
                     <li>Create or select rental ready checklist questions</li>
@@ -140,31 +173,18 @@
                     <li>Build your customer checklist template</li>
                     <li>Your complete system will be ready to assign to equipment</li>
                 </ul>
-            </div>
+            </div> --}}
 
             <!-- System Assignment -->
             <div class="bg-gray-50 border border-gray-200 rounded-md p-4 flex items-start gap-3 mb-6">
                 <x-heroicon-o-document-text class="w-4 h-6 sm:w-6 sm:h-6 md:w-4 md:h-6 text-gray-900 flex-shrink-0" />
                 <div>
-                    <p class="font-semibold text-gray-700">System Assignment</p>
+                    <p class="font-semibold text-gray-700">Checklist Master System Assignment</p>
                     <p class="text-sm text-gray-600">Once created, this checklist system can be assigned to multiple equipment items (3, 5, 12, or more) through the Equipment Profile screen in a separate module.</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-6 pt-6">
-                <button id="continueBtn" onclick="goToStep(2)" disabled class="flex items-center gap-2 px-6 py-2 bg-gray-200  rounded-md text-gray-500 cursor-not-allowed flex-1 justify-center text-sm font-medium ">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                    </svg>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Continue to Questions
-                </button>
-                <a href="{{ route('admin.checklist-management.checklist-master.index') }}" class="text-sm text-gray-600 hover:underline">Cancel</a>
-
-            </div>
+            
         </div>
     </div>
 
@@ -200,7 +220,7 @@
 
                 {!! html()->select(
                 'equipment_category',
-                ['' => 'All Categorys'] + $equipmentCategories,
+                ['' => 'All Categories'] + $equipmentCategories,
                 old('equipment_category')
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm')
@@ -340,7 +360,7 @@
                 <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
                 {!! html()->select(
                 'customer_equipment_category',
-                ['' => 'All Categorys'] + $equipmentCategories,
+                ['' => 'All Categories'] + $equipmentCategories,
                 old('customer_equipment_category')
                 )
                 ->class('w-full border px-3 py-2 rounded-md text-sm') !!}
@@ -471,9 +491,9 @@
             </div>
 
             <!-- Heading and Description -->
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Checklist System Complete!</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Checklist Master System Complete!</h1>
             <p class="text-gray-600 text-sm sm:text-base mb-6">
-                Your checklist system "<strong class="font-semibold text-gray-800 "> <span class="Named-checklist-system"> aa </span> </strong>" has been successfully created with both rental ready and customer checklist templates.
+                Your checklist master system "<strong class="font-semibold text-gray-800 "> <span class="Named-checklist-system"> aa </span> </strong>" has been successfully created with both rental ready and customer checklist templates.
             </p>
 
             <!-- What You've Created -->
@@ -484,7 +504,7 @@
                         <svg class="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span class="flex-1">Named checklist system: <span class="font-medium Named-checklist-system">"aa"</span></span>
+                        <span class="flex-1">Named checklist master system: <span class="font-medium Named-checklist-system">"aa"</span></span>
                     </li>
                     <li class="flex items-start sm:items-center gap-2 text-green-800 flex-wrap">
                         <svg class="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -570,6 +590,34 @@
             btn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'cursor-pointer');
             btn.disabled = true;
         }
+
+        toggleContinueWithCategory();
+    }
+
+  
+    function storeCategoryId(select) {
+        const hiddenCategoryId = document.getElementById('hiddenCategoryId');
+        hiddenCategoryId.value = select.value;
+
+        // console.log('Selected Category ID:', hiddenCategoryId.value);
+
+        toggleContinueWithCategory();
+    }
+
+    function toggleContinueWithCategory() {
+        const systemName = document.getElementById('systemName').value.trim();
+        const categoryId = document.getElementById('hiddenCategoryId').value;
+        const btn = document.getElementById('continueBtn');
+
+        if (systemName !== '' && categoryId !== '') {
+            btn.classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+            btn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'cursor-pointer');
+            btn.disabled = false;
+        } else {
+            btn.classList.add('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+            btn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'cursor-pointer');
+            btn.disabled = true;
+        }
     }
 
     function updateStepHeaderTitle(name) {
@@ -643,12 +691,12 @@
     function validateStep2BeforeContinue() {
 
         const selectedTemplate = document.querySelector('input[name="template"]:checked');
-        const hiddenCategoryId = document.getElementById('hiddenCategoryId');
+        // const hiddenCategoryId = document.getElementById('hiddenCategoryId');
         const hiddenRentalTemplateId = document.getElementById('hiddenRentalTemplateId');
 
         if (selectedTemplate) {
             // Assign category ID from selected card
-            hiddenCategoryId.value = selectedTemplate.getAttribute('data-category-id');
+            // hiddenCategoryId.value = selectedTemplate.getAttribute('data-category-id');
 
             // console.log('Category ID:', hiddenCategoryId.value);
 
@@ -699,7 +747,7 @@
             document.getElementById('hiddenRentalTemplateId').value = radio.dataset.id;
 
 
-            document.getElementById('hiddenCategoryId').value = radio.dataset.categoryId;
+            // document.getElementById('hiddenCategoryId').value = radio.dataset.categoryId;
 
             if (assignedrentalreadytemplate) {
                 assignedrentalreadytemplate.textContent = '"' + radio.value + '"';

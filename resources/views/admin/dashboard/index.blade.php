@@ -157,7 +157,7 @@ const salesDataFromServer = @json($salesData);
                 const item = document.importNode(template, true);
 
                 item.querySelector("[data-customer]").textContent = alert.customerName;
-                item.querySelector("[data-order-id]").textContent = alert.orderId;
+                item.querySelector("[data-order-id]").textContent = alert.order_number;
 
                 // Order click
                 // item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
@@ -355,7 +355,7 @@ if (isFuel) {
 
                 // Fill text
                 item.querySelector("[data-customer]").textContent = alert.customerName;
-                item.querySelector("[data-order-id]").textContent = alert.orderId;
+                item.querySelector("[data-order-id]").textContent = alert.order_number;
 
                 // Buttons
                 item.querySelector("[data-order-btn]").onclick = () => {

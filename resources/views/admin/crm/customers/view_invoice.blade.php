@@ -130,8 +130,8 @@
                 <p>Rent 'n King .</p>
                 <p> 10296 Highway 46</p>
                 <p>Bon Aqua, TN 37025</p>
-                <p> {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'mobile') }} </p>
-                <p>{{ \App\Helpers\ConfigurationHelper::getSettings(null , 'email') }} </p>
+                <p> {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_phone') }} </p>
+                <p>{{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_email') }} </p>
             </div>
             <!-- Right Column -->
             <div class="space-y-3">
@@ -221,7 +221,7 @@
                         </svg>
                         <span>
                             <p class="font-medium">{{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address</p>
-                            @if($addresse?->full_name)
+                            {{-- @if($addresse?->full_name)
                             {{ $addresse->full_name }}
                             @endif
 
@@ -231,7 +231,28 @@
 
                             @if($addresse?->state?->name || $addresse?->zip_code)
                             {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
-                            @endif
+                            @endif --}}
+                              <div >
+                                                                    @if($addresse?->full_name)
+                                                                        <div>{{ $addresse->full_name }}</div>
+                                                                    @endif
+
+                                                                    @if($addresse?->address)
+                                                                        <div>{{ $addresse->address }},</div>
+                                                                    @endif
+
+                                                                    <div>
+                                                                        @if($addresse?->city)
+                                                                            {{ $addresse->city }},
+                                                                        @endif
+                                                                        @if($addresse?->state?->name)
+                                                                            {{ $addresse->state->name }}
+                                                                        @endif
+                                                                        @if($addresse?->zip_code)
+                                                                            {{ ' ' . $addresse->zip_code }}
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
                         </span>
                     </div>
                     @endforeach
@@ -427,7 +448,7 @@
         <!-- Footer -->
         <div class="mt-6 text-center text-sm text-gray-500 border-t border-gray-800">
             <p class="mt-6">Thank you for your business!</p>
-            <p>For questions about this receipt, contact us at {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'mobile') }}</p>
+            <p>For questions about this receipt, contact us at {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_phone') }}</p>
         </div>
         <!-- Buttons -->
         <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 no-print">

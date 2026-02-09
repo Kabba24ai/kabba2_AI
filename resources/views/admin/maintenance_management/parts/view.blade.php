@@ -192,7 +192,7 @@
                                 </div>
 
                                 <div>
-                                    <span class="font-medium"><span class="text-red-400 font-bold"> Parts </span> Contact </span>
+                                    <span class="font-medium"><span class="text-red-700 font-bold"> Parts </span> Contact </span>
                                     <p class="mt-0.5">{{ $item['supplier']->inside_sales_name ?? '-' }}</p>
                                 </div>
 

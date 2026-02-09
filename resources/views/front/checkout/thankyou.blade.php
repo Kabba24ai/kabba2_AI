@@ -61,7 +61,7 @@
                             CONTINUE SHOPPING
                         </a>
 
-                          @if (session()->has('impersonated_by_admin'))
+                          {{-- @if (session()->has('impersonated_by_admin')) --}}
 
                          <a href="{{ route('front.checkout.receipt-download', $encryptedid) }}"
                             class="inline-flex items-center gap-2 bg-yellow-400 text-black font-medium px-6 py-3 rounded-lg hover:bg-yellow-500 transition">
@@ -74,7 +74,7 @@
 
                                 <span>Print Receipt</span>
                             </a>
-                            @endif
+                            {{-- @endif --}}
 
                     </div>
 

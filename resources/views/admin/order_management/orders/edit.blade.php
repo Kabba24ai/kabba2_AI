@@ -124,25 +124,15 @@
                                         class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
                                         required>
                                         <option value="new">New Independent Order</option>
-                                        <option value="duplicate">Related to Existing Order</option>
+                                        <option value="existing_order">Related to Existing Order</option>
                                     </select>
                                 </div>
-                                <div id="duplicateOrderSection" class="hidden">
-                                    <label class="text-sm font-medium text-gray-700 mb-2">Products</label>
-                                    <div class="space-y-2">
-                                        @foreach ($order->products as $orderProduct)
-                                            @if (!empty($orderProduct->product))
-                                                <div class="flex items-center gap-2">
-                                                    <span class="flex-1">{{ $orderProduct->product_name }}</span>
-                                                    <input type="text"
-                                                        name="delivery_dates[{{ $orderProduct->product->unique_id }}]"
-                                                        data-format="{{ config('app.date.js_date_format') }}"
-                                                        placeholder="Select date"
-                                                        data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                                        class="reorder-datepicker border rounded px-3 py-3 text-xs" />
-                                                </div>
-                                            @endif
-                                        @endforeach
+                                <div id="existingOrderSection" class="hidden">
+                                    <div class="text-sm text-green-600 font-semibold">
+                                        Original Order ID: {{ $order->reference_order_number ?? '—' }}
+                                    </div>
+                                    <div class="text-sm text-blue-600 font-semibold">
+                                        Current Order ID: {{ $order->order_number }}
                                     </div>
                                 </div>
                             </div>
@@ -3070,7 +3060,7 @@
             const reorderBtn = document.getElementById('reorderBtn');
             const reorderModal = document.getElementById('reorderModal');
             const orderTypeSelect = document.getElementById('orderTypeSelect');
-            const duplicateOrderSection = document.getElementById('duplicateOrderSection');
+            const existingOrderSection = document.getElementById('existingOrderSection');
 
             function openReorderModal() {
                 orderTypeSelect.value = 'new';
@@ -3099,15 +3089,15 @@
 
             if (orderTypeSelect) {
                 orderTypeSelect.addEventListener('change', function() {
-                    if (this.value === 'duplicate') {
-                        duplicateOrderSection.classList.remove('hidden');
+                    if (this.value === 'existing_order') {
+                        existingOrderSection.classList.remove('hidden');
                     } else {
-                        duplicateOrderSection.classList.add('hidden');
+                        existingOrderSection.classList.add('hidden');
                     }
                 });
                 // On load, ensure correct section is shown
-                if (orderTypeSelect.value === 'duplicate') {
-                    duplicateOrderSection.classList.remove('hidden');
+                if (orderTypeSelect.value === 'existing_order') {
+                    existingOrderSection.classList.remove('hidden');
                 }
             }
 

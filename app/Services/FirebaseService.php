@@ -36,10 +36,10 @@ class FirebaseService
      */
     protected function getAccessToken(): string
     {
-        Log::debug('FCM getAccessToken: Starting token retrieval', [
-            'project_id' => $this->projectId,
-            'service_account_path' => $this->serviceAccountPath,
-        ]);
+        // Log::debug('FCM getAccessToken: Starting token retrieval', [
+        //     'project_id' => $this->projectId,
+        //     'service_account_path' => $this->serviceAccountPath,
+        // ]);
 
         $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 

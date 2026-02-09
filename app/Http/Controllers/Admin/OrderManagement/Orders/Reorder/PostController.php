@@ -22,16 +22,9 @@ class PostController extends Controller
             $order = Order::where('unique_id', $orderUniqueId)->firstOrFail();
 
             $newCartData = [];
-            if ($validated['order_type'] === 'duplicate') {
+            if ($validated['order_type'] === 'existing_order') {
                 if (is_array($order->cart_data)) {
                     foreach ($order->cart_data as $cartItem) {
-                        if (isset($cartItem['delivery_date']) && $cartItem['delivery_date'] !== null) {
-                            // Update delivery_date using validated delivery dates for the product
-                            $productUniqueId = $cartItem['product_unique_id'] ?? null;
-                            if ($productUniqueId && isset($validated['delivery_dates'][$productUniqueId])) {
-                                $cartItem['delivery_date'] = $validated['delivery_dates'][$productUniqueId];
-                            }
-                        }
                         $newCartData[] = $cartItem;
                     }
                 }
@@ -43,7 +36,9 @@ class PostController extends Controller
                     'customer_unique_id' => $order->customer->unique_id,
                     'admin_unique_id' => auth()->id(),
                     'order_unique_id' => $order->unique_id,
-                    'order_number' => $order->order_number,
+                    'order_number' => $validated['order_type'] === 'existing_order'
+                        ? ($order->reference_order_number ?? $order->order_number)
+                        : $order->order_number,
                     'order_type' => $validated['order_type'],
                     'cart_data' => $newCartData,
                 ],

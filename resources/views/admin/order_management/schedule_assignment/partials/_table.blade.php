@@ -9,7 +9,12 @@
 
             <!-- Calendar headers -->
             @foreach ($dates as $date)
-                <th class="px-4 py-3 text-left font-semibold">{{ $date->format('Md') }}</th>
+                <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs text-gray-500">{{ $date->format('D') }}</span>
+                        {{ $date->format('M d') }}
+                    </div>
+                </th>
             @endforeach
         </tr>
     </thead>

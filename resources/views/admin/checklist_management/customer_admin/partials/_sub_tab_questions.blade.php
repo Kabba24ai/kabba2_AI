@@ -24,7 +24,7 @@
                    <!-- Search -->
                    <div>
                        <label class="block text-sm font-medium text-gray-700 mb-1">Search Questions</label>
-                       <input type="text" placeholder="Search by question name..."
+                       <input type="text" placeholder="Search by question name..." id="search-question"
                            class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                    </div>
 
@@ -71,7 +71,7 @@
                @foreach ($category->questions as $question)
                <!-- Sample Question Card -->
                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm question-card mb-4"
-                   data-required="{{ $question->required_question }}" data-category-id="{{ $category->id }}">
+                   data-question-id="{{ $question->id }}" data-required="{{ $question->required_question }}" data-category-id="{{ $category->id }}">
                    <!-- Header -->
                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                        {{-- Left: Question Title and Category --}}
@@ -119,6 +119,16 @@
 
                            $optionsJson = $options->toJson();
                            @endphp
+
+                           <form
+                                    action="{{ route('admin.checklist-management.customer-admin.questions.copy', $question->id) }}"
+                                    method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-green-600 hover:text-green-800"
+                                        title="Copy this Checklist Master">
+                                        <x-heroicon-o-clipboard-document class="w-4 h-4" />
+                                    </button>
+                                </form>
 
                            <button class="edit-question-btn text-green-600 hover:text-green-800"
                                data-id="{{ $question->id }}" data-name="{{ $question->question_name }}"
@@ -1393,6 +1403,24 @@ document.addEventListener("DOMContentLoaded", function() {
                cards.forEach(card => wrapper.appendChild(card));
            });
        </script>
+
+
+@if(session('open_edit_question'))
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const newId = "{{ session('open_edit_question') }}";
+
+    const btn = document.querySelector(
+        `.edit-question-btn[data-id="${newId}"]`
+    );
+
+    if (btn) {
+        btn.click(); // open edit modal
+    }
+});
+</script>
+@endif
+
 
 
    @endpush

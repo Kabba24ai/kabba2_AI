@@ -383,39 +383,6 @@
                             @endforeach
 
                             @if (
-                                $productDetail->rental_track_insurance_daily !== null ||
-                                    $productDetail->rental_track_insurance_weekend !== null ||
-                                    $productDetail->rental_track_insurance_weekly !== null ||
-                                    $productDetail->rental_track_insurance_monthly !== null)
-                                <!-- Track Insurance -->
-                                @php
-                                    $trackInsurancePrice = match ($productVariant) {
-                                        'daily' => $productDetail->rental_track_insurance_daily,
-                                        'weekend' => $productDetail->rental_track_insurance_weekend,
-                                        'weekly' => $productDetail->rental_track_insurance_weekly,
-                                        'monthly' => $productDetail->rental_track_insurance_monthly,
-                                        default => '-',
-                                    };
-                                @endphp
-                                @if ($trackInsurancePrice !== '0.00' && $trackInsurancePrice !== null)
-                                    <label class="inline-flex items-center space-x-2 mt-1 w-fit">
-                                        <input type="checkbox" class="form-checkbox h-4 w-4" checked
-                                            id="trackInsuranceCheckbox" data-charged="1 Time Max"
-                                            data-name="{{ \App\Enums\Products\ProductCustomStaticLabel::rental_track_insurance->name }}"
-                                            data-keep="{{ $productSettings['track_insurance_approve_label'] }}"
-                                            data-discard="{{ $productSettings['track_insurance_decline_label'] }}"
-                                            data-message="{{ $productSettings['track_insurance_info'] }}" />
-
-                                        <span>{{ \App\Enums\Products\ProductCustomStaticLabel::rental_track_insurance->label() }}
-                                            <span class="font-medium">
-                                                + {{ App\Helpers\CustomHelper::formatCurrency($trackInsurancePrice) }}
-                                            </span>
-                                        </span>
-                                    </label>
-                                @endif
-                            @endif
-
-                            @if (
                                 $productDetail->rental_damage_waiver_daily !== null ||
                                     $productDetail->rental_damage_waiver_weekend !== null ||
                                     $productDetail->rental_damage_waiver_weekly !== null ||
@@ -443,6 +410,39 @@
                                         <span>{{ \App\Enums\Products\ProductCustomStaticLabel::rental_damage_waiver->label() }}
                                             <span class="font-medium">
                                                 + {{ App\Helpers\CustomHelper::formatCurrency($damageWaiverPrice) }}
+                                            </span>
+                                        </span>
+                                    </label>
+                                @endif
+                            @endif
+
+                            @if (
+                                $productDetail->rental_track_insurance_daily !== null ||
+                                    $productDetail->rental_track_insurance_weekend !== null ||
+                                    $productDetail->rental_track_insurance_weekly !== null ||
+                                    $productDetail->rental_track_insurance_monthly !== null)
+                                <!-- Track Insurance -->
+                                @php
+                                    $trackInsurancePrice = match ($productVariant) {
+                                        'daily' => $productDetail->rental_track_insurance_daily,
+                                        'weekend' => $productDetail->rental_track_insurance_weekend,
+                                        'weekly' => $productDetail->rental_track_insurance_weekly,
+                                        'monthly' => $productDetail->rental_track_insurance_monthly,
+                                        default => '-',
+                                    };
+                                @endphp
+                                @if ($trackInsurancePrice !== '0.00' && $trackInsurancePrice !== null)
+                                    <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                        <input type="checkbox" class="form-checkbox h-4 w-4" checked
+                                            id="trackInsuranceCheckbox" data-charged="1 Time Max"
+                                            data-name="{{ \App\Enums\Products\ProductCustomStaticLabel::rental_track_insurance->name }}"
+                                            data-keep="{{ $productSettings['track_insurance_approve_label'] }}"
+                                            data-discard="{{ $productSettings['track_insurance_decline_label'] }}"
+                                            data-message="{{ $productSettings['track_insurance_info'] }}" />
+
+                                        <span>{{ \App\Enums\Products\ProductCustomStaticLabel::rental_track_insurance->label() }}
+                                            <span class="font-medium">
+                                                + {{ App\Helpers\CustomHelper::formatCurrency($trackInsurancePrice) }}
                                             </span>
                                         </span>
                                     </label>

@@ -32,16 +32,13 @@ class PostRequest extends ApiBaseFormRequest
     public function rules()
     {
         return [
-            'order_type' => 'required|in:new,duplicate',
-            'delivery_dates' => 'nullable|array',
-            'delivery_dates.*' => 'nullable|required_if:order_type,duplicate',
+            'order_type' => 'required|in:new,existing_order',
         ];
     }
 
     public function messages()
     {
         return [
-            'delivery_dates.*.required_if' => 'The delivery date is required when duplicating the order.',
         ];
     }
 }

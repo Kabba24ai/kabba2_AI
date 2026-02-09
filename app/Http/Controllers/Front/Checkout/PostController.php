@@ -173,7 +173,9 @@ class PostController extends Controller
             // Save Order
             $order = $customer->orders()->create([
                 'customer_id' => $customer->id,
-                'reference_order_number' => session('order.number') ?? null,
+                'reference_order_number' => session('order.type') === 'existing_order'
+                    ? session('order.number')
+                    : null,
                 'customer_name' => $customer->full_name,
                 'customer_email' => $customer->email,
                 'customer_phone' => $customer->phone,

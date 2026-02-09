@@ -27,6 +27,7 @@
                     </td>
                     <td class="py-4 px-6 text-left">
                         {!! $order->view_link !!}
+                        <small class="text-gray-500 text-xs block">{{ $order->reference_order_number }}</small>
                     </td>
                     <td class="py-4 px-6">
                         <div class="font-medium">{{ $order->customer_name }}</div>

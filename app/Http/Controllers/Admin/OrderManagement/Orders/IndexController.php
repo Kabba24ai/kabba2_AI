@@ -45,7 +45,8 @@ class IndexController extends Controller
                 })
 
                 ->when($request->filled('order_number'), function ($q) use ($request) {
-                    $q->where('order_number', 'like', "%{$request->order_number}%");
+                    $q->where('order_number', 'like', "%{$request->order_number}%")
+                    ->orWhere('reference_order_number', 'like', "%{$request->order_number}%");
                 })
 
                 ->when($request->filled('category'), function ($q) use ($request) {

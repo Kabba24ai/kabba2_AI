@@ -215,30 +215,30 @@
             </div>
 
             <div class="mt-4">
-   <!-- Label + Add Button -->
-    <div class="flex items-center justify-between mb-1">
-        <label for="brand_alt_1" class="block text-sm font-medium text-gray-700">Brand</label>
+                    <!-- Label + Add Button -->
+                <div class="flex items-center justify-between mb-1">
+                    <label for="brand_alt_1" class="block text-sm font-medium text-gray-700">Brand</label>
 
-      <button type="button"
-    onclick="openBrandAddModal()"
-            class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1">
+                <button type="button"
+                    onclick="openBrandAddModal()"
+                        class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1">
 
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="h-4 w-4"
-                 fill="none"
-                 viewBox="0 0 24 24"
-                 stroke="currentColor"
-                 stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
 
-            Add
-        </button>
-    </div>
-    <select id="brand" name="primary_brand_id" class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white brand-select">
-        <option value="">Select brand</option>
-    </select>
-</div>
+                        Add
+                </button>
+                </div>
+                <select id="brand" name="primary_brand_id" class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white brand-select">
+                    <option value="">Select brand</option>
+                </select>
+            </div>
 
 
             <div class="mt-4">
@@ -277,9 +277,20 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div class="md:col-span-2">
-                    <label for="part_number_alt_1" class="block text-sm font-medium text-gray-700 mb-1">
-                        Alt 1 Part Number
-                    </label>
+                
+
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="part_number_alt_1" class="text-sm font-medium text-gray-700">
+                            Alt Part Number / Supplier
+                        </label>
+
+                        <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                            <input type="checkbox" onchange="copyPrimaryToAlt(1)"
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            Copy primary
+                        </label>
+                    </div>
+
 
                     {!! html()->text('part_number_alt_1', old('part_number_alt_1', $part->alt_1_part_number ?? ''))
                     ->class('w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white')
@@ -315,13 +326,13 @@
             </div>
 
             <div class="mt-4">
-    <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+                <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
 
-   <select id="brand_alt_1" name="alt_1_brand_id" class="brand-select w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white">
-    <option value="">Select brand</option>
-</select>
+                <select id="brand_alt_1" name="alt_1_brand_id" class="brand-select w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white">
+                    <option value="">Select brand</option>
+                </select>
 
-</div>
+            </div>
 
 
             <div class="mt-4">
@@ -357,9 +368,22 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div class="md:col-span-2">
-                    <label for="part_number_alt_2" class="block text-sm font-medium text-gray-700 mb-1">
-                        Alt 2 Part Number
-                    </label>
+                 
+<div class="flex items-center justify-between mb-1">
+    <label for="part_number_alt_2" class="text-sm font-medium text-gray-700">
+       Alt Part Number / Supplier 
+    </label>
+
+    <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+        <input type="checkbox" onchange="copyPrimaryToAlt(2)"
+               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+        Copy primary
+    </label>
+</div>
+
+
+
+
                     <!-- <input type="text" id="part_number_alt_2" name="part_number_alt_2"
                         value="{{ old('part_number_alt_2', $part->part_number_alt_2 ?? '') }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
@@ -400,13 +424,13 @@
                 </div>
             </div>
             <div class="mt-4">
-    <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+                <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
 
-  <select id="brand_alt_2" name="alt_2_brand_id" class="brand-select w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white">
-    <option value="">Select brand</option>
-</select>
+            <select id="brand_alt_2" name="alt_2_brand_id" class="brand-select w-full px-3 py-3 border border-gray-300 rounded-md text-sm bg-white">
+                <option value="">Select brand</option>
+            </select>
 
-</div>
+            </div>
 
 
             <div class="mt-4">
@@ -576,6 +600,30 @@
         }
 
     });
+    
+</script>
+<script>
+    function copyPrimaryToAlt(altNumber) {
+
+        // Primary values
+        const primaryPartNumber = document.getElementById('part_number')?.value || '';
+        const primaryCost = document.getElementById('unit_cost')?.value || '';
+        const primaryBrand = document.getElementById('brand')?.value || '';
+
+        // Target fields
+        const partNumberField = document.getElementById(`part_number_alt_${altNumber}`);
+        const costField = document.getElementById(`cost_alt_${altNumber}`);
+        const brandField = document.getElementById(`brand_alt_${altNumber}`);
+
+        if (partNumberField) partNumberField.value = primaryPartNumber;
+        if (costField) costField.value = primaryCost;
+        if (brandField) brandField.value = primaryBrand;
+
+        // trigger change for select (if select2 / ajax brands)
+        if (brandField) {
+            brandField.dispatchEvent(new Event('change'));
+        }
+    }
 </script>
 
 @endpush

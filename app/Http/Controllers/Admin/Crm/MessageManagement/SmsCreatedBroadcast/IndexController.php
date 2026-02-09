@@ -66,7 +66,7 @@ class IndexController extends Controller
         // -----------------------------
         $union = $broadcastQuery->unionAll($funnelQuery);
 
-        $perPage = (int) $request->input('per_page', 10);
+        $perPage = (int) $request->input('per_page', 30);
 
         $broadcasts = DB::query()
             ->fromSub($union, 'sms_contents')

@@ -57,6 +57,7 @@ class SaveReturnRequest extends ApiBaseFormRequest
             'user_id' => 'required|string|exists:users,id',
             'end_hours' => 'nullable|string',
             'fuel_final_reading' => 'nullable|string',
+            'fuel_total_charge' => 'nullable|string',
             'total_charge' => 'nullable|string',
             'note' => 'nullable|string',
 
@@ -95,8 +96,16 @@ class SaveReturnRequest extends ApiBaseFormRequest
                 'example' => '1',
             ],
             'end_hours' => [
-                'description' => 'The start hours for the delivery.',
+                'description' => 'The end hours for the return.',
                 'example' => '14',
+            ],
+            'fuel_final_reading' => [
+                'description' => 'The final fuel reading for the return.',
+                'example' => '50.00',
+            ],
+            'fuel_total_charge' => [
+                'description' => 'Total fuel charge for the return.',
+                'example' => '75.00',
             ],
             'total_charge' => [
                 'description' => 'Total charge for the return.',

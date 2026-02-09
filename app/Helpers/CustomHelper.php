@@ -199,7 +199,7 @@ class CustomHelper
             return null;
         }
 
-        $format = $format ?? config('app.date.date_time_format', 'd/m/Y H:i A');
+        $format = $format ?? config('app.date.date_time_format', 'd/m/Y h:i A');
         return Carbon::parse($dateTime)->format($format);
     }
 

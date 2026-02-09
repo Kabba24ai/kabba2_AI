@@ -53,7 +53,7 @@ class IndexController extends Controller
 
             // ---- ordering: by derived category title then product name ----
             // If you want products without categories LAST, use the commented line.
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
 
             $products = $query

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\OrderManagement\Schedules;
 
 use App\Http\Controllers\Controller;
 use App\Models\Iam\Personnel\User;
+use App\Models\Orders\Order;
 use Illuminate\Http\Request;
 
 // Models
@@ -28,8 +29,12 @@ class IndexController extends Controller
                 ->where('product_data->product_type', 'Rental')
                 ->whereNotNull('delivery_date');
 
-            if ($request->filled('')) {
+
+            if ($request->filled('unassigned_equipment')) {
                 $query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');
+                $query->where(function ($q)  {
+                    $q->where('delivery_status', 'Pending')->orWhere('pickup_status', 'Pending');
+                });
             }
 
             if ($request->filled('order_number')) {
@@ -181,7 +186,7 @@ class IndexController extends Controller
                 });
             }
 
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
             $orderProducts = $query->orderBy($orderByField, 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
 
@@ -214,11 +219,16 @@ class IndexController extends Controller
                 ];
             });
         $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
-
+        $rescheduleOrder = Order::whereHas('products', function ($q) {
+            $q->where(function ($subQ) {
+                $subQ->where('delivery_status', 'Reschedule')
+                    ->orWhere('pickup_status', 'Reschedule');
+            });
+        })->count();
         // $all = $query->orderBy('delivery_date', 'asc')->limit(2)->get(); // keeps filters in pagination links
 
         // dd($all);
 
-        return view('admin.order_management.schedules.index', ['categories' => $categories, 'stores' => $stores, 'employees' => $employees]);
+        return view('admin.order_management.schedules.index', ['categories' => $categories, 'stores' => $stores, 'employees' => $employees, 'rescheduleOrder' => $rescheduleOrder]);
     }
 }

@@ -1,7 +1,7 @@
-@if ($paginator->hasPages())
+@if ($paginator instanceof \Illuminate\Contracts\Pagination\Paginator)
     @php
         // read per_page from query (fallback 10)
-        $perPage = request('per_page', 10);
+        $perPage = request('per_page', 30);
         $perPageOptions = [5, 10, 30, 50, 100, 500, 'all'];
     @endphp
     <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="flex items-center justify-between">

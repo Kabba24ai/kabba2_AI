@@ -28,7 +28,10 @@ class AlertsSection extends Component
         })
         ->whereHas('order')
         ->whereHas('orderProduct', function ($q) {
-            $q->where('damage_status', '!=', 'completed');
+            $q->whereNotIn('damage_status', [
+                'completed',
+                'uncollectible',
+            ]);
         })
         ->latest('id')
         ->get()
@@ -36,72 +39,149 @@ class AlertsSection extends Component
         ->values()
        ->map(function ($softAssign, $index) {
 
-    $order = $softAssign->order;
-    $equipment = $softAssign->equipment;
-    $orderProduct = $softAssign->orderProduct;
+        $order = $softAssign->order;
+        $equipment = $softAssign->equipment;
+        $orderProduct = $softAssign->orderProduct;
 
-    $latestNote = $order?->notes()
-        ->dashboard()
-        ->latest()
-        ->get(['id', 'note', 'created_at']);
+        $latestNote = $order?->notes()
+            ->dashboard()
+            ->latest()
+            ->get(['id', 'note', 'created_at']);
 
 
-    $baseDamage = (float) ($orderProduct->damage_charge ?? 0);
+        $baseDamage = (float) ($orderProduct->damage_charge ?? 0);
+
+        
+        $adjustments = $orderProduct->damageChargeLogs->sum('change_amount');
 
     
-    $adjustments = $orderProduct->damageChargeLogs->sum('change_amount');
+        $currentDamage = max(0, $baseDamage + $adjustments);
 
-  
-    $currentDamage = max(0, $baseDamage + $adjustments);
+        return [
+            'id' => $index + 1,
 
-    return [
-        'id' => $index + 1,
+            'customer' => [
+                'id' => $order?->customer?->id,
+                'full_name' => $order?->customer?->full_name,
+                'cards' => $order?->customer?->cards?->map(fn ($card) => [
+                    'id' => $card->unique_id,
+                    'label' => $card->card_number,
+                ])->values(),
+            ],
 
-        'customer' => [
-            'id' => $order?->customer?->id,
-            'full_name' => $order?->customer?->full_name,
-            'cards' => $order?->customer?->cards?->map(fn ($card) => [
-                'id' => $card->unique_id,
-                'label' => $card->card_number,
-            ])->values(),
-        ],
+            'customerName' => $order?->customer?->full_name ?? '—',
+            'orderId' => $order?->unique_id ?? '—',
 
-        'customerName' => $order?->customer?->full_name ?? '—',
-        'orderId' => $order?->unique_id ?? '—',
+            'orderLink' => $order
+                ? route('admin.order-management.orders.edit', $order->unique_id)
+                : null,
+   'order_number' => $order?->order_number ?? '—',
+        
+            'amountOwed' => $currentDamage > 0
+                ? '$' . number_format($currentDamage, 2)
+                : 'Pending',
 
-        'orderLink' => $order
-            ? route('admin.order-management.orders.edit', $order->unique_id)
-            : null,
+            'date' => optional($order?->created_at)->toDateString(),
+            'type' => 'damage',
 
-      
-        'amountOwed' => $currentDamage > 0
-            ? '$' . number_format($currentDamage, 2)
-            : 'Pending',
+            'notes' => $latestNote,
 
-        'date' => optional($order?->created_at)->toDateString(),
-        'type' => 'damage',
+            'equipment' => [
+                'id' => $equipment?->unique_id,
+                'name' => $equipment?->equipment_name,
+            ],
 
-        'notes' => $latestNote,
+        
+            'order_product' => [
+                'id' => $orderProduct?->id,
+                'unique_id' => $orderProduct?->unique_id,
+                'base_damage_charge' => $baseDamage,
+                'current_damage_charge' => $currentDamage,
+            ],
+        ];
+         });
 
-        'equipment' => [
-            'id' => $equipment?->unique_id,
-            'name' => $equipment?->equipment_name,
-        ],
+         
+       $fuelChargeAlerts = OrderProduct::with([
+            'order.customer.cards',
+            'equipment',
+            'fuelChargeLogs',
+        ])
+        ->whereNotNull('fuel_total_charge')
+        ->where('fuel_total_charge', '>', 0)
+        ->whereNotIn('fuel_charge_status', [
+            'completed',
+            'uncollectible',
+        ])
+        ->whereHas('equipment', function ($q) {
+            $q->where('not_for_rent', 0)
+            ->whereNull('deleted_at');
+        })
+        ->whereHas('order')
+        ->latest('id')
+        ->get()
+        ->unique('order_id') // one alert per order
+        ->values()
+        ->map(function ($orderProduct, $index) {
 
-      
-        'order_product' => [
-            'id' => $orderProduct?->id,
-            'unique_id' => $orderProduct?->unique_id,
-            'base_damage_charge' => $baseDamage,
-            'current_damage_charge' => $currentDamage,
-        ],
-    ];
-});
+            $order = $orderProduct->order;
+            $equipment = $orderProduct->equipment;
 
+            $latestNote = $order?->notes()
+                ->dashboard()
+                ->latest()
+                ->get(['id', 'note', 'created_at']);
+
+            $baseFuelCharge = (float) ($orderProduct->fuel_total_charge ?? 0);
+            $fuelAdjustments = $orderProduct->fuelChargeLogs->sum('change_amount');
+            $currentFuelCharge = max(0, $baseFuelCharge + $fuelAdjustments);
+
+
+            return [
+                'id' => $index + 1,
+
+                'customer' => [
+                    'id' => $order?->customer?->id,
+                    'full_name' => $order?->customer?->full_name,
+                    'cards' => $order?->customer?->cards?->map(fn ($card) => [
+                        'id' => $card->unique_id,
+                        'label' => $card->card_number,
+                    ])->values(),
+                ],
+
+                'customerName' => $order?->customer?->full_name ?? '—',
+                'orderId' => $order?->unique_id ?? '—',
+
+                'orderLink' => $order
+                    ? route('admin.order-management.orders.edit', $order->unique_id)
+                    : null,
+   'order_number' => $order?->order_number ?? '—',
+                 'amountOwed' => $currentFuelCharge > 0  
+                        ? '$' . number_format($currentFuelCharge, 2)
+                        : 'Pending',
+
+                'date' => optional($order?->created_at)->toDateString(),
+                'type' => 'fuel',
+
+                'notes' => $latestNote,
+
+                'equipment' => [
+                    'id' => $equipment?->unique_id,
+                    'name' => $equipment?->equipment_name,
+                ],
+
+              'order_product' => [
+                'id' => $orderProduct->id,
+                'unique_id' => $orderProduct->unique_id,
+                'base_fuel_charge' => $baseFuelCharge,
+                'current_fuel_charge' => $currentFuelCharge ,
+            ],
+            ];
+        });
 
 
         //  Send data to JS
-        $this->dispatch('alerts-updated', alerts: $alerts);
+        $this->dispatch('alerts-updated', alerts: $alerts ,   fuelAlerts: $fuelChargeAlerts);
     }
 
     public function mount()

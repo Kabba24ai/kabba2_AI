@@ -16,6 +16,10 @@ class StoreController extends Controller
      */
     public function __invoke(StoreRequest $request)
     {
+
+
+    // dd($request->all());
+
         $validated = $request->validated();
 
 

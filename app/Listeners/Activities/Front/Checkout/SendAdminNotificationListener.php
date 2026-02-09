@@ -3,8 +3,9 @@ namespace App\Listeners\Activities\Front\Checkout;
 
 use App\Events\Front\Checkout\OrderPlacedEvent;
 use App\Services\FirebaseService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SendAdminNotificationListener
+class SendAdminNotificationListener implements ShouldQueue
 {
     /**
      * Handle the event.

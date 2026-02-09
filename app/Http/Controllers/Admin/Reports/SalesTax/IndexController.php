@@ -51,7 +51,7 @@ class IndexController extends Controller
 
         $orders = $ordersQuery->get();
 
-       
+
 
         // Load payment accounts ONLY when a store is NOT selected
         $paymentAccounts = collect(); // default empty collection
@@ -181,7 +181,7 @@ $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
 
 
         // Pagination
-        $perPage = $request->get('per_page', 10);
+        $perPage = $request->get('per_page', 30);
         $page = $request->get('page', 1);
         $total = $reportRows->count();
         $items = $reportRows->slice(($page - 1) * $perPage, $perPage)->values();

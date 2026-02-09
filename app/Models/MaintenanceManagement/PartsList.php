@@ -61,26 +61,52 @@ class PartsList extends Model
     }
 
 
+    public function getProductDetailsAttribute()
+    {
+        $productIds = (array) $this->selected_products;
 
-        public function getProductDetailsAttribute()
-        {
-            $productIds = (array) $this->selected_products;
-
-            if (empty($productIds)) {
-                return [];
-            }
-
-            return \App\Models\MaintenanceManagement\Equipment::whereIn('id', $productIds)
-                ->get(['id', 'equipment_name', 'equipment_id','unique_id'])
-                ->map(function ($product) {
-                    return [
-                        'name' => $product->equipment_name,
-                        'equipment_id' => $product->equipment_id,
-                        'unique_id'=>$product->unique_id,
-                    ];
-                })
-                ->toArray();
+        if (empty($productIds)) {
+            return [];
         }
+
+        return \App\Models\MaintenanceManagement\Equipment::whereIn('id', $productIds)
+            ->get(['id', 'equipment_name', 'equipment_id', 'unique_id'])
+            ->sortBy([
+                ['equipment_name', 'asc'],   // first sort by name
+                ['equipment_id', 'asc'],     // then by equipment_id
+            ])
+            ->map(function ($product) {
+                return [
+                    'name' => $product->equipment_name,
+                    'equipment_id' => $product->equipment_id,
+                    'unique_id' => $product->unique_id,
+                ];
+            })
+            ->values()   // reindex array
+            ->toArray();
+    }
+
+
+
+        // public function getProductDetailsAttribute()
+        // {
+        //     $productIds = (array) $this->selected_products;
+
+        //     if (empty($productIds)) {
+        //         return [];
+        //     }
+
+        //     return \App\Models\MaintenanceManagement\Equipment::whereIn('id', $productIds)
+        //         ->get(['id', 'equipment_name', 'equipment_id','unique_id'])
+        //         ->map(function ($product) {
+        //             return [
+        //                 'name' => $product->equipment_name,
+        //                 'equipment_id' => $product->equipment_id,
+        //                 'unique_id'=>$product->unique_id,
+        //             ];
+        //         })
+        //         ->toArray();
+        // }
 
 
     // In PartTemplate model

@@ -32,7 +32,7 @@
                                     <h4 class="text-sm font-semibold text-gray-800 truncate" data-customer></h4>
                                 </div>
 
-                                <div class="flex-1 min-w-0 px-2 truncate">
+                                <div class="flex-1 min-w-0 px-2 truncate flex justify-center">
                                     <button data-order-btn class="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
                                         <span data-order-id></span>
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-4 h-4 ml-1 text-xs"><path d="M354.4 83.8C359.4 71.8 371.1 64 384 64L544 64C561.7 64 576 78.3 576 96L576 256C576 268.9 568.2 280.6 556.2 285.6C544.2 290.6 530.5 287.8 521.3 278.7L464 221.3L310.6 374.6C298.1 387.1 277.8 387.1 265.3 374.6C252.8 362.1 252.8 341.8 265.3 329.3L418.7 176L361.4 118.6C352.2 109.4 349.5 95.7 354.5 83.7zM64 240C64 195.8 99.8 160 144 160L224 160C241.7 160 256 174.3 256 192C256 209.7 241.7 224 224 224L144 224C135.2 224 128 231.2 128 240L128 496C128 504.8 135.2 512 144 512L400 512C408.8 512 416 504.8 416 496L416 416C416 398.3 430.3 384 448 384C465.7 384 480 398.3 480 416L480 496C480 540.2 444.2 576 400 576L144 576C99.8 576 64 540.2 64 496L64 240z"/></svg>
@@ -48,7 +48,12 @@
                                     <button data-status-btn class="p-1.5 text-sm text-green-600 hover:text-green-800 hover:bg-green-100 rounded transition-colors"><svg fill="currentColor" class="w-5 h-5 " xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M297.4 470.6C309.9 483.1 330.2 483.1 342.7 470.6L534.7 278.6C547.2 266.1 547.2 245.8 534.7 233.3C522.2 220.8 501.9 220.8 489.4 233.3L320 402.7L150.6 233.4C138.1 220.9 117.8 220.9 105.3 233.4C92.8 245.9 92.8 266.2 105.3 278.7L297.3 470.7z"/></svg> </button>
 
                                     <div data-status-dropdown class="hidden absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px]">
-                                        <button data-paid class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 mark-a-payment" >Mark a Payment</button>
+                                        
+                                        <button data-paid class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100" >Make a Payment</button>
+
+
+                                          {{-- <button data-paid class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100">Make a Payment</button> --}}
+
                                         <button data-uncollectible class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Mark as Uncollectible</button>
                                     </div>
                                 </div>
@@ -67,6 +72,11 @@
                                     <strong>Notes:</strong> <span data-notes></span>
                                 </div>
                             </div>
+
+                            
+                            <div data-notes-container class="px-3 pb-3 space-y-2 hidden"></div>
+
+
                         </div>
                     </template>
 
@@ -108,7 +118,7 @@
                                     <h4 class="text-sm font-semibold text-gray-800 truncate" data-customer></h4>
                                 </div>
 
-                                <div class="flex-1 min-w-0 px-2 truncate">
+                                <div class="flex-1 min-w-0 px-2 truncate flex justify-center">
                                     <button data-order-btn class="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors ">
                                         <span data-order-id></span>
                                      <svg fill="currentColor" class="w-4 h-4 ml-1 text-xs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M354.4 83.8C359.4 71.8 371.1 64 384 64L544 64C561.7 64 576 78.3 576 96L576 256C576 268.9 568.2 280.6 556.2 285.6C544.2 290.6 530.5 287.8 521.3 278.7L464 221.3L310.6 374.6C298.1 387.1 277.8 387.1 265.3 374.6C252.8 362.1 252.8 341.8 265.3 329.3L418.7 176L361.4 118.6C352.2 109.4 349.5 95.7 354.5 83.7zM64 240C64 195.8 99.8 160 144 160L224 160C241.7 160 256 174.3 256 192C256 209.7 241.7 224 224 224L144 224C135.2 224 128 231.2 128 240L128 496C128 504.8 135.2 512 144 512L400 512C408.8 512 416 504.8 416 496L416 416C416 398.3 430.3 384 448 384C465.7 384 480 398.3 480 416L480 496C480 540.2 444.2 576 400 576L144 576C99.8 576 64 540.2 64 496L64 240z"/></svg>
@@ -120,6 +130,20 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-5 h-5 " viewBox="0 0 640 640"><path d="M296 88C296 74.7 306.7 64 320 64C333.3 64 344 74.7 344 88L344 128L400 128C417.7 128 432 142.3 432 160C432 177.7 417.7 192 400 192L285.1 192C260.2 192 240 212.2 240 237.1C240 259.6 256.5 278.6 278.7 281.8L370.3 294.9C424.1 302.6 464 348.6 464 402.9C464 463.2 415.1 512 354.9 512L344 512L344 552C344 565.3 333.3 576 320 576C306.7 576 296 565.3 296 552L296 512L224 512C206.3 512 192 497.7 192 480C192 462.3 206.3 448 224 448L354.9 448C379.8 448 400 427.8 400 402.9C400 380.4 383.5 361.4 361.3 358.2L269.7 345.1C215.9 337.5 176 291.4 176 237.1C176 176.9 224.9 128 285.1 128L296 128L296 88z"/></svg>
                                     </button>
                                 </div>
+
+                                <div class="px-1">
+                                    <button
+                                        data-view-charges
+                                        class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded transition-colors"
+                                        title="View Charges"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-5 h-5" viewBox="0 0 640 640">
+                                            <path d="M160 64C124.7 64 96 92.7 96 128L96 576L160 544L224 576L288 544L352 576L416 544L480 576L544 544L544 128C544 92.7 515.3 64 480 64L160 64zM208 176C208 158.3 222.3 144 240 144L400 144C417.7 144 432 158.3 432 176C432 193.7 417.7 208 400 208L240 208C222.3 208 208 193.7 208 176zM208 272C208 254.3 222.3 240 240 240L400 240C417.7 240 432 254.3 432 272C432 289.7 417.7 304 400 304L240 304C222.3 304 208 289.7 208 272zM208 368C208 350.3 222.3 336 240 336L336 336C353.7 336 368 350.3 368 368C368 385.7 353.7 400 336 400L240 400C222.3 400 208 385.7 208 368z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+
 
                                 <div class="px-1 relative">
                                     <button data-status-btn class="p-1.5 text-sm text-green-600 hover:text-green-800 hover:bg-green-100 rounded">
@@ -186,33 +210,6 @@
 
     </div>
 </div>
-
-<!-- Amount Modal -->
-<!-- <div id="amount-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
-
-        <h3 id="amount-modal-title" class="text-lg font-semibold px-6 pt-4"></h3>
-
-        <div class="px-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-            <input id="amount-input" type="number" step="0.01"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0.00" >
-        </div>
-
-        <div class="flex justify-end gap-2 px-6 pb-4">
-            <button onclick="dashboardApp.closeAmountModal()"
-                class="px-6 py-3 text-md rounded-lg font-medium  border border-gray-300 bg-white text-gray-700">
-                Cancel
-            </button>
-
-            <button onclick="dashboardApp.saveAmount()" id="save-btn-amount"
-                class="px-6 py-3 text-md rounded-lg font-medium  bg-blue-600 text-white hover:bg-blue-700">
-                Save
-            </button>
-        </div>
-    </div>
-</div> -->
 
 
 <!-- Amount Modal -->
@@ -497,6 +494,55 @@
            </div>
        </div>
    </div>
+
+<div id="ChargesModal"
+     class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+
+  <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-xl
+              border border-gray-200 overflow-hidden flex flex-col max-h-full">
+
+    <!-- Header -->
+    <div class="px-6 pt-4 border-b flex justify-between items-center">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800">Charges</h3>
+        <p id="chargesModalHeader" class="text-xs text-gray-500 mt-1"></p>
+      </div>
+      <button onclick="dashboardApp.closeChargesModal()"
+              class="p-2 hover:bg-gray-100 rounded">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-4 overflow-auto">
+
+      <div id="chargesModalLoading"
+           class="hidden text-sm text-gray-600 py-4">
+        Loading...
+      </div>
+
+      <div id="chargesModalBody">
+        <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
+          <thead class="bg-gray-100 text-gray-600">
+            <tr class="text-left border-b">
+              <th class="py-2 px-2">Checklist Item</th>
+              <th class="py-2 px-2">Delivered</th>
+              <th class="py-2 px-2">Returned</th>
+              <th class="py-2 px-2 text-right">Customer Owes</th>
+            </tr>
+          </thead>
+          <tbody id="chargesTableBody" class="text-gray-800"></tbody>
+        </table>
+      </div>
+
+      <div id="chargesModalEmpty"
+           class="hidden text-sm text-gray-500 text-center py-4">
+        No charges found.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 
 @push('js')
 

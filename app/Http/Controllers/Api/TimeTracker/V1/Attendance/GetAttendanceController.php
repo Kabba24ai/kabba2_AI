@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\TimeTracker\V1\TimeClock\AttendanceRecordResource;
 use App\Http\Resources\Api\TimeTracker\V1\TimeClock\AchievementGoalResource;
 
-use App\Http\Controllers\Api\BaseController;    
+use App\Http\Controllers\Api\BaseController;
 use App\Models\Iam\Personnel\AttendanceRecord;
 use App\Models\Iam\Personnel\AchievementGoal;
 use Illuminate\Http\Request;
@@ -26,7 +26,7 @@ class GetAttendanceController extends Controller
 
     $start   = $request->query('start_date');
     $end     = $request->query('end_date');
-    $perPage = (int) $request->query('per_page', 10);
+    $perPage = (int) $request->query('per_page', 30);
 
     $recordsQuery = AttendanceRecord::where('employee_id', $user->id)
         ->when($start, fn ($q) => $q->whereDate('attendance_date', '>=', $start))

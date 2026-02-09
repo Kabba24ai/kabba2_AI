@@ -97,44 +97,62 @@ class UpdateProductScheduleController extends Controller
             if ($deliveryStatusChanged) {
                 // $orderProduct->delivery_date = now()->format('Y-m-d');
                 // $orderProduct->delivery_time = now()->format('H:i');
-                if($orderProduct->delivery_status === 'Completed'){
+                if($orderProduct->delivery_status === 'Completed' || $orderProduct->delivery_status === 'Close as Completed'){
                     $orderProduct->is_delivered = true;
+                    if($equipment){
+                        $equipment->current_status = EquipmentCurrentStatus::Rented->value;
+                        $equipment->current_status_updated_by = $user->id;
+                        $equipment->current_status_changed_at = now();
+                        $equipment->saveQuietly();
+                    }
+                }else if($orderProduct->delivery_status === 'Reschedule'){
+
+                    if($equipment){
+                        $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
+                        $equipment->current_status_updated_by = $user->id;
+                        $equipment->current_status_changed_at = now();
+                        $equipment->current_order_id = null;
+                        $equipment->current_order_product_id = null;
+                        $equipment->saveQuietly();
+                    }
+
+                    $orderProduct->checklistQuestions()->delete();
+                    $orderProduct->is_delivered = false;
+                    $orderProduct->is_returned = false;
+                    $orderProduct->delivery_by = null;
+                    $orderProduct->start_hours = null;
+                    $orderProduct->equipment_id = null;
+                    $orderProduct->equipment_details = null;
+                    $orderProduct->assigned_by = null;
+                    $orderProduct->assigned_at = null;
                 }else{
                     $orderProduct->is_delivered = false;
                 }
 
-                if($equipment){
-                    $equipment->current_status = EquipmentCurrentStatus::Rented->value;
-                    $equipment->current_status_updated_by = $user->id;
-                    $equipment->current_status_changed_at = now();
-                    $equipment->saveQuietly();
-                }
             }
 
             if ($pickupStatusChanged) {
                 // $orderProduct->pickup_date = now()->format('Y-m-d');
                 // $orderProduct->pickup_time = now()->format('H:i');
-                if($orderProduct->pickup_status === 'Completed'){
+                if($orderProduct->pickup_status === 'Completed' || $orderProduct->pickup_status === 'Close as Completed'){
                     $orderProduct->is_returned = true;
+                    if($equipment){
+                        $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
+                        $equipment->current_status_updated_by = $user->id;
+                        $equipment->current_status_changed_at = now();
+                        if($orderProduct->pickup_store_id){
+                            $equipment->store_id = $orderProduct->pickup_store_id;
+                        }
+                        $equipment->saveQuietly();
+                    }
                 }else{
                     $orderProduct->is_returned = false;
                 }
 
-                if($equipment){
-                    $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
-                    $equipment->current_status_updated_by = $user->id;
-                    $equipment->current_status_changed_at = now();
-                    if($orderProduct->pickup_store_id){
-                        $equipment->store_id = $orderProduct->pickup_store_id;
-                    }
-                    $equipment->saveQuietly();
-                }
             }
-
         }
 
         $orderProduct->save();
-
 
         if ($storeChange) {
             $equipment = $orderProduct->equipment;

@@ -14,6 +14,8 @@ use App\Services\AuthorizeNetService;
 
 // Events
 use App\Events\Front\Checkout\OrderPlacedEvent;
+use App\Events\Front\Checkout\OrderPlacedEmailEvent;
+
 
 // Helpers
 use App\Helpers\CartHelper;
@@ -226,8 +228,13 @@ class PostController extends Controller
 
             $primaryStoreId = Store::primary()->value('id');
 
+            // Fetch all products at once to avoid N+1 queries
+            $productUniqueIds = collect($cartSummary['cart_items'])->pluck('product_unique_id')->unique();
+            $products = Product::whereIn('unique_id', $productUniqueIds)->get()->keyBy('unique_id');
+
             foreach ($cartSummary['cart_items'] as $item) {
-                if ($product = Product::where('unique_id', $item['product_unique_id'])->first()) {
+                $product = $products[$item['product_unique_id']] ?? null;
+                if ($product) {
                     $order->products()->create([
                         'order_id' => $order->id,
                         'product_id' => $product->id,
@@ -246,18 +253,21 @@ class PostController extends Controller
                         'distance_type' => $item['distance_type'] ?? null,
                         'distance_range' => $item['distance_range'] ?? null,
 
-                        'delivery_transport_mode' => $item['delivery_transport_mode'] ?? $primaryStoreId,
-                        'delivery_store_id' => $item['delivery_store_id'] ?? null,
+                        'delivery_transport_mode' => $item['delivery_transport_mode'] ?? null,
+                        'delivery_store_id' => $item['delivery_store_id'] ?? $primaryStoreId,
                         'delivery_date' => !empty($item['delivery_date']) ? Carbon::parse($item['delivery_date'])->format(config('app.date.db_date_format')) : null,
                         'delivery_time' => !empty($item['delivery_time']) ? Carbon::parse($item['delivery_time'])->format(config('app.date.db_time_format')) : null,
 
-                        'pickup_transport_mode' => $item['pickup_transport_mode'] ?? $primaryStoreId,
-                        'pickup_store_id' => $item['pickup_store_id'] ?? null,
+                        'pickup_transport_mode' => $item['pickup_transport_mode'] ?? null,
+                        'pickup_store_id' => $item['pickup_store_id'] ?? $primaryStoreId,
                         'pickup_date' => !empty($item['pickup_date']) ? Carbon::parse($item['pickup_date'])->format(config('app.date.db_date_format')) : null,
                         'pickup_time' => !empty($item['pickup_time']) ? Carbon::parse($item['pickup_time'])->format(config('app.date.db_time_format')) : null,
                     ]);
                 }
             }
+
+            // Eager load products and their terms for terms generation
+            $order->load(['products.product.terms']);
 
             $termsContentData = TermsContentHelper::generateTermsContent($order);
 
@@ -495,6 +505,9 @@ class PostController extends Controller
             // Fire OrderPlaced event
             event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
 
+            // after order is successfully placed
+            event(new OrderPlacedEmailEvent($order));
+
             // Generate a signed URL for the thank you page with order unique id
             // $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
 
@@ -505,13 +518,21 @@ class PostController extends Controller
             }
 
             // Success: redirect to signed thank you page with order id
-            return redirect($redirectUrl);
+
+            return response()->json([
+                'success' => true,
+                'redirect_url' => $redirectUrl,
+                'order_id' => $order->unique_id ?? ''
+            ]);
         } catch (\Exception $e) {
             // Log the error if needed: logger($e);
             logger($e);
             DB::rollback();
 
-            return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong. Please try again.'
+            ]);
         }
     }
 }

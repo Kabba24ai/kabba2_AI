@@ -3,20 +3,11 @@
 namespace App\Http\Requests\Front\Checkout;
 
 use App\Helpers\PurifyHelper;
+use App\Http\Requests\ApiBaseFormRequest;
 use App\Rules\Email\EmailShouldNotContainSelectedSpecialCharactersRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class PostRequest extends FormRequest
+class PostRequest extends ApiBaseFormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-    public function authorize()
-    {
-        return true;
-    }
 
     protected function prepareForValidation()
     {

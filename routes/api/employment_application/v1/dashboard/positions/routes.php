@@ -21,4 +21,5 @@ Route::group(['prefix' => 'positions'], function () {
 
     Route::get('/{position}/delete', DeleteController::class);
 
+    
 });

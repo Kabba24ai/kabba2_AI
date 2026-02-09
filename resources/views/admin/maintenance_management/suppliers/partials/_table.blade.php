@@ -72,16 +72,34 @@ $categories = $supplier->all_supplied_parts
     @endforelse
 </td>
 
+                <td class="py-4 px-6 text-sm text-gray-900">
+                    @php
+                        $parts = $supplier->all_supplied_parts;
+                        $totalParts = $parts->count();
+                    @endphp
 
+                    <div class="flex flex-wrap gap-1">
+                        @foreach ($parts->take(4) as $part)
+                            <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-700">
+                                {{ $part->part_name }}
+                            </span>
+                        @endforeach
 
-                  <td class="py-4 px-6 text-sm text-gray-900">
-                      <div class="flex flex-wrap gap-1">
-                          <!-- <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-700 whitespace-nowrap">-</span> -->
-                           @foreach ($supplier->all_supplied_parts as $part)
-                          <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-700 whitespace-nowrap">{{ $part->part_name }} </span>
-                           @endforeach
+                        @if ($totalParts > 5)
+                            <button
+                                class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                data-parts='@json($parts->pluck("part_name"))'
+                                onclick="openPartsModalFromData(this)"
+                            >
+                                +{{ $totalParts - 4 }} more
+                            </button>
+                        @elseif ($totalParts === 5)
+                            <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-700">
+                                {{ $parts[4]->part_name }}
+                            </span>
+                        @endif
+                    </div>
 
-                      </div>
                   </td>
 
                   {{-- Tags --}}
@@ -132,3 +150,60 @@ $categories = $supplier->all_supplied_parts
     </div>
   @endif
 
+<!-- Parts Modal -->
+<div id="partsModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-md flex flex-col max-h-full overflow-hidden border border-gray-200">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 pt-4">
+                <h2 class="text-lg font-semibold text-gray-900">All Supplied Parts</h2>
+                <button onclick="closePartsModal()" class="text-gray-400 hover:text-gray-700 text-xl">
+                    ×
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto max-h-[70vh]">
+                <div id="partsModalContent" class="flex flex-wrap gap-2">
+                    <!-- injected by JS -->
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 pb-4">
+                <button onclick="closePartsModal()"
+                        class="w-full px-6 py-3 text-md border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+@push('js')
+<script>
+    function openPartsModalFromData(button) {
+        const parts = JSON.parse(button.dataset.parts || '[]');
+        const container = document.getElementById('partsModalContent');
+
+        container.innerHTML = parts.map(part =>
+            `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-700">
+                ${part}
+            </span>`
+        ).join('');
+
+        document.getElementById('partsModal').classList.remove('hidden');
+        document.getElementById('partsModal').classList.add('flex');
+    }
+
+    function closePartsModal() {
+        document.getElementById('partsModal').classList.add('hidden');
+        document.getElementById('partsModal').classList.remove('flex');
+    }
+</script>
+
+@endpush

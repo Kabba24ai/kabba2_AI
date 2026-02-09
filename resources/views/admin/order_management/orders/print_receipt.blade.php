@@ -63,8 +63,8 @@
                                             Rent 'n King .<br>
                                             10296 Highway 46<br>
                                             Bon Aqua, TN 37025<br>
-                                            {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'mobile') }} <br>
-                                            {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'email') }}
+                                            {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_phone') }} <br>
+                                            {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_email') }}
                                         </p>
                                     </td>
                                     <!-- Right -->
@@ -158,7 +158,7 @@
                                                                 <p style="margin:0; font-weight:500; color:#000;">
                                                                     {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
                                                                 </p>
-                                                                <div>
+                                                                {{-- <div>
                                                                     @if($addresse?->full_name) {{ $addresse->full_name }}@endif
                                                                     @if($addresse?->address || $addresse?->city)
                                                                     {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', '.$addresse->city : '' }}
@@ -166,7 +166,31 @@
                                                                     @if($addresse?->state?->name || $addresse?->zip_code)
                                                                     {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' '.$addresse->zip_code : '' }}
                                                                     @endif
+                                                                </div> --}}
+
+                                                                <div style="line-height:1.4;">
+                                                                    @if($addresse?->full_name)
+                                                                        <div>{{ $addresse->full_name }}</div>
+                                                                    @endif
+
+                                                                    @if($addresse?->address)
+                                                                        <div>{{ $addresse->address }},</div>
+                                                                    @endif
+
+                                                                    <div>
+                                                                        @if($addresse?->city)
+                                                                            {{ $addresse->city }},
+                                                                        @endif
+                                                                        @if($addresse?->state?->name)
+                                                                            {{ $addresse->state->name }}
+                                                                        @endif
+                                                                        @if($addresse?->zip_code)
+                                                                            {{ ' ' . $addresse->zip_code }}
+                                                                        @endif
+                                                                    </div>
                                                                 </div>
+
+
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -238,6 +262,27 @@
                                         </td>
                                     </tr>
                                     @endforeach
+
+                                         @if (!empty($item->orderProduct->distance_range))
+
+                                         <tr style="border-bottom:1px solid #d1d5db;">
+                                            <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:10px;">
+                                                + Distance Range
+                                                <span class="text-xs text-gray-400">( {{ ucfirst($item->orderProduct->distance_type) }}
+                                                            ({{ ucfirst($item->orderProduct->distance_range) }}))</span>
+                                            </td>
+                                            <td></td>
+                                            <td align="right" style="font-size:12px; color:#6b7280;">
+                                               
+
+                                                             {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
+                                            </td>
+                                            <td align="right" style="font-size:12px; color:#6b7280;">
+                                                 {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
+                                            </td>
+                                        </tr>
+
+                                        @endif
 
                                     {{-- Option Items --}}
                                     @foreach ($item->orderProduct->product_data['product_option_items'] ?? [] as $option)
@@ -312,7 +357,7 @@
                     <tr>
                         <td style="text-align:center; padding:30px 0 0; border-top:1px solid #111827; font-size:13px; color:#6b7280;">
                             <p style="margin:6px 0;">Thank you for your business!</p>
-                            <p style="margin:0;">For questions about this receipt, contact us at {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'mobile') }}</p>
+                            <p style="margin:0;">For questions about this receipt, contact us at {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_phone') }}</p>
                         </td>
                     </tr>
 

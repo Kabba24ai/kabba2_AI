@@ -71,6 +71,16 @@
                 </div>
             </div>
 
+            <div class="w-full sm:w-35">
+                <div class="relative bg-white">
+                    <input type="text" id="order_number" placeholder="Order ID"
+                        name="order_number" value="{{ request('order_number') }}"
+                        class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                    <x-heroicon-o-magnifying-glass
+                        class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
+                </div>
+            </div>
+
             {{-- Category --}}
             <div class="w-full sm:w-48">
                 {{-- <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label> --}}
@@ -141,7 +151,7 @@
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" value="Delivery" name="schedule_type[]"
                             class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" @checked(is_array($scheduleType) ? in_array('Delivery', $scheduleType) : true)>
-                        Deliver
+                        Delivery
                     </label>
                     <label class="flex items-center gap-1">
                         <input type="checkbox" value="Return" name="schedule_type[]"
@@ -153,7 +163,7 @@
                 <!-- Transport Mode -->
                 <div class="flex items-center gap-2 bg-white rounded-md px-4 py-2 border">
                     <x-heroicon-o-truck class="w-5 h-5 text-green-500" />
-                    <span class="font-medium">Transport Mode</span>
+                    <span class="font-medium">Delivery</span>
 
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" name="transport_mode[]" value="Truck"
@@ -169,7 +179,7 @@
                 <!-- Store Locations -->
                 <div class="flex items-center gap-2 bg-white rounded-md px-4 py-2 border">
                     <x-heroicon-o-map-pin class="w-5 h-5 text-purple-500" />
-                    <span class="font-medium">Store Locations</span>
+                    <span class="font-medium">Store</span>
                     @foreach ($stores as $store)
                         <label class="flex items-center gap-1 {{ $loop->first ? 'ml-2' : '' }}">
                             <input type="checkbox" name="store_location[]" value="{{ $store->id }}"
@@ -183,11 +193,11 @@
                 <!-- Special Filters -->
                 <div class="flex items-center gap-2 bg-white rounded-md px-4 py-2 border">
                     <x-heroicon-o-funnel class="w-5 h-5 text-orange-500" />
-                    <span class="font-medium">Special Filters</span>
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" name="rescheduled_only" value="Reschedule" id="rescheduled_only"
                             class="text-red-600 focus:ring-red-500 rounded border-gray-300" @checked(request('rescheduled_only') == 'Reschedule')>
-                        <span class="font-medium">Rescheduled Only</span>
+                        <span class="font-medium">Rescheduled Pending : {{ $rescheduleOrder }}</span>
+
                     </label>
                 </div>
             </div>
@@ -399,6 +409,7 @@
             let customerNameInput = document.querySelector('input[name="customer_name"]');
             let customerCompanyNameInput = document.querySelector('input[name="customer_company_name"]');
             let customerPhoneInput = document.querySelector('input[name="customer_phone"]');
+            let orderNumberInput = document.querySelector('input[name="order_number"]');
             let categoryInput = document.querySelector('select[name="category"]');
             let paymentStatusInput = document.querySelector('select[name="payment_status"]');
             let paymentMethodInput = document.querySelector('select[name="payment_method"]');
@@ -420,6 +431,7 @@
                 'customer_name': customerNameInput,
                 'customer_company_name': customerCompanyNameInput,
                 'customer_phone': customerPhoneInput,
+                'order_number': orderNumberInput,
                 'category': categoryInput,
                 'payment_status': paymentStatusInput,
                 'payment_method': paymentMethodInput,
@@ -443,6 +455,7 @@
                         .length === 0)) params.append('customer_company_name', customerCompanyNameInput.value);
                 if (customerPhoneInput && (customerPhoneInput.value.length >= 3 || customerPhoneInput.value
                         .length === 0)) params.append('customer_phone', customerPhoneInput.value);
+                if (orderNumberInput && (orderNumberInput.value.length >= 1 || orderNumberInput.value.length === 0)) params.append('order_number', orderNumberInput.value);
                 if (categoryInput && categoryInput.value) params.append('category', categoryInput.value);
                 if (paymentStatusInput && paymentStatusInput.value) params.append('payment_status',
                     paymentStatusInput.value);
@@ -533,6 +546,10 @@
                 timeout = setTimeout(fetchSchedules, 400);
             });
             if (customerPhoneInput) customerPhoneInput.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(fetchSchedules, 400);
+            });
+            if (orderNumberInput) orderNumberInput.addEventListener('input', function() {
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchSchedules, 400);
             });

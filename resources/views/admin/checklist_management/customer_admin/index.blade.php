@@ -238,6 +238,89 @@
         });
     });
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  
+
+    const buttons = document.querySelectorAll(".view-questions-btn");
+  
+
+    buttons.forEach((button, index) => {
+    
+
+        button.addEventListener("click", function () {
+
+         
+
+            const name = this.dataset.questionName;
+               const outerTabBtn = document.getElementById("tab-questions");
+            const questionId = this.dataset.questionId;
+            const tabButton = document.getElementById("tab-questions-sub");
+
+            
+            /* 1️ Activate OUTER tab */
+            if (typeof showTab === "function" && outerTabBtn) {
+                showTab('questions', outerTabBtn);
+            }
+
+
+            // Switch tab
+            if (typeof showTab === "function") {
+               
+                showTab('questionssub', tabButton);
+            } else {
+            
+                tabButton?.click();
+            }
+
+            // Wait for tab DOM to be ready
+            setTimeout(() => {
+            
+
+                const searchquestion = document.querySelector('#search-question');
+              
+
+                if (!searchquestion) {
+                  
+                    return;
+                }
+
+                searchquestion.value = name;
+              
+                searchquestion.dispatchEvent(
+                    new Event('input', { bubbles: true })
+                );
+              
+
+            }, 500);
+
+
+            setTimeout(() => {
+            const card = document.querySelector(
+                `.question-card[data-question-id="${questionId}"]`
+            );
+
+            if (!card) return;
+
+            const toggleBtn = card.querySelector('.toggle-answers');
+            const answers = card.querySelector('.answers');
+
+            // Only click if answers are currently hidden
+            if (toggleBtn && answers.classList.contains('hidden')) {
+                toggleBtn.click();
+            }
+
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        }, 700);
+
+        });
+    });
+});
+</script>
+
+
+
 
 
 @endpush

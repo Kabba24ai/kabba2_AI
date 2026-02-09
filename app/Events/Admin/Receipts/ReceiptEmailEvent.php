@@ -17,3 +17,4 @@ class ReceiptEmailEvent
         $this->receipt = $receipt;
     }
 }
+

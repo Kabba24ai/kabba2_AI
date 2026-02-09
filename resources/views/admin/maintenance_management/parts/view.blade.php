@@ -32,31 +32,28 @@
 
         <!-- Content -->
         <div class="p-6 space-y-10">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
                 <div>
-                    <h3 class="text-gray-800 font-semibold mb-3 text-lg">Inventory Status</h3>
+                    <h3 class="text-gray-800 font-semibold mb-3 text-lg">Inventory Status 
+                    <span class="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                        {{ $part->stock_status == 'in-stock' ? 'text-green-700 bg-green-100 border-green-200' : '' }}
+                        {{ $part->stock_status == 'buy-now' ? 'text-yellow-700 bg-yellow-100 border-yellow-200' : '' }}
+                        {{ $part->stock_status == 'out-of-stock' ? 'text-red-700 bg-red-100 border-red-200' : '' }}
+                        {{ $part->stock_status == 'dni' ? 'text-gray-700 bg-gray-100 border-gray-200' : '' }}">
+                        {{ ucfirst(str_replace('-', ' ', $part->stock_status)) }}
+                    </span></h3>
                     <div class="space-y-4 text-sm text-gray-700">
-                        <div class="flex justify-between">
+                        <div class="flex justify-strat gap-20">
                             <span>Current Stock</span>
                             <span class="font-medium">{{   $part->stock_level }}</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-strat gap-18">
                             <span>Minimum Stock</span>
                             <span class="font-medium">{{   $part->min_stock }} </span>
                         </div>
 
 
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-200">
-    <span>Status</span>
-
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-        {{ $part->stock_status == 'in-stock' ? 'text-green-700 bg-green-100 border-green-200' : '' }}
-        {{ $part->stock_status == 'buy-now' ? 'text-yellow-700 bg-yellow-100 border-yellow-200' : '' }}
-        {{ $part->stock_status == 'out-of-stock' ? 'text-red-700 bg-red-100 border-red-200' : '' }}
-        {{ $part->stock_status == 'dni' ? 'text-gray-700 bg-gray-100 border-gray-200' : '' }}">
-        {{ ucfirst(str_replace('-', ' ', $part->stock_status)) }}
-    </span>
-</div>
+                      
 
                     </div>
                 </div>
@@ -74,173 +71,249 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
                   @php
-    $suppliers = [
-        [
-            'label' => 'Part Number',
-            'supplier' => $part->primarySupplier,
-            'brand' => $part->primaryBrand,
-            'part_number' => $part->primary_part_number,
-            'cost' => $part->primary_part_cost
-        ],
-        [
-            'label' => 'Alt 1 Part Number',
-            'supplier' => $part->alt1Supplier,
-            'brand' => $part->alt1Brand,
-            'part_number' => $part->alt_1_part_number,
-            'cost' => $part->alt_1_part_cost
-        ],
-        [
-            'label' => 'Alt 2 Part Number',
-            'supplier' => $part->alt2Supplier,
-            'brand' => $part->alt2Brand,
-            'part_number' => $part->alt_2_part_number,
-            'cost' => $part->alt_2_part_cost
-        ],
-    ];
-@endphp
+                        $suppliers = [
+                            [
+                                'label' => 'Part Number',
+                                'supplier' => $part->primarySupplier,
+                                'brand' => $part->primaryBrand,
+                                'part_number' => $part->primary_part_number,
+                                'cost' => $part->primary_part_cost
+                            ],
+                            [
+                                'label' => 'Alt Part Number / Supplier',
+                                'supplier' => $part->alt1Supplier,
+                                'brand' => $part->alt1Brand,
+                                'part_number' => $part->alt_1_part_number,
+                                'cost' => $part->alt_1_part_cost
+                            ],
+                            [
+                                'label' => 'Alt Part Number / Supplier',
+                                'supplier' => $part->alt2Supplier,
+                                'brand' => $part->alt2Brand,
+                                'part_number' => $part->alt_2_part_number,
+                                'cost' => $part->alt_2_part_cost
+                            ],
+                        ];
+                    @endphp
 
 
-                      @foreach($suppliers as $item)
-            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">{{ $item['label'] }}</label>
-                    <p class="text-sm font-medium text-gray-900">{{ $item['part_number'] ?? '-' }}</p>
-                </div>
+                   @foreach($suppliers as $item)
+                    <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-5">
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Cost</label>
-                    <div class="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign h-4 w-4 text-green-600"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                        <p class="text-lg font-bold text-green-600">{{ number_format($item['cost'] ?? 0, 2) }}</p>
-                        @php
-    $fieldMap = [
-        'Part Number' => 'primary_part_cost',
-        'Alt 1 Part Number' => 'alt_1_part_cost',
-        'Alt 2 Part Number' => 'alt_2_part_cost',
-    ];
-@endphp
+                        <!-- Row 1: Part Number | Brand -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">
+                                    {{ $item['label'] }}
+                                </label>
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ $item['part_number'] ?? '-' }}
+                                </p>
+                            </div>
 
-<button
-    onclick="openCostModal(this)"
-    class="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-    title="Edit price"
-    data-part-id="{{ $part->id }}"
-    data-part-field="{{ $fieldMap[$item['label']] }}"
-    data-cost="{{ $item['cost'] ?? 0 }}"
->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Brand</label>
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ $item['brand']->name ?? '—' }}
+                                </p>
+                            </div>
+                        </div>
 
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil h-4 w-4"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>
-                        </button>
+                        <!-- Row 2: Cost | Supplier -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Cost</label>
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-600" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" x2="12" y1="2" y2="22"></line>
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                    </svg>
+
+                                    <p class="text-lg font-bold text-green-600">
+                                        {{ number_format($item['cost'] ?? 0, 2) }}
+                                    </p>
+
+                                    @php
+                                        $fieldMap = [
+                                            'Part Number' => 'primary_part_cost',
+                                            'Alt Part Number / Supplier' => 'alt_1_part_cost',
+                                            'Alt Part Number / Supplier' => 'alt_2_part_cost',
+                                        ];
+                                    @endphp
+
+                                    <button
+                                        onclick="openCostModal(this)"
+                                        class="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                                        title="Edit price"
+                                        data-part-id="{{ $part->id }}"
+                                        data-part-field="{{ $fieldMap[$item['label']] }}"
+                                        data-cost="{{ $item['cost'] ?? 0 }}"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                                            <path d="m15 5 4 4"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Supplier</label>
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ $item['supplier']->name ?? '-' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Supplier Details -->
+                        @if($item['supplier'])
+                        <div class="pt-4 border-t border-gray-200 space-y-4">
+
+                            <label class="block text-sm font-medium text-gray-500">
+                                Supplier Details
+                            </label>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                                <div>
+                                    <span class="font-medium">Address</span>
+                                    <p class="mt-0.5">{{ $item['supplier']->full_address ?? '-' }}</p>
+                                </div>
+
+                                <div>
+                                    <span class="font-medium">Phone</span>
+                                    <p class="mt-0.5">{{ $item['supplier']->phone ?? '-' }}</p>
+                                </div>
+
+                                <div>
+                                    <span class="font-medium">Contact</span>
+                                    <p class="mt-0.5">{{ $item['supplier']->primary_contact_name ?? '-' }}</p>
+                                </div>
+
+                                <div>
+                                    <span class="font-medium"><span class="text-red-700 font-bold"> Parts </span> Contact </span>
+                                    <p class="mt-0.5">{{ $item['supplier']->inside_sales_name ?? '-' }}</p>
+                                </div>
+
+                                 <div>
+                                    <span class="font-medium">Phone</span>
+                                    <p class="mt-0.5">{{ $item['supplier']->primary_contact_phone ?? '-' }}</p>
+                                </div>
+
+                                 <div>
+                                    <span class="font-medium">Phone</span>
+                                    <p class="mt-0.5">{{ $item['supplier']->inside_sales_phone ?? '-' }}</p>
+                                </div>
+
+                                <div>
+                                    <span class="font-medium">Email</span>
+                                    <p class="mt-0.5">{{ $item['supplier']->primary_contact_email ?? '-' }}</p>
+                                </div>
+
+                                 <div>
+                                    <span class="font-medium">Email</span>
+                                    <p class="mt-0.5">{{ $item['supplier']->inside_sales_email ?? '-' }}</p>
+                                </div>
+                            </div>
+
+                        </div>
+                        @endif
+
                     </div>
+                    @endforeach
+
+
+
                 </div>
+            </div>
 
+            <div>
+    <h3 class="text-gray-800 font-semibold mb-3 text-lg">Part Assignment</h3>
 
-                <div>
-    <label class="block text-sm font-medium text-gray-500 mb-1">Brand</label>
-    <p class="text-sm font-medium text-gray-900">
-        {{ $item['brand']->name ?? '—' }}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm items-stretch">
+
+        <!-- Category Card -->
+        <div class="border border-gray-200 rounded-xl p-4 h-full flex flex-col">
+            <label class="block text-sm font-medium text-gray-500 mb-2">Category</label>
+
+           <div class="flex-1 flex">
+                <p class="text-base font-medium text-gray-900">
+                    @if($part->partsLists->isNotEmpty())
+                        {{ $part->partsLists
+                            ->pluck('category.title')
+                            ->filter()
+                            ->unique()
+                            ->implode(', ') }}
+                    @else
+                        -
+                    @endif
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Parts List Card -->
+        <div class="border border-gray-200 rounded-xl p-4 h-full flex flex-col">
+            <label class="block text-sm font-medium text-gray-500 mb-2">Parts List</label>
+
+           <div class="flex-1 flex">
+    <p class="text-base font-medium text-gray-900">
+        @if($part->partsLists->isNotEmpty())
+            {{ $part->partsLists
+                ->pluck('name')
+                ->filter()
+                ->unique()
+                ->implode(', ') }}
+        @else
+            -
+        @endif
     </p>
 </div>
 
+        </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Supplier</label>
-                    <p class="text-sm font-medium text-gray-900">{{ $item['supplier']->name ?? '-' }}</p>
-                </div>
+        <!-- Equipment Assignment Card -->
+        <div class="border border-gray-200 rounded-xl p-4 h-full flex flex-col">
+            <label class="block text-sm font-medium text-gray-500 mb-2">
+                Equipment Assignment
+            </label>
 
-
-
-                @if($item['supplier'])
-                    <div class="pt-3 border-t border-gray-200">
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Supplier Details</label>
-                        <div class="space-y-2 text-sm text-gray-600">
-                            <div>
-                                <span class="font-medium">Address:</span>
-                                <p class="mt-0.5">{{ $item['supplier']->full_address ?? '-' }}</p>
-                            </div>
-                            <div>
-                                <span class="font-medium">Phone:</span>
-                                <p class="mt-0.5">{{ $item['supplier']->phone ?? '-' }}</p>
-                            </div>
-                            <div>
-                                <span class="font-medium">Contact:</span>
-                                <p class="mt-0.5">{{ $item['supplier']->primary_contact_name ?? '-' }}</p>
-                            </div>
-                            <div>
-                                <span class="font-medium">Email:</span>
-                                <p class="mt-0.5">{{ $item['supplier']->primary_contact_email ?? '-' }}</p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        @endforeach
-
-                </div>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold mb-3 text-lg">Part Assignment</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                    <div class="border border-gray-200 rounded-xl p-4">
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Category</label>
-                        <p class="text-base font-medium text-gray-900">
-                            @if($part->partsLists->isNotEmpty())
-        @foreach($part->partsLists as $list)
-                {{ $list->category->title ?? '—' }}
-
-        @endforeach
-    @else
-        -
-    @endif
-</p>
-                    </div>
-                    <div class="border border-gray-200 rounded-xl p-4">
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Parts List</label>
-                        <p class="text-base font-medium text-gray-900">@if($part->partsLists->isNotEmpty())
-        @foreach($part->partsLists as $list)
-                {{ $list->name ?? '-' }}
-
-        @endforeach
-    @else
-        -
-    @endif
-</p>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold mb-3">Equipment Assignment</h3>
-                <div class="overflow-x-auto  border border-gray-200 rounded-xl">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 text-left">
+            <div class="flex-1 overflow-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 text-left sticky top-0">
+                        <tr>
+                            <th class="py-3 px-4">Equipment Name</th>
+                            <th class="py-3 px-4">Equipment ID</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($assignedEquipments as $equipment)
                             <tr>
-                                <th class="py-4 px-6">Equipment Name</th>
-                                <th class="py-4 px-6">Equipment ID</th>
+                                <td class="py-3 px-4">{{ $equipment->equipment_name }}</td>
+                                <td class="py-3 px-4">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono bg-gray-100 border">
+                                        {{ $equipment->equipment_id }}
+                                    </span>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-
-
-                             @forelse($assignedEquipments as $equipment)
-                <tr>
-                    <td class="py-4 px-6">{{ $equipment->equipment_name }}</td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
-                            {{ $equipment->equipment_id }}
-                        </span>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="2" class="py-4 px-6 text-center text-gray-500">No assigned equipment</td>
-                </tr>
-                @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="py-3 px-4 text-center text-gray-500">
+                                    No assigned equipment
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
+        </div>
+
+    </div>
+</div>
+
+
+            
         </div>
     </div>
 </div>

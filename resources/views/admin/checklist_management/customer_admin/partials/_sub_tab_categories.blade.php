@@ -25,7 +25,7 @@
                             </svg>
                             <div>
                                 <h3 class="text-base font-semibold text-gray-800">{{ $category->category_name }}</h3>
-                                <p class="text-sm text-gray-600"> </p>
+                                <p class="text-sm text-gray-600"> {{ $category->questions->count() }} {{ Str::plural('question', $category->questions->count()) }} </p>
                             </div>
                         </div>
                         <div class="flex gap-3 text-gray-500">

@@ -47,6 +47,9 @@ const salesDataFromServer = @json($salesData);
    //  REAL DATA from backend
     window.damageAlerts = @json($damagedOrderAlerts);
 
+    window.fuelAlerts = @json($fuelChargeAlerts);
+
+
     window.AUTH_USER_ID = {{ auth()->id() }};
 
     window.chartData = @json($chartData);
@@ -90,14 +93,14 @@ const salesDataFromServer = @json($salesData);
          *      DEFAULT DATA
          --------------------------*/
         defaultFuelAlerts() {
-            return [
-                { id: 1, customerName: 'ABC Events LLC', orderId: 'ORD-2024-001', amountOwed: 'Pending', date: '2024-01-27', type: 'fuel', notes: '' },
-                { id: 2, customerName: 'Wedding Bliss Co', orderId: 'ORD-2024-002', amountOwed: '$45.00', date: '2024-01-26', type: 'fuel', notes: 'Customer disputed charge initially' },
-                { id: 3, customerName: 'Corporate Solutions', orderId: 'ORD-2024-003', amountOwed: 'Pending', date: '2024-01-25', type: 'fuel', notes: '' },
-                { id: 4, customerName: 'Party Time Rentals', orderId: 'ORD-2024-004', amountOwed: '$32.50', date: '2024-01-24', type: 'fuel', notes: 'Awaiting payment confirmation' },
-                { id: 5, customerName: 'Elite Celebrations', orderId: 'ORD-2024-005', amountOwed: 'Pending', date: '2024-01-23', type: 'fuel', notes: 'Need to calculate mileage' },
-                { id: 6, customerName: 'Dream Weddings Inc', orderId: 'ORD-2024-006', amountOwed: '$28.75', date: '2024-01-22', type: 'fuel', notes: '' },
-            ];
+        
+            // Prefer backend data
+            if (Array.isArray(window.fuelAlerts) && window.fuelAlerts.length) {
+                return window.fuelAlerts;
+            }
+
+            // Optional fallback (dev / empty state)
+            return [];
         }
 
         updateFuelAlertHeader() {
@@ -154,10 +157,18 @@ const salesDataFromServer = @json($salesData);
                 const item = document.importNode(template, true);
 
                 item.querySelector("[data-customer]").textContent = alert.customerName;
-                item.querySelector("[data-order-id]").textContent = alert.orderId;
+                item.querySelector("[data-order-id]").textContent = alert.order_number;
 
                 // Order click
-                item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
+                // item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
+
+                item.querySelector("[data-order-btn]").onclick = () => {
+                    if (alert.orderLink) {
+                        // window.location.href = alert.orderLink;
+                        window.open(alert.orderLink, "_blank");
+
+                    }
+                };
 
                 // Edit amount
                 item.querySelector("[data-edit-amount]").onclick = () => {
@@ -176,15 +187,27 @@ const salesDataFromServer = @json($salesData);
 
                 // Status actions
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "paid");
+
                 item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
 
                 // Edit notes
+                // item.querySelector("[data-edit-notes]").onclick = () => {
+                //     this.editingAlert = alert;
+                //     // this.tempNotes = alert.notes || "";
+
+                //     this.tempNotes = alert.notes || "";
+                    
+                //     this.activeOrderUniqueId = alert.orderId;
+
+                //     this.openNotesModal(alert);
+
+                // };
+
+
                 item.querySelector("[data-edit-notes]").onclick = () => {
                     this.editingAlert = alert;
-                    // this.tempNotes = alert.notes || "";
-
-                    this.tempNotes = alert.notes || "";
-                    
+                    this.tempNotes = "";
+                    // this.showNotesModal = true;
                     this.activeOrderUniqueId = alert.orderId;
 
                     this.openNotesModal(alert);
@@ -194,36 +217,72 @@ const salesDataFromServer = @json($salesData);
                 // Amount display
                 const amountEl = item.querySelector("[data-amount]");
                 amountEl.textContent = alert.amountOwed;
+                amountEl.className =
+                    alert.amountOwed === "Pending"
+                        ? "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full"
+                        : "text-sm font-semibold text-green-700";
 
-                if (alert.amountOwed === "Pending") {
-                    amountEl.className = "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full";
-                } else {
-                    amountEl.className = "text-sm font-semibold text-green-700";
+                           // Notes (multiple notes, same design, clean)
+                if (Array.isArray(alert.notes) && alert.notes.length > 0) {
+                    const container = item.querySelector("[data-notes-container]");
+
+                    container.classList.remove("hidden");
+                    container.innerHTML = ""; // clear old notes
+
+                    alert.notes.forEach(note => {
+                        const noteEl = document.createElement("div");
+                        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
+                        noteEl.innerHTML = `
+                            <strong>Notes:</strong> ${note.note}
+                        `;
+
+                        container.appendChild(noteEl);
+                    });
                 }
 
-                // Notes
-                if (alert.notes) {
-                    item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
-                    item.querySelector("[data-notes]").textContent = alert.notes;
-                }
+                // if (alert.amountOwed === "Pending") {
+                //     amountEl.className = "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full";
+                // } else {
+                //     amountEl.className = "text-sm font-semibold text-green-700";
+                // }
+
+                // // Notes
+                // if (alert.notes) {
+                //     item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
+                //     item.querySelector("[data-notes]").textContent = alert.notes;
+                // }
 
                 wrapper.appendChild(item);
             });
         }
 
-       openAmountModal(alert) {
-            // console.log(alert);
-
+         openAmountModal(alert) {
+            console.log(alert);
+            
             this.editingAlert = alert;
 
             const input   = document.getElementById("amount-input");
             const baseEl  = document.getElementById("base-damage-amount");
             const currEl  = document.getElementById("current-damage-amount");
             const prevEl  = document.getElementById("preview-damage-amount");
+                const titleEl = document.getElementById("amount-modal-title");
 
-            // Base & current values must come from backend
-            const baseAmount    = Number(alert.order_product.base_damage_charge ?? 0);
-            const currentAmount = Number(alert.order_product.current_damage_charge ?? baseAmount);
+
+                
+    const isFuel = alert.type === "fuel";
+
+    
+
+       let baseAmount, currentAmount;
+
+if (isFuel) {
+    baseAmount = Number(alert.order_product.base_fuel_charge ?? 0);
+    currentAmount = Number(alert.order_product.current_fuel_charge ?? baseAmount);
+} else {
+    baseAmount = Number(alert.order_product.base_damage_charge ?? 0);
+    currentAmount = Number(alert.order_product.current_damage_charge ?? baseAmount);
+}
+
 
             // Fill static values
             baseEl.textContent = `$${baseAmount.toFixed(2)}`;
@@ -242,22 +301,23 @@ const salesDataFromServer = @json($salesData);
             };
 
             // Title is always adjustment-based
-            document.getElementById("amount-modal-title").textContent =
-                "Adjust Damage Charge";
+            // document.getElementById("amount-modal-title").textContent =
+            //     "Adjust Damage Charge";
+
+            titleEl.textContent = isFuel
+        ? "Adjust Fuel Charge"
+        : "Adjust Damage Charge";
 
             document.getElementById("amount-modal").classList.remove("hidden");
         }
-
-
 
         closeAmountModal() {
             document.getElementById("amount-modal").classList.add("hidden");
         }
 
-
         // DamageAlerts
 
-    defaultDamageAlerts() {
+         defaultDamageAlerts() {
             // Prefer backend data
             if (Array.isArray(window.damageAlerts) && window.damageAlerts.length) {
                 return window.damageAlerts;
@@ -295,10 +355,10 @@ const salesDataFromServer = @json($salesData);
 
                 // Fill text
                 item.querySelector("[data-customer]").textContent = alert.customerName;
-                item.querySelector("[data-order-id]").textContent = alert.orderId;
+                item.querySelector("[data-order-id]").textContent = alert.order_number;
 
                 // Buttons
-            item.querySelector("[data-order-btn]").onclick = () => {
+                item.querySelector("[data-order-btn]").onclick = () => {
                     if (alert.orderLink) {
                         // window.location.href = alert.orderLink;
                         window.open(alert.orderLink, "_blank");
@@ -315,11 +375,22 @@ const salesDataFromServer = @json($salesData);
 
                 };
 
+
+                const viewBtn = item.querySelector('[data-view-charges]');
+                    if (viewBtn) {
+                    viewBtn.addEventListener('click', () => {
+                        // pass the alert object
+                        this.openChargesModal(alert);
+                    });
+                    }
+
+
+
                 const dropdown = item.querySelector("[data-status-dropdown]");
                 item.querySelector("[data-status-btn]").onclick = () => dropdown.classList.toggle("hidden");
 
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("damage", alert.id, "paid");
-                // item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
+                item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
 
                 item.querySelector("[data-edit-notes]").onclick = () => {
                     this.editingAlert = alert;
@@ -341,23 +412,23 @@ const salesDataFromServer = @json($salesData);
 
 
               
-// Notes (multiple notes, same design, clean)
-if (Array.isArray(alert.notes) && alert.notes.length > 0) {
-    const container = item.querySelector("[data-notes-container]");
+                // Notes (multiple notes, same design, clean)
+                if (Array.isArray(alert.notes) && alert.notes.length > 0) {
+                    const container = item.querySelector("[data-notes-container]");
 
-    container.classList.remove("hidden");
-    container.innerHTML = ""; // clear old notes
+                    container.classList.remove("hidden");
+                    container.innerHTML = ""; // clear old notes
 
-    alert.notes.forEach(note => {
-        const noteEl = document.createElement("div");
-        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
-        noteEl.innerHTML = `
-            <strong>Notes:</strong> ${note.note}
-        `;
+                    alert.notes.forEach(note => {
+                        const noteEl = document.createElement("div");
+                        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
+                        noteEl.innerHTML = `
+                            <strong>Notes:</strong> ${note.note}
+                        `;
 
-        container.appendChild(noteEl);
-    });
-}
+                        container.appendChild(noteEl);
+                    });
+                }
 
 
 
@@ -390,19 +461,19 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
         }
 
         openNotesModal(alert) {
-        // this.editingAlert = alert;
-        this.tempNotes =  "";
+            // this.editingAlert = alert;
+            this.tempNotes =  "";
 
-        document.getElementById("notes-input").value = this.tempNotes;
-        document.getElementById("notes-modal-title").textContent =
-            alert.notes ? "Add Notes" : "Add Notes";
+            document.getElementById("notes-input").value = this.tempNotes;
+            document.getElementById("notes-modal-title").textContent =
+                alert.notes ? "Add Notes" : "Add Notes";
 
-        document.getElementById("notes-modal").classList.remove("hidden");
-    }
+            document.getElementById("notes-modal").classList.remove("hidden");
+        }
 
-    closeNotesModal() {
-        document.getElementById("notes-modal").classList.add("hidden");
-    }
+        closeNotesModal() {
+            document.getElementById("notes-modal").classList.add("hidden");
+        }
 
 
     /** ------------------------
@@ -470,20 +541,6 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
         this.updateSalesChart();
     }
 
-
-    /** ------------------------
-     *      CURRENCY FORMATTER
-     --------------------------*/
-    // formatCurrency(val) {
-    //     return (
-    //         "$" +
-    //         val.toLocaleString("en-US", {
-    //             minimumFractionDigits: 0,
-    //             maximumFractionDigits: 0,
-    //         })
-    //     );
-    // }
-
     formatCurrency(value) {
         if (value === null || value === undefined) return `${window.APP_CURRENCY}0.00`;
 
@@ -501,38 +558,260 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
      *         ALERTS
      --------------------------*/
     handleStatusUpdate(type, id, status) {
-        if (type === "fuel") {
-            this.fuelAlerts = this.fuelAlerts.filter((a) => a.id !== id);
 
-               this.updateFuelAlertHeader();
-        this.updateFuelAlertBadge();
-        this.renderFuelAlerts();
+        
+      // UNCOLLECTIBLE → confirm first
+if (status === "uncollectible") {
+
+    const label = type === "fuel" ? "Fuel" : "Damage";
+
+    //  get correct alert object
+    const alertItem =
+        type === "fuel"
+            ? this.fuelAlerts.find(a => a.id === id)
+            : this.damageAlerts.find(a => a.id === id);
+
+    if (!alertItem || !alertItem.order_product?.id) {
+        notyf.error("Unable to process this payment.");
+        return;
+    }
+
+    window.showConfirm(
+        `Are you sure you want to mark this ${label} payment as uncollectible?`,
+        'Mark Payment Uncollectible'
+    ).then((result) => {
+        if (result.isConfirmed) {
+
+            //  send real order_product.id
+            this.markPaymentUncollectible(
+                type,
+                alertItem.order_product.id, // correct ID
+                id 
+            );
+        }
+    });
+
+    return;
+}
+
+
+
+        if (type === "fuel") {
+            // this.fuelAlerts = this.fuelAlerts.filter((a) => a.id !== id);
+
+        //        this.updateFuelAlertHeader();
+        // this.updateFuelAlertBadge();
+        // this.renderFuelAlerts();
+
+         this.selectedfuelAlert = this.fuelAlerts.find(a => a.id === id);  
+              // Open payment modal
+                this.openPaymentModal(this.selectedfuelAlert);
 
         } else {
-            // this.damageAlerts = this.damageAlerts.filter((a) => a.id !== id);
-            // this.updateDamageAlertHeader();  // NEW
-            // this.updateDamageAlertBadge();   // NEW
-            // this.renderDamageAlerts();
-
-
-
+          
               this.selectedDamageAlert = this.damageAlerts.find(a => a.id === id);  
               // Open payment modal
-
-
-
                 this.openPaymentModal(this.selectedDamageAlert);
 
         }
     }
 
+    
+ openChargesModal(alert) {
+    const modal = document.getElementById('ChargesModal');
+    const loading = document.getElementById('chargesModalLoading');
+    const empty = document.getElementById('chargesModalEmpty');
+    const header = document.getElementById('chargesModalHeader');
+    const tbody = document.getElementById('chargesTableBody');
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    // reset UI
+    tbody.innerHTML = '';
+    empty.classList.add('hidden');
+    loading.classList.remove('hidden');
+
+    header.textContent = `Order #${alert.orderId || '-'} • ${alert.customer?.name || ''}`;
+
+    const orderProductId = alert?.order_product?.id;
+    if (!orderProductId) {
+      loading.classList.add('hidden');
+      notyf.error('Order product id not found');
+      return;
+    }
+
+    this.fetchCharges(orderProductId)
+      .then(data => {
+        loading.classList.add('hidden');
+
+        const rows = data?.checklist?.rows || [];
+
+       const hasChecklist = rows.length > 0;
+        const hasDamage = data?.damage?.final > 0;
+        const hasHours = (data?.hour_tracking?.rows || []).length > 0;
+
+        if (!hasChecklist && !hasDamage && !hasHours) {
+        empty.classList.remove('hidden');
+        return;
+        }
+
+
+        rows.forEach(row => {
+          tbody.insertAdjacentHTML('beforeend', `
+            <tr class="border-b">
+              <td class="py-2 px-2">${this.escapeHtml(row.item)}</td>
+
+              <td class="py-2 px-2">
+                <div class="max-w-[200px] whitespace-normal break-words">
+                  ${this.escapeHtml(row.delivered ?? 'Admin Override')}
+                </div>
+              </td>
+
+              <td class="py-2 px-2">
+                <div class="max-w-[200px] whitespace-normal break-words">
+                  ${this.escapeHtml(row.returned ?? '-')}
+                </div>
+              </td>
+
+              <td class="py-2 px-2 text-right text-red-600">
+                ${this.formatCurrency(row.amount)}
+              </td>
+            </tr>
+          `);
+        });
+
+
+        // DAMAGE SUMMARY ROW (same as Blade)
+    if (data?.damage?.final > 0) {
+    tbody.insertAdjacentHTML('beforeend', `
+        <tr class="border-b bg-gray-50 font-medium">
+        <td class="py-2 px-2">Damage Amount Initialized</td>
+
+        <td class="py-2 px-2">
+            Base (${this.formatCurrency(data.damage.base)})
+        </td>
+
+        <td class="py-2 px-2 ${
+            data.damage.adjustment < 0 ? 'text-red-600' : 'text-green-600'
+        }">
+            Adjust (
+            ${data.damage.adjustment >= 0 ? '+' : '-'}
+            ${this.formatCurrency(Math.abs(data.damage.adjustment))}
+            )
+        </td>
+
+        <td class="py-2 px-2 text-right text-gray-900">
+            ${this.formatCurrency(data.damage.final)}
+        </td>
+        </tr>
+    `);
+    }
+
+    // GRAND TOTAL ROW (same as Blade)
+    tbody.insertAdjacentHTML('beforeend', `
+    <tr class="font-bold border-t bg-gray-100">
+        <td colspan="3" class="py-3 px-2 text-right text-gray-800">
+        Grand Total:
+        </td>
+        <td class="py-3 px-2 text-right text-gray-900">
+        ${this.formatCurrency(data.grand_total)}
+        </td>
+    </tr>
+    `);
+
+
+
+      })
+      .catch(() => {
+        loading.classList.add('hidden');
+        notyf.error('Failed to load charges');
+      });
+  }
+
+
+  fetchCharges(orderProductId) {
+    const url =
+      "{{ route('admin.dashboard.extra-charges.show', ':id') }}"
+        .replace(':id', orderProductId);
+
+    return fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document
+          .querySelector('meta[name="csrf-token"]')
+          .getAttribute('content'),
+      },
+    }).then(res => res.json());
+  }
+
+
+  closeChargesModal() {
+    const modal = document.getElementById('ChargesModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+
+  escapeHtml(str) {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+   markPaymentUncollectible(type, orderProductId, alertId) {
+
+    const url =
+        "{{ route('admin.dashboard.extra-charges.uncollectible', ':id') }}"
+            .replace(':id', orderProductId);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document
+                .querySelector('meta[name="csrf-token"]')
+                .getAttribute('content')
+        },
+        body: JSON.stringify({
+            type: type // fuel | damage
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            notyf.success(data.message || 'Marked as uncollectible');
+
+            // Remove alert from UI
+            if (type === "fuel") {
+                this.fuelAlerts = this.fuelAlerts.filter(a => a.id !== alertId);
+                this.renderFuelAlerts();
+                this.updateFuelAlertBadge();
+            } else {
+                this.damageAlerts = this.damageAlerts.filter(a => a.id !== alertId);
+                this.renderDamageAlerts();
+                this.updateDamageAlertBadge();
+            }
+        } else {
+            notyf.error(data.message || 'Something went wrong');
+        }
+    })
+    .catch(() => {
+        notyf.error('Failed to mark payment as uncollectible');
+    });
+}
+
+
+
+
+
     openPaymentModal(alert) {
 
-              
-                 window.resetCreditCardState();
-
-
-        // console.log(alert);
+        window.resetCreditCardState();
 
         const modal = document.getElementById('PaymentModal');
         modal.classList.remove('hidden');
@@ -573,7 +852,7 @@ if (Array.isArray(alert.notes) && alert.notes.length > 0) {
         const cardSelect = document.getElementById('existing_card_id');
         const cardOption = document.getElementById('cardOption');
         const cardOnFileDropdown = document.getElementById('cardOnFileDropdown');
-const paymentType = document.getElementById('payment_type');
+        const paymentType = document.getElementById('payment_type');
 
        cardSelect.innerHTML = `<option value="">-- Select a saved card --</option>`;
 
@@ -628,45 +907,45 @@ const paymentType = document.getElementById('payment_type');
 
 
     saveAmount() {
-        if (!this.editingAlert) {
-        notyf.error("Alert not found.");
-        return;
-    }
+            if (!this.editingAlert) {
+            notyf.error("Alert not found.");
+            return;
+        }
 
         const amount = document.getElementById("amount-input").value.trim();
 
         
-    if (!amount || isNaN(amount)) {
-        notyf.error("Please enter a valid amount.");
-        return;
-    }
+        if (!amount || isNaN(amount)) {
+            notyf.error("Please enter a valid amount.");
+            return;
+        }
 
 
     
-    const url =
+     const url =
         "{{ route('admin.dashboard.amount.update', ':unique_id') }}"
             .replace(":unique_id", this.editingAlert.order_product.unique_id);
 
-    const saveBtn = document.querySelector("#amount-modal #save-btn-amount");
-    const originalText = saveBtn.textContent;
+        const saveBtn = document.querySelector("#amount-modal #save-btn-amount");
+        const originalText = saveBtn.textContent;
 
-    saveBtn.disabled = true;
-    saveBtn.textContent = "Saving...";
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
 
-    apiFetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": document
-                .querySelector('meta[name="csrf-token"]')
-                .getAttribute("content"),
-        },
-        body: JSON.stringify({
-            amount: parseFloat(amount),
-            type: this.editingAlert.type, // fuel | damage
-            user_id: window.AUTH_USER_ID,
-        }),
-    })
+        apiFetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute("content"),
+            },
+            body: JSON.stringify({
+                amount: parseFloat(amount),
+                type: this.editingAlert.type, // fuel | damage
+                user_id: window.AUTH_USER_ID,
+            }),
+        })
         .then((res) => {
             if (res && res.success) {
                 notyf.success(res.message || "Amount updated");
@@ -685,28 +964,7 @@ const paymentType = document.getElementById('payment_type');
             saveBtn.disabled = false;
             saveBtn.textContent = originalText;
         });
-}
-
-
-        // const formatted = this.tempAmount
-        //     ? `$${parseFloat(this.tempAmount).toFixed(2)}`
-        //     : "Pending";
-
-        // const list =
-        //     this.editingAlert.type === "fuel"
-        //         ? this.fuelAlerts
-        //         : this.damageAlerts;
-
-        // const index = list.findIndex((a) => a.id === this.editingAlert.id);
-        // if (index !== -1) list[index].amountOwed = formatted;
-
-        // this.editingAlert = null;
-        // this.tempAmount = "";
-        // this.closeAmountModal();
-        // this.renderFuelAlerts();
-        // this.renderDamageAlerts();
-
-    // }
+    }
 
     saveNotes() {
         if (!this.activeOrderUniqueId) {
@@ -938,14 +1196,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 document.addEventListener('livewire:init', () => {
-    Livewire.on('alerts-updated', ({ alerts }) => {
+    Livewire.on('alerts-updated', ({ alerts , fuelAlerts  }) => {
 
         if (!window.dashboardApp) return;
-
+        // Damage
         window.dashboardApp.damageAlerts = alerts;
         window.dashboardApp.updateDamageAlertHeader();
         window.dashboardApp.updateDamageAlertBadge();
         window.dashboardApp.renderDamageAlerts();
+
+        
+        // Fuel
+        window.dashboardApp.fuelAlerts = fuelAlerts;
+        window.dashboardApp.updateFuelAlertHeader();
+        window.dashboardApp.updateFuelAlertBadge();
+        window.dashboardApp.renderFuelAlerts();
     });
 });
 

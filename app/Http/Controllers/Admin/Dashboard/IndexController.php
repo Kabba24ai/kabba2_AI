@@ -45,7 +45,10 @@ class IndexController extends Controller
         })
         ->whereHas('order')
         ->whereHas('orderProduct', function ($q) {
-            $q->where('damage_status', '!=', 'completed');
+            $q->whereNotIn('damage_status', [
+                'completed',
+                'uncollectible',
+            ]);
         })
         ->latest('id')
         ->get()
@@ -84,32 +87,110 @@ class IndexController extends Controller
                     'orderLink' => $order
                         ? route('admin.order-management.orders.edit', $order->unique_id)
                         : null,
+            'order_number' => $order?->order_number ?? '—',
+                                'amountOwed' => $currentDamage > 0  
+                                    ? '$' . number_format($currentDamage, 2)
+                                    : 'Pending',
 
-                    'amountOwed' => $currentDamage > 0  
-                        ? '$' . number_format($currentDamage, 2)
+                                'date' => optional($order?->created_at)->toDateString(),
+                                'type' => 'damage',
+
+                                'notes' => $latestNote,
+
+                                'equipment' => [
+                                    'id' => $equipment?->unique_id,
+                                    'name' => $equipment?->equipment_name,
+                                ],
+
+                                'order_product' => [
+                                    'id' => $orderProduct?->id,
+                                    'unique_id' => $orderProduct?->unique_id,
+                                    'base_damage_charge' => $baseDamage,
+                                    'current_damage_charge' => $currentDamage,
+                                ],
+                            ];
+                    });
+
+                $fuelChargeAlerts = OrderProduct::with([
+                        'order.customer.cards',
+                        'equipment',
+                        'fuelChargeLogs',
+                    ])
+                    ->whereNotNull('fuel_total_charge')
+                    ->where('fuel_total_charge', '>', 0)
+                    ->whereNotIn('fuel_charge_status', [
+                        'completed',
+                        'uncollectible',
+                    ])
+                    ->whereHas('equipment', function ($q) {
+                        $q->where('not_for_rent', 0)
+                        ->whereNull('deleted_at');
+                    })
+                    ->whereHas('order')
+                    ->latest('id')
+                    ->get()
+                    ->unique('order_id') // one alert per order
+                    ->values()
+                    ->map(function ($orderProduct, $index) {
+
+                        $order = $orderProduct->order;
+                        $equipment = $orderProduct->equipment;
+
+                        $latestNote = $order?->notes()
+                            ->dashboard()
+                            ->latest()
+                            ->get(['id', 'note', 'created_at']);
+
+            $baseFuelCharge = (float) ($orderProduct->fuel_total_charge ?? 0);
+            $fuelAdjustments = $orderProduct->fuelChargeLogs->sum('change_amount');
+            $currentFuelCharge = max(0, $baseFuelCharge + $fuelAdjustments);
+
+
+            return [
+                'id' => $index + 1,
+
+                'customer' => [
+                    'id' => $order?->customer?->id,
+                    'full_name' => $order?->customer?->full_name,
+                    'cards' => $order?->customer?->cards?->map(fn ($card) => [
+                        'id' => $card->unique_id,
+                        'label' => $card->card_number,
+                    ])->values(),
+                ],
+
+                'customerName' => $order?->customer?->full_name ?? '—',
+                'orderId' => $order?->unique_id ?? '—',
+                'order_number' => $order?->order_number ?? '—',
+                'orderLink' => $order
+                    ? route('admin.order-management.orders.edit', $order->unique_id)
+                    : null,
+
+                 'amountOwed' => $currentFuelCharge > 0  
+                        ? '$' . number_format($currentFuelCharge, 2)
                         : 'Pending',
 
-                    'date' => optional($order?->created_at)->toDateString(),
-                    'type' => 'damage',
+                'date' => optional($order?->created_at)->toDateString(),
+                'type' => 'fuel',
 
-                    'notes' => $latestNote,
+                'notes' => $latestNote,
 
-                    'equipment' => [
-                        'id' => $equipment?->unique_id,
-                        'name' => $equipment?->equipment_name,
-                    ],
+                'equipment' => [
+                    'id' => $equipment?->unique_id,
+                    'name' => $equipment?->equipment_name,
+                ],
 
-                    'order_product' => [
-                        'id' => $orderProduct?->id,
-                        'unique_id' => $orderProduct?->unique_id,
-                        'base_damage_charge' => $baseDamage,
-                        'current_damage_charge' => $currentDamage,
-                    ],
-                ];
-            });
+              'order_product' => [
+                'id' => $orderProduct->id,
+                'unique_id' => $orderProduct->unique_id,
+                'base_fuel_charge' => $baseFuelCharge,
+                'current_fuel_charge' => $currentFuelCharge ,
+            ],
+            ];
+        });
 
+        // dd($fuelChargeAlerts);
 
-        // Get sales data for different periods
+            // Get sales data for different periods
         $salesData = $this->getSalesData();
 
         $chartData = $this->getMaintenanceChartData();
@@ -120,7 +201,7 @@ class IndexController extends Controller
 
         // dd($salesData);
         
-        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting'));
+        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts'));
                         
     }
 
@@ -313,7 +394,57 @@ class IndexController extends Controller
      * Get current month sales data (grouped by week)
      */
 
-    private function getCurrentMonthData($now)
+//     private function getCurrentMonthData($now)
+// {
+//     $startDate = $now->copy()->startOfMonth()->startOfDay();
+//     $endDate   = $now->copy()->endOfMonth()->endOfDay();
+
+//     // ---------- CURRENT PERIOD ----------
+//     $currentRows = $this->getRevenueRows($startDate, $endDate);
+
+//     $currentPeriodData = $currentRows
+//         ->groupBy(function ($row) {
+//             $day = Carbon::parse($row->date)->day;
+//             return min(3, floor(($day - 1) / 7)); // week index
+//         })
+//         ->map(fn ($items) => $items->sum('grand_total'))
+//         ->toArray();
+
+//     // ---------- PREVIOUS PERIOD ----------
+//     $prevStart = $startDate->copy()->subMonth()->startOfMonth();
+//     $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
+
+//     $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
+
+//     $previousPeriodData = $previousRows
+//         ->groupBy(function ($row) {
+//             $day = Carbon::parse($row->date)->day;
+//             return min(3, floor(($day - 1) / 7));
+//         })
+//         ->map(fn ($items) => $items->sum('grand_total'))
+//         ->toArray();
+
+//     // ---------- BUILD OUTPUT ----------
+//     $categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+//     $currentData = [];
+//     $previousData = [];
+
+//     for ($i = 0; $i < 4; $i++) {
+//         $currentData[]  = (float) ($currentPeriodData[$i] ?? 0);
+//         $previousData[] = (float) ($previousPeriodData[$i] ?? 0);
+//     }
+
+//     return [
+//         'categories' => $categories,
+//         'current' => $currentData,
+//         'previous' => $previousData,
+//         'totalSales' => array_sum($currentData),
+//         'previousTotalSales' => array_sum($previousData),
+//     ];
+// }
+
+
+private function getCurrentMonthData($now)
 {
     $startDate = $now->copy()->startOfMonth()->startOfDay();
     $endDate   = $now->copy()->endOfMonth()->endOfDay();
@@ -322,35 +453,37 @@ class IndexController extends Controller
     $currentRows = $this->getRevenueRows($startDate, $endDate);
 
     $currentPeriodData = $currentRows
-        ->groupBy(function ($row) {
-            $day = Carbon::parse($row->date)->day;
-            return min(3, floor(($day - 1) / 7)); // week index
-        })
+        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
         ->map(fn ($items) => $items->sum('grand_total'))
         ->toArray();
 
-    // ---------- PREVIOUS PERIOD ----------
+    // ---------- PREVIOUS PERIOD (last month) ----------
     $prevStart = $startDate->copy()->subMonth()->startOfMonth();
     $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
 
     $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
 
     $previousPeriodData = $previousRows
-        ->groupBy(function ($row) {
-            $day = Carbon::parse($row->date)->day;
-            return min(3, floor(($day - 1) / 7));
-        })
+        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
         ->map(fn ($items) => $items->sum('grand_total'))
         ->toArray();
 
     // ---------- BUILD OUTPUT ----------
-    $categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    $daysInMonth = $startDate->daysInMonth;
+
+    $categories = [];
     $currentData = [];
     $previousData = [];
 
-    for ($i = 0; $i < 4; $i++) {
-        $currentData[]  = (float) ($currentPeriodData[$i] ?? 0);
-        $previousData[] = (float) ($previousPeriodData[$i] ?? 0);
+    for ($i = 0; $i < $daysInMonth; $i++) {
+        $date = $startDate->copy()->addDays($i);
+        $dateStr = $date->format('Y-m-d');
+
+        $categories[] = CustomHelper::formatDate($date);
+        $currentData[] = (float) ($currentPeriodData[$dateStr] ?? 0);
+
+        $prevDate = $prevStart->copy()->addDays($i);
+        $previousData[] = (float) ($previousPeriodData[$prevDate->format('Y-m-d')] ?? 0);
     }
 
     return [
@@ -363,11 +496,62 @@ class IndexController extends Controller
 }
 
 
+
     /**
      * Get last month sales data (grouped by week)
      */
 
-    private function getLastMonthData($now)
+//     private function getLastMonthData($now)
+// {
+//     $startDate = $now->copy()->subMonth()->startOfMonth()->startOfDay();
+//     $endDate   = $now->copy()->subMonth()->endOfMonth()->endOfDay();
+
+//     // ---------- CURRENT PERIOD ----------
+//     $currentRows = $this->getRevenueRows($startDate, $endDate);
+
+//     $currentPeriodData = $currentRows
+//         ->groupBy(function ($row) {
+//             $day = Carbon::parse($row->date)->day;
+//             return min(3, floor(($day - 1) / 7));
+//         })
+//         ->map(fn ($items) => $items->sum('grand_total'))
+//         ->toArray();
+
+//     // ---------- PREVIOUS PERIOD ----------
+//     $prevStart = $startDate->copy()->subMonth()->startOfMonth();
+//     $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
+
+//     $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
+
+//     $previousPeriodData = $previousRows
+//         ->groupBy(function ($row) {
+//             $day = Carbon::parse($row->date)->day;
+//             return min(3, floor(($day - 1) / 7));
+//         })
+//         ->map(fn ($items) => $items->sum('grand_total'))
+//         ->toArray();
+
+//     // ---------- BUILD OUTPUT ----------
+//     $categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+//     $currentData = [];
+//     $previousData = [];
+
+//     for ($i = 0; $i < 4; $i++) {
+//         $currentData[]  = (float) ($currentPeriodData[$i] ?? 0);
+//         $previousData[] = (float) ($previousPeriodData[$i] ?? 0);
+//     }
+
+//     return [
+//         'categories' => $categories,
+//         'current' => $currentData,
+//         'previous' => $previousData,
+//         'totalSales' => array_sum($currentData),
+//         'previousTotalSales' => array_sum($previousData),
+//     ];
+// }
+
+
+private function getLastMonthData($now)
 {
     $startDate = $now->copy()->subMonth()->startOfMonth()->startOfDay();
     $endDate   = $now->copy()->subMonth()->endOfMonth()->endOfDay();
@@ -376,35 +560,37 @@ class IndexController extends Controller
     $currentRows = $this->getRevenueRows($startDate, $endDate);
 
     $currentPeriodData = $currentRows
-        ->groupBy(function ($row) {
-            $day = Carbon::parse($row->date)->day;
-            return min(3, floor(($day - 1) / 7));
-        })
+        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
         ->map(fn ($items) => $items->sum('grand_total'))
         ->toArray();
 
-    // ---------- PREVIOUS PERIOD ----------
+    // ---------- PREVIOUS PERIOD (two months ago) ----------
     $prevStart = $startDate->copy()->subMonth()->startOfMonth();
     $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
 
     $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
 
     $previousPeriodData = $previousRows
-        ->groupBy(function ($row) {
-            $day = Carbon::parse($row->date)->day;
-            return min(3, floor(($day - 1) / 7));
-        })
+        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
         ->map(fn ($items) => $items->sum('grand_total'))
         ->toArray();
 
     // ---------- BUILD OUTPUT ----------
-    $categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    $daysInMonth = $startDate->daysInMonth;
+
+    $categories = [];
     $currentData = [];
     $previousData = [];
 
-    for ($i = 0; $i < 4; $i++) {
-        $currentData[]  = (float) ($currentPeriodData[$i] ?? 0);
-        $previousData[] = (float) ($previousPeriodData[$i] ?? 0);
+    for ($i = 0; $i < $daysInMonth; $i++) {
+        $date = $startDate->copy()->addDays($i);
+        $dateStr = $date->format('Y-m-d');
+
+        $categories[] = CustomHelper::formatDate($date);
+        $currentData[] = (float) ($currentPeriodData[$dateStr] ?? 0);
+
+        $prevDate = $prevStart->copy()->addDays($i);
+        $previousData[] = (float) ($previousPeriodData[$prevDate->format('Y-m-d')] ?? 0);
     }
 
     return [
@@ -415,6 +601,7 @@ class IndexController extends Controller
         'previousTotalSales' => array_sum($previousData),
     ];
 }
+
 
 
     /**

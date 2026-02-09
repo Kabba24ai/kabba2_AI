@@ -15,7 +15,7 @@ class GetAdminAttendanceSummaryController extends Controller
         $start   = $request->query('start_date');
         $end     = $request->query('end_date');
 
-        $perPage = (int) $request->query('per_page', 10);
+        $perPage = (int) $request->query('per_page', 30);
         $perPage = in_array($perPage, [5, 10, 30, 50, 100, 500]) ? $perPage : 10;
 
         $employees = User::active()

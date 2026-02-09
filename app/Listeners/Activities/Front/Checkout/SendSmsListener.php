@@ -11,8 +11,9 @@ use App\Enums\Orders\OrderPaymentMethod;
 use App\Helpers\ConfigurationHelper;
 use App\Services\TwilioService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SendSmsListener
+class SendSmsListener implements ShouldQueue
 {
     /**
      * Handle the event.

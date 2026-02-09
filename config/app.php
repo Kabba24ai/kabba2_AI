@@ -154,8 +154,8 @@ return [
     */
     'date' => [
         'db_date_format' => env('DB_DATE_FORMAT', 'Y-m-d'),
-        'db_time_format' => env('DB_TIME_FORMAT', 'h:i:s'),
-        'db_date_time_format' => env('DB_DATE_TIME_FORMAT', 'Y-m-d h:i:s'),
+        'db_time_format' => env('DB_TIME_FORMAT', 'H:i:s'),
+        'db_date_time_format' => env('DB_DATE_TIME_FORMAT', 'Y-m-d H:i:s'),
         'date_format' => env('DATE_FORMAT', 'd/m/Y'),
         'time_format' => env('TIME_FORMAT', 'h:i A'),
         'date_time_format' => env('DATE_TIME_FORMAT', 'd/m/Y - h:i A'),

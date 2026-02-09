@@ -30,7 +30,7 @@ class IndexController extends Controller
         }
 
         // Pagination like Customers
-        $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 30);
         $perPageVal = $perPage === 'all'
             ? max(1, $query->count())
             : (int) $perPage;

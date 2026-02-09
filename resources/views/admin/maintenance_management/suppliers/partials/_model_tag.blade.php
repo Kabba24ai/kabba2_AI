@@ -188,7 +188,7 @@ fetchSuppliers(currentPage, perPage);
 
         //  Define globally
         window.fetchTags = function() {
-            fetch(`{{ route('admin.maintenance-management.suppliers.tag.fetch') }}`)
+              return  fetch(`{{ route('admin.maintenance-management.suppliers.tag.fetch') }}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {

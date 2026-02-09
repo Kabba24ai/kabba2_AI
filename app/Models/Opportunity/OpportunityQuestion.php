@@ -3,7 +3,7 @@
 namespace App\Models\Opportunity;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Helpers\ModelHelper; 
+use App\Helpers\ModelHelper;
 
 class OpportunityQuestion extends Model
 {
@@ -34,9 +34,9 @@ class OpportunityQuestion extends Model
         return $this->hasMany(OpportunityQuestionOption::class);
     }
 
-    public function answers()
-    {
-        return $this->hasMany(OpportunityAnswer::class);
-    }
+    // public function answers()
+    // {
+    //     return $this->hasMany(OpportunityAnswer::class);
+    // }
 }
 

@@ -24,7 +24,7 @@ class IndexController extends Controller
                 }
             });
 
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 30);
             $funnels = $query->paginate($perPage)->withQueryString();
 
             $html = view(

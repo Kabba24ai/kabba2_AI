@@ -767,7 +767,7 @@
             if (!response.ok) throw new Error('Network response was not ok');
 
             const result = await response.json();
-            console.log('Supplier fetched:', result);
+            // console.log('Supplier fetched:', result);
 
             const s = result.data;
 
@@ -1019,12 +1019,29 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
+                        // console.log("✅ Tag created:", data.tag);
+
                         notyf.success(data.message || 'Tag added!');
                         newTagInput.value = '';
-                        fetchTags(); // refresh tag list
+
+                        // console.log("🔄 Refreshing tags...");
+
+                        fetchTags().then(() => {
+                            // console.log("✅ Tags refreshed");
+
+                            if (data.tag?.id && window.tagChoices) {
+                                // console.log("🎯 Auto-selecting tag ID:", data.tag.id);
+                                window.tagChoices.setChoiceByValue(String(data.tag.id));
+                            } else {
+                                // console.warn("⚠️ tagChoices or tag.id missing");
+                            }
+                        });
+
                     } else {
+                        // console.error("❌ Tag creation failed:", data);
                         notyf.error(data.message || 'Failed to add tag');
                     }
+
                 })
                 .catch(() => notyf.error("Failed to add tag"))
                 .finally(() => {

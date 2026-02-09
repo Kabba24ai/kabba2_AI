@@ -13,16 +13,7 @@ class OpportunityQuestionOption extends Model
         'label',
         'display_order',
         'status'
-    ];
-
-       public static function boot()
-    {
-        parent::boot();
-
-        self::creating(function ($model) {
-            $model->unique_id = ModelHelper::generateUniqueID($model, 'EOQO');
-        });
-    }
+    ];  
 
     public function question()
     {

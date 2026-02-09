@@ -74,15 +74,15 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
             // Load all equipment with service relationships for filtering
             $allEquipment = $query->get();
             $filteredIds = [];
-            
+
             foreach ($allEquipment as $item) {
                 $serviceStatus = $this->calculateServiceStatus($item, $serviceRecords, $pendingBeforeHours, $pendingAfterHours);
-                
+
                 if ($serviceStatus === $request->service_due) {
                     $filteredIds[] = $item->id;
                 }
             }
-            
+
             // Apply the filter to the query
             if (!empty($filteredIds)) {
                 $query->whereIn('id', $filteredIds);
@@ -92,7 +92,7 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
             }
         }
 
-        $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 30);
         $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
         $equipment = $query
             ->orderBy(ProductCategory::select('title')->whereColumn('product_categories.id', 'equipment.product_category_id'), 'asc')
@@ -132,33 +132,33 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
     private function calculateServiceStatus($item, $serviceRecords, $pendingBeforeHours, $pendingAfterHours)
     {
         $serviceStatus = 'empty';
-        
+
         if ($item->serviceTemplate && $item->serviceTemplate->preset && $item->serviceTemplate->templateTasks->isNotEmpty()) {
             $intervalType = $item->serviceTemplate->preset->interval_type ?? 'hour';
             $isDateBased = $intervalType !== 'hour';
-            
+
             // Calculate current value
             if ($isDateBased && $item->date_acquired) {
                 $currentValue = ceil((time() - strtotime($item->date_acquired)) / (60 * 60 * 24));
             } else {
                 $currentValue = $item->equipment_hours ?? 0;
             }
-            
+
             $tasks = $item->serviceTemplate->templateTasks;
-            
+
             $hasOverdue = false;
             $hasPending = false;
             $hasNotDue = false;
             $totalTasks = 0;
             $completedTasks = 0;
-            
+
             foreach ($tasks as $templateTask) {
                 $taskId = $templateTask->task?->id;
                 if (!$taskId) continue;
-                
+
                 $ints = $templateTask->intervals ?? $templateTask->intervals_json ?? $templateTask->interval ?? [];
                 $arr = [];
-                
+
                 if (is_array($ints)) {
                     $arr = $ints;
                 } elseif (is_string($ints)) {
@@ -170,28 +170,28 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
                 } elseif (is_numeric($ints)) {
                     $arr = [$ints];
                 }
-                
+
                 foreach ($arr as $interval) {
                     $totalTasks++;
-                    
+
                     // Check if this interval is completed
                     $recordKey = $item->id . '_' . $taskId;
                     $records = $serviceRecords[$recordKey] ?? collect();
                     $isCompleted = $records->contains(function($record) use ($interval) {
                         return $record->interval_value == $interval;
                     });
-                    
+
                     if ($isCompleted) {
                         $completedTasks++;
                         continue;
                     }
-                    
+
                     // Calculate status for this interval
                     $before = intval($pendingBeforeHours ?? 20);
                     $after = intval($pendingAfterHours ?? 15);
                     $greyThreshold = $interval - $before;
                     $yellowMax = $interval + $after;
-                    
+
                     if ($currentValue < $greyThreshold) {
                         $hasNotDue = true;
                     } elseif ($currentValue <= $yellowMax) {
@@ -201,7 +201,7 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
                     }
                 }
             }
-            
+
             // Determine overall status based on priority
             if ($hasOverdue) {
                 $serviceStatus = 'overdue';
@@ -213,7 +213,7 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
                 $serviceStatus = 'not_due';
             }
         }
-        
+
         return $serviceStatus;
     }
 }

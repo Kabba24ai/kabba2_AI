@@ -11,148 +11,159 @@
 
     {{-- Order Header Section --}}
     <div class="bg-white px-4 py-4 rounded-xl shadow-sm mb-6">
-        <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
-            {{-- Order Info + Customer --}}
-            <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                <h2 class="text-lg font-semibold text-gray-800">
+            {{-- LEFT: Order + Customer/Company --}}
+            <div class="min-w-[260px]">
+                <div class="text-lg font-semibold text-gray-800">
                     <span class="text-gray-700">Order ID:</span> {{ $order->order_number }}
-                </h2>
-                <div class="flex flex-col leading-tight">
-                    <span class="text-sm font-medium text-gray-800">
+                </div>
+
+                <div class="mt-1 leading-tight">
+                    <div class="text-sm font-medium text-gray-800">
                         Customer: {{ $order->customer_name }}
-                    </span>
-                    <span class="text-xs italic text-gray-600">
+                    </div>
+                    <div class="text-xs italic text-gray-600">
                         Company: {{ $order->company_name }}
-                    </span>
+                    </div>
                 </div>
             </div>
 
-            {{-- Payment Status + Refund Button --}}
-            <div class="flex flex-wrap items-center gap-2">
-                @if ($order->last_payment_status === 'Pending' || $order->last_payment_status === 'Failed')
-                    <button id="pendingPaymentBtn" type="button"
-                        class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
-                        <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                        PENDING PAYMENT
-                    </button>
-                @endif
-                @if ($order->last_payment_status === 'Pending' && $order->last_payment_type !== 'Card')
-                    <button id="addToAccountBtn" type="button"
-                        class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
-                        Add to Account
-                    </button>
-                    {{-- <button id="confirmPaymentBtn"
-                        class="px-4 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full hover:bg-blue-700">
-                        Confirm payment
-                    </button> --}}
-                @endif
-                @if ($order->last_payment_status === 'Paid')
-                    <span
-                        class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
-                        <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                        Paid In Full Via -
-                        {{ $order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card ? 'Credit/Debit Card' : $order->last_payment_type }}
-                    </span>
-                @endif
-                @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount > 0)
-                    {{-- Refund Button --}}
-                    <button id="refundPaymentBtn" type="button"
-                        class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
-                        <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
-                        Refund
-                    </button>
-                @endif
-                @if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card && $order->remaining_amount == 0)
-                    {{-- Refund Button --}}
+            {{-- MIDDLE: Payment Status + Links (centered like screenshot) --}}
+            <div class="flex-1 flex flex-col items-start lg:items-center gap-2">
+                <div class="flex flex-wrap items-center justify-start lg:justify-center gap-2">
+                    @if ($order->last_payment_status === 'Pending' || $order->last_payment_status === 'Failed')
+                        <button id="pendingPaymentBtn" type="button"
+                            class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
+                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                            PENDING PAYMENT
+                        </button>
+                    @endif
 
-                    <button type="button"
-                        class="flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 transition rounded-lg">
-                        <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-red-600" />
-                        Full Refund
-                    </button>
-                @endif
-                @if ($order->last_payment_status === 'Failed')
-                    <span
-                        class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
-                        <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
-                        PAYMENT FAILED
-                    </span>
-                @endif
+                    @if ($order->last_payment_status === 'Pending' && $order->last_payment_type !== 'Card')
+                        <button id="addToAccountBtn" type="button"
+                            class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
+                            Add to Account
+                        </button>
+                    @endif
+
+                    @if ($order->is_paid)
+                        <span
+                            class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
+                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                            Paid In Full Via -
+                            {{ $order->last_payment_type->label() }}
+                        </span>
+                    @endif
+
+                    @if ($order->last_payment_status === 'Failed')
+                        <span
+                            class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
+                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                            PAYMENT FAILED
+                        </span>
+                    @endif
+
+                    @if ($order->is_paid === true && $order->remaining_amount > 0)
+                        <button id="refundPaymentBtn" type="button"
+                            class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
+                            <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
+                            {{ $order->last_payment_status === 'Partial Refund' ? 'Partial Refund' : 'Refund' }}
+                        </button>
+                    @endif
+
+                    @if ($order->remaining_amount == 0)
+                        <button type="button"
+                            class="flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 transition rounded-lg">
+                            <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-red-600" />
+                            Full Refund
+                        </button>
+                    @endif
+                </div>
+
+                {{-- links under the pill/buttons (like screenshot) --}}
+                <div class="flex items-center gap-6 text-sm text-blue-600">
+                    <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}" target="_blank"
+                        class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
+                        @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
+                        <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
+                    </a>
+
+                    <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}"
+                        method="POST" target="_blank" class="inline-flex items-center">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center hover:underline">
+                            <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
+                        </button>
+                    </form>
+                </div>
             </div>
 
-            {{-- Action Buttons --}}
-            <div class="flex flex-wrap gap-2">
-                <div class="relative group inline-block">
-                    <button id="reorderBtn" type="button"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white rounded hover:bg-orange-600 focus:outline-none">
-                        <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
-                    </button>
-                    <!-- Reorder Modal -->
-                    <div id="reorderModal"
-                        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
-                        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
-                            <!-- Header -->
-                            <div class="flex justify-between items-center p-4 border-b">
-                                <h2 class="text-lg font-semibold">Reorder</h2>
-                                <button type="button"
-                                    class="close-reorder-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
-                            </div>
-                            <!-- Body -->
-                            <form id="reorderForm" class="flex-1 flex flex-col justify-between">
-                                <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-700 required">Order Type</label>
-                                        <select id="orderTypeSelect" name="order_type"
-                                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
-                                            required>
-                                            <option value="new">New Independent Order</option>
-                                            <option value="duplicate">Related to Existing Order</option>
-                                        </select>
-                                    </div>
-                                    <div id="duplicateOrderSection" class="hidden">
-                                        <label class="text-sm font-medium text-gray-700 mb-2">Products</label>
-                                        <div class="space-y-2">
-                                            @foreach ($order->products as $orderProduct)
-                                                @if (!empty($orderProduct->product))
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="flex-1">{{ $orderProduct->product_name }}</span>
-                                                        <input type="text"
-                                                            name="delivery_dates[{{ $orderProduct->product->unique_id }}]"
-                                                            data-format="{{ config('app.date.js_date_format') }}"
-                                                            placeholder="Select date"
-                                                            data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
-                                                            class="reorder-datepicker border rounded px-3 py-3 text-xs" />
-                                                    </div>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Footer -->
-                                <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
-                                    <button type="button"
-                                        class="close-reorder-modal-btn px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
-                                        Cancel
-                                    </button>
-                                    <button type="submit"
-                                        class="px-6 py-3 rounded-lg font-medium text-md bg-orange-600 text-white hover:bg-orange-700 shadow-sm transition">
-                                        Continue
-                                    </button>
-                                </div>
-                            </form>
+            {{-- RIGHT: Action Buttons --}}
+            <div class="flex flex-wrap justify-start lg:justify-end gap-2">
+                <button id="reorderBtn" type="button"
+                    class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white hover:bg-orange-600 focus:outline-none">
+                    <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
+                </button>
+                <!-- Reorder Modal -->
+                <div id="reorderModal"
+                    class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+                    <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+                        <!-- Header -->
+                        <div class="flex justify-between items-center p-4 border-b">
+                            <h2 class="text-lg font-semibold">Reorder</h2>
+                            <button type="button"
+                                class="close-reorder-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
                         </div>
+                        <!-- Body -->
+                        <form id="reorderForm" class="flex-1 flex flex-col justify-between">
+                            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 required">Order Type</label>
+                                    <select id="orderTypeSelect" name="order_type"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
+                                        required>
+                                        <option value="new">New Independent Order</option>
+                                        <option value="duplicate">Related to Existing Order</option>
+                                    </select>
+                                </div>
+                                <div id="duplicateOrderSection" class="hidden">
+                                    <label class="text-sm font-medium text-gray-700 mb-2">Products</label>
+                                    <div class="space-y-2">
+                                        @foreach ($order->products as $orderProduct)
+                                            @if (!empty($orderProduct->product))
+                                                <div class="flex items-center gap-2">
+                                                    <span class="flex-1">{{ $orderProduct->product_name }}</span>
+                                                    <input type="text"
+                                                        name="delivery_dates[{{ $orderProduct->product->unique_id }}]"
+                                                        data-format="{{ config('app.date.js_date_format') }}"
+                                                        placeholder="Select date"
+                                                        data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                                        class="reorder-datepicker border rounded px-3 py-3 text-xs" />
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Footer -->
+                            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                                <button type="button"
+                                    class="close-reorder-modal-btn px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                    class="px-6 py-3 rounded-lg font-medium text-md bg-orange-600 text-white hover:bg-orange-700 shadow-sm transition">
+                                    Continue
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-
-
-
-
-                <!-- Blade Links with Tailwind loader -->
                 <div class="flex flex-col">
                     <a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-500 text-white rounded hover:bg-blue-600 receipt-action">
+                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-500 text-white hover:bg-blue-600 receipt-action">
                         <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
                         <svg class="hidden w-5 h-5 ml-2 animate-spin text-white loader-svg"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -164,60 +175,26 @@
 
                     @if ($order->latestReceipt && !empty($order->latestReceipt->mail_send_at))
                         <div class="text-xs text-gray-600 mt-1 ml-[2px] text-center">
-
                             {{ \App\Helpers\CustomHelper::formatDateTime($order->latestReceipt->mail_send_at) }}
-
                         </div>
                     @endif
                 </div>
 
-                <div class="flex flex-col">
-                    <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white rounded hover:bg-blue-700 receipt-action">
-                        <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
-                        <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg"
-                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                        </svg>
-                    </a>
-                </div>
-
-
-
-
-                <button class="hidden items-center px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 ">
-                    <x-heroicon-o-check class="w-4 h-4 mr-1" /> Save
-                </button>
-            </div>
-        </div>
-
-        {{-- Sub-links under customer --}}
-        <div class="mt-2 flex gap-4 text-sm text-blue-600">
-            <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}" target="_blank"
-                class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
-                @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
-                <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
-            </a>
-            <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}"
-                method="POST" target="_blank" class="inline-flex items-center">
-                @csrf
-                <button type="submit" class="inline-flex items-center hover:underline">
-                    <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
-                </button>
-            </form>
-            @if ($order->reference_order_number)
-                <a href="{{ $order->referenceOrder ? route('admin.order-management.orders.edit', $order->referenceOrder->unique_id) : 'javascript:void(0);' }}"
-                    target="_blank"
-                    class="inline-flex items-center hover:underline {{ !$order->referenceOrder ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
-                    @if (!$order->referenceOrder) tabindex="-1" aria-disabled="true" @endif>
-                    <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reference Order:
-                    {{ $order->reference_order_number }}
+                <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
+                    class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700 receipt-action">
+                    <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
+                    <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                            stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
                 </a>
-            @endif
+            </div>
+
         </div>
     </div>
+
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
@@ -390,13 +367,14 @@
         </div>
     </div>
 
+
     <div class="bg-white rounded-xl shadow-sm p-6 mb-6 space-y-6">
         <h3 class="text-base font-semibold text-gray-800">Equipment Orders & Delivery Schedule</h3>
 
         {{-- Equipment Info --}}
-        <div class="grid md:grid-cols-2 gap-6">
-            <div class="space-y-4">
-                @foreach ($order->products as $orderProduct)
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            @foreach ($order->products as $index => $orderProduct)
+                <div class="space-y-4">
                     <div class="flex gap-4">
                         <div class="w-[150px] h-[150px] bg-gray-100 flex items-center justify-center text-gray-400">
                             @if ($orderProduct?->product?->image_url)
@@ -425,19 +403,21 @@
                                 <p class="text-sm text-gray-500">
                                     Equipment:
                                     @if ($orderProduct->equipment)
-                                        <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}" target="_blank" class="text-xs text-green-600 hover:underline ml-2">
+                                        <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}"
+                                            target="_blank" class="text-xs text-green-600 hover:underline ml-2">
                                             {{ $orderProduct->equipment->equipment_name ?? '—' }} ||
                                             ({{ $orderProduct->equipment->equipment_id ?? '—' }})
                                         </a>
                                     @else
-                                        @if(!empty($orderProduct?->softAssignment))
+                                        @if (!empty($orderProduct?->softAssignment))
                                             @php
-                                                $softUnique = $orderProduct?->softAssignment?->equipment->unique_id ??  null;
+                                                $softUnique =
+                                                    $orderProduct?->softAssignment?->equipment->unique_id ?? null;
                                             @endphp
-                                            <a href="{{ route('admin.maintenance-management.equipment.edit', $softUnique) }}" target="_blank"
-                                                    class="text-xs text-blue-600 hover:underline ml-2">
-                                                {{ $orderProduct?->softAssignment?->equipment->equipment_name ??  '—' }} ||
-                                                ({{ $orderProduct?->softAssignment?->equipment->equipment_id ??  '—' }})
+                                            <a href="{{ route('admin.maintenance-management.equipment.edit', $softUnique) }}"
+                                                target="_blank" class="text-xs text-blue-600 hover:underline ml-2">
+                                                {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }} ||
+                                                ({{ $orderProduct?->softAssignment?->equipment->equipment_id ?? '—' }})
                                             </a>
                                         @else
                                             <span class="text-gray-400">N/A</span>
@@ -457,27 +437,27 @@
 
                         {{-- @if (!empty($orderProduct->service_method))
                             <div class="flex flex-col gap-y-1">
-                                <div class="text-xs flex justify-between items-center">
-                                    <span class="underline">Service:</span>
-                                </div>
-                                <ul class="flex flex-col">
-                                    <li class="text-xs before:content-['-'] before:pr-1">
-                                        {{ $orderProduct->service_method }}
-                                    </li>
-                                </ul>
+                            <div class="text-xs flex justify-between items-center">
+                                <span class="underline">Service:</span>
+                            </div>
+                            <ul class="flex flex-col">
+                                <li class="text-xs before:content-['-'] before:pr-1">
+                                {{ $orderProduct->service_method }}
+                                </li>
+                            </ul>
                             </div>
                         @endif
 
                         @if (!empty($orderProduct->service_option))
                             <div class="flex flex-col gap-y-1">
-                                <div class="text-xs flex justify-between items-center">
-                                    <span class="underline">Delivery:</span>
-                                </div>
-                                <ul class="flex flex-col">
-                                    <li class="text-xs before:content-['-'] before:pr-1">
-                                        {{ $orderProduct->service_option }}
-                                    </li>
-                                </ul>
+                            <div class="text-xs flex justify-between items-center">
+                                <span class="underline">Delivery:</span>
+                            </div>
+                            <ul class="flex flex-col">
+                                <li class="text-xs before:content-['-'] before:pr-1">
+                                {{ $orderProduct->service_option }}
+                                </li>
+                            </ul>
                             </div>
                         @endif --}}
 
@@ -545,24 +525,13 @@
                         <div class="flex justify-between font-semibold">
                             <span>Qty - {{ $orderProduct->quantity }}</span>
                             <span>
-                                Sub Total: {{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->sub_total) }}
+                                Subtotal: {{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->sub_total) }}
                             </span>
                         </div>
                     </div>
+                </div>
 
-                    {{-- @if ($orderProduct->note)
-                        <div class="text-sm px-3 py-2 bg-gray-100 rounded text-gray-600 mb-4">
-                            {{ $orderProduct->note }}
-                        </div>
-                    @endif --}}
-                @endforeach
-
-            </div>
-
-
-            {{-- Schedule Panels --}}
-            <div class="space-y-6">
-                @foreach ($order->products as $orderProduct)
+                <div class="space-y-4">
                     <div class="bg-white rounded-xl border border-gray-200">
                         <div class="px-2 py-2 rounded-t-lg border-b border-gray-200">
                             <div class="flex items-center justify-between">
@@ -615,13 +584,17 @@
                                                         class="border rounded px-px-3 py-3 text-xs w-full flex items-center justify-center gap-1 focus:outline-none delivery_transport_mode">
                                                         <template x-if="selected === 'Store'">
                                                             <x-heroicon-o-building-storefront class="w-4 h-4"
-                                                                x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' :
-                                                                    'text-yellow-600'" />
+                                                                x-bind:class="(deliveryStatus === 'Completed' ||
+                                                                    deliveryStatus === 'Close as Completed') ?
+                                                                'text-green-600' :
+                                                                'text-yellow-600'" />
                                                         </template>
                                                         <template x-if="selected === 'Truck'">
                                                             <x-heroicon-o-truck class="w-4 h-4"
-                                                                x-bind:class="deliveryStatus === 'Completed' ? 'text-green-600' :
-                                                                    'text-yellow-600'" />
+                                                                x-bind:class="(deliveryStatus === 'Completed' ||
+                                                                    deliveryStatus === 'Close as Completed') ?
+                                                                'text-green-600' :
+                                                                'text-yellow-600'" />
                                                         </template>
                                                     </button>
                                                     <div x-show="open" @click.away="open = false"
@@ -632,8 +605,9 @@
                                                                     @click="selected = 'Store'; open = false;  $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-building-storefront class="w-4 h-4"
-                                                                        x-bind:class="deliveryStatus === 'Completed' ?
-                                                                            'text-green-600' : 'text-yellow-600'" />
+                                                                        x-bind:class="(deliveryStatus === 'Completed' ||
+                                                                            deliveryStatus === 'Close as Completed') ?
+                                                                        'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                             <li>
@@ -641,8 +615,9 @@
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.deliveryTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-truck class="w-4 h-4"
-                                                                        x-bind:class="deliveryStatus === 'Completed' ?
-                                                                            'text-green-600' : 'text-yellow-600'" />
+                                                                        x-bind:class="(deliveryStatus === 'Completed' ||
+                                                                            deliveryStatus === 'Close as Completed') ?
+                                                                        'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                         </ul>
@@ -659,11 +634,15 @@
                                                     x-model="deliveryStatus"
                                                     class="delivery_status border rounded px-3 py-3 text-xs w-full">
                                                     <option value="Pending"
-                                                        {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : 'disabled' }}>
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'disabled' : '' }}>
                                                         Pending</option>
                                                     <option value="Completed"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}>
                                                         Completed</option>
+                                                    <option value="Close as Completed"
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Close as Completed' ? 'selected' : '' }}>
+                                                        Close as Completed</option>
                                                     <option value="Reschedule"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
                                                         Reschedule</option>
@@ -675,7 +654,7 @@
                                                     for="delivery_store_id_{{ $orderProduct->unique_id }}">Location</label>
                                                 <select id="delivery_store_id_{{ $orderProduct->unique_id }}"
                                                     class="delivery_store_id border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="">Select Location</option>
+                                                    <option value="" disabled selected>Select Location</option>
                                                     @foreach ($stores as $storeItem)
                                                         <option value="{{ $storeItem->id }}"
                                                             {{ $orderProduct->delivery_store_id == $storeItem->id ? 'selected' : '' }}>
@@ -690,7 +669,7 @@
                                                     for="delivery_by_{{ $orderProduct->unique_id }}">Technician</label>
                                                 <select id="delivery_by_{{ $orderProduct->unique_id }}"
                                                     class="delivery_by border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="">Select Technician</option>
+                                                    <option value="" disabled selected>Select Technician</option>
                                                     @foreach ($employees as $employee)
                                                         <option value="{{ $employee->id }}"
                                                             {{ $orderProduct->delivery_by == $employee->id ? 'selected' : '' }}>
@@ -741,13 +720,17 @@
                                                         class="border rounded px-3 py-3 text-xs w-full flex items-center justify-center gap-1 focus:outline-none pickup_transport_mode">
                                                         <template x-if="selected === 'Store'">
                                                             <x-heroicon-o-building-storefront class="w-4 h-4"
-                                                                x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' :
-                                                                    'text-yellow-600'" />
+                                                                x-bind:class="(pickupStatus === 'Completed' ||
+                                                                    pickupStatus === 'Close as Completed') ?
+                                                                'text-green-600' :
+                                                                'text-yellow-600'" />
                                                         </template>
                                                         <template x-if="selected === 'Truck'">
                                                             <x-heroicon-o-truck class="w-4 h-4"
-                                                                x-bind:class="pickupStatus === 'Completed' ? 'text-green-600' :
-                                                                    'text-yellow-600'" />
+                                                                x-bind:class="(pickupStatus === 'Completed' ||
+                                                                    pickupStatus === 'Close as Completed') ?
+                                                                'text-green-600' :
+                                                                'text-yellow-600'" />
                                                         </template>
                                                     </button>
                                                     <div x-show="open" @click.away="open = false"
@@ -758,8 +741,9 @@
                                                                     @click="selected = 'Store'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-building-storefront class="w-4 h-4"
-                                                                        x-bind:class="pickupStatus === 'Completed' ?
-                                                                            'text-green-600' : 'text-yellow-600'" />
+                                                                        x-bind:class="(pickupStatus === 'Completed' ||
+                                                                            pickupStatus === 'Close as Completed') ?
+                                                                        'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                             <li>
@@ -767,8 +751,9 @@
                                                                     @click="selected = 'Truck'; open = false; $nextTick(() => $refs.pickupTypeInput.dispatchEvent(new Event('change')));"
                                                                     class="w-full flex items-center justify-center px-3 py-3 hover:bg-yellow-100">
                                                                     <x-heroicon-o-truck class="w-4 h-4"
-                                                                        x-bind:class="pickupStatus === 'Completed' ?
-                                                                            'text-green-600' : 'text-yellow-600'" />
+                                                                        x-bind:class="(pickupStatus === 'Completed' ||
+                                                                            pickupStatus === 'Close as Completed') ?
+                                                                        'text-green-600' : 'text-yellow-600'" />
                                                                 </button>
                                                             </li>
                                                         </ul>
@@ -785,14 +770,15 @@
                                                     x-model="pickupStatus"
                                                     class="pickup_status border rounded px-3 py-3 text-xs w-full">
                                                     <option value="Pending"
-                                                        {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}>
+                                                        {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}
+                                                        {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'disabled' : '' }}>
                                                         Pending</option>
                                                     <option value="Completed"
                                                         {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'selected' : '' }}>
                                                         Completed</option>
                                                     {{-- <option value="Reschedule"
-                                                        {{ ($orderProduct->pickup_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
-                                                        Reschedule</option> --}}
+                                {{ ($orderProduct->pickup_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
+                                Reschedule</option> --}}
                                                 </select>
                                             </div>
                                             <!-- Location -->
@@ -801,7 +787,7 @@
                                                     for="pickup_store_id_{{ $orderProduct->unique_id }}">Location</label>
                                                 <select id="pickup_store_id_{{ $orderProduct->unique_id }}"
                                                     class="pickup_store_id border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="">Select Location</option>
+                                                    <option value="" disabled selected>Select Location</option>
                                                     @foreach ($stores as $storeItem)
                                                         <option value="{{ $storeItem->id }}"
                                                             {{ $orderProduct->pickup_store_id == $storeItem->id ? 'selected' : '' }}>
@@ -816,7 +802,7 @@
                                                     for="pickup_by_{{ $orderProduct->unique_id }}">Technician</label>
                                                 <select id="pickup_by_{{ $orderProduct->unique_id }}"
                                                     class="pickup_by border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="">Select Technician</option>
+                                                    <option value="" disabled selected>Select Technician</option>
                                                     @foreach ($employees as $employee)
                                                         <option value="{{ $employee->id }}"
                                                             {{ $orderProduct->pickup_by == $employee->id ? 'selected' : '' }}>
@@ -840,8 +826,8 @@
                                                 {{-- Delivery --}}
                                                 <span
                                                     class="inline-flex items-center justify-center w-6 h-6 rounded
-                   {{ $orderProduct->is_delivered == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
-                   text-white text-xs font-bold"
+               {{ $orderProduct->is_delivered == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
+               text-white text-xs font-bold"
                                                     @if ($orderProduct->is_delivered == 1) onclick="openChecklistModal()" @endif>
                                                     D
                                                 </span>
@@ -849,8 +835,8 @@
                                                 {{-- Return --}}
                                                 <span
                                                     class="inline-flex items-center justify-center w-6 h-6 rounded
-                   {{ $orderProduct->is_returned == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
-                   text-white text-xs font-bold"
+               {{ $orderProduct->is_returned == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
+               text-white text-xs font-bold"
                                                     @if ($orderProduct->is_returned == 1) onclick="openChecklistModal()" @endif>
                                                     R
                                                 </span>
@@ -915,141 +901,143 @@
                             @endif
                         </div>
                     </div>
-                @endforeach
 
-                {{-- Status Checklist --}}
-                @if (!empty($order->pending_terms_content))
-                    <div class="border rounded-xl p-4 bg-white">
-                        <div class="grid grid-cols-2 gap-2 text-center text-xs font-medium text-gray-700 mb-2">
-                            <!-- Terms -->
-                            <div class="flex flex-col items-center">
-                                <div>Terms</div>
-                                <div class="flex justify-center mb-1 gap-1">
-                                    @if ($order->terms_status->isPending())
-                                        <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                            target="_blank" title="View Terms">
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
-                                                <x-heroicon-o-x-mark class="w-4 h-4" />
+                    @if ($loop->last)
+                        @if (!empty($order->pending_terms_content))
+                            <div class="border rounded-xl p-4 bg-white">
+                                <div class="grid grid-cols-2 gap-2 text-center text-xs font-medium text-gray-700 mb-2">
+                                    <!-- Terms -->
+                                    <div class="flex flex-col items-center">
+                                        <div>Terms</div>
+                                        <div class="flex justify-center mb-1 gap-1">
+                                            @if ($order->terms_status->isPending())
+                                                <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                                    target="_blank" title="View Terms">
+                                                    <span
+                                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                                                    </span>
+                                                </a>
+                                                <button id="send-terms"
+                                                    data-url="{{ route('admin.order-management.orders.send-terms', ['unique_id' => $order->unique_id]) }}">
+                                                    <span
+                                                        class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-yellow-500 text-white text-base font-bold">
+                                                        <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
+
+                                                        <!-- Tooltip -->
+                                                        <span
+                                                            class="absolute top-full mb-1 hidden group-hover:block px-2 py-1 bg-black text-white text-xs rounded shadow-lg whitespace-nowrap">
+                                                            Send terms signature request
+                                                        </span>
+                                                    </span>
+                                                </button>
+                                            @else
+                                                <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
+                                                    target="_blank" title="View Terms">
+                                                    <span
+                                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
+                                                        <x-heroicon-o-check class="w-4 h-4" />
+                                                    </span>
+                                                </a>
+                                            @endif
+                                        </div>
+                                        @if (!empty($order->last_terms_sms_sent_at))
+                                            <span class="text-yellow-500 text-xs font-bold">
+                                                {{ \App\Helpers\CustomHelper::formatDateTime($order->last_terms_sms_sent_at) }}
                                             </span>
-                                        </a>
-                                        <button id="send-terms"
-                                            data-url="{{ route('admin.order-management.orders.send-terms', ['unique_id' => $order->unique_id]) }}">
-                                            <span
-                                                class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-yellow-500 text-white text-base font-bold">
-                                                <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
-
-                                                <!-- Tooltip -->
+                                        @endif
+                                    </div>
+                                    <!-- License -->
+                                    <!-- License -->
+                                    <div class="flex flex-col items-center">
+                                        <div>License</div>
+                                        <div class="flex justify-center mb-1">
+                                            @if ($order->licenseMedia->isNotEmpty())
                                                 <span
-                                                    class="absolute top-full mb-1 hidden group-hover:block px-2 py-1 bg-black text-white text-xs rounded shadow-lg whitespace-nowrap">
-                                                    Send terms signature request
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold cursor-pointer"
+                                                    onclick="openAllMedia({{ $order->id }}, 'license')">
+                                                    <x-heroicon-o-check class="w-4 h-4" />
                                                 </span>
-                                            </span>
-                                        </button>
-                                    @else
-                                        <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                            target="_blank" title="View Terms">
+
+                                                <script type="application/json" id="media-{{ $order->id }}-license">
+                                                    {!! $order->licenseMedia->map(fn($m) => [
+                                                        'url'  => optional($m->media)->url,
+                                                        'type' => $m->type, // "image" or "video"
+                                                    ])->toJson() !!}
+                                                </script>
+                                            @else
+                                                <span
+                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
+                                                    <x-heroicon-o-x-mark class="w-4 h-4" />
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- <!-- Checklist -->
+                                    <div>
+                                        <div>Checklist</div>
+                                        <div class="flex justify-center gap-1 mb-1">
                                             <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
-                                                <x-heroicon-o-check class="w-4 h-4" />
-                                            </span>
-                                        </a>
-                                    @endif
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                        </div>
+                                    </div>
+                                    <!-- Machine Hours -->
+                                    <div>
+                                        <div>Machine Hours</div>
+                                        <div class="flex justify-center gap-1 mb-1">
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                        </div>
+                                    </div>
+                                    <!-- Video -->
+                                    <div>
+                                        <div>Video</div>
+                                        <div class="flex justify-center gap-1 mb-1">
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
+                                            <span
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
+                                        </div>
+                                    </div> --}}
                                 </div>
-                                @if (!empty($order->last_terms_sms_sent_at))
-                                    <span class="text-yellow-500 text-xs font-bold">
-                                        {{ \App\Helpers\CustomHelper::formatDateTime($order->last_terms_sms_sent_at) }}
+                                <!-- Legend -->
+                                <div class="flex items-center justify-center gap-4 text-xs mt-2">
+                                    <span class="flex items-center">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
                                     </span>
-                                @endif
+                                    <span class="font-semibold">|</span>
+                                    <span class="flex items-center">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Pending
+                                    </span>
+                                    <span class="font-semibold">|</span>
+                                    <span class="flex items-center">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>N/A
+                                    </span>
+                                    <span class="font-semibold">|</span>
+                                    <span>D=Delivery</span>
+                                    <span class="font-semibold">|</span>
+                                    <span>R=Return</span>
+                                </div>
                             </div>
-                            <!-- License -->
-                            <!-- License -->
-                            <div class="flex flex-col items-center">
-                                <div>License</div>
-                                <div class="flex justify-center mb-1">
-                                    @if ($order->licenseMedia->isNotEmpty())
-                                        <span
-                                            class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold cursor-pointer"
-                                            onclick="openAllMedia({{ $order->id }}, 'license')">
-                                            <x-heroicon-o-check class="w-4 h-4" />
-                                        </span>
+                        @endif
+                    @endif
+                </div>
 
-                                        <script type="application/json" id="media-{{ $order->id }}-license">
-                                            {!! $order->licenseMedia->map(fn($m) => [
-                                                'url'  => optional($m->media)->url,
-                                                'type' => $m->type, // "image" or "video"
-                                            ])->toJson() !!}
-                                        </script>
-                                    @else
-                                        <span
-                                            class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
-                                            <x-heroicon-o-x-mark class="w-4 h-4" />
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            {{-- <!-- Checklist -->
-                            <div>
-                                <div>Checklist</div>
-                                <div class="flex justify-center gap-1 mb-1">
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                                </div>
-                            </div>
-                            <!-- Machine Hours -->
-                            <div>
-                                <div>Machine Hours</div>
-                                <div class="flex justify-center gap-1 mb-1">
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                                </div>
-                            </div>
-                            <!-- Video -->
-                            <div>
-                                <div>Video</div>
-                                <div class="flex justify-center gap-1 mb-1">
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                                </div>
-                            </div> --}}
-                        </div>
-                        <!-- Legend -->
-                        <div class="flex items-center justify-center gap-4 text-xs mt-2">
-                            <span class="flex items-center">
-                                <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
-                            </span>
-                            <span class="font-semibold">|</span>
-                            <span class="flex items-center">
-                                <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Pending
-                            </span>
-                            <span class="font-semibold">|</span>
-                            <span class="flex items-center">
-                                <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>N/A
-                            </span>
-                            <span class="font-semibold">|</span>
-                            <span>D=Delivery</span>
-                            <span class="font-semibold">|</span>
-                            <span>R=Return</span>
-                        </div>
-                    </div>
-                @endif
-            </div>
+                <hr class="col-span-full my-2 border-t border-gray-300" />
+            @endforeach
         </div>
 
-        <hr class="my-8 border-t border-gray-300" />
         {{-- Summary & Notes --}}
         <div class="grid md:grid-cols-2 gap-4">
             <div
                 class="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col text-sm text-gray-700 pt-4">
                 <div class="flex justify-between">
-                    <span>Sub-Total:</span>
+                    <span>Subtotal:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}</span>
                 </div>
                 <div class="flex justify-between">
@@ -1068,11 +1056,12 @@
                 </h2>
                 <!-- Add Note Button -->
                 <button
-                    class="absolute top-4 right-4 flex items-center gap-1 px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700"
+                    class="absolute top-3 right-3 flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
                     id="addNoteBtn">
                     <x-heroicon-o-plus class="w-4 h-4" /> Add Note
                 </button>
-                <div class="p-6 max-h-60 overflow-y-auto mt-10" id="noteDiv">
+
+                <div class="p-6 max-h-60 overflow-y-auto" id="noteDiv">
                     <x-admin.order-management.orders.order-notes-list :notes="$order->notes" />
                 </div>
             </div>
@@ -1328,7 +1317,7 @@
                             <select id="cardOption" name="card_option"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
                                 <option value="" selected>Choose an option</option>
-                                <option value="NewCard" >New Card</option>
+                                <option value="NewCard">New Card</option>
 
                                 @if ($order->customer->cards && $order->customer->cards->count() > 0)
                                     <option value="CardOnFile">Card on File</option>
@@ -1340,11 +1329,13 @@
                         <div id="newCardFields" class="mb-4 hidden">
                             <div class="grid md:grid-cols-2 gap-4">
                                 <div class="md:col-span-1">
-                                    <input type="text" placeholder="First name" id="firstName" name="firstName" value=""
+                                    <input type="text" placeholder="First name" id="firstName" name="firstName"
+                                        value=""
                                         class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
                                 </div>
                                 <div class="md:col-span-1">
-                                    <input type="text" placeholder="Last name" id="lastName" name="lastName" value=""
+                                    <input type="text" placeholder="Last name" id="lastName" name="lastName"
+                                        value=""
                                         class="border border-gray-300 rounded-md py-2 px-3 text-sm w-full" />
                                 </div>
                                 <div class="md:col-span-2">
@@ -1518,6 +1509,45 @@
                             </p>
                         </div>
 
+                        <!-- Payment Type -->
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 required" for="refund_payment_type">
+                                Payment Type
+                            </label>
+                            @php
+                                $refundOptions = [
+                                    '' => 'Select payment method',
+                                    \App\Enums\Customers\PaymentMethod::Cash->value => 'Cash',
+                                    \App\Enums\Customers\PaymentMethod::Cheque->value => 'Check',
+                                    \App\Enums\Customers\PaymentMethod::BankTransfer->value => 'Bank Transfer',
+                                    \App\Enums\Customers\PaymentMethod::Other->value => 'Other',
+                                ];
+
+                                if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card) {
+                                    $refundOptions =
+                                        array_slice($refundOptions, 0, 1, true)
+                                        + [
+                                            \App\Enums\Customers\PaymentMethod::CreditCard->value => 'Credit / Debit Card',
+                                        ]
+                                        + array_slice($refundOptions, 1, null, true);
+                                }
+
+                            @endphp
+                            {!! html()->select('payment_type', $refundOptions)->id('refund_payment_type')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
+                            <small class="text-gray-500 mt-1 block">Note: Credit/Debit Card option is only available if the
+                                initial payment was made by Credit/Debit Card.</small>
+                        </div>
+
+                        <!-- Cheque Number (hidden by default) -->
+                        <div id="refund_cheque_number_field" class="hidden">
+                            <label class="text-sm font-medium text-gray-700" for="cheque_number">
+                                Check Number
+                            </label>
+                            <input type="text" id="refund_cheque_number" name="cheque_number"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"
+                                placeholder="Enter Check number" />
+                        </div>
+
                         <!-- Type indicator -->
                         <div id="rf_type_box" class="hidden rounded-lg p-3">
                             <div class="flex items-center gap-2">
@@ -1658,7 +1688,7 @@
                                             <th class="py-2 px-2">Delivered</th>
                                             <th class="py-2 px-2">Returned</th>
                                             <!-- <th class="py-2 px-2">Balance</th>
-                                                                        <th class="py-2 px-2">Value</th> -->
+                                                                                <th class="py-2 px-2">Value</th> -->
                                             <th class="py-2 px-2 text-right">Customer Owes</th>
                                         </tr>
                                     </thead>
@@ -1683,14 +1713,10 @@
                                                             <div class="max-w-[200px] whitespace-normal break-words">
                                                                 {{ $question->deliverySelectedAnswer->delivery_answer }}
                                                             </div>
-
                                                         @else
-
-                                                                 <span
-                                                                    class="inline-block  min-w-10 text-red-600">
-                                                                    Admin Override
-                                                                </span>
-
+                                                            <span class="inline-block  min-w-10 text-red-600">
+                                                                Admin Override
+                                                            </span>
                                                         @endif
                                                     </td>
 
@@ -1811,6 +1837,71 @@
                                             </tr>
                                         @endif
 
+                                        @php
+                                            $fuelBaseTotal = 0;
+                                            $fuelAdjustmentTotal = 0;
+
+                                            foreach ($order->products as $product) {
+                                                $base = (float) ($product->fuel_total_charge ?? 0);
+                                                $adjustments = $product->fuelChargeLogs?->sum('change_amount') ?? 0;
+
+                                                $fuelBaseTotal += $base;
+                                                $fuelAdjustmentTotal += $adjustments;
+                                            }
+
+                                            $finalFuelTotal = max(0, $fuelBaseTotal + $fuelAdjustmentTotal);
+                                        @endphp
+
+                                        @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0)
+                                            @php
+                                                $arrFuelDelivery = [
+                                                    ['id' => 10, 'name' => 'Prepaid'],
+                                                    ['id' => 9, 'name' => 'Full'],
+                                                    ['id' => 8, 'name' => '7/8'],
+                                                    ['id' => 7, 'name' => '3/4'],
+                                                    ['id' => 6, 'name' => '5/8'],
+                                                    ['id' => 5, 'name' => '1/2'],
+                                                    ['id' => 4, 'name' => '3/8'],
+                                                    ['id' => 3, 'name' => '1/4'],
+                                                    ['id' => 2, 'name' => '1/8'],
+                                                    ['id' => 1, 'name' => 'Empty'],
+                                                ];
+
+                                                $fuelMap = collect($arrFuelDelivery)->pluck('name', 'id');
+
+                                                $initialFuel = $fuelMap[$product->fuel_initial_reading ?? null] ?? '-';
+                                                $finalFuel = $fuelMap[$product->fuel_final_reading ?? null] ?? '-';
+                                            @endphp
+
+
+                                            <tr class="border-b">
+                                                <td class="py-2 px-2">
+                                                    Fuel (
+                                                    {{ $product->equipment?->power_source_type
+                                                        ? ucfirst($product->equipment->power_source_type->value)
+                                                        : 'Select Power Source' }})
+
+
+                                                </td>
+
+                                                <td class="py-2 px-2">
+                                                    {{ $initialFuel }}
+                                                </td>
+
+                                                <td
+                                                    class="py-2 px-2 {{ $fuelAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                    {{ $finalFuel }}
+                                                </td>
+
+                                                <td class="py-2 px-2 text-right text-gray-800">
+                                                    ${{ number_format($finalFuelTotal, 2) }}
+                                                </td>
+                                            </tr>
+                                        @endif
+
+
+
+
 
 
                                     </tbody>
@@ -1837,16 +1928,16 @@
                                     </thead>
                                     <tbody class="text-gray-800">
                                         @foreach ($order->products as $product)
-                                            <!-- {{ $product->unique_id }}  -->
-                                            @if ($product->hour_tracking == 'Yes')
+                                            @if (($product->equipment?->is_tracked ?? 'No') === 'Yes')
                                                 @php
                                                     $startHours = (float) $product->start_hours;
                                                     $endHours = (float) $product->end_hours;
                                                     $allocatedHours = (float) $product->allocated_hours;
-                                                    $hourRate = (float) $product->hour_rate;
+                                                    $hourRate = (float) ($product->equipment?->overage_rate ?? 0);
 
                                                     $usedHours = max(0, $endHours - $startHours);
-                                                    $additionalHours = max(0, $usedHours - $allocatedHours);
+                                                    $additionalHours = max(0, ceil($usedHours - $allocatedHours));
+
                                                     $charge = $additionalHours * $hourRate;
                                                     $totalAmount = $charge;
 
@@ -1900,12 +1991,26 @@
                                             </tr>
                                         @endif
 
+                                        @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0)
+                                            <tr>
+                                                <td colspan="7" class="py-2 px-2 text-right">
+                                                    Final Fuel Charge:
+                                                </td>
+                                                <td class="py-2 px-2 text-right">
+                                                    ${{ number_format($finalFuelTotal, 2) }}
+                                                </td>
+                                            </tr>
+                                        @endif
+
+
                                         <tr class="font-bold border-t">
                                             <td colspan="7" class="py-3 px-2 text-right">
                                                 Grand Total:
                                             </td>
                                             <td class="py-3 px-2 text-right text-gray-900">
-                                                {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal, 2) }}
+                                                {{-- {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal, 2) }} --}}
+                                                {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal + $finalFuelTotal, 2) }}
+
                                             </td>
                                         </tr>
 
@@ -1996,11 +2101,11 @@
 
                                                     <!-- Save button pinned to bottom on md+ -->
                                                     <!-- <div class="mt-auto flex justify-end">
-                                                                                    <button type="submit"
-                                                                                        class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
-                                                                                        Save
-                                                                                    </button>
-                                                                                </div> -->
+                                                                                            <button type="submit"
+                                                                                                class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
+                                                                                                Save
+                                                                                            </button>
+                                                                                        </div> -->
                                                 </div>
 
                                             </div>
@@ -2063,8 +2168,10 @@
                 <div id="useCurrentlyAssignedSection" class="hidden">
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
                         <div class="flex items-center gap-2">
-                            <input type="radio" name="assignment_type" id="useCurrentlyAssigned" value="current" class="w-4 h-4">
-                            <label for="useCurrentlyAssigned" class="text-sm font-semibold text-green-700">Use Currently Assigned</label>
+                            <input type="radio" name="assignment_type" id="useCurrentlyAssigned" value="current"
+                                class="w-4 h-4">
+                            <label for="useCurrentlyAssigned" class="text-sm font-semibold text-green-700">Use Currently
+                                Assigned</label>
                         </div>
                         <div class="ml-6 space-y-1">
                             <div>
@@ -2082,7 +2189,8 @@
                 <!-- Assign New Section -->
                 <div class="space-y-2">
                     <div class="flex items-center gap-2">
-                        <input type="radio" name="assignment_type" id="assignNew" value="new" class="w-4 h-4" checked>
+                        <input type="radio" name="assignment_type" id="assignNew" value="new" class="w-4 h-4"
+                            checked>
                         <label for="assignNew" class="text-sm font-semibold text-gray-700">Assign New Equipment ID</label>
                     </div>
 
@@ -2096,14 +2204,16 @@
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-sm font-medium text-gray-700 required" for="equipment_unique_id">Equipment</label>
+                            <label class="text-sm font-medium text-gray-700 required"
+                                for="equipment_unique_id">Equipment</label>
                             <select name="equipment_unique_id" id="equipment_unique_id"
                                 class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
                                 <option value="" data-current-status="">Select Equipment</option>
                             </select>
                             <div class="flex items-center justify-between gap-3 mt-2">
                                 <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                                <a href="#" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"
+                                <a href="#" target="_blank"
+                                    class="text-blue-600 hover:underline text-sm font-semibold"
                                     id="equipment-page-link"></a>
                             </div>
                         </div>
@@ -2599,17 +2709,26 @@
                         const previousValue = this.getAttribute('data-previous-value') || '';
                         const newValue = this.value;
 
+                        if (newValue === 'Close as Completed' && returnStatus) {
+                            if (returnStatus.value !== 'Completed') {
+                                returnStatus.value = 'Completed';
+                                returnStatus.dispatchEvent(new Event('change'));
+                            }
+                        }
+
                         // Check if status changed to Completed
                         if (newValue === 'Completed' && previousValue !== 'Completed') {
                             // Get order product data
                             const orderProducts = @json($order->products);
-                            const orderProduct = orderProducts.find(op => op.unique_id === orderProductId);
+                            const orderProduct = orderProducts.find(op => op.unique_id ===
+                                orderProductId);
 
                             // Check if equipment is already assigned
                             if (!orderProduct?.equipment_id) {
                                 // Open equipment assignment modal
                                 const softAssignment = orderProduct?.soft_assignment || null;
-                                window.openEquipmentAssignModal(orderProductId, 'Delivery', softAssignment);
+                                window.openEquipmentAssignModal(orderProductId, 'Delivery',
+                                    softAssignment);
 
                                 // Don't update status yet - will be done after equipment assignment
                                 return;
@@ -3101,10 +3220,10 @@
                     creditCardOptions.classList.remove('hidden');
                     cardOption.dispatchEvent(new Event('change'));
                     chequeNumberField.classList.add('hidden');
-                }else if (this.value === 'Cheque') {
+                } else if (this.value === 'Cheque') {
                     chequeNumberField.classList.remove('hidden');
                     creditCardOptions.classList.add('hidden');
-                }else {
+                } else {
                     creditCardOptions.classList.add('hidden');
                     chequeNumberField.classList.add('hidden');
 
@@ -3115,7 +3234,8 @@
 
             // ===== Input formatting =====
             cardNumberInput.addEventListener('input', function() {
-                this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim();
+                this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ')
+                    .trim();
             });
 
             expiryInput.addEventListener('input', function() {
@@ -3136,7 +3256,7 @@
                 } else if (this.value === 'CardOnFile') {
                     newCardFields.classList.add('hidden');
                     cardOnFileDropdown.classList.remove('hidden');
-                }else {
+                } else {
                     newCardFields.classList.add('hidden');
                     cardOnFileDropdown.classList.add('hidden');
                 }
@@ -3156,7 +3276,8 @@
                 const originalText = submitBtn.textContent;
                 const selectedPaymentMethod = paymentType.value;
                 console.log("Selected payment method:", selectedPaymentMethod);
-                let endpoint = "{{ route('admin.order-management.orders.receive-payment', ':unique_id') }}";
+                let endpoint =
+                    "{{ route('admin.order-management.orders.receive-payment', ':unique_id') }}";
 
                 if (!selectedPaymentMethod) {
                     notyf.error('Please select a payment method.');
@@ -3265,7 +3386,7 @@
                     } else {
                         processApi();
                     }
-                }else{
+                } else {
                     processApi();
                 }
 
@@ -3283,18 +3404,18 @@
                     }
 
                     const cardNumber = form.querySelector('[name="cardNumber"]').value;
-                    const expiry     = form.querySelector('[name="expiry"]').value; // MM/YY
+                    const expiry = form.querySelector('[name="expiry"]').value; // MM/YY
 
                     const last4 = cardNumber.replace(/\s+/g, '').slice(-4);
 
                     let expMonth = '';
-                    let expYear  = '';
+                    let expYear = '';
 
                     if (expiry && expiry.includes('/')) {
                         [expMonth, expYear] = expiry.split('/');
                     }
 
-                    if(expMonth && expYear && last4){
+                    if (expMonth && expYear && last4) {
                         // ✅ Safe card metadata (for dedupe / matching)
                         formData.set('card_number', last4);
                         formData.set('mm_yy', expMonth + '/' + expYear);
@@ -3419,6 +3540,18 @@
                 if (!errReason.classList.contains('hidden')) hide(errReason);
             });
 
+            // ===== Show/hide refund cheque field =====
+            const refundPaymentType = document.getElementById('refund_payment_type');
+            const refundChequeNumberField = document.getElementById('refund_cheque_number_field');
+
+            refundPaymentType.addEventListener('change', function() {
+                if (this.value === 'Cheque') {
+                    refundChequeNumberField.classList.remove('hidden');
+                } else {
+                    refundChequeNumberField.classList.add('hidden');
+                }
+            });
+
             document.getElementById('refundForm').addEventListener('submit', function(e) {
                 e.preventDefault();
 
@@ -3457,7 +3590,10 @@
                         },
                         body: JSON.stringify({
                             amount: amt,
-                            reason: reason
+                            reason: reason,
+                            payment_type: document.getElementById('refund_payment_type').value,
+                            cheque_number: document.getElementById('refund_cheque_number')
+                                .value || null
                         })
                     })
                     .then(res => {
@@ -3618,7 +3754,8 @@
                     if (previousStatusValue !== null && statusFieldElement) {
                         statusFieldElement.value = 'Pending';
                         statusFieldElement.setAttribute('data-previous-value', 'Pending');
-                        updateScheduleField(currentScheduleType.toLowerCase(), currentScheduleType.toLowerCase() + '_status', 'Pending');
+                        updateScheduleField(currentScheduleType.toLowerCase(), currentScheduleType
+                            .toLowerCase() + '_status', 'Pending');
                     }
 
                     clearModalFields();
@@ -3628,15 +3765,18 @@
             // Radio button toggle
             document.getElementById('useCurrentlyAssigned')?.addEventListener('change', function() {
                 if (this.checked) {
-                    document.getElementById('newAssignmentFields').classList.add('opacity-50', 'pointer-events-none');
+                    document.getElementById('newAssignmentFields').classList.add('opacity-50',
+                        'pointer-events-none');
                 } else {
-                    document.getElementById('newAssignmentFields').classList.remove('opacity-50', 'pointer-events-none');
+                    document.getElementById('newAssignmentFields').classList.remove('opacity-50',
+                        'pointer-events-none');
                 }
             });
 
             document.getElementById('assignNew')?.addEventListener('change', function() {
                 if (this.checked) {
-                    document.getElementById('newAssignmentFields').classList.remove('opacity-50', 'pointer-events-none');
+                    document.getElementById('newAssignmentFields').classList.remove('opacity-50',
+                        'pointer-events-none');
                 }
             });
 
@@ -3714,7 +3854,8 @@
                     opt.value = equipment.unique_id;
                     opt.textContent = `${equipment.equipment_name} (${equipment.equipment_id})`;
                     opt.setAttribute('data-current-status', equipment.current_status?.toLowerCase() || '');
-                    opt.setAttribute('data-link', `/admin/maintenance-management/equipment/${equipment.unique_id}/edit`);
+                    opt.setAttribute('data-link',
+                        `/admin/maintenance-management/equipment/${equipment.unique_id}/edit`);
                     opt.setAttribute('data-link-title', equipment.equipment_name);
                     group.appendChild(opt);
                 });
@@ -3786,7 +3927,8 @@
             equipmentAssignForm?.addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                const assignmentType = document.querySelector('input[name="assignment_type"]:checked')?.value;
+                const assignmentType = document.querySelector('input[name="assignment_type"]:checked')
+                    ?.value;
                 let equipmentUniqueId = null;
 
                 if (assignmentType === 'current') {
@@ -3815,7 +3957,7 @@
                 formData.append('equipment_unique_id', equipmentUniqueId);
                 formData.append('schedule_type', currentScheduleType);
 
-                apiFetch('{{ route("admin.order-management.orders.assign-equipment") }}', {
+                apiFetch('{{ route('admin.order-management.orders.assign-equipment') }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
@@ -3827,7 +3969,8 @@
                     .then(data => {
                         if (data?.success) {
                             modal.classList.add('hidden');
-                            if (window.notyf) notyf.success(data.message || 'Equipment assigned successfully');
+                            if (window.notyf) notyf.success(data.message ||
+                                'Equipment assigned successfully');
                             clearModalFields();
                             // Reload page to show updated equipment
                             window.location.reload();
@@ -3850,7 +3993,8 @@
                 document.getElementById('schedule-type').value = '';
                 document.getElementById('assignNew').checked = true;
                 document.getElementById('useCurrentlyAssignedSection').classList.add('hidden');
-                document.getElementById('newAssignmentFields').classList.remove('opacity-50', 'pointer-events-none');
+                document.getElementById('newAssignmentFields').classList.remove('opacity-50',
+                    'pointer-events-none');
                 currentOrderProductUniqueId = null;
                 currentScheduleType = null;
                 softAssignedEquipmentData = null;
@@ -3879,7 +4023,8 @@
                 const orderProduct = orderProducts.find(op => op.unique_id === orderProductUniqueId);
 
                 if (orderProduct) {
-                    document.getElementById('assign-product-name').textContent = orderProduct.product_name || '-';
+                    document.getElementById('assign-product-name').textContent = orderProduct.product_name ||
+                        '-';
                 }
 
                 document.getElementById('order-product-unique-id').value = orderProductUniqueId;
@@ -3889,8 +4034,10 @@
                 if (softAssignment && softAssignment.equipment) {
                     softAssignedEquipmentData = softAssignment.equipment;
                     document.getElementById('useCurrentlyAssignedSection').classList.remove('hidden');
-                    document.getElementById('soft-assigned-equipment').textContent = softAssignment.equipment.equipment_name || '-';
-                    document.getElementById('soft-assigned-id').textContent = softAssignment.equipment.equipment_id || '-';
+                    document.getElementById('soft-assigned-equipment').textContent = softAssignment.equipment
+                        .equipment_name || '-';
+                    document.getElementById('soft-assigned-id').textContent = softAssignment.equipment
+                        .equipment_id || '-';
                 } else {
                     document.getElementById('useCurrentlyAssignedSection').classList.add('hidden');
                     document.getElementById('assignNew').checked = true;

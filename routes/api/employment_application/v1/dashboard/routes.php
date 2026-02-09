@@ -12,5 +12,5 @@ Route::group(['prefix' => 'dashboard'], function () {
 
         require base_path('routes/api/employment_application/v1/dashboard/applications/routes.php');
         require base_path('routes/api/employment_application/v1/dashboard/positions/routes.php');
-     
+        require base_path('routes/api/employment_application/v1/dashboard/opportunity_questions/routes.php');
 });

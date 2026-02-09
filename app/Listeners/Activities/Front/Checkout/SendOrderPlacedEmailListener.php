@@ -11,8 +11,9 @@ use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Address;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SendOrderPlacedEmailListener
+class SendOrderPlacedEmailListener implements ShouldQueue
 {
     protected MailService $mailService;
 
@@ -79,7 +80,7 @@ class SendOrderPlacedEmailListener
                 'message'        => $e->getMessage(),
             ]);
 
-            throw $e;
+            
         }
     }
 }

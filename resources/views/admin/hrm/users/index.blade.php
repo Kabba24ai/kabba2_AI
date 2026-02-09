@@ -80,7 +80,7 @@
                     <!-- Dropdown -->
                     <select  id="user_status" name="user_status" class="w-full bg-transparent outline-none text-gray-700 pr-4">
                         <option value="all">All Status</option>
-                        <option value="active">Active</option>
+                        <option value="active" selected>Active</option>
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
@@ -195,8 +195,8 @@
             .then(data => {
                 document.querySelector('#user-wrapper').innerHTML = data.html;
 
-                setupTabFiltering();       // re-bind tab buttons
-                applyCategoryFilter();     // 👈 reapply current selected tab filter
+                setupTabFiltering();       
+                applyCategoryFilter();     
             })
             .catch(err => {
                 wrapper.innerHTML = '<div class="text-red-500 p-4">Error loading users.</div>';
@@ -212,6 +212,8 @@
             });
             statusSelect.addEventListener('change', fetchUsers);
             setupTabFiltering();
+
+             fetchUsers();
         });
 
 

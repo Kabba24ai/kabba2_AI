@@ -114,10 +114,6 @@
                             // Is booked for that day?
                             $isBooked = $eq->lastOrderProduct()
                                 ->where($dateFilter)
-                                ->where(function ($query) {
-                                    $query->where('delivery_status', 'Pending')
-                                        ->orWhere('pickup_status', 'Pending');
-                                })
                                 ->exists();
 
                             // Get soft assignments for that day (single query + reuse result)

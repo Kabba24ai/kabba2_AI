@@ -107,6 +107,8 @@ class UpdateProductScheduleController extends Controller
                     }
                 }else if($orderProduct->delivery_status === 'Reschedule'){
 
+                    $orderProduct->softAssignment()->delete();
+
                     if($equipment){
                         $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
                         $equipment->current_status_updated_by = $user->id;
@@ -125,8 +127,11 @@ class UpdateProductScheduleController extends Controller
                     $orderProduct->equipment_details = null;
                     $orderProduct->assigned_by = null;
                     $orderProduct->assigned_at = null;
+                    $orderProduct->pickup_status = 'Pending';
                 }else{
                     $orderProduct->is_delivered = false;
+                    $orderProduct->is_returned = false;
+                    $orderProduct->pickup_status = 'Pending';
                 }
 
             }

@@ -389,7 +389,7 @@
                                 {{ $orderProduct->product_name }} -
                                 {{ ucwords($orderProduct->product_data['product_variant'] ?? '') }}
                             </a>
-                            @if ($orderProduct->product_data['product_type'] === 'Rental')
+                            @if ($orderProduct->product_data['product_type'] === 'Rental' && (in_array($orderProduct->delivery_status, ['Pending', 'Reschedule']) || $orderProduct->pickup_status === 'Pending'))
                                 <p class="text-sm text-gray-500">
                                     Equipment:
                                     @if ($orderProduct->equipment)
@@ -2632,7 +2632,7 @@
                     };
                     data[dbField] = value;
 
-                    apiFetch(url, {
+                    return apiFetch(url, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -2643,6 +2643,7 @@
                         })
                         .then(res => {
                             notyf.success(res && res.message ? res.message : 'Schedule updated!');
+                            return res;
                         })
                         .catch(() => {
                             notyf.error('Failed to update schedule.');
@@ -2727,7 +2728,10 @@
 
                         // Store current value as previous for next change
                         this.setAttribute('data-previous-value', newValue);
-                        updateScheduleField('delivery', 'delivery_status', deliveryStatus.value);
+                        updateScheduleField('delivery', 'delivery_status', deliveryStatus.value)
+                            .then(() => {
+                                window.location.reload();
+                            });
                     });
 
                     // Initialize with current value

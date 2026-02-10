@@ -39,7 +39,9 @@ class IndexController extends Controller
 
             if ($request->filled('order_number')) {
                 $query->whereHas('order', function ($q) use ($request) {
-                    $q->where('order_number', 'like', '%' . $request->order_number . '%');
+                    $q->where('order_number', 'like', '%' . $request->order_number . '%')
+                        ->orWhere('reference_order_number', 'like', '%' . $request->order_number . '%');
+
                 });
             }
 

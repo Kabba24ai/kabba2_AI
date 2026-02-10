@@ -112,7 +112,13 @@
                             };
 
                             // Is booked for that day?
-                            $isBooked = $eq->lastOrderProduct()->where($dateFilter)->exists();
+                            $isBooked = $eq->lastOrderProduct()
+                                ->where($dateFilter)
+                                ->where(function ($query) {
+                                    $query->where('delivery_status', 'Pending')
+                                        ->orWhere('pickup_status', 'Pending');
+                                })
+                                ->exists();
 
                             // Get soft assignments for that day (single query + reuse result)
                             $softAssignments = $eq
@@ -130,7 +136,6 @@
                                 default => 'green-100',
                             };
 
-                            $hasAny = $isBooked || $isSoftAssigned;
                             $textColor = 'text-gray-600';
                             // Light blue for soft assign, dark blue with white text for hard assign
                             $isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
@@ -139,8 +144,12 @@
                                 $textColor = 'text-white';
                             }
 
-                            $showBookedOrderNumber = in_array($eq->lastOrderProduct?->delivery_status, ['Pending'], true)
-                                || in_array($eq->lastOrderProduct?->pickup_status, ['Pending'], true);
+                            $hasVisibleSoftAssignments = $softAssignments->filter(function($assignment) {
+                                return in_array($assignment->orderProduct?->delivery_status, ['Pending'], true)
+                                    || in_array($assignment->orderProduct?->pickup_status, ['Pending'], true);
+                            })->isNotEmpty();
+
+                            $hasAny = $isBooked || $hasVisibleSoftAssignments;
 
                         @endphp
 
@@ -155,12 +164,10 @@
                                             <span
                                                 class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
                                         @endif
-                                        @if ($showBookedOrderNumber)
-                                            <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $eq?->lastOrderProduct?->order?->unique_id]) ?? '#' }}"
-                                                class="underline @if($eq->lastOrderProduct?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" target="_blank">
-                                                {{ $eq->lastOrderProduct?->order?->order_number }}
-                                            </a>
-                                        @endif
+                                        <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $eq?->lastOrderProduct?->order?->unique_id]) ?? '#' }}"
+                                            class="underline @if($eq->lastOrderProduct?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" target="_blank">
+                                            {{ $eq->lastOrderProduct?->order?->order_number }}
+                                        </a>
                                     </div>
                                 @endif
 

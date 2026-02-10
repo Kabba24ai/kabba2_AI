@@ -44,7 +44,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         |--------------------------------------------------------------------------
         */
 
-              Route::middleware(['role.short:admin'])->group(function () {
+              Route::middleware(['role.short:master_admin'])->group(function () {
                      require base_path('routes/api/time_tracker/v1/users/routes.php');
                      require base_path('routes/api/time_tracker/v1/system/routes.php');
                      

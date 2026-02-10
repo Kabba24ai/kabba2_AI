@@ -143,6 +143,31 @@ class UpdateProductScheduleController extends Controller
                     $orderProduct->assigned_by = null;
                     $orderProduct->assigned_at = null;
                     $orderProduct->pickup_status = 'Pending';
+                }else if($orderProduct->delivery_status === 'Pending'){
+                    if($equipment){
+                        $orderProduct->softAssignment()->delete();
+                        $orderProduct->softAssignment()->create([
+                            'equipment_id' => $equipment->id,
+                            'order_id' => $orderProduct->order_id,
+                            'assigned_by' => $user->id,
+                        ]);
+
+                        $equipment->current_status = EquipmentCurrentStatus::Available->value;
+                        $equipment->current_status_updated_by = $user->id;
+                        $equipment->current_status_changed_at = now();
+                        $equipment->current_order_id = null;
+                        $equipment->current_order_product_id = null;
+                        $equipment->saveQuietly();
+                    }
+
+                    $orderProduct->equipment_id = null;
+                    $orderProduct->equipment_details = null;
+                    $orderProduct->assigned_by = null;
+                    $orderProduct->assigned_at = null;
+                    $orderProduct->delivery_by = null;
+                    $orderProduct->is_delivered = false;
+                    $orderProduct->is_returned = false;
+                    $orderProduct->pickup_status = 'Pending';
                 }else{
                     $orderProduct->is_delivered = false;
                     $orderProduct->is_returned = false;

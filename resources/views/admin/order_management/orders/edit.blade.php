@@ -17,6 +17,19 @@
             <div class="min-w-[260px]">
                 <div class="text-lg font-semibold text-gray-800">
                     <span class="text-gray-700">Order ID:</span> {{ $order->order_number }}
+                    @if (!empty($order->reference_order_number))
+                        <span class="text-lg text-gray-600 ml-2">
+                            <span class="text-gray-700">Ref. ID:</span>
+                            @if ($order->referenceOrder?->unique_id)
+                                <a href="{{ route('admin.order-management.orders.edit', $order->referenceOrder->unique_id) }}"
+                                    class="text-blue-600 hover:underline">
+                                    {{ $order->reference_order_number }}
+                                </a>
+                            @else
+                                {{ $order->reference_order_number }}
+                            @endif
+                        </span>
+                    @endif
                 </div>
 
                 <div class="mt-1 leading-tight">
@@ -662,8 +675,7 @@
                                                     x-model="deliveryStatus"
                                                     class="delivery_status border rounded px-3 py-3 text-xs w-full">
                                                     <option value="Pending"
-                                                        {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}
-                                                        {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'disabled' : '' }}>
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Pending' ? 'selected' : '' }}>
                                                         Pending</option>
                                                     <option value="Completed"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}
@@ -713,6 +725,9 @@
                                 </div>
 
                                 {{-- Return Schedule --}}
+                                @php
+                                    $allowPickupComplete = in_array($orderProduct->delivery_status, ['Completed', 'Close as Completed'], true);
+                                @endphp
                                 <div class="space-y-2 mb-4" x-data="{ pickupStatus: '{{ $orderProduct->pickup_status ?? 'Pending' }}' }">
                                     <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
                                         <x-heroicon-o-arrow-left-circle class="w-5 h-5" /> Return Schedule
@@ -800,11 +815,11 @@
                                                     x-model="pickupStatus"
                                                     class="pickup_status border rounded px-3 py-3 text-xs w-full">
                                                     <option value="Pending"
-                                                        {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}
-                                                        {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'disabled' : '' }}>
+                                                        {{ ($orderProduct->pickup_status ?? '') === 'Pending' ? 'selected' : '' }}>
                                                         Pending</option>
                                                     <option value="Completed"
-                                                        {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'selected' : '' }}>
+                                                        {{ ($orderProduct->pickup_status ?? '') === 'Completed' ? 'selected' : '' }}
+                                                        {{ $allowPickupComplete ? '' : 'disabled' }}>
                                                         Completed</option>
                                                     {{-- <option value="Reschedule"
                                 {{ ($orderProduct->pickup_status ?? '') === 'Reschedule' ? 'selected' : '' }}>

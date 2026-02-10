@@ -97,7 +97,7 @@ class UpdateProductScheduleController extends Controller
             if ($deliveryStatusChanged) {
                 // $orderProduct->delivery_date = now()->format('Y-m-d');
                 // $orderProduct->delivery_time = now()->format('H:i');
-                if($orderProduct->delivery_status === 'Completed' || $orderProduct->delivery_status === 'Close as Completed'){
+                if($orderProduct->delivery_status === 'Completed'){
                     $orderProduct->is_delivered = true;
                     if($equipment){
                         $equipment->current_status = EquipmentCurrentStatus::Rented->value;
@@ -105,7 +105,22 @@ class UpdateProductScheduleController extends Controller
                         $equipment->current_status_changed_at = now();
                         $equipment->saveQuietly();
                     }
-                }else if($orderProduct->delivery_status === 'Reschedule'){
+                }else if($orderProduct->delivery_status === 'Close as Completed'){
+
+                    $orderProduct->is_delivered = true;
+                    $orderProduct->is_returned = true;
+                    $orderProduct->pickup_status = 'Completed';
+                    if($equipment){
+                        $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
+                        $equipment->current_status_updated_by = $user->id;
+                        $equipment->current_status_changed_at = now();
+                        $equipment->current_order_id = null;
+                        $equipment->current_order_product_id = null;
+                        $equipment->saveQuietly();
+                    }
+
+                }
+                else if($orderProduct->delivery_status === 'Reschedule'){
 
                     $orderProduct->softAssignment()->delete();
 

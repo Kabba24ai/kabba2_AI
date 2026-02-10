@@ -389,26 +389,64 @@
                                 {{ $orderProduct->product_name }} -
                                 {{ ucwords($orderProduct->product_data['product_variant'] ?? '') }}
                             </a>
-                            @if ($orderProduct->product_data['product_type'] === 'Rental' && (in_array($orderProduct->delivery_status, ['Pending', 'Reschedule']) || $orderProduct->pickup_status === 'Pending'))
+                            @if ($orderProduct->product_data['product_type'] === 'Rental')
+                                @php
+                                    $disableEquipmentLink = in_array($orderProduct->delivery_status, ['Completed', 'Close as Completed'], true)
+                                        && $orderProduct->pickup_status === 'Completed';
+                                @endphp
                                 <p class="text-sm text-gray-500">
                                     Equipment:
                                     @if ($orderProduct->equipment)
-                                        <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}"
-                                            target="_blank" class="text-xs text-green-600 hover:underline ml-2">
-                                            {{ $orderProduct->equipment->equipment_name ?? '—' }} ||
-                                            ({{ $orderProduct->equipment->equipment_id ?? '—' }})
-                                        </a>
+                                        <span class="ml-2 inline-flex items-center gap-1">
+                                            @if ($disableEquipmentLink)
+                                                <span class="text-xs text-gray-400">
+                                                    {{ $orderProduct->equipment->equipment_name ?? '—' }} ||
+                                                    ({{ $orderProduct->equipment->equipment_id ?? '—' }})
+                                                </span>
+                                            @else
+                                                <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}"
+                                                    target="_blank" class="text-xs text-green-600 hover:underline">
+                                                    {{ $orderProduct->equipment->equipment_name ?? '—' }} ||
+                                                    ({{ $orderProduct->equipment->equipment_id ?? '—' }})
+                                                </a>
+                                            @endif
+                                            @if (!$disableEquipmentLink)
+                                                <button type="button"
+                                                    class="remove-equipment-btn text-red-500 hover:text-red-700"
+                                                    data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                                    title="Remove equipment">
+                                                    <x-heroicon-o-x-mark class="w-3.5 h-3.5" />
+                                                </button>
+                                            @endif
+                                        </span>
                                     @else
                                         @if (!empty($orderProduct?->softAssignment))
                                             @php
                                                 $softUnique =
                                                     $orderProduct?->softAssignment?->equipment->unique_id ?? null;
                                             @endphp
-                                            <a href="{{ route('admin.maintenance-management.equipment.edit', $softUnique) }}"
-                                                target="_blank" class="text-xs text-blue-600 hover:underline ml-2">
-                                                {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }} ||
-                                                ({{ $orderProduct?->softAssignment?->equipment->equipment_id ?? '—' }})
-                                            </a>
+                                            <span class="ml-2 inline-flex items-center gap-1">
+                                                @if ($disableEquipmentLink)
+                                                    <span class="text-xs text-gray-400">
+                                                        {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }} ||
+                                                        ({{ $orderProduct?->softAssignment?->equipment->equipment_id ?? '—' }})
+                                                    </span>
+                                                @else
+                                                    <a href="{{ route('admin.maintenance-management.equipment.edit', $softUnique) }}"
+                                                        target="_blank" class="text-xs text-blue-600 hover:underline">
+                                                        {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }} ||
+                                                        ({{ $orderProduct?->softAssignment?->equipment->equipment_id ?? '—' }})
+                                                    </a>
+                                                @endif
+                                                @if (!$disableEquipmentLink)
+                                                    <button type="button"
+                                                        class="remove-equipment-btn text-red-500 hover:text-red-700"
+                                                        data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                                        title="Remove equipment">
+                                                        <x-heroicon-o-x-mark class="w-3.5 h-3.5" />
+                                                    </button>
+                                                @endif
+                                            </span>
                                         @else
                                             <span class="text-gray-400">N/A</span>
                                         @endif
@@ -628,10 +666,12 @@
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'disabled' : '' }}>
                                                         Pending</option>
                                                     <option value="Completed"
-                                                        {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}>
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'selected' : '' }}
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Close as Completed' ? 'disabled' : '' }}>
                                                         Completed</option>
                                                     <option value="Close as Completed"
-                                                        {{ ($orderProduct->delivery_status ?? '') === 'Close as Completed' ? 'selected' : '' }}>
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Close as Completed' ? 'selected' : '' }}
+                                                        {{ ($orderProduct->delivery_status ?? '') === 'Completed' ? 'disabled' : '' }}>
                                                         Close as Completed</option>
                                                     <option value="Reschedule"
                                                         {{ ($orderProduct->delivery_status ?? '') === 'Reschedule' ? 'selected' : '' }}>
@@ -2335,6 +2375,42 @@
             }
         });
 
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.remove-equipment-btn');
+            if (!btn) return;
+
+            const orderProductUniqueId = btn.dataset.orderProductUniqueId;
+            if (!orderProductUniqueId) return;
+
+            showConfirm('Remove this equipment?', 'This will clear the equipment assignment.').then((result) => {
+                if (!result.isConfirmed) return;
+
+                apiFetch('{{ route('admin.order-management.orders.remove-equipment') }}', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            order_product_unique_id: orderProductUniqueId
+                        })
+                    })
+                    .then(res => {
+                        if (res && res.success) {
+                            notyf.success(res.message || 'Equipment removed successfully.');
+                            window.location.reload();
+                        } else {
+                            notyf.error(res && res.message ? res.message : 'Failed to remove equipment.');
+                        }
+                    })
+                    .catch(() => {
+                        notyf.error('Failed to remove equipment.');
+                    });
+            });
+        });
+
         // Delegated event: Edit Note
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('button[title="Edit Note"]');
@@ -2697,15 +2773,13 @@
                 }
                 if (deliveryStatus) {
                     deliveryStatus.addEventListener('change', function() {
+                        if (this.dataset.reverting === '1') {
+                            this.dataset.reverting = '';
+                            return;
+                        }
+
                         const previousValue = this.getAttribute('data-previous-value') || '';
                         const newValue = this.value;
-
-                        if (newValue === 'Close as Completed' && returnStatus) {
-                            if (returnStatus.value !== 'Completed') {
-                                returnStatus.value = 'Completed';
-                                returnStatus.dispatchEvent(new Event('change'));
-                            }
-                        }
 
                         // Check if status changed to Completed
                         if (newValue === 'Completed' && previousValue !== 'Completed') {
@@ -2720,6 +2794,11 @@
                                 const softAssignment = orderProduct?.soft_assignment || null;
                                 window.openEquipmentAssignModal(orderProductId, 'Delivery',
                                     softAssignment);
+
+                                this.dataset.reverting = '1';
+                                this.value = previousValue || 'Pending';
+                                this.setAttribute('data-previous-value', this.value);
+                                this.dispatchEvent(new Event('change'));
 
                                 // Don't update status yet - will be done after equipment assignment
                                 return;
@@ -2817,7 +2896,10 @@
 
                         // // Store current value as previous for next change
                         // this.setAttribute('data-previous-value', newValue);
-                        updateScheduleField('return', 'pickup_status', returnStatus.value);
+                        updateScheduleField('return', 'pickup_status', returnStatus.value)
+                            .then(() => {
+                                window.location.reload();
+                            });
                     });
 
                     // Initialize with current value

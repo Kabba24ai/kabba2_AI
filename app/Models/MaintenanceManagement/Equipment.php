@@ -121,11 +121,21 @@ class Equipment extends Model
         return $this->belongsTo(OrderProduct::class, 'current_order_product_id', 'id');
     }
 
+    public function orderProducts()
+    {
+        return $this->hasMany(OrderProduct::class, 'equipment_id');
+    }
 
     public function lastOrderProduct()
     {
-        return $this->hasOne(OrderProduct::class, 'equipment_id')->latestOfMany('id');
+        return $this->hasOne(OrderProduct::class, 'equipment_id')
+            ->where(function ($query) {
+                $query->where('delivery_status', 'Pending')
+                    ->orWhere('pickup_status', 'Pending');
+            })
+            ->orderByDesc('id');
     }
+
 
     public function productCategory()
     {

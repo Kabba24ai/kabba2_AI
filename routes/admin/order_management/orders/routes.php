@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\UpdateController as 
 use App\Http\Controllers\Admin\OrderManagement\Orders\Notes\DeleteController as NotesDeleteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\Reorder\PostController as ReorderPostController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\AssignEquipmentController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\RemoveEquipmentController;
 
 Route::prefix('orders')
     ->name('orders.')
@@ -41,6 +42,7 @@ Route::prefix('orders')
         Route::put('/{unique_id}/update-note', UpdateNoteController::class)->name('update-note');
         Route::put('/{unique_id}/{product_unique_id}/update-product-schedule', UpdateProductScheduleController::class)->name('update-product-schedule');
         Route::post('/assign-equipment', AssignEquipmentController::class)->name('assign-equipment');
+        Route::delete('/remove-equipment', RemoveEquipmentController::class)->name('remove-equipment');
         Route::put('/{unique_id}/confirm-payment', ConfirmPaymentController::class)->name('confirm-payment');
         Route::put('/{unique_id}/charge-credit-card', ChargeCreditCardController::class)->name('charge-credit-card');
         Route::put('/{unique_id}/receive-payment', ReceivePaymentController::class)->name('receive-payment');

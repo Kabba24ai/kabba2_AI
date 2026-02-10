@@ -50,7 +50,8 @@
         <div class="w-full sm:w-48">
             <select name="price"
                 class="choices-select w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
-                <option value="">All Prices</option>
+                <option value="">View Only</option>
+                <option value="High Demand Alert">High Demand Alert</option>
                 <option value="Sale Price">Sale Price</option>
                 <option value="Regular Price">Regular Price</option>
             </select>
@@ -159,6 +160,7 @@
             // Instant change on selects
             categorySelect.addEventListener('change', fetchProducts);
             priceSelect.addEventListener('change', fetchProducts);
+            highDemandSelect.addEventListener('change', fetchProducts);
             typeSelect.addEventListener('change', fetchProducts);
         });
 

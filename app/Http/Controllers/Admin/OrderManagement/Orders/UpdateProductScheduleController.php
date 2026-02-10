@@ -97,7 +97,7 @@ class UpdateProductScheduleController extends Controller
             if ($deliveryStatusChanged) {
                 // $orderProduct->delivery_date = now()->format('Y-m-d');
                 // $orderProduct->delivery_time = now()->format('H:i');
-                if($orderProduct->delivery_status === 'Completed' || $orderProduct->delivery_status === 'Close as Completed'){
+                if($orderProduct->delivery_status === 'Completed'){
                     $orderProduct->is_delivered = true;
                     if($equipment){
                         $equipment->current_status = EquipmentCurrentStatus::Rented->value;
@@ -105,7 +105,24 @@ class UpdateProductScheduleController extends Controller
                         $equipment->current_status_changed_at = now();
                         $equipment->saveQuietly();
                     }
-                }else if($orderProduct->delivery_status === 'Reschedule'){
+                }else if($orderProduct->delivery_status === 'Close as Completed'){
+
+                    $orderProduct->is_delivered = true;
+                    $orderProduct->is_returned = true;
+                    $orderProduct->pickup_status = 'Completed';
+                    if($equipment){
+                        $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
+                        $equipment->current_status_updated_by = $user->id;
+                        $equipment->current_status_changed_at = now();
+                        $equipment->current_order_id = null;
+                        $equipment->current_order_product_id = null;
+                        $equipment->saveQuietly();
+                    }
+
+                }
+                else if($orderProduct->delivery_status === 'Reschedule'){
+
+                    $orderProduct->softAssignment()->delete();
 
                     if($equipment){
                         $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
@@ -125,8 +142,36 @@ class UpdateProductScheduleController extends Controller
                     $orderProduct->equipment_details = null;
                     $orderProduct->assigned_by = null;
                     $orderProduct->assigned_at = null;
+                    $orderProduct->pickup_status = 'Pending';
+                }else if($orderProduct->delivery_status === 'Pending'){
+                    if($equipment){
+                        $orderProduct->softAssignment()->delete();
+                        $orderProduct->softAssignment()->create([
+                            'equipment_id' => $equipment->id,
+                            'order_id' => $orderProduct->order_id,
+                            'assigned_by' => $user->id,
+                        ]);
+
+                        $equipment->current_status = EquipmentCurrentStatus::Available->value;
+                        $equipment->current_status_updated_by = $user->id;
+                        $equipment->current_status_changed_at = now();
+                        $equipment->current_order_id = null;
+                        $equipment->current_order_product_id = null;
+                        $equipment->saveQuietly();
+                    }
+
+                    $orderProduct->equipment_id = null;
+                    $orderProduct->equipment_details = null;
+                    $orderProduct->assigned_by = null;
+                    $orderProduct->assigned_at = null;
+                    $orderProduct->delivery_by = null;
+                    $orderProduct->is_delivered = false;
+                    $orderProduct->is_returned = false;
+                    $orderProduct->pickup_status = 'Pending';
                 }else{
                     $orderProduct->is_delivered = false;
+                    $orderProduct->is_returned = false;
+                    $orderProduct->pickup_status = 'Pending';
                 }
 
             }

@@ -48,7 +48,11 @@ class IndexController extends Controller
             }
 
             if ($request->filled('price')) {
-                $query->filterByPriceType($request->price);
+                if ($request->price === 'High Demand Alert') {
+                    $query->where('has_high_demand_alert', true);
+                } else {
+                    $query->filterByPriceType($request->price);
+                }
             }
 
             // ---- ordering: by derived category title then product name ----

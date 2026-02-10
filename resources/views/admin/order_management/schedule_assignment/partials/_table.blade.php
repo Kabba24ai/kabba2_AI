@@ -107,37 +107,45 @@
                             $day = $date->format('Y-m-d');
 
                             // Common date filter as a closure so we don't repeat it
-$dateFilter = function ($query) use ($day) {
-    $query->whereDate('delivery_date', '<=', $day)->whereDate('pickup_date', '>=', $day);
-};
+                            $dateFilter = function ($query) use ($day) {
+                                $query->whereDate('delivery_date', '<=', $day)->whereDate('pickup_date', '>=', $day);
+                            };
 
-// Is booked for that day?
-$isBooked = $eq->lastOrderProduct()->where($dateFilter)->exists();
+                            // Is booked for that day?
+                            $isBooked = $eq->lastOrderProduct()
+                                ->where($dateFilter)
+                                ->exists();
 
-// Get soft assignments for that day (single query + reuse result)
-$softAssignments = $eq
-    ->softAssignments()
-    ->whereHas('orderProduct', $dateFilter)
-    ->with('order')
-    ->get();
+                            // Get soft assignments for that day (single query + reuse result)
+                            $softAssignments = $eq
+                                ->softAssignments()
+                                ->whereHas('orderProduct', $dateFilter)
+                                ->with('order')
+                                ->get();
 
-$isSoftAssigned = $softAssignments->isNotEmpty();
+                            $isSoftAssigned = $softAssignments->isNotEmpty();
 
-$color = match ($eq->status_label) {
-    'Available' => 'green-100',
-    'Maint. Hold' => 'yellow-100',
-    'Damaged' => 'red-100',
-    default => 'green-100',
-};
+                            $color = match ($eq->status_label) {
+                                'Available' => 'green-100',
+                                'Maint. Hold' => 'yellow-100',
+                                'Damaged' => 'red-100',
+                                default => 'green-100',
+                            };
 
-$hasAny = $isBooked || $isSoftAssigned;
-$textColor = 'text-gray-600';
-// Light blue for soft assign, dark blue with white text for hard assign
-$isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
-if ($isBooked && !$isReturnDay) {
-    $color = 'blue-600';
-    $textColor = 'text-white';
+                            $textColor = 'text-gray-600';
+                            // Light blue for soft assign, dark blue with white text for hard assign
+                            $isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
+                            if ($isBooked && !$isReturnDay) {
+                                $color = 'blue-600';
+                                $textColor = 'text-white';
                             }
+
+                            $hasVisibleSoftAssignments = $softAssignments->filter(function($assignment) {
+                                return in_array($assignment->orderProduct?->delivery_status, ['Pending'], true)
+                                    || in_array($assignment->orderProduct?->pickup_status, ['Pending'], true);
+                            })->isNotEmpty();
+
+                            $hasAny = $isBooked || $hasVisibleSoftAssignments;
 
                         @endphp
 
@@ -164,14 +172,19 @@ if ($isBooked && !$isReturnDay) {
                                     @foreach ($softAssignments as $assignment)
                                         <div class="group relative"
                                             title="{{ $assignment->orderProduct?->order?->customer_name }}">
-                                            <button type="button" class="text-xs underline px-2 equipment-assign-btn @if($assignment->order->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif"
-                                                data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
-                                                data-product-name="{{ $assignment->orderProduct->product_name }}"
-                                                data-order-unique-id="{{ $assignment->orderProduct?->order->unique_id }}"
-                                                data-order-id="{{ $assignment->orderProduct?->order?->order_number }}"
-                                                data-customer-name="{{ $assignment->orderProduct?->order?->customer_name }}">
-                                                {{ $assignment->order->order_number }}
-                                            </button>
+                                            @if (
+                                                in_array($assignment->orderProduct?->delivery_status, ['Pending'], true)
+                                                || in_array($assignment->orderProduct?->pickup_status, ['Pending'], true)
+                                            )
+                                                <button type="button" class="text-xs underline px-2 equipment-assign-btn @if($assignment->order->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif"
+                                                    data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
+                                                    data-product-name="{{ $assignment->orderProduct->product_name }}"
+                                                    data-order-unique-id="{{ $assignment->orderProduct?->order->unique_id }}"
+                                                    data-order-id="{{ $assignment->orderProduct?->order?->order_number }}"
+                                                    data-customer-name="{{ $assignment->orderProduct?->order?->customer_name }}">
+                                                    {{ $assignment->order->order_number }}
+                                                </button>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>

@@ -11,6 +11,122 @@
             <p class="text-gray-600 mt-1">View and manage service history for equipment</p>
         </div>
 
+        @php
+            // Calculate service status counts
+            $pendingBeforeHours = $settings->pending_before_hours ?? 20;
+            $pendingAfterHours = $settings->pending_after_hours ?? 15;
+            
+            $pendingCount = 0;
+            $overdueCount = 0;
+            
+            foreach($equipmentWithService as $item) {
+                if (!$item->serviceTemplate || !$item->serviceTemplate->preset || !$item->serviceTemplate->templateTasks->count()) {
+                    continue;
+                }
+                
+                $intervalType = $item->serviceTemplate->preset->interval_type ?? 'hour';
+                $isDateBased = ($intervalType !== 'hour');
+                
+                // Calculate current value
+                if ($isDateBased && $item->date_acquired) {
+                    $currentValue = ceil((time() - strtotime($item->date_acquired)) / (60 * 60 * 24));
+                } else {
+                    $currentValue = $item->equipment_hours ?? 0;
+                }
+                
+                $intervals = $item->serviceTemplate->preset->intervals ?? [];
+                $tasks = $item->serviceTemplate->templateTasks;
+                
+                $hasOverdue = false;
+                $hasPending = false;
+                
+                foreach ($tasks as $templateTask) {
+                    $taskId = $templateTask->task?->id;
+                    if (!$taskId) continue;
+                    
+                    $ints = $templateTask->intervals ?? $templateTask->intervals_json ?? $templateTask->interval ?? [];
+                    $arr = [];
+                    if (is_array($ints)) {
+                        $arr = $ints;
+                    } elseif (is_string($ints)) {
+                        try { $arr = json_decode($ints, true) ?? []; } catch(\Exception $e) { $arr = []; }
+                    } elseif (is_numeric($ints)) {
+                        $arr = [$ints];
+                    }
+                    
+                    foreach ($arr as $interval) {
+                        // Check if this interval is completed
+                        $recordKey = $item->id . '_' . $taskId;
+                        $records = $serviceRecords[$recordKey] ?? collect();
+                        $isCompleted = $records->contains(function($record) use ($interval) {
+                            return $record->interval_value == $interval;
+                        });
+                        
+                        if ($isCompleted) {
+                            continue;
+                        }
+                        
+                        // Calculate status for this interval
+                        $before = intval($pendingBeforeHours);
+                        $after = intval($pendingAfterHours);
+                        $greyThreshold = $interval - $before;
+                        $yellowMax = $interval + $after;
+                        
+                        if ($currentValue < $greyThreshold) {
+                            // Not due - skip
+                        } elseif ($currentValue <= $yellowMax) {
+                            $hasPending = true;
+                        } else {
+                            $hasOverdue = true;
+                        }
+                    }
+                }
+                
+                if ($hasOverdue) {
+                    $overdueCount++;
+                } elseif ($hasPending) {
+                    $pendingCount++;
+                }
+            }
+        @endphp
+
+        {{-- Service Status Filters --}}
+        <div class="bg-white rounded-lg p-4 mb-6">
+            <div class="flex gap-3">
+                <button type="button" 
+                        class="service-status-filter flex-1 px-6 py-4 rounded-lg border-2 border-gray-200 transition-all cursor-pointer hover:shadow-md"
+                        data-status="pending">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-yellow-100 border-2 border-yellow-300 rounded-lg flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-yellow-600">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                            </div>
+                            <span class="font-semibold text-gray-900">Pending</span>
+                        </div>
+                        <div class="text-2xl font-bold text-yellow-600">{{ $pendingCount }}</div>
+                    </div>
+                </button>
+
+                <button type="button" 
+                        class="service-status-filter flex-1 px-6 py-4 rounded-lg border-2 border-gray-200 transition-all cursor-pointer hover:shadow-md"
+                        data-status="overdue">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-red-100 border-2 border-red-300 rounded-lg flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                </svg>
+                            </div>
+                            <span class="font-semibold text-gray-900">Overdue</span>
+                        </div>
+                        <div class="text-2xl font-bold text-red-600">{{ $overdueCount }}</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+        
         {{-- Equipment Selector --}}
         <div class="bg-white rounded-lg p-6 mb-6">
             <div class="grid grid-cols-2 gap-4">
@@ -42,8 +158,65 @@
                                 } else {
                                     $displayValue = ($item->equipment_hours ?? 0) . ' hrs';
                                 }
+
+                                // Calculate service status for this equipment
+                                $equipmentStatus = 'not_due';
+                                if ($item->serviceTemplate && $item->serviceTemplate->preset && $item->serviceTemplate->templateTasks->count()) {
+                                    $currentValue = $isDateBased ? $daysPassed : ($item->equipment_hours ?? 0);
+                                    $tasks = $item->serviceTemplate->templateTasks;
+                                    
+                                    $hasOverdue = false;
+                                    $hasPending = false;
+                                    
+                                    foreach ($tasks as $templateTask) {
+                                        $taskId = $templateTask->task?->id;
+                                        if (!$taskId) continue;
+                                        
+                                        $ints = $templateTask->intervals ?? $templateTask->intervals_json ?? $templateTask->interval ?? [];
+                                        $arr = [];
+                                        if (is_array($ints)) {
+                                            $arr = $ints;
+                                        } elseif (is_string($ints)) {
+                                            try { $arr = json_decode($ints, true) ?? []; } catch(\Exception $e) { $arr = []; }
+                                        } elseif (is_numeric($ints)) {
+                                            $arr = [$ints];
+                                        }
+                                        
+                                        foreach ($arr as $interval) {
+                                            $recordKey = $item->id . '_' . $taskId;
+                                            $records = $serviceRecords[$recordKey] ?? collect();
+                                            $isCompleted = $records->contains(function($record) use ($interval) {
+                                                return $record->interval_value == $interval;
+                                            });
+                                            
+                                            if ($isCompleted) continue;
+                                            
+                                            $before = intval($pendingBeforeHours);
+                                            $after = intval($pendingAfterHours);
+                                            $greyThreshold = $interval - $before;
+                                            $yellowMax = $interval + $after;
+                                            
+                                            if ($currentValue < $greyThreshold) {
+                                                // Not due
+                                            } elseif ($currentValue <= $yellowMax) {
+                                                $hasPending = true;
+                                            } else {
+                                                $hasOverdue = true;
+                                            }
+                                        }
+                                    }
+                                    
+                                    if ($hasOverdue) {
+                                        $equipmentStatus = 'overdue';
+                                    } elseif ($hasPending) {
+                                        $equipmentStatus = 'pending';
+                                    }
+                                }
                             @endphp
-                            <option value="{{ $item->unique_id }}" data-category-id="{{ $item->productCategory?->id }}" data-interval-type="{{ $intervalType }}">
+                            <option value="{{ $item->unique_id }}" 
+                                    data-category-id="{{ $item->productCategory?->id }}" 
+                                    data-interval-type="{{ $intervalType }}"
+                                    data-service-status="{{ $equipmentStatus }}">
                                 {{ $item->equipment_name }} ({{ $item->equipment_id }}) - {{ $displayValue }}
                             </option>
                         @endforeach
@@ -179,7 +352,8 @@ document.addEventListener('DOMContentLoaded', function() {
             value: option.value,
             text: option.textContent,
             categoryId: option.getAttribute('data-category-id'),
-            intervalType: option.getAttribute('data-interval-type')
+            intervalType: option.getAttribute('data-interval-type'),
+            serviceStatus: option.getAttribute('data-service-status')
         });
     });
     
@@ -188,6 +362,86 @@ document.addEventListener('DOMContentLoaded', function() {
         if (a.value === '' || b.value === '') return 0;
         return a.text.localeCompare(b.text);
     });
+
+    // Service Status Filter
+    let currentStatusFilter = null;
+    const statusFilterButtons = document.querySelectorAll('.service-status-filter');
+    
+    statusFilterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const status = this.getAttribute('data-status');
+            
+            // Toggle filter - if clicking same status, deselect it
+            if (currentStatusFilter === status) {
+                currentStatusFilter = null;
+                this.classList.remove('border-blue-500', 'bg-blue-50');
+                this.classList.add('border-gray-200');
+            } else {
+                // Remove active class from all buttons
+                statusFilterButtons.forEach(btn => {
+                    btn.classList.remove('border-blue-500', 'bg-blue-50');
+                    btn.classList.add('border-gray-200');
+                });
+                
+                // Add active class to clicked button
+                currentStatusFilter = status;
+                this.classList.remove('border-gray-200');
+                this.classList.add('border-blue-500', 'bg-blue-50');
+            }
+            
+            // Update equipment list
+            updateEquipmentList();
+        });
+    });
+    
+    // Function to update equipment list based on filters
+    function updateEquipmentList() {
+        const selectedCategoryId = categorySelector.value;
+        
+        // Clear current options
+        equipmentSelector.innerHTML = '';
+        
+        // Add "Select Equipment" placeholder first
+        const placeholderOption = document.createElement('option');
+        placeholderOption.value = '';
+        placeholderOption.textContent = 'Select Equipment';
+        equipmentSelector.appendChild(placeholderOption);
+        
+        // Filter equipment data
+        const filteredEquipment = allEquipmentData.filter(data => {
+            if (data.value === '') return false;
+            
+            // Filter by category
+            if (selectedCategoryId !== '' && data.categoryId !== selectedCategoryId) {
+                return false;
+            }
+            
+            // Filter by service status
+            if (currentStatusFilter && data.serviceStatus !== currentStatusFilter) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Sort filtered equipment
+        filteredEquipment.sort((a, b) => a.text.localeCompare(b.text));
+        
+        // Add filtered equipment to dropdown
+        filteredEquipment.forEach(data => {
+            const option = document.createElement('option');
+            option.value = data.value;
+            option.textContent = data.text;
+            option.setAttribute('data-category-id', data.categoryId);
+            option.setAttribute('data-interval-type', data.intervalType);
+            option.setAttribute('data-service-status', data.serviceStatus);
+            equipmentSelector.appendChild(option);
+        });
+        
+        // Hide info and table when filters change
+        equipmentInfoCard.style.display = 'none';
+        serviceScheduleTable.style.display = 'none';
+    }
 
     // Helper function for calculating days - make it global
     const calculateDaysSinceAcquisition = (dateAcquired) => {
@@ -549,34 +803,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     categorySelector.addEventListener('change', function() {
-        const selectedCategoryId = this.value;
-        
-        // Clear current options
-        equipmentSelector.innerHTML = '';
-        
-        // Add "Select Equipment" placeholder first
-        const placeholderOption = document.createElement('option');
-        placeholderOption.value = '';
-        placeholderOption.textContent = 'Select Equipment';
-        equipmentSelector.appendChild(placeholderOption);
-        
-        // Filter and add options based on selected category
-        // Filter and sort equipment data
-        const filteredEquipment = allEquipmentData
-            .filter(data => data.value !== '' && (selectedCategoryId === '' || data.categoryId === selectedCategoryId))
-            .sort((a, b) => a.text.localeCompare(b.text));
-        
-        filteredEquipment.forEach(data => {
-            const option = document.createElement('option');
-            option.value = data.value;
-            option.textContent = data.text;
-            option.setAttribute('data-category-id', data.categoryId);
-            equipmentSelector.appendChild(option);
-        });
-        
-        // Hide info and table when category changes
-        equipmentInfoCard.style.display = 'none';
-        serviceScheduleTable.style.display = 'none';
+        updateEquipmentList();
     });
     
     // Delegate click for interval buttons to open Record Service modal

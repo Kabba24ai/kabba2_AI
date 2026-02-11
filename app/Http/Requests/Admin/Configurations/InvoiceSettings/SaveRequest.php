@@ -31,6 +31,12 @@ class SaveRequest extends FormRequest
     {
         return [
             'due_date_pay_upon_receipt' => 'required|string|max:20',
+
+            'invoice_email' => 'nullable|email',
+
+            'invoice_phone' => [
+                'nullable'
+            ],
         ];
     }
 

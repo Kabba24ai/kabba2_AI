@@ -211,9 +211,11 @@
 @endsection
 
 @push('js')
+
+
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-
 
             /* ====== CONFIG ====== */
             const REQUIRE_INSPECTOR = true;
@@ -307,14 +309,37 @@
                 renderEquipment();
             };
 
+            
+            // ===== APPLY URL FILTER FIRST =====
+            const params = new URLSearchParams(window.location.search);
+            const typeFromUrl = params.get('type');
+
+            if (typeFromUrl) {
+                const decodedType = decodeURIComponent(typeFromUrl);
+                const statusSelect = document.getElementById('statusFilter');
+
+                for (let i = 0; i < statusSelect.options.length; i++) {
+                    if (statusSelect.options[i].text === decodedType) {
+                        statusSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+
+
             const selectedId = '{{ $selectedEquipmentId }}';
-            console.log('selectedId :- ', selectedId);
+          
             @if($selectedEquipmentId)
                 const selectedEquipmentId = @json($selectedEquipmentId);
                 renderEquipment(selectedEquipmentId);
             @else
                 renderEquipment();
             @endif
+
+
+
+
+
 
             /* =================== LEFT LIST =================== */
             function renderEquipment(selectedId = null) {
@@ -1059,6 +1084,7 @@
                 dmg: document.getElementById("damagedItems"),
             };
         }
+
     </script>
 
 
@@ -1139,6 +1165,9 @@
             // console.log(finalPayload);
 
             document.getElementById("rentalReadyQaJson").value = JSON.stringify(finalPayload);
+
+
+
         });
     </script>
 @endpush

@@ -36,10 +36,31 @@
                             <span id="viewSupplierStatus" class="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 flex items-center gap-1">
                                 Active
                             </span>
-                           
+                            <button
+                                id="viewSupplierEditBtn"
+                                  data-id=""
+                                  onclick="editFromViewSupplier(this)"
+
+                                title="Edit Supplier"
+                                class="text-green-600 hover:text-green-800 transition"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="w-5 h-5"
+                                    fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M16.862 3.487a2.25 2.25 0 0 1 3.182 3.182L7.125 19.588l-4.5 1.318 1.318-4.5L16.862 3.487z" />
+                                </svg>
+                            </button>
                         </div>
+
+                       
                     </div>
+
+                    
                 </div>
+
+                
 
                 <button onclick="closeModal('ViewSupplier')"
                     class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
@@ -366,7 +387,10 @@
             const response = await fetch(viewUrl);
             const result = await response.json();
 
-
+        const editBtn = document.getElementById('viewSupplierEditBtn');
+        if (editBtn) {
+            editBtn.dataset.id = id;
+        }
 
 
             if (result.status) {

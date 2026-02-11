@@ -163,6 +163,16 @@
                                 <label class="block text-sm font-medium text-gray-500 mb-1">Supplier</label>
                                 <p class="text-sm font-medium text-gray-900">
                                     {{ $item['supplier']->name ?? '-' }}
+
+                                    @if(($item['supplier']->is_preferred_supplier ?? false))
+                                    <br>
+                                    <span
+                                        class="text-sm font-medium flex items-center gap-1"
+                                        style="color:#d4af37"
+                                    >
+                                         *Preferred Supplier
+                                    </span>
+                                @endif
                                 </p>
                             </div>
                         </div>

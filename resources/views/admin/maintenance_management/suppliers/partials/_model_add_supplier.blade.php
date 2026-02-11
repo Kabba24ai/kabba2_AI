@@ -310,55 +310,26 @@
 
                         </div>
 
+<!-- Preferred Supplier -->
+<input type="hidden" name="is_preferred_supplier" value="0">
+
+<div class="flex items-center gap-3 mt-4">
+    <input
+        type="checkbox"
+        id="isPreferredSupplier"
+        name="is_preferred_supplier"
+        value="1"
+        class="h-4 w-4 text-green-600 border-gray-300 rounded
+               focus:ring-green-500"
+    />
+
+    <label for="isPreferredSupplier"
+           class="text-sm font-medium text-gray-700 cursor-pointer">
+        Designate as Preferred Supplier
+    </label>
+</div>
 
 
-                        <!-- <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Upload Company Logo</label>
-
-                            <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5     border border-gray-200 overflow-hidden flex flex-col max-h-full">
-
-                                <div class=" p-6 overflow-y-auto">
-                                    <div class="max-w-md mx-auto">
-
-
-                                        <div class="border-2 border-dashed border-gray-300 p-6 text-center rounded">
-                                            <div id="uploadUI" class="flex flex-col items-center justify-center">
-
-                                                <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4" />
-                                                </svg>
-
-                                                <p class="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
-                                                <p class="text-gray-400 text-xs">PDF, JPG, PNG files up to 10MB</p>
-
-
-                                                <label id="chooseFileLabel" class="mt-3 inline-block cursor-pointer">
-                                                    <input type="file" id="fileInput" name="upload_company_logo" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileChange(event)" />
-                                                    <span class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Choose File</span>
-                                                </label>
-                                            </div>
-
-
-                                            <div id="fileActions" class="hidden text-sm mt-3 text-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-
-                                                <span id="fileNameDisplay" class="font-medium text-center sm:text-left"></span>
-
-
-                                                <div class="flex justify-center sm:justify-start gap-2">
-                                                    <a id="viewFileLink" href="#" target="_blank"
-                                                        class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
-                                                    <button type="button" onclick="clearFile()" class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div> -->
                     </div>
 
                 </div>
@@ -685,66 +656,6 @@
 </script>
 <!-- Parsley to validate -->
 
-<!-- handleFileChange -->
-<script>
-    // function handleFileChange(event) {
-    //     const file = event.target.files[0];
-    //     const fileNameDisplay = document.getElementById("fileNameDisplay");
-    //     const fileActions = document.getElementById("fileActions");
-    //     const viewLink = document.getElementById("viewFileLink");
-    //     const uploadUI = document.getElementById("uploadUI");
-
-    //     if (file) {
-    //         // Allowed file extensions
-    //         const allowedExtensions = ["jpg", "jpeg", "png"];
-    //         const fileExtension = file.name.split(".").pop().toLowerCase();
-
-    //         // Max file size (10 MB)
-    //         const maxSize = 10 * 1024 * 1024; // 10 MB in bytes
-
-    //         // Validation: format
-    //         if (!allowedExtensions.includes(fileExtension)) {
-
-    //             notyf.error("Invalid file format. Allowed: JPG, JPEG, PNG.");
-
-    //             event.target.value = ""; // Reset file input
-    //             return;
-    //         }
-
-    //         // Validation: size
-    //         if (file.size > maxSize) {
-    //             notyf.error("File is too large. Maximum size allowed is 10 MB.");
-
-    //             event.target.value = ""; // Reset file input
-    //             return;
-    //         }
-
-    //         //  Passed validation → show UI
-    //         fileNameDisplay.textContent = file.name;
-    //         fileActions.style.display = "flex";
-    //         uploadUI.style.display = "none";
-
-    //         // Temporary blob link for preview
-    //         const objectUrl = URL.createObjectURL(file);
-    //         viewLink.href = objectUrl;
-    //     }
-    // }
-
-    // function clearFile() {
-    //     const fileInput = document.getElementById("fileInput");
-    //     const fileActions = document.getElementById("fileActions");
-    //     const uploadUI = document.getElementById("uploadUI");
-    //     const fileNameDisplay = document.getElementById("fileNameDisplay");
-
-    //     fileInput.value = "";
-    //     delete fileInput.dataset.existingMediaId; // remove reference to existing file
-    //     fileActions.style.display = "none";
-    //     uploadUI.style.display = "flex";
-    //     fileNameDisplay.textContent = "";
-    // }
-</script>
-<!-- handleFileChange -->
-
 <script>
     // === Open Add Modal (Default State) ===
     window.openAddSupplierModal = function() {
@@ -810,13 +721,15 @@
             setSelectValue('supplierPaymentTerms', s.payment_terms);
 
 
+            // === Preferred Supplier checkbox ===
+            const preferredCheckbox = document.getElementById('isPreferredSupplier');
+            if (preferredCheckbox) {
+                preferredCheckbox.checked = Boolean(s.is_preferred_supplier);
+            }
+
             // Inside your editSupplier function
             setSupplierTags(s.tag_objects);
-
-            // Set existing media (company logo)
-            // setExistingCompanyLogo(s.media);
-
-
+       
             openModal('AddSupplier');
 
         } catch (error) {

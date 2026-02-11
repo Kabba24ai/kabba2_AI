@@ -180,7 +180,9 @@
             <x-admin.configurations.config-form id="config-invoice-form" :action="route('admin.configurations.save-invoice-settings')" saveLabel="Save">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     @include('admin.configurations.partials._invoice_settings')
-                </div>
+
+                    @include('admin.configurations.partials._invoice_fields_settings')
+                </div>  
             </x-admin.configurations.config-form>
         </div>
 

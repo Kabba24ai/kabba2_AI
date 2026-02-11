@@ -35,7 +35,7 @@
                               <div class="text-sm font-medium text-gray-900">{{ $supplier->name }}</div>
                         <div class="text-sm text-gray-500 flex items-center mt-1">
 
-                          {{ $supplier->primary_contact_name ?? 'N/A'}}
+                          {{ $supplier->primary_contact_name ?? ''}}
                       </div>
                           </div>
                       </div>
@@ -48,8 +48,10 @@
                           {{ $supplier->phone ?? 'N/A'}}
                       </div>
                        <div class="text-sm text-gray-500 flex items-center mt-1">
+                            @if(!empty($supplier->primary_contact_phone))
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 text-gray-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                          {{ $supplier->primary_contact_phone ?? 'N/A'}}
+                          {{ $supplier->primary_contact_phone ?? ''}}
+                           @endif
                       </div>
                   </td>
 
@@ -204,6 +206,8 @@ $categories = $supplier->all_supplied_parts
         document.getElementById('partsModal').classList.add('hidden');
         document.getElementById('partsModal').classList.remove('flex');
     }
+
+    
 </script>
 
 @endpush

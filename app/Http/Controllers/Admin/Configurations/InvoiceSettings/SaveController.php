@@ -16,11 +16,18 @@ class SaveController extends Controller
     {
         $validated = $request->validated();
 
-        foreach ($validated as $key => $value) {
-            Setting::where('setting_name', $key)
-                ->where('setting_type', 'Invoice Settings')
-                ->update(['setting_value' => $value]);
+       foreach ($validated as $key => $value) {
+            Setting::updateOrCreate(
+                [
+                    'setting_name' => $key,
+                    'setting_type' => 'Invoice Settings',
+                ],
+                [
+                    'setting_value' => is_array($value) ? json_encode($value) : $value,
+                ]
+            );
         }
+
 
         flash()->success(__('Invoice settings updated successfully.'));
         return redirect()->back();

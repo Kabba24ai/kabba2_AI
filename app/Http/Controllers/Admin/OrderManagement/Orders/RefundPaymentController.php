@@ -45,18 +45,18 @@ class RefundPaymentController extends Controller
 
             $lastPayment = $order->lastPaidPayment;
             $lastPaymentId = $lastPayment->transaction_id;
-            $lastRefundPaymentId = $order?->lastRefundPayment?->transaction_id;
 
             $refundPaymentType = $validated['payment_type'];
             $isCardRefund = $refundPaymentType === PaymentMethod::CreditCard->value;
-            $isOriginalCard = $lastPayment->payment_method === OrderPaymentMethod::Card->value;
+            $isOriginalCard = $lastPayment->payment_method === OrderPaymentMethod::Card;
 
             if ($isCardRefund && $isOriginalCard) {
                 // Here you would integrate with your payment gateway to process the refund.
                 $authorizeNetService = new AuthorizeNetService();
 
-                if($lastRefundPaymentId){
-                    $transactionDetails = $authorizeNetService->getTransactionDetails($lastRefundPaymentId);
+                if($lastPaymentId){
+                    $transactionDetails = $authorizeNetService->getTransactionDetails($lastPaymentId);
+
                     if (!in_array($transactionDetails->status, ['settledSuccessfully','refundSettledSuccessfully'])) {
                         return response()->json(
                             [

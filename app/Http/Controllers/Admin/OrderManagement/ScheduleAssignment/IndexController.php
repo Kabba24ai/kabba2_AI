@@ -97,14 +97,22 @@ class IndexController extends Controller
                             $q->where(function ($subQ) use ($startDate, $firstThreeDaysEnd) {
                                 $subQ->whereHas('lastOrderProduct', function ($lop) use ($startDate, $firstThreeDaysEnd) {
                                     $lop->where(function ($d) use ($startDate, $firstThreeDaysEnd) {
-                                        $d->whereDate('delivery_date', [$startDate, $firstThreeDaysEnd])
-                                          ->orWhereDate('pickup_date', [$startDate, $firstThreeDaysEnd]);
+                                        $d->whereDate('delivery_date', '>=', $startDate)
+                                          ->whereDate('delivery_date', '<=', $firstThreeDaysEnd)
+                                          ->orWhere(function($sub) use ($startDate, $firstThreeDaysEnd) {
+                                              $sub->whereDate('pickup_date', '>=', $startDate)
+                                                  ->whereDate('pickup_date', '<=', $firstThreeDaysEnd);
+                                          });
                                     });
                                 })
                                 ->orWhereHas('softAssignments.orderProduct', function ($op) use ($startDate, $firstThreeDaysEnd) {
                                     $op->where(function ($d) use ($startDate, $firstThreeDaysEnd) {
-                                        $d->whereDate('delivery_date', [$startDate, $firstThreeDaysEnd])
-                                          ->orWhereDate('pickup_date', [$startDate, $firstThreeDaysEnd]);
+                                        $d->whereDate('delivery_date', '>=', $startDate)
+                                          ->whereDate('delivery_date', '<=', $firstThreeDaysEnd)
+                                          ->orWhere(function($sub) use ($startDate, $firstThreeDaysEnd) {
+                                              $sub->whereDate('pickup_date', '>=', $startDate)
+                                                  ->whereDate('pickup_date', '<=', $firstThreeDaysEnd);
+                                          });
                                     });
                                 });
                             });

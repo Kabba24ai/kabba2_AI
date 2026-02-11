@@ -33,7 +33,6 @@
                 },
                 'approvedVacationRequests.requestHour',
             ])
-            ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'admin')) //
             ->active()
             ->orderBy('first_name')
             ->paginate($perPage);

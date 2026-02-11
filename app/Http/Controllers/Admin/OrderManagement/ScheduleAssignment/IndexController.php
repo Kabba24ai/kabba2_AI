@@ -92,26 +92,20 @@ class IndexController extends Controller
 
                             });
                         } elseif ($filter == 'assigned_3_days') {
+                            $firstThreeDaysEnd = $startDate->copy()->addDays(2);
 
-                            $q->where(function ($subQ) use ($startDate, $endDate) {
-
-                                $subQ->whereHas('lastOrderProduct', function ($lop) use ($startDate, $endDate) {
-                                    $lop->where(function ($d) use ($startDate, $endDate) {
-                                            $d->whereBetween('delivery_date', [$startDate, $endDate])
-                                            ->orWhereBetween('pickup_date',   [$startDate, $endDate]);
-                                        })
-                                        ->whereNotNull('delivery_date')
-                                        ->whereNotNull('pickup_date')
-                                        ->whereRaw("DATEDIFF(pickup_date, delivery_date) = 2");
+                            $q->where(function ($subQ) use ($startDate, $firstThreeDaysEnd) {
+                                $subQ->whereHas('lastOrderProduct', function ($lop) use ($startDate, $firstThreeDaysEnd) {
+                                    $lop->where(function ($d) use ($startDate, $firstThreeDaysEnd) {
+                                        $d->whereDate('delivery_date', [$startDate, $firstThreeDaysEnd])
+                                          ->orWhereDate('pickup_date', [$startDate, $firstThreeDaysEnd]);
+                                    });
                                 })
-                                ->orWhereHas('softAssignments.orderProduct', function ($op) use ($startDate, $endDate) {
-                                    $op->where(function ($d) use ($startDate, $endDate) {
-                                            $d->whereBetween('delivery_date', [$startDate, $endDate])
-                                            ->orWhereBetween('pickup_date',   [$startDate, $endDate]);
-                                        })
-                                        ->whereNotNull('delivery_date')
-                                        ->whereNotNull('pickup_date')
-                                        ->whereRaw("DATEDIFF(pickup_date, delivery_date) = 2");
+                                ->orWhereHas('softAssignments.orderProduct', function ($op) use ($startDate, $firstThreeDaysEnd) {
+                                    $op->where(function ($d) use ($startDate, $firstThreeDaysEnd) {
+                                        $d->whereDate('delivery_date', [$startDate, $firstThreeDaysEnd])
+                                          ->orWhereDate('pickup_date', [$startDate, $firstThreeDaysEnd]);
+                                    });
                                 });
                             });
                         }

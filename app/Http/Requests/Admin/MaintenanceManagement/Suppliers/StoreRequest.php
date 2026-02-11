@@ -21,6 +21,7 @@ class StoreRequest extends FormRequest
                 'nullable'
             ],
             'supplierWebsite' => 'nullable',
+            'is_preferred_supplier' => 'sometimes|boolean',
             'supplierAddress' => 'nullable|string',
             'supplierCity'    => 'nullable|string',
             'supplierState'   => 'nullable|string',

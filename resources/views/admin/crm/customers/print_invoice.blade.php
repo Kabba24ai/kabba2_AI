@@ -63,8 +63,19 @@
                                             Rent 'n King .<br>
                                             10296 Highway 46<br>
                                             Bon Aqua, TN 37025<br>
-                                            {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_phone') }} <br>
-                                            {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_email') }}
+                                          @php
+                                                $invoicePhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
+                                                $invoiceEmail = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_email');
+                                            @endphp
+
+                                            @if(!empty($invoicePhone))
+                                                {{ $invoicePhone }} <br>
+                                            @endif
+
+                                            @if(!empty($invoiceEmail))
+                                                {{ $invoiceEmail }}
+                                            @endif
+
                                         </p>
                                     </td>
                                     <!-- Right -->
@@ -338,7 +349,15 @@
                     <tr>
                         <td style="text-align:center; padding:30px 0 0; border-top:1px solid #111827; font-size:13px; color:#6b7280;">
                             <p style="margin:6px 0;">Thank you for your business!</p>
-                            <p style="margin:0;">For questions about this receipt, contact us at {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_phone') }}</p>
+@php
+    $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
+@endphp
+
+@if(!empty($supportPhone))
+    <p style="margin:0;">
+        For questions about this receipt, contact us at {{ $supportPhone }}
+    </p>
+@endif
                         </td>
                     </tr>
 

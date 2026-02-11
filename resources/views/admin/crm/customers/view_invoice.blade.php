@@ -130,8 +130,19 @@
                 <p>Rent 'n King .</p>
                 <p> 10296 Highway 46</p>
                 <p>Bon Aqua, TN 37025</p>
-                <p> {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_phone') }} </p>
-                <p>{{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_email') }} </p>
+               @php
+                    $invoicePhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
+                    $invoiceEmail = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_email');
+                @endphp
+
+                @if(!empty($invoicePhone))
+                    {{ $invoicePhone }} <br>
+                @endif
+
+                @if(!empty($invoiceEmail))
+                    {{ $invoiceEmail }}
+                @endif
+
             </div>
             <!-- Right Column -->
             <div class="space-y-3">
@@ -448,7 +459,16 @@
         <!-- Footer -->
         <div class="mt-6 text-center text-sm text-gray-500 border-t border-gray-800">
             <p class="mt-6">Thank you for your business!</p>
-            <p>For questions about this receipt, contact us at {{ \App\Helpers\ConfigurationHelper::getSettings(null , 'support_phone') }}</p>
+           @php
+    $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
+@endphp
+
+@if(!empty($supportPhone))
+    <p style="margin:0;">
+        For questions about this receipt, contact us at {{ $supportPhone }}
+    </p>
+@endif
+
         </div>
         <!-- Buttons -->
         <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 no-print">

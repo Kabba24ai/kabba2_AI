@@ -49,6 +49,10 @@ class UpdateController extends Controller
                 'billing_contact_name' => $validated['BillingName'] ?? null,
                 'billing_contact_email' => $validated['BillingEmail'] ?? null,
                 'billing_contact_phone' => $validated['BillingPhone'] ?? null,
+
+                
+                'is_preferred_supplier' => $validated['is_preferred_supplier'] ?? 0,
+
             ]);
 
 

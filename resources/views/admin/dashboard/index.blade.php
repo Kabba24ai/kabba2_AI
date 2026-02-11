@@ -40,6 +40,12 @@
 <script>
     window.APP_CURRENCY = "{{ config('app.currency.code') }}";
 </script>
+<script>
+function goToEquipment(type) {
+    const url = `{{ route('admin.checklist-management.equipment-management.index') }}?type=${type}`;
+    window.open(url, '_blank');
+}
+</script>
 
 
 <script>

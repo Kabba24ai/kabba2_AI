@@ -337,6 +337,20 @@ const currentPage = new URLSearchParams(location.search).get('page') || 1;
 fetchSuppliers(currentPage, perPage);
 
     });
+
+function editFromViewSupplier(button) {
+    const supplierId = button.dataset.id;
+
+    if (!supplierId) return;
+
+    closeModal('ViewSupplier');
+
+    setTimeout(() => {
+        editSupplier(supplierId);
+    }, 200);
+}
+
+
 </script>
 
 @endpush

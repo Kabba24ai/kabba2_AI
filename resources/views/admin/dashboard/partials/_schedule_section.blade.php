@@ -273,7 +273,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <!-- Maintenance Hold -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
+                        <div onclick="goToEquipment('Maint. Hold')" class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 group-hover:scale-110 transition-transform duration-200">
 
@@ -317,7 +317,7 @@
                         </div>
 
                         <!-- Damaged Items -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
+                        <div onclick="goToEquipment('Damaged')" class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 group-hover:scale-110 transition-transform duration-200">
 

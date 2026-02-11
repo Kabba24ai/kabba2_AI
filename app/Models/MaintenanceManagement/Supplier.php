@@ -46,6 +46,7 @@ class Supplier extends Model
 
 
         'company_logo_media_id',
+        'is_preferred_supplier',
     ];
 
     public static function boot()

@@ -27,6 +27,7 @@ class UpdateRequest extends FormRequest
             'supplierZip'     => 'nullable|string',
             'supplierCountry' => 'nullable|string',
             'supplierTax'     => 'nullable|string',
+            'is_preferred_supplier' => 'sometimes|boolean',
 
             // Supplier category & status
             'supplierCategory'      => 'nullable',

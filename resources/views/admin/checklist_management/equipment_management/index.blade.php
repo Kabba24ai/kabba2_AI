@@ -63,8 +63,8 @@
                             <option>Maint. Hold</option>
                             <option>Rented</option>
                             <option>Available</option>
-                            <option disabled>Service Due</option>
-                            <option disabled>Service Overdue</option>
+                            <option>Service Due</option>
+                            <option>Service OverDue</option>
 
                         </select>
                     </div>
@@ -477,8 +477,16 @@
                     const matchesCategory =
                         selectedCategory === "All Categories" || eq.category === selectedCategory;
 
-                    const matchesStatus =
-                        selectedStatus === "All Statuses" || eq.badge === selectedStatus;
+                    let matchesStatus = false;
+                    if (selectedStatus === "All Statuses") {
+                        matchesStatus = true;
+                    } else if (selectedStatus === "Service Due") {
+                        matchesStatus = eq.serviceStatus === "pending";
+                    } else if (selectedStatus === "Service OverDue") {
+                        matchesStatus = eq.serviceStatus === "overdue";
+                    } else {
+                        matchesStatus = eq.badge === selectedStatus;
+                    }
 
                     return matchesSearch && matchesCategory && matchesStatus;
                 });

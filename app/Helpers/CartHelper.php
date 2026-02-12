@@ -56,6 +56,7 @@ class CartHelper
         $taxTotal = 0;
         $grandTotal = 0;
 
+
         foreach ($cartData as $validated) {
             $product = Product::published()->where('unique_id', $validated['product_unique_id'])->first();
             if (!$product) {
@@ -191,6 +192,7 @@ class CartHelper
 
 
         return [
+            'product_id' => $product->id,
             'product_unique_id' => $product->unique_id,
             'product_slug' => $product->slug,
             'product_name' => $product->product_name,

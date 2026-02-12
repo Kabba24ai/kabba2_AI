@@ -22,10 +22,11 @@ use App\Helpers\CartHelper;
 use App\Helpers\CustomHelper;
 use App\Helpers\SignedUrlHelper;
 use App\Helpers\TermsContentHelper;
+use App\Helpers\ModelHelper;
 
 // Request
 use App\Http\Requests\Front\Checkout\PostRequest;
-
+use App\Jobs\CreateReceiptJob;
 // Models
 use App\Models\Customers\Customer;
 use App\Models\Customers\Receipt;
@@ -36,7 +37,9 @@ use App\Models\ProductManagement\Product;
 use App\Models\Configurations\Setting;
 use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
+use App\Models\Orders\Order;
 use App\Models\Stores\Store;
+use App\Models\Orders\OrderProduct;
 use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
@@ -46,10 +49,17 @@ class PostController extends Controller
      */
     public function __invoke(PostRequest $request)
     {
+        $perfStart = microtime(true);
+        $perfMarks = [];
+        $perfMark = function (string $label) use (&$perfMarks, $perfStart) {
+            $perfMarks[$label] = round((microtime(true) - $perfStart) * 1000, 2);
+        };
+
         $validated = $request->validated();
         // return redirect()->back()->withInput()->with('error', 'Debug stop before processing.');
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
+        $perfMark('cart_summary');
         $employeeCode = $validated['employee_code'] ?? null;
 
         if ($employeeCode) {
@@ -61,6 +71,7 @@ class PostController extends Controller
         } else {
             $employee = null;
         }
+        $perfMark('employee_check');
 
         try {
             DB::beginTransaction();
@@ -93,7 +104,6 @@ class PostController extends Controller
                 }
                 if ($updated) {
                     $customer->save();
-                    $customer->refresh();
                 }
 
                 if (!empty($validated['showPassword']) && $validated['showPassword'] === 'Yes' && !empty($validated['password'])) {
@@ -101,6 +111,7 @@ class PostController extends Controller
                     $customer->save();
                 }
             }
+            $perfMark('customer_ready');
 
             // 2. Add addresses (Billing & Delivery)
             // Customer has only one address, update or create as 'Billing'
@@ -167,8 +178,12 @@ class PostController extends Controller
                 CustomerAddress::setPrimaryAddress($deliveryAddress);
             }
 
-            $billingState = State::where('id', $billingAddress->state_id)->first();
-            $deliveryState = State::where('id', $deliveryAddress->state_id)->first();
+            $states = State::whereIn('id', [$billingAddress->state_id, $deliveryAddress->state_id])->pluck('name', 'id');
+
+            $billingStateName = $states[$billingAddress->state_id] ?? null;
+            $deliveryStateName = $states[$deliveryAddress->state_id] ?? null;
+
+            $perfMark('addresses_ready');
 
             // Save Order
             $order = $customer->orders()->create([
@@ -199,47 +214,57 @@ class PostController extends Controller
                     'created_by_id' => $customer->id,
                 ]);
             }
+            $perfMark('order_created');
 
-            // Create order billing address
-            $order->addresses()->create([
-                'type' => 'Billing',
-                'first_name' => $billingAddress->first_name,
-                'last_name' => $billingAddress->last_name,
-                'email' => $customer->email,
-                'phone' => $billingAddress->phone,
-                'address' => $billingAddress->address,
-                'city' => $billingAddress->city,
-                'state' => $billingState->name ?? null,
-                'state_id' => $billingAddress->state_id ?? null,
-                'zip_code' => $billingAddress->zip_code,
-            ]);
+            $now = now();
 
-            // Create order delivery address
-            $order->addresses()->create([
-                'type' => 'Shipping',
-                'first_name' => $deliveryAddress->first_name,
-                'last_name' => $deliveryAddress->last_name,
-                'email' => $customer->email,
-                'phone' => $deliveryAddress->phone,
-                'address' => $deliveryAddress->address,
-                'city' => $deliveryAddress->city,
-                'state' => $deliveryState->name ?? null,
-                'state_id' => $deliveryAddress->state_id ?? null,
-                'zip_code' => $deliveryAddress->zip_code,
+            $order->addresses()->insert([
+                [
+                    'order_id' => $order->id,
+                    'type' => 'Billing',
+                    'first_name' => $billingAddress->first_name,
+                    'last_name' => $billingAddress->last_name,
+                    'email' => $customer->email,
+                    'phone' => $billingAddress->phone,
+                    'address' => $billingAddress->address,
+                    'city' => $billingAddress->city,
+                    'state' => $billingStateName,
+                    'state_id' => $billingAddress->state_id,
+                    'zip_code' => $billingAddress->zip_code,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ],
+                [
+                    'order_id' => $order->id,
+                    'type' => 'Shipping',
+                    'first_name' => $deliveryAddress->first_name,
+                    'last_name' => $deliveryAddress->last_name,
+                    'email' => $customer->email,
+                    'phone' => $deliveryAddress->phone,
+                    'address' => $deliveryAddress->address,
+                    'city' => $deliveryAddress->city,
+                    'state' => $deliveryStateName,
+                    'state_id' => $deliveryAddress->state_id,
+                    'zip_code' => $deliveryAddress->zip_code,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ],
             ]);
 
             $primaryStoreId = Store::primary()->value('id');
+            $perfMark('order_addresses');
 
-            // Fetch all products at once to avoid N+1 queries
-            $productUniqueIds = collect($cartSummary['cart_items'])->pluck('product_unique_id')->unique();
-            $products = Product::whereIn('unique_id', $productUniqueIds)->get()->keyBy('unique_id');
+            $dateFormat = config('app.date.db_date_format');
+            $timeFormat = config('app.date.db_time_format');
+
+            $orderProductRows = [];
 
             foreach ($cartSummary['cart_items'] as $item) {
-                $product = $products[$item['product_unique_id']] ?? null;
-                if ($product) {
-                    $order->products()->create([
+
+                if ($item) {
+                    $orderProductRows[] = [
                         'order_id' => $order->id,
-                        'product_id' => $product->id,
+                        'product_id' => $item['product_id'],
                         'product_name' => $item['product_name'],
                         'price' => $item['product_price'],
                         'quantity' => $item['quantity'],
@@ -249,7 +274,8 @@ class PostController extends Controller
                         'sub_total' => $item['sub_total'],
                         'tax' => $item['tax'],
                         'total' => $item['total'],
-                        'product_data' => $item,
+                        'product_data' => json_encode($item),
+                        'unique_id' => ModelHelper::generateUniqueID(new OrderProduct(), 'ORD-SCH'),
                         'service_method' => $item['service_method'] ?? null,
                         'service_option' => $item['service_option'] ?? null,
                         'distance_type' => $item['distance_type'] ?? null,
@@ -257,16 +283,23 @@ class PostController extends Controller
 
                         'delivery_transport_mode' => $item['delivery_transport_mode'] ?? null,
                         'delivery_store_id' => $item['delivery_store_id'] ?? $primaryStoreId,
-                        'delivery_date' => !empty($item['delivery_date']) ? Carbon::parse($item['delivery_date'])->format(config('app.date.db_date_format')) : null,
-                        'delivery_time' => !empty($item['delivery_time']) ? Carbon::parse($item['delivery_time'])->format(config('app.date.db_time_format')) : null,
+                        'delivery_date' => !empty($item['delivery_date']) ? Carbon::parse($item['delivery_date'])->format($dateFormat) : null,
+                        'delivery_time' => !empty($item['delivery_time']) ? Carbon::parse($item['delivery_time'])->format($timeFormat) : null,
 
                         'pickup_transport_mode' => $item['pickup_transport_mode'] ?? null,
                         'pickup_store_id' => $item['pickup_store_id'] ?? $primaryStoreId,
-                        'pickup_date' => !empty($item['pickup_date']) ? Carbon::parse($item['pickup_date'])->format(config('app.date.db_date_format')) : null,
-                        'pickup_time' => !empty($item['pickup_time']) ? Carbon::parse($item['pickup_time'])->format(config('app.date.db_time_format')) : null,
-                    ]);
+                        'pickup_date' => !empty($item['pickup_date']) ? Carbon::parse($item['pickup_date'])->format($dateFormat) : null,
+                        'pickup_time' => !empty($item['pickup_time']) ? Carbon::parse($item['pickup_time'])->format($timeFormat) : null,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
             }
+
+            if (!empty($orderProductRows)) {
+                $order->products()->insert($orderProductRows);
+            }
+            $perfMark('order_products');
 
             // Eager load products and their terms for terms generation
             $order->load(['products.product.terms']);
@@ -277,11 +310,14 @@ class PostController extends Controller
             $order->pending_terms_content = $termsContentData['terms_content'] ?? null;
             $order->terms_status = OrderTermsStatus::Pending;
             $order->saveQuietly(); // saveQuietly() saves the model to the database without firing any Eloquent events (like "saved", "updated", etc.)
-            $customer->load('billingAddress', 'shippingAddress');
+            $perfMark('terms_ready');
+
 
             // If payment type is card, process payment using AuthorizeNetService
             if (strtolower($validated['payment']) === 'card') {
                 $amount = $order->grand_total;
+                $paymentResult = null;
+
                 if (session()->has('impersonated_by_admin') && !empty($validated['customer_card'])) {
                     $cardDetail = $customer->cards()->where('unique_id', $validated['customer_card'])->first();
 
@@ -310,22 +346,6 @@ class PostController extends Controller
                             ->withInput()
                             ->with('error', $paymentResult['message'] ?? 'Payment failed.');
                     }
-
-                    $payment = $order->payments()->create([
-                        'payment_datetime' => now(),
-                        'payment_method' => $validated['payment'],
-                        'amount' => $amount,
-                        'transaction_id' => $paymentResult['transaction_id'] ?? null,
-                        'auth_code' => $paymentResult['auth_code'] ?? null,
-                        'customer_profile_id' => $customerProfileId,
-                        'payment_profile_id' => $paymentProfileId,
-                        'card_number' => $paymentResult['card_number'] ?? null,
-                        'card_first_name' => $cardDetail->first_name ?? null, // optional
-                        'card_last_name' => $cardDetail->last_name ?? null, // optional
-                        'status' => $paymentResult['payment_status'] ?? 'Pending',
-                        'created_by_id' => $customer->id,
-                        'created_by_type' => Customer::class,
-                    ]);
                 } else {
                     $opaqueDataValue = $validated['opaqueDataValue'] ?? null;
                     $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
@@ -342,9 +362,11 @@ class PostController extends Controller
                     $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
                     if ($paymentResult['status'] !== 'success') {
                         logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
-                        // DB::rollback();
-                        // return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
                     }
+                }
+
+                // Create payment record
+                if ($paymentResult) {
                     $payment = $order->payments()->create([
                         'payment_datetime' => now(),
                         'payment_method' => $validated['payment'],
@@ -354,81 +376,34 @@ class PostController extends Controller
                         'customer_profile_id' => $paymentResult['customer_profile_id'] ?? null,
                         'payment_profile_id' => $paymentResult['payment_profile_id'] ?? null,
                         'card_number' => $paymentResult['card_number'] ?? null,
-                        'card_first_name' => $validated['firstName'] ?? null,
-                        'card_last_name' => $validated['lastName'] ?? null,
+                        'card_first_name' => $validated['firstName'] ?? $cardDetail->first_name ?? null,
+                        'card_last_name' => $validated['lastName'] ?? $cardDetail->last_name ?? null,
                         'status' => $paymentResult['payment_status'] ?? 'Pending',
                         'created_by_id' => $customer->id,
                         'created_by_type' => Customer::class,
                     ]);
 
                     if (empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
-                        // If payment profile is created, save it to customer's cards
                         $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
                         $customer->saveQuietly();
                     }
 
                     if (!empty($paymentResult['payment_profile_id'])) {
                         $customer->cards()->updateOrCreate(
+                            ['payment_profile_id' => $paymentResult['payment_profile_id']],
                             [
-                                'payment_profile_id' => $paymentResult['payment_profile_id'],
-                            ],
-                            [
-                                'first_name' => $validated['firstName'] ?? null,
-                                'last_name' => $validated['lastName'] ?? null,
+                                'first_name' => $validated['firstName'] ?? $cardDetail->first_name ?? null,
+                                'last_name' => $validated['lastName'] ?? $cardDetail->last_name ?? null,
                                 'card_number' => $paymentResult['card_number'] ?? null,
                                 'card_type' => $paymentResult['card_type'] ?? null,
                             ],
                         );
                     }
-                }
 
-                // ---- AFTER PAYMENT IS CREATED ----
-
-                // If the Authorize.Net card charge succeeded AND invoice exists:
-
-                $receipt = null;
-
-                if ($paymentResult['status'] == 'success') {
-                    $receipt = Receipt::create([
-                        'customer_id' => $order->customer_id,
-                        'order_id' => $order->id,
-
-                        'payment_method' => 'card',
-                        'receipt_date' => now(),
-                        'order_date' => $order->order_date,
-                        'payment_status' => 'paid',
-                        'subtotal' => $order->subtotal,
-                        'sales_tax' => $order->tax_amount,
-                        'total' => $order->grand_total,
-                    ]);
-
-                    //  Add receipt items from invoice items
-                    foreach ($order->products as $invItem) {
-                        $receipt->items()->create([
-                            'type' => 'order',
-                            'item_name' => $invItem->product_name,
-                            'unit' => $invItem->price,
-                            'qty' => $invItem->quantity,
-                            'tax' => $invItem->tax,
-                            'total' => $invItem->total,
-                            'item_id' => $invItem->unique_id,
-                        ]);
+                    // Queue receipt creation instead of doing it synchronously
+                    if ($paymentResult['status'] == 'success') {
+                        CreateReceiptJob::dispatch($order, 'card');
                     }
-
-                    //  Mark order receipt as created
-                    $order->receipt_status = 'created';
-                    $order->saveQuietly();
-
-                    Log::info('Receipt Created for Order', [
-                        'order_id' => $order->id,
-                        'order_num' => $order->order_number,
-                        'receipt_id' => $receipt->id,
-                    ]);
-                }
-
-                if (!$receipt) {
-                    Log::error("Receipt creation FAILED for order {$order->id}");
-                    // optionally mark order as: $order->receipt_status = 'failed';
                 }
             } else {
                 // If payment type is not card, just create a pending payment record
@@ -441,10 +416,10 @@ class PostController extends Controller
                     'created_by_type' => Customer::class,
                 ]);
             }
-
-            $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+            $perfMark('payment_and_receipt');
 
             if ($validated['payment'] === 'Account') {
+                $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
                 $products = $order->products;
 
                 foreach ($products as $product) {
@@ -468,12 +443,14 @@ class PostController extends Controller
                     CustomHelper::updateCreditBalance($record, $product->tax ?? 0);
                 }
             }
+            $perfMark('account_records');
 
             if (session()->has('tax_exempt')) {
                 session()->forget('tax_exempt'); // Clear tax exempt session if already set
             }
 
             DB::commit();
+            $perfMark('db_commit');
 
             $orderActionType = null;
 
@@ -506,9 +483,10 @@ class PostController extends Controller
 
             // Fire OrderPlaced event
             event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
-
             // after order is successfully placed
             event(new OrderPlacedEmailEvent($order));
+
+            $perfMark('events_deferred');
 
             // Generate a signed URL for the thank you page with order unique id
             // $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
@@ -521,6 +499,12 @@ class PostController extends Controller
 
             // Success: redirect to signed thank you page with order id
 
+            Log::info('Checkout timing (ms)', $perfMarks + [
+                'total' => round((microtime(true) - $perfStart) * 1000, 2),
+                'order_id' => $order->id,
+                'order_unique_id' => $order->unique_id,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'redirect_url' => $redirectUrl,
@@ -529,6 +513,10 @@ class PostController extends Controller
         } catch (\Exception $e) {
             // Log the error if needed: logger($e);
             logger($e);
+            Log::info('Checkout timing (ms)', $perfMarks + [
+                'total' => round((microtime(true) - $perfStart) * 1000, 2),
+                'error' => true,
+            ]);
             DB::rollback();
 
             return response()->json([

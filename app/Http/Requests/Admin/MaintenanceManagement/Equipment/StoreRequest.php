@@ -97,6 +97,9 @@ class StoreRequest extends FormRequest
 
             'equipment_notes' => 'nullable|string',
 
+            'document_images' => 'nullable|array',
+            'document_images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+
             'volts' => 'nullable', // or array if you send as array and implode before saving
             'amps'  => 'nullable', // same as above
 

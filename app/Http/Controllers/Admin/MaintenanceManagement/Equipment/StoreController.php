@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MaintenanceManagement\Equipment\StoreRequest;
 use App\Models\MaintenanceManagement\Equipment;
  use App\Models\MaintenanceManagement\PartsList;
+use App\Models\MaintenanceManagement\EquipmentMedia;
+use App\Helpers\MediaHelper;
 
 
 class StoreController extends Controller
@@ -24,6 +26,20 @@ class StoreController extends Controller
         }
 
       $equipment =  Equipment::create($data);
+
+        if ($request->hasFile('document_images')) {
+            foreach ($request->file('document_images') as $file) {
+                $mediaData = MediaHelper::uploadStorageFile('Public Asset', $file, 'equipment/documents', $equipment);
+                if (!empty($mediaData['mediaObj'])) {
+                    EquipmentMedia::create([
+                        'equipment_id' => $equipment->id,
+                        'media_id' => $mediaData['mediaObj']->id,
+                        'created_by' => auth()->id(),
+                        'updated_by' => auth()->id(),
+                    ]);
+                }
+            }
+        }
 
 
       // Assign equipment to ONE parts list

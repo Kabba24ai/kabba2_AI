@@ -703,7 +703,7 @@
         </div>
 
         {{-- Equipment Part List --}}
-       
+
 
         <div class="bg-white rounded-xl shadow-sm border p-5">
 
@@ -741,6 +741,107 @@
         </div>
 
 
+    </div>
+
+    {{-- Document Images - Full Width --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-2">
+                <x-heroicon-o-document-text class="h-5 w-5 text-red-600" />
+                <h3 class="text-lg font-bold text-gray-900">Document Images</h3>
+                <span class="text-xs text-gray-500">Max 2 MB per image</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <input
+                    type="file"
+                    name="document_images[]"
+                    id="document_images"
+                    class="hidden"
+                    accept="image/*"
+                    multiple
+                />
+                <label
+                    for="document_images"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold cursor-pointer hover:bg-blue-700 transition"
+                >
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Upload Images
+                </label>
+            </div>
+        </div>
+        <div id="document_images_remove_inputs"></div>
+
+        @error('document_images')
+            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+        @error('document_images.*')
+            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+
+        <div id="document_images_preview" class="mt-4 hidden">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-gray-700">Selected images</span>
+                <span id="document_images_preview_count" class="text-xs text-gray-500"></span>
+            </div>
+            <div id="document_images_preview_grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </div>
+
+        @if(isset($equipment) && $equipment->documentImages->isNotEmpty())
+            <div id="document_images_existing" class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                @foreach($equipment->documentImages as $document)
+                    @php($media = $document->media)
+                    <div class="relative border border-gray-200 rounded-lg p-2" data-document-id="{{ $document->id }}">
+                        <button
+                            type="button"
+                            class="document-image-remove absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow hover:text-red-600"
+                            title="Remove"
+                        >
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                        <div class="aspect-square bg-gray-50 rounded-md overflow-hidden flex items-center justify-center">
+                            @if($media)
+                                <img
+                                    src="{{ $media->getUrl() }}"
+                                    alt="{{ $media->original_file_name ?? 'Document image' }}"
+                                    class="h-full w-full object-cover"
+                                />
+                            @else
+                                <span class="text-xs text-gray-400">No image</span>
+                            @endif
+                        </div>
+                        <div class="mt-2 text-xs text-gray-600 truncate">
+                            {{ $media->original_file_name ?? 'Document image' }}
+                        </div>
+                        <div class="mt-2 flex items-center gap-2">
+                            @if($media)
+                                <a
+                                    href="{{ $media->getUrl() }}"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50"
+                                >
+                                    View
+                                </a>
+                                <a
+                                    href="{{ $media->downloadMedia() }}"
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50"
+                                >
+                                    Download
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+                <div id="document_images_new_container" class="contents"></div>
+            </div>
+        @else
+            <p class="mt-3 text-xs text-gray-500">No document images uploaded.</p>
+        @endif
     </div>
 
     {{-- Equipment Notes - Full Width --}}
@@ -897,6 +998,104 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            const documentImagesInput = document.getElementById('document_images');
+            const previewContainer = document.getElementById('document_images_preview');
+            const previewGrid = document.getElementById('document_images_preview_grid');
+            const previewCount = document.getElementById('document_images_preview_count');
+
+            if (documentImagesInput && previewContainer && previewGrid && previewCount) {
+                const existingGrid = document.getElementById('document_images_existing');
+                const newContainer = document.getElementById('document_images_new_container');
+
+                const renderDocumentPreviews = (files) => {
+                    const targetGrid = newContainer || previewGrid;
+                    targetGrid.innerHTML = '';
+
+                    if (!files.length) {
+                        previewContainer.classList.add('hidden');
+                        previewCount.textContent = '';
+                        return;
+                    }
+
+                    previewContainer.classList.remove('hidden');
+                    previewCount.textContent = `${files.length} selected`;
+
+                    if (existingGrid && newContainer) {
+                        previewGrid.classList.add('hidden');
+                    }
+
+                    files.forEach((file, index) => {
+                        const objectUrl = URL.createObjectURL(file);
+                        const card = document.createElement('div');
+                        card.className = 'relative border border-gray-200 rounded-lg p-2';
+
+                        card.innerHTML = `
+                            <button
+                                type="button"
+                                data-index="${index}"
+                                class="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow hover:text-red-600"
+                                title="Remove"
+                            >
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                            <div class="aspect-square bg-gray-50 rounded-md overflow-hidden flex items-center justify-center">
+                                <img src="${objectUrl}" alt="${file.name}" class="h-full w-full object-cover" />
+                            </div>
+                            <div class="mt-2 text-xs text-gray-600 truncate">${file.name}</div>
+                        `;
+
+                        const img = card.querySelector('img');
+                        img.addEventListener('load', function () {
+                            URL.revokeObjectURL(objectUrl);
+                        });
+
+                        const removeButton = card.querySelector('button[data-index]');
+                        removeButton.addEventListener('click', function () {
+                            const removeIndex = Number(this.getAttribute('data-index'));
+                            const updatedFiles = files.filter((_, fileIndex) => fileIndex !== removeIndex);
+                            const dataTransfer = new DataTransfer();
+                            updatedFiles.forEach((updatedFile) => dataTransfer.items.add(updatedFile));
+                            documentImagesInput.files = dataTransfer.files;
+                            renderDocumentPreviews(updatedFiles);
+                        });
+
+                        targetGrid.appendChild(card);
+                    });
+                };
+
+                documentImagesInput.addEventListener('change', function () {
+                    const files = Array.from(this.files || []);
+                    renderDocumentPreviews(files);
+                });
+            }
+
+            const existingImages = document.getElementById('document_images_existing');
+            const removeInputs = document.getElementById('document_images_remove_inputs');
+
+            if (existingImages && removeInputs) {
+                existingImages.addEventListener('click', function (event) {
+                    const button = event.target.closest('.document-image-remove');
+                    if (!button) return;
+
+                    const card = button.closest('[data-document-id]');
+                    if (!card) return;
+
+                    const documentId = card.getAttribute('data-document-id');
+                    if (!documentId) return;
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'document_images_remove[]';
+                    input.value = documentId;
+                    removeInputs.appendChild(input);
+
+                    card.remove();
+                });
+            }
+
             // Sync bring service current checkbox and hours with hidden inputs
             const bringServiceCheckbox = document.getElementById('bring_service_current');
             const serviceCurrentHours = document.getElementById('service_current_hours');
@@ -1035,7 +1234,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.routes = {
         partsListsByCategory: "{{ route('admin.maintenance-management.equipment.get-parts-lists', ':id') }}"
     };
-    
+
     window.selectedPartsListId = @json($selectedPartsListId ?? null);
 
     //  window.selectedPartsListIds = @json($selectedPartsListIds ?? []);

@@ -32,7 +32,7 @@
                     'autocomplete' => 'off',
                     'data-parsley-validate' => true,
                     'class' => 'max-w-5xl',
-                ])->open() }}
+                ])->acceptsFiles()->open() }}
 
                 @csrf
                 <div class="mb-6 flex justify-end">

@@ -98,6 +98,11 @@ class UpdateRequest extends FormRequest
 
             'equipment_notes' => 'nullable|string',
 
+            'document_images' => 'nullable|array',
+            'document_images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'document_images_remove' => 'nullable|array',
+            'document_images_remove.*' => 'integer',
+
             'volts' => 'nullable',
             'amps'  => 'nullable',
 

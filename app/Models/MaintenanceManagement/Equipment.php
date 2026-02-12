@@ -91,6 +91,12 @@ class Equipment extends Model
         self::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'EQP');
         });
+
+        static::deleting(function ($model) {
+            $model->documentImages->each(function ($document) {
+                $document->delete();
+            });
+        });
     }
 
     // scopes
@@ -235,6 +241,11 @@ class Equipment extends Model
     public function softAssignments()
     {
         return $this->hasMany(EquipmentSoftAssign::class, 'equipment_id', 'id');
+    }
+
+    public function documentImages()
+    {
+        return $this->hasMany(EquipmentMedia::class, 'equipment_id')->with('media');
     }
 
     public function isHardAssigned()

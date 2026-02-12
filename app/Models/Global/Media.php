@@ -77,12 +77,12 @@ class Media extends Model
         if ($this->asset_type == 'Secure Asset') {
 
             return \URL::temporarySignedRoute(
-                'download_sign_media',
+                'admin.download_sign_media',
                 now()->addMinutes(10),
                 ['unique_id' => $this->unique_id, 'session' => !empty($session_id) ? $session_id : session()->getId()]
             );
         } else {
-            return route('download_media', ['unique_id' => Crypt::encryptString($this->unique_id)]);
+            return route('admin.download_media', ['unique_id' => Crypt::encryptString($this->unique_id)]);
         }
     }
 

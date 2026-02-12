@@ -99,6 +99,7 @@ class IndexController extends Controller
                                     $lop->where(function ($d) use ($startDate, $firstThreeDaysEnd) {
                                         $d->whereDate('delivery_date', '>=', $startDate)
                                           ->whereDate('delivery_date', '<=', $firstThreeDaysEnd)
+                                        //   ->where('delivery_status', 'Pending')
                                           ->orWhere(function($sub) use ($startDate, $firstThreeDaysEnd) {
                                               $sub->whereDate('pickup_date', '>=', $startDate)
                                                   ->whereDate('pickup_date', '<=', $firstThreeDaysEnd);
@@ -109,6 +110,7 @@ class IndexController extends Controller
                                     $op->where(function ($d) use ($startDate, $firstThreeDaysEnd) {
                                         $d->whereDate('delivery_date', '>=', $startDate)
                                           ->whereDate('delivery_date', '<=', $firstThreeDaysEnd)
+                                        //   ->where('delivery_status', 'Pending')
                                           ->orWhere(function($sub) use ($startDate, $firstThreeDaysEnd) {
                                               $sub->whereDate('pickup_date', '>=', $startDate)
                                                   ->whereDate('pickup_date', '<=', $firstThreeDaysEnd);

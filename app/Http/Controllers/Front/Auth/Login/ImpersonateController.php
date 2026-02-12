@@ -12,6 +12,7 @@ use App\Helpers\SignedUrlHelper;
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Log;
 
 class ImpersonateController extends Controller
 {
@@ -56,11 +57,20 @@ class ImpersonateController extends Controller
 
         $customer = Customer::where('unique_id', $customerUniqueId)->firstOrFail();
 
-        // Regenerate session BEFORE switching identities to prevent fixation
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Track who's currently logged in before impersonation
+        $previousCustomerId = Auth::guard('customer')->id();
 
-        // Store who is impersonating (from the signed URL)
+        // If a different customer is already logged in, log them out first
+        if (Auth::guard('customer')->check() && $previousCustomerId !== $customer->id) {
+            // Log::info('Customer logged out for impersonation', [
+            //     'previous_customer_id' => $previousCustomerId,
+            //     'new_customer_id' => $customer->id,
+            //     'admin_id' => $adminUniqueId,
+            // ]);
+            Auth::guard('customer')->logout();
+        }
+
+        // Store impersonation context in session (BEFORE regenerating token)
         session([
             'impersonated_by_admin' => true,
             'impersonator' => [
@@ -75,15 +85,23 @@ class ImpersonateController extends Controller
             ]
         ]);
 
-        if (Auth::guard('customer')->check()) {
-            // Already logged in as a customer, do nothing or optionally log out first
-            if (Auth::guard('customer')->id() != $customer->id) {
-                Auth::guard('customer')->logout();
-            }
-        }
+        // Only regenerate CSRF token, don't invalidate entire session
+        // This keeps admin logged in while allowing customer impersonation
+        $request->session()->regenerateToken();
 
-        // Log in the customer on the customer guard
+        // Log in the customer on the customer guard (separate from admin guard)
         Auth::guard('customer')->login($customer);
+
+        // Audit log for impersonation
+        // Log::info('Admin impersonated customer', [
+        //     'admin_id' => $adminUniqueId,
+        //     'admin_name' => $admin->full_name,
+        //     'customer_id' => $customer->id,
+        //     'customer_email' => $customer->email,
+        //     'order_unique_id' => $orderUniqueId,
+        //     'ip_address' => $request->ip(),
+        //     'user_agent' => $request->userAgent(),
+        // ]);
 
 
         // Reset the flag if needed

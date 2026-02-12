@@ -374,67 +374,43 @@
                             </div>
                         </div>
 
-                        <!-- Tasks Overdue -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all ">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 group-hover:scale-110 transition-transform duration-200">
-                                     <svg class="w-6 h-6 text-white" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 320C296 328 300 335.5 306.7 340L402.7 404C413.7 411.4 428.6 408.4 436 397.3C443.4 386.2 440.4 371.4 429.3 364L344 307.2L344 184C344 170.7 333.3 160 320 160C306.7 160 296 170.7 296 184z"/></svg>
-                                </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Tasks Overdue</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">2</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
-                                </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">0</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progress</span>
-                                    <span>0%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tasks Due Today -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all ">
+                        <!-- Service Due -->
+                        <a href="{{ route('admin.maintenance-management.equipment-service.index') }}" 
+                           class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all block">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 group-hover:scale-110 transition-transform duration-200">
-
-                                    <svg fill="currentColor" class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/></svg>
-
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                    </svg>
                                 </div>
                             </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Tasks Due Today</h3>
+                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Service Due</h3>
                             <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">5</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
+                                    <div class="text-2xl font-bold text-yellow-600 mb-1">{{ $pendingCount ?? 0 }}</div>
+                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">{{ ($pendingCount ?? 0) > 1 ? 'EQUIPMENTS' : 'EQUIPMENT' }}</div>
                                 </div>
-                                <div class="h-12 w-px bg-gray-300"></div>
+                            </div>
+                        </a>
+
+                        <!-- Service Overdue -->
+                        <a href="{{ route('admin.maintenance-management.equipment-service.index') }}" 
+                           class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all block">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 group-hover:scale-110 transition-transform duration-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Service OverDue</h3>
+                            <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-green-600 mb-1">18</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
+                                    <div class="text-2xl font-bold text-red-600 mb-1">{{ $overdueCount ?? 0 }}</div>
+                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">{{ ($overdueCount ?? 0) > 1 ? 'EQUIPMENTS' : 'EQUIPMENT' }}</div>
                                 </div>
                             </div>
-                            <div class="mt-4 pt-3 border-t border-gray-300">
-                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                    <span>Progress</span>
-                                    <span>78%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 transition-all duration-500" style="width: 78%"></div>
-                                </div>
-                            </div>
-                        </div>
+                        </a>
                     </div>
                 </div>
             </div>

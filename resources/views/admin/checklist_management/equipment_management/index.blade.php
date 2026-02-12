@@ -221,7 +221,94 @@
             const REQUIRE_INSPECTOR = true;
 
             /* =================== DATA =================== */
-            const rawEquipment = @json($equipments);
+            @php
+                // Calculate service status for each equipment
+                $equipmentsWithStatus = $equipments->map(function($item) use ($serviceRecords, $pendingBeforeHours, $pendingAfterHours) {
+                    $serviceStatus = 'empty';
+                    
+                    if ($item->serviceTemplate && $item->serviceTemplate->preset && $item->serviceTemplate->templateTasks->isNotEmpty()) {
+                        $intervalType = $item->serviceTemplate->preset->interval_type ?? 'hour';
+                        $isDateBased = ($intervalType !== 'hour');
+                        
+                        // Calculate current value
+                        if ($isDateBased && $item->date_acquired) {
+                            $currentValue = ceil((time() - strtotime($item->date_acquired)) / (60 * 60 * 24));
+                        } else {
+                            $currentValue = $item->equipment_hours ?? 0;
+                        }
+                        
+                        $intervals = $item->serviceTemplate->preset->intervals ?? [];
+                        $tasks = $item->serviceTemplate->templateTasks;
+                        
+                        $hasOverdue = false;
+                        $hasPending = false;
+                        $hasNotDue = false;
+                        $totalTasks = 0;
+                        $completedTasks = 0;
+                        
+                        foreach ($tasks as $templateTask) {
+                            $taskId = $templateTask->task?->id;
+                            if (!$taskId) continue;
+                            
+                            $ints = $templateTask->intervals ?? $templateTask->intervals_json ?? $templateTask->interval ?? [];
+                            $arr = [];
+                            if (is_array($ints)) {
+                                $arr = $ints;
+                            } elseif (is_string($ints)) {
+                                try { $arr = json_decode($ints, true) ?? []; } catch(\Exception $e) { $arr = []; }
+                            } elseif (is_numeric($ints)) {
+                                $arr = [$ints];
+                            }
+                            
+                            foreach ($arr as $interval) {
+                                $totalTasks++;
+                                
+                                // Check if this interval is completed
+                                $recordKey = $item->id . '_' . $taskId;
+                                $records = $serviceRecords[$recordKey] ?? collect();
+                                $isCompleted = $records->contains(function($record) use ($interval) {
+                                    return $record->interval_value == $interval;
+                                });
+                                
+                                if ($isCompleted) {
+                                    $completedTasks++;
+                                    continue;
+                                }
+                                
+                                // Calculate status for this interval
+                                $before = intval($pendingBeforeHours);
+                                $after = intval($pendingAfterHours);
+                                $greyThreshold = $interval - $before;
+                                $yellowMax = $interval + $after;
+                                
+                                if ($currentValue < $greyThreshold) {
+                                    $hasNotDue = true;
+                                } elseif ($currentValue <= $yellowMax) {
+                                    $hasPending = true;
+                                } else {
+                                    $hasOverdue = true;
+                                }
+                            }
+                        }
+                        
+                        // Determine overall status based on priority
+                        if ($hasOverdue) {
+                            $serviceStatus = 'overdue';
+                        } elseif ($hasPending) {
+                            $serviceStatus = 'pending';
+                        } elseif ($totalTasks > 0 && $completedTasks === $totalTasks) {
+                            $serviceStatus = 'completed';
+                        } elseif ($hasNotDue) {
+                            $serviceStatus = 'not_due';
+                        }
+                    }
+                    
+                    $item->service_status = $serviceStatus;
+                    return $item;
+                });
+            @endphp
+            
+            const rawEquipment = @json($equipmentsWithStatus);
 
             const icons = {
                 damaged: ` <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none"
@@ -247,29 +334,56 @@
                                 </svg>`,
             };
 
+            // Service status icons
+            const serviceStatusIcons = {
+                overdue: `<a href="/maintenance-management/equipment/service/EQUIPMENT_ID" class="inline-flex items-center gap-1.5 px-2 py-1 bg-red-100 border-2 border-red-300 rounded-lg hover:opacity-80 transition-opacity" title="Service Overdue - Click to manage">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-red-600">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                    <span class="text-xs font-medium text-red-700">Service OverDue</span>
+                </a>`,
+                pending: `<a href="/maintenance-management/equipment/service/EQUIPMENT_ID" class="inline-flex items-center gap-1.5 px-2 py-1 bg-yellow-100 border-2 border-yellow-300 rounded-lg hover:opacity-80 transition-opacity" title="Service Due - Click to manage">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-yellow-600">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    <span class="text-xs font-medium text-yellow-700">Service Due</span>
+                </a>`,
+                completed: ``,
+                not_due: ``,
+                empty: ``
+            };
+
             
 
-            const equipment = rawEquipment.map(eq => ({
-                id: eq.id,
-                unique_id: eq.unique_id,
-                name: eq.equipment_name,
-                model: eq.model,
-                serial: eq.serial_number,
-                equipment_id: eq.equipment_id,
-                category_id: eq.category_id,
-                category: eq.category_name ?? 'N/A',
-                checklist_master_id: eq.checklist_master_id,
-                hours: eq.equipment_hours,
-                lastInspection: eq.last_inspection ?? '',
-                orderproduct: eq.order_product?.product_name ?? '-',
-                orderproductid: eq.order_product?.id ?? null,
-                order_route: eq.order?.view_link ?? null,
-                orderid: eq.order?.id ?? null,
-                badge: eq.status_label,
-                icon: icons[eq.current_status] ?? icons.available,
-                is_tracked: eq.is_tracked ?? 'No',
-                customername: eq.order?.customer_name ?? ' ',
-            }));
+            const equipment = rawEquipment.map(eq => {
+                // Get service status icon and replace EQUIPMENT_ID placeholder
+                let serviceIcon = serviceStatusIcons[eq.service_status] || serviceStatusIcons.empty;
+                serviceIcon = serviceIcon.replace(/EQUIPMENT_ID/g, eq.unique_id);
+                
+                return {
+                    id: eq.id,
+                    unique_id: eq.unique_id,
+                    name: eq.equipment_name,
+                    model: eq.model,
+                    serial: eq.serial_number,
+                    equipment_id: eq.equipment_id,
+                    category_id: eq.category_id,
+                    category: eq.category_name ?? 'N/A',
+                    checklist_master_id: eq.checklist_master_id,
+                    hours: eq.equipment_hours,
+                    lastInspection: eq.last_inspection ?? '',
+                    orderproduct: eq.order_product?.product_name ?? '-',
+                    orderproductid: eq.order_product?.id ?? null,
+                    order_route: eq.order?.view_link ?? null,
+                    orderid: eq.order?.id ?? null,
+                    badge: eq.status_label,
+                    icon: icons[eq.current_status] ?? icons.available,
+                    is_tracked: eq.is_tracked ?? 'No',
+                    customername: eq.order?.customer_name ?? ' ',
+                    serviceStatus: eq.service_status,
+                    serviceStatusIcon: serviceIcon
+                };
+            });
 
             // console.log('equipment :- ', equipment);
 
@@ -392,63 +506,64 @@
 
                     card.innerHTML = `
                         <div class="flex items-start justify-between">
-    <div class="flex-1">
-        <div class="flex flex-wrap items-start gap-2 mb-2">
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-                <h3 class="font-medium text-sm sm:text-base text-gray-900 truncate">${eq.name}</h3>
-              
-            </div>
+                            <div class="flex-1">
+                                <div class="flex flex-wrap items-start gap-2 mb-2">
+                                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                                        <h3 class="font-medium text-sm sm:text-base text-gray-900 truncate">${eq.name}</h3>
+                                    
+                                    </div>
 
-            <div class="basis-full sm:basis-auto sm:ml-auto inline-flex items-center gap-1.5 whitespace-nowrap">
-              ${eq.icon}   
-                <span class="inline-flex px-2 py-1 rounded text-xs font-medium border ${badgeColors(eq.badge)}">
-                    ${eq.badge}
-                </span>
-            </div>
-        </div>
+                                    <div class="basis-full sm:basis-auto sm:ml-auto inline-flex items-center gap-1.5 whitespace-nowrap">
+                                        ${eq.serviceStatusIcon}
+                                        ${eq.icon}   
+                                        <span class="inline-flex px-2 py-1 rounded text-xs font-medium border ${badgeColors(eq.badge)}">
+                                            ${eq.badge}
+                                        </span>
+                                    </div>
+                                </div>
 
-        <!-- All fields in a 2-column grid -->
-        <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                                <!-- All fields in a 2-column grid -->
+                                <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
 
-            <div>
-                <div class="font-medium text-gray-700">Model</div>
-                <div>- ${eq.model}</div>
-            </div>
+                                    <div>
+                                        <div class="font-medium text-gray-700">Model</div>
+                                        <div>- ${eq.model}</div>
+                                    </div>
 
-            <div>
-                <div class="font-medium text-gray-700">Equipment ID</div>
-                <div>- ${eq.equipment_id}</div>
-            </div>
+                                    <div>
+                                        <div class="font-medium text-gray-700">Equipment ID</div>
+                                        <div>- ${eq.equipment_id}</div>
+                                    </div>
 
-            <div>
-                <div class="font-medium text-gray-700">Category</div>
-                <div>- ${eq.category}</div>
-            </div>
+                                    <div>
+                                        <div class="font-medium text-gray-700">Category</div>
+                                        <div>- ${eq.category}</div>
+                                    </div>
 
-            <div>
-                <div class="font-medium text-gray-700">Order Product</div>
-                <div>- ${eq.orderproduct ?? '-'}</div>
-            </div>
+                                    <div>
+                                        <div class="font-medium text-gray-700">Order Product</div>
+                                        <div>- ${eq.orderproduct ?? '-'}</div>
+                                    </div>
 
-            <div>
-                <div class="font-medium text-gray-700">Hours</div>
-                <div class="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    - ${(eq.hours ?? 0).toLocaleString()}
-                </div>
-            </div>
+                                    <div>
+                                        <div class="font-medium text-gray-700">Hours</div>
+                                        <div class="flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <polyline points="12 6 12 12 16 14"/>
+                                            </svg>
+                                            - ${(eq.hours ?? 0).toLocaleString()}
+                                        </div>
+                                    </div>
 
-            <div>
-                <div class="font-medium text-gray-700">Last Inspection</div>
-                <div>- ${eq.lastInspection}</div>
-            </div>
+                                    <div>
+                                        <div class="font-medium text-gray-700">Last Inspection</div>
+                                        <div>- ${eq.lastInspection}</div>
+                                    </div>
 
-        </div>
-    </div>
-</div>
+                                </div>
+                            </div>
+                        </div>
 
                     `;
 

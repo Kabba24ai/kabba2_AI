@@ -68,6 +68,17 @@
 
                         </select>
                     </div>
+
+                    <!-- Clear Filter Button -->
+                    <div class="mb-4 flex justify-end">
+                        <button type="button" onclick="clearFilters()" 
+                                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Clear Filters
+                        </button>
+                    </div>
                     <div id="equipmentList" class="space-y-3 max-h-[1000px] overflow-y-auto"></div>
                 </div>
             </div>
@@ -420,6 +431,13 @@
             renderEquipment();
 
             window.applyFilters = function() {
+                renderEquipment();
+            };
+
+            window.clearFilters = function() {
+                document.getElementById("searchInput").value = "";
+                document.getElementById("categoryFilter").selectedIndex = 0;
+                document.getElementById("statusFilter").selectedIndex = 0;
                 renderEquipment();
             };
 

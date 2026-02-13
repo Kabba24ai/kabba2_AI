@@ -27,7 +27,6 @@ use App\Helpers\ModelHelper;
 // Request
 use App\Http\Requests\Front\Checkout\PostRequest;
 use App\Jobs\CreateReceiptJob;
-use App\Jobs\ProcessPaymentJob;
 // Models
 use App\Models\Customers\Customer;
 use App\Models\Customers\Receipt;
@@ -314,45 +313,39 @@ class PostController extends Controller
             $perfMark('terms_ready');
 
 
-            // If payment type is card, process payment asynchronously
+            // If payment type is card, process payment using AuthorizeNetService
             if (strtolower($validated['payment']) === 'card') {
                 $amount = $order->grand_total;
-                $payment = null;
+                $paymentResult = null;
 
-                // Validate payment data upfront
                 if (session()->has('impersonated_by_admin') && !empty($validated['customer_card'])) {
                     $cardDetail = $customer->cards()->where('unique_id', $validated['customer_card'])->first();
 
-                    if (!$customer->authorize_profile_id) {
+                    $paymentProfileId = $cardDetail->payment_profile_id;
+                    $customerProfileId = $customer->authorize_profile_id;
+
+                    if (!$customerProfileId) {
                         DB::rollBack();
                         return back()->withInput()->with('error', 'Customer profile not found for saved card.');
                     }
 
-                    // Dispatch payment job (will run asynchronously)
-                    ProcessPaymentJob::dispatch(
-                        $order,
-                        $customer,
-                        $amount,
-                        'card',
-                        $customer->authorize_profile_id,
-                        $cardDetail->payment_profile_id,
-                        null,
-                        null,
-                        [
-                            'first_name' => $cardDetail->first_name ?? null,
-                            'last_name' => $cardDetail->last_name ?? null,
-                        ]
-                    );
+                    $authorizeNetService = new AuthorizeNetService();
 
-                    // Create a pending payment record (will be updated by the job)
-                    $payment = $order->payments()->create([
-                        'payment_datetime' => now(),
-                        'payment_method' => 'Card',
-                        'amount' => $amount,
-                        'status' => 'Pending',
-                        'created_by_id' => $customer->id,
-                        'created_by_type' => Customer::class,
+                    // Your service should wrap Authorize.Net CIM createTransactionRequest
+                    // e.g. createProfileTransaction / chargeCustomerProfile
+
+                    $paymentResult = $authorizeNetService->chargeCustomerProfile($customerProfileId, $paymentProfileId, $amount, [
+                        'order_number' => $order->order_number,
+                        'customer' => $customer->toArray(),
                     ]);
+
+                    if (($paymentResult['status'] ?? null) !== 'success') {
+                        logger()->error('Profile payment failed for Order ID: ' . $order->unique_id . ' - ' . ($paymentResult['message'] ?? 'Unknown error'));
+                        DB::rollBack();
+                        return back()
+                            ->withInput()
+                            ->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    }
                 } else {
                     $opaqueDataValue = $validated['opaqueDataValue'] ?? null;
                     $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
@@ -361,38 +354,56 @@ class PostController extends Controller
                         DB::rollback();
                         return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
                     }
-
                     $authorizeNetService = new AuthorizeNetService();
                     if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
                         DB::rollback();
                         return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
                     }
+                    $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
+                    if ($paymentResult['status'] !== 'success') {
+                        logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
+                    }
+                }
 
-                    // Dispatch payment job (will run asynchronously)
-                    ProcessPaymentJob::dispatch(
-                        $order,
-                        $customer,
-                        $amount,
-                        'Card',
-                        null,
-                        null,
-                        $opaqueDataValue,
-                        $opaqueDataDescriptor,
-                        [
-                            'first_name' => $validated['firstName'] ?? null,
-                            'last_name' => $validated['lastName'] ?? null,
-                        ]
-                    );
-
-                    // Create a pending payment record (will be updated by the job)
+                // Create payment record
+                if ($paymentResult) {
                     $payment = $order->payments()->create([
                         'payment_datetime' => now(),
-                        'payment_method' => 'Card',
+                        'payment_method' => $validated['payment'],
                         'amount' => $amount,
-                        'status' => 'Pending',
+                        'transaction_id' => $paymentResult['transaction_id'] ?? null,
+                        'auth_code' => $paymentResult['auth_code'] ?? null,
+                        'customer_profile_id' => $paymentResult['customer_profile_id'] ?? null,
+                        'payment_profile_id' => $paymentResult['payment_profile_id'] ?? null,
+                        'card_number' => $paymentResult['card_number'] ?? null,
+                        'card_first_name' => $validated['firstName'] ?? $cardDetail->first_name ?? null,
+                        'card_last_name' => $validated['lastName'] ?? $cardDetail->last_name ?? null,
+                        'status' => $paymentResult['payment_status'] ?? 'Pending',
                         'created_by_id' => $customer->id,
                         'created_by_type' => Customer::class,
                     ]);
+
+                    if (empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
+                        $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
+                        $customer->saveQuietly();
+                    }
+
+                    if (!empty($paymentResult['payment_profile_id'])) {
+                        $customer->cards()->updateOrCreate(
+                            ['payment_profile_id' => $paymentResult['payment_profile_id']],
+                            [
+                                'first_name' => $validated['firstName'] ?? $cardDetail->first_name ?? null,
+                                'last_name' => $validated['lastName'] ?? $cardDetail->last_name ?? null,
+                                'card_number' => $paymentResult['card_number'] ?? null,
+                                'card_type' => $paymentResult['card_type'] ?? null,
+                            ],
+                        );
+                    }
+
+                    // Queue receipt creation instead of doing it synchronously
+                    if ($paymentResult['status'] == 'success') {
+                        CreateReceiptJob::dispatch($order, 'card');
+                    }
                 }
             } else {
                 // If payment type is not card, just create a pending payment record
@@ -470,9 +481,9 @@ class PostController extends Controller
                 session()->forget('order');
             }
 
-            // Fire OrderPlaced event (queued, non-blocking)
+            // Fire OrderPlaced event
             event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
-            // Send order confirmation email (queued, non-blocking)
+            // after order is successfully placed
             event(new OrderPlacedEmailEvent($order));
 
             $perfMark('events_deferred');

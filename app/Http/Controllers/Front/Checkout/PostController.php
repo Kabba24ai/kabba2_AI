@@ -49,18 +49,16 @@ class PostController extends Controller
      */
     public function __invoke(PostRequest $request)
     {
-        $perfStart = microtime(true);
-        $perfMarks = [];
-        $perfMark = function (string $label) use (&$perfMarks, $perfStart) {
-            $perfMarks[$label] = round((microtime(true) - $perfStart) * 1000, 2);
-        };
-
+        $checkoutStart = microtime(true);
+        Log::info('Checkout process started at ' . now());
         $validated = $request->validated();
         // return redirect()->back()->withInput()->with('error', 'Debug stop before processing.');
         $cart = json_decode($validated['cart'], true);
         $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cart]);
-        $perfMark('cart_summary');
+
         $employeeCode = $validated['employee_code'] ?? null;
+
+        Log::info('cart summary generated at ' . now());
 
         if ($employeeCode) {
             // Validate employee code if provided
@@ -71,9 +69,10 @@ class PostController extends Controller
         } else {
             $employee = null;
         }
-        $perfMark('employee_check');
+
 
         try {
+            Log::info('Starting database transaction at ' . now());
             DB::beginTransaction();
             if (auth()->guard('customer')->check()) {
                 $customer = auth()->guard('customer')->user();
@@ -111,7 +110,6 @@ class PostController extends Controller
                     $customer->save();
                 }
             }
-            $perfMark('customer_ready');
 
             // 2. Add addresses (Billing & Delivery)
             // Customer has only one address, update or create as 'Billing'
@@ -183,7 +181,6 @@ class PostController extends Controller
             $billingStateName = $states[$billingAddress->state_id] ?? null;
             $deliveryStateName = $states[$deliveryAddress->state_id] ?? null;
 
-            $perfMark('addresses_ready');
 
             // Save Order
             $order = $customer->orders()->create([
@@ -214,7 +211,6 @@ class PostController extends Controller
                     'created_by_id' => $customer->id,
                 ]);
             }
-            $perfMark('order_created');
 
             $now = now();
 
@@ -252,7 +248,6 @@ class PostController extends Controller
             ]);
 
             $primaryStoreId = Store::primary()->value('id');
-            $perfMark('order_addresses');
 
             $dateFormat = config('app.date.db_date_format');
             $timeFormat = config('app.date.db_time_format');
@@ -299,7 +294,6 @@ class PostController extends Controller
             if (!empty($orderProductRows)) {
                 $order->products()->insert($orderProductRows);
             }
-            $perfMark('order_products');
 
             // Eager load products and their terms for terms generation
             $order->load(['products.product.terms']);
@@ -310,11 +304,12 @@ class PostController extends Controller
             $order->pending_terms_content = $termsContentData['terms_content'] ?? null;
             $order->terms_status = OrderTermsStatus::Pending;
             $order->saveQuietly(); // saveQuietly() saves the model to the database without firing any Eloquent events (like "saved", "updated", etc.)
-            $perfMark('terms_ready');
-
+            DB::commit();
+            Log::info('Database transaction committed at ' . now());
 
             // If payment type is card, process payment using AuthorizeNetService
             if (strtolower($validated['payment']) === 'card') {
+                Log::info('Processing card payment at ' . now());
                 $amount = $order->grand_total;
                 $paymentResult = null;
 
@@ -325,7 +320,6 @@ class PostController extends Controller
                     $customerProfileId = $customer->authorize_profile_id;
 
                     if (!$customerProfileId) {
-                        DB::rollBack();
                         return back()->withInput()->with('error', 'Customer profile not found for saved card.');
                     }
 
@@ -341,7 +335,6 @@ class PostController extends Controller
 
                     if (($paymentResult['status'] ?? null) !== 'success') {
                         logger()->error('Profile payment failed for Order ID: ' . $order->unique_id . ' - ' . ($paymentResult['message'] ?? 'Unknown error'));
-                        DB::rollBack();
                         return back()
                             ->withInput()
                             ->with('error', $paymentResult['message'] ?? 'Payment failed.');
@@ -351,18 +344,18 @@ class PostController extends Controller
                     $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
 
                     if (!$opaqueDataValue || !$opaqueDataDescriptor) {
-                        DB::rollback();
                         return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
                     }
                     $authorizeNetService = new AuthorizeNetService();
                     if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
-                        DB::rollback();
                         return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
                     }
+                    Log::info('Opaque data validated at ' . now());
                     $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
                     if ($paymentResult['status'] !== 'success') {
                         logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
                     }
+                    Log::info('Card payment processed at ' . now() . ' with status: ' . $paymentResult['status']);
                 }
 
                 // Create payment record
@@ -400,10 +393,13 @@ class PostController extends Controller
                         );
                     }
 
+                    Log::info('Payment record created at ' . now() . ' with ID: ' . $payment->id);
+
                     // Queue receipt creation instead of doing it synchronously
                     if ($paymentResult['status'] == 'success') {
-                        CreateReceiptJob::dispatch($order, 'card');
+                        CreateReceiptJob::dispatch($order->id, 'card');
                     }
+                    Log::info('CreateReceiptJob dispatched completed at ' . now());
                 }
             } else {
                 // If payment type is not card, just create a pending payment record
@@ -416,7 +412,6 @@ class PostController extends Controller
                     'created_by_type' => Customer::class,
                 ]);
             }
-            $perfMark('payment_and_receipt');
 
             if ($validated['payment'] === 'Account') {
                 $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
@@ -443,14 +438,12 @@ class PostController extends Controller
                     CustomHelper::updateCreditBalance($record, $product->tax ?? 0);
                 }
             }
-            $perfMark('account_records');
 
             if (session()->has('tax_exempt')) {
                 session()->forget('tax_exempt'); // Clear tax exempt session if already set
             }
 
-            DB::commit();
-            $perfMark('db_commit');
+            Log::info('Determining order action type at ' . now());
 
             $orderActionType = null;
 
@@ -481,29 +474,30 @@ class PostController extends Controller
                 session()->forget('order');
             }
 
+            Log::info('event dispatching started at ' . now());
+
             // Fire OrderPlaced event
             event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
             // after order is successfully placed
             event(new OrderPlacedEmailEvent($order));
 
-            $perfMark('events_deferred');
-
+            Log::info('event dispatching completed at ' . now());
             // Generate a signed URL for the thank you page with order unique id
             // $signedUrl = \URL::temporarySignedRoute('front.checkout.thank-you', now()->addMinutes(5), ['order' => $order->unique_id]);
 
+            Log::info('Generating redirect URL based on terms content at ' . now());
             if (!empty($termsContentData['terms_content'])) {
                 $redirectUrl = route('front.terms-and-conditions.index', ['orderUniqueId' => $order->unique_id]);
             } else {
                 $redirectUrl = SignedUrlHelper::make('front.checkout.thank-you', ['order' => $order->unique_id], 5);
             }
 
-            // Success: redirect to signed thank you page with order id
 
-            Log::info('Checkout timing (ms)', $perfMarks + [
-                'total' => round((microtime(true) - $perfStart) * 1000, 2),
-                'order_id' => $order->id,
-                'order_unique_id' => $order->unique_id,
-            ]);
+            // Success: redirect to signed thank you page with order id
+            Log::info('Redirecting to thank you page at ' . now() . ' with URL: ' . $redirectUrl);
+
+            $totalDuration = round((microtime(true) - $checkoutStart) * 1000, 2);
+            Log::info("Total checkout duration: {$totalDuration} ms, seconds: " . round($totalDuration / 1000, 2) . "s");
 
             return response()->json([
                 'success' => true,
@@ -513,11 +507,10 @@ class PostController extends Controller
         } catch (\Exception $e) {
             // Log the error if needed: logger($e);
             logger($e);
-            Log::info('Checkout timing (ms)', $perfMarks + [
-                'total' => round((microtime(true) - $perfStart) * 1000, 2),
-                'error' => true,
-            ]);
             DB::rollback();
+
+            $totalDuration = round((microtime(true) - $checkoutStart) * 1000, 2);
+            Log::info("Total checkout duration: {$totalDuration} ms, seconds: " . round($totalDuration / 1000, 2) . "s");
 
             return response()->json([
                 'success' => false,

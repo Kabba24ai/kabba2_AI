@@ -36,6 +36,16 @@ class AuthorizeNetService
         $this->merchantAuthentication->setTransactionKey($transactionKey);
 
         $this->isTestMode = $testMode === true || $testMode === 'true' || $testMode === 1 || $testMode === '1';
+
+    }
+
+    private function executeWithApiResponseTimed($controller)
+    {
+        $start = microtime(true);
+        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+        $durationMs = round((microtime(true) - $start) * 1000, 2);
+        logger()->info("AuthorizeNet API call duration: {$durationMs} ms. seconds: " . round($durationMs / 1000, 2) . "s");
+        return $response;
     }
 
     /**
@@ -137,7 +147,7 @@ class AuthorizeNetService
         $createRequest->setValidationMode('none');
 
         $controller = new AnetController\CreateCustomerProfileController($createRequest);
-        $createResponse = $controller->executeWithApiResponse($this->getApiEnvironment());
+        $createResponse = $this->executeWithApiResponseTimed($controller);
 
         if ($createResponse && $createResponse->getMessages()->getResultCode() === 'Ok') {
             $profileId = $createResponse->getCustomerProfileId();
@@ -162,8 +172,8 @@ class AuthorizeNetService
     public function findOrCreateCustomerProfileAndPaymentProfile(string $uniqueId, array $customer, ?string $opaqueDataValue = null, ?array $cardData = [])
     {
         // 1. Try to find customer profile by merchantCustomerId (your uniqueId)
-        $profileId = $this->findExistingCustomerProfileId($uniqueId);
-
+        //$profileId = $this->findExistingCustomerProfileId($uniqueId);
+        $profileId = $customer['authorize_profile_id'] ?? null;
         // 2. If profile does not exist, create it using the new createCustomer method
         if (!$profileId) {
             return $this->createCustomer($uniqueId, $customer, $opaqueDataValue, $cardData);
@@ -175,7 +185,7 @@ class AuthorizeNetService
         $getProfileRequest->setCustomerProfileId($profileId);
 
         $getProfileController = new AnetController\GetCustomerProfileController($getProfileRequest);
-        $getProfileResponse = $getProfileController->executeWithApiResponse($this->getApiEnvironment());
+        $getProfileResponse = $this->executeWithApiResponseTimed($getProfileController);
 
         if (!$getProfileResponse || $getProfileResponse->getMessages()->getResultCode() !== 'Ok') {
             $msgObj = $getProfileResponse?->getMessages()?->getMessage()[0] ?? null;
@@ -333,7 +343,7 @@ class AuthorizeNetService
         $createRequest->setValidationMode('none');
 
         $controller = new AnetController\CreateCustomerPaymentProfileController($createRequest);
-        $createResponse = $controller->executeWithApiResponse($this->getApiEnvironment());
+        $createResponse = $this->executeWithApiResponseTimed($controller);
 
         if ($createResponse && $createResponse->getMessages()->getResultCode() === 'Ok') {
             return [
@@ -433,7 +443,7 @@ class AuthorizeNetService
         $searchRequest = new AnetAPI\GetCustomerProfileIdsRequest();
         $searchRequest->setMerchantAuthentication($this->merchantAuthentication);
         $searchController = new AnetController\GetCustomerProfileIdsController($searchRequest);
-        $searchResponse = $searchController->executeWithApiResponse($this->getApiEnvironment());
+        $searchResponse = $this->executeWithApiResponseTimed($searchController);
         if ($searchResponse && $searchResponse->getMessages()->getResultCode() === 'Ok') {
             $profileIds = $searchResponse->getIds();
             if (empty($profileIds)) {
@@ -444,7 +454,7 @@ class AuthorizeNetService
                 $getRequest->setMerchantAuthentication($this->merchantAuthentication);
                 $getRequest->setCustomerProfileId($profileId);
                 $getController = new AnetController\GetCustomerProfileController($getRequest);
-                $getResponse = $getController->executeWithApiResponse($this->getApiEnvironment());
+                $getResponse = $this->executeWithApiResponseTimed($getController);
                 if ($getResponse && $getResponse->getMessages()->getResultCode() === 'Ok') {
                     $profile = $getResponse->getProfile();
                     if ($profile && $profile->getMerchantCustomerId() === $merchantCustomerId) {
@@ -495,7 +505,7 @@ class AuthorizeNetService
         $request->setTransactionRequest($txnRequest);
 
         $controller = new AnetController\CreateTransactionController($request);
-        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+        $response = $this->executeWithApiResponseTimed($controller);
         logger()->info('AuthorizeNet profile charge response: ' . json_encode($response));
 
         // 4) Handle success
@@ -621,7 +631,7 @@ class AuthorizeNetService
         $request->setTransactionRequest($transactionRequest);
 
         $controller = new AnetController\CreateTransactionController($request);
-        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+        $response = $this->executeWithApiResponseTimed($controller);
         logger()->info('AuthorizeNet response: ' . json_encode($response));
         // ---- 5. Handle Response ----
         if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
@@ -760,7 +770,7 @@ class AuthorizeNetService
         $request->setTransactionRequest($transactionRequest);
 
         $controller = new AnetController\CreateTransactionController($request);
-        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+        $response = $this->executeWithApiResponseTimed($controller);
         logger()->info('AuthorizeNet card transaction response: ' . json_encode($response));
 
         // ---- 5. Handle Response ----
@@ -881,7 +891,7 @@ class AuthorizeNetService
         $request->setTransactionRequest($transactionRequest);
 
         $controller = new AnetController\CreateTransactionController($request);
-        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+        $response = $this->executeWithApiResponseTimed($controller);
 
         if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
             $transactionResponse = $response->getTransactionResponse();
@@ -933,7 +943,7 @@ class AuthorizeNetService
         $request->setTransactionRequest($transactionRequest);
 
         $controller = new AnetController\CreateTransactionController($request);
-        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+        $response = $this->executeWithApiResponseTimed($controller);
 
         if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
             $transactionResponse = $response->getTransactionResponse();
@@ -967,7 +977,7 @@ class AuthorizeNetService
             $request->setCustomerPaymentProfileId($paymentProfileId);
 
             $controller = new AnetController\GetCustomerPaymentProfileController($request);
-            $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+            $response = $this->executeWithApiResponseTimed($controller);
 
             if ($response && $response->getMessages()->getResultCode() === 'Ok') {
                 $card = $response->getPaymentProfile()->getPayment()->getCreditCard();
@@ -996,7 +1006,7 @@ class AuthorizeNetService
         $request->setTransId($paymentId);
 
         $controller = new AnetController\GetTransactionDetailsController($request);
-        $response = $controller->executeWithApiResponse($this->getApiEnvironment());
+        $response = $this->executeWithApiResponseTimed($controller);
 
         if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
             $transaction = $response->getTransaction();

@@ -12,17 +12,13 @@ class CreateReceiptJob implements ShouldQueue
 {
     use Queueable;
 
-    protected $order;
-    protected $paymentMethod;
-
     /**
      * Create a new job instance.
      */
-    public function __construct(Order $order, string $paymentMethod = 'card')
-    {
-        $this->order = $order;
-        $this->paymentMethod = $paymentMethod;
-    }
+    public function __construct(
+        public int $orderId,
+        public string $paymentMethod = 'Card'
+    ) {}
 
     /**
      * Execute the job.
@@ -30,24 +26,29 @@ class CreateReceiptJob implements ShouldQueue
     public function handle(): void
     {
         try {
+            // Load only what we need
+            $order = Order::query()
+                ->with(['products'])
+                ->findOrFail($this->orderId);
+
             $receipt = Receipt::create([
-                'customer_id' => $this->order->customer_id,
-                'order_id' => $this->order->id,
+                'customer_id' => $order->customer_id,
+                'order_id' => $order->id,
                 'payment_method' => $this->paymentMethod,
                 'receipt_date' => now(),
-                'order_date' => $this->order->order_date,
+                'order_date' => $order->order_date,
                 'payment_status' => 'paid',
-                'subtotal' => $this->order->subtotal,
-                'sales_tax' => $this->order->tax_amount,
-                'total' => $this->order->grand_total,
+                'subtotal' => $order->subtotal,
+                'sales_tax' => $order->tax_amount,
+                'total' => $order->grand_total,
             ]);
 
             // Build receipt items in bulk
-            $receiptItemRows = [];
             $receiptNow = now();
+            $rows = [];
 
-            foreach ($this->order->products as $invItem) {
-                $receiptItemRows[] = [
+            foreach ($order->products as $invItem) {
+                $rows[] = [
                     'receipt_id' => $receipt->id,
                     'type' => 'order',
                     'item_name' => $invItem->product_name,
@@ -61,21 +62,21 @@ class CreateReceiptJob implements ShouldQueue
                 ];
             }
 
-            if (!empty($receiptItemRows)) {
-                $receipt->items()->insert($receiptItemRows);
+            if ($rows) {
+                $receipt->items()->insert($rows);
             }
 
             // Mark order receipt as created
-            $this->order->receipt_status = 'created';
-            $this->order->saveQuietly();
+            $order->receipt_status = 'created';
+            $order->saveQuietly();
 
             Log::info('Receipt Created for Order', [
-                'order_id' => $this->order->id,
-                'order_num' => $this->order->order_number,
+                'order_id' => $order->id,
+                'order_num' => $order->order_number,
                 'receipt_id' => $receipt->id,
             ]);
-        } catch (\Exception $e) {
-            Log::error('Receipt creation FAILED for order ' . $this->order->id, [
+        } catch (\Throwable $e) {
+            Log::error('Receipt creation FAILED for order ' . $this->orderId, [
                 'error' => $e->getMessage(),
             ]);
         }

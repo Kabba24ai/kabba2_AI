@@ -843,15 +843,15 @@
                 })
                 .then(response => {
                     if (response.success) {
-                        window.location.href = response.redirect_url;
+                        window.location.replace(response.redirect_url);
                     } else {
                         notyf.error(response.message || 'An error occurred during checkout.');
+                        enableCheckoutButton();
                     }
                 })
-                .finally(() => {
-                    setTimeout(() => {
-                        enableCheckoutButton();
-                    }, 200); // Small delay to prevent flicker if redirecting immediately
+               .catch(() => {
+                    notyf.error('Network error. Please try again.');
+                    enableCheckoutButton();
                 });
             }
 

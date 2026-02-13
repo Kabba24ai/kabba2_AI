@@ -52,7 +52,7 @@
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
                     </td>
                     <td class="py-4 px-6 text-center">
-                        {{ $order->last_payment_type->value === 'Cheque' ? 'Check' : $order->last_payment_type->value }}
+                        {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}
                     </td>
 
                     <td class="py-4 px-6 text-center">

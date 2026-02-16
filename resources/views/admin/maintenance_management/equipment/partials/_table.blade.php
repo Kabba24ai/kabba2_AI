@@ -10,10 +10,10 @@
                     <th class="text-left py-4 px-6 font-semibold text-gray-700 whitespace-nowrap">Equipment Name</th>
                     <th class="text-left py-3 px-3 font-semibold text-gray-700 whitespace-nowrap">Equip. ID</th>
                     <th class="text-left py-3 px-3 font-semibold text-gray-700 whitespace-nowrap">Status</th>
-                    <th class="text-center py-3 px-3 font-semibold text-gray-700 whitespace-nowrap">Checklist Master</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Tech/Mgt.</th>
                     <th class="text-left py-4 px-6 font-semibold text-gray-700">Location</th>
+                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Tech/Mgt.</th>
                     <th class="text-left py-3 px-3 font-semibold text-gray-700">Status Change</th>
+                    <th class="text-center py-3 px-3 font-semibold text-gray-700 whitespace-nowrap">Checklist Master</th>
                     <th class="text-left py-4 px-3 font-semibold text-gray-700 whitespace-nowrap">Equip. Service</th>
                     <th class="text-left py-3 px-3 font-semibold text-gray-700 whitespace-nowrap">Service Due</th>
                     <th class="text-left py-3 px-3 font-semibold text-gray-700">Actions</th>
@@ -36,26 +36,10 @@
                                 {{ $item->equipment_id }}
                             </span>
                         </td>
-
                         <td class="py-3 px-3 inline-flex items-center gap-1.5 whitespace-nowrap">
                             {!! \App\Helpers\CustomHelper::statusBadge($item->current_status->label()) !!}
                         </td>
-                        <td class="px-3 py-3 text-center">
-                            @if ($item->current_status->isAvailable())
-                                <button type="button"
-                                    class="text-blue-600 underline checklist-master-assign-btn text-sm"
-                                    data-equipment-unique-id="{{ $item->unique_id }}"
-                                    data-equipment-name="{{ $item->equipment_name }}">
-                                    {{ $item->checklistMaster?->checklist_system_name ?? 'Assign' }}
-                                </button>
-                            @else
-                                {{ $item->checklistMaster?->checklist_system_name ?? 'Assign' }}
-                            @endif
-                        </td>
-                        <td class="py-4 px-6">
-                            {{ $item?->statusUpdatedByUser?->full_name ?? '-' }}
-                        </td>
-                        <td class="py-4 px-6">
+                         <td class="py-4 px-6">
                             @if ($item->status_label == 'Rented' && $item?->orderProduct?->checklistQuestions->isNotEmpty())
                                 {{ $item->order->customer_name ?? '-' }}
 
@@ -75,11 +59,28 @@
                                 @endif
                             @endif
                         </td>
+
+                        <td class="py-4 px-6">
+                            {{ $item?->statusUpdatedByUser?->full_name ?? '-' }}
+                        </td>
+
                         <td class="py-3 px-3">
                             @if (!empty($item->current_status_changed_at))
                                 {{ \App\Helpers\CustomHelper::formatDateTime12Hour($item->current_status_changed_at) }}
                             @else
                                 -
+                            @endif
+                        </td>
+                        <td class="px-3 py-3 text-center">
+                            @if ($item->current_status->isAvailable())
+                                <button type="button"
+                                    class="text-blue-600 underline checklist-master-assign-btn text-sm"
+                                    data-equipment-unique-id="{{ $item->unique_id }}"
+                                    data-equipment-name="{{ $item->equipment_name }}">
+                                    {{ $item->checklistMaster?->checklist_system_name ?? 'Assign' }}
+                                </button>
+                            @else
+                                {{ $item->checklistMaster?->checklist_system_name ?? 'Assign' }}
                             @endif
                         </td>
                         <td class="py-4 px-3">

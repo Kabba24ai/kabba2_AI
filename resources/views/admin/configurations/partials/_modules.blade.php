@@ -218,63 +218,63 @@
     </div>
 </div>
 
-{{-- Modal (hidden by default) --}}
-<div id="verify-modal" class="fixed inset-0 z-[99999] hidden" role="dialog" aria-modal="true"
-    aria-labelledby="verify-title">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-black/40"></div>
+    {{-- Modal (hidden by default) --}}
+    <div id="verify-modal" class="fixed inset-0 z-[99999] hidden" role="dialog" aria-modal="true"
+        aria-labelledby="verify-title">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/40"></div>
 
-    <!-- Panel -->
-    <div class="relative mx-auto my-10 max-w-lg w-[92%]">
-        <div class="bg-white rounded-xl shadow-xl border border-gray-200">
-            <div class="px-5 pt-4 pb-2 flex items-start justify-between">
-                <div class="flex items-center space-x-2">
-                    <x-heroicon-o-lock-closed class="w-5 h-5 text-red-500" />
-                    <h3 id="verify-title" class="text-lg font-semibold text-gray-900">Security Verification Required
-                    </h3>
-                </div>
-                <button type="button" class="p-1 text-gray-400 hover:text-gray-600" data-modal-close
-                    aria-label="Close">
-                    <x-heroicon-o-x-mark class="w-5 h-5" />
-                </button>
-            </div>
-
-            <div class="px-5 pb-4">
-                <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Master Passcode.</p>
-
-                <div class="relative">
-                    <input id="verify-password" type="password" autocomplete="current-password"
-                        class="w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
-                        placeholder="Enter your Master Password">
-                    <!-- eye -->
-                    <button type="button"
-                        class="absolute inset-y-0 right-0 w-10 grid place-items-center text-gray-400 hover:text-gray-600"
-                        data-toggle="visibility" data-target="verify-password" aria-label="Show password">
-                        <x-heroicon-o-eye data-eye class="w-5 h-5" />
-                        <x-heroicon-o-eye-slash data-eye-off class="w-5 h-5 hidden" />
+        <!-- Panel -->
+        <div class="relative mx-auto my-10 max-w-lg w-[92%]">
+            <div class="bg-white rounded-xl shadow-xl border border-gray-200">
+                <div class="px-5 pt-4 pb-2 flex items-start justify-between">
+                    <div class="flex items-center space-x-2">
+                        <x-heroicon-o-lock-closed class="w-5 h-5 text-red-500" />
+                        <h3 id="verify-title" class="text-lg font-semibold text-gray-900">Security Verification Required
+                        </h3>
+                    </div>
+                    <button type="button" class="p-1 text-gray-400 hover:text-gray-600" data-modal-close
+                        aria-label="Close">
+                        <x-heroicon-o-x-mark class="w-5 h-5" />
                     </button>
                 </div>
 
-                <p id="verify-error" class="text-sm text-red-600 mt-2 hidden"></p>
+                <div class="px-5 pb-4">
+                    <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Master Passcode.</p>
 
-                <div class="mt-4 flex items-center gap-3">
-                    <button type="button"
-                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-60"
-                        id="verify-submit">
-                        <x-heroicon-o-lock-closed class="w-4 h-4" />
-                        Verify & Edit
-                    </button>
-                    <button type="button"
-                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
-                        data-modal-close>
-                        <x-heroicon-o-x-mark class="w-4 h-4" />
-                        Cancel
-                    </button>
+                    <div class="relative">
+                        <input id="verify-password" type="password" autocomplete="current-password"
+                            class="w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                            placeholder="Enter your Master Password">
+                        <!-- eye -->
+                        <button type="button"
+                            class="absolute inset-y-0 right-0 w-10 grid place-items-center text-gray-400 hover:text-gray-600"
+                            data-toggle="visibility" data-target="verify-password" aria-label="Show password">
+                            <x-heroicon-o-eye data-eye class="w-5 h-5" />
+                            <x-heroicon-o-eye-slash data-eye-off class="w-5 h-5 hidden" />
+                        </button>
+                    </div>
+
+                    <p id="verify-error" class="text-sm text-red-600 mt-2 hidden"></p>
+
+                    <div class="mt-4 flex items-center gap-3">
+                        <button type="button"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-60"
+                            id="verify-submit">
+                            <x-heroicon-o-lock-closed class="w-4 h-4" />
+                            Verify & Edit
+                        </button>
+                        <button type="button"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                            data-modal-close>
+                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 @push('js')
 <script>

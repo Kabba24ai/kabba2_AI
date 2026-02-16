@@ -11,7 +11,7 @@ use App\Http\Controllers\Admin\Hrm\Users\StoreController;
 use App\Http\Controllers\Admin\Hrm\Users\CheckEmailController;
 use App\Http\Controllers\Admin\Hrm\Users\EditController;
 use App\Http\Controllers\Admin\Hrm\Users\UpdateController;
-
+use App\Http\Controllers\Admin\Hrm\Users\VerifySsnController;
 
 
 Route::prefix('users')
@@ -33,5 +33,8 @@ Route::prefix('users')
     Route::put('/edit/{unique_id}', UpdateController::class);
 
     Route::get('/check-email-unique', CheckEmailController::class)->name('check.email.unique');
+
+
+    Route::post('/{user}/verify-ssn', VerifySsnController::class)->name('verify-ssn');
 
 });

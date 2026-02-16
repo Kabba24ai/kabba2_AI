@@ -355,14 +355,13 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             Same as billing
         </div>
                      @else
-                    @if($addresse?->address || $addresse?->city)
-                    {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', ' . $addresse->city : '' }}
+                    @if($addresse?->address )
+                    {{ $addresse->address ?? '' }}
                     @endif
 
-                    @if($addresse?->state?->name || $addresse?->zip_code)
-                    {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
+                    @if($addresse?->state?->name || $addresse?->zip_code || $addresse?->city)
+                    {{ $addresse?->city ? ', ' . $addresse->city : '' }} {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
                     @endif
-                    - {{  $addressItem['label'] }} Address
                     @endif
 
                 </div>

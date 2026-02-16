@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\TimeTracker\V1\Users\GetAdminAttendanceSummaryContr
 use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryListController;
 use App\Http\Controllers\Api\TimeTracker\V1\Users\ExportEmployeeTimeEntriesController;
 
+use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryUpdateController;
+
 Route::group(['prefix' => 'users'], function () {
 
         // LIST employees
@@ -31,5 +33,7 @@ Route::group(['prefix' => 'users'], function () {
         Route::get('/time-entries-list/{user}', TimeEntryListController::class);
 
         Route::get('/{user}/time-entries/export', ExportEmployeeTimeEntriesController::class);
+
+        Route::post('/time-entries/update', TimeEntryUpdateController::class);
 
 });

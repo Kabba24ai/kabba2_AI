@@ -135,6 +135,7 @@
 
                     </p>
                 </div>
+                
             </div>
         </div>
 
@@ -228,6 +229,45 @@
 
 
 @push('js')
+<script>
+document.getElementById('reveal-ssn').addEventListener('click', function () {
+    const modal = document.getElementById('verify-modal');
+    modal.classList.remove('hidden');
+
+    const verifyBtn = document.getElementById('verify-submit');
+    const verifyInput = document.getElementById('verify-password');
+
+    verifyBtn.onclick = async function () {
+
+        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        const response = await fetch("{{ route('admin.hrm.users.verify-ssn', $user->id) }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                password: verifyInput.value
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const field = document.getElementById('social_security');
+            field.value = data.ssn;
+            field.type = 'text';
+            field.removeAttribute('disabled');
+            modal.classList.add('hidden');
+        } else {
+            document.getElementById('verify-error').textContent = data.message;
+            document.getElementById('verify-error').classList.remove('hidden');
+        }
+    };
+});
+</script>
 
 
 

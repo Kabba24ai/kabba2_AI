@@ -53,7 +53,7 @@
                     </div>
 
                     <!-- Right Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    {{-- <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <!-- Manage Category -->
                         <a href="javascript:void(0)" onclick="openModal('CategoryModalWrapper')"
                             class="flex items-center text-md justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-md rounded-lg transition-colors w-full sm:w-auto">
@@ -64,7 +64,7 @@
                             </svg>
                             Manage Category
                         </a>
-                    </div>
+                    </div> --}}
 
                 </div>
 

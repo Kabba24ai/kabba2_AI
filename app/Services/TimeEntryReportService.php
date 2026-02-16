@@ -47,6 +47,7 @@ class TimeEntryReportService
                             'adjusted' => $break->end_time,
                         ],
                         'seconds' => $seconds,
+                           'id' => $break->id,
                     ];
 
                     if ($break->type === 'lunch') {

@@ -35,8 +35,8 @@ class IndexController extends Controller
 
         $equipmentQuery = clone $query;
 
-        // status filter
-        $equipmentQuery->when($request->status, function ($q, $status) {
+        // status filter (ignore when store filter is active)
+        $equipmentQuery->when($request->status && !$request->filled('location_store'), function ($q, $status) {
             $q->where('current_status', $status);
         });
 
@@ -49,7 +49,7 @@ class IndexController extends Controller
             ->paginate($perPageVal)
             ->withQueryString();
 
-        $stores = Store::active()->pluck('store_name', 'unique_id');
+        $stores = Store::active()->orderByAdmin()->pluck('store_name', 'id');
 
         $categories = ProductCategory::getHierarchy();
 
@@ -173,11 +173,12 @@ class IndexController extends Controller
 
         // Location store filter
         $query->when($request->location_store, function ($q, $locationstore) {
-            if ($locationstore === 'assigned') {
-                $q->whereNotNull('store_id');
-            } elseif ($locationstore === 'Pending') {
-                $q->whereNull('store_id');
+            if ($locationstore === 'rented') {
+                $q->where('current_status', 'rented');
+                return;
             }
+
+            $q->where('store_id', $locationstore);
         });
 
         // Search filter

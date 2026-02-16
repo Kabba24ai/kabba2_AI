@@ -49,9 +49,13 @@
         <div class="w-full sm:w-48">
             <select name="location_store"
                 class="choices-select w-full mt-2 rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
-                <option value="">Store Assigned</option>
-                <option value="assigned" @selected(request('location_store') == 'assigned')>Assigned</option>
-                <option value="Pending" @selected(request('location_store') == 'Pending')>Pending</option>
+                <option value="">Location Master</option>
+                @foreach ($stores as $storeId => $storeName)
+                    <option value="{{ $storeId }}" @selected(request('location_store') == (string) $storeId)>
+                        {{ $storeName }}
+                    </option>
+                @endforeach
+                <option value="rented" @selected(request('location_store') == 'rented')>Rented</option>
             </select>
         </div>
 

@@ -451,136 +451,70 @@
                 <h3 class="text-lg font-bold text-gray-900">Power Source</h3>
             </div>
 
-            <div class="grid grid-cols-1  gap-3">
-                <div>
-                    <label for="power-type-select" class="block text-sm font-medium text-gray-700 mb-1">
-                        Power Type
-                    </label>
-                    {!! html()->select('power_source_type', [
-                            '' => 'Select Power Source',
-                            'diesel' => 'Diesel',
-                            'gas' => 'Gas',
-                            'batteries' => 'Batteries',
-                            'electric' => 'Electric',
-                        ])->class([
-                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
-                            'border-red-500' => $errors->has('power_source_type'),
-                        ]) !!}
-                    @error('power_source_type')
-                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    {!! html()->checkbox('has_def', true)->id('has_def')->checked(old('has_def', isset($equipment) ? ($equipment->has_def === 'Yes' ? true : false) : false))->class('mr-2') !!}
-                    <label for="has_def" class="text-sm font-medium text-gray-700">
-                        Has DEF (Diesel Exhaust Fluid)
-                    </label>
-                    @error('has_def')
-                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="diesel_tank_capacity" class="block text-sm font-medium text-gray-700 mb-1">
-                        Diesel Tank Capacity (Gallons)
-                    </label>
-                    {!! html()->text('diesel_tank_capacity')->class([
-                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-                            'border-red-500' => $errors->has('diesel_tank_capacity'),
-                        ])->attributes([
-                            'min' => 0,
-                            'data-digit-input' => 'true',
-                            'placeholder' => 'Enter capacity in gallons',
-                        ]) !!}
-                    @error('diesel_tank_capacity')
-                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="def_tank_capacity" class="block text-sm font-medium text-gray-700 mb-1">
-                        DEF Tank Capacity (Gallons)
-                    </label>
-                    {!! html()->text('def_tank_capacity')->class([
-                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-                            'border-red-500' => $errors->has('def_tank_capacity'),
-                        ])->attributes([
-                            'min' => 0,
-                            'data-digit-input' => 'true',
-                            'placeholder' => 'Enter DEF tank capacity in gallons',
-                        ]) !!}
-                    @error('def_tank_capacity')
-                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="gas_tank_capacity" class="block text-sm font-medium text-gray-700 mb-1">
-                        Gas Tank Capacity (Gallons)
-                    </label>
-                    {!! html()->text('gas_tank_capacity')->class([
-                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-                            'border-red-500' => $errors->has('gas_tank_capacity'),
-                        ])->attributes([
-                            'min' => 0,
-                            'data-digit-input' => 'true',
-                            'placeholder' => 'Enter gas tank capacity in gallons',
-                        ]) !!}
-                    @error('gas_tank_capacity')
-                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div id="battery-fields"
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3 {{ old('power_source_type', $equipment->power_source_type ?? '') === 'batteries' ? '' : 'hidden' }}">
-                    <div>
-                        <label for="standard_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
-                            Standard Battery Count
+            <div class="grid grid-cols-1 gap-3">
+                @php
+                    // Handle old input or DB values (JSON arrays)
+                    $selectedVolts = old('volts', isset($equipment) ? $equipment->volts ?? [] : []);
+                    $selectedAmps = old('amps', isset($equipment) ? $equipment->amps ?? [] : []);
+                @endphp
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                    <div >
+                        <label for="power-type-select" class="block text-sm font-medium text-gray-700 mb-1">
+                            Power Type
                         </label>
-                        {!! html()->text('standard_battery_count')->class([
-                                'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-                                'border-red-500' => $errors->has('standard_battery_count'),
-                            ])->attributes([
-                                'min' => 0,
-                                'data-numeric-input' => 'true',
-                                'placeholder' => 'Enter number of batteries',
+                        {!! html()->select('power_source_type', [
+                                '' => 'Select Power Source',
+                                'diesel' => 'Diesel',
+                                'gas' => 'Gas',
+                                'batteries' => 'Batteries',
+                                'electric' => 'Electric',
+                            ])->class([
+                                'w-30 px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                                'border-red-500' => $errors->has('power_source_type'),
                             ]) !!}
-                        @error('standard_battery_count')
+                        @error('power_source_type')
                             <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
-                        <label for="expanded_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
-                            Expanded Battery Count
+                    <div id="diesel-capacity-field"
+                        class="{{ old('power_source_type', $equipment->power_source_type ?? '') === 'diesel' ? '' : 'hidden' }}">
+                        <label for="diesel_tank_capacity" class="block text-sm font-medium text-gray-700 mb-1">
+                            Diesel Tank Capacity (Gallons)
                         </label>
-                        {!! html()->text('expanded_battery_count')->class([
+                        {!! html()->text('diesel_tank_capacity')->class([
                                 'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-                                'border-red-500' => $errors->has('expanded_battery_count'),
+                                'border-red-500' => $errors->has('diesel_tank_capacity'),
                             ])->attributes([
                                 'min' => 0,
-                                'data-numeric-input' => 'true',
-                                'placeholder' => 'Enter expanded battery count',
+                                'data-digit-input' => 'true',
+                                'placeholder' => 'Enter capacity in gallons',
                             ]) !!}
-                        @error('expanded_battery_count')
+                        @error('diesel_tank_capacity')
                             <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
-                </div>
 
-                <!-- Electric Fields -->
-                <div id="electric-fields"
-                    class="grid grid-cols-1 gap-3 {{ old('power_source_type', $equipment->power_source_type ?? '') === 'electric' ? '' : 'hidden' }}">
+                    <div id="gas-capacity-field"
+                        class="{{ old('power_source_type', $equipment->power_source_type ?? '') === 'gas' ? '' : 'hidden' }}">
+                        <label for="gas_tank_capacity" class="block text-sm font-medium text-gray-700 mb-1">
+                            Gas Tank Capacity (Gallons)
+                        </label>
+                        {!! html()->text('gas_tank_capacity')->class([
+                                'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-red-500' => $errors->has('gas_tank_capacity'),
+                            ])->attributes([
+                                'min' => 0,
+                                'data-digit-input' => 'true',
+                                'placeholder' => 'Enter gas tank capacity in gallons',
+                            ]) !!}
+                        @error('gas_tank_capacity')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                    @php
-                        // Handle old input or DB values (JSON arrays)
-                        $selectedVolts = old('volts', isset($equipment) ? $equipment->volts ?? [] : []);
-                        $selectedAmps = old('amps', isset($equipment) ? $equipment->amps ?? [] : []);
-                    @endphp
-
-                    <!-- Volts -->
-                    <div>
+                    <div id="electric-volts-field"
+                        class="{{ old('power_source_type', $equipment->power_source_type ?? '') === 'electric' ? '' : 'hidden' }}">
                         <span class="block text-sm font-medium text-gray-700 mb-1">Volts</span>
                         <div class="flex gap-4">
                             <div>
@@ -598,7 +532,79 @@
                             <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
 
+                <div id="diesel-def-row"
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center {{ old('power_source_type', $equipment->power_source_type ?? '') === 'diesel' ? '' : 'hidden' }}">
+                    <div id="has-def-field" class="flex items-center gap-2">
+                        {!! html()->checkbox('has_def', true)->id('has_def')->checked(old('has_def', isset($equipment) ? ($equipment->has_def === 'Yes' ? true : false) : false))->class('mr-2') !!}
+                        <label for="has_def" class="text-sm font-medium text-gray-700">
+                            Has DEF (Diesel Exhaust Fluid)
+                        </label>
+                        @error('has_def')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div id="def-capacity-field"
+                        class="{{ old('has_def', isset($equipment) ? ($equipment->has_def === 'Yes') : false) ? '' : 'hidden' }}">
+                        <label for="def_tank_capacity" class="block text-sm font-medium text-gray-700 mb-1">
+                            DEF Tank Capacity (Gallons)
+                        </label>
+                        {!! html()->text('def_tank_capacity')->class([
+                                'w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-red-500' => $errors->has('def_tank_capacity'),
+                            ])->attributes([
+                                'min' => 0,
+                                'data-digit-input' => 'true',
+                                'placeholder' => 'Enter DEF tank capacity in gallons',
+                            ]) !!}
+                        @error('def_tank_capacity')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div id="battery-fields"
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-3 {{ old('power_source_type', $equipment->power_source_type ?? '') === 'batteries' ? '' : 'hidden' }}">
+                    <div>
+                        <label for="standard_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
+                            Standard Battery Count
+                        </label>
+                        {!! html()->text('standard_battery_count')->class([
+                                'w-30 px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-red-500' => $errors->has('standard_battery_count'),
+                            ])->attributes([
+                                'min' => 0,
+                                'data-numeric-input' => 'true',
+                                'placeholder' => 'Enter number of batteries',
+                            ]) !!}
+                        @error('standard_battery_count')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="expanded_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
+                            Expanded Battery Count
+                        </label>
+                        {!! html()->text('expanded_battery_count')->class([
+                                'w-30 px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-red-500' => $errors->has('expanded_battery_count'),
+                            ])->attributes([
+                                'min' => 0,
+                                'data-numeric-input' => 'true',
+                                'placeholder' => 'Enter expanded battery count',
+                            ]) !!}
+                        @error('expanded_battery_count')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Electric Fields -->
+                <div id="electric-fields"
+                    class="grid grid-cols-1 gap-3 {{ old('power_source_type', $equipment->power_source_type ?? '') === 'electric' ? '' : 'hidden' }}">
                     <!-- Amps -->
                     <div>
                         <span class="block text-sm font-medium text-gray-700 mb-1">Amps</span>
@@ -1153,10 +1159,12 @@
 
             const powerTypeSelect = document.querySelector('select[name="power_source_type"]');
             const hasDefCheckbox = document.getElementById('has_def');
-            const dieselCapacityField = document.querySelector('input[name="diesel_tank_capacity"]').closest('div');
-            const defCapacityField = document.querySelector('input[name="def_tank_capacity"]').closest('div');
-            const gasTankCapacityField = document.querySelector('input[name="gas_tank_capacity"]').closest('div');
+            const dieselCapacityField = document.getElementById('diesel-capacity-field');
+            const dieselDefRow = document.getElementById('diesel-def-row');
+            const defCapacityField = document.getElementById('def-capacity-field');
+            const gasTankCapacityField = document.getElementById('gas-capacity-field');
             const batteryFields = document.getElementById('battery-fields');
+            const electricVoltsField = document.getElementById('electric-volts-field');
             const electricFields = document.getElementById('electric-fields');
 
 
@@ -1165,16 +1173,17 @@
 
                 // Hide all fields first
                 dieselCapacityField.classList.add('hidden');
+                dieselDefRow.classList.add('hidden');
                 defCapacityField.classList.add('hidden');
-                hasDefCheckbox.closest('div').classList.add('hidden');
                 gasTankCapacityField.classList.add('hidden');
                 batteryFields.classList.add('hidden');
+                electricVoltsField.classList.add('hidden');
                 electricFields.classList.add('hidden');
 
                 // Show only relevant fields based on power source type
                 if (powerSourceType === 'diesel') {
                     dieselCapacityField.classList.remove('hidden');
-                    hasDefCheckbox.closest('div').classList.remove('hidden');
+                    dieselDefRow.classList.remove('hidden');
                     if (hasDefCheckbox.checked) {
                         defCapacityField.classList.remove('hidden');
                     }
@@ -1183,6 +1192,7 @@
                 } else if (powerSourceType === 'batteries') {
                     batteryFields.classList.remove('hidden');
                 } else if (powerSourceType === 'electric') {
+                    electricVoltsField.classList.remove('hidden');
                     electricFields.classList.remove('hidden');
                 }
             }

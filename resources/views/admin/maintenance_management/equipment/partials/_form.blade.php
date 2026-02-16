@@ -80,7 +80,7 @@
                         <label for="overage_rate" class="block text-sm font-medium text-gray-700 mb-1">
                             Overage Rate
                         </label>
-                         <div>
+                        <div>
                             {!! html()->checkbox('is_tracked', true)->id('is_tracked')->checked(old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? true : false) : true))->class('mr-2') !!}
 
                             <label for="is_tracked" class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -98,7 +98,9 @@
                             'maxlength' => 8,
                             'placeholder' => 'Enter Overage Rate',
                             'autocomplete' => 'off',
-                            old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? false : true) : false) ? 'readonly' : null,
+                            old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? false : true) : false)
+                                ? 'readonly'
+                                : null,
                         ]) !!}
                     @error('overage_rate')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -189,7 +191,7 @@
 
                 <div>
                     <label for="model_year" class="block text-sm font-medium text-gray-700 mb-1">Model Year</label>
-                        {!! html()->number('model_year')->class([
+                    {!! html()->number('model_year')->class([
                             'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder:italic',
                             'border-gray-300' => !$errors->has('model_year'),
                             'border-red-500' => $errors->has('model_year'),
@@ -228,14 +230,9 @@
                 </div>
             </div>
             <div class="sm:col-span-2 flex items-center space-x-2 mt-4">
-                <input
-                    type="checkbox"
-                    name="not_for_rent"
-                    id="not_for_rent"
-                    value="1"
+                <input type="checkbox" name="not_for_rent" id="not_for_rent" value="1"
                     class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    @checked(old('not_for_rent', $equipment->not_for_rent ?? false))
-                >
+                    @checked(old('not_for_rent', $equipment->not_for_rent ?? false))>
                 <label for="not_for_rent" class="text-sm font-medium text-gray-700">
                     Not for Rent
                 </label>
@@ -438,7 +435,8 @@
 
                 <div class="sm:col-span-2">
 
-                    <p class="text-xs text-gray-500 @if(isset($equipment) && $equipment?->imei) text-purple-600 @endif">GPS tracker ID for location tracking</p>
+                    <p class="text-xs text-gray-500 @if (isset($equipment) && $equipment?->imei) text-purple-600 @endif">GPS
+                        tracker ID for location tracking</p>
                 </div>
             </div>
         </div>
@@ -534,87 +532,93 @@
                     @enderror
                 </div>
 
-                <div>
-                    <label for="standard_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
-                        Standard Battery Count
-                    </label>
-                    {!! html()->text('standard_battery_count')->class([
-                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-                            'border-red-500' => $errors->has('standard_battery_count'),
-                        ])->attributes([
-                            'min' => 0,
-                            'data-digit-input' => 'true',
-                            'placeholder' => 'Enter number of batteries',
-                        ]) !!}
-                    @error('standard_battery_count')
-                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
+                <div id="battery-fields"
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-3 {{ old('power_source_type', $equipment->power_source_type ?? '') === 'batteries' ? '' : 'hidden' }}">
+                    <div>
+                        <label for="standard_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
+                            Standard Battery Count
+                        </label>
+                        {!! html()->text('standard_battery_count')->class([
+                                'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-red-500' => $errors->has('standard_battery_count'),
+                            ])->attributes([
+                                'min' => 0,
+                                'data-numeric-input' => 'true',
+                                'placeholder' => 'Enter number of batteries',
+                            ]) !!}
+                        @error('standard_battery_count')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <div>
-                    <label for="expanded_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
-                        Expanded Battery Count
-                    </label>
-                    {!! html()->text('expanded_battery_count')->class([
-                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-                            'border-red-500' => $errors->has('expanded_battery_count'),
-                        ])->attributes([
-                            'min' => 0,
-                            'data-digit-input' => 'true',
-                            'placeholder' => 'Enter expanded battery count',
-                        ]) !!}
-                    @error('expanded_battery_count')
-                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
+                    <div>
+                        <label for="expanded_battery_count" class="block text-sm font-medium text-gray-700 mb-1">
+                            Expanded Battery Count
+                        </label>
+                        {!! html()->text('expanded_battery_count')->class([
+                                'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-red-500' => $errors->has('expanded_battery_count'),
+                            ])->attributes([
+                                'min' => 0,
+                                'data-numeric-input' => 'true',
+                                'placeholder' => 'Enter expanded battery count',
+                            ]) !!}
+                        @error('expanded_battery_count')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Electric Fields -->
-<div id="electric-fields" class="grid grid-cols-1 gap-3 {{ old('power_source_type', $equipment->power_source_type ?? '') === 'electric' ? '' : 'hidden' }}">
+                <div id="electric-fields"
+                    class="grid grid-cols-1 gap-3 {{ old('power_source_type', $equipment->power_source_type ?? '') === 'electric' ? '' : 'hidden' }}">
 
-    @php
-        // Handle old input or DB values (JSON arrays)
-        $selectedVolts = old('volts', isset($equipment) ? $equipment->volts ?? [] : []);
-        $selectedAmps  = old('amps', isset($equipment) ? $equipment->amps ?? [] : []);
-    @endphp
+                    @php
+                        // Handle old input or DB values (JSON arrays)
+                        $selectedVolts = old('volts', isset($equipment) ? $equipment->volts ?? [] : []);
+                        $selectedAmps = old('amps', isset($equipment) ? $equipment->amps ?? [] : []);
+                    @endphp
 
-    <!-- Volts -->
-    <div>
-        <span class="block text-sm font-medium text-gray-700 mb-1">Volts</span>
-        <div class="flex gap-4">
-            <div>
-                <input type="checkbox" name="volts[]" id="volts_110" value="110V"
-                    class="mr-2" {{ in_array('110V', $selectedVolts) ? 'checked' : '' }}>
-                <label for="volts_110" class="text-sm font-medium text-gray-700">110V</label>
-            </div>
-            <div>
-                <input type="checkbox" name="volts[]" id="volts_220" value="220V"
-                    class="mr-2" {{ in_array('220V', $selectedVolts) ? 'checked' : '' }}>
-                <label for="volts_220" class="text-sm font-medium text-gray-700">220V</label>
-            </div>
-        </div>
-        @error('volts')
-            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
-    </div>
+                    <!-- Volts -->
+                    <div>
+                        <span class="block text-sm font-medium text-gray-700 mb-1">Volts</span>
+                        <div class="flex gap-4">
+                            <div>
+                                <input type="checkbox" name="volts[]" id="volts_110" value="110V" class="mr-2"
+                                    {{ in_array('110V', $selectedVolts) ? 'checked' : '' }}>
+                                <label for="volts_110" class="text-sm font-medium text-gray-700">110V</label>
+                            </div>
+                            <div>
+                                <input type="checkbox" name="volts[]" id="volts_220" value="220V" class="mr-2"
+                                    {{ in_array('220V', $selectedVolts) ? 'checked' : '' }}>
+                                <label for="volts_220" class="text-sm font-medium text-gray-700">220V</label>
+                            </div>
+                        </div>
+                        @error('volts')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-    <!-- Amps -->
-    <div>
-        <span class="block text-sm font-medium text-gray-700 mb-1">Amps</span>
-        <div class="flex flex-wrap gap-3">
-            @foreach([5,10,15,20,25,30,40,50,60,70] as $amp)
-                <div>
-                    <input type="checkbox" name="amps[]" id="amp_{{ $amp }}" value="{{ $amp }}A"
-                        class="mr-2" {{ in_array($amp.'A', $selectedAmps) ? 'checked' : '' }}>
-                    <label for="amp_{{ $amp }}" class="text-sm font-medium text-gray-700">{{ $amp }}A</label>
+                    <!-- Amps -->
+                    <div>
+                        <span class="block text-sm font-medium text-gray-700 mb-1">Amps</span>
+                        <div class="flex flex-wrap gap-3">
+                            @foreach ([5, 10, 15, 20, 25, 30, 40, 50, 60, 70] as $amp)
+                                <div>
+                                    <input type="checkbox" name="amps[]" id="amp_{{ $amp }}"
+                                        value="{{ $amp }}A" class="mr-2"
+                                        {{ in_array($amp . 'A', $selectedAmps) ? 'checked' : '' }}>
+                                    <label for="amp_{{ $amp }}"
+                                        class="text-sm font-medium text-gray-700">{{ $amp }}A</label>
+                                </div>
+                            @endforeach
+                        </div>
+                        @error('amps')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                 </div>
-            @endforeach
-        </div>
-        @error('amps')
-            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
-    </div>
-
-</div>
 
 
 
@@ -639,14 +643,11 @@
                     <label for="checklist_master_id" class="block text-sm font-medium text-gray-700">
                         Checklist Master
                     </label>
-                    @if(isset($equipment) && $equipment->checklist_master_id)
-                        <a
-                            href="{{ route('admin.checklist-management.checklist-master.edit', $equipment->checklistMaster->unique_id) }}"
-                            target="_blank"
-                            rel="noopener"
+                    @if (isset($equipment) && $equipment->checklist_master_id)
+                        <a href="{{ route('admin.checklist-management.checklist-master.edit', $equipment->checklistMaster->unique_id) }}"
+                            target="_blank" rel="noopener"
                             class="inline-flex items-center text-gray-500 hover:text-blue-600"
-                            title="View Checklist Master"
-                        >
+                            title="View Checklist Master">
                             <x-heroicon-o-eye class="h-4 w-4" />
                         </a>
                     @endif
@@ -677,48 +678,43 @@
                 <div class="flex items-center justify-between mb-1">
                     <label for="equipment_service_id" class="block text-sm font-medium text-gray-700">Service
                         Schedule</label>
-                    @if(isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
-                        <a
-                            href="{{ route('admin.maintenance-management.service-master.index', ['tab' => 'templates']) }}"
-                            target="_blank"
-                            rel="noopener"
+                    @if (isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
+                        <a href="{{ route('admin.maintenance-management.service-master.index', ['tab' => 'templates']) }}"
+                            target="_blank" rel="noopener"
                             class="inline-flex items-center text-gray-500 hover:text-blue-600"
-                            title="View Service Template"
-                        >
+                            title="View Service Template">
                             <x-heroicon-o-eye class="h-4 w-4" />
                         </a>
                     @endif
                 </div>
 
                 <div id="service_display_container">
-                    @if(isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
+                    @if (isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
                         {{-- Show assigned service template with edit icon --}}
-                        <div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div
+                            class="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
                             <div class="flex items-center gap-2">
                                 <x-heroicon-o-check-circle class="h-5 w-5 text-blue-600" />
-                                <span class="text-sm font-medium text-gray-900">{{ $equipment->serviceTemplate->name }}</span>
+                                <span
+                                    class="text-sm font-medium text-gray-900">{{ $equipment->serviceTemplate->name }}</span>
                             </div>
-                            <button
-                                type="button"
-                                onclick="openServiceAssignModal()"
+                            <button type="button" onclick="openServiceAssignModal()"
                                 class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                                title="Edit Service Template"
-                            >
+                                title="Edit Service Template">
                                 <x-heroicon-o-pencil class="h-4 w-4" />
                             </button>
                         </div>
-                        <input type="hidden" name="equipment_service_id" value="{{ $equipment->equipment_service_id }}" id="equipment_service_id_input" />
+                        <input type="hidden" name="equipment_service_id"
+                            value="{{ $equipment->equipment_service_id }}" id="equipment_service_id_input" />
                     @else
                         {{-- Show assign button --}}
-                        <button
-                            type="button"
-                            onclick="openServiceAssignModal()"
-                            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-blue-600 border-2 border-dashed border-blue-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-colors"
-                        >
+                        <button type="button" onclick="openServiceAssignModal()"
+                            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-blue-600 border-2 border-dashed border-blue-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-colors">
                             <x-heroicon-o-plus-circle class="h-5 w-5" />
                             <span class="font-medium">Assign Service Template</span>
                         </button>
-                        <input type="hidden" name="equipment_service_id" value="" id="equipment_service_id_input" />
+                        <input type="hidden" name="equipment_service_id" value=""
+                            id="equipment_service_id_input" />
                     @endif
                 </div>
 
@@ -736,7 +732,7 @@
 
         <div class="bg-white rounded-xl shadow-sm border p-5">
 
-             <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-3">
                     <x-heroicon-o-cube class="h-5 w-5 text-purple-600" />
                     <h3 class="text-lg font-bold text-gray-900">Equipment Parts List</h3>
@@ -747,31 +743,23 @@
                 <label class="text-sm font-medium text-gray-700">
                     Parts List Templates
                 </label>
-                @if(isset($equipment) && $equipment->parts_list_id)
-                    <a
-                        href="{{ route('admin.maintenance-management.parts.parts-list.view', $equipment->partsList->unique_id) }}"
-                        target="_blank"
-                        rel="noopener"
-                        class="inline-flex items-center text-gray-500 hover:text-blue-600"
-                        title="View Parts List"
-                    >
+                @if (isset($equipment) && $equipment->parts_list_id)
+                    <a href="{{ route('admin.maintenance-management.parts.parts-list.view', $equipment->partsList->unique_id) }}"
+                        target="_blank" rel="noopener"
+                        class="inline-flex items-center text-gray-500 hover:text-blue-600" title="View Parts List">
                         <x-heroicon-o-eye class="h-4 w-4" />
                     </a>
                 @endif
             </div>
 
-           <!-- <select
+            <!-- <select
                 name="parts_lists[]"
                 id="parts_lists_Select"
                 multiple
                 class="choices-select w-full rounded-md border border-gray-300 text-sm">
             </select> -->
 
-           {!! html()->select(
-                    'parts_list_id',
-                    ['' => 'Select Parts List'],
-                    $selectedPartsListId ?? null
-                )->id('parts_lists_Select')->class([
+            {!! html()->select('parts_list_id', ['' => 'Select Parts List'], $selectedPartsListId ?? null)->id('parts_lists_Select')->class([
                     'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                 ]) !!}
 
@@ -794,19 +782,12 @@
                 <span class="text-xs text-gray-500">Max 2 MB per file</span>
             </div>
             <div class="flex items-center gap-3">
-                <input
-                    type="file"
-                    name="document_images[]"
-                    id="document_images"
-                    class="hidden"
-                    accept="image/png,image/jpeg,application/pdf"
-                    multiple
-                />
-                <label
-                    for="document_images"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold cursor-pointer hover:bg-blue-700 transition"
-                >
-                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <input type="file" name="document_images[]" id="document_images" class="hidden"
+                    accept="image/png,image/jpeg,application/pdf" multiple />
+                <label for="document_images"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold cursor-pointer hover:bg-blue-700 transition">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                     Upload Files
@@ -830,26 +811,29 @@
             <div id="document_images_preview_grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
         </div>
 
-        @if(isset($equipment) && $equipment->documentImages->isNotEmpty())
+        @if (isset($equipment) && $equipment->documentImages->isNotEmpty())
             <div id="document_images_existing" class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                @foreach($equipment->documentImages as $document)
+                @foreach ($equipment->documentImages as $document)
                     @php($media = $document->media)
-                    <div class="relative border border-gray-200 rounded-lg p-2" data-document-id="{{ $document->id }}">
-                        <button
-                            type="button"
+                    <div class="relative border border-gray-200 rounded-lg p-2"
+                        data-document-id="{{ $document->id }}">
+                        <button type="button"
                             class="document-image-remove absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow hover:text-red-600"
-                            title="Remove"
-                        >
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            title="Remove">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18" />
                                 <line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
                         </button>
-                        <div class="aspect-square bg-gray-50 rounded-md overflow-hidden flex items-center justify-center">
-                            @if($media)
-                                @if(\Illuminate\Support\Str::contains((string) $media->mime_type, 'pdf'))
+                        <div
+                            class="aspect-square bg-gray-50 rounded-md overflow-hidden flex items-center justify-center">
+                            @if ($media)
+                                @if (\Illuminate\Support\Str::contains((string) $media->mime_type, 'pdf'))
                                     <div class="h-full w-full flex flex-col items-center justify-center text-gray-500">
-                                        <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" aria-hidden="true">
                                             <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
                                             <path d="M14 2v6h6" />
                                             <path d="M8 13h8" />
@@ -858,11 +842,9 @@
                                         <span class="mt-1 text-[10px] font-semibold">PDF</span>
                                     </div>
                                 @else
-                                    <img
-                                        src="{{ $media->getUrl() }}"
+                                    <img src="{{ $media->getUrl() }}"
                                         alt="{{ $media->original_file_name ?? 'Document image' }}"
-                                        class="h-full w-full object-cover"
-                                    />
+                                        class="h-full w-full object-cover" />
                                 @endif
                             @else
                                 <span class="text-xs text-gray-400">No file</span>
@@ -872,19 +854,13 @@
                             {{ $media->original_file_name ?? 'Document image' }}
                         </div>
                         <div class="mt-2 flex items-center gap-2">
-                            @if($media)
-                                <a
-                                    href="{{ $media->getUrl() }}"
-                                    target="_blank"
-                                    rel="noopener"
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50"
-                                >
+                            @if ($media)
+                                <a href="{{ $media->getUrl() }}" target="_blank" rel="noopener"
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50">
                                     View
                                 </a>
-                                <a
-                                    href="{{ $media->downloadMedia() }}"
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50"
-                                >
+                                <a href="{{ $media->downloadMedia() }}"
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50">
                                     Download
                                 </a>
                             @endif
@@ -920,15 +896,13 @@
 </div>
 
 {{-- Service Template Assignment Modal --}}
-<div id="serviceAssignModal" class="hidden fixed inset-0 z-50 flex items-center bg-gray-500/75 transition-opacity justify-center p-4">
+<div id="serviceAssignModal"
+    class="hidden fixed inset-0 z-50 flex items-center bg-gray-500/75 transition-opacity justify-center p-4">
     <div class="bg-white rounded-xl shadow-xl max-w-md w-full">
         <div class="flex items-center justify-between p-5 border-b border-gray-200">
             <h3 class="text-lg font-bold text-gray-900">Assign Service Template</h3>
-            <button
-                type="button"
-                onclick="closeServiceAssignModal()"
-                class="text-gray-400 hover:text-gray-600 transition-colors"
-            >
+            <button type="button" onclick="closeServiceAssignModal()"
+                class="text-gray-400 hover:text-gray-600 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -938,13 +912,12 @@
             <label for="service_template_select" class="block text-sm font-medium text-gray-700 mb-2">
                 Select Service Template
             </label>
-            <select
-                id="service_template_select"
-                class="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-            >
+            <select id="service_template_select"
+                class="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
                 <option value="">Select a template...</option>
-                @foreach($serviceTemplates as $id => $name)
-                    <option value="{{ $id }}" {{ (isset($equipment) && $equipment->equipment_service_id == $id) ? 'selected' : '' }}>
+                @foreach ($serviceTemplates as $id => $name)
+                    <option value="{{ $id }}"
+                        {{ isset($equipment) && $equipment->equipment_service_id == $id ? 'selected' : '' }}>
                         {{ $name }}
                     </option>
                 @endforeach
@@ -952,45 +925,35 @@
 
             <div class="mt-4 flex items-center gap-3">
                 <div class="flex items-center">
-                    <input
-                        type="checkbox"
-                        id="bring_service_current"
-                        {{ (isset($equipment) && $equipment->bring_service_flag) ? 'checked' : '' }}
-                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                    />
+                    <input type="checkbox" id="bring_service_current"
+                        {{ isset($equipment) && $equipment->bring_service_flag ? 'checked' : '' }}
+                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500" />
                     <label for="bring_service_current" class="ml-2 text-sm font-medium">
                         Bring Service Current To:
                     </label>
                 </div>
                 <div class="flex items-center gap-2">
-                    <input
-                        type="text"
-                        id="service_current_hours"
+                    <input type="text" id="service_current_hours"
                         value="{{ old('bring_service_hour', isset($equipment) ? $equipment->bring_service_hour : '') }}"
                         placeholder="0"
-                        class="w-24 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
+                        class="w-24 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" />
                     <span class="text-sm font-medium text-gray-700">Hrs</span>
                 </div>
             </div>
 
             {{-- Hidden inputs for form submission --}}
-            <input type="hidden" name="bring_service_flag" id="bring_service_flag_input" value="{{ old('bring_service_flag', isset($equipment) ? ($equipment->bring_service_flag ? '1' : '0') : '0') }}" />
-            <input type="hidden" name="bring_service_hour" id="bring_service_hour_input" value="{{ old('bring_service_hour', isset($equipment) ? $equipment->bring_service_hour : '') }}" />
+            <input type="hidden" name="bring_service_flag" id="bring_service_flag_input"
+                value="{{ old('bring_service_flag', isset($equipment) ? ($equipment->bring_service_flag ? '1' : '0') : '0') }}" />
+            <input type="hidden" name="bring_service_hour" id="bring_service_hour_input"
+                value="{{ old('bring_service_hour', isset($equipment) ? $equipment->bring_service_hour : '') }}" />
         </div>
         <div class="flex items-center justify-end gap-3 p-5 border-t border-gray-200">
-            <button
-                type="button"
-                onclick="closeServiceAssignModal()"
-                class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
+            <button type="button" onclick="closeServiceAssignModal()"
+                class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
                 Cancel
             </button>
-            <button
-                type="button"
-                onclick="assignServiceTemplate()"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
+            <button type="button" onclick="assignServiceTemplate()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 Assign Template
             </button>
         </div>
@@ -1079,7 +1042,8 @@
                     }
 
                     files.forEach((file, index) => {
-                        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+                        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase()
+                            .endsWith('.pdf');
                         const objectUrl = isPdf ? null : URL.createObjectURL(file);
                         const card = document.createElement('div');
                         card.className = 'relative border border-gray-200 rounded-lg p-2';
@@ -1098,18 +1062,18 @@
                             </button>
                             <div class="aspect-square bg-gray-50 rounded-md overflow-hidden flex items-center justify-center">
                                 ${isPdf ? `
-                                    <div class="h-full w-full flex flex-col items-center justify-center text-gray-500">
-                                        <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-                                            <path d="M14 2v6h6" />
-                                            <path d="M8 13h8" />
-                                            <path d="M8 17h5" />
-                                        </svg>
-                                        <span class="mt-1 text-[10px] font-semibold">PDF</span>
-                                    </div>
-                                ` : `
-                                    <img src="${objectUrl}" alt="${file.name}" class="h-full w-full object-cover" />
-                                `}
+                                        <div class="h-full w-full flex flex-col items-center justify-center text-gray-500">
+                                            <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                                                <path d="M14 2v6h6" />
+                                                <path d="M8 13h8" />
+                                                <path d="M8 17h5" />
+                                            </svg>
+                                            <span class="mt-1 text-[10px] font-semibold">PDF</span>
+                                        </div>
+                                    ` : `
+                                        <img src="${objectUrl}" alt="${file.name}" class="h-full w-full object-cover" />
+                                    `}
                             </div>
                             <div class="mt-2 text-xs text-gray-600 truncate">${file.name}</div>
                         `;
@@ -1117,18 +1081,20 @@
                         if (!isPdf && objectUrl) {
                             const img = card.querySelector('img');
                             if (img) {
-                                img.addEventListener('load', function () {
+                                img.addEventListener('load', function() {
                                     URL.revokeObjectURL(objectUrl);
                                 });
                             }
                         }
 
                         const removeButton = card.querySelector('button[data-index]');
-                        removeButton.addEventListener('click', function () {
+                        removeButton.addEventListener('click', function() {
                             const removeIndex = Number(this.getAttribute('data-index'));
-                            const updatedFiles = files.filter((_, fileIndex) => fileIndex !== removeIndex);
+                            const updatedFiles = files.filter((_, fileIndex) => fileIndex !==
+                                removeIndex);
                             const dataTransfer = new DataTransfer();
-                            updatedFiles.forEach((updatedFile) => dataTransfer.items.add(updatedFile));
+                            updatedFiles.forEach((updatedFile) => dataTransfer.items.add(
+                                updatedFile));
                             documentImagesInput.files = dataTransfer.files;
                             renderDocumentPreviews(updatedFiles);
                         });
@@ -1137,7 +1103,7 @@
                     });
                 };
 
-                documentImagesInput.addEventListener('change', function () {
+                documentImagesInput.addEventListener('change', function() {
                     const files = Array.from(this.files || []);
                     renderDocumentPreviews(files);
                 });
@@ -1147,7 +1113,7 @@
             const removeInputs = document.getElementById('document_images_remove_inputs');
 
             if (existingImages && removeInputs) {
-                existingImages.addEventListener('click', function (event) {
+                existingImages.addEventListener('click', function(event) {
                     const button = event.target.closest('.document-image-remove');
                     if (!button) return;
 
@@ -1190,11 +1156,8 @@
             const dieselCapacityField = document.querySelector('input[name="diesel_tank_capacity"]').closest('div');
             const defCapacityField = document.querySelector('input[name="def_tank_capacity"]').closest('div');
             const gasTankCapacityField = document.querySelector('input[name="gas_tank_capacity"]').closest('div');
-            const standardBatteryCount = document.querySelector('input[name="standard_battery_count"]').closest(
-                'div');
-            const expandedBatteryCount = document.querySelector('input[name="expanded_battery_count"]').closest(
-                'div');
-                const electricFields = document.getElementById('electric-fields');
+            const batteryFields = document.getElementById('battery-fields');
+            const electricFields = document.getElementById('electric-fields');
 
 
             function toggleFields() {
@@ -1205,8 +1168,7 @@
                 defCapacityField.classList.add('hidden');
                 hasDefCheckbox.closest('div').classList.add('hidden');
                 gasTankCapacityField.classList.add('hidden');
-                standardBatteryCount.classList.add('hidden');
-                expandedBatteryCount.classList.add('hidden');
+                batteryFields.classList.add('hidden');
                 electricFields.classList.add('hidden');
 
                 // Show only relevant fields based on power source type
@@ -1219,8 +1181,7 @@
                 } else if (powerSourceType === 'gas') {
                     gasTankCapacityField.classList.remove('hidden');
                 } else if (powerSourceType === 'batteries') {
-                    standardBatteryCount.classList.remove('hidden');
-                    expandedBatteryCount.classList.remove('hidden');
+                    batteryFields.classList.remove('hidden');
                 } else if (powerSourceType === 'electric') {
                     electricFields.classList.remove('hidden');
                 }
@@ -1250,124 +1211,119 @@
     </script>
 
 
-<!-- <script>
-let partsListChoices;
+    <!-- <script>
+        let partsListChoices;
 
-document.addEventListener('DOMContentLoaded', function () {
-    partsListChoices = new Choices('#parts_lists_Select', {
-        removeItemButton: true,
-        shouldSort: false,
-        placeholder: true,
-        placeholderValue: 'Select Parts Lists'
-    });
-
-    // Disable initially
-    partsListChoices.disable();
-});
-</script> -->
-
-
-
-<script>
-// function loadPartsListsByCategory(categoryId, preselectedIds = []) {
-//     // Hard reset
-//     partsListChoices.hideDropdown();
-//     partsListChoices.removeActiveItems();
-//     partsListChoices.clearChoices();
-//     partsListChoices.disable();
-
-//     if (!categoryId) return;
-
-//     const url = window.routes.partsListsByCategory.replace(':id', categoryId);
-
-//     fetch(url)
-//         .then(res => res.json())
-//         .then(res => {
-//             if (!res.success) return;
-
-//             const choices = res.data.map(item => ({
-//                 value: String(item.id),
-//                 label: item.name,
-//                 selected: preselectedIds.includes(String(item.id))
-//             }));
-
-//             partsListChoices.setChoices(choices, 'value', 'label', true);
-//             partsListChoices.enable();
-//         })
-//         .catch(err => {
-//             console.error('Failed to load parts lists', err);
-//             partsListChoices.disable();
-//         });
-// }
-</script>
-
-<script>
-    window.routes = {
-        partsListsByCategory: "{{ route('admin.maintenance-management.equipment.get-parts-lists', ':id') }}"
-    };
-
-    window.selectedPartsListId = @json($selectedPartsListId ?? null);
-
-    //  window.selectedPartsListIds = @json($selectedPartsListIds ?? []);
-
-</script>
-<script>
-function loadPartsListsByCategory(categoryId, selectedId = null) {
-    const select = document.getElementById('parts_lists_Select');
-    if (!select) return;
-
-    select.innerHTML = '<option value="">Select Parts List</option>';
-
-    if (!categoryId) return;
-
-    const url = window.routes.partsListsByCategory.replace(':id', categoryId);
-
-    fetch(url)
-        .then(res => res.json())
-        .then(res => {
-            if (!res.success) return;
-
-            res.data.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.id;
-                opt.textContent = item.name;
-
-                if (String(item.id) === String(selectedId)) {
-                    opt.selected = true;
-                }
-
-                select.appendChild(opt);
+        document.addEventListener('DOMContentLoaded', function() {
+            partsListChoices = new Choices('#parts_lists_Select', {
+                removeItemButton: true,
+                shouldSort: false,
+                placeholder: true,
+                placeholderValue: 'Select Parts Lists'
             });
 
-            // Let Choices update UI
-            select.dispatchEvent(new Event('change', { bubbles: true }));
+            // Disable initially
+            partsListChoices.disable();
         });
-}
-
-</script>
-
-
-<script>
-document.addEventListener('change', function (e) {
-    if (e.target.id !== 'product_category_id') return;
-
-    loadPartsListsByCategory(e.target.value, null);
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const categorySelect = document.getElementById('product_category_id');
-    if (!categorySelect || !categorySelect.value) return;
-
-    loadPartsListsByCategory(
-        categorySelect.value,
-        window.selectedPartsListId
-    );
-});
-
-</script>
+    </script> -->
 
 
 
+    <script>
+        // function loadPartsListsByCategory(categoryId, preselectedIds = []) {
+        //     // Hard reset
+        //     partsListChoices.hideDropdown();
+        //     partsListChoices.removeActiveItems();
+        //     partsListChoices.clearChoices();
+        //     partsListChoices.disable();
 
+        //     if (!categoryId) return;
+
+        //     const url = window.routes.partsListsByCategory.replace(':id', categoryId);
+
+        //     fetch(url)
+        //         .then(res => res.json())
+        //         .then(res => {
+        //             if (!res.success) return;
+
+        //             const choices = res.data.map(item => ({
+        //                 value: String(item.id),
+        //                 label: item.name,
+        //                 selected: preselectedIds.includes(String(item.id))
+        //             }));
+
+        //             partsListChoices.setChoices(choices, 'value', 'label', true);
+        //             partsListChoices.enable();
+        //         })
+        //         .catch(err => {
+        //             console.error('Failed to load parts lists', err);
+        //             partsListChoices.disable();
+        //         });
+        // }
+    </script>
+
+    <script>
+        window.routes = {
+            partsListsByCategory: "{{ route('admin.maintenance-management.equipment.get-parts-lists', ':id') }}"
+        };
+
+        window.selectedPartsListId = @json($selectedPartsListId ?? null);
+
+        //  window.selectedPartsListIds = @json($selectedPartsListIds ?? []);
+    </script>
+    <script>
+        function loadPartsListsByCategory(categoryId, selectedId = null) {
+            const select = document.getElementById('parts_lists_Select');
+            if (!select) return;
+
+            select.innerHTML = '<option value="">Select Parts List</option>';
+
+            if (!categoryId) return;
+
+            const url = window.routes.partsListsByCategory.replace(':id', categoryId);
+
+            fetch(url)
+                .then(res => res.json())
+                .then(res => {
+                    if (!res.success) return;
+
+                    res.data.forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item.id;
+                        opt.textContent = item.name;
+
+                        if (String(item.id) === String(selectedId)) {
+                            opt.selected = true;
+                        }
+
+                        select.appendChild(opt);
+                    });
+
+                    // Let Choices update UI
+                    select.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                });
+        }
+    </script>
+
+
+    <script>
+        document.addEventListener('change', function(e) {
+            if (e.target.id !== 'product_category_id') return;
+
+            loadPartsListsByCategory(e.target.value, null);
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categorySelect = document.getElementById('product_category_id');
+            if (!categorySelect || !categorySelect.value) return;
+
+            loadPartsListsByCategory(
+                categorySelect.value,
+                window.selectedPartsListId
+            );
+        });
+    </script>
 @endpush

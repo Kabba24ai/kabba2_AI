@@ -749,7 +749,7 @@
             <div class="flex items-center space-x-2">
                 <x-heroicon-o-document-text class="h-5 w-5 text-red-600" />
                 <h3 class="text-lg font-bold text-gray-900">Document Images</h3>
-                <span class="text-xs text-gray-500">Max 2 MB per image</span>
+                <span class="text-xs text-gray-500">Max 2 MB per file</span>
             </div>
             <div class="flex items-center gap-3">
                 <input
@@ -757,7 +757,7 @@
                     name="document_images[]"
                     id="document_images"
                     class="hidden"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,application/pdf"
                     multiple
                 />
                 <label
@@ -767,7 +767,7 @@
                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
-                    Upload Images
+                    Upload Files
                 </label>
             </div>
         </div>
@@ -805,13 +805,25 @@
                         </button>
                         <div class="aspect-square bg-gray-50 rounded-md overflow-hidden flex items-center justify-center">
                             @if($media)
-                                <img
-                                    src="{{ $media->getUrl() }}"
-                                    alt="{{ $media->original_file_name ?? 'Document image' }}"
-                                    class="h-full w-full object-cover"
-                                />
+                                @if(\Illuminate\Support\Str::contains((string) $media->mime_type, 'pdf'))
+                                    <div class="h-full w-full flex flex-col items-center justify-center text-gray-500">
+                                        <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                                            <path d="M14 2v6h6" />
+                                            <path d="M8 13h8" />
+                                            <path d="M8 17h5" />
+                                        </svg>
+                                        <span class="mt-1 text-[10px] font-semibold">PDF</span>
+                                    </div>
+                                @else
+                                    <img
+                                        src="{{ $media->getUrl() }}"
+                                        alt="{{ $media->original_file_name ?? 'Document image' }}"
+                                        class="h-full w-full object-cover"
+                                    />
+                                @endif
                             @else
-                                <span class="text-xs text-gray-400">No image</span>
+                                <span class="text-xs text-gray-400">No file</span>
                             @endif
                         </div>
                         <div class="mt-2 text-xs text-gray-600 truncate">
@@ -1025,7 +1037,8 @@
                     }
 
                     files.forEach((file, index) => {
-                        const objectUrl = URL.createObjectURL(file);
+                        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+                        const objectUrl = isPdf ? null : URL.createObjectURL(file);
                         const card = document.createElement('div');
                         card.className = 'relative border border-gray-200 rounded-lg p-2';
 
@@ -1042,15 +1055,31 @@
                                 </svg>
                             </button>
                             <div class="aspect-square bg-gray-50 rounded-md overflow-hidden flex items-center justify-center">
-                                <img src="${objectUrl}" alt="${file.name}" class="h-full w-full object-cover" />
+                                ${isPdf ? `
+                                    <div class="h-full w-full flex flex-col items-center justify-center text-gray-500">
+                                        <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                                            <path d="M14 2v6h6" />
+                                            <path d="M8 13h8" />
+                                            <path d="M8 17h5" />
+                                        </svg>
+                                        <span class="mt-1 text-[10px] font-semibold">PDF</span>
+                                    </div>
+                                ` : `
+                                    <img src="${objectUrl}" alt="${file.name}" class="h-full w-full object-cover" />
+                                `}
                             </div>
                             <div class="mt-2 text-xs text-gray-600 truncate">${file.name}</div>
                         `;
 
-                        const img = card.querySelector('img');
-                        img.addEventListener('load', function () {
-                            URL.revokeObjectURL(objectUrl);
-                        });
+                        if (!isPdf && objectUrl) {
+                            const img = card.querySelector('img');
+                            if (img) {
+                                img.addEventListener('load', function () {
+                                    URL.revokeObjectURL(objectUrl);
+                                });
+                            }
+                        }
 
                         const removeButton = card.querySelector('button[data-index]');
                         removeButton.addEventListener('click', function () {

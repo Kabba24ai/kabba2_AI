@@ -98,7 +98,7 @@ class StoreRequest extends FormRequest
             'equipment_notes' => 'nullable|string',
 
             'document_images' => 'nullable|array',
-            'document_images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'document_images.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
 
             'volts' => 'nullable', // or array if you send as array and implode before saving
             'amps'  => 'nullable', // same as above
@@ -133,6 +133,8 @@ class StoreRequest extends FormRequest
             'equipment_hours.numeric' => 'Please enter a valid number of hours',
             'power_source_type.required' => 'Power source is required',
             'power_source_type.in' => 'Power source must be diesel, gas, or batteries',
+            'document_images.*.mimes' => 'Document files must be a JPG, PNG, or PDF',
+            'document_images.*.max' => 'Document files must be 2 MB or smaller',
         ];
     }
 }

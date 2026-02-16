@@ -25,11 +25,11 @@ class UpdateRequest extends FormRequest
         // Normalize date_acquired
         if (!empty($this->date_acquired)) {
             try {
-            $this->merge([
-                'date_acquired' => date('Y-m-d', strtotime($this->date_acquired))
-            ]);
+                $this->merge([
+                    'date_acquired' => date('Y-m-d', strtotime($this->date_acquired)),
+                ]);
             } catch (\Exception $e) {
-            // Ignore invalid date format
+                // Ignore invalid date format
             }
         }
     }
@@ -39,20 +39,11 @@ class UpdateRequest extends FormRequest
         $uniqueId = $this->route('unique_id');
 
         return [
-            'equipment_name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+            'equipment_name' => ['required', 'string', 'max:255'],
 
             'product_category_id' => 'required|exists:product_categories,id',
 
-            'equipment_id' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('equipment', 'equipment_id')->ignore($uniqueId, 'unique_id'),
-            ],
+            'equipment_id' => ['required', 'string', 'max:255', Rule::unique('equipment', 'equipment_id')->ignore($uniqueId, 'unique_id')],
 
             'store_id' => 'nullable|exists:stores,id',
 
@@ -80,12 +71,12 @@ class UpdateRequest extends FormRequest
             'license_plate' => 'nullable|string|max:255',
             'imei' => 'nullable|string|max:255',
 
-            'power_source_type'     => 'nullable|in:diesel,gas,batteries,electric',
-            'has_def'               => 'nullable|boolean',
+            'power_source_type' => 'nullable|in:diesel,gas,batteries,electric',
+            'has_def' => 'nullable|boolean',
 
-            'diesel_tank_capacity'  => 'nullable|required_if:power_source_type,diesel|numeric|min:0',
-            'def_tank_capacity'     => 'nullable|required_if:has_def,true|numeric|min:0',
-            'gas_tank_capacity'     => 'nullable|required_if:power_source_type,gas|numeric|min:0',
+            'diesel_tank_capacity' => 'nullable|required_if:power_source_type,diesel|numeric|min:0',
+            'def_tank_capacity' => 'nullable|required_if:has_def,true|numeric|min:0',
+            'gas_tank_capacity' => 'nullable|required_if:power_source_type,gas|numeric|min:0',
 
             'standard_battery_count' => 'nullable|required_if:power_source_type,batteries|numeric|min:0',
             'expanded_battery_count' => 'nullable|numeric|min:0',
@@ -99,16 +90,15 @@ class UpdateRequest extends FormRequest
             'equipment_notes' => 'nullable|string',
 
             'document_images' => 'nullable|array',
-            'document_images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'document_images.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'document_images_remove' => 'nullable|array',
             'document_images_remove.*' => 'integer',
 
             'volts' => 'nullable',
-            'amps'  => 'nullable',
+            'amps' => 'nullable',
 
- 'parts_lists'   => 'nullable|array',
- 'parts_list_id' => 'nullable|exists:parts_lists,id',
-
+            'parts_lists' => 'nullable|array',
+            'parts_list_id' => 'nullable|exists:parts_lists,id',
         ];
     }
 
@@ -134,6 +124,8 @@ class UpdateRequest extends FormRequest
             'equipment_hours.numeric' => 'Please enter a valid number of hours',
             'power_source_type.required' => 'Power source is required',
             'power_source_type.in' => 'Power source must be diesel, gas, or batteries',
+            'document_images.*.mimes' => 'Document files must be a JPG, PNG, or PDF',
+            'document_images.*.max' => 'Document files must be 2 MB or smaller',
         ];
     }
 }

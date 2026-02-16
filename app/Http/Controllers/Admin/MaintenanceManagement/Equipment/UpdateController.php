@@ -8,18 +8,15 @@ use App\Models\MaintenanceManagement\Equipment;
  use App\Models\MaintenanceManagement\PartsList;
 use App\Models\MaintenanceManagement\EquipmentMedia;
 use App\Helpers\MediaHelper;
+use App\Helpers\ModelHelper;
 
 class UpdateController extends Controller
 {
     public function __invoke(UpdateRequest $request, $unique_id)
     {
-
         $equipment = Equipment::where('unique_id', $unique_id)->firstOrFail();
 
-        $equipmentId = (string) $equipment->id;
-        $oldPartsListId = $equipment->parts_list_id;
-        $newPartsListId = $request->input('parts_list_id');
-
+        // Prepare validated data
         $data = $request->validated();
         $data['has_def'] = ($data['has_def'] ?? false) ? 'Yes' : 'No';
         $data['is_tracked'] = ($data['is_tracked'] ?? false) ? 'Yes' : 'No';
@@ -30,7 +27,116 @@ class UpdateController extends Controller
             $data['equipment_hours'] = $data['bring_service_hour'];
         }
 
-        $equipment = Equipment::where('unique_id', $unique_id)->firstOrFail();
+        // =====================================
+        // CHECK IF SAVE AS NEW
+        // =====================================
+        if ($request->has('save_as_new')) {
+            // Load equipment with relationships for copying documents
+            $equipment = Equipment::with(['documentImages.media'])
+                ->where('unique_id', $unique_id)
+                ->firstOrFail();
+
+            // Create a copy
+            $equipmentCopy = $equipment->replicate();
+
+            // Generate new unique ID
+            $equipmentCopy->unique_id = ModelHelper::generateUniqueID(new Equipment, 'EQP');
+
+            // Add "Copy of " prefix to equipment name (from form or original)
+            if (isset($data['equipment_name'])) {
+                $equipmentCopy->equipment_name = 'Copy of ' . $data['equipment_name'];
+            } else {
+                $equipmentCopy->equipment_name = 'Copy of ' . $equipment->equipment_name;
+            }
+
+            // Generate a unique suffix for equipment_id
+            $suffix = strtoupper(substr(uniqid(), -4)); // e.g. "A3F9"
+
+            // Get equipment_id from form data or original
+            $originalEquipmentId = $data['equipment_id'] ?? $equipment->equipment_id;
+            $equipmentCopy->equipment_id = $originalEquipmentId . '-Copy-' . $suffix;
+
+            // Apply all form changes to the copy
+            foreach ($data as $key => $value) {
+                if ($key !== 'equipment_name' && $key !== 'equipment_id' && $key !== 'document_images' && $key !== 'document_images_remove') {
+                    $equipmentCopy->$key = $value;
+                }
+            }
+
+            // Save the new equipment copy
+            $equipmentCopy->save();
+
+            // Copy document images - create new physical files and records
+            if ($equipment->documentImages->isNotEmpty()) {
+                foreach ($equipment->documentImages as $documentImage) {
+                    if ($documentImage->media) {
+                        // Copy the actual file on disk
+                        $copyResult = MediaHelper::copyExistingMediaOnDisk(
+                            $documentImage->media,
+                            $documentImage->media->asset_type ?? 'Public Asset',
+                            'equipment',
+                            $equipmentCopy,
+                            'Yes'
+                        );
+
+                        // Create new equipment_media record if copy succeeded
+                        if (isset($copyResult['mediaObj'])) {
+                            EquipmentMedia::create([
+                                'equipment_id' => $equipmentCopy->id,
+                                'media_id' => $copyResult['mediaObj']->id,
+                                'created_by' => auth()->id(),
+                                'updated_by' => auth()->id(),
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Handle new document uploads for the copy
+            if ($request->hasFile('document_images')) {
+                foreach ($request->file('document_images') as $file) {
+                    $mediaData = MediaHelper::uploadStorageFile('Public Asset', $file, 'equipment/documents', $equipmentCopy);
+                    if (!empty($mediaData['mediaObj'])) {
+                        EquipmentMedia::create([
+                            'equipment_id' => $equipmentCopy->id,
+                            'media_id' => $mediaData['mediaObj']->id,
+                            'created_by' => auth()->id(),
+                            'updated_by' => auth()->id(),
+                        ]);
+                    }
+                }
+            }
+
+            // Handle parts list relationship for the copy
+            $newPartsListId = $equipmentCopy->parts_list_id;
+            if ($newPartsListId) {
+                $newList = PartsList::find($newPartsListId);
+                if ($newList) {
+                    $products = array_map('strval', $newList->selected_products ?? []);
+                    $equipmentCopyId = (string) $equipmentCopy->id;
+                    if (!in_array($equipmentCopyId, $products, true)) {
+                        $products[] = $equipmentCopyId;
+                    }
+                    $newList->update([
+                        'selected_products' => array_values(array_unique($products))
+                    ]);
+                }
+            }
+
+            // Redirect to EDIT page of the new equipment copy
+            return redirect()->route(
+                'admin.maintenance-management.equipment.edit',
+                $equipmentCopy->unique_id
+            )->with('success', 'Equipment saved as new with all changes applied and documents copied!');
+        }
+
+        // =====================================
+        // NORMAL UPDATE (NOT SAVE AS NEW)
+        // =====================================
+        $equipmentId = (string) $equipment->id;
+        $oldPartsListId = $equipment->parts_list_id;
+        $newPartsListId = $request->input('parts_list_id');
+
         $equipment->update($data);
 
         $removeIds = $request->input('document_images_remove', []);

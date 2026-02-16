@@ -14,7 +14,7 @@ class EditController extends Controller
 {
     public function __invoke($unique_id)
     {
-        $equipment = Equipment::with(['serviceTemplate', 'documentImages.media'])
+        $equipment = Equipment::with(['serviceTemplate', 'documentImages.media', 'partsList'])
             ->where('unique_id', $unique_id)
             ->firstOrFail();
         $categories = ProductCategory::getHierarchy();
@@ -32,6 +32,7 @@ class EditController extends Controller
         // dd($selectedPartsListIds);
 
         $selectedPartsListId = $equipment->parts_list_id;
+        $partListUniqueId = $equipment->partsList?->unique_id;
 
         return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates', 'partsLists', 'selectedPartsListId'));
     }

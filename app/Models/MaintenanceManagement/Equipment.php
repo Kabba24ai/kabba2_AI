@@ -167,6 +167,11 @@ class Equipment extends Model
         return $this->belongsTo(\App\Models\MaintenanceManagement\ServiceMaster\ServiceTemplate::class, 'equipment_service_id');
     }
 
+    public function partsList()
+    {
+        return $this->belongsTo(PartsList::class, 'parts_list_id', 'id');
+    }
+
     public function customerAdminTemplates()
     {
         return $this->hasOneThrough(

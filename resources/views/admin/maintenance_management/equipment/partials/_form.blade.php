@@ -627,15 +627,30 @@
 
         {{-- Customer Checklist --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <div class="flex items-center space-x-2 mb-4">
-                <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-green-600" />
-                <h3 class="text-lg font-bold text-gray-900">Checklist Master</h3>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-green-600" />
+                    <h3 class="text-lg font-bold text-gray-900">Checklist Master</h3>
+                </div>
             </div>
 
             <div>
-                <label for="checklist_master_id" class="block text-sm font-medium text-gray-700 mb-1">
-                    Checklist Master
-                </label>
+                <div class="flex items-center justify-between mb-1">
+                    <label for="checklist_master_id" class="block text-sm font-medium text-gray-700">
+                        Checklist Master
+                    </label>
+                    @if(isset($equipment) && $equipment->checklist_master_id)
+                        <a
+                            href="{{ route('admin.checklist-management.checklist-master.edit', $equipment->checklistMaster->unique_id) }}"
+                            target="_blank"
+                            rel="noopener"
+                            class="inline-flex items-center text-gray-500 hover:text-blue-600"
+                            title="View Checklist Master"
+                        >
+                            <x-heroicon-o-eye class="h-4 w-4" />
+                        </a>
+                    @endif
+                </div>
                 {!! html()->select('checklist_master_id', $checklistMasters)->class([
                         'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                         'border-red-500' => $errors->has('checklist_master_id'),
@@ -651,14 +666,29 @@
 
         {{-- Equipment Service --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <div class="flex items-center space-x-2 mb-4">
-                <x-heroicon-o-wrench class="h-5 w-5 text-indigo-600" />
-                <h3 class="text-lg font-bold text-gray-900">Equipment Service</h3>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <x-heroicon-o-wrench class="h-5 w-5 text-indigo-600" />
+                    <h3 class="text-lg font-bold text-gray-900">Equipment Service</h3>
+                </div>
             </div>
 
             <div>
-                <label for="equipment_service_id" class="block text-sm font-medium text-gray-700 mb-1">Service
-                    Schedule</label>
+                <div class="flex items-center justify-between mb-1">
+                    <label for="equipment_service_id" class="block text-sm font-medium text-gray-700">Service
+                        Schedule</label>
+                    @if(isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
+                        <a
+                            href="{{ route('admin.maintenance-management.service-master.index', ['tab' => 'templates']) }}"
+                            target="_blank"
+                            rel="noopener"
+                            class="inline-flex items-center text-gray-500 hover:text-blue-600"
+                            title="View Service Template"
+                        >
+                            <x-heroicon-o-eye class="h-4 w-4" />
+                        </a>
+                    @endif
+                </div>
 
                 <div id="service_display_container">
                     @if(isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
@@ -706,15 +736,28 @@
 
         <div class="bg-white rounded-xl shadow-sm border p-5">
 
-             <div class="flex items-center space-x-3 mb-4">
-                <x-heroicon-o-cube class="h-5 w-5 text-purple-600" />
-                <h3 class="text-lg font-bold text-gray-900">Equipment Parts List</h3>
+             <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <x-heroicon-o-cube class="h-5 w-5 text-purple-600" />
+                    <h3 class="text-lg font-bold text-gray-900">Equipment Parts List</h3>
+                </div>
             </div>
 
             <div class="flex items-center justify-between mb-2">
                 <label class="text-sm font-medium text-gray-700">
                     Parts List Templates
                 </label>
+                @if(isset($equipment) && $equipment->parts_list_id)
+                    <a
+                        href="{{ route('admin.maintenance-management.parts.parts-list.view', $equipment->partsList->unique_id) }}"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center text-gray-500 hover:text-blue-600"
+                        title="View Parts List"
+                    >
+                        <x-heroicon-o-eye class="h-4 w-4" />
+                    </a>
+                @endif
             </div>
 
            <!-- <select

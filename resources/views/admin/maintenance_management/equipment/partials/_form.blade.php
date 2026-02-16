@@ -189,15 +189,14 @@
 
                 <div>
                     <label for="model_year" class="block text-sm font-medium text-gray-700 mb-1">Model Year</label>
-                    {!! html()->number('model_year')->class([
-                            'italic w-full px-3 py-3 text-sm text-gray-500 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                        {!! html()->number('model_year')->class([
+                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder:italic',
                             'border-gray-300' => !$errors->has('model_year'),
                             'border-red-500' => $errors->has('model_year'),
-
                         ])->attributes([
                             'min' => 1900,
                             'max' => date('Y') + 1,
-                            'placeholder' => date('Y'),
+                            'placeholder' => 'e.g. 2020',
                         ]) !!}
                     @error('model_year')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>

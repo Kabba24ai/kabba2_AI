@@ -14,43 +14,7 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'checklistMaster', 'store', 'order.customer', 'activeEquipmentRentalReadyTemplate', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task');
-
-        // Checklist Master filter
-        $query->when($request->checklist_master, function ($q, $checklistMaster) {
-            if ($checklistMaster === 'assigned') {
-                $q->whereNotNull('checklist_master_id');
-            } elseif ($checklistMaster === 'Pending') {
-                $q->whereNull('checklist_master_id');
-            }
-        });
-
-        // Checklist Master filter
-        $query->when($request->location_store, function ($q, $locationstore) {
-            if ($locationstore === 'assigned') {
-                $q->whereNotNull('store_id');
-            } elseif ($locationstore === 'Pending') {
-                $q->whereNull('store_id');
-            }
-        });
-
-        // status filter
-        $query->when($request->status, function ($q, $status) {
-            $q->where('current_status', $status);
-        });
-
-        // Search filter
-        $query->when($request->search, function ($q, $search) {
-            $q->where('equipment_name', 'like', '%' . $search . '%');
-        });
-
-        $query->when($request->equipment_id, function ($q, $equipmentId) {
-            $q->where('equipment_id', 'like', '%' . $equipmentId . '%');
-        });
-
-        // Category filter
-        $query->when($request->category, function ($q, $category) {
-            $q->where('product_category_id', $category);
-        });
+        $this->applyCommonFilters($query, $request);
 
         // Load service settings for threshold calculations
         $settings = DB::table('service_master_settings')->first();
@@ -65,32 +29,20 @@ class IndexController extends Controller
                 return $record->equipment_id . '_' . $record->service_task_id;
             });
 
-        // Apply service due filter if requested (before pagination)
-        if ($request->service_due) {
-            // Load all equipment with service relationships for filtering
-            $allEquipment = $query->get();
-            $filteredIds = [];
+        $this->applyServiceDueFilter($query, $request->service_due, $serviceRecords, $pendingBeforeHours, $pendingAfterHours);
 
-            foreach ($allEquipment as $item) {
-                $serviceStatus = $this->calculateServiceStatus($item, $serviceRecords, $pendingBeforeHours, $pendingAfterHours);
+        $stats = $this->buildStats($query);
 
-                if ($serviceStatus === $request->service_due) {
-                    $filteredIds[] = $item->id;
-                }
-            }
+        $equipmentQuery = clone $query;
 
-            // Apply the filter to the query
-            if (!empty($filteredIds)) {
-                $query->whereIn('id', $filteredIds);
-            } else {
-                // No matching equipment, return empty result
-                $query->whereRaw('1 = 0');
-            }
-        }
+        // status filter
+        $equipmentQuery->when($request->status, function ($q, $status) {
+            $q->where('current_status', $status);
+        });
 
         $perPage = $request->input('per_page', 30);
-        $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
-        $equipment = $query
+        $perPageVal = $perPage === 'all' ? max(1, $equipmentQuery->count()) : (int) $perPage;
+        $equipment = $equipmentQuery
             ->orderBy(ProductCategory::select('title')->whereColumn('product_categories.id', 'equipment.product_category_id'), 'asc')
             ->orderBy('equipment_name', 'asc')
             ->orderBy('equipment_id', 'asc')
@@ -99,23 +51,16 @@ class IndexController extends Controller
 
         $stores = Store::active()->pluck('store_name', 'unique_id');
 
-        // Calculate stats
-        $stats = [
-            'total' => Equipment::count(),
-            'available' => Equipment::where('current_status', 'available')->count(),
-            'rented' => Equipment::where('current_status', 'rented')->count(),
-            'maintenance' => Equipment::where('current_status', 'maintenance')->count(),
-            'damaged' => Equipment::where('current_status', 'damaged')->count(),
-        ];
-
         $categories = ProductCategory::getHierarchy();
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {
             $html = view('admin.maintenance_management.equipment.partials._table', compact('equipment', 'serviceRecords', 'pendingBeforeHours', 'pendingAfterHours'))->render();
+            $statsHtml = view('admin.maintenance_management.equipment.partials._stats', compact('stats'))->render();
             return response()->json([
                 'success' => true,
                 'html' => $html,
+                'stats_html' => $statsHtml,
             ]);
         }
 
@@ -213,5 +158,80 @@ class IndexController extends Controller
         }
 
         return $serviceStatus;
+    }
+
+    private function applyCommonFilters($query, Request $request)
+    {
+        // Checklist Master filter
+        $query->when($request->checklist_master, function ($q, $checklistMaster) {
+            if ($checklistMaster === 'assigned') {
+                $q->whereNotNull('checklist_master_id');
+            } elseif ($checklistMaster === 'Pending') {
+                $q->whereNull('checklist_master_id');
+            }
+        });
+
+        // Location store filter
+        $query->when($request->location_store, function ($q, $locationstore) {
+            if ($locationstore === 'assigned') {
+                $q->whereNotNull('store_id');
+            } elseif ($locationstore === 'Pending') {
+                $q->whereNull('store_id');
+            }
+        });
+
+        // Search filter
+        $query->when($request->search, function ($q, $search) {
+            $q->where('equipment_name', 'like', '%' . $search . '%');
+        });
+
+        $query->when($request->equipment_id, function ($q, $equipmentId) {
+            $q->where('equipment_id', 'like', '%' . $equipmentId . '%');
+        });
+
+        // Category filter
+        $query->when($request->category, function ($q, $category) {
+            $q->where('product_category_id', $category);
+        });
+    }
+
+    private function applyServiceDueFilter($query, $serviceDue, $serviceRecords, $pendingBeforeHours, $pendingAfterHours)
+    {
+        if (!$serviceDue) {
+            return;
+        }
+
+        $allEquipment = $query->get();
+        $filteredIds = [];
+
+        foreach ($allEquipment as $item) {
+            $serviceStatus = $this->calculateServiceStatus($item, $serviceRecords, $pendingBeforeHours, $pendingAfterHours);
+
+            if ($serviceStatus === $serviceDue) {
+                $filteredIds[] = $item->id;
+            }
+        }
+
+        if (!empty($filteredIds)) {
+            $query->whereIn('id', $filteredIds);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+    }
+
+    private function buildStats($query)
+    {
+        $statsByStatus = (clone $query)
+            ->select('current_status', DB::raw('count(*) as aggregate'))
+            ->groupBy('current_status')
+            ->pluck('aggregate', 'current_status');
+
+        return [
+            'total' => $statsByStatus->sum(),
+            'available' => $statsByStatus->get('available', 0),
+            'rented' => $statsByStatus->get('rented', 0),
+            'maintenance' => $statsByStatus->get('maintenance', 0),
+            'damaged' => $statsByStatus->get('damaged', 0),
+        ];
     }
 }

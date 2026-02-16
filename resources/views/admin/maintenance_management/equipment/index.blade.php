@@ -20,7 +20,9 @@
             </div>
 
 
-            @include('admin.maintenance_management.equipment.partials._stats')
+            <div id="equipment-stats-wrapper">
+                @include('admin.maintenance_management.equipment.partials._stats')
+            </div>
             @include('admin.maintenance_management.equipment.partials._filters')
             <div id="equipment-table-wrapper" aria-live="polite">
                 @include('admin.maintenance_management.equipment.partials._table', [
@@ -277,6 +279,10 @@
                     })
                     .then(response => {
                         wrapper.innerHTML = response.html;
+                        const statsWrapper = document.querySelector('#equipment-stats-wrapper');
+                        if (statsWrapper && response.stats_html) {
+                            statsWrapper.innerHTML = response.stats_html;
+                        }
                         setActiveStatCard();
                     })
             }

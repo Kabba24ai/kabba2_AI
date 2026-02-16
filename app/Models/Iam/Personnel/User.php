@@ -51,7 +51,7 @@ class User extends Authenticatable
         'vacation_eligible',
         'vacation_allotment_hour_id',
         'vacation_start_day_id',
-
+        'social_security',
     ];
 
     protected $appends = ['full_name', 'role_short_names'];

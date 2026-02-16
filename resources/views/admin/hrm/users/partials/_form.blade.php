@@ -176,6 +176,28 @@
                     <p class="text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
+
+
+                <div>
+                    <label for="social_security" class="text-xs text-gray-500 font-medium">
+                        Social Security
+                    </label>
+
+                    {!! html()->text('social_security', old('social_security', $user->social_security ?? ''))
+                        ->id('social_security')
+                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                        ->attributes([
+                            'maxlength' => 10, // 8 digits + 2 dashes
+                            'data-parsley-pattern' => '^\d{3}-\d{2}-\d{3}$',
+                            'data-parsley-error-message' => 'Please enter in format xxx-xx-xxx',
+                            'placeholder' => 'xxx-xx-xxx',
+                            'autocomplete' => 'off',
+                        ])
+                    !!}
+                </div>
+
+
+
             </div>
         </div>
     </div>
@@ -942,5 +964,35 @@ if (shiftEndInput) {
         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
     }
 </script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const input = document.getElementById("social_security");
+
+    if (!input) return;
+
+    input.addEventListener("input", function (e) {
+        let value = e.target.value.replace(/\D/g, ""); // remove non-digits
+        value = value.substring(0, 8); // max 8 digits
+
+        let formatted = "";
+
+        if (value.length > 0) {
+            formatted = value.substring(0, 3);
+        }
+        if (value.length >= 4) {
+            formatted += "-" + value.substring(3, 5);
+        }
+        if (value.length >= 6) {
+            formatted += "-" + value.substring(5, 8);
+        }
+
+        e.target.value = formatted;
+    });
+});
+</script>
+
+
 
 @endpush

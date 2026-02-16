@@ -46,6 +46,7 @@ class StoreController extends Controller
                 'status'         => $validated['status'] ?? 'Active',
                 'limit_start_time' => $validated['limit_start'] ?? false,
                 'limit_end_time' => $validated['limit_end'] ?? false,
+                   'social_security'        => $validated['social_security'] ?? null,
 
                 'shift_start_time' => !empty($validated['shift_start_time'])
         ? Carbon::createFromFormat('h:i A', $validated['shift_start_time'])->format('H:i')

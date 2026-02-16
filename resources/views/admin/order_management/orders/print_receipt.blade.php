@@ -155,59 +155,64 @@
                                                 </td>
                                             </tr>
 
-                                            <!-- Addresses -->
                                             <tr>
-                                                @foreach ($defaultAddresses as $addressItem)
-                                                @php $addresse = $addressItem['data']; @endphp
-                                                <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
-                                                    <table role="presentation" style="border-collapse:collapse;">
-                                                        <tr>
-                                                            <td style="padding-right:5px;">
-                                                                <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
-                                                            </td>
-                                                            <td>
-                                                                <p style="margin:0; font-weight:500; color:#000;">
-                                                                    {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
-                                                                </p>
-                                                                {{-- <div>
-                                                                    @if($addresse?->full_name) {{ $addresse->full_name }}@endif
-                                                                    @if($addresse?->address || $addresse?->city)
-                                                                    {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', '.$addresse->city : '' }}
-                                                                    @endif
-                                                                    @if($addresse?->state?->name || $addresse?->zip_code)
-                                                                    {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' '.$addresse->zip_code : '' }}
-                                                                    @endif
-                                                                </div> --}}
+    @php
+        $billing = $defaultAddresses[0]['data'] ?? null;
+        $shipping = $defaultAddresses[1]['data'] ?? null;
 
-                                                                <div style="line-height:1.4;">
-                                                                    @if($addresse?->full_name)
-                                                                        <div>{{ $addresse->full_name }}</div>
-                                                                    @endif
+        $addressesAreSame = $billing && $shipping &&
+            $billing->address === $shipping->address &&
+            $billing->city === $shipping->city &&
+            $billing->state_id === $shipping->state_id &&
+            $billing->zip_code === $shipping->zip_code;
+    @endphp
 
-                                                                    @if($addresse?->address)
-                                                                        <div>{{ $addresse->address }},</div>
-                                                                    @endif
+    @foreach ($defaultAddresses as $index => $addressItem)
+        @php $addresse = $addressItem['data']; @endphp
 
-                                                                    <div>
-                                                                        @if($addresse?->city)
-                                                                            {{ $addresse->city }},
-                                                                        @endif
-                                                                        @if($addresse?->state?->name)
-                                                                            {{ $addresse->state->name }}
-                                                                        @endif
-                                                                        @if($addresse?->zip_code)
-                                                                            {{ ' ' . $addresse->zip_code }}
-                                                                        @endif
-                                                                    </div>
-                                                                </div>
+        <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
+            <table role="presentation" style="border-collapse:collapse;">
+                <tr>
+                    <td style="padding-right:5px;">
+                        <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
+                    </td>
+                    <td>
+                        <p style="margin:0; font-weight:500; color:#000;">
+                            {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
+                        </p>
 
+                        <div style="line-height:1.4;">
 
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                                @endforeach
-                                            </tr>
+                            {{-- If second address and same as first --}}
+                            @if($index == 1 && $addressesAreSame)
+                                <div>Same as Billing Address</div>
+
+                            @else
+                                @if($addresse?->address)
+                                    <div>{{ $addresse->address }},</div>
+                                @endif
+
+                                <div>
+                                    @if($addresse?->city)
+                                        {{ $addresse->city }},
+                                    @endif
+                                    @if($addresse?->state?->name)
+                                        {{ $addresse->state->name }}
+                                    @endif
+                                    @if($addresse?->zip_code)
+                                        {{ ' ' . $addresse->zip_code }}
+                                    @endif
+                                </div>
+                            @endif
+
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    @endforeach
+</tr>
+
                                         </table>
 
                                     </td>

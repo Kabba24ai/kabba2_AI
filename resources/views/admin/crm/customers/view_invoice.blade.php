@@ -220,54 +220,73 @@
                     </svg>
                     <span>{{ $invoice->customer->email ?? 'N/A' }}</span>
                 </div>
+<!-- Address -->
+<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:col-span-2 gap-6">
 
-                <!-- Address -->
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:col-span-2 gap-6">
-                    @foreach ($defaultAddresses as $index => $addressItem)
-                    @php $addresse = $addressItem['data']; @endphp
-                    <div class="flex items-start space-x-2 flex-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin w-4 h-4 mt-1">
-                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
-                        <span>
-                            <p class="font-medium">{{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address</p>
-                            {{-- @if($addresse?->full_name)
-                            {{ $addresse->full_name }}
+    @php
+        $billing = collect($defaultAddresses)->firstWhere('label', 'Billing')['data'] ?? null;
+        $shipping = collect($defaultAddresses)->firstWhere('label', 'Shipping')['data'] ?? null;
+
+        $isSameAddress = $billing && $shipping &&
+            $billing->address === $shipping->address &&
+            $billing->city === $shipping->city &&
+            $billing->state_id === $shipping->state_id &&
+            $billing->zip_code === $shipping->zip_code;
+    @endphp
+
+    @foreach ($defaultAddresses as $addressItem)
+        @php $addresse = $addressItem['data']; @endphp
+
+        <div class="flex items-start space-x-2 flex-1">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4 mt-1"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+
+            <span>
+                <p class="font-medium">
+                    {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
+                </p>
+
+                <div class="leading-relaxed">
+
+                    {{-- If Shipping and same as Billing --}}
+                    @if($addressItem['label'] === 'Shipping' && $isSameAddress)
+                        <div>Same as Billing Address</div>
+
+                    @else
+                        @if($addresse?->address)
+                            <div>{{ $addresse->address }},</div>
+                        @endif
+
+                        <div>
+                            @if($addresse?->city)
+                                {{ $addresse->city }},
                             @endif
-
-                            @if($addresse?->address || $addresse?->city)
-                            {{ $addresse->address ?? '' }}{{ $addresse?->city ? ', ' . $addresse->city : '' }}
+                            @if($addresse?->state?->name)
+                                {{ $addresse->state->name }}
                             @endif
+                            @if($addresse?->zip_code)
+                                {{ ' ' . $addresse->zip_code }}
+                            @endif
+                        </div>
+                    @endif
 
-                            @if($addresse?->state?->name || $addresse?->zip_code)
-                            {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
-                            @endif --}}
-                              <div >
-                                                                    @if($addresse?->full_name)
-                                                                        <div>{{ $addresse->full_name }}</div>
-                                                                    @endif
-
-                                                                    @if($addresse?->address)
-                                                                        <div>{{ $addresse->address }},</div>
-                                                                    @endif
-
-                                                                    <div>
-                                                                        @if($addresse?->city)
-                                                                            {{ $addresse->city }},
-                                                                        @endif
-                                                                        @if($addresse?->state?->name)
-                                                                            {{ $addresse->state->name }}
-                                                                        @endif
-                                                                        @if($addresse?->zip_code)
-                                                                            {{ ' ' . $addresse->zip_code }}
-                                                                        @endif
-                                                                    </div>
-                                                                </div>
-                        </span>
-                    </div>
-                    @endforeach
                 </div>
+            </span>
+        </div>
+
+    @endforeach
+
+</div>
+
             </div>
         </div>
 

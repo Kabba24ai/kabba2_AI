@@ -35,8 +35,9 @@ class UpdateRequest extends FormRequest
             'limit_end' => ['nullable', 'boolean'],
 
             'shift_start_time' => ['nullable'],
-'shift_end_time'   => ['nullable'],
-
+            'shift_end_time'   => ['nullable'],
+            'social_security'   => ['nullable'],
+            
             // Emergency Contact 1
             'emergency_first_name' => ['nullable'],
             'emergency_middle_name' => ['nullable'],

@@ -13,13 +13,13 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class AutoClockOutEmployeesJob
+class AutoClockOutEmployeesJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public function handle(): void
     {
-        //Log::info('[AUTO CLOCK OUT] Job started');
+        Log::info('[AUTO CLOCK OUT] Job started');
 
         // 1. Fetch settings
         $autoLimitMinutes = (int) TimeTrackerHelper::getTimeTrackerSetting(
@@ -27,9 +27,9 @@ class AutoClockOutEmployeesJob
             0
         );
 
-        // Log::info('[AUTO CLOCK OUT] auto_clock_out_limit_minutes', [
-        //     'minutes' => $autoLimitMinutes,
-        // ]);
+        Log::info('[AUTO CLOCK OUT] auto_clock_out_limit_minutes', [
+            'minutes' => $autoLimitMinutes,
+           ]);
 
         if ($autoLimitMinutes <= 0) {
             // Log::warning('[AUTO CLOCK OUT] Disabled (limit <= 0)');
@@ -45,9 +45,9 @@ class AutoClockOutEmployeesJob
 
         $twilio = new TwilioService();
         $now = Carbon::now();
-        // Log::info('[AUTO CLOCK OUT] Current time', [
-        //     'now' => $now->toDateTimeString(),
-        // ]);
+        Log::info('[AUTO CLOCK OUT] Current time', [
+            'now' => $now->toDateTimeString(),
+        ]);
 
         // 2. Fetch employees with active time entry
         $employees = User::active()
@@ -56,69 +56,87 @@ class AutoClockOutEmployeesJob
             ->with('activeTimeEntry')
             ->get();
 
-        // Log::info('[AUTO CLOCK OUT] Active employees found', [
-        //     'count' => $employees->count(),
-        // ]);
+        Log::info('[AUTO CLOCK OUT] Active employees found', [
+            'count' => $employees->count(),
+        ]);
+
+        
 
         foreach ($employees as $employee) {
 
-            // Log::info('[AUTO CLOCK OUT] Checking employee', [
-            //     'employee_id' => $employee->id,
-            //     'name' => $employee->full_name,
-            //     'shift_end_time' => $employee->shift_end_time,
-            // ]);
 
-            $shiftEnd = Carbon::parse($employee->shift_end_time)
-                ->setDateFrom($now);
 
-            $clockIn = Carbon::parse($employee->activeTimeEntry->clock_in);
 
-            // Overnight shift ONLY if clock-in was on a previous day
-            if ($clockIn->toDateString() < $shiftEnd->toDateString()) {
-                $shiftEnd->addDay();
+              $entry = $employee->activeTimeEntry;
 
-                // Log::info('[AUTO CLOCK OUT] Overnight shift detected', [
-                //     'employee_id' => $employee->id,
-                // ]);
+            if (!$entry || !$employee->shift_end_time) {
+                continue;
             }
 
+            $clockIn = Carbon::parse($entry->clock_in);
 
+            // Build shift end using SAME DATE as clock in
+            $shiftEnd = $clockIn->copy()
+                ->setTimeFromTimeString($employee->shift_end_time);
+
+            $autoClockOutTimeSetting = TimeTrackerHelper::getTimeTrackerSetting(
+                    'auto_clock_out_time',
+                null
+            );
+
+            if (!empty($autoClockOutTimeSetting)) {
+
+                    // Use configured time
+                    $finalClockOutTime = $clockIn->copy()
+                        ->setTimeFromTimeString($autoClockOutTimeSetting);
+
+                    // Log::info('[AUTO CLOCK OUT] Using fixed auto clock-out time', [
+                    //     'employee_id' => $employee->id,
+                    //     'configured_time' => $autoClockOutTimeSetting,
+                    //     'final_time' => $finalClockOutTime->toDateTimeString(),
+                    // ]);
+
+                } else {
+
+                    // Fallback to shift end
+                    $finalClockOutTime = $shiftEnd;
+
+                    // Log::info('[AUTO CLOCK OUT] Using shift end time (fallback)', [
+                    //     'employee_id' => $employee->id,
+                    //     'shift_end' => $shiftEnd->toDateTimeString(),
+                    // ]);
+                }
+
+            // Add allowed minutes
             $autoClockOutAt = $shiftEnd->copy()->addMinutes($autoLimitMinutes);
 
-            // Log::info('[AUTO CLOCK OUT] Timing check', [
-            //     'employee_id' => $employee->id,
-            //     'shift_end' => $shiftEnd->toDateTimeString(),
-            //     'auto_clock_out_at' => $autoClockOutAt->toDateTimeString(),
-            // ]);
-
-            // 3. Check if we passed auto clock-out time
-            if ($now->lessThan($autoClockOutAt)) {
-                // Log::info('[AUTO CLOCK OUT] Not yet time to auto clock out', [
-                //     'employee_id' => $employee->id,
-                // ]);
-                continue;
-            }
-
-            $entry = $employee->activeTimeEntry;
-
-            if (!$entry) {
-                // Log::warning('[AUTO CLOCK OUT] Active entry missing', [
-                //     'employee_id' => $employee->id,
-                // ]);
-                continue;
-            }
-
-            // 4. Perform auto clock-out
-            $entry->update([
-                'clock_out' => $shiftEnd,
-                'status' => 'completed',
+            Log::info('[AUTO CLOCK OUT] Timing check', [
+                'employee_id' => $employee->id,
+                'clock_in' => $clockIn->toDateTimeString(),
+                'shift_end' => $shiftEnd->toDateTimeString(),
+                'auto_clock_out_at' => $autoClockOutAt->toDateTimeString(),
+                'now' => $now->toDateTimeString(),
             ]);
 
-            // Log::info('[AUTO CLOCK OUT] Employee auto clocked out', [
-            //     'employee_id' => $employee->id,
-            //     'time_entry_id' => $entry->id,
-            //     'clock_out' => $shiftEnd->toDateTimeString(),
-            // ]);
+            if ($now->lt($autoClockOutAt)) {
+                continue;
+            }
+
+            // Auto clock out
+            $entry->clock_out = $finalClockOutTime;
+            $entry->status = 'completed';
+            $entry->updated_at = $finalClockOutTime;
+            $entry->save();
+
+
+            Log::info('[AUTO CLOCK OUT] Employee auto clocked out', [
+                'employee_id' => $employee->id,
+                'clock_out' => $finalClockOutTime->toDateTimeString(),
+
+                'entry clock_out'=> $entry->clock_out,
+
+                'entry updated_at'=> $entry->updated_at,
+            ]);
 
             //  SEND SMS
 
@@ -154,6 +172,6 @@ class AutoClockOutEmployeesJob
 
         }
 
-        // Log::info('[AUTO CLOCK OUT] Job finished');
+        Log::info('[AUTO CLOCK OUT] Job finished');
     }
 }

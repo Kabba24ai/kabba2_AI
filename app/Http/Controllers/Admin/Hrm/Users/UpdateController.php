@@ -43,6 +43,7 @@ class UpdateController extends Controller
                 'state'          => $validated['state'] ?? null,
                 'zip_code'       => $validated['zip'] ?? null,
                 'country'        => $validated['country'] ?? null,
+                   'social_security'        => $validated['social_security'] ?? null,
                 'start_date'     => CustomHelper::parseDateFromInput($validated['startDate'] ?? null),
                 'end_date'       => CustomHelper::parseDateFromInput($validated['endDate'] ?? null),
                 'pay_type'       => $validated['payType'],

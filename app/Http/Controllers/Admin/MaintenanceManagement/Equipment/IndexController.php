@@ -13,10 +13,7 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-
-        $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'checklistMaster', 'store', 'order.customer','activeEquipmentRentalReadyTemplate', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task');
-$equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
-    ->pluck('equipment_id');
+        $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'checklistMaster', 'store', 'order.customer', 'activeEquipmentRentalReadyTemplate', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task');
 
         // Checklist Master filter
         $query->when($request->checklist_master, function ($q, $checklistMaster) {
@@ -47,9 +44,8 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
         });
 
         $query->when($request->equipment_id, function ($q, $equipmentId) {
-            $q->where('equipment_id', $equipmentId);
+            $q->where('equipment_id', 'like', '%' . $equipmentId . '%');
         });
-
 
         // Category filter
         $query->when($request->category, function ($q, $category) {
@@ -65,7 +61,7 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
         $serviceRecords = DB::table('equipment_service_tasks')
             ->select('equipment_id', 'service_task_id', 'interval_value')
             ->get()
-            ->groupBy(function($record) {
+            ->groupBy(function ($record) {
                 return $record->equipment_id . '_' . $record->service_task_id;
             });
 
@@ -123,7 +119,7 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
             ]);
         }
 
-        return view('admin.maintenance_management.equipment.index', compact( 'stats', 'categories', 'stores','equipmentIds', 'serviceRecords', 'pendingBeforeHours', 'pendingAfterHours'));
+        return view('admin.maintenance_management.equipment.index', compact('stats', 'categories', 'stores', 'serviceRecords', 'pendingBeforeHours', 'pendingAfterHours'));
     }
 
     /**
@@ -154,9 +150,11 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
 
             foreach ($tasks as $templateTask) {
                 $taskId = $templateTask->task?->id;
-                if (!$taskId) continue;
+                if (!$taskId) {
+                    continue;
+                }
 
-                $ints = $templateTask->intervals ?? $templateTask->intervals_json ?? $templateTask->interval ?? [];
+                $ints = $templateTask->intervals ?? ($templateTask->intervals_json ?? ($templateTask->interval ?? []));
                 $arr = [];
 
                 if (is_array($ints)) {
@@ -177,7 +175,7 @@ $equipmentIds = Equipment::orderByRaw('CAST(equipment_id AS CHAR) ASC')
                     // Check if this interval is completed
                     $recordKey = $item->id . '_' . $taskId;
                     $records = $serviceRecords[$recordKey] ?? collect();
-                    $isCompleted = $records->contains(function($record) use ($interval) {
+                    $isCompleted = $records->contains(function ($record) use ($interval) {
                         return $record->interval_value == $interval;
                     });
 

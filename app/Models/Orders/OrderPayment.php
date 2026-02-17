@@ -31,6 +31,7 @@ class OrderPayment extends Model
         'status', // e.g., 'Pending', 'Paid', 'Account', 'Partial Refund', 'Refunded', 'Failed'
         'refund_amount',
         'refund_note',
+        'payment_response',
         'created_by_id',
         'created_by_type',
         'updated_by_id',
@@ -40,6 +41,7 @@ class OrderPayment extends Model
     protected $casts = [
         'payment_method' => OrderPaymentMethod::class,
         'status' => OrderPaymentStatus::class,
+        'payment_response' => 'json',
     ];
 
     protected static function boot()

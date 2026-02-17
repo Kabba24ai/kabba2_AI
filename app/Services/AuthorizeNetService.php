@@ -509,9 +509,9 @@ class AuthorizeNetService
         logger()->info('AuthorizeNet profile charge response: ' . json_encode($response));
 
         // 4) Handle success
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() !== null && $response->getTransactionResponse()->getResponseCode() === '1') {
             $tr = $response->getTransactionResponse();
-
+            logger()->info('AuthorizeNet transaction successful: ' . json_encode($tr));
             // Try to enrich with card info from the payment profile
             $cardInfo = $this->getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId);
             $cardType = $cardInfo['card_type'] ?? null;
@@ -519,6 +519,7 @@ class AuthorizeNetService
             return [
                 'status' => 'success',
                 'payment_status' => 'Paid',
+                'payment_response' => $tr,
                 'message' => 'Payment successful',
                 'transaction_id' => $tr && method_exists($tr, 'getTransId') ? $tr->getTransId() : null,
                 'auth_code' => $tr && method_exists($tr, 'getAuthCode') ? $tr->getAuthCode() : null,
@@ -542,6 +543,8 @@ class AuthorizeNetService
                 $errorMessage .= ': ' . $response->getMessages()->getMessage()[0]->getText();
             }
         }
+
+        logger()->error('AuthorizeNet transaction failed: ' . $errorMessage);
 
         return [
             'status' => 'failure',
@@ -570,7 +573,7 @@ class AuthorizeNetService
 
         $transactionRequest = new AnetAPI\TransactionRequestType();
         $transactionRequest->setTransactionType('authCaptureTransaction');
-        $transactionRequest->setAmount($amount);
+        $transactionRequest->setAmount(2.00);
 
         $customerProfileId = null;
         $paymentProfileId = null;
@@ -636,7 +639,7 @@ class AuthorizeNetService
         // ---- 5. Handle Response ----
         if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && $response->getTransactionResponse()->getResponseCode() === '1') {
             $transactionResponse = $response->getTransactionResponse();
-
+            logger()->info('AuthorizeNet transaction successful for order ' . ($options['order_number'] ?? 'N/A') . ': ' . json_encode($transactionResponse));
             // Return known profile/payment ids or extract from response
             // If payment profile IDs exist, fetch card type & expiry from the profile
 
@@ -648,6 +651,7 @@ class AuthorizeNetService
             return [
                 'status' => 'success',
                 'payment_status' => 'Paid',
+                'payment_response' => $transactionResponse,
                 'message' => 'Payment successful',
                 'transaction_id' => $transactionResponse && method_exists($transactionResponse, 'getTransId') ? $transactionResponse->getTransId() : null,
                 'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
@@ -663,6 +667,7 @@ class AuthorizeNetService
         if ($response && $response->getMessages() && isset($response->getMessages()->getMessage()[0])) {
             $errorMessage .= ': ' . $response->getMessages()->getMessage()[0]->getText();
         }
+        logger()->error('AuthorizeNet transaction failed for order ' . ($options['order_number'] ?? 'N/A') . ': ' . $errorMessage);
         return [
             'status' => 'failure',
             'error_code' => $response->getMessages()->getMessage()[0]->getCode() ?? null,
@@ -776,9 +781,9 @@ class AuthorizeNetService
         logger()->info('AuthorizeNet card transaction response: ' . json_encode($response));
 
         // ---- 5. Handle Response ----
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && $response->getTransactionResponse()->getResponseCode() === '1') {
             $transactionResponse = $response->getTransactionResponse();
-
+            logger()->info('AuthorizeNet card transaction successful: ' . json_encode($transactionResponse));
             // If payment profile IDs exist, fetch card type from the profile
             $cardType = null;
             if ($customerProfileId && $paymentProfileId) {
@@ -789,6 +794,7 @@ class AuthorizeNetService
             return [
                 'status' => 'success',
                 'payment_status' => 'Paid',
+                'payment_response' => $transactionResponse,
                 'message' => 'Payment successful',
                 'transaction_id' => $transactionResponse && method_exists($transactionResponse, 'getTransId') ? $transactionResponse->getTransId() : null,
                 'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
@@ -811,6 +817,7 @@ class AuthorizeNetService
                 $errorMessage .= ': ' . $response->getMessages()->getMessage()[0]->getText();
             }
         }
+        logger()->error('AuthorizeNet card transaction failed: ' . $errorMessage);
 
         return [
             'status' => 'failure',
@@ -895,7 +902,7 @@ class AuthorizeNetService
         $controller = new AnetController\CreateTransactionController($request);
         $response = $this->executeWithApiResponseTimed($controller);
 
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && in_array($response->getTransactionResponse()->getResponseCode(), ['1', '4'])) {
             $transactionResponse = $response->getTransactionResponse();
 
             return [
@@ -947,7 +954,7 @@ class AuthorizeNetService
         $controller = new AnetController\CreateTransactionController($request);
         $response = $this->executeWithApiResponseTimed($controller);
 
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && in_array($response->getTransactionResponse()->getResponseCode(), ['1', '4'])) {
             $transactionResponse = $response->getTransactionResponse();
 
             return [
@@ -1010,7 +1017,7 @@ class AuthorizeNetService
         $controller = new AnetController\GetTransactionDetailsController($request);
         $response = $this->executeWithApiResponseTimed($controller);
 
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && in_array($response->getTransactionResponse()->getResponseCode(), ['1', '4'])) {
             $transaction = $response->getTransaction();
             $cardDetails = new \stdClass();
             $payment = $transaction->getPayment();

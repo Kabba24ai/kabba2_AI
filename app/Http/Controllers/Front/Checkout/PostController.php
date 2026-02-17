@@ -372,6 +372,7 @@ class PostController extends Controller
                         'card_first_name' => $validated['firstName'] ?? $cardDetail->first_name ?? null,
                         'card_last_name' => $validated['lastName'] ?? $cardDetail->last_name ?? null,
                         'status' => $paymentResult['payment_status'] ?? 'Pending',
+                        'payment_response' => $paymentResult['payment_response'] ?? null,
                         'created_by_id' => $customer->id,
                         'created_by_type' => Customer::class,
                     ]);
@@ -408,6 +409,7 @@ class PostController extends Controller
                     'payment_method' => $validated['payment'],
                     'amount' => $order->grand_total,
                     'status' => $validated['payment'] === 'Account' ? 'Account' : 'Pending',
+                    'payment_response' => null,
                     'created_by_id' => $customer->id,
                     'created_by_type' => Customer::class,
                 ]);

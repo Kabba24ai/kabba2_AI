@@ -19,6 +19,7 @@ class ListUsersController extends BaseController
                 'roles',
                 'vacationAllotmentHour',
                 'vacationStartDay',
+                'store.hours'
             ])
             ->active()
             ->orderBy('first_name', 'ASC')

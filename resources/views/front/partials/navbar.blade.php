@@ -266,8 +266,28 @@
                         <li
                             class=" py-3 {{ Route::is('front.contact-us.index') ? 'active' : '' }} group-[.active]:font-bold group">
                             <a href="{{ route('front.contact-us.index') }}"
-                                class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Contact</a>
+                                class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Contact Us</a>
                         </li>
+
+                        @php
+                        $host = request()->getHost();
+
+                            $employmentOpportunitiesUrl = match ($host) {
+                                'kabba.local'   => 'http://localhost:5173',
+                                'front.kabba.ai'      => 'https://opportunities.kabba.ai/',
+                                'rentnking.com' => 'https://opportunities.rentnking.com/',
+                                default               => 'https://opportunities.rentnking.com/',
+                            };
+                        @endphp
+
+                   
+
+                        <li
+                            class=" py-3  group-[.active]:font-bold group">
+                            <a href="{{ $employmentOpportunitiesUrl }}"
+                                class="hover:text-yellow-400 px-5 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Employment Opportunities </a>
+                        </li>
+
                     </ul>
                 </div>
             </div>

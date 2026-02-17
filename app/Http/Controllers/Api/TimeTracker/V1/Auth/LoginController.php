@@ -15,7 +15,7 @@ class LoginController extends BaseController
     {
         $data = $request->validated();
 
-        $user = User::active()->find($data['user_id']);
+        $user = User::active()->with(['store.hours'])->find($data['user_id']);
 
         if (!$user || $user->employee_code !== $data['employee_code']) {
             return response()->json([

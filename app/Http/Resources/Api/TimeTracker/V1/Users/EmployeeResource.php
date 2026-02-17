@@ -22,6 +22,39 @@ class EmployeeResource extends JsonResource
             'shift_start_time' => $this->shift_start_time ?? null,
             'shift_end_time' => $this->shift_end_time ?? null,
         
+            'store' => $this->whenLoaded('store', function () {
+
+                $today = now()->format('l');
+
+                $weekly = $this->store->hours->map(function ($hour) {
+                    return [
+                        'day' => $hour->day_name,
+                        'open' => $hour->start_time,
+                        'close' => $hour->end_time,
+                        'is_closed' => (bool) $hour->is_closed,
+                    ];
+                });
+
+                $todayHours = $this->store->hours
+                    ->where('day_name', $today)
+                    ->first();
+
+                return [
+                    'id' => $this->store->id,
+                    'store_name' => $this->store->store_name,
+
+                    'today_schedule' => $todayHours ? [
+                        'day' => $todayHours->day_name,
+                        'open' => $todayHours->start_time,
+                        'close' => $todayHours->end_time,
+                        'is_closed' => (bool) $todayHours->is_closed,
+                    ] : null,
+
+                    'weekly_schedule' => $weekly,
+                ];
+            }),
+
+
             'vacation_allotment_hour' => $this->whenLoaded(
                 'vacationAllotmentHour',
                 fn () => [

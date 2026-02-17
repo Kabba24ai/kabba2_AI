@@ -8,6 +8,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use App\Models\Locations\State;
 
+use App\Models\Stores\Store;
+
+
 use App\Models\Iam\AccessControl\Role;
 use App\Enums\UserPayType;
 
@@ -30,10 +33,16 @@ class CreateController extends Controller
 
          $paytypes = UserPayType::options();
 
+     $stores = Store::active()
+                ->orderByAdmin()
+                ->pluck('store_name', 'id');
+
         return view('admin.hrm.users.create', [
             'states' => $states,
             'roles' => $roles,
             'paytypes' => $paytypes,
+            'stores' => $stores,
+
         ]);
     }
 }

@@ -29,6 +29,7 @@ class UpdateUserVacationController extends BaseController
             'roles',
             'vacationAllotmentHour',
             'vacationStartDay',
+            'store.hours'
         ]);
 
         return response()->json([

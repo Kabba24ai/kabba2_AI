@@ -26,6 +26,15 @@ class UpdateRequest extends FormRequest
             'state' => ['nullable'],
             'zip' => ['nullable', 'string', 'max:20'],
             'country' => ['nullable'],
+            
+            'auto_clockout_penalty'   => ['nullable'],
+
+            'store_id' => [
+    'nullable',
+    'exists:stores,id'
+],
+
+
             'startDate' => ['nullable', 'date'],
             'endDate' => ['nullable', 'date'],
             'status' => ['required', Rule::in(['Active', 'Inactive'])],

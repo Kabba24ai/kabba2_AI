@@ -11,7 +11,7 @@ class FetchUserController extends BaseController
 {
     public function __invoke(int $userId): JsonResponse
     {
-        $user = User::find($userId);
+        $user = User::with(['store.hours'])->find($userId);
 
         if (!$user) {
             return response()->json([

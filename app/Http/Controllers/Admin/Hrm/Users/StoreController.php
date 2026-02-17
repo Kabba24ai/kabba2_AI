@@ -46,6 +46,12 @@ class StoreController extends Controller
                 'status'         => $validated['status'] ?? 'Active',
                 'limit_start_time' => $validated['limit_start'] ?? false,
                 'limit_end_time' => $validated['limit_end'] ?? false,
+
+                'auto_clockout_penalty' => $validated['auto_clockout_penalty'] ?? null,
+                
+'store_id' => $validated['store_id'] ?? null,
+
+                
                    'social_security'        => $validated['social_security'] ?? null,
 
                 'shift_start_time' => !empty($validated['shift_start_time'])

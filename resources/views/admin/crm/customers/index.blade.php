@@ -109,10 +109,19 @@
 
         <div class="flex gap-2">
 
-            <a href="{{ route('admin.crm.customers.index') }}"
+            {{-- <a href="{{ route('admin.crm.customers.index') }}"
                 class="text-sm text-gray-600 bg-white px-3 py-3 rounded-md border border-gray-300">
                 Clear
-            </a>
+            </a> --}}
+
+            <button type="button" id="clear-filters"
+            class="hidden text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+            Clear
+        </button>
+
 
         </div>
     </div>
@@ -140,6 +149,8 @@
             let statusSelect = document.querySelector('select[name="tax_status"]');
             let wrapper = document.querySelector('#customer-table-wrapper');
 
+            let clearBtn = document.getElementById('clear-filters');
+
             let loader = document.querySelector('#customer-loader');
             let timeout = null;
             const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
@@ -157,6 +168,8 @@
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
+            updateClearButton();
+
 
             fetchCustomers(pageParam, perPageParam); // initial fetch
             function fetchCustomers(page = 1, perPage = 10) {
@@ -207,6 +220,36 @@
 
             }
 
+            function updateClearButton() {
+                const hasFilters =
+                    nameInput.value.trim() !== '' ||
+                    phoneInput.value.trim() !== '' ||
+                    company_name.value.trim() !== '' ||
+                    statusSelect.value !== 'All';
+
+                if (hasFilters) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+            }
+
+            clearBtn.addEventListener('click', function () {
+
+                nameInput.value = '';
+                phoneInput.value = '';
+                company_name.value = '';
+                statusSelect.value = 'All';
+
+                localStorage.removeItem(screenKey);
+
+                fetchCustomers(1); // reload first page
+
+                updateClearButton();
+            });
+
+
+
             // Register pagination
             Paginator.init({
                 wrapper: wrapper,
@@ -217,22 +260,26 @@
             nameInput.addEventListener('input', function() {
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchCustomers, 400);
+                 updateClearButton();
             });
 
             phoneInput.addEventListener('input', function() {
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchCustomers, 400);
+                 updateClearButton();
             });
 
             company_name.addEventListener('input', function() {
 
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchCustomers, 400);
+                 updateClearButton();
             });
 
             // Immediate filter for tax_status
             statusSelect.addEventListener('change', function() {
                 fetchCustomers(); // no timeout
+                 updateClearButton();
             });
         });
     </script>

@@ -19,7 +19,7 @@ class AutoClockOutEmployeesJob implements ShouldQueue
 
     public function handle(): void
     {
-        Log::info('[AUTO CLOCK OUT] Job started');
+        // Log::info('[AUTO CLOCK OUT] Job started');
 
         // 1. Fetch settings
         $autoLimitMinutes = (int) TimeTrackerHelper::getTimeTrackerSetting(
@@ -27,9 +27,9 @@ class AutoClockOutEmployeesJob implements ShouldQueue
             0
         );
 
-        Log::info('[AUTO CLOCK OUT] auto_clock_out_limit_minutes', [
-            'minutes' => $autoLimitMinutes,
-           ]);
+        // Log::info('[AUTO CLOCK OUT] auto_clock_out_limit_minutes', [
+        //     'minutes' => $autoLimitMinutes,
+        //    ]);
 
         if ($autoLimitMinutes <= 0) {
             // Log::warning('[AUTO CLOCK OUT] Disabled (limit <= 0)');
@@ -45,9 +45,9 @@ class AutoClockOutEmployeesJob implements ShouldQueue
 
         $twilio = new TwilioService();
         $now = Carbon::now();
-        Log::info('[AUTO CLOCK OUT] Current time', [
-            'now' => $now->toDateTimeString(),
-        ]);
+        // Log::info('[AUTO CLOCK OUT] Current time', [
+        //     'now' => $now->toDateTimeString(),
+        // ]);
 
         // 2. Fetch employees with active time entry
         $employees = User::active()
@@ -56,9 +56,9 @@ class AutoClockOutEmployeesJob implements ShouldQueue
             ->with('activeTimeEntry')
             ->get();
 
-        Log::info('[AUTO CLOCK OUT] Active employees found', [
-            'count' => $employees->count(),
-        ]);
+        // Log::info('[AUTO CLOCK OUT] Active employees found', [
+        //     'count' => $employees->count(),
+        // ]);
 
         
         foreach ($employees as $employee) {
@@ -71,9 +71,9 @@ class AutoClockOutEmployeesJob implements ShouldQueue
 
             //  Check if employee assigned to store
             if (!$employee->store) {
-                Log::warning('[AUTO CLOCK OUT] Employee has no store assigned', [
-                    'employee_id' => $employee->id,
-                ]);
+                // Log::warning('[AUTO CLOCK OUT] Employee has no store assigned', [
+                //     'employee_id' => $employee->id,
+                // ]);
                 continue;
             }
 
@@ -86,10 +86,10 @@ class AutoClockOutEmployeesJob implements ShouldQueue
                 ->first();
 
             if (!$storeHours || $storeHours->is_closed) {
-                Log::warning('[AUTO CLOCK OUT] Store closed or no hours found', [
-                    'employee_id' => $employee->id,
-                    'day' => $dayName,
-                ]);
+                // Log::warning('[AUTO CLOCK OUT] Store closed or no hours found', [
+                //     'employee_id' => $employee->id,
+                //     'day' => $dayName,
+                // ]);
                 continue;
             }
 
@@ -106,22 +106,22 @@ class AutoClockOutEmployeesJob implements ShouldQueue
                 $finalClockOutTime = $storeEndTime->copy()
                     ->subMinutes($penaltyMinutes);
 
-                Log::info('[AUTO CLOCK OUT] Using store end - penalty', [
-                    'employee_id' => $employee->id,
-                    'store_end' => $storeEndTime->toDateTimeString(),
-                    'penalty' => $penaltyMinutes,
-                    'final' => $finalClockOutTime->toDateTimeString(),
-                ]);
+                // Log::info('[AUTO CLOCK OUT] Using store end - penalty', [
+                //     'employee_id' => $employee->id,
+                //     'store_end' => $storeEndTime->toDateTimeString(),
+                //     'penalty' => $penaltyMinutes,
+                //     'final' => $finalClockOutTime->toDateTimeString(),
+                // ]);
 
             } else {
 
                 //  Otherwise use store end time
                 $finalClockOutTime = $storeEndTime;
 
-                Log::info('[AUTO CLOCK OUT] Using store end time (no penalty)', [
-                    'employee_id' => $employee->id,
-                    'final' => $finalClockOutTime->toDateTimeString(),
-                ]);
+                // Log::info('[AUTO CLOCK OUT] Using store end time (no penalty)', [
+                //     'employee_id' => $employee->id,
+                //     'final' => $finalClockOutTime->toDateTimeString(),
+                // ]);
             }
 
             // Auto clock trigger time
@@ -138,10 +138,10 @@ class AutoClockOutEmployeesJob implements ShouldQueue
             $entry->updated_at = $finalClockOutTime;
             $entry->save();
 
-            Log::info('[AUTO CLOCK OUT] Employee auto clocked out', [
-                'employee_id' => $employee->id,
-                'clock_out' => $finalClockOutTime->toDateTimeString(),
-            ]);
+            // Log::info('[AUTO CLOCK OUT] Employee auto clocked out', [
+            //     'employee_id' => $employee->id,
+            //     'clock_out' => $finalClockOutTime->toDateTimeString(),
+            // ]);
         }
 
 
@@ -252,6 +252,6 @@ class AutoClockOutEmployeesJob implements ShouldQueue
 
         // }
 
-        Log::info('[AUTO CLOCK OUT] Job finished');
+        // Log::info('[AUTO CLOCK OUT] Job finished');
     }
 }

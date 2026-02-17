@@ -172,8 +172,8 @@ class AuthorizeNetService
     public function findOrCreateCustomerProfileAndPaymentProfile(string $uniqueId, array $customer, ?string $opaqueDataValue = null, ?array $cardData = [])
     {
         // 1. Try to find customer profile by merchantCustomerId (your uniqueId)
-        $profileId = $this->findExistingCustomerProfileId($uniqueId);
-        //$profileId = $customer['authorize_profile_id'] ?? null;
+        //$profileId = $this->findExistingCustomerProfileId($uniqueId);
+        $profileId = $customer['authorize_profile_id'] ?? null;
         // 2. If profile does not exist, create it using the new createCustomer method
         if (!$profileId) {
             return $this->createCustomer($uniqueId, $customer, $opaqueDataValue, $cardData);
@@ -632,12 +632,14 @@ class AuthorizeNetService
 
         $controller = new AnetController\CreateTransactionController($request);
         $response = $this->executeWithApiResponseTimed($controller);
-        logger()->info('AuthorizeNet response: ' . json_encode($response));
+        logger()->info('AuthorizeNet response for order ' . ($options['order_number'] ?? 'N/A') . ': ' . json_encode($response));
         // ---- 5. Handle Response ----
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok') {
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && $response->getTransactionResponse()->getResponseCode() === '1') {
             $transactionResponse = $response->getTransactionResponse();
+
             // Return known profile/payment ids or extract from response
             // If payment profile IDs exist, fetch card type & expiry from the profile
+
             $cardType = null;
             if ($customerProfileId && $paymentProfileId) {
                 $cardInfo = $this->getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId);

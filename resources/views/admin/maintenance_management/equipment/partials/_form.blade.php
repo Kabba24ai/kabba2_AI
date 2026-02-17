@@ -88,20 +88,25 @@
                             </label>
                         </div>
                     </div>
-                    {!! html()->text('overage_rate')->class([
-                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-                            'border-gray-300' => !$errors->has('overage_rate'),
-                            'border-red-500' => $errors->has('overage_rate'),
-                        ])->attributes([
-                            'data-numeric-input' => 'true',
-                            'data-parsley-maxlength' => 8,
-                            'maxlength' => 8,
-                            'placeholder' => 'Enter Overage Rate',
-                            'autocomplete' => 'off',
-                            old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? false : true) : false)
-                                ? 'readonly'
-                                : null,
-                        ]) !!}
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                            $
+                        </span>
+                        {!! html()->text('overage_rate')->id('overage_rate')->class([
+                                'w-full pl-5 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-gray-300' => !$errors->has('overage_rate'),
+                                'border-red-500' => $errors->has('overage_rate'),
+                            ])->attributes([
+                                'data-numeric-input' => 'true',
+                                'data-parsley-maxlength' => 8,
+                                'maxlength' => 8,
+                                'placeholder' => '0.00',
+                                'autocomplete' => 'off',
+                                old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? false : true) : false)
+                                    ? 'readonly'
+                                    : null,
+                            ]) !!}
+                    </div>
                     @error('overage_rate')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
@@ -256,10 +261,11 @@
                         Purchase Cost
                     </label>
                     <div class="relative">
-                        <x-heroicon-o-currency-dollar
-                            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                            $
+                        </span>
                         {!! html()->text('purchase_cost')->class([
-                                'w-full pl-9 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'w-full pl-5 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                                 'border-gray-300' => !$errors->has('purchase_cost'),
                                 'border-red-500' => $errors->has('purchase_cost'),
                             ])->attributes([
@@ -325,13 +331,11 @@
                     <label for="interest_rate" class="block text-sm font-medium text-gray-700 mb-1">
                         Interest Rate (%)
                     </label>
-                    {!! html()->number('interest_rate')->class([
+                    {!! html()->text('interest_rate', isset($equipment) && $equipment->interest_rate ? $equipment->interest_rate . '%' : old('interest_rate'))->id('interest_rate')->class([
                             'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                             'border-red-500' => $errors->has('interest_rate'),
                         ])->attributes([
-                            'min' => 0,
-                            'step' => 0.01,
-                            'placeholder' => '5.25',
+                            'placeholder' => '1.99%',
                         ]) !!}
                     @error('interest_rate')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -343,10 +347,11 @@
                         Monthly Payment
                     </label>
                     <div class="relative">
-                        <x-heroicon-o-currency-dollar
-                            class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                            $
+                        </span>
                         {!! html()->text('monthly_payment')->class([
-                                'w-full pl-9 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'w-full pl-5 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                                 'border-gray-300' => !$errors->has('monthly_payment'),
                                 'border-red-500' => $errors->has('monthly_payment'),
                             ])->attributes([
@@ -1021,6 +1026,83 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Interest Rate % formatting
+            const interestRateInput = document.getElementById('interest_rate');
+            if (interestRateInput) {
+                // Format on input
+                interestRateInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/%/g, '').trim();
+                    if (value) {
+                        e.target.value = value + '%';
+                    }
+                });
+
+                // Format on blur
+                interestRateInput.addEventListener('blur', function(e) {
+                    let value = e.target.value.replace(/%/g, '').trim();
+                    if (value) {
+                        e.target.value = value + '%';
+                    }
+                });
+
+                // Remove % before form submission
+                const form = document.getElementById('productForm');
+                if (form) {
+                    form.addEventListener('submit', function() {
+                        let value = interestRateInput.value.replace(/%/g, '').trim();
+                        interestRateInput.value = value;
+                    });
+                }
+            }
+
+            // Date Acquired auto-formatting with slashes according to data-format
+            const dateAcquiredInput = document.querySelector('input[name="date_acquired"]');
+            if (dateAcquiredInput) {
+                const dateFormat = dateAcquiredInput.getAttribute('data-format') || 'mm/dd/yyyy';
+                
+                dateAcquiredInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, ''); // Remove all non-digits
+                    let formattedValue = '';
+                    
+                    if (value.length > 0) {
+                        const format = dateFormat.toLowerCase();
+                        
+                        if (format.includes('mm') && format.includes('dd') && format.includes('yyyy')) {
+                            // MM/DD/YYYY or DD/MM/YYYY or YYYY/MM/DD format
+                            const firstPos = format.indexOf('m');
+                            const secondPos = format.indexOf('d');
+                            const thirdPos = format.indexOf('y');
+                            
+                            const positions = [
+                                { pos: firstPos, type: 'm', len: 2 },
+                                { pos: secondPos, type: 'd', len: 2 },
+                                { pos: thirdPos, type: 'y', len: 4 }
+                            ].sort((a, b) => a.pos - b.pos);
+                            
+                            let digitIndex = 0;
+                            let dateObj = { m: '', d: '', y: '' };
+                            
+                            for (let part of positions) {
+                                const partLen = part.type === 'y' ? 4 : 2;
+                                dateObj[part.type] = value.substring(digitIndex, digitIndex + partLen);
+                                digitIndex += partLen;
+                                
+                                if (digitIndex >= value.length) break;
+                            }
+                            
+                            // Build formatted value based on format
+                            const formatLower = format.replace(/\//g, '-');
+                            let result = formatLower;
+                            result = result.replace('mm', dateObj.m).replace('dd', dateObj.d).replace('yyyy', dateObj.y);
+                            result = result.replace(/-/g, '/');
+                            formattedValue = result;
+                        }
+                    }
+                    
+                    e.target.value = formattedValue;
+                });
+            }
+
             const documentImagesInput = document.getElementById('document_images');
             const previewContainer = document.getElementById('document_images_preview');
             const previewGrid = document.getElementById('document_images_preview_grid');

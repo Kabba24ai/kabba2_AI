@@ -172,8 +172,8 @@ class AuthorizeNetService
     public function findOrCreateCustomerProfileAndPaymentProfile(string $uniqueId, array $customer, ?string $opaqueDataValue = null, ?array $cardData = [])
     {
         // 1. Try to find customer profile by merchantCustomerId (your uniqueId)
-        //$profileId = $this->findExistingCustomerProfileId($uniqueId);
-        $profileId = $customer['authorize_profile_id'] ?? null;
+        $profileId = $this->findExistingCustomerProfileId($uniqueId);
+        //$profileId = $customer['authorize_profile_id'] ?? null;
         // 2. If profile does not exist, create it using the new createCustomer method
         if (!$profileId) {
             return $this->createCustomer($uniqueId, $customer, $opaqueDataValue, $cardData);

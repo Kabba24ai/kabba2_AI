@@ -298,6 +298,54 @@
                 </div>
 
                 <div>
+                    <label for="down_payment" class="block text-sm font-medium text-gray-700 mb-1">
+                        Down Payment
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                            $
+                        </span>
+                        {!! html()->text('down_payment')->class([
+                                'w-full pl-5 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-gray-300' => !$errors->has('down_payment'),
+                                'border-red-500' => $errors->has('down_payment'),
+                            ])->attributes([
+                                'data-digit-input' => 'true',
+                                'min' => 0,
+                                'placeholder' => '0.00',
+                                'step' => '0.01',
+                            ]) !!}
+                    </div>
+                    @error('down_payment')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="amount_financed" class="block text-sm font-medium text-gray-700 mb-1">
+                        Amount Financed
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                            $
+                        </span>
+                        {!! html()->text('amount_financed')->class([
+                                'w-full pl-5 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-gray-300' => !$errors->has('amount_financed'),
+                                'border-red-500' => $errors->has('amount_financed'),
+                            ])->attributes([
+                                'data-digit-input' => 'true',
+                                'min' => 0,
+                                'placeholder' => '0.00',
+                                'step' => '0.01',
+                            ]) !!}
+                    </div>
+                    @error('amount_financed')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label for="finance_company" class="block text-sm font-medium text-gray-700 mb-1">Finance
                         Company</label>
                     {!! html()->text('finance_company')->class([
@@ -1059,37 +1107,37 @@
             const dateAcquiredInput = document.querySelector('input[name="date_acquired"]');
             if (dateAcquiredInput) {
                 const dateFormat = dateAcquiredInput.getAttribute('data-format') || 'mm/dd/yyyy';
-                
+
                 dateAcquiredInput.addEventListener('input', function(e) {
                     let value = e.target.value.replace(/\D/g, ''); // Remove all non-digits
                     let formattedValue = '';
-                    
+
                     if (value.length > 0) {
                         const format = dateFormat.toLowerCase();
-                        
+
                         if (format.includes('mm') && format.includes('dd') && format.includes('yyyy')) {
                             // MM/DD/YYYY or DD/MM/YYYY or YYYY/MM/DD format
                             const firstPos = format.indexOf('m');
                             const secondPos = format.indexOf('d');
                             const thirdPos = format.indexOf('y');
-                            
+
                             const positions = [
                                 { pos: firstPos, type: 'm', len: 2 },
                                 { pos: secondPos, type: 'd', len: 2 },
                                 { pos: thirdPos, type: 'y', len: 4 }
                             ].sort((a, b) => a.pos - b.pos);
-                            
+
                             let digitIndex = 0;
                             let dateObj = { m: '', d: '', y: '' };
-                            
+
                             for (let part of positions) {
                                 const partLen = part.type === 'y' ? 4 : 2;
                                 dateObj[part.type] = value.substring(digitIndex, digitIndex + partLen);
                                 digitIndex += partLen;
-                                
+
                                 if (digitIndex >= value.length) break;
                             }
-                            
+
                             // Build formatted value based on format
                             const formatLower = format.replace(/\//g, '-');
                             let result = formatLower;
@@ -1098,7 +1146,7 @@
                             formattedValue = result;
                         }
                     }
-                    
+
                     e.target.value = formattedValue;
                 });
             }

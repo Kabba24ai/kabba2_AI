@@ -55,6 +55,10 @@ class StoreRequest extends FormRequest
             // fixed name
             'purchase_cost' => 'nullable|numeric|min:0',
 
+            'down_payment' => 'nullable|numeric|min:0',
+
+            'amount_financed' => 'nullable|numeric|min:0',
+
             'ownership_type' => 'nullable|in:owned,financed,leased',
             'finance_company' => 'nullable|string|max:255',
 

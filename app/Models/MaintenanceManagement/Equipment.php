@@ -40,6 +40,8 @@ class Equipment extends Model
         'model_year',
         'date_acquired',
         'purchase_cost',
+        'down_payment',
+        'amount_financed',
         'ownership_type', // owned, financed, leased
         'finance_company',
         'term_in_months',

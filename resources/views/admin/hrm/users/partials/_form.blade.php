@@ -311,7 +311,7 @@
             Employment Information
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <!-- Start Date -->
             <div>
                 <label for="startDate" class="text-xs text-gray-500 font-medium">Start Date </label>
@@ -392,6 +392,23 @@
 
 
             </div>
+
+            <!-- Assign Store -->
+            <div>
+                <label for="store_id" class="text-xs text-gray-500 font-medium">
+                    Assign to Store
+                </label>
+
+                {!! html()
+                    ->select('store_id', ['' => 'Select Store'] + $stores->toArray(),
+                        old('store_id', $user->store_id ?? '')
+                    )
+                    ->id('store_id')
+                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                !!}
+            </div>
+
+
         </div>
     </div>
 
@@ -411,7 +428,7 @@
                 ])->attributes(['id' => 'limit_start']) !!}
 
                 <label for="limit_start" class="flex items-center text-xs text-gray-500 font-medium cursor-pointer">
-                    Limit Start Time
+                    Limit to Shift Start Time
                     <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400 ml-1" />
                 </label>
             </div>
@@ -423,13 +440,34 @@
                 ])->attributes(['id' => 'limit_end']) !!}
 
                 <label for="limit_end" class="flex items-center text-xs text-gray-500 font-medium cursor-pointer">
-                    Limit End Time
+                    Limit to Shift End Time
                     <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400 ml-1" />
                 </label>
             </div>
+
+            <div class="flex flex-col">
+                <label class="block text-xs font-medium text-gray-500 mb-1">
+                    Auto Clock-Out Penalty
+                </label>
+
+                <select name="auto_clockout_penalty"
+                    class="border rounded px-3 py-2 text-xs w-full focus:ring-blue-500 focus:border-blue-500">
+                    
+                    <option value="">Select penalty time</option>
+                    <option value="15" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 15 ? 'selected' : '' }}>15 Minutes</option>
+                    <option value="30" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 30 ? 'selected' : '' }}>30 Minutes</option>
+                    <option value="45" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 45 ? 'selected' : '' }}>45 Minutes</option>
+                    <option value="60" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 60 ? 'selected' : '' }}>60 Minutes</option>
+                    <option value="90" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 90 ? 'selected' : '' }}>90 Minutes</option>
+                    <option value="120" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 120 ? 'selected' : '' }}>120 Minutes</option>
+
+                </select>
+            </div>
+
+
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 hidden">
 
             {{-- Shift Start Time --}}
             <div class="flex flex-col items-start">

@@ -43,6 +43,14 @@ class StoreRequest extends FormRequest
 
             'shift_start_time' => ['nullable'],
             'shift_end_time'   => ['nullable'],
+
+            'auto_clockout_penalty'   => ['nullable'],
+            'store_id' => [
+                'nullable',
+                'exists:stores,id'
+            ],
+
+
             'social_security'   => ['nullable'],
             
             // Emergency Contact 1

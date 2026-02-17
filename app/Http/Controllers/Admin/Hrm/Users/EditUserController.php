@@ -9,7 +9,7 @@ use App\Models\Locations\State;
 use App\Models\Iam\Personnel\User;
 use App\Models\Iam\AccessControl\Role;
 use App\Enums\UserPayType;
-
+use App\Models\Stores\Store;
 
   class EditUserController extends Controller
 {
@@ -30,6 +30,10 @@ use App\Enums\UserPayType;
 
         $roles = Role::get();
         $paytypes = UserPayType::options();
+        
+$stores = Store::active()
+                ->orderByAdmin()
+                ->pluck('store_name', 'id');
 
 
         return view('admin.hrm.users.edit-user', [
@@ -37,6 +41,7 @@ use App\Enums\UserPayType;
             'user' => $user,
             'roles' => $roles,
             'paytypes' => $paytypes,
+            'stores' => $stores,
 
         ]);
     }

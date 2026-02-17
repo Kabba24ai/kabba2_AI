@@ -12,6 +12,7 @@ use App\Models\Iam\Personnel\EmergencyContact;
 use Illuminate\Support\Str;
 // Helpers
 use App\Helpers\ModelHelper;
+use App\Models\Stores\Store;
 
 class User extends Authenticatable
 {
@@ -32,6 +33,9 @@ class User extends Authenticatable
         'email',
         'mobile_phone',
         'phone_number',
+
+        'store_id',
+
         'street_address',
         'city',
         'state',
@@ -48,6 +52,7 @@ class User extends Authenticatable
 
         'shift_start_time',
         'shift_end_time',
+        'auto_clockout_penalty',
         'vacation_eligible',
         'vacation_allotment_hour_id',
         'vacation_start_day_id',
@@ -210,5 +215,8 @@ class User extends Authenticatable
         ->whereYear('start_date', $year);
     }
 
-
+public function store()
+{
+    return $this->belongsTo(Store::class);
+}
 }

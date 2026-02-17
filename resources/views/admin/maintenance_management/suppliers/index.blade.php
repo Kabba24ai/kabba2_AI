@@ -99,20 +99,17 @@
         </div>
 
         {{-- Tags --}}
-
-
+       
         {{-- Tags Filter --}}
-{{-- Tags Filter --}}
-<div class="w-full sm:w-48">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+        <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
 
-    <select name="tag"
-        id="tags_select"
-        class=" w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
-       <option value="">All Tags</option>
-    </select>
-</div>
-
+            <select name="tag"
+                id="tags_select"
+                class=" w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+            <option value="">All Tags</option>
+            </select>
+        </div>
 
         {{-- Status Dropdown --}}
         <div class="w-full sm:w-48">
@@ -127,13 +124,27 @@
         </div>
 
         {{-- Buttons --}}
-        <!-- <div class="flex gap-2">
+         <div class="flex gap-2">
 
-            <a href="{{ route('admin.maintenance-management.suppliers.index') }}" class="text-sm text-gray-600 bg-white px-3 py-3 rounded-md border border-gray-300">
-                Clear All Filters
-            </a>
+            {{-- <a href="{{ route('admin.maintenance-management.suppliers.index') }}" class="text-sm text-gray-600 bg-white px-3 py-3 rounded-md border border-gray-300">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg> Clear 
+            </a> --}}
+{{-- href="{{ route('admin.maintenance-management.suppliers.index') }}" --}}
+            <button type="button"
+                id="clearFiltersBtn"
+                class="hidden text-sm text-gray-600 bg-white px-3 py-3 rounded-md border border-gray-300 flex items-center gap-2">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear
+            </button>
 
-        </div> -->
+
+        </div> 
     </form>
 </div>
 
@@ -207,8 +218,11 @@
         tag: document.querySelector('select[name="tag"]'), // Choices.js dropdown
     };
 
+        const clearBtn = document.getElementById('clearFiltersBtn');
+
     // Load stored filters into fields
     FilterFreezer.loadFilters(screenKey, fieldMap);
+updateClearButton();
 
 
 
@@ -240,9 +254,9 @@
             });
 
             // Append select values
-          selects.forEach(select => {
-    params.append(select.name, select.value || "");
-});
+            selects.forEach(select => {
+            params.append(select.name, select.value || "");
+             });
 
 
             // Add loader effect
@@ -273,6 +287,49 @@
                     wrapper.classList.remove('opacity-50', 'pointer-events-none');
                 });
         };
+        
+
+           clearBtn?.addEventListener('click', function () {
+
+                // Clear localStorage
+                localStorage.removeItem(screenKey);
+
+                //  Reset normal fields
+                Object.values(fieldMap).forEach(field => {
+                    if (!field) return;
+
+                    if (field.name === 'tag' && window.filterTagChoices) {
+                        window.filterTagChoices.removeActiveItems(); //  Reset Choices UI
+                    } else {
+                        field.value = '';
+                    }
+                });
+
+                //  Reload table
+                fetchSuppliers(1, perPage);
+
+                //  Hide button
+                updateClearButton();
+            });
+
+
+        function updateClearButton() {
+
+        const hasFilters =
+                fieldMap.search_name_email?.value.trim() !== '' ||
+                fieldMap.company_search?.value.trim() !== '' ||
+                fieldMap.part_search?.value.trim() !== '' ||
+                fieldMap.category?.value !== '' ||
+                fieldMap.status?.value !== '' ||
+                fieldMap.tag?.value !== '';
+
+            if (hasFilters) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        }
+
 
         // --- Input listeners with debounce ---
         inputs.forEach(input => {
@@ -281,13 +338,24 @@
                 timeout = setTimeout(() => {
                     window.fetchSuppliers();
                 }, 400);
+
+                        updateClearButton();
+
             });
         });
 
         // --- Select listeners (instant filter) ---
+        // selects.forEach(select => {
+        //     select.addEventListener('change', window.fetchSuppliers);
+        // });
+
         selects.forEach(select => {
-            select.addEventListener('change', window.fetchSuppliers);
+            select.addEventListener('change', function () {
+                window.fetchSuppliers();
+                updateClearButton();
+            });
         });
+
 
         // --- Global delete supplier function ---
         window.deleteSupplier = function(id, name) {

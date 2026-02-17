@@ -210,17 +210,6 @@
 
 
                         <div class="flex gap-2">
-                            <button type="button" id="clear-filters"
-                                class="hidden text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Clear
-                            </button>
-                        </div>
-
-                        <div class="flex gap-2">
                             <a href="javascript:void(0)" onclick="openSupplierModal()"
                                 class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
                                 <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor"
@@ -232,6 +221,19 @@
                                 Supplier Search
                             </a>
                         </div>
+
+                        
+                        <div class="flex gap-2">
+                            <button type="button" id="clear-filters"
+                                class="hidden text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Clear
+                            </button>
+                        </div>
+
 
                         <div class="flex gap-2 w-full sm:w-auto sm:ml-auto">
                             <a href="{{ route('admin.maintenance-management.parts.create') }}"
@@ -301,6 +303,16 @@
                                     @endforeach
                                 </select>
                             </div>
+                           <button type="button"
+                                id="clearTplFiltersBtn"
+                                class="hidden flex items-center gap-2 text-sm text-gray-600 bg-white px-6 py-3 rounded-lg border border-gray-300">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Clear
+                            </button>
+
                         </div>
 
                         {{-- Right Side: Action Buttons --}}
@@ -865,7 +877,19 @@ fetchParts(pageParam, perPageParam); // initial load
             let tcategorySelect = document.querySelector('select[name="tcategory"]');
 
             let twrapper = document.querySelector('#templates-table-wrapper');
+const clearTplBtn = document.getElementById('clearTplFiltersBtn');
 
+function updateTplClearButton() {
+    const hasFilters =
+        (tsearchInput?.value.trim() !== '') ||
+        (tcategorySelect?.value !== '');
+
+    if (hasFilters) {
+        clearTplBtn?.classList.remove('hidden');
+    } else {
+        clearTplBtn?.classList.add('hidden');
+    }
+}
 
 /* -----------------------------
     PART LIST FILTER FREEZE SETUP
@@ -879,6 +903,7 @@ const tplFieldMap = {
 
 // Load before any fetch
 FilterFreezer.loadFilters(tplScreenKey, tplFieldMap);
+updateTplClearButton();
 
 let currentTplPage = 1;     
 let tplPerPageParam = 10;  
@@ -934,9 +959,33 @@ function fetchTemplates(page = currentTplPage, perPage = tplPerPageParam) {
             tsearchInput?.addEventListener('input', function() {
     clearTimeout(timeout);
     timeout = setTimeout(() => fetchTemplates(1, tplPerPageParam), 400);
+        updateTplClearButton();
+
 });
 
-tcategorySelect?.addEventListener('change', () => fetchTemplates(1, tplPerPageParam));
+// tcategorySelect?.addEventListener('change', () => fetchTemplates(1, tplPerPageParam));
+
+
+tcategorySelect?.addEventListener('change', function() {
+    fetchTemplates(1, tplPerPageParam);
+    updateTplClearButton();
+});
+
+clearTplBtn?.addEventListener('click', function () {
+
+    //  Clear localStorage
+    localStorage.removeItem(tplScreenKey);
+
+    //  Reset fields
+    if (tsearchInput) tsearchInput.value = '';
+    if (tcategorySelect) tcategorySelect.value = '';
+
+    //  Reload first page
+    fetchTemplates(1, tplPerPageParam);
+
+    //  Hide button again
+    updateTplClearButton();
+});
 
 
 twrapper.addEventListener('click', function(e){

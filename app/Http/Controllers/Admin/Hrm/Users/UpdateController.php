@@ -50,9 +50,14 @@ class UpdateController extends Controller
 
                 'status'         => $validated['status'],
 
+                
+'store_id' => $validated['store_id'] ?? null,
+
                 'limit_start_time' => $validated['limit_start'] ?? false,
 
                 'limit_end_time' => $validated['limit_end'] ?? false,
+
+                'auto_clockout_penalty' => $validated['auto_clockout_penalty'] ?? null,
 
                 'shift_start_time' => !empty($validated['shift_start_time'])
         ? Carbon::createFromFormat('h:i A', $validated['shift_start_time'])->format('H:i')

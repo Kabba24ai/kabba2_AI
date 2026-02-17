@@ -5,6 +5,7 @@ namespace App\Models\Stores;
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Iam\Personnel\User;
 
 class Store extends Model
 {
@@ -95,4 +96,9 @@ class Store extends Model
     {
         return $this->hasMany(HoursOfOperation::class);
     }
+    public function users()
+{
+    return $this->hasMany(User::class);
+}
+
 }

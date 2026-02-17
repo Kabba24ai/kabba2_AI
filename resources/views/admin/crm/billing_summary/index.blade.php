@@ -349,6 +349,9 @@
             const icon = document.getElementById('refreshIcon');
             icon.classList.add('animate-spin'); // Tailwind built-in animation class
             // page reloads normally, animation will play before reload
+
+               // Clear billing summary filters
+              localStorage.removeItem('billing_summary_filters');
         });
     </script>
 @endpush

@@ -37,46 +37,69 @@
     </div>
 
 
-    <!-- Filters -->
+
+
     <div class="bg-white border border-gray-200 rounded-md p-4 w-full mt-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div>
-                <label class="text-sm font-medium text-gray-700 mb-1 block">Search Systems</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z" />
-                        </svg>
-                    </div>
-                    <input type="text" placeholder="Search checklist systems..."
-                        class="w-full border pl-10 pr-3 py-2 rounded-md text-sm" />
-                </div>
-            </div>
-            <div>
-                <label class="text-sm font-medium text-gray-700 mb-1 block">Filter by Category</label>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
 
-                {!! html()->select('equipment_category', ['' => 'All Categories'] + $equipmentCategories)->class('w-full border px-3 py-2 rounded-md text-sm')->attribute('id', 'categoryFilter')->attribute('required', true)->attribute('data-parsley-required-message', 'Equipment category is required.') !!}
-
-            </div>
-            <div>
-                <label class="text-sm font-medium text-gray-700 mb-1 block">Results</label>
-                <div class="border rounded-md px-3 py-2 text-sm flex items-center gap-2">
-                    <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+       
+        <div class="md:col-span-4">
+            <label class="text-sm font-medium text-gray-700 mb-1 block">Search Systems</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z" />
                     </svg>
-
-                    {{ $checklistMasters->count() }} of {{ $checklistMasters->count() }}
-                    {{ Str::plural('system', $checklistMasters->count()) }}
                 </div>
+                <input type="text"
+                    placeholder="Search checklist systems..."
+                    class="w-full border pl-10 pr-3 py-2 rounded-md text-sm" />
             </div>
         </div>
-    </div>
 
-    <!-- Table -->
+       
+        <div class="md:col-span-4">
+            <label class="text-sm font-medium text-gray-700 mb-1 block">Filter by Category</label>
+            {!! html()->select('equipment_category', ['' => 'All Categories'] + $equipmentCategories)
+                ->class('w-full border px-3 py-2 rounded-md text-sm')
+                ->attribute('id', 'categoryFilter') !!}
+        </div>
+
+       
+        <div class="md:col-span-3">
+            <label class="text-sm font-medium text-gray-700 mb-1 block">Results</label>
+            <div class="flex items-center gap-2 border rounded-md px-3 py-2 text-sm">
+                <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                            </svg>
+
+                <span>
+                    {{ $checklistMasters->count() }} of {{ $checklistMasters->count() }}
+                    {{ Str::plural('system', $checklistMasters->count()) }}
+                </span>
+            </div>
+        </div>
+
+        
+        <div class="md:col-span-1 flex items-end justify-start">
+            <button type="button"
+                id="clearChecklistFiltersBtn"
+                class="hidden flex items-center gap-2 text-sm text-gray-600 bg-white px-3 py-2 rounded-md border border-gray-300">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear
+            </button>
+        </div>
+
+    </div>
+</div>
 
 
 <div id="checklist-wrapper">
@@ -136,6 +159,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const categoryFilter = document.getElementById('categoryFilter');
     const searchInput = document.querySelector('input[placeholder="Search checklist systems..."]');
     const wrapper = document.querySelector('#checklist-wrapper');
+const clearBtn = document.getElementById('clearChecklistFiltersBtn');
+
+function updateClearButton() {
+
+    const hasFilters =
+        categoryFilter?.value !== '' ||
+        searchInput?.value.trim() !== '';
+
+    if (hasFilters) {
+        clearBtn?.classList.remove('hidden');
+    } else {
+        clearBtn?.classList.add('hidden');
+    }
+}
 
     let timeout = null;
 
@@ -145,6 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     FilterFreezer.loadFilters(screenKey, fieldMap);
+updateClearButton();
 
     function fetchList(page = 1, perPage = 10) {
         const params = new URLSearchParams();
@@ -190,8 +228,37 @@ document.addEventListener("DOMContentLoaded", () => {
         timeout = setTimeout(() => fetchList(), 400);
     }
 
-    categoryFilter.addEventListener('change', () => fetchList());
-    searchInput.addEventListener('input', filtersUpdated);
+    // categoryFilter.addEventListener('change', () => fetchList());
+
+    categoryFilter.addEventListener('change', function () {
+    fetchList();
+    updateClearButton();
+});
+
+searchInput.addEventListener('input', function () {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fetchList(), 400);
+    updateClearButton();
+});
+
+
+clearBtn?.addEventListener('click', function () {
+
+    //  Clear localStorage
+    localStorage.removeItem(screenKey);
+
+    //  Reset fields
+    categoryFilter.value = '';
+    searchInput.value = '';
+
+    //  Reload first page
+    fetchList(1, 10);
+    // Hide button
+    updateClearButton();
+});
+
+
+    // searchInput.addEventListener('input', filtersUpdated);
 
     // Initial load
     fetchList(

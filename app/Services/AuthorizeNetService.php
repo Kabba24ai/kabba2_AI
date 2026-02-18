@@ -573,7 +573,7 @@ class AuthorizeNetService
 
         $transactionRequest = new AnetAPI\TransactionRequestType();
         $transactionRequest->setTransactionType('authCaptureTransaction');
-        $transactionRequest->setAmount(2.00);
+        $transactionRequest->setAmount($amount);
 
         $customerProfileId = null;
         $paymentProfileId = null;
@@ -1028,6 +1028,293 @@ class AuthorizeNetService
             return $cardDetails;
         }
         return null;
+    }
+
+    /**
+     * Get declined/failed transactions from Authorize.Net (unsettled + settled batches)
+     *
+     * @param int $daysBack Number of days to search back (default 30)
+     * @return array
+     */
+    public function getDeclinedTransactions(int $daysBack = 365): array
+    {
+        try {
+            logger()->info("========== Starting getDeclinedTransactions for {$daysBack} days ==========");
+            $allDeclinedTransactions = [];
+
+            // 1. Get unsettled (recent) declined transactions
+            logger()->info("Step 1: Fetching unsettled declined transactions");
+            $unsettledResult = $this->getUnsettledDeclinedTransactions();
+            if ($unsettledResult['success']) {
+                $unsettledCount = count($unsettledResult['transactions']);
+                logger()->info("Found {$unsettledCount} unsettled declined transactions");
+                $allDeclinedTransactions = array_merge($allDeclinedTransactions, $unsettledResult['transactions']);
+            } else {
+                logger()->warning("Failed to fetch unsettled transactions");
+            }
+
+            // 2. Get settled declined transactions from batches
+            logger()->info("Step 2: Fetching settled declined transactions from batches");
+            $settledResult = $this->getSettledDeclinedTransactions($daysBack);
+            if ($settledResult['success']) {
+                $settledCount = count($settledResult['transactions']);
+                logger()->info("Found {$settledCount} settled declined transactions");
+                $allDeclinedTransactions = array_merge($allDeclinedTransactions, $settledResult['transactions']);
+            } else {
+                logger()->warning("Failed to fetch settled transactions");
+            }
+
+            logger()->info("Step 3: Removing duplicates from total " . count($allDeclinedTransactions) . " transactions");
+
+            // Remove duplicates based on transaction_id
+            $uniqueTransactions = [];
+            $seenIds = [];
+            foreach ($allDeclinedTransactions as $transaction) {
+                $txnId = $transaction['transaction_id'];
+                if (!in_array($txnId, $seenIds)) {
+                    $uniqueTransactions[] = $transaction;
+                    $seenIds[] = $txnId;
+                }
+            }
+
+            logger()->info("After deduplication: " . count($uniqueTransactions) . " unique transactions");
+
+            // Sort by submit time (newest first)
+            usort($uniqueTransactions, function ($a, $b) {
+                $timeA = strtotime($a['submit_time']);
+                $timeB = strtotime($b['submit_time']);
+                return $timeB - $timeA;
+            });
+
+            logger()->info("========== Completed: Returning " . count($uniqueTransactions) . " declined transactions ==========");
+
+            return [
+                'success' => true,
+                'message' => 'Declined transactions retrieved successfully',
+                'transactions' => $uniqueTransactions,
+                'total_count' => count($uniqueTransactions),
+            ];
+        } catch (\Exception $e) {
+            logger()->error('Error fetching declined transactions from Authorize.Net: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+                'transactions' => [],
+            ];
+        }
+    }
+
+    /**
+     * Get unsettled declined transactions (last 24 hours typically)
+     *
+     * @return array
+     */
+    private function getUnsettledDeclinedTransactions(): array
+    {
+        try {
+            $request = new AnetAPI\GetUnsettledTransactionListRequest();
+            $request->setMerchantAuthentication($this->merchantAuthentication);
+
+            $controller = new AnetController\GetUnsettledTransactionListController($request);
+            $response = $this->executeWithApiResponseTimed($controller);
+
+            if ($response === null || $response->getMessages()->getResultCode() !== 'Ok') {
+                return ['success' => false, 'transactions' => []];
+            }
+
+            $transactions = $response->getTransactions() ?? [];
+            $declinedTransactions = [];
+
+            foreach ($transactions as $transaction) {
+                $transactionStatus = $transaction->getTransactionStatus();
+
+                if (in_array(strtolower($transactionStatus), ['declined', 'failed', 'error', 'failedreview', 'returneditem'])) {
+                    $submitTime = $transaction->getSubmitTimeUTC();
+                    $submitTimeStr = ($submitTime instanceof \DateTime) ? $submitTime->format('Y-m-d H:i:s') : (string) $submitTime;
+
+                    $declinedTransactions[] = [
+                        'transaction_id' => $transaction->getTransId(),
+                        'submit_time' => $submitTimeStr,
+                        'transaction_status' => $transactionStatus,
+                        'invoice_number' => $transaction->getInvoiceNumber(),
+                        'first_name' => $transaction->getFirstName(),
+                        'last_name' => $transaction->getLastName(),
+                        'account_number' => $transaction->getAccountNumber(),
+                        'account_type' => $transaction->getAccountType(),
+                        'settle_amount' => $transaction->getSettleAmount(),
+                    ];
+                }
+            }
+
+            return [
+                'success' => true,
+                'transactions' => $declinedTransactions,
+            ];
+        } catch (\Exception $e) {
+            logger()->error('Error fetching unsettled declined transactions: ' . $e->getMessage());
+            return ['success' => false, 'transactions' => []];
+        }
+    }
+
+    /**
+     * Get declined transactions from settled batches
+     *
+     * @param int $daysBack Number of days to search back
+     * @return array
+     */
+    private function getSettledDeclinedTransactions(int $daysBack): array
+    {
+        try {
+            // Get settled batches for the date range
+            $firstSettlementDate = new \DateTime();
+            $firstSettlementDate->modify("-{$daysBack} days");
+            $lastSettlementDate = new \DateTime();
+
+            logger()->info("Fetching settled batches from {$firstSettlementDate->format('Y-m-d')} to {$lastSettlementDate->format('Y-m-d')} ({$daysBack} days)");
+
+            $request = new AnetAPI\GetSettledBatchListRequest();
+            $request->setMerchantAuthentication($this->merchantAuthentication);
+            $request->setIncludeStatistics(true);
+            $request->setFirstSettlementDate($firstSettlementDate);
+            $request->setLastSettlementDate($lastSettlementDate);
+
+            $controller = new AnetController\GetSettledBatchListController($request);
+            $response = $this->executeWithApiResponseTimed($controller);
+
+            if ($response === null || $response->getMessages()->getResultCode() !== 'Ok') {
+                $errorMessage = 'Failed to get settled batch list';
+                if ($response !== null) {
+                    $messages = $response->getMessages()->getMessage();
+                    if (!empty($messages)) {
+                        $errorMessage .= ': ' . $messages[0]->getText();
+                    }
+                }
+                logger()->warning($errorMessage);
+                return ['success' => false, 'transactions' => []];
+            }
+
+            $batchList = $response->getBatchList() ?? [];
+            $batchCount = count($batchList);
+            logger()->info("Found {$batchCount} settled batches for {$daysBack} days");
+
+            if ($batchCount === 0) {
+                logger()->info("No batches found for the date range");
+                return ['success' => true, 'transactions' => []];
+            }
+
+            // Sort batches by settlement date (newest first)
+            usort($batchList, function($a, $b) {
+                $dateA = $a->getSettlementTimeUTC();
+                $dateB = $b->getSettlementTimeUTC();
+                if ($dateA instanceof \DateTime && $dateB instanceof \DateTime) {
+                    return $dateB->getTimestamp() - $dateA->getTimestamp();
+                }
+                return 0;
+            });
+
+            $declinedTransactions = [];
+            $processedBatches = 0;
+
+            logger()->info("Will process ALL {$batchCount} batches (no limits)");
+
+            // Get transactions from EVERY single batch
+            foreach ($batchList as $index => $batch) {
+                $batchId = $batch->getBatchId();
+                $settlementDate = $batch->getSettlementTimeUTC();
+                $settlementDateStr = ($settlementDate instanceof \DateTime) ? $settlementDate->format('Y-m-d H:i:s') : 'unknown';
+
+                $currentProgress = $processedBatches + 1;
+                logger()->info("[{$currentProgress}/{$batchCount}] Processing batch {$batchId} (settled: {$settlementDateStr})");
+
+                $batchTransactions = $this->getTransactionsFromBatch($batchId);
+
+                if (!empty($batchTransactions)) {
+                    $declinedTransactions = array_merge($declinedTransactions, $batchTransactions);
+                    logger()->info("[{$currentProgress}/{$batchCount}] Batch {$batchId} added " . count($batchTransactions) . " declined transactions. Running total: " . count($declinedTransactions));
+                } else {
+                    logger()->info("[{$currentProgress}/{$batchCount}] Batch {$batchId} has no declined transactions");
+                }
+
+                $processedBatches++;
+
+                // Add small delay to avoid API rate limits
+                if ($processedBatches % 20 === 0) {
+                    logger()->info("Progress: Processed {$processedBatches}/{$batchCount} batches, pausing briefly...");
+                    usleep(200000); // 0.2 second delay every 20 batches
+                }
+            }
+
+            logger()->info("========== BATCH PROCESSING COMPLETE ==========");
+            logger()->info("Total batches processed: {$processedBatches}/{$batchCount}");
+            logger()->info("Total declined transactions found: " . count($declinedTransactions));
+            logger()->info("===============================================");
+
+            return [
+                'success' => true,
+                'transactions' => $declinedTransactions,
+            ];
+        } catch (\Exception $e) {
+            logger()->error('Error fetching settled declined transactions: ' . $e->getMessage());
+            return ['success' => false, 'transactions' => []];
+        }
+    }
+
+    /**
+     * Get declined transactions from a specific batch
+     *
+     * @param string $batchId
+     * @return array
+     */
+    private function getTransactionsFromBatch(string $batchId): array
+    {
+        try {
+            $request = new AnetAPI\GetTransactionListRequest();
+            $request->setMerchantAuthentication($this->merchantAuthentication);
+            $request->setBatchId($batchId);
+
+            $controller = new AnetController\GetTransactionListController($request);
+            $response = $this->executeWithApiResponseTimed($controller);
+
+            if ($response === null || $response->getMessages()->getResultCode() !== 'Ok') {
+                logger()->warning("Failed to get transactions for batch {$batchId}");
+                return [];
+            }
+
+            $transactions = $response->getTransactions() ?? [];
+            $declinedTransactions = [];
+
+            foreach ($transactions as $transaction) {
+                $transactionStatus = $transaction->getTransactionStatus();
+
+                // Filter for declined/failed statuses
+                if (in_array(strtolower($transactionStatus), ['declined', 'failed', 'error', 'voided'])) {
+                    $submitTime = $transaction->getSubmitTimeUTC();
+                    $submitTimeStr = ($submitTime instanceof \DateTime) ? $submitTime->format('Y-m-d H:i:s') : (string) $submitTime;
+
+                    $declinedTransactions[] = [
+                        'transaction_id' => $transaction->getTransId(),
+                        'submit_time' => $submitTimeStr,
+                        'transaction_status' => $transactionStatus,
+                        'invoice_number' => $transaction->getInvoiceNumber() ?? null,
+                        'first_name' => $transaction->getFirstName() ?? null,
+                        'last_name' => $transaction->getLastName() ?? null,
+                        'account_number' => $transaction->getAccountNumber() ?? null,
+                        'account_type' => $transaction->getAccountType() ?? null,
+                        'settle_amount' => $transaction->getSettleAmount() ?? 0,
+                        'batch_id' => $batchId,
+                    ];
+                }
+            }
+
+            if (count($declinedTransactions) > 0) {
+                logger()->info("Batch {$batchId}: Found " . count($declinedTransactions) . " declined transactions");
+            }
+
+            return $declinedTransactions;
+        } catch (\Exception $e) {
+            logger()->error('Error fetching transactions from batch ' . $batchId . ': ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**

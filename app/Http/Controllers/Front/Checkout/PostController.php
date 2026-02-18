@@ -64,7 +64,10 @@ class PostController extends Controller
             // Validate employee code if provided
             $employee = User::where('employee_code', $employeeCode)->active()->first();
             if (!$employee) {
-                return redirect()->back()->withInput()->with('error', 'Invalid employee code.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid employee code.',
+                ]);
             }
         } else {
             $employee = null;
@@ -304,8 +307,6 @@ class PostController extends Controller
             $order->pending_terms_content = $termsContentData['terms_content'] ?? null;
             $order->terms_status = OrderTermsStatus::Pending;
             $order->saveQuietly(); // saveQuietly() saves the model to the database without firing any Eloquent events (like "saved", "updated", etc.)
-            DB::commit();
-            Log::info('Database transaction committed at ' . now());
 
             // If payment type is card, process payment using AuthorizeNetService
             if (strtolower($validated['payment']) === 'card') {
@@ -320,7 +321,11 @@ class PostController extends Controller
                     $customerProfileId = $customer->authorize_profile_id;
 
                     if (!$customerProfileId) {
-                        return back()->withInput()->with('error', 'Customer profile not found for saved card.');
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Customer profile not found for saved card.',
+                        ]);
                     }
 
                     $authorizeNetService = new AuthorizeNetService();
@@ -335,25 +340,40 @@ class PostController extends Controller
 
                     if (($paymentResult['status'] ?? null) !== 'success') {
                         logger()->error('Profile payment failed for Order ID: ' . $order->unique_id . ' - ' . ($paymentResult['message'] ?? 'Unknown error'));
-                        return back()
-                            ->withInput()
-                            ->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => $paymentResult['message'] ?? 'Payment failed.',
+                        ]);
                     }
                 } else {
                     $opaqueDataValue = $validated['opaqueDataValue'] ?? null;
                     $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
 
                     if (!$opaqueDataValue || !$opaqueDataDescriptor) {
-                        return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Payment data missing or invalid.',
+                        ]);
                     }
                     $authorizeNetService = new AuthorizeNetService();
                     if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
-                        return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Payment token invalid.',
+                        ]);
                     }
                     Log::info('Opaque data validated at ' . now());
                     $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
                     if ($paymentResult['status'] !== 'success') {
                         logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => $paymentResult['message'] ?? 'Payment failed.',
+                        ]);
                     }
                     Log::info('Card payment processed at ' . now() . ' with status: ' . $paymentResult['status']);
                 }
@@ -445,6 +465,9 @@ class PostController extends Controller
                 session()->forget('tax_exempt'); // Clear tax exempt session if already set
             }
 
+            DB::commit();
+            Log::info('Database transaction committed at ' . now());
+
             Log::info('Determining order action type at ' . now());
 
             $orderActionType = null;
@@ -516,7 +539,7 @@ class PostController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong. Please try again.'
+                'message' => 'An error occurred while processing your order. Please try again. Error: ' . $e->getMessage(),
             ]);
         }
     }

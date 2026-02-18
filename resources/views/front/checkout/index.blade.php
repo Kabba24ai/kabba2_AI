@@ -850,7 +850,6 @@
                     }
                 })
                .catch(() => {
-                    notyf.error('Network error. Please try again.');
                     enableCheckoutButton();
                 });
             }

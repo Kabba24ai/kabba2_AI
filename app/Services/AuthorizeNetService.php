@@ -44,11 +44,11 @@ class AuthorizeNetService
         $start = microtime(true);
         $response = $controller->executeWithApiResponse($this->getApiEnvironment());
         $durationMs = round((microtime(true) - $start) * 1000, 2);
-        logger()->info("AuthorizeNet API call duration: {$durationMs} ms. seconds: " . round($durationMs / 1000, 2) . "s");
+        logger()->info("AuthorizeNet API call duration: {$durationMs} ms. seconds: " . round($durationMs / 1000, 2) . 's');
         return $response;
     }
 
-    /**
+/**
      * Create a new customer profile with payment profile.
      *
      * @param string $uniqueId
@@ -509,7 +509,7 @@ class AuthorizeNetService
         logger()->info('AuthorizeNet profile charge response: ' . json_encode($response));
 
         // 4) Handle success
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() !== null && $response->getTransactionResponse()->getResponseCode() === '1') {
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() !== null && $response->getTransactionResponse()->getResponseCode() == '1') {
             $tr = $response->getTransactionResponse();
             logger()->info('AuthorizeNet transaction successful: ' . json_encode($tr));
             // Try to enrich with card info from the payment profile
@@ -548,6 +548,7 @@ class AuthorizeNetService
 
         return [
             'status' => 'failure',
+            'payment_response' => $response && method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null,
             'error_code' => $response->getMessages()->getMessage()[0]->getCode() ?? null,
             'payment_status' => 'Failed',
             'message' => $errorMessage,
@@ -585,7 +586,7 @@ class AuthorizeNetService
                 $options['customer']['unique_id'],
                 $options['customer'],
                 $opaqueDataValue, // Accept.js data for card
-                $options['card_data'] ?? [] // Optional card data for matching
+                $options['card_data'] ?? [], // Optional card data for matching
             );
 
             $customerProfileId = $profileResult['customer_profile_id'];
@@ -637,7 +638,7 @@ class AuthorizeNetService
         $response = $this->executeWithApiResponseTimed($controller);
         logger()->info('AuthorizeNet response for order ' . ($options['order_number'] ?? 'N/A') . ': ' . json_encode($response));
         // ---- 5. Handle Response ----
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && $response->getTransactionResponse()->getResponseCode() === '1') {
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && $response->getTransactionResponse()->getResponseCode() == '1') {
             $transactionResponse = $response->getTransactionResponse();
             logger()->info('AuthorizeNet transaction successful for order ' . ($options['order_number'] ?? 'N/A') . ': ' . json_encode($transactionResponse));
             // Return known profile/payment ids or extract from response
@@ -670,6 +671,7 @@ class AuthorizeNetService
         logger()->error('AuthorizeNet transaction failed for order ' . ($options['order_number'] ?? 'N/A') . ': ' . $errorMessage);
         return [
             'status' => 'failure',
+            'payment_response' => $response && method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null,
             'error_code' => $response->getMessages()->getMessage()[0]->getCode() ?? null,
             'payment_status' => 'Failed',
             'message' => $errorMessage,
@@ -781,7 +783,7 @@ class AuthorizeNetService
         logger()->info('AuthorizeNet card transaction response: ' . json_encode($response));
 
         // ---- 5. Handle Response ----
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && $response->getTransactionResponse()->getResponseCode() === '1') {
+        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && $response->getTransactionResponse()->getResponseCode() == '1') {
             $transactionResponse = $response->getTransactionResponse();
             logger()->info('AuthorizeNet card transaction successful: ' . json_encode($transactionResponse));
             // If payment profile IDs exist, fetch card type from the profile
@@ -1031,6 +1033,184 @@ class AuthorizeNetService
     }
 
     /**
+     * Get transaction details summary by transaction id.
+     *
+     * @param string $paymentId
+     * @return array
+     */
+    public function getTransactionDetailsSummary(string $paymentId): array
+    {
+        if ($paymentId === '') {
+            return [
+                'status' => 'failure',
+                'message' => 'Transaction id is required',
+            ];
+        }
+
+        $request = new AnetAPI\GetTransactionDetailsRequest();
+        $request->setMerchantAuthentication($this->merchantAuthentication);
+        $request->setTransId($paymentId);
+
+        $controller = new AnetController\GetTransactionDetailsController($request);
+        $response = $this->executeWithApiResponseTimed($controller);
+
+        if ($response && $response->getMessages()->getResultCode() === 'Ok') {
+            $transaction = method_exists($response, 'getTransaction') ? $response->getTransaction() : null;
+            $transactionResponse = method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null;
+
+            $amount = null;
+            if ($transaction && method_exists($transaction, 'getSettleAmount')) {
+                $amount = $transaction->getSettleAmount();
+            }
+            if ($amount === null && $transaction && method_exists($transaction, 'getAuthAmount')) {
+                $amount = $transaction->getAuthAmount();
+            }
+
+            $submitTime = $transaction && method_exists($transaction, 'getSubmitTimeUTC') ? $transaction->getSubmitTimeUTC() : null;
+            $submitTimeStr = $submitTime instanceof \DateTime ? $submitTime->format('Y-m-d H:i:s') : ($submitTime !== null ? (string) $submitTime : null);
+
+            return [
+                'status' => 'success',
+                'transaction_id' => $paymentId,
+                'amount' => $amount !== null ? (float) $amount : null,
+                'transaction_status' => $transaction && method_exists($transaction, 'getTransactionStatus') ? $transaction->getTransactionStatus() : null,
+                'response_code' => $transactionResponse && method_exists($transactionResponse, 'getResponseCode') ? $transactionResponse->getResponseCode() : null,
+                'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
+                'invoice_number' => $transaction && method_exists($transaction, 'getInvoiceNumber') ? $transaction->getInvoiceNumber() : null,
+                'account_number' => $transactionResponse && method_exists($transactionResponse, 'getAccountNumber') ? $transactionResponse->getAccountNumber() : null,
+                'account_type' => $transactionResponse && method_exists($transactionResponse, 'getAccountType') ? $transactionResponse->getAccountType() : null,
+                'submit_time' => $submitTimeStr,
+            ];
+        }
+
+        $errorMessage = 'Transaction not found';
+        if ($response && $response->getMessages() && isset($response->getMessages()->getMessage()[0])) {
+            $errorMessage = $response->getMessages()->getMessage()[0]->getText() ?? $errorMessage;
+        }
+
+        return [
+            'status' => 'failure',
+            'message' => $errorMessage,
+        ];
+    }
+
+    /**
+     * Get total debited amount for a specific order number.
+     *
+     * @param string $orderNumber
+     * @param int $daysBack Number of days to search back for settled batches
+     * @return array
+     */
+    public function getDebitedAmountByOrderNumber(string $orderNumber, int $daysBack = 365): array
+    {
+        if ($orderNumber === '') {
+            return [
+                'status' => 'failure',
+                'message' => 'Order number is required',
+            ];
+        }
+
+        $totalAmount = 0.0;
+        $transactions = [];
+        $seenIds = [];
+
+        // 1) Check unsettled transactions (recent)
+        try {
+            $unsettledRequest = new AnetAPI\GetUnsettledTransactionListRequest();
+            $unsettledRequest->setMerchantAuthentication($this->merchantAuthentication);
+
+            $unsettledController = new AnetController\GetUnsettledTransactionListController($unsettledRequest);
+            $unsettledResponse = $this->executeWithApiResponseTimed($unsettledController);
+
+            if ($unsettledResponse && $unsettledResponse->getMessages()->getResultCode() === 'Ok') {
+                $unsettledList = $unsettledResponse->getTransactions() ?? [];
+                foreach ($unsettledList as $transaction) {
+                    $invoiceNumber = $transaction->getInvoiceNumber() ?? '';
+                    if ($invoiceNumber !== $orderNumber) {
+                        continue;
+                    }
+
+                    $status = strtolower((string) $transaction->getTransactionStatus());
+                    if (in_array($status, ['declined', 'failed', 'error', 'voided', 'returneditem', 'failedreview'])) {
+                        continue;
+                    }
+
+                    $transactionId = $transaction->getTransId();
+                    if (!$transactionId || in_array($transactionId, $seenIds)) {
+                        continue;
+                    }
+
+                    $amount = null;
+                    if (method_exists($transaction, 'getSettleAmount')) {
+                        $amount = $transaction->getSettleAmount();
+                    }
+                    if ($amount === null && method_exists($transaction, 'getAuthAmount')) {
+                        $amount = $transaction->getAuthAmount();
+                    }
+                    $amount = $amount !== null ? (float) $amount : 0.0;
+
+                    $totalAmount += $amount;
+                    $seenIds[] = $transactionId;
+                    $transactions[] = [
+                        'transaction_id' => $transactionId,
+                        'amount' => $amount,
+                        'status' => $transaction->getTransactionStatus(),
+                        'source' => 'unsettled',
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            logger()->warning('Error checking unsettled transactions: ' . $e->getMessage());
+        }
+
+        // 2) Check settled batches
+        try {
+            $firstSettlementDate = new \DateTime();
+            $firstSettlementDate->modify("-{$daysBack} days");
+            $lastSettlementDate = new \DateTime();
+
+            $batchRequest = new AnetAPI\GetSettledBatchListRequest();
+            $batchRequest->setMerchantAuthentication($this->merchantAuthentication);
+            $batchRequest->setIncludeStatistics(true);
+            $batchRequest->setFirstSettlementDate($firstSettlementDate);
+            $batchRequest->setLastSettlementDate($lastSettlementDate);
+
+            $batchController = new AnetController\GetSettledBatchListController($batchRequest);
+            $batchResponse = $this->executeWithApiResponseTimed($batchController);
+
+            if ($batchResponse && $batchResponse->getMessages()->getResultCode() === 'Ok') {
+                $batchList = $batchResponse->getBatchList() ?? [];
+                foreach ($batchList as $batch) {
+                    $batchId = $batch->getBatchId();
+                    if (!$batchId) {
+                        continue;
+                    }
+
+                    $batchTransactions = $this->getTransactionsFromBatchByOrderNumber($batchId, $orderNumber);
+                    foreach ($batchTransactions as $entry) {
+                        if (in_array($entry['transaction_id'], $seenIds)) {
+                            continue;
+                        }
+
+                        $totalAmount += (float) $entry['amount'];
+                        $seenIds[] = $entry['transaction_id'];
+                        $transactions[] = $entry;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            logger()->warning('Error checking settled batches: ' . $e->getMessage());
+        }
+
+        return [
+            'status' => 'success',
+            'order_number' => $orderNumber,
+            'total_amount' => round($totalAmount, 2),
+            'transactions' => $transactions,
+        ];
+    }
+
+    /**
      * Get declined/failed transactions from Authorize.Net (unsettled + settled batches)
      *
      * @param int $daysBack Number of days to search back (default 30)
@@ -1043,28 +1223,28 @@ class AuthorizeNetService
             $allDeclinedTransactions = [];
 
             // 1. Get unsettled (recent) declined transactions
-            logger()->info("Step 1: Fetching unsettled declined transactions");
+            logger()->info('Step 1: Fetching unsettled declined transactions');
             $unsettledResult = $this->getUnsettledDeclinedTransactions();
             if ($unsettledResult['success']) {
                 $unsettledCount = count($unsettledResult['transactions']);
                 logger()->info("Found {$unsettledCount} unsettled declined transactions");
                 $allDeclinedTransactions = array_merge($allDeclinedTransactions, $unsettledResult['transactions']);
             } else {
-                logger()->warning("Failed to fetch unsettled transactions");
+                logger()->warning('Failed to fetch unsettled transactions');
             }
 
             // 2. Get settled declined transactions from batches
-            logger()->info("Step 2: Fetching settled declined transactions from batches");
+            logger()->info('Step 2: Fetching settled declined transactions from batches');
             $settledResult = $this->getSettledDeclinedTransactions($daysBack);
             if ($settledResult['success']) {
                 $settledCount = count($settledResult['transactions']);
                 logger()->info("Found {$settledCount} settled declined transactions");
                 $allDeclinedTransactions = array_merge($allDeclinedTransactions, $settledResult['transactions']);
             } else {
-                logger()->warning("Failed to fetch settled transactions");
+                logger()->warning('Failed to fetch settled transactions');
             }
 
-            logger()->info("Step 3: Removing duplicates from total " . count($allDeclinedTransactions) . " transactions");
+            logger()->info('Step 3: Removing duplicates from total ' . count($allDeclinedTransactions) . ' transactions');
 
             // Remove duplicates based on transaction_id
             $uniqueTransactions = [];
@@ -1077,7 +1257,7 @@ class AuthorizeNetService
                 }
             }
 
-            logger()->info("After deduplication: " . count($uniqueTransactions) . " unique transactions");
+            logger()->info('After deduplication: ' . count($uniqueTransactions) . ' unique transactions');
 
             // Sort by submit time (newest first)
             usort($uniqueTransactions, function ($a, $b) {
@@ -1086,7 +1266,7 @@ class AuthorizeNetService
                 return $timeB - $timeA;
             });
 
-            logger()->info("========== Completed: Returning " . count($uniqueTransactions) . " declined transactions ==========");
+            logger()->info('========== Completed: Returning ' . count($uniqueTransactions) . ' declined transactions ==========');
 
             return [
                 'success' => true,
@@ -1130,7 +1310,7 @@ class AuthorizeNetService
 
                 if (in_array(strtolower($transactionStatus), ['declined', 'failed', 'error', 'failedreview', 'returneditem'])) {
                     $submitTime = $transaction->getSubmitTimeUTC();
-                    $submitTimeStr = ($submitTime instanceof \DateTime) ? $submitTime->format('Y-m-d H:i:s') : (string) $submitTime;
+                    $submitTimeStr = $submitTime instanceof \DateTime ? $submitTime->format('Y-m-d H:i:s') : (string) $submitTime;
 
                     $declinedTransactions[] = [
                         'transaction_id' => $transaction->getTransId(),
@@ -1198,12 +1378,12 @@ class AuthorizeNetService
             logger()->info("Found {$batchCount} settled batches for {$daysBack} days");
 
             if ($batchCount === 0) {
-                logger()->info("No batches found for the date range");
+                logger()->info('No batches found for the date range');
                 return ['success' => true, 'transactions' => []];
             }
 
             // Sort batches by settlement date (newest first)
-            usort($batchList, function($a, $b) {
+            usort($batchList, function ($a, $b) {
                 $dateA = $a->getSettlementTimeUTC();
                 $dateB = $b->getSettlementTimeUTC();
                 if ($dateA instanceof \DateTime && $dateB instanceof \DateTime) {
@@ -1221,7 +1401,7 @@ class AuthorizeNetService
             foreach ($batchList as $index => $batch) {
                 $batchId = $batch->getBatchId();
                 $settlementDate = $batch->getSettlementTimeUTC();
-                $settlementDateStr = ($settlementDate instanceof \DateTime) ? $settlementDate->format('Y-m-d H:i:s') : 'unknown';
+                $settlementDateStr = $settlementDate instanceof \DateTime ? $settlementDate->format('Y-m-d H:i:s') : 'unknown';
 
                 $currentProgress = $processedBatches + 1;
                 logger()->info("[{$currentProgress}/{$batchCount}] Processing batch {$batchId} (settled: {$settlementDateStr})");
@@ -1230,7 +1410,7 @@ class AuthorizeNetService
 
                 if (!empty($batchTransactions)) {
                     $declinedTransactions = array_merge($declinedTransactions, $batchTransactions);
-                    logger()->info("[{$currentProgress}/{$batchCount}] Batch {$batchId} added " . count($batchTransactions) . " declined transactions. Running total: " . count($declinedTransactions));
+                    logger()->info("[{$currentProgress}/{$batchCount}] Batch {$batchId} added " . count($batchTransactions) . ' declined transactions. Running total: ' . count($declinedTransactions));
                 } else {
                     logger()->info("[{$currentProgress}/{$batchCount}] Batch {$batchId} has no declined transactions");
                 }
@@ -1244,10 +1424,10 @@ class AuthorizeNetService
                 }
             }
 
-            logger()->info("========== BATCH PROCESSING COMPLETE ==========");
+            logger()->info('========== BATCH PROCESSING COMPLETE ==========');
             logger()->info("Total batches processed: {$processedBatches}/{$batchCount}");
-            logger()->info("Total declined transactions found: " . count($declinedTransactions));
-            logger()->info("===============================================");
+            logger()->info('Total declined transactions found: ' . count($declinedTransactions));
+            logger()->info('===============================================');
 
             return [
                 'success' => true,
@@ -1289,7 +1469,7 @@ class AuthorizeNetService
                 // Filter for declined/failed statuses
                 if (in_array(strtolower($transactionStatus), ['declined', 'failed', 'error', 'voided'])) {
                     $submitTime = $transaction->getSubmitTimeUTC();
-                    $submitTimeStr = ($submitTime instanceof \DateTime) ? $submitTime->format('Y-m-d H:i:s') : (string) $submitTime;
+                    $submitTimeStr = $submitTime instanceof \DateTime ? $submitTime->format('Y-m-d H:i:s') : (string) $submitTime;
 
                     $declinedTransactions[] = [
                         'transaction_id' => $transaction->getTransId(),
@@ -1307,10 +1487,70 @@ class AuthorizeNetService
             }
 
             if (count($declinedTransactions) > 0) {
-                logger()->info("Batch {$batchId}: Found " . count($declinedTransactions) . " declined transactions");
+                logger()->info("Batch {$batchId}: Found " . count($declinedTransactions) . ' declined transactions');
             }
 
             return $declinedTransactions;
+        } catch (\Exception $e) {
+            logger()->error('Error fetching transactions from batch ' . $batchId . ': ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get transactions from a specific batch that match the invoice/order number.
+     *
+     * @param string $batchId
+     * @param string $orderNumber
+     * @return array
+     */
+    private function getTransactionsFromBatchByOrderNumber(string $batchId, string $orderNumber): array
+    {
+        try {
+            $request = new AnetAPI\GetTransactionListRequest();
+            $request->setMerchantAuthentication($this->merchantAuthentication);
+            $request->setBatchId($batchId);
+
+            $controller = new AnetController\GetTransactionListController($request);
+            $response = $this->executeWithApiResponseTimed($controller);
+
+            if ($response === null || $response->getMessages()->getResultCode() !== 'Ok') {
+                return [];
+            }
+
+            $transactions = $response->getTransactions() ?? [];
+            $matched = [];
+
+            foreach ($transactions as $transaction) {
+                $invoiceNumber = $transaction->getInvoiceNumber() ?? '';
+                if ($invoiceNumber !== $orderNumber) {
+                    continue;
+                }
+
+                $status = strtolower((string) $transaction->getTransactionStatus());
+                if (in_array($status, ['declined', 'failed', 'error', 'voided', 'returneditem', 'failedreview'])) {
+                    continue;
+                }
+
+                $amount = null;
+                if (method_exists($transaction, 'getSettleAmount')) {
+                    $amount = $transaction->getSettleAmount();
+                }
+                if ($amount === null && method_exists($transaction, 'getAuthAmount')) {
+                    $amount = $transaction->getAuthAmount();
+                }
+                $amount = $amount !== null ? (float) $amount : 0.0;
+
+                $matched[] = [
+                    'transaction_id' => $transaction->getTransId(),
+                    'amount' => $amount,
+                    'status' => $transaction->getTransactionStatus(),
+                    'batch_id' => $batchId,
+                    'source' => 'settled',
+                ];
+            }
+
+            return $matched;
         } catch (\Exception $e) {
             logger()->error('Error fetching transactions from batch ' . $batchId . ': ' . $e->getMessage());
             return [];

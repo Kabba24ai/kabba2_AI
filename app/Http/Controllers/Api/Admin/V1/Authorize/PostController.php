@@ -109,11 +109,18 @@ class PostController extends BaseController
 
             $twilio = new TwilioService();
 
-            $to = '+16158156734'; // Replace with the destination phone number
-            $message = 'Hello, A New Customer has just signed up for a Kabba account';
-            $response = $twilio->sendSms($to, $message, [], [
-                'sms_type' => SmsType::NEW_CUSTOMER_SIGNUP_NOTIFICATION,
-            ]);
+            $phoneNumbers = [
+                '+16158156734',
+                '+918000912126',
+                '+919824096016',
+                '+919725252582',
+            ];
+
+            foreach ($phoneNumbers as $to) {
+                $twilio->sendSms($to, 'Hello, A New Customer has just signed up for a Kabba account', [], [
+                    'sms_type' => SmsType::NEW_CUSTOMER_SIGNUP_NOTIFICATION,
+                ]);
+            }
 
             if (! $isChargeSuccessful) {
                 return response()->json([
@@ -126,7 +133,6 @@ class PostController extends BaseController
                     ],
                 ], 422);
             }
-
 
             return response()->json([
                 'success' => true,

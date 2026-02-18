@@ -28,12 +28,14 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\Reorder\PostController as 
 use App\Http\Controllers\Admin\OrderManagement\Orders\AssignEquipmentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\RemoveEquipmentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\DeclinedOrdersController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\TransactionDetailsController;
 
 Route::prefix('orders')
     ->name('orders.')
     ->group(function () {
         Route::get('/', IndexController::class)->name('index');
         Route::get('/declined', DeclinedOrdersController::class)->name('declined');
+        Route::get('/transaction-details/{transaction_id}', TransactionDetailsController::class)->name('transaction-details');
 
         // // Create
         // Route::get('/create', CreateController::class)->name('create');

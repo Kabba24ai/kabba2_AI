@@ -16,7 +16,7 @@ use App\Events\Admin\Orders\OrderMediaUploadedEvent;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\UploadMediaRequest;
-
+use App\Http\Resources\Api\Admin\V1\OrderMedias\ListResource;
 // Models
 use App\Models\Orders\Order;
 
@@ -71,9 +71,13 @@ class UploadMediaController extends Controller
             // Fire OrderMediaUploaded event
             event(new OrderMediaUploadedEvent($order, $typeEnum, auth('api_user')->user()));
 
+            // Fetch the latest uploaded media for this order
+            $latestMedia = $order->media()->with('media')->latest()->first();
+
             return response()->json([
                 'success' => true,
                 'message' => trans('messages.api.admin.v1.orders.media_uploaded'),
+                'media' => new ListResource($latestMedia)
             ]);
 
         } catch (\Exception $e) {

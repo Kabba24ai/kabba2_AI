@@ -511,7 +511,7 @@
                     $selectedAmps = old('amps', isset($equipment) ? $equipment->amps ?? [] : []);
                 @endphp
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
-                    <div >
+                    <div>
                         <label for="power-type-select" class="block text-sm font-medium text-gray-700 mb-1">
                             Power Type
                         </label>
@@ -522,7 +522,7 @@
                                 'batteries' => 'Batteries',
                                 'electric' => 'Electric',
                             ])->class([
-                                'w-30 px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                                'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
                                 'border-red-500' => $errors->has('power_source_type'),
                             ]) !!}
                         @error('power_source_type')
@@ -625,7 +625,7 @@
                             Standard Battery Count
                         </label>
                         {!! html()->text('standard_battery_count')->class([
-                                'w-30 px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                                 'border-red-500' => $errors->has('standard_battery_count'),
                             ])->attributes([
                                 'min' => 0,
@@ -642,7 +642,7 @@
                             Expanded Battery Count
                         </label>
                         {!! html()->text('expanded_battery_count')->class([
-                                'w-30 px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                                 'border-red-500' => $errors->has('expanded_battery_count'),
                             ])->attributes([
                                 'min' => 0,

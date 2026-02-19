@@ -31,7 +31,12 @@ export function initAddToCart(context) {
         const scheduleInput = document.getElementById('scheduleStartDateInput');
         const scheduleDate = scheduleInput ? scheduleInput.value : '';
 
-        const qty = parseInt(document.getElementById('qty').value);
+        let qty = parseInt(document.getElementById('qty').value);
+        // Weekend Special: force qty to 1
+        if (context.productVariant === 'weekend') {
+            qty = 1;
+            document.getElementById('qty').value = 1;
+        }
         const storeId = document.getElementById('storeSelect')?.value || '';
         const serviceOption = document.getElementById('deliveryOptionSelect')?.value || '';
         const serviceMethod = document.querySelector('input[name="service_method"]:checked')?.value || '';

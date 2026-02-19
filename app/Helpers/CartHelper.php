@@ -145,17 +145,17 @@ class CartHelper
                 $pickupTime = '09:00:00';
                 break;
             case 'weekly':
-                $addDays = 7;
+                $addDays = 7 * $quantity; // 7 days for weekly rental
                 $deliveryTime = '09:00:00';
                 $pickupTime = '09:00:00';
                 break;
             case 'monthly':
-                $addDays = 28;
+                $addDays = 28 * $quantity; // 28 days for monthly rental
                 $deliveryTime = '09:00:00';
                 $pickupTime = '09:00:00';
                 break;
             default:
-                $addDays = 1;
+                $addDays = 1 * $quantity; // 1 day for default rental
                 $deliveryTime = '09:00:00';
                 $pickupTime = '09:00:00';
                 break;

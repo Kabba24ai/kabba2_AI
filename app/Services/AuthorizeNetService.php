@@ -81,9 +81,9 @@ class AuthorizeNetService
         }
 
         if (!empty($customer['billing_address']) && is_array($customer['billing_address'])) {
-            if (!empty($customer['billing_address']['address'])) {
-                $customerAddress->setAddress($customer['billing_address']['address']);
-            }
+            // if (!empty($customer['billing_address']['address'])) {
+            //     $customerAddress->setAddress($customer['billing_address']['address']);
+            // }
             if (!empty($customer['billing_address']['city'])) {
                 $customerAddress->setCity($customer['billing_address']['city']);
             }
@@ -276,9 +276,9 @@ class AuthorizeNetService
             $customerAddress->setAddress($customer['address']);
         }
         if (!empty($customer['billing_address']) && is_array($customer['billing_address'])) {
-            if (!empty($customer['billing_address']['address'])) {
-                $customerAddress->setAddress($customer['billing_address']['address']);
-            }
+            // if (!empty($customer['billing_address']['address'])) {
+            //     $customerAddress->setAddress($customer['billing_address']['address']);
+            // }
             if (!empty($customer['billing_address']['city'])) {
                 $customerAddress->setCity($customer['billing_address']['city']);
             }

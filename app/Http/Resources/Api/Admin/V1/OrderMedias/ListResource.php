@@ -20,6 +20,8 @@ class ListResource extends JsonResource
             'id' => $this->id ?? 0,
             'unique_id' => $this->unique_id ?? 0,
             'type' => $this->type ?? '',
+
+            'side' => $this->side ?? '',
             'media_url' => $this->media->url ?? '',
             'media_name' => $this->media->file_name ?? '',
             'media_type' => $this->media->file_type ?? '',

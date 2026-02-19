@@ -19,6 +19,7 @@ class OrderMedia extends Model
     protected $fillable = [
         'unique_id',
         'type', // e.g., license, delivery, pickup
+        'side', // front, back, or null
         'order_id',
         'order_product_id', // Nullable if not applicable
         'media_id',

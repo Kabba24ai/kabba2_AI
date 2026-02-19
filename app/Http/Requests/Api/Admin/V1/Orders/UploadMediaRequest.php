@@ -20,6 +20,7 @@ class UploadMediaRequest extends ApiBaseFormRequest
             'order_product_unique_id' => 'nullable|required_if:type,delivery,pickup|exists:order_products,unique_id',
             'media' => 'required|array',
             'media.*' => 'file', // Each file validation (image or video)
+            'side' => 'nullable|string|in:front,back', // New field for license side
         ];
     }
 
@@ -28,6 +29,7 @@ class UploadMediaRequest extends ApiBaseFormRequest
         $validator->after(function ($validator) {
             $type = $this->input('type');
             $files = $this->file('media', []);
+            $side = $this->input('side');
 
             foreach ((array) $files as $file) {
                 if ($type === OrderMediaType::LICENSE->value) {
@@ -35,6 +37,10 @@ class UploadMediaRequest extends ApiBaseFormRequest
                     if (!$file->isValid() || !in_array($file->extension(), ['jpg', 'jpeg', 'png'])) {
                         $validator->errors()->add('media', 'License type only accepts JPG, JPEG, or PNG images.');
                     }
+                    // License: Require side to be front or back
+                    // if (is_null($side) || !in_array($side, ['front', 'back'])) {
+                    //     $validator->errors()->add('side', 'License type requires side to be either front or back.');
+                    // }
                 } elseif (in_array($type, [OrderMediaType::DELIVERY->value, OrderMediaType::PICKUP->value])) {
                     // Delivery/Pickup: Images and videos
                     if (!$file->isValid() || !in_array($file->extension(), ['jpg', 'jpeg', 'png', 'mp4', 'mov', 'avi'])) {
@@ -61,6 +67,11 @@ class UploadMediaRequest extends ApiBaseFormRequest
             'type' => [
                 'description' => 'The type of media being uploaded. Possible values: license, delivery, pickup.',
                 'example' => 'license',
+                'type' => 'string',
+            ],
+            'side' => [
+                'description' => 'Side of the license image. Possible values: front, back. Required if type is license.',
+                'example' => 'front',
                 'type' => 'string',
             ],
             'order_product_unique_id' => [

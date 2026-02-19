@@ -57,12 +57,17 @@ class UploadMediaController extends Controller
                     }
 
                     if (!empty($mediaData['mediaObj'])) {
-                        $order->media()->create([
+                        $mediaAttributes = [
                             'type' => $typeEnum->value,
                             'order_product_id' => $orderProduct->id ?? null,
                             'media_id' => $mediaData['mediaObj']->id,
                             'created_by' => auth('api_user')->id(),
-                        ]);
+                        ];
+                        // Add 'side' if license
+                        if ($typeEnum === OrderMediaType::LICENSE && $request->filled('side')) {
+                            $mediaAttributes['side'] = $request->input('side');
+                        }
+                        $order->media()->create($mediaAttributes);
                     }
                 }
             }

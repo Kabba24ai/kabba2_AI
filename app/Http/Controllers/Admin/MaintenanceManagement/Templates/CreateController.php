@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\MaintenanceManagement\Parts\Templates;
+namespace App\Http\Controllers\Admin\MaintenanceManagement\Templates;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProductManagement\ProductCategory;

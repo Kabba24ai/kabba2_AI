@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\Crm\MessageManagement\SmsCategory;
+namespace App\Http\Requests\Admin\Crm\MessageManagement\SmsBroadcast;
 
 use Illuminate\Foundation\Http\FormRequest;
 

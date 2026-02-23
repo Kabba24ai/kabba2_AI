@@ -167,14 +167,14 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                         </svg>
                         Refund
                     </a>
-                    <a href="javascript:void(0)" id="openOrderModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-sm font-medium flex items-center gap-2">
+                    {{-- <a href="javascript:void(0)" id="openOrderModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-sm font-medium flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart w-4 h-4">
                             <circle cx="8" cy="21" r="1"></circle>
                             <circle cx="19" cy="21" r="1"></circle>
                             <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
                         </svg>
                         From Order
-                    </a>
+                    </a> --}}
                 </div>
                 <!-- EMPTY STATE (when no items) -->
                 <div id="emptyState" class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">
@@ -253,7 +253,6 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                             @if ($item['type'] !== 'order')
                             <tr data-type="{{ $item['type'] }}" data-id="{{ $item['id'] }}">
 
-
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="font-medium text-gray-900"> {{ $item['name'] }} <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-{{ $badgeColor }}-600 text-white">
                                             {!! $badgeSvg !!}
@@ -266,14 +265,14 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                                 </td>
 
                                 <td class="px-4 py-3 text-center text-sm whitespace-nowrap">{{ $item['qty'] }}</td>
-                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap">{{ \App\Helpers\CustomHelper::formatCurrency($item['unit']) }}</td>
-                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap"> {{ \App\Helpers\CustomHelper::formatCurrency($item['tax']) }} </td>
-                                <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap"> {{ \App\Helpers\CustomHelper::formatCurrency($item['total']) }}</td>
+                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap {{ !in_array($item['type'], ['order', 'charge']) ? 'text-green-600' : '' }}"> {{ !in_array($item['type'], ['order', 'charge']) ? '-' : '' }} {{ \App\Helpers\CustomHelper::formatCurrency($item['unit']) }}</td>
+                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap {{ !in_array($item['type'], ['order', 'charge']) ? 'text-green-600' : '' }}">  {{ !in_array($item['type'], ['order', 'charge']) ? '-' : '' }} {{ \App\Helpers\CustomHelper::formatCurrency($item['tax']) }} </td>
+                                <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap {{ !in_array($item['type'], ['order', 'charge']) ? 'text-green-600' : '' }}">  {{ !in_array($item['type'], ['order', 'charge']) ? '-' : '' }} {{ \App\Helpers\CustomHelper::formatCurrency($item['total']) }}</td>
                                 <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
 
                                     @if($invoice->invoice_status !== 'paid')
-                                    <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
-                                    <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
+                                        <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+                                        <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
                                     @endif
                                 </td>
 
@@ -368,7 +367,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 @endforeach
 
 
-                <div class="flex items-center mt-3">
+                <div class="flex items-center mt-3 gap-1">
 
                     @if ($customer->tax_status === 'Exempt')
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-check w-4 h-4 mr-2 text-green-600">
@@ -378,16 +377,34 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     <span class="text-sm font-medium text-green-600">{{ $customer->tax_status ?? 'N/A' }}</span>
                     @else
                     <x-heroicon-o-shield-check class="w-5 h-5 text-gray-500" />
-                    <span class="text-sm font-medium text-red-600">{{ $customer->tax_status ?? 'N/A' }}</span>
+                    <span class="text-sm font-medium text-gray-600">{{ $customer->tax_status ?? 'N/A' }}</span>
                     @endif
 
                 </div>
 
-                @if ($isEdit)
+                 @if ($isEdit)
+
+                 <div class="flex flex-wrap justify-center gap-2 pt-5">
+                    
+                       <a href="javascript:void(0)" id="openTemplatesModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-md flex items-center">
+                           
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
+                                <line x1="12" x2="12" y1="2" y2="22"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+
+                           Payment
+                       </a>
+
+                   </div>
+
+                 @endif
+
+                {{-- @if ($isEdit)
                 <div class="flex items-center mt-3 mb-2">
                     <label for="invoice_status" class="text-sm font-medium mr-2">Invoice Status:</label>
 
-                    {{-- Invoice Status --}}
+                    
                     {!! html()->select('invoice_status', [
                     'pending' => 'Pending',
                     'paid' => 'Paid',
@@ -403,14 +420,14 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
 
                 </div>
-                {{-- Payment Method (only visible if status = Paid) --}}
+               
                 <div id="payment-method-wrapper" class="hidden mt-3 p-3 border rounded-lg bg-gray-50">
                     <label class="block text-sm font-medium mb-2">Select Payment Method:</label>
 
                     <div class="flex flex-wrap items-center gap-3">
                         @foreach(\App\Enums\Customers\Invoice::cases() as $case)
                         @php
-                        // Only show 'Card' option if current payment method is 'card'
+                        
                         $showOption = $case !== \App\Enums\Customers\Invoice::Card || $invoice->payment_method === 'card';
                         @endphp
 
@@ -430,7 +447,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 </div>
 
 
-                @endif
+                @endif --}}
 
 
             </div>
@@ -447,7 +464,19 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 <!-- Sales Tax -->
                 <div class="flex justify-between py-1 text-sm">
                     <span class="text-gray-700">Sales Tax:</span>
-                    <span class="text-green-600 font-medium" id="invoice-tax">$0.00</span>
+                    <span class="font-medium text-gray-900" id="invoice-tax">$0.00</span>
+                </div>
+
+                 <!-- Discount -->
+                <div class="flex justify-between py-1 text-sm hidden" id="discount-row">
+                    <span class="text-gray-700">Discount:</span>
+                    <span class="text-green-600 font-medium" id="invoice-discount">-$0.00</span>
+                </div>
+
+                <!-- Refund -->
+                <div class="flex justify-between py-1 text-sm hidden" id="refund-row">
+                    <span class="text-gray-700">Refund:</span>
+                    <span class="text-green-600 font-medium" id="invoice-refund">-$0.00</span>
                 </div>
 
                 <!-- Divider -->
@@ -461,6 +490,28 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
             </div>
 
+            <div class="bg-gray-50 px-4 py-4  border-gray-200">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+
+                    </div>
+
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="closeWindow()" type="button" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
+                        </button>
+
+                        <button type="submit" name="action" value="save_new" disabled="" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium shadow transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4 mr-2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            <span id="invoiceActionText2">{{ $isEdit ? 'Update' : 'Create' }} Invoice</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
 
 
         </div>
@@ -468,27 +519,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 </div>
 
 
-<div class="bg-gray-50 px-4 py-4  border-gray-200">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
 
-        </div>
-
-        <div class="flex flex-wrap gap-3">
-            <button onclick="closeWindow()" type="button" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
-            </button>
-
-            <button type="submit" name="action" value="save_new" disabled="" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium shadow transition">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4 mr-2">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-                <span id="invoiceActionText2">{{ $isEdit ? 'Update' : 'Create' }} Invoice</span>
-            </button>
-        </div>
-    </div>
-</div>
 
 
 {{ html()->form()->close() }}
@@ -717,84 +748,192 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
     const invoiceItemsTBody = document.getElementById("invoiceItems"); // Make sure to get this element
 
-    (function() {
-        // Helper to recalculate invoice totals dynamically
-        function updateInvoiceSummary() {
-            const subtotalElem = document.querySelector('#invoice-subtotal');
-            const totalElem = document.querySelector('#invoice-total');
-            const taxElem = document.querySelector('#invoice-tax');
-            const createBtn = document.querySelector('button[name="action"][value="save_new"]');
+    // (function() {
+    //     // Helper to recalculate invoice totals dynamically
+    //     function updateInvoiceSummary() {
+    //         const subtotalElem = document.querySelector('#invoice-subtotal');
+    //         const totalElem = document.querySelector('#invoice-total');
+    //         const taxElem = document.querySelector('#invoice-tax');
+    //         const createBtn = document.querySelector('button[name="action"][value="save_new"]');
 
-            const subtotalInput = document.getElementById("invoiceSubtotalInput");
-            const taxInput = document.getElementById("invoiceTaxInput");
-            const totalInput = document.getElementById("invoiceTotalInput");
-            const invoiceDataInput = document.getElementById("invoiceDataInput");
+    //         const subtotalInput = document.getElementById("invoiceSubtotalInput");
+    //         const taxInput = document.getElementById("invoiceTaxInput");
+    //         const totalInput = document.getElementById("invoiceTotalInput");
+    //         const invoiceDataInput = document.getElementById("invoiceDataInput");
 
-            let subtotal = 0;
-            let totalTax = 0;
+    //         let subtotal = 0;
+    //         let totalTax = 0;
 
-            const rows = invoiceItemsTBody.querySelectorAll("tr");
+    //         const rows = invoiceItemsTBody.querySelectorAll("tr");
 
-            rows.forEach(row => {
+    //         rows.forEach(row => {
 
-                const type = row.dataset.type; // "charge", "order", "discount", "refund"
+    //             const type = row.dataset.type; // "charge", "order", "discount", "refund"
 
-                const priceCell = row.querySelector("td:nth-child(3)"); // This should be the price per item
-                const taxCell = row.querySelector("td:nth-child(4)"); // This should be the tax amount
+    //             const priceCell = row.querySelector("td:nth-child(3)"); // This should be the price per item
+    //             const taxCell = row.querySelector("td:nth-child(4)"); // This should be the tax amount
 
-                // let price = parseFloat(priceCell?.textContent.replace('$', '')) || 0;
-                // let tax = parseFloat(taxCell?.textContent.replace('$', '')) || 0;
+    //             // let price = parseFloat(priceCell?.textContent.replace('$', '')) || 0;
+    //             // let tax = parseFloat(taxCell?.textContent.replace('$', '')) || 0;
 
-                let price = parseCurrency(priceCell?.textContent || '0');
-                let tax = parseCurrency(taxCell?.textContent || '0');
+    //             let price = parseCurrency(priceCell?.textContent || '0');
+    //             let tax = parseCurrency(taxCell?.textContent || '0');
 
-                // Log row info
+    //             // Log row info
 
-                if (type === "charge" || type === "order") {
-                    subtotal += price;
-                    totalTax += tax;
-                } else if (type === "discount" || type === "refund") {
-                    subtotal -= price;
-                    totalTax -= tax;
-                }
+    //             if (type === "charge" || type === "order") {
+    //                 subtotal += price;
+    //                 totalTax += tax;
+    //             } else if (type === "discount" || type === "refund") {
+    //                 subtotal -= price;
+    //                 totalTax -= tax;
+    //             }
 
 
-            });
+    //         });
 
-            //  Check for negative values and set to 0 if found
-            subtotal = Math.max(0, subtotal);
+    //         //  Check for negative values and set to 0 if found
+    //         subtotal = Math.max(0, subtotal);
 
-            if (subtotal == 0) {
-                totalTax = 0;
+    //         if (subtotal == 0) {
+    //             totalTax = 0;
+    //         } else {
+    //             totalTax = Math.max(0, totalTax);
+    //         }
+
+    //         let finalTotal = subtotal + totalTax;
+    //         finalTotal = Math.max(0, finalTotal);
+
+    //         if (subtotalElem) subtotalElem.textContent = `$${subtotal.toFixed(2)}`;
+    //         if (taxElem) taxElem.textContent = totalTax > 0 ? `$${totalTax.toFixed(2)}` : 'Tax Exempt';
+    //         if (totalElem) totalElem.textContent = `$${finalTotal.toFixed(2)}`;
+
+    //         if (createBtn) {
+    //             createBtn.disabled = rows.length === 0;
+    //         }
+
+    //         //  Update hidden inputs for form submission
+    //         if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
+    //         if (taxInput) taxInput.value = totalTax.toFixed(2);
+    //         if (totalInput) totalInput.value = finalTotal.toFixed(2);
+    //         if (invoiceDataInput) invoiceDataInput.value = JSON.stringify(invoice_data);
+    //         updateInvoiceButton(); // Initial call to set button state
+    //     }
+
+
+    //     // Attach the function to the window object to make it global
+    //     window.updateInvoiceSummary = updateInvoiceSummary;
+
+
+    // })();
+
+
+    (function () {
+
+    function updateInvoiceSummary() {
+
+        const subtotalElem = document.querySelector('#invoice-subtotal');
+        const totalElem = document.querySelector('#invoice-total');
+        const taxElem = document.querySelector('#invoice-tax');
+
+        const discountElem = document.querySelector('#invoice-discount');
+        const refundElem = document.querySelector('#invoice-refund');
+        const discountRow = document.querySelector('#discount-row');
+        const refundRow = document.querySelector('#refund-row');
+
+        const createBtn = document.querySelector('button[name="action"][value="save_new"]');
+
+        const subtotalInput = document.getElementById("invoiceSubtotalInput");
+        const taxInput = document.getElementById("invoiceTaxInput");
+        const totalInput = document.getElementById("invoiceTotalInput");
+        const invoiceDataInput = document.getElementById("invoiceDataInput");
+
+        let subtotal = 0;
+        let totalTax = 0;
+        let totalDiscount = 0;
+        let totalRefund = 0;
+
+        const rows = invoiceItemsTBody.querySelectorAll("tr");
+
+        rows.forEach(row => {
+
+            const type = row.dataset.type;
+
+            const priceCell = row.querySelector("td:nth-child(3)");
+            const taxCell = row.querySelector("td:nth-child(4)");
+
+            let price = parseCurrency(priceCell?.textContent || '0');
+            let tax = parseCurrency(taxCell?.textContent || '0');
+
+            if (type === "charge" || type === "order") {
+                subtotal += price;
+                totalTax += tax;
+            }
+
+            if (type === "discount") {
+                totalDiscount += Math.abs(price);
+            }
+
+            if (type === "refund") {
+                totalRefund += Math.abs(price);
+                 totalTax -= Math.abs(tax);
+            }
+        });
+
+        subtotal = Math.max(0, subtotal);
+        totalTax = Math.max(0, totalTax);
+
+        let finalTotal = subtotal + totalTax - totalDiscount - totalRefund;
+        finalTotal = Math.max(0, finalTotal);
+
+        // --------------------
+        // Update UI
+        // --------------------
+
+        if (subtotalElem) subtotalElem.textContent = `$${subtotal.toFixed(2)}`;
+        if (taxElem) taxElem.textContent =
+            totalTax > 0 ? `$${totalTax.toFixed(2)}` : 'Tax Exempt';
+
+        if (discountRow && discountElem) {
+            if (totalDiscount > 0) {
+                discountRow.classList.remove('hidden');
+                discountElem.textContent = `-$${totalDiscount.toFixed(2)}`;
             } else {
-                totalTax = Math.max(0, totalTax);
+                discountRow.classList.add('hidden');
             }
-
-            let finalTotal = subtotal + totalTax;
-            finalTotal = Math.max(0, finalTotal);
-
-            if (subtotalElem) subtotalElem.textContent = `$${subtotal.toFixed(2)}`;
-            if (taxElem) taxElem.textContent = totalTax > 0 ? `$${totalTax.toFixed(2)}` : 'Tax Exempt';
-            if (totalElem) totalElem.textContent = `$${finalTotal.toFixed(2)}`;
-
-            if (createBtn) {
-                createBtn.disabled = rows.length === 0;
-            }
-
-            //  Update hidden inputs for form submission
-            if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
-            if (taxInput) taxInput.value = totalTax.toFixed(2);
-            if (totalInput) totalInput.value = finalTotal.toFixed(2);
-            if (invoiceDataInput) invoiceDataInput.value = JSON.stringify(invoice_data);
-            updateInvoiceButton(); // Initial call to set button state
         }
 
+        if (refundRow && refundElem) {
+            if (totalRefund > 0) {
+                refundRow.classList.remove('hidden');
+                refundElem.textContent = `-$${totalRefund.toFixed(2)}`;
+            } else {
+                refundRow.classList.add('hidden');
+            }
+        }
 
-        // Attach the function to the window object to make it global
-        window.updateInvoiceSummary = updateInvoiceSummary;
+        if (totalElem) totalElem.textContent = `$${finalTotal.toFixed(2)}`;
 
+        if (createBtn) {
+            createBtn.disabled = rows.length === 0;
+        }
 
-    })();
+        // --------------------
+        // Hidden Inputs
+        // --------------------
+
+        if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
+        if (taxInput) taxInput.value = totalTax.toFixed(2);
+        if (totalInput) totalInput.value = finalTotal.toFixed(2);
+        if (invoiceDataInput) invoiceDataInput.value = JSON.stringify(invoice_data);
+
+        updateInvoiceButton();
+    }
+
+    window.updateInvoiceSummary = updateInvoiceSummary;
+
+})();
+
 
 
     /**
@@ -828,7 +967,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             invoice_data.push(item); // Just add to the array, no table rendering
         });
         console.log("Added existingOtherItems to invoice_data:");
-        console.table(invoice_data);
+        // console.table(invoice_data);
 
         document.getElementById("emptyState").classList.add("hidden");
         document.getElementById("itemsTable").classList.remove("hidden");

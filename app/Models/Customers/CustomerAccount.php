@@ -32,6 +32,8 @@ class CustomerAccount extends Model
         'sales_tax',
         'sales_tax_type',
         'type',
+        'invoice_id',
+        'invoice_item_id'
     ];
 
     protected $casts = [
@@ -81,6 +83,10 @@ class CustomerAccount extends Model
         return $this->belongsTo(CustomerCard::class, 'payment_profile_id', 'payment_profile_id');
     }
 
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
+    }
 
 
 }

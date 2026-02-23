@@ -41,7 +41,7 @@ class Order extends Model
         'order_note',
         'cart_data', // JSON data of cart items
         'platform', // Web*, Android, iOS
-
+        'po_id',
         'terms_collection', // use that collection to get original terms content
         'pending_terms_content',
         'accepted_terms_content', // Content of terms that were accepted

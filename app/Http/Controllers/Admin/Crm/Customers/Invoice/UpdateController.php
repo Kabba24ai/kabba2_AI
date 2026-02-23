@@ -10,7 +10,9 @@ use App\Models\Customers\InvoiceItem;
 use App\Models\Customers\Customer;
 use App\Models\Customers\Receipt;
 
-
+use App\Models\Customers\CustomerAccount;
+use App\Models\Configurations\Setting;
+use App\Models\Iam\Personnel\User;
 
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Facades\Log;
@@ -54,7 +56,6 @@ class UpdateController extends Controller
             $invoice->update($updateData);
 
             $invoiceItems = json_decode($validated['invoice_data'], true) ?? [];
-            // Log::info('Decoded invoice items', ['invoice_items' => $invoiceItems]);
 
             // Collect all current DB item IDs for this invoice
             $existingItemIds = InvoiceItem::where('invoice_id', $invoice->id)->pluck('item_id')->toArray();
@@ -83,6 +84,56 @@ class UpdateController extends Controller
                     );
 
 
+                    // ======================================
+                    // Update CustomerAccount for edited item
+                    // ======================================
+
+                    $account = CustomerAccount::where('invoice_id', $invoice->id)
+                        ->where('invoice_item_id', $updatedItem->id)
+                        ->first();
+
+                    if ($account) {
+
+                        //  Reverse old effect
+                        CustomHelper::reverseTransactionEffect($account);
+
+                        //  Update fields
+                        $account->reason = $updatedItem->item_name;
+                        $account->amount = $updatedItem->unit ?? 0;
+                        $account->type   = $updatedItem->type;
+                        $account->notes  = $updatedItem->notes ?? null;
+
+                        // Tax logic
+                        $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+                        $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
+
+                        if (in_array($updatedItem->type, ['charge', 'order'])) {
+                            $account->sales_tax = $salesTaxRate;
+                            $account->sales_tax_type = 'add';
+                        } elseif ($updatedItem->type === 'discount') {
+                            $account->sales_tax = 0;
+                            $account->sales_tax_type = null;
+                        } elseif ($updatedItem->type === 'refund') {
+                            $account->sales_tax = $salesTaxRate;
+                            $account->sales_tax_type = null;
+                        }
+
+                        // Responsible person
+                        if (!empty($item['responsible_id'])) {
+                            $user = User::find($item['responsible_id']);
+                            if ($user) {
+                                $account->responsible_person_id = $user->id;
+                                $account->responsible_person_name = $user->full_name ?? '';
+                            }
+                        }
+
+                        $account->save();
+
+                        // Re-apply updated effect
+                        CustomHelper::updateCreditBalance($account);
+                    }
+
+                    
                     $keepItemIds[] = $item['id'];
 
                 } else {
@@ -102,6 +153,68 @@ class UpdateController extends Controller
                         'reference'             => $item['reference'] ?? null,
                         'responsible_person_id' => $item['responsible_id'] ?? null,
                     ]);
+
+
+                    
+                // ---------------------------------------
+                // Create CustomerAccount Ledger Entry
+                // ---------------------------------------
+
+                $record = new CustomerAccount();
+                $record->customer_id = $invoice->customer_id;
+                $record->reason = $newItem->item_name;
+
+                $type = $newItem->type;
+
+                $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+                $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
+            
+                $salesTax = 0;
+                $salesTaxType = null;
+
+                if (in_array($type, ['charge', 'order'])) {
+
+                
+                    $salesTax = $salesTaxRate;
+                    $salesTaxType = 'add';
+
+                } elseif ($type === 'discount') {
+
+                
+                    $salesTax = 0; // discount has no tax
+                    $salesTaxType = null;
+
+                } elseif ($type === 'refund') {
+
+                
+                    $salesTax = $salesTaxRate; // refund reduces tax
+                    $salesTaxType = null;
+                }
+
+                $record->amount = $newItem->unit ?? 0;
+                $record->sales_tax = $salesTax;
+                $record->sales_tax_type = $salesTaxType;
+
+                // Responsible Person
+                if (!empty($item['responsible_id'])) {
+                    $user = User::find($item['responsible_id']);
+                    if ($user) {
+                        $record->responsible_person_id = $user->id;
+                        $record->responsible_person_name = $user->full_name ?? '';
+                    }
+                }
+
+                $record->notes = $newItem->notes ?? null;
+                $record->date = now();
+                $record->type = $type;
+
+                $record->invoice_id = $invoice->id;
+                $record->invoice_item_id = $newItem->id;
+
+                $record->save();
+
+                CustomHelper::updateCreditBalance($record);
+
 
 
                     $keepItemIds[] = $newItem->item_id; // mark as kept
@@ -134,6 +247,18 @@ class UpdateController extends Controller
                     $order = $deletedItem->orderProduct->order;
                     $order->invoice_id = null;
                     $order->save();
+                }
+            }
+
+            foreach ($deletedItems as $deletedItem) {
+
+                $account = CustomerAccount::where('invoice_id', $invoice->id)
+                    ->where('invoice_item_id', $deletedItem->id)
+                    ->first();
+
+                if ($account) {
+                    CustomHelper::reverseTransactionEffect($account);
+                    $account->delete();
                 }
             }
 
@@ -262,7 +387,7 @@ class UpdateController extends Controller
             flash('Invoice updated successfully.')->success();
 
             // session()->flash('active_tab', 'invoices');
-session(['active_tab' => 'invoices']);
+            session(['active_tab' => 'invoices']);
 
             return redirect()->route('admin.crm.customers.view', $customer->unique_id);
 

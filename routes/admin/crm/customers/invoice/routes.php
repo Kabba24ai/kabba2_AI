@@ -38,7 +38,10 @@ Route::prefix('invoice')
 
     Route::get('{unique_id}/download', DownloadController::class)->name('download');
 
-    Route::get('{unique_id}/sendemail', SendEmailController::class)->name('sendemail');
+    // Route::get('{unique_id}/sendemail', SendEmailController::class)->name('sendemail');
+    Route::post('sendemail', SendEmailController::class)
+    ->name('sendemail');
+
 
 
 

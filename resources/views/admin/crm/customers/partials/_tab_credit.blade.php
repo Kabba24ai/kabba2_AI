@@ -137,13 +137,19 @@
                    <div class="flex flex-wrap gap-2">
                        <a href="javascript:void(0)" id="openTemplatesModal"
                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-md flex items-center">
-                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                           {{-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                class="lucide lucide-credit-card w-4 h-4 mr-2">
                                <rect width="20" height="14" x="2" y="5" rx="2" />
                                <line x1="2" x2="22" y1="10" y2="10" />
-                           </svg>
+                           </svg> --}}
+
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
+                    <line x1="12" x2="12" y1="2" y2="22"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+
                            Payment
                        </a>
 
@@ -340,23 +346,22 @@
                                <span class="ml-1 capitalize">{{ $transaction->type }}</span>
                            </span>
 
-                           <div class="text-xs text-gray-500 mt-1">{{ $transaction->responsible_person_name ?? ''  }}
-
+                           <div class="text-xs text-gray-500 mt-1">
+                                 @if ($transaction->invoice)
+                                    Invoice #{{ $transaction->invoice->invoice_number }}
+                                @elseif ($transaction->type !== 'payment')
+                                    {{ $transaction->responsible_person_name }}
+                                @endif
                            </div>
                        </td>
                        <td class="py-4 px-6 text-sm text-gray-900">
                            <div class="max-w-xs truncate text-gray-700">
 
                                @if ($transaction->type === 'payment')
-
                                {{ $transaction->payment_type?->label() ?? 'N/A' }}
-
-
                                @else
                                {{ $transaction->reason ?? 'N/A' }}
                                @endif
-
-                               <!-- {{ $transaction->notes ?? 'N/A' }} -->
 
                            </div>
                            <div class="text-xs text-gray-500 hidden">Ref: {{ $transaction->unique_id }}</div>
@@ -764,6 +769,7 @@
                        {!! html()->select('reason', [
                        '' => 'Select refund reason',
                        'Billing Overcharge' => 'Billing Overcharge',
+                       'Damage Waiver Protection' => 'Damage Waiver Protection',
                        'Customer Cancellation' => 'Customer Cancellation',
                        'Damaged Item' => 'Damaged Item',
                        'Duplicate Charge' => 'Duplicate Charge',

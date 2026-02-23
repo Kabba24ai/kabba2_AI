@@ -27,36 +27,31 @@ class ChargeStoreController extends Controller
             $record->amount = $validated['amount'];
             $record->reason = $validated['reason'];
             // $record->responsible_person = $validated['responsible_person'];
-
             
             // Fetch user and store both ID and full_name
-                $user = User::findOrFail($validated['responsible_person']);
-                $record->responsible_person_id = $user->id ?? '';
-                $record->responsible_person_name = $user->full_name ?? '';
+            $user = User::findOrFail($validated['responsible_person']);
+            $record->responsible_person_id = $user->id ?? '';
+            $record->responsible_person_name = $user->full_name ?? '';
 
             // Set sales tax type
             $record->sales_tax_type = $validated['sales_tax'] ?? null;
 
-            
-                $record->sales_tax = 0.00;
+            $record->sales_tax = 0.00;
            
-
-
             $record->notes = $validated['notes'] ?? null;
             $record->date = now();
             $record->type = 'charge';
 
             $record->save();
 
-
               
-             CustomHelper::updateCreditBalance($record);
+            CustomHelper::updateCreditBalance($record);
 
             DB::commit();
 
             flash('Charge successfully added')->success();
             // session()->flash('active_tab', 'credit');
-session(['active_tab' => 'credit']);
+            session(['active_tab' => 'credit']);
 
             return redirect()->back();
 

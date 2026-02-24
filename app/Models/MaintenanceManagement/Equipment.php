@@ -79,6 +79,8 @@ class Equipment extends Model
         'parts_list_id',
         'freight_shipping',
         'taxes_fees',
+        'warranty_duration_months',
+        'warranty_duration_hours',
     ];
 
     protected $casts = [

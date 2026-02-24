@@ -78,6 +78,8 @@ class StoreRequest extends FormRequest
             'serial_number' => 'nullable|string|max:255',
             'license_plate' => 'nullable|string|max:255',
             'imei' => 'nullable|string|max:255',
+            'warranty_duration_months' => 'nullable|integer|min:0',
+            'warranty_duration_hours' => 'nullable|integer|min:0',
 
             // fixed rule
             'power_source_type'     => 'nullable|in:diesel,gas,batteries,electric',

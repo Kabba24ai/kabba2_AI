@@ -534,6 +534,38 @@
                     </div>
                 </div>
 
+                <div>
+                    <label for="warranty_duration_months" class="block text-sm font-medium text-gray-700 mb-1">
+                        Warranty Duration (Months)
+                    </label>
+                    {!! html()->number('warranty_duration_months')->class([
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('warranty_duration_months'),
+                        ])->attributes([
+                            'min' => 0,
+                            'placeholder' => 'Warranty Duration (Months)',
+                        ]) !!}
+                    @error('warranty_duration_months')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="warranty_duration_hours" class="block text-sm font-medium text-gray-700 mb-1">
+                        Warranty Duration (Hours)
+                    </label>
+                    {!! html()->number('warranty_duration_hours')->class([
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('warranty_duration_hours'),
+                        ])->attributes([
+                            'min' => 0,
+                            'placeholder' => 'Warranty Duration (Hours)',
+                        ]) !!}
+                    @error('warranty_duration_hours')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div class="sm:col-span-2">
 
                     <p class="text-xs text-gray-500 @if (isset($equipment) && $equipment?->imei) text-purple-600 @endif">GPS

@@ -32,8 +32,11 @@ class CreateController extends Controller
         $invoiceItems = []; // your array
         $jsonInvoiceItems = json_encode($invoiceItems); // now it's a JSON string
 
+        // biling sumary
+        $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+
 // dd($order);
-        return view('admin.crm.customers.create_invoice', ['customer' => $customer , 'invoiceItems' => $jsonInvoiceItems , 'orders'=> $order, 'users' => $users,'sales_tax' => $sales_tax,]);
+        return view('admin.crm.customers.create_invoice', ['customer' => $customer , 'invoiceItems' => $jsonInvoiceItems , 'orders'=> $order, 'users' => $users,'sales_tax' => $sales_tax, 'paymentSetting' => $paymentSetting, ]);
 
     }
 }

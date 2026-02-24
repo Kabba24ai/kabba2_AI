@@ -535,4 +535,115 @@ class CustomHelper
         ];
     }
 
+
+
+   public static function fixTheRunningBalance(int $customerId): void
+{
+    DB::transaction(function () use ($customerId) {
+
+        $customer = Customer::lockForUpdate()->findOrFail($customerId);
+
+        $creditLimit = (float) ($customer->credit_limit ?? 0);
+        $availableCredit = (float) self::getAvailableCredit($customer);
+
+        // This is your correct final balance
+        $currentBalance = $creditLimit - $availableCredit;
+
+        // Get accounts newest → oldest
+        $accounts = CustomerAccount::where('customer_id', $customerId)
+            ->orderByDesc('id')
+            ->get();
+
+        if ($accounts->isEmpty()) {
+            return;
+        }
+
+        $runningBalance = $currentBalance;
+
+        foreach ($accounts as $account) {
+
+            // Set this row balance first
+            $account->balance = $runningBalance;
+            $account->save();
+
+            // Calculate balance change (same logic you use in table)
+            $amount = (float) $account->amount;
+            $taxRate = (float) ($account->sales_tax ?? 0);
+
+            $totalWithTax = $amount;
+
+            if ($taxRate > 0 &&
+                !($account->type === 'payment' ||
+                  ($account->type === 'charge' && $account->sales_tax_type === 'reverse'))) {
+
+                $totalWithTax += ($amount * $taxRate);
+            }
+
+            // Reverse calculation
+            switch ($account->type) {
+                case 'charge':
+                case 'order':
+                    $runningBalance -= $totalWithTax;
+                    break;
+
+                case 'payment':
+                case 'refund':
+                case 'discount':
+                    $runningBalance += $totalWithTax;
+                    break;
+            }
+        }
+
+        // Finally update customer stored balance
+        $customer->available_credit_balance = $currentBalance;
+        $customer->save();
+    });
+}
+
+
+public static function updateInvoiceSummary(Invoice $invoice): void
+{
+    $subtotal = 0;
+    $totalTax = 0;
+    $totalDiscount = 0;
+    $totalRefund = 0;
+
+    $invoice->loadMissing('items');
+
+    foreach ($invoice->items as $item) {
+
+        $price = (float) ($item->unit ?? 0);
+        $tax   = (float) ($item->tax ?? 0);
+
+        // charge + order
+        if (in_array($item->type, ['charge', 'order'])) {
+            $subtotal += $price;
+            $totalTax += $tax;
+        }
+
+        // discount
+        if ($item->type === 'discount') {
+            $totalDiscount += abs($price);
+        }
+
+        // refund
+        if ($item->type === 'refund') {
+            $totalRefund += abs($price);
+            $totalTax -= abs($tax);
+        }
+    }
+
+    $subtotal = max(0, $subtotal);
+    $totalTax = max(0, $totalTax);
+
+    $finalTotal = $subtotal + $totalTax - $totalDiscount - $totalRefund;
+    $finalTotal = max(0, $finalTotal);
+
+    $invoice->subtotal  = round($subtotal, 2);
+    $invoice->sales_tax = round($totalTax, 2);
+    $invoice->total     = round($finalTotal, 2);
+
+    $invoice->save();
+}
+
 }

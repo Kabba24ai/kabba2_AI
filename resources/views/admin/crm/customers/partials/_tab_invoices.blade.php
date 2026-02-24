@@ -80,9 +80,10 @@
              <label for="invoiceFilter" class="text-sm font-medium text-gray-700 mr-2">Filter by Status:</label>
              <select id="invoiceFilter" class="border border-gray-300 rounded-md px-3 py-3 text-sm">
                  <option value="all">All Orders</option>
-                 <option value="paid">paid</option>
-                 <option value="overdue">overdue</option>
-                 <option value="pending">pending</option>
+                 <option value="paid">Paid</option>
+                  <option value="partial_paid">Partial Paid</option>
+                 <option value="overdue">Overdue</option>
+                 <option value="pending">Pending</option>
              </select>
          </div>
      </div>
@@ -108,6 +109,8 @@
                      <th class="py-4 px-6 w-32">Created</th>
                      <th class="py-4 px-6 w-32">Due Date</th>
                      <th class="py-4 px-6 w-32 text-right">Amount</th>
+                          <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
+                               <th class="py-4 px-6 w-32 text-right">Open Amount</th>
                      <th class="py-4 px-6 w-32 text-right">Payment Status</th>
                      <th class="py-4 px-6 w-32 text-right">Mail Status</th>
 
@@ -135,22 +138,42 @@
                      </td>
                      <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
+                       {{-- Paid Amount --}}
+                    <td class="py-4 px-6 text-right text-green-600 font-semibold">
+                        ${{ number_format($invoice->paid_amount ?? 0, 2) }}
+                    </td>
+
+                    {{-- Open Amount --}}
+                    <td class="py-4 px-6 text-right text-red-600 font-semibold">
+                        ${{ number_format($invoice->open_amount ?? 0, 2) }}
+                    </td>
+
+
                      <td class="py-4 px-6 text-right">
-                         @php
-                         $statusColors = [
-                         'paid' => 'green',
-                         'overdue' => 'red',
-                         'pending' => 'yellow',
-                         ];
-                         $color = $statusColors[$invoice->invoice_status] ?? 'gray';
-                         @endphp
-                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
-                             {{ $invoice->invoice_status }}
-                         </span>
-                     </td>
+                        @php
+                            $statusColors = [
+                                'paid' => 'green',
+                                'partial_paid' => 'blue',
+                                'overdue' => 'red',
+                                'pending' => 'yellow',
+                            ];
 
-                    
+                            $color = $statusColors[$invoice->invoice_status] ?? 'gray';
 
+                            // Format label nicely
+                            $statusLabel = match ($invoice->invoice_status) {
+                                'partial_paid' => 'Partial Paid',
+                                'paid' => 'Paid',
+                                'overdue' => 'Overdue',
+                                'pending' => 'Pending',
+                                default => ucfirst(str_replace('_', ' ', $invoice->invoice_status)),
+                            };
+                        @endphp
+
+                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                            {{ $statusLabel }}
+                        </span>
+                    </td>
 
                      <td class="py-4 px-6 text-right">
                          @php
@@ -179,6 +202,16 @@
 
                      <td class="py-4 px-6 whitespace-nowrap">
                          <div class="flex gap-2 items-center justify-end">
+
+                            {{-- @if($invoice->invoice_status !== 'paid')
+                            <button id="openPaymentModal" class="text-green-600 inline-flex items-center">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
+                                    <line x1="12" x2="12" y1="2" y2="22"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                            </button>
+                            @endif --}}
+
                              <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}" target="_blank" class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
                              </a>
@@ -319,6 +352,10 @@
         </div>
     </div>
 </div>
+
+<!-- New Refund Wrapper -->
+@include('admin.crm.customers.partials._invoice_payment')
+
 
 @push('js')
 <script>

@@ -417,44 +417,63 @@
                        <td class="py-4 px-6 text-blue-600">
                            <div class="flex gap-2 items-center justify-end">
 
-
+                            @if ($transaction->invoice_id && $transaction->type === 'payment')
+            <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice->unique_id) }}" target="_blank"  title="View" >
+                                            <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
+            </a>
+                            @else
                                <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)' data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}">
                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                                </button>
 
-                               @if ($transaction->type !== 'order')
-
-                               <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
-                                   data-id="{{ $transaction->id }}"
-                                   data-type="{{ $transaction->type }}"
-                                   data-amount="{{ $transaction->amount }}"
-                                   data-payment_type="{{ $transaction->payment_type }}"
-                                   data-cheque_number="{{ $transaction->payment_number_id }}"
-                                   data-reason="{{ $transaction->reason }}"
-                                   data-responsible_person="{{ $transaction->responsible_person_id }}"
-                                   data-notes="{{ $transaction->notes }}"
-                                   data-sales_tax="{{ $transaction->sales_tax }}"
-                                   data-sales_tax_type="{{ $transaction->sales_tax_type }}"
-                                   data-action="{{ route('admin.crm.customers.customer-account.transactionupdate', $transaction->id) }}"
-
-                                   @if($transaction->card)
-                                   data-card_id="{{ $transaction->card->unique_id }}"
-                                   data-card_masked="{{ $transaction->card->card_number }}"
-                                   @endif
-
-                                   title="Edit">
-                                   <x-heroicon-o-pencil class="w-4 h-4" />
-                               </button>
-
                                @endif
 
-                               <!-- Download -->
-                               <form method="GET" action="{{ route('admin.crm.customers.customer-account.download', $transaction->id) }}" target="_blank" style="display:flex;">
-                                   <button title="Download" type="submit">
-                                       <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
-                                   </button>
-                               </form>
+                               @if ($transaction->type !== 'order')
 
+                                @if ($transaction->invoice_id && $transaction->type === 'payment')
+                                    <a href="{{ route('admin.crm.customers.invoice.edit', $transaction->invoice->unique_id) }}" target="_blank" class=" text-green-600 hover:text-green-800"
+                                    
+                                    title="Edit">
+                                    <x-heroicon-o-pencil class="w-4 h-4" />
+                                    </a>
+                                @else
+                                    <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
+                                        data-id="{{ $transaction->id }}"
+                                        data-type="{{ $transaction->type }}"
+                                        data-amount="{{ $transaction->amount }}"
+                                        data-payment_type="{{ $transaction->payment_type }}"
+                                        data-cheque_number="{{ $transaction->payment_number_id }}"
+                                        data-reason="{{ $transaction->reason }}"
+                                        data-responsible_person="{{ $transaction->responsible_person_id }}"
+                                        data-notes="{{ $transaction->notes }}"
+                                        data-sales_tax="{{ $transaction->sales_tax }}"
+                                        data-sales_tax_type="{{ $transaction->sales_tax_type }}"
+                                        data-action="{{ route('admin.crm.customers.customer-account.transactionupdate', $transaction->id) }}"
+
+                                        @if($transaction->card)
+                                        data-card_id="{{ $transaction->card->unique_id }}"
+                                        data-card_masked="{{ $transaction->card->card_number }}"
+                                        @endif
+
+                                        title="Edit">
+                                        <x-heroicon-o-pencil class="w-4 h-4" />
+                                    </button>
+
+                                @endif
+                               @endif
+
+                                  @if ($transaction->invoice_id && $transaction->type === 'payment')
+                <a href="{{ route('admin.crm.customers.invoice.download',$transaction->invoice->unique_id ) }}" class="             text-green-600 inline-flex items-center">
+                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                             </a>
+                                  @else
+                                    <!-- Download -->
+                                    <form method="GET" action="{{ route('admin.crm.customers.customer-account.download', $transaction->id) }}" target="_blank" style="display:flex;">
+                                        <button title="Download" type="submit">
+                                            <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
+                                        </button>
+                                    </form>
+                                @endif
                                <!-- Note -->
                                <a href="javascript:void(0)" class="openNoteModalBtn" data-note="{{ $transaction->notes }}" data-id="{{ $transaction->unique_id }}" data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}" data-amount="{{ $transaction->amount }}">
 
@@ -462,23 +481,26 @@
 
                                </a>
 
-                               @if ($transaction->type !== 'order')
+                               @if (
+    $transaction->type !== 'order' &&
+    !($transaction->invoice_id && $transaction->type === 'payment')
+)
 
-                               <!-- Transaction delete button wrapped in form -->
-                               <form action="{{ route('admin.crm.customers.customer-account.transactiondelete', $transaction->id) }}"
-                                   method="POST"
-                                   class="flex delete-transaction-form"
-                                   data-transaction-type="{{ $transaction->type }}">
-                                   @csrf
-                                   @method('DELETE')
-                                   <button type="submit"
-                                       class="text-red-600 hover:text-red-800"
-                                       title="Delete">
-                                       <x-heroicon-o-trash class="w-4 h-4" />
-                                   </button>
-                               </form>
+    <!-- Transaction delete button -->
+    <form action="{{ route('admin.crm.customers.customer-account.transactiondelete', $transaction->id) }}"
+          method="POST"
+          class="flex delete-transaction-form"
+          data-transaction-type="{{ $transaction->type }}">
+        @csrf
+        @method('DELETE')
+        <button type="submit"
+                class="text-red-600 hover:text-red-800"
+                title="Delete">
+            <x-heroicon-o-trash class="w-4 h-4" />
+        </button>
+    </form>
 
-                               @endif
+@endif
 
                            </div>
                        </td>

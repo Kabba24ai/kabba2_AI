@@ -26,11 +26,10 @@ class DiscountStoreController extends Controller
 
             // $record->responsible_person = $validated['responsible_person'];
 
-            
             // Fetch user and store both ID and full_name
-                $user = User::findOrFail($validated['responsible_person']);
-                $record->responsible_person_id = $user->id ?? '';
-                $record->responsible_person_name = $user->full_name ?? '';
+            $user = User::findOrFail($validated['responsible_person']);
+            $record->responsible_person_id = $user->id ?? '';
+            $record->responsible_person_name = $user->full_name ?? '';
 
             $record->notes = $validated['notes'] ?? null;
             $record->date = now();
@@ -42,11 +41,11 @@ class DiscountStoreController extends Controller
 
             DB::commit();
 
-              flash('Discount successfully applied')->success();
+            flash('Discount successfully applied')->success();
 
-            //  session()->flash('active_tab', 'credit');
-session(['active_tab' => 'credit']);
-             return redirect()->back();
+            session(['active_tab' => 'credit']);
+
+            return redirect()->back();
 
         } catch (\Throwable $e) {
 

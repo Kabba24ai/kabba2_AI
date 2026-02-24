@@ -32,6 +32,10 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 <input type="hidden" name="total" id="invoiceTotalInput" value="{{ old('total', $invoice->total ?? 0) }}">
 <input type="hidden" name="customer_id" id="customer_id" value="{{ $customer->id }}">
 
+@if($isEdit)
+<input type="hidden" id="invoicePaidAmount" value="{{ $invoice->paid_amount }}">
+@endif
+
 
 <div class="bg-gray-50 px-4 py-4 border-b border-gray-200">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -270,7 +274,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                                 <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap {{ !in_array($item['type'], ['order', 'charge']) ? 'text-green-600' : '' }}">  {{ !in_array($item['type'], ['order', 'charge']) ? '-' : '' }} {{ \App\Helpers\CustomHelper::formatCurrency($item['total']) }}</td>
                                 <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
 
-                                    @if($invoice->invoice_status !== 'paid')
+                                 @if(!in_array($invoice->invoice_status, ['paid', 'partial_paid']))
                                         <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
                                         <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
                                     @endif
@@ -351,8 +355,8 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     @if ($addressItem['label'] === 'Shipping' && $customer->same_as_billing)
 
                          <div class="text-sm text-gray-500 mt-1">
-            Same as billing
-        </div>
+                        Same as billing
+                    </div>
                      @else
                     @if($addresse?->address )
                     {{ $addresse->address ?? '' }}
@@ -383,6 +387,29 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 </div>
 
                  @if ($isEdit)
+
+
+                    @if(isset($invoice) && $invoice->id)
+
+                        @php
+                            $statusColors = [
+                                'paid' => 'green',
+                                'partial_paid' => 'blue',
+                                'overdue' => 'red',
+                                'pending' => 'yellow',
+                            ];
+
+                            $color = $statusColors[$invoice->invoice_status] ?? 'gray';
+                        @endphp
+
+                        <div class="mt-3">
+                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                                {{ ucfirst(str_replace('_', ' ', $invoice->invoice_status)) }}
+                            </span>
+                        </div>
+
+                    @endif
+
 
                  <div class="flex flex-wrap justify-center gap-2 pt-5">
                     
@@ -488,6 +515,26 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                     <span class="text-gray-900" id="invoice-total">$0.00</span>
                 </div>
 
+
+                <!-- Paid & Open Amount (Only Edit Mode) -->
+                @if($isEdit)
+                <hr class="my-2 border-gray-200">
+
+                <div class="flex justify-between py-1 text-sm">
+                    <span class="text-gray-700">Paid Amount:</span>
+                    <span class="text-green-600 font-medium" id="invoice-paid">
+                        ${{ number_format($invoice->paid_amount ?? 0, 2) }}
+                    </span>
+                </div>
+
+                <div class="flex justify-between py-1 text-sm">
+                    <span class="text-gray-700">Open Amount:</span>
+                    <span class="text-red-600 font-medium" id="invoice-open">
+                        ${{ number_format($invoice->open_amount ?? 0, 2) }}
+                    </span>
+                </div>
+                @endif
+
             </div>
 
             <div class="bg-gray-50 px-4 py-4  border-gray-200">
@@ -531,6 +578,12 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
 <!-- New Refund Wrapper -->
 @include('admin.crm.customers.partials._invoice_refund')
+
+<!-- New Refund Wrapper -->
+@include('admin.crm.customers.partials._invoice_payment')
+
+
+
 
 <!-- From Order Wrapper -->
 <div id="orderModalWrapper" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
@@ -748,85 +801,6 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
     const invoiceItemsTBody = document.getElementById("invoiceItems"); // Make sure to get this element
 
-    // (function() {
-    //     // Helper to recalculate invoice totals dynamically
-    //     function updateInvoiceSummary() {
-    //         const subtotalElem = document.querySelector('#invoice-subtotal');
-    //         const totalElem = document.querySelector('#invoice-total');
-    //         const taxElem = document.querySelector('#invoice-tax');
-    //         const createBtn = document.querySelector('button[name="action"][value="save_new"]');
-
-    //         const subtotalInput = document.getElementById("invoiceSubtotalInput");
-    //         const taxInput = document.getElementById("invoiceTaxInput");
-    //         const totalInput = document.getElementById("invoiceTotalInput");
-    //         const invoiceDataInput = document.getElementById("invoiceDataInput");
-
-    //         let subtotal = 0;
-    //         let totalTax = 0;
-
-    //         const rows = invoiceItemsTBody.querySelectorAll("tr");
-
-    //         rows.forEach(row => {
-
-    //             const type = row.dataset.type; // "charge", "order", "discount", "refund"
-
-    //             const priceCell = row.querySelector("td:nth-child(3)"); // This should be the price per item
-    //             const taxCell = row.querySelector("td:nth-child(4)"); // This should be the tax amount
-
-    //             // let price = parseFloat(priceCell?.textContent.replace('$', '')) || 0;
-    //             // let tax = parseFloat(taxCell?.textContent.replace('$', '')) || 0;
-
-    //             let price = parseCurrency(priceCell?.textContent || '0');
-    //             let tax = parseCurrency(taxCell?.textContent || '0');
-
-    //             // Log row info
-
-    //             if (type === "charge" || type === "order") {
-    //                 subtotal += price;
-    //                 totalTax += tax;
-    //             } else if (type === "discount" || type === "refund") {
-    //                 subtotal -= price;
-    //                 totalTax -= tax;
-    //             }
-
-
-    //         });
-
-    //         //  Check for negative values and set to 0 if found
-    //         subtotal = Math.max(0, subtotal);
-
-    //         if (subtotal == 0) {
-    //             totalTax = 0;
-    //         } else {
-    //             totalTax = Math.max(0, totalTax);
-    //         }
-
-    //         let finalTotal = subtotal + totalTax;
-    //         finalTotal = Math.max(0, finalTotal);
-
-    //         if (subtotalElem) subtotalElem.textContent = `$${subtotal.toFixed(2)}`;
-    //         if (taxElem) taxElem.textContent = totalTax > 0 ? `$${totalTax.toFixed(2)}` : 'Tax Exempt';
-    //         if (totalElem) totalElem.textContent = `$${finalTotal.toFixed(2)}`;
-
-    //         if (createBtn) {
-    //             createBtn.disabled = rows.length === 0;
-    //         }
-
-    //         //  Update hidden inputs for form submission
-    //         if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
-    //         if (taxInput) taxInput.value = totalTax.toFixed(2);
-    //         if (totalInput) totalInput.value = finalTotal.toFixed(2);
-    //         if (invoiceDataInput) invoiceDataInput.value = JSON.stringify(invoice_data);
-    //         updateInvoiceButton(); // Initial call to set button state
-    //     }
-
-
-    //     // Attach the function to the window object to make it global
-    //     window.updateInvoiceSummary = updateInvoiceSummary;
-
-
-    // })();
-
 
     (function () {
 
@@ -847,6 +821,13 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         const taxInput = document.getElementById("invoiceTaxInput");
         const totalInput = document.getElementById("invoiceTotalInput");
         const invoiceDataInput = document.getElementById("invoiceDataInput");
+
+        const paidElem = document.querySelector('#invoice-paid');
+        const openElem = document.querySelector('#invoice-open');
+
+
+        const paidInput = document.getElementById('invoicePaidAmount');
+
 
         let subtotal = 0;
         let totalTax = 0;
@@ -913,6 +894,33 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         }
 
         if (totalElem) totalElem.textContent = `$${finalTotal.toFixed(2)}`;
+
+        // --------------------
+        // Handle Paid/Open (Edit Mode Only)
+        // --------------------
+        if (paidElem && openElem) {
+
+            let paidAmount = parseFloat(paidElem.dataset.paid || paidElem.textContent.replace(/[^0-9.-]+/g,"")) || 0;
+
+            let openAmount = finalTotal - paidAmount;
+            openAmount = Math.max(0, openAmount);
+
+            paidElem.textContent = `$${paidAmount.toFixed(2)}`;
+            openElem.textContent = `$${openAmount.toFixed(2)}`;
+        }
+
+
+        
+        if (paidInput && paidElem && openElem) {
+
+            let paidAmount = parseFloat(paidInput.value) || 0;
+            let openAmount = finalTotal - paidAmount;
+
+            openAmount = Math.max(0, openAmount);
+
+            paidElem.textContent = `$${paidAmount.toFixed(2)}`;
+            openElem.textContent = `$${openAmount.toFixed(2)}`;
+        }
 
         if (createBtn) {
             createBtn.disabled = rows.length === 0;

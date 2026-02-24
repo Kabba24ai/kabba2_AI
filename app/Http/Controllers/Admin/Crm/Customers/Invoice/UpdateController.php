@@ -27,6 +27,9 @@ class UpdateController extends Controller
      */
     public function __invoke(UpdateRequest $request, string $unique_id)
     {
+
+        // dd($request->all());
+
         $validated = $request->validated();
 
         DB::beginTransaction();
@@ -52,8 +55,20 @@ class UpdateController extends Controller
                 $updateData['invoice_status'] = $validated['invoice_status'];
             }
 
+            $originalInvoiceData = $invoice->getOriginal();
+
             // Perform the update
             $invoice->update($updateData);
+
+            $changedFields = $invoice->getChanges();
+
+            Log::info('Invoice Updated', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'updated_by' => auth()->id(),
+                'changed_fields' => $changedFields,
+                'original_values' => array_intersect_key($originalInvoiceData, $changedFields),
+            ]);
 
             $invoiceItems = json_decode($validated['invoice_data'], true) ?? [];
 
@@ -63,12 +78,22 @@ class UpdateController extends Controller
             // Track IDs that we keep (existing or newly created)
             $keepItemIds = [];
 
+                $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+                $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
+            
+
             foreach ($invoiceItems as $item) {
-                if ($item['id']) {
+
+            $existingItem = InvoiceItem::where('invoice_id', $invoice->id)
+                ->where('item_id', $item['id'])
+                ->first();
+
+                if ($existingItem) {
+
+                
+
                     // Update existing item by item_id
-                    $updatedItem =  InvoiceItem::updateOrCreate(
-                        ['item_id' => $item['id'], 'invoice_id' => $invoice->id],
-                        [
+                     $existingItem->update([
                             'type'                  => $item['type'] ?? null,
                             'item_name'             => $item['name'] ?? null,
                             'qty'                   => $item['qty'] ?? 1,
@@ -83,13 +108,20 @@ class UpdateController extends Controller
                         ]
                     );
 
+                        Log::info('Invoice Item Updated', [
+                            'invoice_id' => $invoice->id,
+                            'invoice_item_id' => $existingItem->id,
+                            'item_id' => $item['id'],
+                            'updated_by' => auth()->id(),
+                            'data' => $existingItem->getChanges(),
+                        ]);
 
                     // ======================================
                     // Update CustomerAccount for edited item
                     // ======================================
 
                     $account = CustomerAccount::where('invoice_id', $invoice->id)
-                        ->where('invoice_item_id', $updatedItem->id)
+                        ->where('invoice_item_id', $existingItem->id)
                         ->first();
 
                     if ($account) {
@@ -98,22 +130,18 @@ class UpdateController extends Controller
                         CustomHelper::reverseTransactionEffect($account);
 
                         //  Update fields
-                        $account->reason = $updatedItem->item_name;
-                        $account->amount = $updatedItem->unit ?? 0;
-                        $account->type   = $updatedItem->type;
-                        $account->notes  = $updatedItem->notes ?? null;
+                        $account->reason = $existingItem->item_name;
+                        $account->amount = $existingItem->unit ?? 0;
+                        $account->type   = $existingItem->type;
+                        $account->notes  = $existingItem->notes ?? null;
 
-                        // Tax logic
-                        $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-                        $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
-
-                        if (in_array($updatedItem->type, ['charge', 'order'])) {
+                        if (in_array($existingItem->type, ['charge', 'order'])) {
                             $account->sales_tax = $salesTaxRate;
                             $account->sales_tax_type = 'add';
-                        } elseif ($updatedItem->type === 'discount') {
+                        } elseif ($existingItem->type === 'discount') {
                             $account->sales_tax = 0;
                             $account->sales_tax_type = null;
-                        } elseif ($updatedItem->type === 'refund') {
+                        } elseif ($existingItem->type === 'refund') {
                             $account->sales_tax = $salesTaxRate;
                             $account->sales_tax_type = null;
                         }
@@ -137,6 +165,8 @@ class UpdateController extends Controller
                     $keepItemIds[] = $item['id'];
 
                 } else {
+
+                
                     // Create new item
                     $newItem =  InvoiceItem::create([
                         'invoice_id'            => $invoice->id,
@@ -154,7 +184,13 @@ class UpdateController extends Controller
                         'responsible_person_id' => $item['responsible_id'] ?? null,
                     ]);
 
-
+                    Log::info('Invoice Item Created', [
+                        'invoice_id' => $invoice->id,
+                        'invoice_item_id' => $newItem->id,
+                        'type' => $newItem->type,
+                        'amount' => $newItem->unit,
+                        'created_by' => auth()->id(),
+                    ]);
                     
                 // ---------------------------------------
                 // Create CustomerAccount Ledger Entry
@@ -166,8 +202,6 @@ class UpdateController extends Controller
 
                 $type = $newItem->type;
 
-                $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-                $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
             
                 $salesTax = 0;
                 $salesTaxType = null;
@@ -237,9 +271,31 @@ class UpdateController extends Controller
 
 
             // Get the items that are being deleted
-            $deletedItems = InvoiceItem::where('invoice_id', $invoice->id)
-                ->whereNotIn('item_id', $keepItemIds)
-                ->get();
+            // $deletedItems = InvoiceItem::where('invoice_id', $invoice->id)
+            //     ->whereNotIn('item_id', $keepItemIds)
+            //     ->get();
+
+
+            if (!empty($keepItemIds)) {
+                $deletedItems = InvoiceItem::where('invoice_id', $invoice->id)
+                    ->whereNotIn('item_id', $keepItemIds)
+                    ->get();
+            } else {
+                $deletedItems = InvoiceItem::where('invoice_id', $invoice->id)->get();
+            }
+
+
+                foreach ($deletedItems as $deletedItem) {
+
+    Log::info('Invoice Item Deleted', [
+        'invoice_id' => $invoice->id,
+        'invoice_item_id' => $deletedItem->id,
+        'item_name' => $deletedItem->item_name,
+        'type' => $deletedItem->type,
+        'deleted_by' => auth()->id(),
+    ]);
+
+}
 
             // Unlink orders for deleted invoice items of type 'order'
             foreach ($deletedItems as $deletedItem) {
@@ -381,8 +437,19 @@ class UpdateController extends Controller
                 })
             ]);
 
+            Log::info('Invoice Update Completed', [
+    'invoice_id' => $invoice->id,
+    'customer_id' => $invoice->customer_id,
+    'total_items' => $invoice->items()->count(),
+    'invoice_total' => $invoice->total,
+    'updated_by' => auth()->id(),
+]);
+
 
             DB::commit();
+
+        CustomHelper::fixTheRunningBalance($validated['customer_id']);
+            
 
             flash('Invoice updated successfully.')->success();
 

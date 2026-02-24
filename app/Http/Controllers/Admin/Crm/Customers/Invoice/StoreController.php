@@ -42,6 +42,9 @@ class StoreController extends Controller
                 'sales_tax'         => $validated['tax'] ?? 0,
                 'total'             => $validated['total'] ?? 0,
                 'invoice_notes'     => $validated['invoice_notes'] ?? null,
+
+                      'paid_amount'             =>  0,
+                      'open_amount'             => $validated['total'] ?? 0,
             ]);
 
             // Save invoice items

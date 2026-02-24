@@ -62,6 +62,9 @@ class UpdateRequest extends FormRequest
 
             'down_payment' => 'nullable|numeric|min:0',
 
+            'freight_shipping' => 'nullable|numeric|min:0',
+            'taxes_fees' => 'nullable|numeric|min:0',
+
             'amount_financed' => 'nullable|numeric|min:0',
 
             'ownership_type' => 'nullable|in:owned,financed,leased',

@@ -77,6 +77,8 @@ class Equipment extends Model
         'updated_by',
 
         'parts_list_id',
+        'freight_shipping',
+        'taxes_fees',
     ];
 
     protected $casts = [

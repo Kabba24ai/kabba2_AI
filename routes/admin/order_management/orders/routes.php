@@ -30,6 +30,9 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\RemoveEquipmentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\DeclinedOrdersController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\TransactionDetailsController;
 
+use App\Http\Controllers\Admin\OrderManagement\Orders\UpdatePoidController;
+
+
 Route::prefix('orders')
     ->name('orders.')
     ->group(function () {
@@ -76,5 +79,11 @@ Route::prefix('orders')
                 Route::post('/{unique_id}', NotesStoreController::class)->name('store');
                 Route::put('/{unique_id}/{note_unique_id}/update', NotesUpdateController::class)->name('update');
                 Route::delete('/{unique_id}/{note_unique_id}', NotesDeleteController::class)->name('delete');
-            });
+        });
+
+
+        Route::post('/update-po', UpdatePoidController::class)->name('update-po-id');
+
+
+
     });

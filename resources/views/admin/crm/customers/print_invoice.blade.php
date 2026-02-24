@@ -90,8 +90,10 @@
                                             Due Date: <span style="margin:0; font-size:15px; font-weight:500;"> {{ $invoice->due_date ? \App\Helpers\CustomHelper::formatDate($invoice->due_date) : 'Pay Upon Receipt' }} </span>
                                         </p>
 
-                                        <p style="margin:12px 0 4px; font-weight:600; font-size:16px;">Customer PO:</p>
-                                        <p style="margin:0; font-size:15px; font-weight:500;">{{ $invoice->customer->unique_id }}</p>
+                                        
+                                            <p style="margin:16px 0 4px; font-weight:600; font-size:16px;">Account: <span style="margin:0; font-size:14px; color:#374151; font-weight:500;">{{ $invoice->customer->unique_id }}</span></p>
+                                            
+                                        
                                     </td>
                                 </tr>
                             </table>
@@ -110,18 +112,24 @@
 
                     <!-- Bill To -->
                     <tr>
-                        <td style="padding:20px 0;">
-                            <h4 style="margin:0 0 10px; font-weight:600; font-size:15px;">
-                                <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
-                                Bill To:
-                            </h4>
+                        <td >
+                            
 
-                            <table role="presentation" style="width:100%; border-radius:6px; background:#f9fafb; padding:15px;">
+                            <table role="presentation" style="width:100%; border-radius:6px; background:#f9fafb; padding:15px; padding-top:0px;">
                                 <tr>
                                     <td>
-                                        <p style="margin:0; font-size:16px; font-weight:600;">{{ $invoice->customer->full_name }}</p>
-                                        <p style="margin:0; color:#374151;">{{ $invoice->customer->company_name }}</p>
+                                        
+                            <p> 
+                                <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
 
+                                <span style="margin:0 0 10px; font-weight:600; font-size:15px;">Bill To:-</span>
+                                <span style="margin:0; font-size:16px; font-weight:600;">{{ $invoice->customer->full_name }}</span>
+                                  @if(!empty($invoice->customer->company_name)) 
+                                <span style="margin:0; color:#374151;">({{ $invoice->customer->company_name }})</span>
+                                @endif
+
+                            </p>
+                                       
                                         <!-- Contact info in 2 columns -->
                                         <table role="presentation" style="width:100%; margin-top:8px; border-collapse:collapse;">
                                             <tr>
@@ -230,9 +238,12 @@
                             <table role="presentation" style="width:100%; border-collapse:collapse; font-size:14px;">
                                 <thead>
                                     <tr style="border-bottom:1px solid #d1d5db;">
+                                        <th align="left" style="padding:8px 0; font-weight:600; color:#374151;">Id</th>
                                         <th align="left" style="padding:8px 0; font-weight:600; color:#374151;">Item</th>
+                                        <th align="left" style="padding:8px 0; font-weight:600; color:#374151;">PO#</th>
                                         <th align="center" style="padding:8px 0; font-weight:600; color:#374151;">Qty</th>
                                         <th align="right" style="padding:8px 0; font-weight:600; color:#374151;">Unit Price</th>
+                                        <th align="right" style="padding:8px 0; font-weight:600; color:#374151;">Tax</th>
                                         <th align="right" style="padding:8px 0; font-weight:600; color:#374151;">Total</th>
                                     </tr>
                                 </thead>
@@ -241,19 +252,58 @@
                                     {{-- Main Item Row --}}
                                     @php
                                     if ($item->type === 'order') {
-                                    $rowprice = $item->orderProduct->price;
+                                    $rowprice = $item->orderProduct->price ;
                                     $qty = $item->orderProduct->quantity ?? 1;
+
+                                     $total_without_data = $rowprice * $qty;
+                                     $total = $total_without_data + $item->orderProduct->tax ;
                                     } else {
-                                    $rowprice = $item->unit;
+                                    $rowprice = $item->total;
                                     $qty = $item->qty ?? 1;
+                                     $total = $rowprice * $qty;
                                     }
-                                    $total = $rowprice * $qty;
+                                   
                                     @endphp
                                     <tr>
-                                        <td style="padding:8px 0; font-weight:500;">{{ $item->item_name }}</td>
+                                        <td align="left">   
+                                                            @if ($item->type === 'order')
+                                                            #{{ $item->orderProduct->order->id }}
+                                                            @else
+                                                            -
+                                                            @endif
+                                                        </td>
+                                                        <td style="padding:8px 0; font-weight:500;">{{ $item->item_name }} 
+                                                <div style="font-size:12px; color:#6b7280;"> {{  $item->notes ?? ''}} </div>
+                                        </td>
+
+                                        <td align="left">   
+                                            @if ($item->type === 'order')
+                                            {{  $item->orderProduct->order->po_id ?? '-'}}
+                                            @else
+                                            -
+                                            @endif
+                                        </td>
+                                        @php
+                                            
+                                            $isAdjustment = in_array($item->type, ['discount', 'refund']);
+
+                                            $textColor = $isAdjustment ? 'green' : '';
+                                            $prefix = $isAdjustment ? '-' : '';
+                                        @endphp
                                         <td align="center">{{ $qty }}</td>
-                                        <td align="right">{{ \App\Helpers\CustomHelper::formatCurrency($rowprice) }}</td>
-                                        <td align="right" style="font-weight:600;">{{ \App\Helpers\CustomHelper::formatCurrency($total) }}</td>
+                                        <td align="right" style="font-weight:600;color:{{ $textColor }};">
+                                            {{-- {{ \App\Helpers\CustomHelper::formatCurrency($rowprice) }} --}}
+                                             @if ($item->type === 'order')
+                                      {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->price) }}
+                                        @else
+                                      {{ $prefix }}  {{ \App\Helpers\CustomHelper::formatCurrency($item->unit) }}
+                                        @endif
+                                        </td>
+                             
+                                        <td align="right"  style="font-weight:600;color:{{ $textColor }};">{{ $prefix }} {{ \App\Helpers\CustomHelper::formatCurrency($item->tax) }}</td>
+
+
+                                        <td align="right"  style="font-weight:600;color:{{ $textColor }};">{{ $prefix }} {{ \App\Helpers\CustomHelper::formatCurrency($total ) }}</td>
                                     </tr>
 
                                     {{-- Rental Items --}}
@@ -265,14 +315,17 @@
                                     $quantity = $case ? $item->orderProduct->quantity : 1;
                                     @endphp
                                     <tr>
+                                        <td></td>
                                         <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:5px;">
                                             + {{ $case ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
                                             <span class="text-xs text-gray-400">(x{{ $quantity }})</span>
                                         </td>
                                         <td></td>
+                                        <td></td>
                                         <td align="right" style="font-size:12px; color:#6b7280;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice) }}
                                         </td>
+                                           <td></td>
                                         <td align="right" style="font-size:12px; color:#6b7280;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice * $quantity) }}
                                         </td>
@@ -284,17 +337,22 @@
                                       @if (!empty($item->orderProduct->distance_range))
 
                                          <tr style="border-bottom:1px solid #d1d5db;">
+                                        <td></td>
+
                                             <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:10px;">
                                                 + Distance Range
                                                 <span class="text-xs text-gray-400">( {{ ucfirst($item->orderProduct->distance_type) }}
                                                             ({{ ucfirst($item->orderProduct->distance_range) }}))</span>
                                             </td>
+                                        <td></td>
+
                                             <td></td>
                                             <td align="right" style="font-size:12px; color:#6b7280;">
                                                
 
                                                              {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
                                             </td>
+                                               <td></td>
                                             <td align="right" style="font-size:12px; color:#6b7280;">
                                                  {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
                                             </td>
@@ -304,14 +362,19 @@
                                     {{-- Option Items --}}
                                     @foreach ($item->orderProduct->product_data['product_option_items'] ?? [] as $option)
                                     <tr style="border-bottom:1px solid #d1d5db;">
+                                        <td></td>
+
                                         <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:10px;">
                                             + {{ $option['name'] }}
                                             <span class="text-xs text-gray-400">(x{{ $item->orderProduct->quantity ?? 1 }})</span>
                                         </td>
                                         <td></td>
+
+                                        <td></td>
                                         <td align="right" style="font-size:12px; color:#6b7280;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($option['price'] ?? 0) }}
                                         </td>
+                                           <td></td>
                                         <td align="right" style="font-size:12px; color:#6b7280;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency(($option['price'] ?? 0) * ($item->orderProduct->quantity ?? 1)) }}
                                         </td>
@@ -321,10 +384,13 @@
 
                                     {{-- Divider --}}
                                     <tr style="border-bottom:1px solid #d1d5db;">
+                                        <td></td>
+                                        <td></td>
 
                                         <td></td>
                                         <td></td>
                                         <td></td>
+                                           <td></td>
                                         <td></td>
 
 
@@ -334,6 +400,30 @@
                             </table>
                         </td>
                     </tr>
+
+        @php
+            $discountTotal = 0;
+            $refundTotal = 0;
+
+            foreach ($invoice->items as $item) {
+                if (in_array($item->type, ['discount', 'refund'])) {
+                    $amount = ($item->unit ?? 0) * ($item->qty ?? 1);
+
+                    if ($item->type === 'discount') {
+                        $discountTotal += $amount;
+                    }
+
+                    if ($item->type === 'refund') {
+                        $refundTotal += $amount;
+                    }
+                }
+            }
+
+            $adjustmentsTotal = $discountTotal + $refundTotal;
+
+            $finalTotal = $invoice->total - $adjustmentsTotal;
+        @endphp
+
 
 
                     <!-- Totals -->
@@ -348,6 +438,24 @@
                                     <td align="left">Tax ( {{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }} %):</td>
                                     <td align="right">{{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}</td>
                                 </tr>
+
+                                    {{-- Show Discount --}}
+                                @if($discountTotal > 0)
+            
+                                 <tr>
+                                    <td align="left" style="color: green">Discount:</td>
+                                    <td align="right" style="color: green">-{{ \App\Helpers\CustomHelper::formatCurrency($discountTotal) }}</td>
+                                </tr>
+                                @endif
+
+                                 @if($refundTotal > 0)
+            
+                                 <tr>
+                                    <td align="left" style="color: green">Refund:</td>
+                                    <td align="right" style="color: green">-{{ \App\Helpers\CustomHelper::formatCurrency($refundTotal) }}</td>
+                                </tr>
+                                @endif
+
                                 <tr style="border-top:2px solid #111827;">
                                     <td align="left" style="padding-top:8px; font-weight:700; font-size:16px;">Total:</td>
                                     <td align="right" style="padding-top:8px; font-weight:700; font-size:16px;">{{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}</td>
@@ -369,6 +477,13 @@
         For questions about this receipt, contact us at {{ $supportPhone }}
     </p>
 @endif
+
+@if(!empty($invoice->invoice_notes))
+    <p style="margin:0;">
+         {{ $invoice->invoice_notes }}
+    </p>
+@endif
+
                         </td>
                     </tr>
 

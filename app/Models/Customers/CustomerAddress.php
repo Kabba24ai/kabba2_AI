@@ -20,7 +20,7 @@ class CustomerAddress extends Model
         'country',
         'phone',
         'address',
-
+        'email',
         'state_id',
         'city',
         'zip_code'
@@ -30,7 +30,7 @@ class CustomerAddress extends Model
         'full_name',
         'full_address',
         'state_name',
-        'email'
+        
     ];
 
     public function scopePrimary($query)
@@ -71,10 +71,10 @@ class CustomerAddress extends Model
         return $this->state ? $this->state->name : null;
     }
 
-    public function getEmailAttribute()
-    {
-        return $this->customer ? $this->customer->email : null;
-    }
+    // public function getEmailAttribute()
+    // {
+    //     return $this->customer ? $this->customer->email : null;
+    // }
 
     public static function setPrimaryAddress(CustomerAddress $address)
     {

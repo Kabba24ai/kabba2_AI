@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\Crm\Customers\CustomerAccount;
+namespace App\Http\Requests\Admin\Crm\Customers\Invoice;
 use Illuminate\Validation\Rule;
 use App\Helpers\PurifyHelper;
 use Illuminate\Foundation\Http\FormRequest;
@@ -32,6 +32,7 @@ class PaymentStoreRequest extends FormRequest
 {
     return [
         'customer_id' => ['required'],
+        'invoice_id' => ['required'],
         'amount' => ['required'],
         'payment_type' => ['required', Rule::in(['Cash', 'Cheque', 'CreditCard', 'BankTransfer', 'Other'])],
         'responsible_person' => ['required'],

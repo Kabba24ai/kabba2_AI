@@ -8,6 +8,8 @@ use App\Models\Iam\Personnel\User;
 use Illuminate\Support\Facades\DB;
 use App\Models\Customers\Customer;
 use App\Models\Configurations\Setting;
+use App\Models\Customers\Invoice;
+use App\Models\Customers\InvoiceItem;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
@@ -77,6 +79,44 @@ class UpdateController extends Controller
 
                 DB::commit();
 
+            // update the linked  invoice
+            if ($transaction->invoice_id && $transaction->invoice_item_id) {
+
+                $invoiceItem = InvoiceItem::findOrFail($transaction->invoice_item_id);
+
+                // Sync InvoiceItem from Ledger
+                $invoiceItem->unit = $transaction->amount;
+                $invoiceItem->notes = $transaction->notes;
+                $invoiceItem->responsible_person_id = $transaction->responsible_person_id;
+
+                // Tax logic
+                $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
+                $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
+
+                if (in_array($invoiceItem->type, ['charge'])) {
+                    $invoiceItem->tax = $invoiceItem->unit * $salesTaxRate;
+                } elseif ($invoiceItem->type === 'refund') {
+                    $invoiceItem->tax = $invoiceItem->unit * $salesTaxRate;
+                } else {
+                    $invoiceItem->tax = 0;
+                }
+
+                $invoiceItem->total = $invoiceItem->unit + $invoiceItem->tax;
+
+                $invoiceItem->save();
+
+
+                //  Recalculate Invoice totals
+                 $invoice = Invoice::findOrFail($transaction->invoice_id);
+
+                 CustomHelper::updateInvoiceSummary($invoice);
+                 
+            }
+
+
+            CustomHelper::fixTheRunningBalance($transaction->customer_id);
+
+
                 flash('Transaction successfully updated.')->success();
                 // session()->flash('active_tab', 'credit');
                 session(['active_tab' => 'credit']);
@@ -88,5 +128,10 @@ class UpdateController extends Controller
                 return redirect()->back()->withErrors(['error' => 'Update failed. Please try again.']);
             }
         }
+
+
+
+
+        
 
 }

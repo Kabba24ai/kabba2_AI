@@ -22,14 +22,7 @@ class RefundStoreRequest extends FormRequest
         return [
             'customer_id' => ['required'],
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'reason' => ['required', Rule::in([
-                'Damaged Item',
-                'Wrong Item Shipped',
-                'Customer Cancellation',
-                'Billing Overcharge',
-                'Duplicate Charge',
-                'Other',
-            ])],
+            'reason' => ['required'],
             'responsible_person' => ['required'],
             'notes' => ['nullable', 'string'],
         ];

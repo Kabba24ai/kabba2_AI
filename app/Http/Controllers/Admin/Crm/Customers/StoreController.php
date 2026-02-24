@@ -26,6 +26,9 @@ class StoreController extends Controller
     public function __invoke(StoreRequest $request)
     {
 
+    dd($request->all());
+    die();
+    
         $validated = $request->validated();
 
         // Auto-copy billing address to shipping if sameAsBilling checked

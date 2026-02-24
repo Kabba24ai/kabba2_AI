@@ -25,6 +25,8 @@ class ViewUpdateController extends Controller
 
         $validated = $request->validated();
 
+        // dd($validated);
+
         $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
 
         DB::beginTransaction();
@@ -84,6 +86,7 @@ class ViewUpdateController extends Controller
                             'last_name'     => $address['last_name'] ?? null,
                             'type' => $address['type'] ?? null,
                             'phone'         => $address['phone'] ?? null,
+                            'email'         => $address['email'] ?? null,
                             'address'       => $address['address'] ?? null,
                             'city'          => $address['city'] ?? null,
                             'state_id' => !empty($address['state_id']) ? (int)$address['state_id'] : null,

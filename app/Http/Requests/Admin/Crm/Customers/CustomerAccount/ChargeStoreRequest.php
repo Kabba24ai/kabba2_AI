@@ -23,15 +23,7 @@ class ChargeStoreRequest extends FormRequest
         return [
             'customer_id' => ['required'],
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'reason' => ['required', Rule::in([
-                'New Rental',
-                'Rental Extension',
-                'Damages',
-                'Fuel Charge',
-                'Cleaning Charge',
-                'Missing Items',
-                'Product Purchase',
-            ])],
+            'reason' => ['required'],
             'responsible_person' => ['required'],
             'sales_tax' => ['nullable', Rule::in(['add', 'free', 'reverse'])],
             'notes' => ['nullable', 'string'],

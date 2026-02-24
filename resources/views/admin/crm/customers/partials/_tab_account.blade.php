@@ -264,6 +264,9 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
     @foreach ($defaultAddresses as $index => $addressItem)
         @php $addresse = $addressItem['data']; @endphp
+
+        {{-- {{ $addresse }} --}}
+
         <div class="address-block bg-white rounded-xl shadow-sm p-5 border border-gray-200"
             data-index="{{ $index }}">
             <input type="hidden" name="addresses[{{ $index }}][address_id]" value="{{ $addresse->id ?? '' }}"
@@ -383,7 +386,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                     <div class="edit-view">
                         <label class="text-xs text-gray-500 font-medium ">State </label>
@@ -434,6 +437,27 @@
                             ]) !!}
 
                     </div>
+
+                    <div class="edit-view">
+                        <label class="text-xs text-gray-500 font-medium ">Email  </label>
+
+
+                        {!! html()->email("addresses[$index][email]", old("addresses.$index.email", $addresse->email ?? $customer->email ?? ''))
+                        ->class([
+                            'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',
+                            'border-red-500' => $errors->has("addresses.$index.email"),
+                        ])
+                        ->attributes([
+                            'placeholder' => 'Enter Email',
+                            'class' => 'email',
+                            'autocomplete' => 'off',
+                            'data-parsley-type' => 'email',
+                            'data-parsley-pattern-message' => 'Please enter a valid email address.',
+                        ]) !!}
+
+
+                    </div>
+
 
 
 
@@ -1692,6 +1716,8 @@
                 zip: document.getElementById('addresses[0][zip_code]'),
                 country: document.getElementById('addresses[0][Country]'),
                 phone: document.getElementById('addresses[0][phone]'),
+                email: document.getElementById('addresses[0][email]'),
+
             };
 
             const deliveryFields = {
@@ -1703,6 +1729,8 @@
                 zip: document.getElementById('addresses[1][zip_code]'),
                 country: document.getElementById('addresses[1][Country]'),
                 phone: document.getElementById('addresses[1][phone]'),
+                email: document.getElementById('addresses[1][email]'),
+
             };
 
 

@@ -42,6 +42,24 @@ This document lists all credentials and configuration details required from a ne
 
 - Any other custom settings required for integrations or features
 
+## 6. Client Domains & Project Contacts
+
+Below are the domains to be configured for the client, along with the associated project contacts:
+
+| Domain                                              | Application Type         | Contact Person    |
+|-----------------------------------------------------|-------------------------|-------------------|
+| https://rentnking.com/                              | Main Application        | Raj Chotaliya     |
+| https://opportunities.rentnking.com/                | Individual Other App    | Nipa Soni         |
+| https://admin.rentnking.com/                        | Main Application (Admin)| Raj Chotaliya     |
+| https://api.rentnking.com/                          | Main Application (API)  | Raj Chotaliya     |
+| https://projectmanager.rentnking.com/               | Individual Other App    | Spyro Dennis      |
+| https://timetrackerpro.rentnking.com/               | Individual Other App    | Nipa Soni         |
+
+**Action Items:**
+- Ensure all domains are properly pointed to the server and SSL certificates are installed.
+- Confirm access and credentials for each subdomain as required.
+- Coordinate with the listed contact persons for any domain-specific queries or setup requirements.
+
 ---
 
 **Note:**

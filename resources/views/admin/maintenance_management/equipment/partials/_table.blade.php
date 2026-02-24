@@ -40,9 +40,8 @@
                             {!! \App\Helpers\CustomHelper::statusBadge($item->current_status->label()) !!}
                         </td>
                          <td class="py-4 px-6">
-                            @if ($item->status_label == 'Rented' && $item?->orderProduct?->checklistQuestions->isNotEmpty())
-                                {{ $item->order->customer_name ?? '-' }}
-
+                            @if ($item->status_label == 'Rented')
+                                {{ $item?->order->customer_name ?? '-' }}
                             @else
                                 @if ($item->store?->store_name)
                                     <button type="button" class="text-blue-600 underline store-assign-btn"

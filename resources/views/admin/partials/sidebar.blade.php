@@ -576,14 +576,15 @@
                                 </li>
 
                                 @php
-                                    $host = request()->getHost();
+                                    // $host = request()->getHost();
 
-                                    $timeTrackerUrl = match ($host) {
-                                        'admin.kabba.local'        => 'http://localhost:5173/?logout=1',
-                                        'admin.kabba.ai'           => 'https://timetrackerpro.kabba.ai/?logout=1',
-                                        'admin.rentnking.com'      => 'https://timetrackerpro.rentnking.com/?logout=1',
-                                        default                    => 'https://timetrackerpro.kabba.ai/?logout=1',
-                                    };
+                                    // $timeTrackerUrl = match ($host) {
+                                    //     'admin.kabba.local'        => 'http://localhost:5173/?logout=1',
+                                    //     'admin.kabba.ai'           => 'https://timetrackerpro.kabba.ai/?logout=1',
+                                    //     'admin.rentnking.com'      => 'https://timetrackerpro.rentnking.com/?logout=1',
+                                    //     default                    => 'https://timetrackerpro.kabba.ai/?logout=1',
+                                    // };
+                                     $timeTrackerUrl = config('app.timetrackerpro_url');
 
                                 @endphp
 

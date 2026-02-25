@@ -27,3 +27,11 @@ Route::get('/top-categories', [SalesReportController::class, 'getTopCategories']
 Route::get('/categories', [SalesReportController::class, 'getCategories']);
 Route::get('/products', [SalesReportController::class, 'getProducts']);
 Route::get('/stores', [SalesReportController::class, 'getStores']);
+
+// Pure Sales Report endpoints
+Route::get('/sales-summary', [SalesReportController::class, 'getSalesSummary']);
+Route::get('/revenue-breakdown', [SalesReportController::class, 'getRevenueBreakdown']);
+Route::get('/tax-and-payments', [SalesReportController::class, 'getTaxAndPayments']);
+Route::get('/discounts-report', [SalesReportController::class, 'getDiscountsReport']);
+Route::get('/refunds-report', [SalesReportController::class, 'getRefundsReport']);
+Route::get('/product-sales-details', [SalesReportController::class, 'getProductSalesDetails']);

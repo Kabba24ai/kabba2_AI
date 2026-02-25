@@ -307,6 +307,419 @@ class SalesReportController extends Controller
     }
 
     /**
+     * Get sales summary with totals and averages
+     */
+    public function getSalesSummary(Request $request)
+    {
+        $filters = $request->all();
+        $dateRange = $filters['dateRange'] ?? 'rolling_30';
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+
+        $query = DB::table('order_products')
+            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+            ->join('products', 'order_products.product_id', '=', 'products.id')
+            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
+            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                $startDate->format('Y-m-d'),
+                $endDate->format('Y-m-d')
+            ]);
+
+        $this->applyFiltersToQuery($query, $filters);
+
+        $data = $query->select(
+            'order_products.order_id',
+            'order_products.total',
+            'order_products.tax',
+            'order_products.quantity',
+            'order_payments.refund_amount'
+        )->get();
+
+        $totalGrossSales = 0;
+        $totalDiscounts = 0;
+        $totalRefunds = 0;
+        $totalNetSales = 0;
+        $itemsSold = 0;
+        $orderIds = collect();
+
+        foreach ($data as $item) {
+            $amount = $item->total - $item->tax; // Exclude tax
+            $quantity = $item->quantity ?? 1;
+
+            if ($item->refund_amount > 0) {
+                // Refunded order
+                $totalRefunds += $amount;
+            } else {
+                // Paid order
+                $totalGrossSales += $item->total; // Gross includes tax
+                $totalNetSales += $amount;
+                $itemsSold += $quantity;
+                $orderIds->push($item->order_id);
+            }
+        }
+
+        $transactionCount = $orderIds->unique()->count();
+        $averageSaleValue = $transactionCount > 0 ? $totalNetSales / $transactionCount : 0;
+        $averageItemsPerSale = $transactionCount > 0 ? $itemsSold / $transactionCount : 0;
+
+        return response()->json([
+            'totalGrossSales' => (float)$totalGrossSales,
+            'totalDiscounts' => (float)$totalDiscounts,
+            'totalRefunds' => (float)$totalRefunds,
+            'totalNetSales' => (float)($totalNetSales - $totalRefunds),
+            'transactionCount' => $transactionCount,
+            'itemsSold' => (int)$itemsSold,
+            'averageSaleValue' => (float)$averageSaleValue,
+            'averageItemsPerSale' => (float)$averageItemsPerSale
+        ]);
+    }
+
+    /**
+     * Get revenue breakdown by type
+     */
+    public function getRevenueBreakdown(Request $request)
+    {
+        $filters = $request->all();
+        $dateRange = $filters['dateRange'] ?? 'rolling_30';
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+
+        $query = DB::table('order_products')
+            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+            ->join('products', 'order_products.product_id', '=', 'products.id')
+            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
+            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                $startDate->format('Y-m-d'),
+                $endDate->format('Y-m-d')
+            ]);
+
+        $this->applyFiltersToQuery($query, $filters);
+
+        $data = $query->select(
+            'order_products.total',
+            'order_products.tax',
+            'products.product_type',
+            'products.product_name',
+            'order_payments.refund_amount'
+        )->get();
+
+        $breakdown = [
+            'retailSales' => 0,
+            'rentalRevenue' => 0,
+            'deliveryRevenue' => 0,
+            'damageWaiverRevenue' => 0,
+            'trackInsuranceRevenue' => 0,
+            'prepaidFuelRevenue' => 0,
+            'prepaidCleaningRevenue' => 0,
+            'feesOtherRevenue' => 0
+        ];
+
+        foreach ($data as $item) {
+            $amount = $item->total - $item->tax;
+            
+            if ($item->refund_amount > 0) {
+                $amount = -$amount; // Negative for refunds
+            }
+
+            $productName = strtolower($item->product_name ?? '');
+            $productType = $item->product_type ?? '';
+
+            // Categorize by product name keywords
+            if (strpos($productName, 'waiver') !== false || strpos($productName, 'damage') !== false) {
+                $breakdown['damageWaiverRevenue'] += $amount;
+            } elseif (strpos($productName, 'insurance') !== false || strpos($productName, 'track') !== false) {
+                $breakdown['trackInsuranceRevenue'] += $amount;
+            } elseif (strpos($productName, 'delivery') !== false) {
+                $breakdown['deliveryRevenue'] += $amount;
+            } elseif (strpos($productName, 'fuel') !== false) {
+                $breakdown['prepaidFuelRevenue'] += $amount;
+            } elseif (strpos($productName, 'cleaning') !== false) {
+                $breakdown['prepaidCleaningRevenue'] += $amount;
+            } elseif ($productType === 'Retail') {
+                $breakdown['retailSales'] += $amount;
+            } elseif ($productType === 'Rental') {
+                $breakdown['rentalRevenue'] += $amount;
+            } else {
+                $breakdown['feesOtherRevenue'] += $amount;
+            }
+        }
+
+        return response()->json(array_map('floatval', $breakdown));
+    }
+
+    /**
+     * Get tax and payment method breakdown
+     */
+    public function getTaxAndPayments(Request $request)
+    {
+        $filters = $request->all();
+        $dateRange = $filters['dateRange'] ?? 'rolling_30';
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+
+        $query = DB::table('order_products')
+            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+            ->join('products', 'order_products.product_id', '=', 'products.id')
+            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
+            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                $startDate->format('Y-m-d'),
+                $endDate->format('Y-m-d')
+            ]);
+
+        $this->applyFiltersToQuery($query, $filters);
+
+        $data = $query->select(
+            'order_products.total',
+            'order_products.tax',
+            'order_payments.refund_amount',
+            'order_payments.status'
+        )->get();
+
+        $salesTaxCollected = 0;
+        $payments = [
+            'cashPayments' => 0,
+            'cardPayments' => 0,
+            'achPayments' => 0,
+            'checkPayments' => 0,
+            'accountPayments' => 0,
+            'otherPayments' => 0
+        ];
+
+        foreach ($data as $item) {
+            $amount = $item->total - $item->tax;
+            $tax = $item->tax ?? 0;
+
+            if ($item->refund_amount > 0) {
+                $amount = -$amount;
+                $tax = -$tax;
+            }
+
+            $salesTaxCollected += $tax;
+
+            // Categorize by payment status
+            $status = strtolower($item->status ?? '');
+            if (strpos($status, 'cash') !== false) {
+                $payments['cashPayments'] += $amount;
+            } elseif (strpos($status, 'card') !== false) {
+                $payments['cardPayments'] += $amount;
+            } elseif (strpos($status, 'cheque') !== false || strpos($status, 'check') !== false) {
+                $payments['checkPayments'] += $amount;
+            } elseif (strpos($status, 'account') !== false) {
+                $payments['accountPayments'] += $amount;
+            } elseif (strpos($status, 'online') !== false || strpos($status, 'ach') !== false) {
+                $payments['achPayments'] += $amount;
+            } else {
+                $payments['otherPayments'] += $amount;
+            }
+        }
+
+        return response()->json([
+            'salesTaxCollected' => (float)$salesTaxCollected,
+            'cashPayments' => (float)$payments['cashPayments'],
+            'cardPayments' => (float)$payments['cardPayments'],
+            'achPayments' => (float)$payments['achPayments'],
+            'checkPayments' => (float)$payments['checkPayments'],
+            'accountPayments' => (float)$payments['accountPayments'],
+            'otherPayments' => (float)$payments['otherPayments']
+        ]);
+    }
+
+    /**
+     * Get discounts report
+     */
+    public function getDiscountsReport(Request $request)
+    {
+        $filters = $request->all();
+        $dateRange = $filters['dateRange'] ?? 'rolling_30';
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+
+        // Note: This assumes there's a discount field in order_products or orders table
+        // Adjust based on your actual database schema
+        $query = DB::table('order_products')
+            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+            ->join('products', 'order_products.product_id', '=', 'products.id')
+            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
+            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                $startDate->format('Y-m-d'),
+                $endDate->format('Y-m-d')
+            ]);
+
+        $this->applyFiltersToQuery($query, $filters);
+
+        // For now, return zeros as discount tracking may need additional schema
+        // You can add discount_amount field if available
+        return response()->json([
+            'totalDiscounts' => 0,
+            'discountPercentage' => 0,
+            'transactionsWithDiscounts' => 0,
+            'averageDiscountPerTransaction' => 0
+        ]);
+    }
+
+    /**
+     * Get refunds report
+     */
+    public function getRefundsReport(Request $request)
+    {
+        $filters = $request->all();
+        $dateRange = $filters['dateRange'] ?? 'rolling_30';
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+
+        $query = DB::table('order_products')
+            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+            ->join('products', 'order_products.product_id', '=', 'products.id')
+            ->whereIn('order_payments.status', ['Refunded'])
+            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                $startDate->format('Y-m-d'),
+                $endDate->format('Y-m-d')
+            ]);
+
+        $this->applyFiltersToQuery($query, $filters);
+
+        $data = $query->select(
+            'order_products.order_id',
+            'order_products.total',
+            'order_products.tax',
+            'order_payments.refund_amount'
+        )->get();
+
+        $totalRefundAmount = 0;
+        $refundTransactionCount = 0;
+        $fullRefunds = 0;
+        $partialRefunds = 0;
+        $refundsByReason = [];
+
+        foreach ($data as $item) {
+            $amount = $item->total - $item->tax;
+            $refundAmount = $item->refund_amount ?? 0;
+
+            if ($refundAmount > 0) {
+                $totalRefundAmount += $amount;
+                $refundTransactionCount++;
+
+                // Determine if full or partial refund
+                if ($refundAmount >= $item->total) {
+                    $fullRefunds++;
+                } else {
+                    $partialRefunds++;
+                }
+
+                // Group by reason if available (you may need to add refund_reason field)
+                $reason = 'Not specified';
+                if (!isset($refundsByReason[$reason])) {
+                    $refundsByReason[$reason] = ['count' => 0, 'amount' => 0];
+                }
+                $refundsByReason[$reason]['count']++;
+                $refundsByReason[$reason]['amount'] += $amount;
+            }
+        }
+
+        $refundsByReasonArray = array_map(function($reason, $data) {
+            return [
+                'reason' => $reason,
+                'count' => $data['count'],
+                'amount' => (float)$data['amount']
+            ];
+        }, array_keys($refundsByReason), $refundsByReason);
+
+        return response()->json([
+            'totalRefundAmount' => (float)$totalRefundAmount,
+            'refundTransactionCount' => $refundTransactionCount,
+            'fullRefunds' => $fullRefunds,
+            'partialRefunds' => $partialRefunds,
+            'refundsByReason' => $refundsByReasonArray
+        ]);
+    }
+
+    /**
+     * Get detailed product sales information
+     */
+    public function getProductSalesDetails(Request $request)
+    {
+        $filters = $request->all();
+        $dateRange = $filters['dateRange'] ?? 'rolling_30';
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+
+        $query = DB::table('order_products')
+            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+            ->join('products', 'order_products.product_id', '=', 'products.id')
+            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
+            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                $startDate->format('Y-m-d'),
+                $endDate->format('Y-m-d')
+            ]);
+
+        $this->applyFiltersToQuery($query, $filters);
+
+        $data = $query->select(
+            'order_products.product_id',
+            'order_products.order_id',
+            'order_products.total',
+            'order_products.tax',
+            'order_products.quantity',
+            'products.product_name',
+            'products.product_type',
+            'order_payments.refund_amount'
+        )->get();
+
+        $productMap = [];
+
+        foreach ($data as $item) {
+            $productId = (string)$item->product_id;
+            $amount = $item->total - $item->tax;
+            $quantity = $item->quantity ?? 1;
+            $isRefund = $item->refund_amount > 0;
+
+            if (!isset($productMap[$productId])) {
+                $productMap[$productId] = [
+                    'productId' => $productId,
+                    'productName' => $item->product_name ?? 'Unknown',
+                    'sku' => strtoupper(substr($productId, 0, 8)),
+                    'quantitySold' => 0,
+                    'grossSales' => 0,
+                    'discountAmount' => 0,
+                    'netSales' => 0,
+                    'refundQuantity' => 0,
+                    'refundAmount' => 0,
+                    'taxCollected' => 0,
+                    'itemType' => strtolower($item->product_type ?? 'retail') === 'rental' ? 'rental' : 'retail',
+                    'salesCount' => 0
+                ];
+            }
+
+            if ($isRefund) {
+                $productMap[$productId]['refundQuantity'] += $quantity;
+                $productMap[$productId]['refundAmount'] += $amount;
+            } else {
+                $productMap[$productId]['quantitySold'] += $quantity;
+                $productMap[$productId]['grossSales'] += $item->total;
+                $productMap[$productId]['netSales'] += $amount;
+                $productMap[$productId]['taxCollected'] += ($item->tax ?? 0);
+                $productMap[$productId]['salesCount']++;
+            }
+        }
+
+        $result = [];
+        foreach ($productMap as $product) {
+            $salesCount = $product['salesCount'];
+            $result[] = [
+                'productId' => $product['productId'],
+                'productName' => $product['productName'],
+                'sku' => $product['sku'],
+                'quantitySold' => (int)$product['quantitySold'],
+                'grossSales' => (float)$product['grossSales'],
+                'discountAmount' => (float)$product['discountAmount'],
+                'netSales' => (float)$product['netSales'],
+                'averageSellingPrice' => $salesCount > 0 ? (float)($product['netSales'] / $salesCount) : 0,
+                'refundQuantity' => (int)$product['refundQuantity'],
+                'refundAmount' => (float)$product['refundAmount'],
+                'netQuantitySold' => (int)($product['quantitySold'] - $product['refundQuantity']),
+                'taxCollected' => (float)$product['taxCollected'],
+                'itemType' => $product['itemType']
+            ];
+        }
+
+        return response()->json($result);
+    }
+
+    /**
      * Private helper: Get sales data with filters
      */
     private function getSalesData($startDate, $endDate, $filters = [])

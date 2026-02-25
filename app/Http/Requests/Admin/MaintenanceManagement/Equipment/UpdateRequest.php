@@ -62,6 +62,9 @@ class UpdateRequest extends FormRequest
 
             'down_payment' => 'nullable|numeric|min:0',
 
+            'freight_shipping' => 'nullable|numeric|min:0',
+            'taxes_fees' => 'nullable|numeric|min:0',
+
             'amount_financed' => 'nullable|numeric|min:0',
 
             'ownership_type' => 'nullable|in:owned,financed,leased',
@@ -74,6 +77,8 @@ class UpdateRequest extends FormRequest
             'serial_number' => 'nullable|string|max:255',
             'license_plate' => 'nullable|string|max:255',
             'imei' => 'nullable|string|max:255',
+            'warranty_duration_months' => 'nullable|integer|min:0',
+            'warranty_duration_hours' => 'nullable|integer|min:0',
 
             'power_source_type' => 'nullable|in:diesel,gas,batteries,electric',
             'has_def' => 'nullable|boolean',

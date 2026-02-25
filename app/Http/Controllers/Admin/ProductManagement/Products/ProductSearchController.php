@@ -23,7 +23,6 @@ class ProductSearchController extends Controller
                 ->where('unique_id', '!=', $currentProductUniqueId)
             )
             ->when($search, fn($qb) => $qb->where('product_name', 'like', "%{$search}%"))
-            ->limit(5)
             ->get();
 
         return response()->json([

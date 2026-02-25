@@ -137,13 +137,19 @@
                    <div class="flex flex-wrap gap-2">
                        <a href="javascript:void(0)" id="openTemplatesModal"
                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-md flex items-center">
-                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                           {{-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                class="lucide lucide-credit-card w-4 h-4 mr-2">
                                <rect width="20" height="14" x="2" y="5" rx="2" />
                                <line x1="2" x2="22" y1="10" y2="10" />
-                           </svg>
+                           </svg> --}}
+
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
+                    <line x1="12" x2="12" y1="2" y2="22"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+
                            Payment
                        </a>
 
@@ -340,23 +346,22 @@
                                <span class="ml-1 capitalize">{{ $transaction->type }}</span>
                            </span>
 
-                           <div class="text-xs text-gray-500 mt-1">{{ $transaction->responsible_person_name ?? ''  }}
-
+                           <div class="text-xs text-gray-500 mt-1">
+                                 @if ($transaction->invoice)
+                                    Invoice #{{ $transaction->invoice->invoice_number }}
+                                @elseif ($transaction->type !== 'payment')
+                                    {{ $transaction->responsible_person_name }}
+                                @endif
                            </div>
                        </td>
                        <td class="py-4 px-6 text-sm text-gray-900">
                            <div class="max-w-xs truncate text-gray-700">
 
                                @if ($transaction->type === 'payment')
-
                                {{ $transaction->payment_type?->label() ?? 'N/A' }}
-
-
                                @else
                                {{ $transaction->reason ?? 'N/A' }}
                                @endif
-
-                               <!-- {{ $transaction->notes ?? 'N/A' }} -->
 
                            </div>
                            <div class="text-xs text-gray-500 hidden">Ref: {{ $transaction->unique_id }}</div>
@@ -412,44 +417,63 @@
                        <td class="py-4 px-6 text-blue-600">
                            <div class="flex gap-2 items-center justify-end">
 
-
+                            @if ($transaction->invoice_id && $transaction->type === 'payment')
+            <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice->unique_id) }}" target="_blank"  title="View" >
+                                            <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
+            </a>
+                            @else
                                <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)' data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}">
                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                                </button>
 
-                               @if ($transaction->type !== 'order')
-
-                               <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
-                                   data-id="{{ $transaction->id }}"
-                                   data-type="{{ $transaction->type }}"
-                                   data-amount="{{ $transaction->amount }}"
-                                   data-payment_type="{{ $transaction->payment_type }}"
-                                   data-cheque_number="{{ $transaction->payment_number_id }}"
-                                   data-reason="{{ $transaction->reason }}"
-                                   data-responsible_person="{{ $transaction->responsible_person_id }}"
-                                   data-notes="{{ $transaction->notes }}"
-                                   data-sales_tax="{{ $transaction->sales_tax }}"
-                                   data-sales_tax_type="{{ $transaction->sales_tax_type }}"
-                                   data-action="{{ route('admin.crm.customers.customer-account.transactionupdate', $transaction->id) }}"
-
-                                   @if($transaction->card)
-                                   data-card_id="{{ $transaction->card->unique_id }}"
-                                   data-card_masked="{{ $transaction->card->card_number }}"
-                                   @endif
-
-                                   title="Edit">
-                                   <x-heroicon-o-pencil class="w-4 h-4" />
-                               </button>
-
                                @endif
 
-                               <!-- Download -->
-                               <form method="GET" action="{{ route('admin.crm.customers.customer-account.download', $transaction->id) }}" target="_blank" style="display:flex;">
-                                   <button title="Download" type="submit">
-                                       <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
-                                   </button>
-                               </form>
+                               @if ($transaction->type !== 'order')
 
+                                @if ($transaction->invoice_id && $transaction->type === 'payment')
+                                    <a href="{{ route('admin.crm.customers.invoice.edit', $transaction->invoice->unique_id) }}" target="_blank" class=" text-green-600 hover:text-green-800"
+                                    
+                                    title="Edit">
+                                    <x-heroicon-o-pencil class="w-4 h-4" />
+                                    </a>
+                                @else
+                                    <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
+                                        data-id="{{ $transaction->id }}"
+                                        data-type="{{ $transaction->type }}"
+                                        data-amount="{{ $transaction->amount }}"
+                                        data-payment_type="{{ $transaction->payment_type }}"
+                                        data-cheque_number="{{ $transaction->payment_number_id }}"
+                                        data-reason="{{ $transaction->reason }}"
+                                        data-responsible_person="{{ $transaction->responsible_person_id }}"
+                                        data-notes="{{ $transaction->notes }}"
+                                        data-sales_tax="{{ $transaction->sales_tax }}"
+                                        data-sales_tax_type="{{ $transaction->sales_tax_type }}"
+                                        data-action="{{ route('admin.crm.customers.customer-account.transactionupdate', $transaction->id) }}"
+
+                                        @if($transaction->card)
+                                        data-card_id="{{ $transaction->card->unique_id }}"
+                                        data-card_masked="{{ $transaction->card->card_number }}"
+                                        @endif
+
+                                        title="Edit">
+                                        <x-heroicon-o-pencil class="w-4 h-4" />
+                                    </button>
+
+                                @endif
+                               @endif
+
+                                  @if ($transaction->invoice_id && $transaction->type === 'payment')
+                <a href="{{ route('admin.crm.customers.invoice.download',$transaction->invoice->unique_id ) }}" class="             text-green-600 inline-flex items-center">
+                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                             </a>
+                                  @else
+                                    <!-- Download -->
+                                    <form method="GET" action="{{ route('admin.crm.customers.customer-account.download', $transaction->id) }}" target="_blank" style="display:flex;">
+                                        <button title="Download" type="submit">
+                                            <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
+                                        </button>
+                                    </form>
+                                @endif
                                <!-- Note -->
                                <a href="javascript:void(0)" class="openNoteModalBtn" data-note="{{ $transaction->notes }}" data-id="{{ $transaction->unique_id }}" data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }}" data-amount="{{ $transaction->amount }}">
 
@@ -457,23 +481,26 @@
 
                                </a>
 
-                               @if ($transaction->type !== 'order')
+                               @if (
+    $transaction->type !== 'order' &&
+    !($transaction->invoice_id && $transaction->type === 'payment')
+)
 
-                               <!-- Transaction delete button wrapped in form -->
-                               <form action="{{ route('admin.crm.customers.customer-account.transactiondelete', $transaction->id) }}"
-                                   method="POST"
-                                   class="flex delete-transaction-form"
-                                   data-transaction-type="{{ $transaction->type }}">
-                                   @csrf
-                                   @method('DELETE')
-                                   <button type="submit"
-                                       class="text-red-600 hover:text-red-800"
-                                       title="Delete">
-                                       <x-heroicon-o-trash class="w-4 h-4" />
-                                   </button>
-                               </form>
+    <!-- Transaction delete button -->
+    <form action="{{ route('admin.crm.customers.customer-account.transactiondelete', $transaction->id) }}"
+          method="POST"
+          class="flex delete-transaction-form"
+          data-transaction-type="{{ $transaction->type }}">
+        @csrf
+        @method('DELETE')
+        <button type="submit"
+                class="text-red-600 hover:text-red-800"
+                title="Delete">
+            <x-heroicon-o-trash class="w-4 h-4" />
+        </button>
+    </form>
 
-                               @endif
+@endif
 
                            </div>
                        </td>
@@ -764,6 +791,7 @@
                        {!! html()->select('reason', [
                        '' => 'Select refund reason',
                        'Billing Overcharge' => 'Billing Overcharge',
+                       'Damage Waiver Protection' => 'Damage Waiver Protection',
                        'Customer Cancellation' => 'Customer Cancellation',
                        'Damaged Item' => 'Damaged Item',
                        'Duplicate Charge' => 'Duplicate Charge',

@@ -281,9 +281,9 @@
                                     ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
                                 </td>
                                 <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
-                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${amount.toFixed(2)}</td>
-                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
-                                <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
+                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${amount.toFixed(2)}</td>
+                                <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${taxPrice.toFixed(2)}</td>
+                                <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap text-green-600">- $${total.toFixed(2)}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="flex items-center justify-center gap-3">
                                     <button type="button" class="text-blue-600 edit-btn mr-2" title="Edit"><x-heroicon-o-pencil class="w-4 h-4" /></button>
@@ -327,9 +327,9 @@
                                                 ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
                                             </td>
                                             <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
-                                            <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${amount.toFixed(2)}</td>
-                                            <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
-                                            <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
+                                            <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${amount.toFixed(2)}</td>
+                                            <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${taxPrice.toFixed(2)}</td>
+                                            <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap text-green-600">- $${total.toFixed(2)}</td>
                                             <td class="px-4 py-3 whitespace-nowrap">
                                                 <div class="flex items-center justify-center gap-3">
                                                 <button type="button" class="text-blue-600 edit-btn mr-2" title="Edit"><x-heroicon-o-pencil class="w-4 h-4" /></button>

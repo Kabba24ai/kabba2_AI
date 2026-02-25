@@ -19,6 +19,9 @@ use App\Http\Controllers\Admin\Crm\Customers\Invoice\SendEmailController;
 
 use App\Http\Controllers\Admin\Crm\Customers\Invoice\DownloadController;
 
+use App\Http\Controllers\Admin\Crm\Customers\Invoice\PaymentStoreController;
+
+
 
 
 Route::prefix('invoice')
@@ -38,7 +41,13 @@ Route::prefix('invoice')
 
     Route::get('{unique_id}/download', DownloadController::class)->name('download');
 
-    Route::get('{unique_id}/sendemail', SendEmailController::class)->name('sendemail');
+    // Route::get('{unique_id}/sendemail', SendEmailController::class)->name('sendemail');
+    Route::post('sendemail', SendEmailController::class)
+    ->name('sendemail');
+
+
+    // store
+    Route::post('/payment-store', PaymentStoreController::class)->name('paymentstore');
 
 
 

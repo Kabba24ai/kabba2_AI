@@ -11,14 +11,15 @@
             </div>
 
              @php
-                        $host = request()->getHost();
+                        // $host = request()->getHost();
 
-                            $employmentOpportunitiesUrl = match ($host) {
-                                'kabba.local'   => 'http://localhost:5173',
-                                'front.kabba.ai'      => 'https://opportunities.kabba.ai/',
-                                'rentnking.com' => 'https://opportunities.rentnking.com/',
-                                default               => 'https://opportunities.rentnking.com/',
-                            };
+                        //     $employmentOpportunitiesUrl = match ($host) {
+                        //         'kabba.local'   => 'http://localhost:5173',
+                        //         'front.kabba.ai'      => 'https://opportunities.kabba.ai/',
+                        //         'rentnking.com' => 'https://opportunities.rentnking.com/',
+                        //         default               => 'https://opportunities.rentnking.com/',
+                        //     };
+                        $employmentOpportunitiesUrl = config('app.employment_opportunities_url');
                         @endphp
 
 
@@ -80,6 +81,6 @@
 
         </div>
     </div>
-    <h2 class="text-sm text-center mt-4 text-neutral-200/60">© 2025 Rent 'n King. All rights reserved.</h2>
+    <h2 class="text-sm text-center mt-4 text-neutral-200/60">© {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</h2>
     </div>
 </footer>

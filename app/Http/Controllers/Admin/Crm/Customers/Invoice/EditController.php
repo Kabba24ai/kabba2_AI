@@ -60,6 +60,11 @@ class EditController extends Controller
 
         $invoiceItems->values()->toJson();
 
-        return view('admin.crm.customers.create_invoice', ['invoice'=> $invoice , 'customer' => $customer, 'orders' => $order, 'users' => $users, 'sales_tax' => $sales_tax, 'invoiceItems'=> $invoiceItems ,'orderItems'=> $orderItems, 'otherItems' => $otherItems ]);
+        
+        // biling sumary
+        $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+
+
+        return view('admin.crm.customers.create_invoice', ['invoice'=> $invoice , 'customer' => $customer, 'orders' => $order, 'users' => $users, 'sales_tax' => $sales_tax, 'invoiceItems'=> $invoiceItems ,'orderItems'=> $orderItems, 'otherItems' => $otherItems ,'paymentSetting' => $paymentSetting, ]);
     }
 }

@@ -178,7 +178,7 @@ class IndexController extends Controller
                 return;
             }
 
-            $q->where('store_id', $locationstore);
+            $q->where('store_id', $locationstore)->where('current_status', '!=', 'rented');
         });
 
         // Search filter

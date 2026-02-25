@@ -172,27 +172,43 @@
 
                 </div>
 
-                <div>
-                    <p class="font-semibold text-gray-900">Customer PO:</p>
-                    <p class="text-lg font-medium text-gray-900">{{ $invoice->customer->unique_id }}</p>
+                <div class="flex gap-2">
+                    <p class="font-semibold text-gray-900">Account:</p>
+                    <p class=" font-medium text-gray-600">{{ $invoice->customer->unique_id }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Bill To Label -->
-        <div>
-            <p class="font-medium mb-2 flex items-center space-x-2 text-gray-800">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user w-5 h-5">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>Bill To:</span>
-            </p>
-        </div>
+      <!-- Bill To -->
+<div class="flex items-center gap-2 text-gray-800">
+
+    <svg xmlns="http://www.w3.org/2000/svg"
+        class="w-5 h-5 text-gray-600"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2">
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+
+    <span class="font-semibold">Bill To:</span>
+
+    <span class="font-medium text-lg text-gray-700">
+        {{ $invoice->customer->full_name }}
+    </span>
+
+    @if($invoice->customer->company_name)
+        <span class="text-sm text-gray-600">
+            ({{ $invoice->customer->company_name }})
+        </span>
+    @endif
+
+</div>
+
         <!-- Customer Card -->
         <div class=" p-4">
-            <p class="font-medium text-lg text-gray-900">{{ $invoice->customer->full_name }}</p>
-            <p class="text-gray-700 font-medium">{{ $invoice->customer->company_name }}</p>
+            
             <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-700">
                 <!-- Phone -->
                 <div class="flex text-md items-center space-x-2">
@@ -295,9 +311,12 @@
                 <!-- Table Head -->
                 <thead>
                     <tr class="border-b border-gray-300 mb-4">
+                        <th class="text-left py-2 font-semibold text-gray-700 whitespace-nowrap">ID#</th>
                         <th class="text-left py-2 font-semibold text-gray-700 whitespace-nowrap">Item</th>
+                        <th class="text-left py-2 font-semibold text-gray-700 whitespace-nowrap">PO#</th>
                         <th class="text-center py-2 font-semibold text-gray-700 whitespace-nowrap">Qty</th>
                         <th class="text-right py-2 font-semibold text-gray-700 whitespace-nowrap">Unit Price</th>
+                        <th class="text-right py-2 font-semibold text-gray-700 whitespace-nowrap">Tax</th>
                         <th class="text-right py-2 font-semibold text-gray-700 whitespace-nowrap">Total</th>
                     </tr>
                 </thead>
@@ -309,7 +328,29 @@
                     {{-- Main Item Row --}}
                     <tr>
                         <td class="pt-2 pb-2 align-top whitespace-nowrap">
+                            
+                            @if ($item->type === 'order')
+                            #{{ $item->orderProduct->order->id }}
+                            @else
+                            -
+                            @endif
+                       
+                        </td>
+                        <td class="pt-2 pb-2 align-top whitespace-nowrap">
                             <div class="font-medium text-gray-900">{{ $item->item_name }}</div>
+
+                               <div class="text-gray-500 text-xs"> {{  $item->notes ?? ''}} </div>
+                           
+
+                        </td>
+                        <td class="pt-2 pb-2 align-top whitespace-nowrap">
+                            
+                            @if ($item->type === 'order')
+                            {{  $item->orderProduct->order->po_id ?? '-'}}
+                            @else
+                            -
+                            @endif
+                       
                         </td>
                         <td class="pt-2 text-center align-top whitespace-nowrap">
                             @if ($item->type === 'order')
@@ -320,52 +361,84 @@
                         </td>
                         <td class="pt-2 text-right align-top whitespace-nowrap">
 
-                            @if ($item->type === 'order')
-                            {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->price) }}
-                            @else
-                            {{ \App\Helpers\CustomHelper::formatCurrency($item->unit) }}
-                            @endif
+                            
+
+                              @php
+                                    
+                                    $isAdjustment = in_array($item->type, ['discount', 'refund']);
+
+                                    $textColor = $isAdjustment ? 'text-green-600' : '';
+                                    $prefix = $isAdjustment ? '-' : '';
+                                @endphp
+
+                                <span class="{{ $textColor }}">
+
+                                    @if ($item->type === 'order')
+                                      {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->price) }}
+                                        @else
+                                      {{ $prefix }}  {{ \App\Helpers\CustomHelper::formatCurrency($item->unit) }}
+                                        @endif
+
+                                </span>
+
+
+
+                        </td>
+                        <td class="pt-2 text-right align-top whitespace-nowrap">
+
+                                @php
+                                    
+
+                                    $isAdjustment = in_array($item->type, ['discount', 'refund']);
+
+                                    $textColor = $isAdjustment ? 'text-green-600' : '';
+                                    $prefix = $isAdjustment ? '-' : '';
+                                @endphp
+
+                                <span class="{{ $textColor }}">
+                                    {{ $prefix }}{{ \App\Helpers\CustomHelper::formatCurrency($item->tax) }}
+                                </span>
 
                         </td>
                         <td class="pt-2 text-right align-top font-semibold whitespace-nowrap">
 
+                                @php
+                                    if ($item->type === 'order') {
+                                        $rowprice = $item->orderProduct->price ;
+                                        $qty = $item->orderProduct->quantity ?? 1;
 
-                            @if ($item->type === 'order')
-                            @php
+                                        $total_without_tax = $rowprice * $qty;
 
-                            $rowprice = $item->orderProduct->price ;
+                                         $total = $total_without_tax + $item->orderProduct->tax;
+                                    } else {
+                                        $rowprice = $item->total;
+                                        $qty = $item->qty ?? 1;
 
-                            $qty = $item->orderProduct->quantity ?? 1 ;
+                                         $total = $rowprice * $qty;
+                                    }
 
-                            $total = $rowprice * $qty ;
+                                   
 
-                            @endphp
+                                    $isAdjustment = in_array($item->type, ['discount', 'refund']);
 
-                            @else
+                                    $textColor = $isAdjustment ? 'text-green-600' : '';
+                                    $prefix = $isAdjustment ? '-' : '';
+                                @endphp
 
-                            @php
-
-                            $rowprice = $item->unit ;
-
-                            $qty = $item->qty ?? 1 ;
-
-                            $total = $rowprice * $qty ;
-
-                            @endphp
-
-
-                            @endif
-
-                            {{ \App\Helpers\CustomHelper::formatCurrency($total) }}
+                                <span class="{{ $textColor }}">
+                                    {{ $prefix }}{{ \App\Helpers\CustomHelper::formatCurrency($total) }}
+                                </span>
 
                         </td>
+
                     </tr>
 
                     {{-- If item is ORDER TYPE → show product_data rows --}}
                     @if($item->type === 'order' && $item->orderProduct && $item->orderProduct->product_data)
                     {{-- Rental Items --}}
                     @foreach ($item->orderProduct->product_data['product_rental_items_prices'] ?? [] as $rentalKey => $rentalPrice)
-                    <tr>
+                    <tr >
+                         <td></td>
                         <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">
                             +
                             @php
@@ -377,9 +450,11 @@
                             <span class="text-xs text-gray-400">(x{{ $quantity }})</span>
                         </td>
                         <td></td>
+                         <td></td>
                         <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
                             {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice) }}
                         </td>
+                            <td></td>
                         <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
                             {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice * $quantity) }}
                         </td>
@@ -391,6 +466,7 @@
                         @if (!empty($item->orderProduct->distance_range))
                      
                     <tr>
+                         <td></td>
                         <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">
                           + Distance Range
 
@@ -398,11 +474,13 @@
                                                             ({{ ucfirst($item->orderProduct->distance_range) }}))</span>
                         </td>
                         <td></td>
+                         <td></td>
                         <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
                            
 
                                                              {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
                         </td>
+                            <td></td>
                         <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
                              {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
                         </td>
@@ -410,39 +488,22 @@
                    
                      @endif 
 
-                     {{-- @if (!empty($item->orderProduct->distance_range))
-
-                                         <tr style="border-bottom:1px solid #d1d5db;">
-                                            <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:10px;">
-                                                + Distance Range
-                                                <span class="text-xs text-gray-400">(x{{ $item->orderProduct->quantity ?? 1 }})</span>
-                                            </td>
-                                            <td></td>
-                                            <td align="right" style="font-size:12px; color:#6b7280;">
-                                               {{ ucfirst($item->orderProduct->distance_type) }}
-                                                            ({{ ucfirst($item->orderProduct->distance_range) }}) 
-
-                                                             {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
-                                            </td>
-                                            <td align="right" style="font-size:12px; color:#6b7280;">
-                                                 {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
-                                            </td>
-                                        </tr>
-
-                                        @endif --}}
-
+                 
 
                     {{-- Option Items --}}
                     @foreach ($item->orderProduct->product_data['product_option_items'] ?? [] as $option)
                     <tr>
+                         <td></td>
                         <td class="pl-6 pb-2 text-gray-500 text-sm whitespace-nowrap">
                             + {{ $option['name'] }}
                             <span class="text-xs text-gray-400">(x{{ $item->orderProduct->quantity ?? 1 }})</span>
                         </td>
+                         <td></td>
                         <td></td>
                         <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
                             {{ \App\Helpers\CustomHelper::formatCurrency($option['price'] ?? 0) }}
                         </td>
+                            <td></td>
                         <td class="text-right pb-2 text-gray-500 text-sm whitespace-nowrap">
                             {{ \App\Helpers\CustomHelper::formatCurrency(($option['price'] ?? 0) * ($item->orderProduct->quantity ?? 1)) }}
                         </td>
@@ -459,36 +520,94 @@
             </table>
         </div>
 
-        <!-- Totals Section -->
-        <div class="mt-6 text-sm">
-            <div class="flex justify-between py-1">
-                <span class="text-gray-700 text-md">Subtotal:</span>
-                <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal) }}</span>
-            </div>
-            <div class="flex justify-between py-1">
-                <span class="text-gray-700">Tax ( {{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }} %):</span>
-                <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}</span>
-            </div>
-            <div class="flex justify-between border-t mt-2 pt-2 font-bold text-lg">
-                <span>Total:</span>
-                <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}</span>
-            </div>
-        </div>
+        @php
+            $discountTotal = 0;
+            $refundTotal = 0;
+
+            foreach ($invoice->items as $item) {
+                if (in_array($item->type, ['discount', 'refund'])) {
+                    $amount = ($item->unit ?? 0) * ($item->qty ?? 1);
+
+                    if ($item->type === 'discount') {
+                        $discountTotal += $amount;
+                    }
+
+                    if ($item->type === 'refund') {
+                        $refundTotal += $amount;
+                    }
+                }
+            }
+
+            $adjustmentsTotal = $discountTotal + $refundTotal;
+
+            $finalTotal = $invoice->total - $adjustmentsTotal;
+        @endphp
+
+
+       <!-- Totals Section -->
+<div class="mt-6 text-sm space-y-1">
+
+    <!-- Subtotal -->
+    <div class="flex justify-between">
+        <span class="text-gray-700">Subtotal:</span>
+        <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal ) }}</span>
+    </div>
+
+    <!-- Tax -->
+    <div class="flex justify-between">
+        <span class="text-gray-700">
+            Tax ({{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }}%):
+        </span> 
+        <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}</span>
+    </div>
+
+    {{-- Show Discount --}}
+    @if($discountTotal > 0)
+    <div class="flex justify-between text-green-600">
+        <span>Discount:</span>
+        <span>-{{ \App\Helpers\CustomHelper::formatCurrency($discountTotal) }}</span>
+    </div>
+    @endif
+
+    {{-- Show Refund --}}
+    @if($refundTotal > 0)
+    <div class="flex justify-between text-green-600">
+        <span>Refund:</span>
+        <span>-{{ \App\Helpers\CustomHelper::formatCurrency($refundTotal) }}</span>
+    </div>
+    @endif
+
+    <!-- Final Total -->
+    <div class="flex justify-between border-t mt-2 pt-2 font-semibold text-lg">
+        <span>Total:</span>
+        <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}</span>
+    </div>
+
+</div>
+
 
         <!-- Footer -->
         <div class="mt-6 text-center text-sm text-gray-500 border-t border-gray-800">
             <p class="mt-6">Thank you for your business!</p>
-           @php
-    $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
-@endphp
+            @php
+                    $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
+                @endphp
 
-@if(!empty($supportPhone))
-    <p style="margin:0;">
-        For questions about this receipt, contact us at {{ $supportPhone }}
-    </p>
-@endif
-
+                @if(!empty($supportPhone))
+                    <p style="margin:0;">
+                        For questions about this receipt, contact us at {{ $supportPhone }}
+                    </p>
+                @endif
         </div>
+
+        <div class="mt-6 text-start text-sm text-gray-500 border-gray-800">
+                @if(!empty($invoice->invoice_notes))
+                    <p style="margin:0;">
+                    {{ $invoice->invoice_notes }}
+                    </p>
+                @endif
+        </div>
+
         <!-- Buttons -->
         <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 no-print">
             {{-- Print Receipt --}}
@@ -500,7 +619,12 @@
                 </svg>
                 Print Receipt
             </a>
-            <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="bg-green-600 hover:bg-green-700 text-white gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+
+           
+
+            <a href="javascript:void(0);"   data-invoice-id="{{ $invoice->unique_id }}"
+                                data-billing-email="{{ optional($invoice->customer->billingAddress)->email }}"
+                                data-customer-email="{{ optional($invoice->customer)->email }}" class="send-invoice-email bg-green-600 hover:bg-green-700 text-white gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
@@ -518,6 +642,111 @@
         </div>
     </div>
 </div>
+<div id="sendInvoiceModalWrapper"
+     style="display: none;"
+     class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10">
+
+    <div class="modal-scrollable w-full mx-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
+
+            <!-- Header -->
+            <div class="flex justify-between items-center px-6 pt-4">
+                <div class="flex items-center gap-2">
+                    <div class="text-purple-600">
+                        <x-heroicon-o-envelope class="w-5 h-5"/>
+                    </div>
+                    <h2 class="text-lg font-medium text-gray-900">
+                        Send Invoice
+                    </h2>
+                </div>
+                <button id="closeSendInvoiceModalBtn"
+                        class="text-gray-400 hover:text-gray-700 text-xl">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="px-6 overflow-y-auto">
+
+         <form id="sendInvoiceForm"
+                    method="POST"
+                    action="{{ route('admin.crm.customers.invoice.sendemail') }}"
+                    class="space-y-6">
+                    @csrf
+
+               
+
+                    <input type="hidden" id="invoice_id" name="invoice_id">
+
+                    <!-- Billing Email -->
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox"
+                               id="billing_email_checkbox"
+                             name="send_billing"
+                             value="1"
+                               class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                               checked>
+
+                        <label for="billing_email_checkbox"
+                               class="text-sm text-gray-700">
+                            Billing Email:
+                            <span id="billing_email_text"
+                                  class="font-medium text-gray-900"></span>
+                        </label>
+                    </div>
+
+                    <!-- Customer Email -->
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox"
+                               id="customer_email_checkbox"
+                              name="send_customer"
+                                 value="1"
+                               class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                               checked>
+
+                        <label for="customer_email_checkbox"
+                               class="text-sm text-gray-700">
+                            Customer Email:
+                            <span id="customer_email_text"
+                                  class="font-medium text-gray-900"></span>
+                        </label>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex gap-2 pb-4">
+                        <button type="button"
+                                id="cancelSendInvoiceBtn"
+                                class="px-4 py-2 flex-1 text-sm rounded border border-gray-300 bg-white text-gray-700">
+                            Cancel
+                        </button>
+
+                        <button type="submit"
+                                id="submitSendInvoiceBtn"
+                                class="relative flex-1 px-4 py-2 text-sm rounded bg-purple-600 text-white flex items-center justify-center gap-2">
+                            <span id="sendInvoiceBtnText">Send Invoice</span>
+
+                            <svg id="sendInvoiceBtnSpinner"
+                                 xmlns="http://www.w3.org/2000/svg"
+                                 class="hidden animate-spin h-5 w-5 text-white"
+                                 fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25"
+                                        cx="12" cy="12" r="10"
+                                        stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                <path class="opacity-75"
+                                      fill="currentColor"
+                                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @endsection
 
@@ -536,5 +765,82 @@
         }, 100);
     }
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
+    const modal = document.getElementById('sendInvoiceModalWrapper');
+    const closeBtn = document.getElementById('closeSendInvoiceModalBtn');
+    const cancelBtn = document.getElementById('cancelSendInvoiceBtn');
+    const form = document.getElementById('sendInvoiceForm');
+
+    const billingCheckbox = document.getElementById('billing_email_checkbox');
+    const customerCheckbox = document.getElementById('customer_email_checkbox');
+    const billingText = document.getElementById('billing_email_text');
+    const customerText = document.getElementById('customer_email_text');
+
+    document.querySelectorAll('.send-invoice-email').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const invoiceId = this.dataset.invoiceId;
+            const billingEmail = this.dataset.billingEmail;
+            const customerEmail = this.dataset.customerEmail;
+
+            document.getElementById('invoice_id').value = invoiceId;
+
+            // Set email text
+            billingText.innerText = billingEmail ?? 'Not available';
+            customerText.innerText = customerEmail ?? 'Not available';
+
+            // Billing email handling
+            if (billingEmail) {
+                billingCheckbox.checked = true;
+                billingCheckbox.disabled = false;
+            } else {
+                billingCheckbox.checked = false;
+                billingCheckbox.disabled = true;
+            }
+
+            // Customer email handling
+            if (customerEmail) {
+                customerCheckbox.checked = true;
+                customerCheckbox.disabled = false;
+            } else {
+                customerCheckbox.checked = false;
+                customerCheckbox.disabled = true;
+            }
+
+            modal.style.display = 'flex';
+        });
+    });
+
+    function closeModal() {
+        modal.style.display = 'none';
+        form.reset();
+    }
+
+    closeBtn?.addEventListener('click', closeModal);
+    cancelBtn?.addEventListener('click', closeModal);
+
+    form.addEventListener('submit', function (e) {
+
+        const billingChecked = billingCheckbox.checked;
+        const customerChecked = customerCheckbox.checked;
+
+        if (!billingChecked && !customerChecked) {
+            e.preventDefault();
+            
+            notyf.error("Please select at least one email.");
+            return;
+        }
+
+        const spinner = document.getElementById('sendInvoiceBtnSpinner');
+        const text = document.getElementById('sendInvoiceBtnText');
+
+        spinner.classList.remove('hidden');
+        text.innerText = 'Sending...';
+    });
+
+});
+</script>
 @endpush

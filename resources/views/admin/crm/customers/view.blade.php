@@ -337,6 +337,7 @@
                     first_name: block.querySelector('.first_name')?.value || null,
                     last_name: block.querySelector('.last_name')?.value || null,
                     phone: block.querySelector('.phone')?.value || null,
+                    email: block.querySelector('.email')?.value || null,
                     address_id: block.querySelector('.address_id')?.value || null,
                     type: block.querySelector('.type')?.value || null,
                     address: block.querySelector('.address')?.value || '',

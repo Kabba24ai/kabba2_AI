@@ -49,8 +49,9 @@ When time is money… we put the money in your pocket!">
                 <!-- Heading with phone link -->
                 <h3 class="text-base md:text-lg font-semibold text-gray-700">
                     Call For Live Assistance from a Real Person:
-                    <a href="{{ route('front.contact-us.index') }}" class="text-yellow-600 hover:underline ml-1">(615)
-                        815-6734</a>
+                    <a href="{{ route('front.contact-us.index') }}" class="text-yellow-600 hover:underline ml-1">
+                        {{ config('app.contact_number') }}
+                    </a>
                 </h3>
 
                 <form action="#" class="w-full md:w-auto relative">
@@ -109,7 +110,7 @@ When time is money… we put the money in your pocket!">
 
 <section class="pb-20 pt-20 bg-gray-2">
     <div class="container relative overflow-hidden">
-        <h2 class="section-title">About Rent 'n King</h2>
+        <h2 class="section-title">About the company</h2>
         <!-- about content -->
         <div class="about-content text-center mx-auto">
             <p>Locally owned and committed to 1st-tier customer service that encourages long-term, repeat customers.
@@ -161,7 +162,7 @@ When time is money… we put the money in your pocket!">
                             `/products/${product.id}?search=${encodeURIComponent(product.product_name)}`;
 
                         html += `
-                        <a href="${link}" 
+                        <a href="${link}"
                            class="block px-4 py-3 hover:bg-yellow-100 transition rounded-md">
                             <div class="font-medium text-gray-800">${product.product_name}</div>
                             <div class="text-xs text-gray-500 mt-1">${categories}</div>

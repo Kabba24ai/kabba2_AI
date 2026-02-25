@@ -92,6 +92,38 @@
                             Full Refund
                         </button>
                     @endif
+
+                    {{-- PO ID Field --}}
+              
+                    <div class="flex gap-2 items-center">
+                        <input 
+                            type="text" 
+                            id="po_id"  
+                            name="po_id"
+                            value="{{ $order->po_id ?? '' }}"
+                            data-order-id="{{ $order->id }}"
+                            class="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter PO ID"
+                        />
+
+                        <svg 
+                            class="w-5 h-5 text-blue-500 hover:text-blue-600 cursor-pointer edit-po-btn"
+                            xmlns="http://www.w3.org/2000/svg" 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke-width="1.5" 
+                            stroke="currentColor"
+                        >
+
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" 
+                            />
+                        </svg>
+                     </div>
+
+
+
+
                 </div>
 
                 {{-- links under the pill/buttons (like screenshot) --}}
@@ -4236,6 +4268,52 @@
                 });
             });
         });
+    </script>
+
+    <script>
+        document.addEventListener('click', function (e) {
+
+            const btn = e.target.closest('.edit-po-btn');
+            if (!btn) return;
+
+            const input = document.getElementById('po_id');
+            if (!input) return;
+
+            const orderId = input.dataset.orderId;
+            const poId = input.value.trim();
+
+            if (!orderId) return;
+
+            showConfirm('Update PO ID?', 'This will update the order PO ID.').then((result) => {
+                if (!result.isConfirmed) return;
+
+                apiFetch('{{ route('admin.order-management.orders.update-po-id') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        po_id: poId
+                    })
+                })
+                .then(res => {
+                    if (res && res.success) {
+                        notyf.success(res.message || 'PO ID updated successfully.');
+                    } else {
+                        notyf.error(res && res.message ? res.message : 'Failed to update PO ID.');
+                    }
+                })
+                .catch(() => {
+                    notyf.error('Failed to update PO ID.');
+                });
+
+            });
+
+        });
+
     </script>
 
 @endpush

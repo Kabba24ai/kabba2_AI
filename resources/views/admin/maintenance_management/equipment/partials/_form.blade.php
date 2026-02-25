@@ -281,6 +281,54 @@
                 </div>
 
                 <div>
+                    <label for="freight_shipping" class="block text-sm font-medium text-gray-700 mb-1">
+                        Freight / Shipping
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                            $
+                        </span>
+                        {!! html()->text('freight_shipping')->class([
+                                'w-full pl-5 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-gray-300' => !$errors->has('freight_shipping'),
+                                'border-red-500' => $errors->has('freight_shipping'),
+                            ])->attributes([
+                                'data-digit-input' => 'true',
+                                'min' => 0,
+                                'placeholder' => '0.00',
+                                'step' => '0.01',
+                            ]) !!}
+                    </div>
+                    @error('freight_shipping')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="taxes_fees" class="block text-sm font-medium text-gray-700 mb-1">
+                        Taxes / Fees
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                            $
+                        </span>
+                        {!! html()->text('taxes_fees')->class([
+                                'w-full pl-5 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-gray-300' => !$errors->has('taxes_fees'),
+                                'border-red-500' => $errors->has('taxes_fees'),
+                            ])->attributes([
+                                'data-digit-input' => 'true',
+                                'min' => 0,
+                                'placeholder' => '0.00',
+                                'step' => '0.01',
+                            ]) !!}
+                    </div>
+                    @error('taxes_fees')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label for="ownership_type" class="block text-sm font-medium text-gray-700 mb-1">Ownership
                         Type</label>
                     {!! html()->select('ownership_type', [
@@ -484,6 +532,38 @@
                             <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
+
+                <div>
+                    <label for="warranty_duration_months" class="block text-sm font-medium text-gray-700 mb-1">
+                        Warranty Duration (Months)
+                    </label>
+                    {!! html()->number('warranty_duration_months')->class([
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('warranty_duration_months'),
+                        ])->attributes([
+                            'min' => 0,
+                            'placeholder' => 'Warranty Duration (Months)',
+                        ]) !!}
+                    @error('warranty_duration_months')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="warranty_duration_hours" class="block text-sm font-medium text-gray-700 mb-1">
+                        Warranty Duration (Hours)
+                    </label>
+                    {!! html()->number('warranty_duration_hours')->class([
+                            'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-red-500' => $errors->has('warranty_duration_hours'),
+                        ])->attributes([
+                            'min' => 0,
+                            'placeholder' => 'Warranty Duration (Hours)',
+                        ]) !!}
+                    @error('warranty_duration_hours')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="sm:col-span-2">

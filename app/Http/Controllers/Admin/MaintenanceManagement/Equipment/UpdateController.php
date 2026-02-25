@@ -18,6 +18,7 @@ class UpdateController extends Controller
 
         // Prepare validated data
         $data = $request->validated();
+
         $data['has_def'] = ($data['has_def'] ?? false) ? 'Yes' : 'No';
         $data['is_tracked'] = ($data['is_tracked'] ?? false) ? 'Yes' : 'No';
         $data['not_for_rent'] = isset($data['not_for_rent']) ? 1 : 0;

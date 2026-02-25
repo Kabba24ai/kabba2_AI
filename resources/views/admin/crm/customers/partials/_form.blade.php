@@ -228,75 +228,85 @@
             <input type="hidden" name="addresses[0][type]" value="Billing">
             <input type="hidden" name="addresses[0][is_primary]" value="1">
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 ">First Name </label>
-                <input type="text" id="billing_first_name" name="addresses[0][first_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="First Name">
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 ">First Name </label>
+                    <input type="text" id="billing_first_name" name="addresses[0][first_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="First Name">
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 ">Last Name </label>
-                <input type="text" id="billing_last_name" name="addresses[0][last_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Last Name">
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Last Name </label>
+                    <input type="text" id="billing_last_name" name="addresses[0][last_name]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Last Name">
+                </div>
 
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1 ">Address </label>
-                <input type="text" id="billing_address" name="addresses[0][address]" class="w-full border border-gray-300 shadow-sm  rounded-md px-3 py-3 text-sm" placeholder="Street Address">
-            </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Address </label>
+                    <input type="text" id="billing_address" name="addresses[0][address]" class="w-full border border-gray-300 shadow-sm  rounded-md px-3 py-3 text-sm" placeholder="Street Address">
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 ">City </label>
-                <input type="text" id="billing_city" name="addresses[0][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Enter City">
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 ">City </label>
+                    <input type="text" id="billing_city" name="addresses[0][city]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Enter City">
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
-                <input id="billing_zip" type="text" name="addresses[0][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Enter Zip Code" maxlength="8">
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Zip Code </label>
+                    <input id="billing_zip" type="text" name="addresses[0][zip_code]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm" placeholder="Enter Zip Code" maxlength="8">
+                </div>      
 
-          
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1 ">State </label>
+                    <select id="billing_state" name="addresses[0][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm">
+                        <option value="">-- Select State --</option>
+                        @foreach ($states as $state)
+                        <option value="{{ $state->id }}">{{ $state->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-                <!-- Zip Code 1 -->
-               
-                
+                <div>
 
-                 <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 ">State </label>
-                <select id="billing_state" name="addresses[0][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm">
-                    <option value="">-- Select State --</option>
-                    @foreach ($states as $state)
-                    <option value="{{ $state->id }}">{{ $state->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 ">Country </label>
+                        {!! html()->select('addresses[0][Country]', [
+                        'USA' => 'USA',
+                        'Canada' => 'Canada',
+                        'UK' => 'UK',
+                        'India' => 'India',
+                        ], old('country', 'USA')) // default to USA if old or user value is not set
+                        ->id('country')
+                        ->class('w-full px-3 py-3 border rounded-md text-sm border-gray-300')
+                        ->attributes([
+                        'autocomplete' => 'off',
+                        'id' => 'billing_country',
+                        ])
 
-             <div>
-
-                    <label class="block text-sm font-medium text-gray-700 mb-1 ">Country </label>
-                    {!! html()->select('addresses[0][Country]', [
-                    'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
-                    ], old('country', 'USA')) // default to USA if old or user value is not set
-                    ->id('country')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                    ->attributes([
-                    'autocomplete' => 'off',
-                    'id' => 'billing_country',
-                    ])
-
-                    !!}
+                        !!}
 
                 </div>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 ">Phone Number </label>
-                <input type="text" id="billing_phone" name="addresses[0][phone]" class=" masked-phone w-full border shadow-sm rounded-md px-3 py-3 text-sm" placeholder="(xxx) xxx-xxxx" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
-                    data-parsley-error-message="Please enter phone number in <br> format (xxx) xxx-xxxx">
-            </div>
+            
+                <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 ">Phone Number </label>
+                        <input type="text" id="billing_phone" name="addresses[0][phone]" class=" masked-phone w-full border shadow-sm rounded-md px-3 py-3 text-sm" placeholder="(xxx) xxx-xxxx" data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
+                            data-parsley-error-message="Please enter phone number in <br> format (xxx) xxx-xxxx">
+                </div>
+
+                <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input 
+                            type="email"
+                            id="billing_email"
+                            name="addresses[0][email]"
+                            class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm"
+                            placeholder="Enter Email"
+                            autocomplete="off"
+                            data-parsley-type="email"
+                            data-parsley-pattern-message="Please enter a valid email address."
+                        >
+                </div>
+
+           
         </div>
     </div>
+    
     <div class="bg-white rounded-xl shadow border border-gray-200 p-6">
         <div class="mb-6">
             <div class="flex items-center justify-between flex-wrap gap-2">
@@ -340,9 +350,7 @@
             </div>
           
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-
-                  <div>
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">State </label>
                 <select id="delivery_state" name="addresses[1][state_id]" class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm">
                     <option value="">-- Select State --</option>
@@ -352,7 +360,7 @@
                 </select>
             </div>
 
-                <!-- Zip Code 2 -->
+               
                 <div>
 
                     <label class="block text-sm font-medium text-gray-700 mb-1 ">Country </label>
@@ -365,7 +373,7 @@
                     'India' => 'India',
                     ], old('country', 'USA')) // default to USA if old or user value is not set
                     ->id('country')
-                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                    ->class('w-full px-3 py-3 border rounded-md text-sm border-gray-300')
                     ->attributes([
                     'autocomplete' => 'off',
                     'id' =>"delivery_country" ,
@@ -377,7 +385,7 @@
 
 
 
-            </div>
+          
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 ">Phone Number </label>
@@ -385,6 +393,22 @@
                     data-parsley-pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
                     data-parsley-error-message="Please enter phone number in <br> format (xxx) xxx-xxxx">
             </div>
+
+
+             <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input 
+                            type="email"
+                            id="delivery_email"
+                            name="addresses[1][email]"
+                            class="w-full border border-gray-300 shadow-sm rounded-md px-3 py-3 text-sm"
+                            placeholder="Enter Email"
+                            autocomplete="off"
+                            data-parsley-type="email"
+                            data-parsley-pattern-message="Please enter a valid email address."
+                        >
+                </div>
+
         </div>
     </div>
 </div>
@@ -1121,6 +1145,7 @@
             zip: document.querySelector('#billing_zip'),
             country: document.querySelector('#billing_country'),
             phone: document.querySelector('#billing_phone'),
+            email: document.querySelector('#billing_email'),
         };
 
         const deliveryFields = {
@@ -1131,8 +1156,13 @@
             state: document.querySelector('#delivery_state'),
             zip: document.querySelector('#delivery_zip'),
             country: document.querySelector('#delivery_country'),
-            phone: document.querySelector('#delivery_phone'),
+               phone: document.querySelector('#delivery_phone'),
+            email: document.querySelector('#delivery_email'),
         };
+
+     
+        console.log(deliveryFields);
+
 
         const sameAsBilling = document.querySelector('#sameAsBilling');
 

@@ -38,6 +38,9 @@ yarn-error.log
 !/storage/app/public/admin/
  /storage/app/public/admin/*
 
+# Ignore media directory in storage
+/storage/app/public/media/
+
 # 3) Finally allow everything under admin/ — including nested images/error
 !/storage/app/public/admin/**
 

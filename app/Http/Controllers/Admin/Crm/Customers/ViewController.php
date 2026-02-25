@@ -83,6 +83,8 @@ $existingTagNames = Tag::whereNotIn('name', $customerTagNames)
                         ->pluck('name')
                         ->toArray();
 
+                        // dd($customer->accounts);
+
         return view('admin.crm.customers.view', [
             'customer' => $customer,
             'states' => $states,

@@ -117,14 +117,16 @@
                     </li>
 
                     @php
-                        $host = request()->getHost();
+                        // $host = request()->getHost();
 
-                        $employmentOpportunitiesUrl = match ($host) {
-                            'kabba.local'   => 'http://localhost:5173',
-                            'front.kabba.ai'      => 'https://opportunities.kabba.ai/',
-                            'rentnking.com' => 'https://opportunities.rentnking.com/',
-                            default               => 'https://opportunities.rentnking.com/',
-                        };
+                        // $employmentOpportunitiesUrl = match ($host) {
+                        //     'kabba.local'   => 'http://localhost:5173',
+                        //     'front.kabba.ai'      => 'https://opportunities.kabba.ai/',
+                        //     'rentnking.com' => 'https://opportunities.rentnking.com/',
+                        //     default               => 'https://opportunities.rentnking.com/',
+                        // };
+
+                        $employmentOpportunitiesUrl = config('app.employment_opportunities_url');
                     @endphp
 
                    
@@ -270,14 +272,15 @@
                         </li>
 
                         @php
-                        $host = request()->getHost();
+                        // $host = request()->getHost();
 
-                            $employmentOpportunitiesUrl = match ($host) {
-                                'kabba.local'   => 'http://localhost:5173',
-                                'front.kabba.ai'      => 'https://opportunities.kabba.ai/',
-                                'rentnking.com' => 'https://opportunities.rentnking.com/',
-                                default               => 'https://opportunities.rentnking.com/',
-                            };
+                        //     $employmentOpportunitiesUrl = match ($host) {
+                        //         'kabba.local'   => 'http://localhost:5173',
+                        //         'front.kabba.ai'      => 'https://opportunities.kabba.ai/',
+                        //         'rentnking.com' => 'https://opportunities.rentnking.com/',
+                        //         default               => 'https://opportunities.rentnking.com/',
+                        //     };
+                        $employmentOpportunitiesUrl = config('app.employment_opportunities_url');
                         @endphp
 
                    

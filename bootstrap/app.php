@@ -28,13 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-
             'role' => RoleMiddleware::class,
-                'permission' => PermissionMiddleware::class,
-                'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
 
-                    'role.short' => \App\Http\Middleware\CheckRoleShortName::class,
-
+            'role.short' => \App\Http\Middleware\CheckRoleShortName::class,
 
             'prevent-back-history' => \App\Http\Middleware\PreventBackHistoryMiddleware::class,
 
@@ -43,11 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Chehck Middleware that customer active
             'customer.active' => \App\Http\Middleware\Front\EnsureCustomerIsActive::class,
-
         ]);
-
-
-
 
         $middleware->redirectGuestsTo(function () {
             return request()->getHost() === config('app.domains.front')

@@ -116,23 +116,9 @@
                             Us</a>
                     </li>
 
-                    @php
-                        // $host = request()->getHost();
-
-                        // $employmentOpportunitiesUrl = match ($host) {
-                        //     'kabba.local'   => 'http://localhost:5173',
-                        //     'front.kabba.ai'      => 'https://opportunities.kabba.ai/',
-                        //     'rentnking.com' => 'https://opportunities.rentnking.com/',
-                        //     default               => 'https://opportunities.rentnking.com/',
-                        // };
-
-                        $employmentOpportunitiesUrl = config('app.employment_opportunities_url');
-                    @endphp
-
-                   
                     <li
                         class="group-[.active]:font-bold group">
-                        <a href="{{ $employmentOpportunitiesUrl }}" target="_blank"
+                        <a href="{{ config('app.domains.opportunities') }}" target="_blank"
                             class="hover:text-yellow-400 text-sm transition-all duration-300 ease-in-out group-[.active]:font-bold">Employment Opportunities </a>
                     </li>
 
@@ -283,7 +269,7 @@
                         $employmentOpportunitiesUrl = config('app.employment_opportunities_url');
                         @endphp
 
-                   
+
 
                         <li
                             class=" py-3  group-[.active]:font-bold group">

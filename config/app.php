@@ -142,6 +142,8 @@ return [
         'api' => env('API_DOMAIN', 'api.kabba.local'),
         'api_url' => env('API_DOMAIN_URL', 'http://api.kabba.local'),
         'project_manager' => env('PROJECT_MANAGER_URL', 'http://projectmanager.kabba.ai'),
+        'opportunities' => env('OPPORTUNITIES_DOMAIN', 'http://opportunities.kabba.ai'),
+        'timetrackerpro' => env('TIMETRACKERPRO_DOMAIN', 'http://timetrackerpro.kabba.ai'),
     ],
 
     /*
@@ -219,9 +221,6 @@ return [
     'demo_enabled' => env('DEMO_ENABLED', false),
 
     'vite_origin_protocol' => env('VITE_ORIGIN_PROTOCOL', 'http'),
-
-	'employment_opportunities_url' => env('OPPORTUNITIES_DOMAIN', 'https://opportunities.rentnking.com/'),
-	'timetrackerpro_url' => env('TIMETRACKERPRO_DOMAIN', 'timetrackerpro.rentnking.com/?logout=1'),
 
     'contact_number' => env('CONTACT_NUMBER', ''),
 

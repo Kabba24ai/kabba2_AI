@@ -504,7 +504,7 @@
                     <li x-data="{ open: 'false' }">
                         @php
                             $projectManagerUrl = config('app.domains.project_manager');
-                            $ssoUrl = auth()->check() 
+                            $ssoUrl = auth()->check()
                                 ? \App\Helpers\SsoHelper::generateSsoUrl(auth()->user()->email, $projectManagerUrl)
                                 : $projectManagerUrl;
                         @endphp
@@ -575,21 +575,8 @@
                                     </a>
                                 </li>
 
-                                @php
-                                    // $host = request()->getHost();
-
-                                    // $timeTrackerUrl = match ($host) {
-                                    //     'admin.kabba.local'        => 'http://localhost:5173/?logout=1',
-                                    //     'admin.kabba.ai'           => 'https://timetrackerpro.kabba.ai/?logout=1',
-                                    //     'admin.rentnking.com'      => 'https://timetrackerpro.rentnking.com/?logout=1',
-                                    //     default                    => 'https://timetrackerpro.kabba.ai/?logout=1',
-                                    // };
-                                     $timeTrackerUrl = config('app.timetrackerpro_url');
-
-                                @endphp
-
                                 <li>
-                                    <a href="{{ $timeTrackerUrl }}"
+                                    <a href="{{ config('app.domains.timetrackerpro') }}"
                                     target="_blank"
                                     class="menu-dropdown-item group menu-dropdown-item-inactive">
                                         <x-heroicon-o-clock class="w-5 h-5" />

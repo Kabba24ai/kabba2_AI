@@ -219,8 +219,10 @@ return [
     'demo_enabled' => env('DEMO_ENABLED', false),
 
     'vite_origin_protocol' => env('VITE_ORIGIN_PROTOCOL', 'http'),
-	
+
 	'employment_opportunities_url' => env('OPPORTUNITIES_DOMAIN', 'https://opportunities.rentnking.com/'),
 	'timetrackerpro_url' => env('TIMETRACKERPRO_DOMAIN', 'timetrackerpro.rentnking.com/?logout=1'),
+
+    'contact_number' => env('CONTACT_NUMBER', ''),
 
 ];

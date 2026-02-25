@@ -81,6 +81,6 @@
 
         </div>
     </div>
-    <h2 class="text-sm text-center mt-4 text-neutral-200/60">© 2025 Rent 'n King. All rights reserved.</h2>
+    <h2 class="text-sm text-center mt-4 text-neutral-200/60">© {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</h2>
     </div>
 </footer>

@@ -88,5 +88,24 @@ class CustomerAccount extends Model
         return $this->belongsTo(Invoice::class);
     }
 
+    /**
+ * Scope: Entries eligible for invoice
+ */
+public function scopeInvoiceEntries($query)
+{
+    return $query
+        ->where('type', '!=', 'payment')
+        ->whereNull('invoice_id')
+        ->where(function ($q) {
+            $q->where('type', '!=', 'order')
+              ->orWhereIn('id', function ($sub) {
+                  $sub->selectRaw('MIN(id)')
+                      ->from('customer_accounts')
+                      ->where('type', 'order')
+                      ->whereNull('invoice_id')
+                      ->groupBy('order_id');
+              });
+        });
+}
 
 }

@@ -7,6 +7,13 @@
          </div>
 
          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+             <!-- Create Account Invoice Button -->
+            <a href="{{ route('admin.crm.customers.invoice.create-from-account',$customer->unique_id ) }}" 
+               target="_blank"
+               class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
+                + Create From Account 
+            </a>
+
              <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}" target="_blank" class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
                  + Create Invoice
              </a>

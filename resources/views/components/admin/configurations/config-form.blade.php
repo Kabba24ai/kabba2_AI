@@ -5,6 +5,7 @@
                 'method' => $method,
                 'autocomplete' => $autocomplete,
                 'data-parsley-validate' => $validate,
+                'enctype' => 'multipart/form-data',
             ])->open() }}
 
         @csrf

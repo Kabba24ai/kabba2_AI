@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Crm\Customers\Invoice;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Orders\Order;
+use App\Models\Customers\CustomerAccount;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -13,6 +14,14 @@ class OrderDetailsController extends Controller
     public function __invoke($unique_id)
     {
         $order = Order::where('unique_id', $unique_id)->first();
+
+        //  Get related customer account entry
+        $account = CustomerAccount::where('order_id', $order->id)
+            ->first();   
+
+        $account_id = null ;
+
+        $account_id = $account?->unique_id; // null safe
 
         try {
             if (!$order) {
@@ -27,6 +36,7 @@ class OrderDetailsController extends Controller
             return response()->json([
                 'success' => true,
                 'id' => $order->id,
+                'accountid'=>$account_id ?? null ,
                 'unique_id' => $order->unique_id,
                 'order_number' => $order->order_number,
                 'date' => $order->created_at ? $order->created_at->format(config('app.date.date_format')) : null,
@@ -56,7 +66,9 @@ class OrderDetailsController extends Controller
                 }),
             ], 200);
         } catch (Exception $e) {
+
             // Log safely: $order may be null
+
             Log::error('OrderDetailsController error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'order_id' => $order->id ?? null,

@@ -195,22 +195,25 @@
                             @if($addressItem['label'] === 'Shipping' && $isSameAddress)
                                 <div>Same as Billing Address</div>
                             @else
-                                @if($addresse?->address)
-                                    <div>{{ $addresse->address }},</div>
-                                @endif
-
-                                <div>
-                                    @if($addresse?->city)
-                                        {{ $addresse->city }},
-                                    @endif
-                                    @if($addresse?->state?->name)
-                                        {{ $addresse->state->name }}
-                                    @endif
-                                    @if($addresse?->zip_code)
-                                        {{ ' ' . $addresse->zip_code }}
-                                    @endif
-                                </div>
+                            @if($addresse?->address)
+                                <div>{{ $addresse->address }},  @if($addresse?->city)
+                                    {{ $addresse->city }},
+                                @endif </div>
                             @endif
+
+                            <div>
+                            
+                                @if($addresse?->state?->name)
+                                    {{ $addresse->state->name }} , 
+                                @endif
+                                @if($addresse?->zip_code)
+                                    {{ ' ' . $addresse->zip_code }}
+                                @endif
+                                @if($addresse?->country)
+                                    {{ ', ' . $addresse->country }}
+                                @endif
+                            </div>
+                        @endif
 
                         </div>
 

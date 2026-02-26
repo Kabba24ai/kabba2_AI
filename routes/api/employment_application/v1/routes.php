@@ -31,6 +31,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
     
     require base_path('routes/api/employment_application/v1/auth/routes.php');
     
+    require base_path('routes/api/employment_application/v1/profile_settings/routes.php');
+
 
     // dashboard
     

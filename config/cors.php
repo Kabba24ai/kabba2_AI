@@ -20,11 +20,11 @@ return [
         'https://opportunities.kabba.ai',
 
         
-        'https://opportunities.seoequip.customers.kabba.ai/',             
-        'https://opportunities.pnwequipments.customers.kabba.ai/',
+        'https://opportunities.seoequip.customers.kabba.ai',             
+        'https://opportunities.pnwequipments.customers.kabba.ai',
         
         'https://timetrackerpro.seoequip.customers.kabba.ai/',
-        'https://timetrackerpro.pnwequipments.customers.kabba.ai/',
+        'https://timetrackerpro.pnwequipments.customers.kabba.ai',
 
     ],
 

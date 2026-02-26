@@ -91,7 +91,7 @@
                                         </p>
 
                                         
-                                            <p style="margin:16px 0 4px; font-weight:600; font-size:16px;">Account: <span style="margin:0; font-size:14px; color:#374151; font-weight:500;">{{ $invoice->customer->unique_id }}</span></p>
+                                            <p style="margin:16px 0 4px; font-weight:600; font-size:16px;">Customer PO: <span style="margin:0; font-size:14px; color:#374151; font-weight:500;">{{ $invoice->customer->unique_id }}</span></p>
                                             
                                         
                                     </td>
@@ -161,70 +161,70 @@
                                                     </table>
                                                 </td>
                                             </tr>
-<tr>
+                                            <tr>
 
-    @php
-        $billing = collect($defaultAddresses)->firstWhere('label', 'Billing')['data'] ?? null;
-        $shipping = collect($defaultAddresses)->firstWhere('label', 'Shipping')['data'] ?? null;
+                                                @php
+                                                    $billing = collect($defaultAddresses)->firstWhere('label', 'Billing')['data'] ?? null;
+                                                    $shipping = collect($defaultAddresses)->firstWhere('label', 'Shipping')['data'] ?? null;
 
-        $isSameAddress = $billing && $shipping &&
-            $billing->address === $shipping->address &&
-            $billing->city === $shipping->city &&
-            $billing->state_id === $shipping->state_id &&
-            $billing->zip_code === $shipping->zip_code;
-    @endphp
+                                                    $isSameAddress = $billing && $shipping &&
+                                                        $billing->address === $shipping->address &&
+                                                        $billing->city === $shipping->city &&
+                                                        $billing->state_id === $shipping->state_id &&
+                                                        $billing->zip_code === $shipping->zip_code;
+                                                @endphp
 
-    @foreach ($defaultAddresses as $addressItem)
-        @php $addresse = $addressItem['data']; @endphp
+                                                @foreach ($defaultAddresses as $addressItem)
+                                                    @php $addresse = $addressItem['data']; @endphp
 
-        <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
-            <table role="presentation" style="border-collapse:collapse;">
-                <tr>
-                    <td style="padding-right:5px;">
-                        <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
-                    </td>
-                    <td>
+                                                    <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
+                                                        <table role="presentation" style="border-collapse:collapse;">
+                                                            <tr>
+                                                                <td style="padding-right:5px;">
+                                                                    <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
+                                                                </td>
+                                                                <td>
 
-                        <p style="margin:0; font-weight:500; color:#000;">
-                            {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
-                        </p>
+                                                                    <p style="margin:0; font-weight:500; color:#000;">
+                                                                        {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
+                                                                    </p>
 
-                        <div style="line-height:1.4;">
+                                                                    <div style="line-height:1.4;">
 
-                            {{-- If Shipping and same as Billing --}}
-                            @if($addressItem['label'] === 'Shipping' && $isSameAddress)
-                                <div>Same as Billing Address</div>
-                            @else
-                            @if($addresse?->address)
-                                <div>{{ $addresse->address }},  @if($addresse?->city)
-                                    {{ $addresse->city }},
-                                @endif </div>
-                            @endif
+                                                                        {{-- If Shipping and same as Billing --}}
+                                                                        @if($addressItem['label'] === 'Shipping' && $isSameAddress)
+                                                                            <div>Same as Billing Address</div>
+                                                                        @else
+                                                                        @if($addresse?->address)
+                                                                            <div>{{ $addresse->address }},  @if($addresse?->city)
+                                                                                {{ $addresse->city }},
+                                                                            @endif </div>
+                                                                        @endif
 
-                            <div>
-                            
-                                @if($addresse?->state?->name)
-                                    {{ $addresse->state->name }} , 
-                                @endif
-                                @if($addresse?->zip_code)
-                                    {{ ' ' . $addresse->zip_code }}
-                                @endif
-                                @if($addresse?->country)
-                                    {{ ', ' . $addresse->country }}
-                                @endif
-                            </div>
-                        @endif
+                                                                        <div>
+                                                                        
+                                                                            @if($addresse?->state?->name)
+                                                                                {{ $addresse->state->name }} , 
+                                                                            @endif
+                                                                            @if($addresse?->zip_code)
+                                                                                {{ ' ' . $addresse->zip_code }}
+                                                                            @endif
+                                                                            @if($addresse?->country)
+                                                                                {{ ', ' . $addresse->country }}
+                                                                            @endif
+                                                                        </div>
+                                                                    @endif
 
-                        </div>
+                                                                    </div>
 
-                    </td>
-                </tr>
-            </table>
-        </td>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
 
-    @endforeach
+                                                @endforeach
 
-</tr>
+                                            </tr>
 
                                         </table>
 
@@ -404,28 +404,28 @@
                         </td>
                     </tr>
 
-        @php
-            $discountTotal = 0;
-            $refundTotal = 0;
+                        @php
+                            $discountTotal = 0;
+                            $refundTotal = 0;
 
-            foreach ($invoice->items as $item) {
-                if (in_array($item->type, ['discount', 'refund'])) {
-                    $amount = ($item->unit ?? 0) * ($item->qty ?? 1);
+                            foreach ($invoice->items as $item) {
+                                if (in_array($item->type, ['discount', 'refund'])) {
+                                    $amount = ($item->unit ?? 0) * ($item->qty ?? 1);
 
-                    if ($item->type === 'discount') {
-                        $discountTotal += $amount;
-                    }
+                                    if ($item->type === 'discount') {
+                                        $discountTotal += $amount;
+                                    }
 
-                    if ($item->type === 'refund') {
-                        $refundTotal += $amount;
-                    }
-                }
-            }
+                                    if ($item->type === 'refund') {
+                                        $refundTotal += $amount;
+                                    }
+                                }
+                            }
 
-            $adjustmentsTotal = $discountTotal + $refundTotal;
+                            $adjustmentsTotal = $discountTotal + $refundTotal;
 
-            $finalTotal = $invoice->total - $adjustmentsTotal;
-        @endphp
+                            $finalTotal = $invoice->total - $adjustmentsTotal;
+                        @endphp
 
 
 
@@ -471,21 +471,21 @@
                     <tr>
                         <td style="text-align:center; padding:30px 0 0; border-top:1px solid #111827; font-size:13px; color:#6b7280;">
                             <p style="margin:6px 0;">Thank you for your business!</p>
-@php
-    $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
-@endphp
+                                @php
+                                    $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
+                                @endphp
 
-@if(!empty($supportPhone))
-    <p style="margin:0;">
-        For questions about this receipt, contact us at {{ $supportPhone }}
-    </p>
-@endif
+                                @if(!empty($supportPhone))
+                                    <p style="margin:0;">
+                                        For questions about this receipt, contact us at {{ $supportPhone }}
+                                    </p>
+                                @endif
 
-@if(!empty($invoice->invoice_notes))
-    <p style="margin:0;">
-         {{ $invoice->invoice_notes }}
-    </p>
-@endif
+                                @if(!empty($invoice->invoice_notes))
+                                    <p style="margin:0;">
+                                        {{ $invoice->invoice_notes }}
+                                    </p>
+                                @endif
 
                         </td>
                     </tr>

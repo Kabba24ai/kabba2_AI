@@ -80,7 +80,8 @@
 
         </div>
     </div>
-    <h2 class="text-sm text-center mt-4 text-neutral-200/60">© {{ date('Y') }} {{ config('app.name') }}. All rights
+    <h2 class="text-sm text-center mt-4 text-neutral-200/60">© {{ date('Y') }}
+        <a href="http://Kabba.ai" target="_blank" rel="noopener noreferrer">Kabba.ai </a> . All rights
         reserved.</h2>
     </div>
 </footer>

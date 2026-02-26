@@ -52,7 +52,7 @@ When time is money… we put the money in your pocket!">
             <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col">
                 <div class="px-8 pt-8">
                     <h2 class="text-xl md:text-2xl font-semibold mb-6">
-                        Rent 'n King - {{ $store->store_name }}
+                        {{ $store->store_name }}
                     </h2>
 
                     {{-- Address --}}

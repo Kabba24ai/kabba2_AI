@@ -361,25 +361,54 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 </div>
 
 
-                <div class="flex items-center text-sm text-gray-600 gap-2 mt-2">
-                    <x-heroicon-o-map-pin class="w-4 h-4 text-gray-900 flex-shrink-0 " />
+                <div class="flex items-start text-sm text-gray-600 gap-2 mt-2">
+    
+                <x-heroicon-o-map-pin class="w-4 h-4 text-gray-900 flex-shrink-0 mt-1" />
 
-                    @if ($addressItem['label'] === 'Shipping' && $customer->same_as_billing)
+                <div class="flex-1">
 
-                         <div class="text-sm text-gray-500 mt-1">
-                        Same as billing
-                    </div>
-                     @else
-                    @if($addresse?->address )
-                    {{ $addresse->address ?? '' }}
-                    @endif
+                    @if ($addressItem['label'] === 'Shipping' && !empty($customer->same_as_billing))
+                        
+                        <div class="text-gray-500 italic">
+                            Same as billing address
+                        </div>
 
-                    @if($addresse?->state?->name || $addresse?->zip_code || $addresse?->city)
-                    {{ $addresse?->city ? ', ' . $addresse->city : '' }} {{ $addresse?->state?->name ?? '' }}{{ $addresse?->zip_code ? ' ' . $addresse->zip_code : '' }}
-                    @endif
+                    @elseif($addresse)
+
+                        <div class="grid gap-x-8 gap-y-1">
+
+                            <!-- Row 1 -->
+                            <div>
+                                {{ $addresse->address ?? '' }}
+                                @if(!empty($addresse->city))
+                                    , {{ $addresse->city }}
+                                @endif
+                            </div>
+
+                         
+                            <div>
+                                @if(!empty($addresse->state?->name))
+                                    {{ $addresse->state->name }},
+                                @endif
+
+                                {{ $addresse->zip_code ?? '' }}
+
+                                @if(!empty($addresse->country))
+                                    , {{ $addresse->country }}
+                                @endif
+                            </div>
+
+                        </div>
+
+                    @else
+                        <div class="text-gray-400">
+                            No address provided.
+                        </div>
                     @endif
 
                 </div>
+
+            </div>
                 @endforeach
 
 

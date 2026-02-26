@@ -24,6 +24,8 @@ class IndexController extends Controller
         $newOrderRows = UserNotificationSetting::where('type', 'order')->orderBy('name')->get()->toArray();
         $emergencyRows = UserNotificationSetting::where('type', 'emergency')->orderBy('name')->get()->toArray();
 
+        // dd($settings['Profile Settings']);
+
         return view('admin.configurations.index', compact('settings','newOrderRows','emergencyRows'));
     }
 }

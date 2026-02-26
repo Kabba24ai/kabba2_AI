@@ -5,6 +5,7 @@ namespace App\Helpers;
 use App\Models\Configurations\Setting;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
+use App\Models\Global\Media;
 
 class ConfigurationHelper
 {
@@ -71,4 +72,20 @@ class ConfigurationHelper
         $value = self::getSettings($setting_type, $key);
         return self::safeDecrypt($value);
     }
+
+  
+
+
+public static function getProfileLogo(): ?string
+{
+    $logoId = self::getSettings('Profile Settings', 'logo');
+
+    if (empty($logoId)) {
+        return null;
+    }
+
+    $media = \App\Models\Global\Media::find($logoId);
+
+    return $media->url ?? null;
+}
 }

@@ -179,6 +179,18 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                         </svg>
                         From Order
                     </a> --}}
+               @isset($customerAccounts)
+
+                    <a href="javascript:void(0)" id="openOrderModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-sm font-medium flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart w-4 h-4">
+                            <circle cx="8" cy="21" r="1"></circle>
+                            <circle cx="19" cy="21" r="1"></circle>
+                            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                        </svg>
+                        From Accounts
+                    </a>
+
+                @endif
                 </div>
                 <!-- EMPTY STATE (when no items) -->
                 <div id="emptyState" class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">
@@ -598,50 +610,237 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                             <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
                         </svg>
                     </div>
-                    <h2 class="text-lg font-medium text-gray-900">Select Order to Add to Invoice</h2>
+                    <h2 class="text-lg font-medium text-gray-900">Select Account Entries to Add to Invoice </h2>
                 </div>
                 <button id="closeOrderModalBtn" type="button" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
             </div>
 
             <div class="px-6 pb-6 overflow-y-auto">
                 <div class="overflow-x-auto rounded-lg shadow border border-gray-200 ">
-                    <table class="w-full text-left" id="orders-table">
-                        <thead class="bg-gray-100 text-sm font-semibold text-gray-700">
-                            <tr>
-                                <th class="px-4 py-3 whitespace-nowrap">Order ID</th>
-                                <th class="px-4 py-3 whitespace-nowrap">Date</th>
-                                <th class="px-4 py-3 whitespace-nowrap">Primary Product</th>
-                                <th class="px-4 py-3 whitespace-nowrap">Total</th>
-                                <th class="px-4 py-3 whitespace-nowrap">Status</th>
-                                <th class="px-4 py-3 whitespace-nowrap">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y text-sm ">
+                    @isset($customerAccounts)
+                        @if($customerAccounts->count())
+                            <table class="w-full text-left" id="orders-table">
+                                <thead class="bg-gray-100 text-sm font-semibold text-gray-700">
+                                    <tr>
+                                        <th class="px-4 py-3 whitespace-nowrap">Type</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Date</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Description </th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Total</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y text-sm ">
 
-                            @foreach ($orders as $order)
-                            <tr>
-                                <td class="px-4 py-3 font-medium whitespace-nowrap"> {!! $order->view_link !!} </td>
-                                <td class="px-4 py-3 whitespace-nowrap">{{ $order->created_at->format(config('app.date.date_format')) }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap">{!! $order->products->pluck('product_name')->join('<br> ') !!}</td>
-                                <td class="px-4 py-3 font-semibold whitespace-nowrap">{{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
-                                </td>
-                                <td class="px-4 py-3 space-x-2 whitespace-nowrap">
-                                    <a class="text-blue-600 gap-2 inline-flex items-center justify-center" href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" target="_blank"> <x-heroicon-o-eye class="w-4 h-4" /> View Details</a>
-                                    <button
-                                        @if ($order->last_payment_status == 'Paid at Front Desk' || $order->last_payment_status == 'Paid by CC on File' || $order->last_payment_status == 'Paid by Direct Bank' || $order->last_payment_status == 'Account' || $order->last_payment_status == 'Paid')
-                                        disabled
-                                        @endif
-                                        type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn" data-order-id="{{ $order->unique_id }}" >
-                                        + Add to Invoice
-                                    </button>
-                                </td>
-                            </tr>
-                            @endforeach
+                                     @php
+                                        $typeStyles = [
+                                        'charge' => [
+                                        'bg' => 'bg-red-100',
+                                        'text' => 'text-red-800',
+                                        'amount' => 'text-red-600',
+                                        'sign' => '+',
+                                        'icon' => 'plus',
+                                        ],
+                                        'payment' => [
+                                        'bg' => 'bg-green-100',
+                                        'text' => 'text-green-800',
+                                        'amount' => 'text-green-600',
+                                        'sign' => '-',
+                                        'icon' => 'credit-card',
+                                        ],
+                                        'order' => [
+                                        'bg' => 'bg-red-100',
+                                        'text' => 'text-red-800',
+                                        'amount' => 'text-red-600',
+                                        'sign' => '+',
+                                        'icon' => 'cart',
+                                        ],
+                                        'discount' => [
+                                        'bg' => 'bg-purple-100',
+                                        'text' => 'text-purple-800',
+                                        'amount' => 'text-green-600',
+                                        'sign' => '-',
+                                        'icon' => 'award',
+                                        ],
+                                        'credit' => [
+                                        'bg' => 'bg-yellow-100',
+                                        'text' => 'text-yellow-800',
+                                        'amount' => 'text-green-600',
+                                        'sign' => '-',
+                                        'icon' => 'arrow-down-left',
+                                        ],
+                                        'debit' => [
+                                        'bg' => 'bg-orange-100',
+                                        'text' => 'text-orange-800',
+                                        'amount' => 'text-red-600',
+                                        'sign' => '+',
+                                        'icon' => 'arrow-up-right',
+                                        ],
+                                        'refund' => [
+                                        'bg' => 'bg-blue-100',
+                                        'text' => 'text-blue-800',
+                                        'amount' => 'text-green-600',
+                                        'sign' => '-',
+                                        'icon' => 'trending-up',
+                                        ],
+                                        ];
+                                    @endphp
 
-                        </tbody>
-                    </table>
+                                    @foreach ($customerAccounts as $account)
+                                     @php
+                                    $style = $typeStyles[$account->type] ?? $typeStyles['charge'];
+                                    @endphp
+
+                                    <tr>
+                                        <td class="px-4 py-3 font-medium whitespace-nowrap flex gap-2 items-center">
+                                            
+                                            {{-- {!! $order->view_link !!}  --}}
+
+                                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $style['bg'] }} {{ $style['text'] }}">
+                                                @if ($style['icon'] === 'plus')
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="lucide lucide-plus w-4 h-4">
+                                                    <path d="M5 12h14" />
+                                                    <path d="M12 5v14" />
+                                                </svg>
+                                                @elseif ($style['icon'] === 'credit-card')
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="lucide lucide-credit-card w-4 h-4">
+                                                    <rect width="20" height="14" x="2" y="5" rx="2" />
+                                                    <line x1="2" x2="22" y1="10" y2="10" />
+                                                </svg>
+                                                @elseif ($style['icon'] === 'award')
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="lucide lucide-award w-4 h-4">
+                                                    <circle cx="12" cy="8" r="6" />
+                                                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+                                                </svg>
+                                                @elseif ($style['icon'] === 'arrow-down-left')
+                                                <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M17 7L7 17" />
+                                                    <path d="M17 17H7V7" />
+                                                </svg>
+                                                @elseif ($style['icon'] === 'arrow-up-right')
+                                                <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                                                    <polyline points="16 7 22 7 22 13" />
+                                                </svg>
+                                                @elseif ($style['icon'] === 'cart')
+                                                <x-heroicon-o-shopping-cart class="h-4 w-4" />
+                                                @elseif ($style['icon'] === 'trending-up')
+
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="lucide lucide-trending-up w-4 h-4">
+                                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                                                    <polyline points="16 7 22 7 22 13" />
+                                                </svg>
+
+
+
+                                                @endif
+                                                <span class="ml-1 capitalize">{{ $account->type }}</span>
+                                            </span>
+                                            @if($account->type === 'order' && $account->order)
+                                                {!! $account->order->view_link !!}
+                                            @endif
+                                        
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+
+                                              
+                                              {{ App\Helpers\CustomHelper::formatDate($account->date) ?? 'N/A' }}
+                                                
+
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+
+                                            @if($account->type === 'order' && $account->order)
+                                                {!! $account->order->products->pluck('product_name')->join(', <br> ') !!}
+                                            @else
+                                                {{ $account->reason ?? '-' }}
+                                            @endif
+                                            
+                                        </td>
+
+                                        <td class="px-4 py-3 font-semibold whitespace-nowrap {{ $style['amount'] }}">
+    
+                                            @if($account->type === 'order' && $account->order)
+
+                                                {{ $style['sign'] }}
+                                                {{ \App\Helpers\CustomHelper::formatCurrency($account->order->grand_total) }}
+
+                                            @else
+
+                                                @php
+                                                    $amount = (float) ($account->amount ?? 0);
+                                                    $taxRate = (float) ($account->sales_tax ?? 0);
+                                                    $taxType = $account->sales_tax_type ?? null;
+                                                    $type = $account->type;
+
+                                                    $total = $amount;
+
+                                                    if ($taxRate > 0) {
+                                                        $isReverse = ($type === 'payment') || 
+                                                                    ($type === 'charge' && $taxType === 'reverse');
+
+                                                        if (!$isReverse) {
+                                                            $total += ($amount * $taxRate);
+                                                        }
+                                                    }
+
+                                                    $total = round($total, 2);
+                                                @endphp
+
+                                                {{ $style['sign'] }}
+                                                {{ \App\Helpers\CustomHelper::formatCurrency($total) }}
+
+                                            @endif
+
+                                        </td>
+
+
+                                        <td class="px-4 py-3 space-x-2 whitespace-nowrap">
+                                            
+                                            <button
+                                            @if($account->type === 'order' && $account->order)
+                                                @if ($account->order->last_payment_status == 'Paid at Front Desk' || $account->last_payment_status == 'Paid by CC on File' || $account->last_payment_status == 'Paid by Direct Bank' || $account->last_payment_status == 'Paid')
+                                                disabled
+                                                @endif
+
+                                                data-order-id="{{ $account->order->unique_id }}"
+
+                                            @endif
+                                                type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn"  data-account-id="{{ $account->unique_id }}"
+                                                data-type="{{ $account->type }}"
+
+                                                data-reason="{{ $account->reason }}"
+
+                                                data-unit="{{ $account->amount }}"
+                                                data-sales_tax="{{ $account->sales_tax }}"
+
+                                                 data-responsible_person_id="{{ $account->responsible_person_id }}"
+                                                  data-sales_tax="{{ $account->sales_tax }}"
+                                                   data-notes="{{ $account->notes }}"
+                                                >
+                                                + Add to Invoice
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+
+                                </tbody>
+                            </table>
+                        @else
+                            <p class="text-gray-500">No account entries available for invoicing.</p>
+                        @endif
+                    @endif
                 </div>
             </div>
         </div>
@@ -737,7 +936,103 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
         const value = this.value.trim();
         invoiceDisplay.textContent = value ? `#${value}` : "#INV-2025-920";
     });
+
+
+    const TYPE_CONFIG = {
+        charge: {
+            sign: '+',
+            badgeClass: 'bg-red-600',
+            textClass: 'text-gray-900',
+            negative: false
+        },
+        discount: {
+            sign: '-',
+            badgeClass: 'bg-purple-600',
+            textClass: 'text-green-600',
+            negative: true
+        },
+        refund: {
+            sign: '-',
+            badgeClass: 'bg-blue-600',
+            textClass: 'text-green-600',
+            negative: true
+        },
+        payment: {
+            sign: '-',
+            badgeClass: 'bg-green-600',
+            textClass: 'text-green-600',
+            negative: true
+        }
+    };
+
+
+    function renderInvoiceRow(item, type,accountId) {
+
+        const config = TYPE_CONFIG[type] || TYPE_CONFIG.charge;
+
+        const sign = config.sign;
+        const textColor = config.textClass;
+        const badgeClass = config.badgeClass;
+
+        const amountDisplay = config.negative
+            ? `- $${item.unit.toFixed(2)}`
+            : `$${item.unit.toFixed(2)}`;
+
+        const taxDisplay = config.negative
+            ? `- $${item.tax.toFixed(2)}`
+            : `$${item.tax.toFixed(2)}`;
+
+        const totalDisplay = config.negative
+            ? `- $${item.total.toFixed(2)}`
+            : `$${item.total.toFixed(2)}`;
+
+        const row = document.createElement("tr");
+        row.dataset.type = type;
+        row.dataset.id = item.id;
+        row.dataset.accountId = accountId;
+
+        
+
+        row.innerHTML = `
+            <td class="px-4 py-3 whitespace-nowrap">
+                <div class="font-medium text-gray-900">
+                    ${item.name}
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${badgeClass} text-white">
+                        <span class="ml-1 capitalize text-xs">${type}</span>
+                    </span>
+                </div>
+                ${item.notes ? `<div class="text-gray-500 text-sm">${item.notes}</div>` : ""}
+            </td>
+            <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${item.qty}</td>
+            <td class="px-4 py-3 text-right text-sm whitespace-nowrap ${textColor}">
+                ${amountDisplay}
+            </td>
+            <td class="px-4 py-3 text-right text-sm whitespace-nowrap ${textColor}">
+                ${taxDisplay}
+            </td>
+            <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap ${textColor}">
+                ${totalDisplay}
+            </td>
+            <td class="px-4 py-3 text-center whitespace-nowrap">
+                
+                <button type="button" class="text-red-600 delete-btn">
+                    <x-heroicon-o-trash class="w-4 h-4" />
+                </button>
+            </td>
+        `;
+
+        document.getElementById("invoiceItems").appendChild(row);
+        document.getElementById("emptyState").classList.add("hidden");
+        document.getElementById("itemsTable").classList.remove("hidden");
+        
+        document.getElementById('orderModalWrapper').style.display = 'none' ;
+
+    }
+   
 </script>
+ {{-- // <button type="button" class="text-blue-600 edit-btn mr-2">
+    //                 <x-heroicon-o-pencil class="w-4 h-4" />
+    //             </button> --}}
 
 <script>
     function updateInvoiceButton() {
@@ -776,6 +1071,9 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
     // Global function to add products to the invoice_data array
     function addInvoiceProduct(products, type) {
+
+        // console.table(products);
+
         products.forEach(p => {
             const product = {
                 ...p, // Spread operator to copy all properties from the original product object
@@ -783,7 +1081,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             };
             invoice_data.push(product); // Add the new product object to the array
         });
-        console.table(invoice_data);
+        // console.table(invoice_data);
     }
 
     // generate a unique ID for every arry item
@@ -804,153 +1102,154 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
     (function () {
 
-    function updateInvoiceSummary() {
+        function updateInvoiceSummary() {
 
-        const subtotalElem = document.querySelector('#invoice-subtotal');
-        const totalElem = document.querySelector('#invoice-total');
-        const taxElem = document.querySelector('#invoice-tax');
+            const subtotalElem = document.querySelector('#invoice-subtotal');
+            const totalElem = document.querySelector('#invoice-total');
+            const taxElem = document.querySelector('#invoice-tax');
 
-        const discountElem = document.querySelector('#invoice-discount');
-        const refundElem = document.querySelector('#invoice-refund');
-        const discountRow = document.querySelector('#discount-row');
-        const refundRow = document.querySelector('#refund-row');
+            const discountElem = document.querySelector('#invoice-discount');
+            const refundElem = document.querySelector('#invoice-refund');
+            const discountRow = document.querySelector('#discount-row');
+            const refundRow = document.querySelector('#refund-row');
 
-        const createBtn = document.querySelector('button[name="action"][value="save_new"]');
+            const createBtn = document.querySelector('button[name="action"][value="save_new"]');
 
-        const subtotalInput = document.getElementById("invoiceSubtotalInput");
-        const taxInput = document.getElementById("invoiceTaxInput");
-        const totalInput = document.getElementById("invoiceTotalInput");
-        const invoiceDataInput = document.getElementById("invoiceDataInput");
+            const subtotalInput = document.getElementById("invoiceSubtotalInput");
+            const taxInput = document.getElementById("invoiceTaxInput");
+            const totalInput = document.getElementById("invoiceTotalInput");
+            const invoiceDataInput = document.getElementById("invoiceDataInput");
 
-        const paidElem = document.querySelector('#invoice-paid');
-        const openElem = document.querySelector('#invoice-open');
-
-
-        const paidInput = document.getElementById('invoicePaidAmount');
+            const paidElem = document.querySelector('#invoice-paid');
+            const openElem = document.querySelector('#invoice-open');
 
 
-        let subtotal = 0;
-        let totalTax = 0;
-        let totalDiscount = 0;
-        let totalRefund = 0;
+            const paidInput = document.getElementById('invoicePaidAmount');
 
-        const rows = invoiceItemsTBody.querySelectorAll("tr");
 
-        rows.forEach(row => {
+            let subtotal = 0;
+            let totalTax = 0;
+            let totalDiscount = 0;
+            let totalRefund = 0;
 
-            const type = row.dataset.type;
+            const rows = invoiceItemsTBody.querySelectorAll("tr");
 
-            const priceCell = row.querySelector("td:nth-child(3)");
-            const taxCell = row.querySelector("td:nth-child(4)");
+            rows.forEach(row => {
 
-            let price = parseCurrency(priceCell?.textContent || '0');
-            let tax = parseCurrency(taxCell?.textContent || '0');
+                const type = row.dataset.type;
 
-            if (type === "charge" || type === "order") {
-                subtotal += price;
-                totalTax += tax;
+                const priceCell = row.querySelector("td:nth-child(3)");
+                const taxCell = row.querySelector("td:nth-child(4)");
+
+                let price = parseCurrency(priceCell?.textContent || '0');
+                let tax = parseCurrency(taxCell?.textContent || '0');
+
+                if (type === "charge" || type === "order") {
+                    subtotal += price;
+                    totalTax += tax;
+                }
+
+                if (type === "discount") {
+                    totalDiscount += Math.abs(price);
+                }
+
+                if (type === "refund") {
+                    totalRefund += Math.abs(price);
+                    totalTax -= Math.abs(tax);
+                }
+            });
+
+            subtotal = Math.max(0, subtotal);
+            totalTax = Math.max(0, totalTax);
+
+            let finalTotal = subtotal + totalTax - totalDiscount - totalRefund;
+            finalTotal = Math.max(0, finalTotal);
+
+            // --------------------
+            // Update UI
+            // --------------------
+
+            if (subtotalElem) subtotalElem.textContent = `$${subtotal.toFixed(2)}`;
+            if (taxElem) taxElem.textContent =
+                totalTax > 0 ? `$${totalTax.toFixed(2)}` : 'Tax Exempt';
+
+            if (discountRow && discountElem) {
+                if (totalDiscount > 0) {
+                    discountRow.classList.remove('hidden');
+                    discountElem.textContent = `-$${totalDiscount.toFixed(2)}`;
+                } else {
+                    discountRow.classList.add('hidden');
+                }
             }
 
-            if (type === "discount") {
-                totalDiscount += Math.abs(price);
+            if (refundRow && refundElem) {
+                if (totalRefund > 0) {
+                    refundRow.classList.remove('hidden');
+                    refundElem.textContent = `-$${totalRefund.toFixed(2)}`;
+                } else {
+                    refundRow.classList.add('hidden');
+                }
             }
 
-            if (type === "refund") {
-                totalRefund += Math.abs(price);
-                 totalTax -= Math.abs(tax);
+            if (totalElem) totalElem.textContent = `$${finalTotal.toFixed(2)}`;
+
+            // --------------------
+            // Handle Paid/Open (Edit Mode Only)
+            // --------------------
+            if (paidElem && openElem) {
+
+                let paidAmount = parseFloat(paidElem.dataset.paid || paidElem.textContent.replace(/[^0-9.-]+/g,"")) || 0;
+
+                let openAmount = finalTotal - paidAmount;
+                openAmount = Math.max(0, openAmount);
+
+                paidElem.textContent = `$${paidAmount.toFixed(2)}`;
+                openElem.textContent = `$${openAmount.toFixed(2)}`;
             }
-        });
 
-        subtotal = Math.max(0, subtotal);
-        totalTax = Math.max(0, totalTax);
 
-        let finalTotal = subtotal + totalTax - totalDiscount - totalRefund;
-        finalTotal = Math.max(0, finalTotal);
+            
+            if (paidInput && paidElem && openElem) {
 
-        // --------------------
-        // Update UI
-        // --------------------
+                let paidAmount = parseFloat(paidInput.value) || 0;
+                let openAmount = finalTotal - paidAmount;
 
-        if (subtotalElem) subtotalElem.textContent = `$${subtotal.toFixed(2)}`;
-        if (taxElem) taxElem.textContent =
-            totalTax > 0 ? `$${totalTax.toFixed(2)}` : 'Tax Exempt';
+                openAmount = Math.max(0, openAmount);
 
-        if (discountRow && discountElem) {
-            if (totalDiscount > 0) {
-                discountRow.classList.remove('hidden');
-                discountElem.textContent = `-$${totalDiscount.toFixed(2)}`;
-            } else {
-                discountRow.classList.add('hidden');
+                paidElem.textContent = `$${paidAmount.toFixed(2)}`;
+                openElem.textContent = `$${openAmount.toFixed(2)}`;
             }
-        }
 
-        if (refundRow && refundElem) {
-            if (totalRefund > 0) {
-                refundRow.classList.remove('hidden');
-                refundElem.textContent = `-$${totalRefund.toFixed(2)}`;
-            } else {
-                refundRow.classList.add('hidden');
+            if (createBtn) {
+                createBtn.disabled = rows.length === 0;
             }
+
+            // --------------------
+            // Hidden Inputs
+            // --------------------
+
+            if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
+            if (taxInput) taxInput.value = totalTax.toFixed(2);
+            if (totalInput) totalInput.value = finalTotal.toFixed(2);
+            if (invoiceDataInput) invoiceDataInput.value = JSON.stringify(invoice_data);
+
+            updateInvoiceButton();
         }
 
-        if (totalElem) totalElem.textContent = `$${finalTotal.toFixed(2)}`;
+        window.updateInvoiceSummary = updateInvoiceSummary;
 
-        // --------------------
-        // Handle Paid/Open (Edit Mode Only)
-        // --------------------
-        if (paidElem && openElem) {
-
-            let paidAmount = parseFloat(paidElem.dataset.paid || paidElem.textContent.replace(/[^0-9.-]+/g,"")) || 0;
-
-            let openAmount = finalTotal - paidAmount;
-            openAmount = Math.max(0, openAmount);
-
-            paidElem.textContent = `$${paidAmount.toFixed(2)}`;
-            openElem.textContent = `$${openAmount.toFixed(2)}`;
-        }
-
-
-        
-        if (paidInput && paidElem && openElem) {
-
-            let paidAmount = parseFloat(paidInput.value) || 0;
-            let openAmount = finalTotal - paidAmount;
-
-            openAmount = Math.max(0, openAmount);
-
-            paidElem.textContent = `$${paidAmount.toFixed(2)}`;
-            openElem.textContent = `$${openAmount.toFixed(2)}`;
-        }
-
-        if (createBtn) {
-            createBtn.disabled = rows.length === 0;
-        }
-
-        // --------------------
-        // Hidden Inputs
-        // --------------------
-
-        if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
-        if (taxInput) taxInput.value = totalTax.toFixed(2);
-        if (totalInput) totalInput.value = finalTotal.toFixed(2);
-        if (invoiceDataInput) invoiceDataInput.value = JSON.stringify(invoice_data);
-
-        updateInvoiceButton();
-    }
-
-    window.updateInvoiceSummary = updateInvoiceSummary;
-
-})();
+    })();
 
 
 
     /**
-     * Disable or enable the "+ Add to Invoice" button for a specific orderId
-     * @param {string|number} orderId - The order unique ID
+     * Disable or enable the "+ Add to Invoice" button for a specific accountId
+     * @param {string|number} account - The account unique ID
      * @param {boolean} disable - true to disable, false to enable
      */
-    function toggleAddToInvoiceButton(orderId, disable = true) {
-        const btn = document.querySelector(`.add-to-invoice-btn[data-order-id="${orderId}"]`);
+    function toggleAddToInvoiceButton(account, disable = true) {
+        const btn = document.querySelector(`.add-to-invoice-btn[data-account-id="${account}"]`);
+        
         if (!btn) return;
 
         if (disable) {
@@ -967,7 +1266,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
     const existingOrderItems = @json($orderItems ?? []);
     const existingOtherItems = @json($otherItems ?? []);
 
-    console.table(existingOtherItems);
+    // console.table(existingOtherItems);
 
     // Add existingOtherItems into the global invoice_data array
     if (Array.isArray(existingOtherItems) && existingOtherItems.length > 0) {
@@ -1035,7 +1334,10 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 tr.dataset.id = p.id;
                 tr.dataset.orderId = p.orderId;
 
-                toggleAddToInvoiceButton(p.orderId, true); // disable
+                tr.dataset.accountId = p.accountId;
+
+
+                // toggleAddToInvoiceButton(p.orderId, true); // disable
 
                 tr.innerHTML = `
                 <td class="px-4 py-3 whitespace-nowrap">
@@ -1059,11 +1361,11 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
                 <td class="px-4 py-3 whitespace-nowrap">
                     <div class="flex items-center justify-center gap-3">
-                     @if(!isset($invoice) || $invoice->invoice_status !== 'paid')
-            <button type="button" class="text-red-600 delete-btn">
-                <x-heroicon-o-trash class="w-4 h-4" />
-            </button>
-        @endif
+                    @if(!isset($invoice) || !in_array($invoice->invoice_status, ['paid', 'partial_paid']))
+                        <button type="button" class="text-red-600 delete-btn">
+                            <x-heroicon-o-trash class="w-4 h-4" />
+                        </button>
+                    @endif
                     </div>
                 </td>
             `;
@@ -1078,76 +1380,171 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
         }
 
+        function calculateTransactionTotals(amount, taxRate, type, taxType) {
+
+            amount = parseFloat(amount) || 0;
+            taxRate = parseFloat(taxRate) || 0;
+
+            let base = amount;
+            let tax = 0;
+            let total = amount;
+
+            if (taxRate > 0) {
+
+                const isReverse = (type === 'payment') || 
+                                (type === 'charge' && taxType === 'reverse');
+
+                if (isReverse) {
+                    // Tax INCLUDED in amount
+                    base = amount / (1 + taxRate);
+                    tax = amount - base;
+                    total = amount;
+                } else {
+                    // Tax ADDED on top
+                    tax = amount * taxRate;
+                    total = amount + tax;
+                }
+            }
+
+            // Round properly
+            base = Math.round(base * 100) / 100;
+            tax = Math.round(tax * 100) / 100;
+            total = Math.round(total * 100) / 100;
+
+            return { base, tax, total };
+        }
+
         // Handle Add to Invoice buttons
-        document.body.addEventListener("click", async (e) => { // <--- async here
+        document.body.addEventListener("click", async (e) => { 
             const btn = e.target.closest(".add-to-invoice-btn");
             if (!btn) return;
 
-            const orderId = btn.dataset.orderId;
+            const accountId = btn.dataset.accountId;
+            const type = btn.dataset.type;
 
-            const orderDetailsBaseUrl = "{{ route('admin.crm.customers.invoice.orders.details', ['unique_id' => ':id']) }}";
+            if (type === "order") {
+                
 
-            const wrapper = document.getElementById('orders-table'); // loader wrapper
-            if (wrapper) {
-                wrapper.classList.add('opacity-50', 'pointer-events-none'); // show loader
-            }
+              const orderId = btn.dataset.orderId;
 
-            try {
-                const url = orderDetailsBaseUrl.replace(':id', orderId);
-                const res = await fetch(url, {
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        "Accept": "application/json"
-                    }
-                });
+            //   console.log('orderId:-',orderId);
 
-                if (!res.ok) {
-                    throw new Error(`HTTP error ${res.status}`);
-                }
+                const orderDetailsBaseUrl = "{{ route('admin.crm.customers.invoice.orders.details', ['unique_id' => ':id']) }}";
 
-                let data;
-                try {
-                    data = await res.json();
-                } catch (jsonErr) {
-                    throw new Error("Response was not valid JSON");
-                }
-
-                if (data.success === false) {
-                    throw new Error(data.message || "Server returned an error");
-                }
-
-                const products = (data.products || []).map(p => ({
-                    id: p.order_products_unique_id,
-                    name: p.name,
-                    sku: p.sku ?? "-",
-                    qty: p.qty,
-                    unit: parseFloat(p.unit_price),
-                    tax: parseFloat(p.tax) || 0,
-                    total: parseFloat(p.total),
-                    extras: (p.extras || []).filter(x => x),
-                    orderId: data.unique_id,
-                }));
-
-
-                addProductsToTable(products);
-
-                // Close modals: if from 2nd modal → close both
-                if (btn.closest("#viewdetailsModalWrapper")) {
-                    detailsModal.style.display = "none";
-                    orderModal.style.display = "none";
-                } else if (btn.closest("#orderModalWrapper")) {
-                    orderModal.style.display = "none";
-                }
-
-            } catch (error) {
-                console.error(" Failed to fetch order products:", error);
-                notyf.error(error.message || "Unable to load order products.");
-            } finally {
-                // Always remove loader
+                const wrapper = document.getElementById('orders-table'); // loader wrapper
                 if (wrapper) {
-                    wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                    wrapper.classList.add('opacity-50', 'pointer-events-none'); // show loader
                 }
-            }
+
+                try {
+                    const url = orderDetailsBaseUrl.replace(':id', orderId);
+                    const res = await fetch(url, {
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest",
+                            "Accept": "application/json"
+                        }
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`HTTP error ${res.status}`);
+                    }
+
+                    let data;
+                    try {
+                        data = await res.json();
+                    } catch (jsonErr) {
+                        throw new Error("Response was not valid JSON");
+                    }
+
+                    if (data.success === false) {
+                        throw new Error(data.message || "Server returned an error");
+                    }
+
+                    const products = (data.products || []).map(p => ({
+                        id: p.order_products_unique_id,
+                        name: p.name,
+                        sku: p.sku ?? "-",
+                        qty: p.qty,
+                        unit: parseFloat(p.unit_price),
+                        tax: parseFloat(p.tax) || 0,
+                        total: parseFloat(p.total),
+                        extras: (p.extras || []).filter(x => x),
+                        orderId: data.unique_id,
+                        account_id:data.accountid,
+                    })); 
+
+                    // console.log(products);
+
+                    addProductsToTable(products);
+
+                    // Close modals: if from 2nd modal → close both
+                    if (btn.closest("#viewdetailsModalWrapper")) {
+                        detailsModal.style.display = "none";
+                        orderModal.style.display = "none";
+                    } else if (btn.closest("#orderModalWrapper")) {
+                        orderModal.style.display = "none";
+                    }
+
+                } catch (error) {
+                    console.error(" Failed to fetch order products:", error);
+                    notyf.error(error.message || "Unable to load order products.");
+                } finally {
+                    // Always remove loader
+                    if (wrapper) {
+                        wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                    }
+                }
+
+            }else{
+
+                const desc = btn.dataset.reason || btn.dataset.type || 'Item';
+                const qty = 1;
+                const price = parseFloat(btn.dataset.unit) || 0;
+                const taxRate = parseFloat(btn.dataset.sales_tax) || 0;
+                const taxType = btn.dataset.sales_tax_type || null;
+                const responsibleId = btn.dataset.responsible_person_id || null;
+                const notes = btn.dataset.notes || '';
+
+                if (price <= 0) {
+                    notyf.error("Invalid amount");
+                    return;
+                }
+
+                //  Single source of truth
+                const { base, tax, total } = calculateTransactionTotals(
+                    price,
+                    taxRate,
+                    type,
+                    taxType
+                );
+
+                const uniqueId = generateUniqueId(type);
+
+                const item = {
+                    id: uniqueId,
+                    name: desc,
+                    qty: 1,
+                    unit: base,
+                    tax: tax,
+                    total: total,
+                    responsible_id: responsibleId,
+                    reference: null,
+                    notes: notes,
+                    account_id: accountId,
+                };
+
+                addInvoiceProduct([item], type);
+
+                renderInvoiceRow(item, type ,accountId);
+
+                notyf.success(`${type} added`);
+                window.updateInvoiceSummary();
+
+
+            }  
+
+              toggleAddToInvoiceButton(accountId, true); // disable
+            
 
         });
 
@@ -1161,6 +1558,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             const itemType = row.dataset.type;
             const orderId = row.dataset.orderId || null;
 
+             const accountId = row.dataset.accountId || null;
             console.log("Delete clicked:", {
                 itemId,
                 itemType,
@@ -1170,6 +1568,13 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             if (itemType === "order" && orderId) {
                 // Remove all rows with same order id
                 const rowsToDelete = invoiceItemsTBody.querySelectorAll(`tr[data-order-id="${orderId}"]`);
+
+                const obtn = document.querySelector(`.add-to-invoice-btn[data-order-id="${orderId}"]`)
+
+                const accountId = obtn.dataset.accountId;
+
+                 toggleAddToInvoiceButton(accountId, false); // enable
+
                 console.log(`Deleting ${rowsToDelete.length} rows for orderId:`, orderId);
 
                 rowsToDelete.forEach(r => {
@@ -1208,7 +1613,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
             window.updateInvoiceSummary();
 
-            toggleAddToInvoiceButton(orderId, false); // enable
+            toggleAddToInvoiceButton(accountId, false); // enable
 
         });
     });

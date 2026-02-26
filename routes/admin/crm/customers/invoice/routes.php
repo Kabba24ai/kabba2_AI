@@ -21,6 +21,8 @@ use App\Http\Controllers\Admin\Crm\Customers\Invoice\DownloadController;
 
 use App\Http\Controllers\Admin\Crm\Customers\Invoice\PaymentStoreController;
 
+use App\Http\Controllers\Admin\Crm\Customers\Invoice\CreateFromAccountController;
+
 
 
 
@@ -30,6 +32,10 @@ Route::prefix('invoice')
 
     Route::get('/{unique_id}',  IndexController::class)->name('index');
 
+    Route::get('{unique_id}/create-from-account', CreateFromAccountController::class)->name('create-from-account');
+
+
+    
     Route::get('{unique_id}/create', CreateController::class)->name('create');
     Route::post('{unique_id}/create', StoreController::class)->name('store');
 

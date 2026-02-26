@@ -28,7 +28,7 @@ class Invoice extends Model
         'is_email_send',
         'payment_method',
         'mail_send_at',
-        
+        'invoice_type',
         'paid_amount',
         'open_amount',
     ];

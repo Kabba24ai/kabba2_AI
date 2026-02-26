@@ -20,7 +20,7 @@ use App\Http\Controllers\Admin\Configurations\InvoiceSettings\SaveController as 
 use App\Http\Controllers\Admin\Configurations\PriceSettings\SaveController as SavePriceSettingsController;
 use App\Http\Controllers\Admin\Configurations\TermsConditions\SaveController as SaveTermsController;
 use App\Http\Controllers\Admin\Configurations\PrivacyPolicy\SaveController as SavePrivacyPolicyController;
-
+use App\Http\Controllers\Admin\Configurations\ProfileSettings\SaveController as SaveProfileSettingsController;
 
 use App\Http\Controllers\Admin\Configurations\NotificationSettings\HrmUsersController;
 use App\Http\Controllers\Admin\Configurations\NotificationSettings\SaveController as SaveNotificationSettingsController;
@@ -45,6 +45,8 @@ Route::prefix('configurations')
     Route::post('/social-media-settings', SaveSocialMediaController::class)->name('save-social-media-settings');
     Route::post('/invoice-settings', SaveInvoiceSettingsController::class)->name('save-invoice-settings');
     Route::post('/price-settings', SavePriceSettingsController::class)->name('save-price-settings');
+    Route::post('/profile-settings', SaveProfileSettingsController::class)->name('save-profile-settings');
+
 
     Route::post('/verify-master', VerifyMasterController::class)->name('verify-master');
     Route::post('/settings/reset', SettingsResetController::class)->name('reset-settings');

@@ -26,8 +26,8 @@ class StoreController extends Controller
     public function __invoke(StoreRequest $request)
     {
 
-    dd($request->all());
-    die();
+    // dd($request->all());
+    // die();
     
         $validated = $request->validated();
 
@@ -49,6 +49,7 @@ class StoreController extends Controller
                     'zip_code'    => $billing['zip_code'] ?? null,
                     'Country'     => $billing['Country'] ?? null,
                     'phone'       => $billing['phone'] ?? null,
+                     'email'       => $billing['email'] ?? null,
                 ]);
             } else {
                 // If not found, add a new one
@@ -62,7 +63,8 @@ class StoreController extends Controller
                     'state_id'    => $billing['state_id'] ?? null,
                     'zip_code'    => $billing['zip_code'] ?? null,
                     'Country'     => $billing['Country'] ?? null,
-                    'phone'       => $billing['phone'] ?? null,
+                      'phone'       => $billing['phone'] ?? null,
+                   'email'       => $billing['email'] ?? null,
                 ];
             }
 
@@ -138,6 +140,9 @@ class StoreController extends Controller
                         'address'      => $address['address'] ?? null,
                         'is_primary'   => $address['is_primary'] ?? 0,
                         'country'     => $address['Country'] ?? null,
+                         'phone'     => $address['phone'] ?? null,
+                         'email'     => $address['email'] ?? null,
+
                     ]);
                 }
             }

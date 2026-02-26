@@ -280,6 +280,14 @@
                    'sign' => '-',
                    'icon' => 'trending-up',
                    ],
+                   'account_invoice' => [
+                    'bg' => 'bg-indigo-100',
+                    'text' => 'text-indigo-800',
+                    'amount' => 'text-indigo-600', 
+                    'sign' => '',
+                    'icon' => 'file-text',
+                     'label' => 'Account Invoice',
+                ],
                    ];
                    @endphp
 
@@ -328,6 +336,18 @@
                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
                                    <polyline points="16 7 22 7 22 13" />
                                </svg>
+
+                               @elseif ($style['icon'] === 'file-text')
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 12h6m-6 4h6M7 4h6l4 4v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                                </svg>
+
                                @elseif ($style['icon'] === 'cart')
                                <x-heroicon-o-shopping-cart class="h-4 w-4" />
                                @elseif ($style['icon'] === 'trending-up')
@@ -343,7 +363,9 @@
 
 
                                @endif
-                               <span class="ml-1 capitalize">{{ $transaction->type }}</span>
+                              <span class="ml-1 capitalize">
+                                {{ $style['label'] ?? ucfirst($transaction->type) }}
+                            </span>
                            </span>
 
                            <div class="text-xs text-gray-500 mt-1">
@@ -376,6 +398,11 @@
                            @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
                            {{-- Tax is included in the amount (payment or reverse charge) --}}
                            {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) / (1 + $transaction->sales_tax)) }}
+
+                           @elseif($transaction->type === 'account_invoice')
+
+                           {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount - $transaction->sales_tax) }}
+
                            @else
                            {{-- No tax or tax added on top --}}
                            {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount ?? 0) }}
@@ -384,7 +411,10 @@
                        </td>
                        {{-- Sales Tax Column --}}
                        <td class="py-4 px-6 text-right">
-                           @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
+
+                           @if($transaction->type === 'account_invoice') 
+                    {{ \App\Helpers\CustomHelper::formatCurrency($transaction->sales_tax) }}
+                           @elseif($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
                            {{-- Tax is included in the amount (payment or reverse charge) --}}
                            @php
                            $taxAmount = ($transaction->amount ?? 0) - (($transaction->amount ?? 0) / (1 + $transaction->sales_tax));
@@ -403,7 +433,9 @@
                            @php
                            $totalWithTax = $transaction->amount;
 
-                           if ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+                           if($transaction->type === 'account_invoice')
+                                                     $totalWithTax = $transaction->amount;
+                           elseif ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
                            // Only add tax if it's NOT already included
                            $totalWithTax += ($transaction->amount * $transaction->sales_tax);
                            }
@@ -413,14 +445,21 @@
                            {{ \App\Helpers\CustomHelper::formatCurrency($totalWithTax) }}
                        </td>
 
-                       <td class="py-4 px-6 text-right whitespace-nowrap"> {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance ?? 0) }} </td>
+                       <td class="py-4 px-6 text-right whitespace-nowrap"> 
+                         @if($transaction->type === 'account_invoice') 
+                         -
+                         @else
+                        {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance ?? 0) }} </td>
+                        @endif
                        <td class="py-4 px-6 text-blue-600">
                            <div class="flex gap-2 items-center justify-end">
 
+                             @if($transaction->type !== 'account_invoice')
+
                             @if ($transaction->invoice_id && $transaction->type === 'payment')
-            <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice->unique_id) }}" target="_blank"  title="View" >
-                                            <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
-            </a>
+                                <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice->unique_id) }}" target="_blank"  title="View" >
+                                                                <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
+                                </a>
                             @else
                                <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)' data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}">
                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
@@ -436,6 +475,8 @@
                                     title="Edit">
                                     <x-heroicon-o-pencil class="w-4 h-4" />
                                     </a>
+                               
+                                    
                                 @else
                                     <button class="openEditPaymentModalBtn text-green-600 hover:text-green-800"
                                         data-id="{{ $transaction->id }}"
@@ -460,12 +501,13 @@
                                     </button>
 
                                 @endif
+
                                @endif
 
                                   @if ($transaction->invoice_id && $transaction->type === 'payment')
-                <a href="{{ route('admin.crm.customers.invoice.download',$transaction->invoice->unique_id ) }}" class="             text-green-600 inline-flex items-center">
-                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                             </a>
+                    <a href="{{ route('admin.crm.customers.invoice.download',$transaction->invoice->unique_id ) }}" class="             text-green-600 inline-flex items-center">
+                                    <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                                </a>
                                   @else
                                     <!-- Download -->
                                     <form method="GET" action="{{ route('admin.crm.customers.customer-account.download', $transaction->id) }}" target="_blank" style="display:flex;">
@@ -500,6 +542,7 @@
         </button>
     </form>
 
+@endif
 @endif
 
                            </div>

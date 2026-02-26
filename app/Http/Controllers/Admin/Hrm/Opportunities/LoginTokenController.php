@@ -20,15 +20,19 @@ class LoginTokenController extends Controller
 
         $host = $request->getHost();
 
-        $redirectUrl = match ($host) {
-            'admin.kabba.local'   => 'http://localhost:5173/',
-            'admin.kabba.ai'      => 'https://opportunities.kabba.ai/',
-            'admin.rentnking.com' => 'https://opportunities.rentnking.com/',
-            default               => 'https://opportunities.kabba.ai/',
-        };
+        // $redirectUrl = match ($host) {
+        //     'admin.kabba.local'   => 'http://localhost:5173/',
+        //     'admin.kabba.ai'      => 'https://opportunities.kabba.ai/',
+        //     'admin.rentnking.com' => 'https://opportunities.rentnking.com/',
+        //     default               => 'https://opportunities.kabba.ai/',
+        // };
+
+
+       $redirectUrl =   config('app.domains.opportunities') ;
+    //    dd($redirectUrl);
 
         return redirect()->away(
-            $redirectUrl . 'admin/SsoLogin?token=' . urlencode($token)
+            $redirectUrl . '/admin/SsoLogin?token=' . urlencode($token)
         );
     }
 }

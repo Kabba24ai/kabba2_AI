@@ -169,8 +169,9 @@ class AuthorizeNetService
             if($errorCode === "E00039") {
                 // Duplicate profile - try to find existing profile ID
                 $existingProfileId = $this->findExistingCustomerProfileId($uniqueId);
+                logger()->error("Duplicate customer profile detected for uniqueId {$uniqueId}. Existing profile ID: {$existingProfileId}");
                 if ($existingProfileId) {
-                    Customer::where('unique_id', $customer['unique_id'])->update(['authorize_profile_id' => $existingProfileId]);
+                    Customer::where('unique_id', $uniqueId)->update(['authorize_profile_id' => $existingProfileId]);
                 }
             }
             throw new \Exception('Failed to create customer profile: ' . $error);

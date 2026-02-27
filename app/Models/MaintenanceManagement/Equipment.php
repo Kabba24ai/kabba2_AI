@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 // Helpers
 use App\Helpers\ModelHelper;
-
-// Equipments
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Enums\Equipments\EquipmentPowerSourceType;
+use App\Enums\Equipments\EquipmentKeyStartingMechanism;
+
+// Equipments
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
 use App\Models\Orders\Order;
@@ -81,12 +82,15 @@ class Equipment extends Model
         'taxes_fees',
         'warranty_duration_months',
         'warranty_duration_hours',
+        'key_starting_mechanism',
+        'equipment_value',
     ];
 
     protected $casts = [
         'current_status' => EquipmentCurrentStatus::class,
         'power_source_type' => EquipmentPowerSourceType::class,
-         'volts' => 'array',
+        'key_starting_mechanism' => EquipmentKeyStartingMechanism::class,
+        'volts' => 'array',
         'amps'  => 'array',
     ];
     protected $appends = ['status_label', 'category_name', 'last_inspection'];

@@ -1,6 +1,6 @@
 {
-  "_api-CJ32vqwM.js": {
-    "file": "assets/api-CJ32vqwM.js",
+  "_api-BUFzoznZ.js": {
+    "file": "assets/api-BUFzoznZ.js",
     "name": "api",
     "css": [
       "assets/api-DVkapAgo.css"
@@ -48,17 +48,17 @@
     "isEntry": true
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-lntGuUr8.css",
+    "file": "assets/app-D4b6UiJl.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-BdQT5Twh.js",
+    "file": "assets/app-7QbacwUA.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-CJ32vqwM.js"
+      "_api-BUFzoznZ.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
@@ -71,29 +71,29 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-BA5rXtxW.css",
+    "file": "assets/app-BxUw1eo0.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-e-iKyWB_.css",
+    "file": "assets/app-D5wM4Xk8.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-CCr-_q6a.js",
+    "file": "assets/app-Dl-5piun.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-CJ32vqwM.js"
+      "_api-BUFzoznZ.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"
     ]
   },
   "resources/front/assets/js/products/product-details-page.js": {
-    "file": "assets/product-details-page-BOH5tssG.js",
+    "file": "assets/product-details-page-Ces2BTsF.js",
     "name": "product-details-page",
     "src": "resources/front/assets/js/products/product-details-page.js",
     "isEntry": true

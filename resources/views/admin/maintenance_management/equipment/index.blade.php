@@ -19,7 +19,6 @@
                 <p class="text-gray-600">Manage equipment inventory, assignments, and maintenance schedules</p>
             </div>
 
-
             <div id="equipment-stats-wrapper">
                 @include('admin.maintenance_management.equipment.partials._stats')
             </div>
@@ -133,7 +132,6 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-
             /* --------------------------
                 FREEZE FILTER (LOCAL STORAGE)
             -------------------------- */
@@ -174,13 +172,11 @@
                 });
             }
 
-
             let searchInput = document.querySelector('input[name="search"]');
             let categorySelect = document.querySelector('select[name="category"]');
             let checklistMasterSelect = document.querySelector('select[name="checklist_master"]');
 
             let equipmentIdInput = document.querySelector('input[name="equipment_id"]');
-
 
             let locationStore = document.querySelector('select[name="location_store"]');
             let serviceDue = document.querySelector('select[name="service_due"]');
@@ -195,8 +191,6 @@
                 localStorage.getItem(STATUS_KEY) ??
                 new URLSearchParams(window.location.search).get('status');
             setActiveStatCard();
-
-
 
             document.addEventListener('click', function(e) {
                 const card = e.target.closest('.stats-filter');
@@ -216,12 +210,6 @@
                 fetchEquipments(1);
             });
 
-
-
-
-
-
-
             const fieldMap = {
                 'search': searchInput,
                 'category': categorySelect,
@@ -235,6 +223,11 @@
             // Load saved filters
             FilterFreezer.loadFilters(screenKey, fieldMap);
 
+            // Clear filters functionality using global clearFilters
+            document.getElementById('clear-filters').addEventListener('click', function() {
+                window.clearFilters(fieldMap, screenKey);
+                fetchEquipments(); // Fetch orders after clearing filters
+            });
 
             fetchEquipments(pageParam, perPageParam); // initial fetch
 
@@ -245,7 +238,6 @@
                 const locationStoreValue = locationStore.value;
                 const equipmentId = equipmentIdInput.value;
                 const serviceDueValue = serviceDue.value;
-
 
                 // const rentalReadyValue = rentalReady.value;
                 // const equipServiceValue = equipService.value;
@@ -292,8 +284,6 @@
                 wrapper: wrapper,
                 fetchCallback: fetchEquipments
             });
-
-
 
             // Debounce search input
             searchInput.addEventListener('input', function() {

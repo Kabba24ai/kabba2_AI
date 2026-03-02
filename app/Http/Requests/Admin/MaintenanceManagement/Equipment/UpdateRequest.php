@@ -77,6 +77,8 @@ class UpdateRequest extends FormRequest
             'serial_number' => 'nullable|string|max:255',
             'license_plate' => 'nullable|string|max:255',
             'imei' => 'nullable|string|max:255',
+            'key_starting_mechanism' => 'nullable|string|max:255',
+            'equipment_value' => 'nullable|numeric|min:0',
             'warranty_duration_months' => 'nullable|integer|min:0',
             'warranty_duration_hours' => 'nullable|integer|min:0',
 

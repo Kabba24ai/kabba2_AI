@@ -64,15 +64,15 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Payment Method </label>
                        {!! html()->select(
-    'payment_type',
-    collect(\App\Enums\Customers\PaymentMethod::options())
-        ->except(\App\Enums\Customers\PaymentMethod::Other->value)
-        ->toArray()
-)
-->id('payment_type')
-->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')
-->required()
-!!}
+                            'payment_type',
+                            collect(\App\Enums\Customers\PaymentMethod::options())
+                                ->except(\App\Enums\Customers\PaymentMethod::Other->value)
+                                ->toArray()
+                        )
+                        ->id('payment_type')
+                        ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')
+                        ->required()
+                        !!}
 
                    </div>
 

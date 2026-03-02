@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Customers\Customer;
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 use Illuminate\Support\Facades\Crypt;
@@ -164,6 +165,22 @@ class AuthorizeNetService
                 $errorCode = method_exists($msgObj, 'getCode') ? $msgObj->getCode() : '';
                 $errorText = method_exists($msgObj, 'getText') ? $msgObj->getText() : '';
                 $error = "[$errorCode] $errorText";
+            }
+            if($errorCode === "E00039") {
+                // Duplicate profile - try to find existing profile ID
+                $existingProfileId = $this->findExistingCustomerProfileId($uniqueId);
+                logger()->error("Duplicate customer profile detected for uniqueId {$uniqueId}. Existing profile ID: {$existingProfileId}");
+                if ($existingProfileId) {
+                    if($objCustomer = Customer::where('unique_id', trim($uniqueId))->first()) {
+                        logger()->info("Customer record found for unique_id {$uniqueId}. Current authorize_profile_id: {$objCustomer->authorize_profile_id}");
+
+                        $objCustomer->authorize_profile_id = $existingProfileId;
+                        $objCustomer->save();
+                    }else {
+                        logger()->warning("No customer record found for unique_id {$uniqueId} while handling duplicate profile error.");
+                    }
+
+                }
             }
             throw new \Exception('Failed to create customer profile: ' . $error);
         }

@@ -40,6 +40,17 @@
     <div class="bg-white p-4 rounded-xl shadow-sm space-y-4">
         <!-- Row 1: Inputs & Selects -->
         <div class="flex flex-wrap gap-4 items-center">
+            <div class="w-full sm:w-auto">
+                <button type="button" id="clear-filters"
+                    class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                    Clear
+                </button>
+            </div>
+
             <div class="w-full sm:w-48">
                 <div class="relative bg-white">
                     <input type="text" id="customer_name" placeholder="Customer name" name="customer_name"
@@ -441,6 +452,12 @@
                 'schedule_type[]': scheduleTypeInputs,
                 'transport_mode[]': transportModeInputs,
             };
+
+            // Clear filters functionality using global clearFilters
+            document.getElementById('clear-filters').addEventListener('click', function() {
+                window.clearFilters(fieldMap, screenKey);
+                fetchSchedules();
+            });
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);

@@ -91,7 +91,7 @@
                                         </p>
 
                                         
-                                            <p style="margin:16px 0 4px; font-weight:600; font-size:16px;">Customer PO: <span style="margin:0; font-size:14px; color:#374151; font-weight:500;">{{ $invoice->customer->unique_id }}</span></p>
+                                            {{-- <p style="margin:16px 0 4px; font-weight:600; font-size:16px;">Customer PO: <span style="margin:0; font-size:14px; color:#374151; font-weight:500;">{{ $invoice->customer->unique_id }}</span></p> --}}
                                             
                                         
                                     </td>
@@ -115,20 +115,63 @@
                         <td >
                             
 
-                            <table role="presentation" style="width:100%; border-radius:6px; background:#f9fafb; padding:15px; padding-top:0px;">
+                            <table role="presentation" style="width:100%; border-radius:6px; background:#f9fafb; padding:15px; padding-top:5px;">
                                 <tr>
                                     <td>
                                         
-                            <p> 
-                                <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
+                                        <table role="presentation" style="width:100%; border-collapse:collapse;">
+                                            <tr>
+                                                <!-- LEFT SIDE -->
+                                                <td style="vertical-align:top;">
 
-                                <span style="margin:0 0 10px; font-weight:600; font-size:15px;">Bill To:-</span>
-                                <span style="margin:0; font-size:16px; font-weight:600;">{{ $invoice->customer->full_name }}</span>
-                                  @if(!empty($invoice->customer->company_name)) 
-                                <span style="margin:0; color:#374151;">({{ $invoice->customer->company_name }})</span>
-                                @endif
+                                                    <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" 
+                                                        width="20" height="20" 
+                                                        style="vertical-align:middle; margin-right:5px;">
 
-                            </p>
+                                                    <span style="font-weight:600; font-size:15px; ">Bill To :</span><br>
+
+                                                    {{-- <span style="font-size:16px; font-weight:600; width:100%" >
+                                                        {{ $invoice->customer->full_name }}
+                                                    </span> --}}
+
+
+                                                    <table role="presentation" style="margin-top:10px; width:100%; border-collapse:collapse;">
+                                                        <tr>
+                                                            <!-- LEFT 50% -->
+                                                            <td style="width:50%; vertical-align:top; font-size:16px; font-weight:600;">
+                                                                {{ $invoice->customer->full_name }}
+
+                                                                @if(!empty($invoice->customer->company_name)) 
+                                                                    <span style="color:#374151; font-weight:normal;">
+                                                                        ({{ $invoice->customer->company_name }})
+                                                                    </span>
+                                                                @endif
+                                                            </td>
+
+                                                            <!-- RIGHT 50% -->
+                                                            <td style="width:50%; text-align:left; vertical-align:top; font-size:14px;">
+                                                                <span style="font-weight:600;">Account ID:</span>
+                                                                {{ $invoice->customer->unique_id ?? 'N/A' }}
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+
+                                                    {{-- @if(!empty($invoice->customer->company_name)) 
+                                                        <span style="color:#374151;">
+                                                            ({{ $invoice->customer->company_name }})
+                                                        </span>
+                                                    @endif --}}
+
+                                                </td>
+
+                                                <!-- RIGHT SIDE -->
+                                                {{-- <td style="text-align:left; vertical-align:top; margin-left:30px; font-size:14px; color:#374151;">
+                                                    
+                                                    <span style="font-weight:600; font-size:15px;">Customer ID :-</span>
+                                                       {{ $invoice->customer->unique_id ?? 'N/A' }}
+                                                </td> --}}
+                                            </tr>
+                                        </table>
                                        
                                         <!-- Contact info in 2 columns -->
                                         <table role="presentation" style="width:100%; margin-top:8px; border-collapse:collapse;">
@@ -428,49 +471,78 @@
                         @endphp
 
 
-
-                    <!-- Totals -->
-                    <tr>
-                        <td style="padding-top:20px;">
-                            <table role="presentation" style="width:100%; font-size:14px;">
-                                <tr>
-                                    <td align="left">Subtotal:</td>
-                                    <td align="right">{{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal) }}</td>
-                                </tr>
-                                <tr>
-                                    <td align="left">Tax ( {{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }} %):</td>
-                                    <td align="right">{{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}</td>
-                                </tr>
-
-                                    {{-- Show Discount --}}
-                                @if($discountTotal > 0)
+<tr>
+    <td style="padding-top:20px;">
+        <table role="presentation" width="100%" style="font-size:14px; border-collapse:collapse;">
             
-                                 <tr>
-                                    <td align="left" style="color: green">Discount:</td>
-                                    <td align="right" style="color: green">-{{ \App\Helpers\CustomHelper::formatCurrency($discountTotal) }}</td>
-                                </tr>
-                                @endif
+            <tr>
+                <td style="text-align:right; padding:4px 0;">
+                    Subtotal:
+                </td>
+                <td style="text-align:right; padding:4px 0; width:90px;">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal) }}
+                </td>
+            </tr>
 
-                                 @if($refundTotal > 0)
-            
-                                 <tr>
-                                    <td align="left" style="color: green">Refund:</td>
-                                    <td align="right" style="color: green">-{{ \App\Helpers\CustomHelper::formatCurrency($refundTotal) }}</td>
-                                </tr>
-                                @endif
+            <tr>
+                <td style="text-align:right; padding:4px 0;">
+                    Tax ({{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }}%):
+                </td>
+                <td style="text-align:right; padding:4px 0;">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}
+                </td>
+            </tr>
 
-                                <tr style="border-top:2px solid #111827;">
-                                    <td align="left" style="padding-top:8px; font-weight:700; font-size:16px;">Total:</td>
-                                    <td align="right" style="padding-top:8px; font-weight:700; font-size:16px;">{{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}</td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
+            @if($discountTotal > 0)
+            <tr>
+                <td style="text-align:right; padding:4px 0; color:green;">
+                    Discount:
+                </td>
+                <td style="text-align:right; padding:4px 0; color:green;">
+                    -{{ \App\Helpers\CustomHelper::formatCurrency($discountTotal) }}
+                </td>
+            </tr>
+            @endif
 
+            @if($refundTotal > 0)
+            <tr>
+                <td style="text-align:right; padding:4px 0; color:green;">
+                    Refund:
+                </td>
+                <td style="text-align:right; padding:4px 0; color:green;">
+                    -{{ \App\Helpers\CustomHelper::formatCurrency($refundTotal) }}
+                </td>
+            </tr>
+            @endif
+
+            <!-- TOTAL -->
+            <tr>
+                <td colspan="2" style="border-top:1px solid #111827; padding-top:10px;"></td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; font-weight:700; font-size:16px;">
+                    Total:
+                </td>
+                <td style="text-align:right; font-weight:700; font-size:16px;">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}
+                </td>
+            </tr>
+
+        </table>
+    </td>
+</tr>
                     <!-- Footer -->
                     <tr>
                         <td style="text-align:center; padding:30px 0 0; border-top:1px solid #111827; font-size:13px; color:#6b7280;">
-                            <p style="margin:6px 0;">Thank you for your business!</p>
+
+                              @if(!empty($invoice->invoice_notes))
+                                    <p style="margin:6px 0px 10px 0px;">
+                                        {{ $invoice->invoice_notes }}
+                                    </p>
+                                @endif
+
+                            <p  style="margin:0;">Thank you for your business!</p>
                                 @php
                                     $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
                                 @endphp
@@ -481,11 +553,7 @@
                                     </p>
                                 @endif
 
-                                @if(!empty($invoice->invoice_notes))
-                                    <p style="margin:0;">
-                                        {{ $invoice->invoice_notes }}
-                                    </p>
-                                @endif
+                              
 
                         </td>
                     </tr>

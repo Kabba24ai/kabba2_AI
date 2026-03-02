@@ -56,16 +56,11 @@ class PaymentStoreController extends Controller
             $record->type = 'payment';
             $record->invoice_id = $validated['invoice_id'];
             
-
-
-
-
             $record->save();
             Log::debug('CustomerAccount saved:', $record->toArray());
 
             CustomHelper::updateCreditBalance($record);
             Log::debug('Credit balance updated for record:', ['id' => $record->id]);
-
 
             // ---------------------------------------
             //  Update Invoice Payment Status
@@ -230,8 +225,7 @@ class PaymentStoreController extends Controller
 
             DB::commit();
             flash('Payment recorded successfully.')->success();
-            // session()->flash('active_tab', 'credit');
-session(['active_tab' => 'credit']);
+            session(['active_tab' => 'credit']);
             return redirect()->back();
         } catch (\Throwable $e) {
             DB::rollBack();

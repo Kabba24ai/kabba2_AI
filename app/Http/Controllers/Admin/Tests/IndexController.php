@@ -16,6 +16,11 @@ use App\Models\Customers\SalesFunnel;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
 use App\Models\Orders\OrderProductFunnelLog;
+use App\Services\MailService;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Address;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Str;
@@ -23,6 +28,50 @@ use Str;
 class IndexController extends Controller
 {
     // new method here
+    public function sendTestEmail()
+    {
+
+        $to = 'rajkc.webdev@gmail.com'; // Replace with your test email address
+        $subject = 'Test Email from IndexController';
+        $body = 'This is a test email sent from the IndexController.';
+
+        try {
+            $settings = (new MailService())->getSettings();
+
+            $email = (new Email())
+            ->from(new Address($settings['from']['address'], $settings['from']['name']))
+            ->to($to)
+            ->subject($subject)
+            ->text($body);
+
+            $dsn = sprintf(
+            '%s://%s:%s@%s:%s',
+            $settings['mailer'],
+            urlencode($settings['username']),
+            urlencode($settings['password']),
+            $settings['host'],
+            $settings['port']
+            );
+
+
+
+            $mailer = new Mailer(Transport::fromDsn($dsn));
+            $mailer->send($email);
+
+            /**
+             * Example of sending a normal email using Laravel's Mail facade.
+             */
+            // \Mail::raw('This is a normal test email sent using Laravel Mail facade.', function ($message) use ($to) {
+            //     $message->to($to)
+            //         ->subject('Test Email from Laravel Mail Facade');
+            // });
+
+            return response()->json(['status' => 'Test email sent using MailService.']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'Failed to send test email.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function salesFunnelAfterEventJob()
     {
         // Dispatch the SalesFunnelAfterEventJob

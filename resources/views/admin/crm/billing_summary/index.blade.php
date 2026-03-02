@@ -38,6 +38,7 @@
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto  mt-6">
+
         <!-- Total Outstanding -->
         <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
             <div class="bg-blue-100 text-blue-600 rounded-md p-2">
@@ -102,6 +103,20 @@
 
     <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-4 mt-6 w-full">
         <div class="flex flex-wrap items-start gap-4 text-sm">
+
+            <div class="flex flex-col">
+                <label class="text-sm text-gray-500 mb-1">Clear Filters</label>
+                <div class="relative">
+                    <button type="button" id="clear-filters"
+                        class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                        Clear
+                    </button>
+                </div>
+            </div>
 
             <!-- Customer Name -->
             <div class="flex flex-col billing-summary-w-16">
@@ -168,7 +183,7 @@
 
 
             <!-- Credit Type -->
-            <div class="flex flex-col billing-summary-w-13">
+            <div class="flex flex-col ">
                 <label class="text-sm text-gray-500 mb-1">Credit Type</label>
                 <div class="flex flex-col space-y-1">
                     <label class="inline-flex items-center text-gray-700">
@@ -236,6 +251,12 @@
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
+
+            // Clear filters functionality using global clearFilters
+            document.getElementById('clear-filters').addEventListener('click', function() {
+                window.clearFilters(fieldMap, screenKey);
+                fetchCustomers();
+            });
 
             fetchCustomers(pageParam, perPageParam); // initial fetch after loading saved filters
             function fetchCustomers(page = 1, perPage = 10) {

@@ -233,15 +233,49 @@
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <div>
+                    <label for="key_starting_mechanism" class="block text-sm font-medium text-gray-700 mb-1">Starting Mechanism</label>
+                    {!! html()->select('key_starting_mechanism', [
+                        '' => 'Select',
+                        'none' => 'None',
+                        '1_key' => '1 Key',
+                        '2_keys' => '2 Keys',
+                        'key_pad' => 'Key Pad (Code Provided)',
+                        'pull_cord' => 'Pull Cord',
+                    ], old('key_starting_mechanism', $equipment->key_starting_mechanism?->value ?? ''))->class([
+                        'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
+                        'border-red-500' => $errors->has('key_starting_mechanism'),
+                    ]) !!}
+                    @error('key_starting_mechanism')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="equipment_value" class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                            $
+                        </span>
+                        {!! html()->text('equipment_value')->id('equipment_value')->class([
+                                'w-full pl-5 pr-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                                'border-gray-300' => !$errors->has('equipment_value'),
+                                'border-red-500' => $errors->has('equipment_value'),
+                            ])->attributes([
+                                'data-numeric-input' => 'true',
+                                'data-parsley-maxlength' => 8,
+                                'maxlength' => 8,
+                                'placeholder' => '0.00',
+                                'autocomplete' => 'off',
+                            ]) !!}
+                    </div>
+                    @error('equipment_value')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
-            <div class="sm:col-span-2 flex items-center space-x-2 mt-4">
-                <input type="checkbox" name="not_for_rent" id="not_for_rent" value="1"
-                    class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    @checked(old('not_for_rent', $equipment->not_for_rent ?? false))>
-                <label for="not_for_rent" class="text-sm font-medium text-gray-700">
-                    Not for Rent
-                </label>
-            </div>
+
 
         </div>
     </div>
@@ -534,7 +568,13 @@
                     </div>
                 </div>
 
-                <div>
+                <div class="sm:col-span-2">
+                    <p class="text-xs text-gray-500 @if (isset($equipment) && $equipment?->imei) text-purple-600 @endif">
+                        GPS tracker ID for location tracking
+                    </p>
+                </div>
+
+                 <div>
                     <label for="warranty_duration_months" class="block text-sm font-medium text-gray-700 mb-1">
                         Warranty Duration (Months)
                     </label>
@@ -566,11 +606,16 @@
                     @enderror
                 </div>
 
-                <div class="sm:col-span-2">
-
-                    <p class="text-xs text-gray-500 @if (isset($equipment) && $equipment?->imei) text-purple-600 @endif">GPS
-                        tracker ID for location tracking</p>
+                <div class="sm:col-span-2 flex items-center space-x-2 mt-4">
+                    <input type="checkbox" name="not_for_rent" id="not_for_rent" value="1"
+                        class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        @checked(old('not_for_rent', $equipment->not_for_rent ?? false))>
+                    <label for="not_for_rent" class="text-sm font-medium text-gray-700">
+                        Not for Rent
+                    </label>
                 </div>
+
+
             </div>
         </div>
     </div>

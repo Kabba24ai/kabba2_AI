@@ -34,6 +34,16 @@
 
 
     <div class="flex flex-wrap items-end gap-4 w-full mb-6 bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="w-full sm:w-auto">
+            <button type="button" id="clear-filters"
+                class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+                Clear
+            </button>
+        </div>
 
         <!-- Search by name -->
         <div class="relative w-full sm:w-48">
@@ -70,10 +80,10 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07
-                                19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1
-                                4.11 2h3a2 2 0 0 1 2 1.72 12.44 12.44 0 0 0 .7 2.81 2 2 0 0 1-.45
-                                2.11L8 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45
-                                12.44 12.44 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                                    19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1
+                                    4.11 2h3a2 2 0 0 1 2 1.72 12.44 12.44 0 0 0 .7 2.81 2 2 0 0 1-.45
+                                    2.11L8 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45
+                                    12.44 12.44 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                 </svg>
             </div>
         </div>
@@ -107,23 +117,6 @@
             </button>
         </div>
 
-        <div class="flex gap-2">
-
-            {{-- <a href="{{ route('admin.crm.customers.index') }}"
-                class="text-sm text-gray-600 bg-white px-3 py-3 rounded-md border border-gray-300">
-                Clear
-            </a> --}}
-
-            <button type="button" id="clear-filters"
-            class="hidden text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-            Clear
-        </button>
-
-
-        </div>
     </div>
 
 
@@ -149,11 +142,10 @@
             let statusSelect = document.querySelector('select[name="tax_status"]');
             let wrapper = document.querySelector('#customer-table-wrapper');
 
-            let clearBtn = document.getElementById('clear-filters');
-
             let loader = document.querySelector('#customer-loader');
             let timeout = null;
-            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location
+                    .search)
                 .get('per_page') || null;
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
@@ -168,8 +160,12 @@
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
-            updateClearButton();
 
+            // Clear filters functionality using global clearFilters
+            document.getElementById('clear-filters').addEventListener('click', function() {
+                window.clearFilters(fieldMap, screenKey);
+                fetchCustomers(1); // reload first page
+            });
 
             fetchCustomers(pageParam, perPageParam); // initial fetch
             function fetchCustomers(page = 1, perPage = 10) {
@@ -220,35 +216,6 @@
 
             }
 
-            function updateClearButton() {
-                const hasFilters =
-                    nameInput.value.trim() !== '' ||
-                    phoneInput.value.trim() !== '' ||
-                    company_name.value.trim() !== '' ||
-                    statusSelect.value !== 'All';
-
-                if (hasFilters) {
-                    clearBtn.classList.remove('hidden');
-                } else {
-                    clearBtn.classList.add('hidden');
-                }
-            }
-
-            clearBtn.addEventListener('click', function () {
-
-                nameInput.value = '';
-                phoneInput.value = '';
-                company_name.value = '';
-                statusSelect.value = 'All';
-
-                localStorage.removeItem(screenKey);
-
-                fetchCustomers(1); // reload first page
-
-                updateClearButton();
-            });
-
-
 
             // Register pagination
             Paginator.init({
@@ -260,26 +227,22 @@
             nameInput.addEventListener('input', function() {
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchCustomers, 400);
-                 updateClearButton();
             });
 
             phoneInput.addEventListener('input', function() {
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchCustomers, 400);
-                 updateClearButton();
             });
 
             company_name.addEventListener('input', function() {
 
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchCustomers, 400);
-                 updateClearButton();
             });
 
             // Immediate filter for tax_status
             statusSelect.addEventListener('change', function() {
                 fetchCustomers(); // no timeout
-                 updateClearButton();
             });
         });
     </script>

@@ -1,4 +1,3 @@
-
 import $ from "jquery";
 import Choices from 'choices.js';
 import "parsleyjs";
@@ -189,6 +188,47 @@ window.FilterFreezer = {
         });
 
         localStorage.setItem(screenKey, JSON.stringify(data));
+    }
+};
+
+/**
+ * Clears all filter fields in the provided fieldMap and saves the cleared state.
+ * @param {Object} fieldMap - Map of field names to DOM elements.
+ * @param {string} [screenKey] - Optional key for FilterFreezer to save cleared state.
+ */
+window.clearFilters = function(fieldMap, screenKey) {
+    Object.values(fieldMap).forEach(function(input) {
+        if (!input) return;
+        if (input.tagName === 'INPUT') {
+            if (input.type === 'checkbox' || input.type === 'radio') {
+                input.checked = false;
+            } else {
+                input.value = '';
+            }
+        } else if (input.tagName === 'SELECT') {
+            input.selectedIndex = 0;
+            // If Select2 or Choices attached, trigger change so UI updates
+            if (window.jQuery && jQuery(input).data('select2')) {
+                jQuery(input).trigger('change');
+            }
+            if (window.Choices && input.classList.contains('choices-select')) {
+                if (input.choicesInstance) {
+                    input.choicesInstance.setChoiceByValue('');
+                }
+            }
+        } else if (window.NodeList && NodeList.prototype.isPrototypeOf(input)) {
+            // Checkbox/radio group
+            Array.from(input).forEach(el => {
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    el.checked = false;
+                } else {
+                    el.value = '';
+                }
+            });
+        }
+    });
+    if (screenKey && window.FilterFreezer) {
+        window.FilterFreezer.saveFilters(screenKey, fieldMap);
     }
 };
 

@@ -37,12 +37,12 @@ Schedule::job(new \App\Jobs\SendReturnSameDayRentalReminderJob())
     ->onOneServer()
     ->name('send-return-same-day-rental-reminder-job');
 
-Schedule::command('db:refresh-staging')
-    ->dailyAt('07:00')
-    ->timezone('America/Chicago')
-    ->withoutOverlapping()
-    ->onOneServer()
-    ->name('refresh-staging-database');
+// Schedule::command('db:refresh-staging')
+//     ->dailyAt('07:00')
+//     ->timezone('America/Chicago')
+//     ->withoutOverlapping()
+//     ->onOneServer()
+//     ->name('refresh-staging-database');
 
 
 Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())

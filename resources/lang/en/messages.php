@@ -30,7 +30,7 @@ return [
                 'customers' => require base_path('resources/lang/en/api/admin/v1/customers/messages.php'),
                 'configurations' => require base_path('resources/lang/en/api/admin/v1/configurations/messages.php'),
                 'user_notifications' => require base_path('resources/lang/en/api/admin/v1/user_notifications/messages.php'),
-
+                'clients' => require base_path('resources/lang/en/api/admin/v1/clients/messages.php'),
             ],
         ],
 

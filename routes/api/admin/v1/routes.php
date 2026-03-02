@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-
 /**
  *
  * Group: admin v1
@@ -11,13 +10,14 @@ use Illuminate\Support\Facades\Route;
  *
  */
 
-
 Route::group(['prefix' => 'v1'], function ($router) {
+    // client
+    require base_path('routes/api/admin/v1/clients/routes.php');
+
     // auth
     require base_path('routes/api/admin/v1/auth/routes.php');
 
     require base_path('routes/api/admin/v1/authorize/routes.php');
-
 
     Route::middleware(['auth:api_user'])->group(function () {
         require base_path('routes/api/admin/v1/orders/routes.php');
@@ -42,11 +42,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         require base_path('routes/api/admin/v1/configurations/routes.php');
 
-
-       
-
-     require base_path('routes/api/admin/v1/user_notification/routes.php');
-
-
+        require base_path('routes/api/admin/v1/user_notification/routes.php');
     });
 });

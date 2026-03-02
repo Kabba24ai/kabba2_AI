@@ -46,7 +46,7 @@ Schedule::command('db:refresh-staging')
 
 
 Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())
-    ->everyMinute()
+    ->cron('*/20 * * * *')
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()

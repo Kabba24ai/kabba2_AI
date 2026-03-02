@@ -387,7 +387,56 @@ $defaultAddresses = [
                     @endphp
 
                     @if (!empty($parts))
-                        <p>{{ implode(', ', $parts) }}</p>
+                       @if ($addresse)
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+
+                                <!-- Left Column -->
+                                <div>
+                                    {{-- Name --}}
+                                    {{ trim($addresse->first_name . ' ' . $addresse->last_name) }}
+
+                                    {{-- Address Line --}}
+                                    @if($addresse->address)
+                                        <br>{{ $addresse->address }}
+                                    @endif
+
+                                    {{-- City --}}
+                                    @if($addresse->city)
+                                        , {{ $addresse->city }}
+                                    @endif
+
+                                    <br>
+
+                                    {{-- State + Zip --}}
+                                    @if($addresse->state?->name)
+                                        {{ $addresse->state->name }}
+                                    @endif
+
+                                    @if($addresse->zip_code)
+                                        {{ $addresse->state?->name ? ',' : '' }} {{ $addresse->zip_code }}
+                                    @endif
+
+                                    {{-- Country --}}
+                                    @if($addresse->country)
+                                        , {{ $addresse->country }}
+                                    @endif
+                                </div>
+
+                                <!-- Right Column -->
+                                <div>
+                                    @if($addresse->phone)
+                                        {{ $addresse->phone }} <br>
+                                    @endif
+
+                                    @if($addresse->email)
+                                        {{ $addresse->email }}
+                                    @endif
+                                </div>
+
+                            </div>
+                        @else
+                            <p>No address provided.</p>
+                        @endif
                     @else
                         <a href="javascript:void(0)"
                         onclick="OpenCustomerEditModal()"
@@ -438,7 +487,7 @@ $defaultAddresses = [
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="edit-view">
                     <label class="text-xs text-gray-500 font-medium mb-1 ">State </label>
                     {!! html()
@@ -491,6 +540,26 @@ $defaultAddresses = [
                     ]) !!}
 
                 </div>
+                    <div class="edit-view">
+                        <label class="text-xs text-gray-500 font-medium ">Email  </label>
+
+
+                        {!! html()->email("addresses[$index][email]", old("addresses.$index.email", $addresse->email ?? $customer->email ?? ''))
+                        ->class([
+                            'edit-view pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
+                            'border-red-500' => $errors->has("addresses.$index.email"),
+                        ])
+                        ->attributes([
+                            'placeholder' => 'Enter Email',
+                            'class' => 'email',
+                            'autocomplete' => 'off',
+                            'data-parsley-type' => 'email',
+                            'data-parsley-pattern-message' => 'Please enter a valid email address.',
+                        ]) !!}
+
+
+                    </div>
+
 
             </div>
         </div>
@@ -936,6 +1005,7 @@ $defaultAddresses = [
                     first_name: block.querySelector('.first_name')?.value || null,
                     last_name: block.querySelector('.last_name')?.value || null,
                     phone: block.querySelector('.phone')?.value || null,
+                     email: block.querySelector('.email')?.value || null,
                     address_id: block.querySelector('.address_id')?.value || null,
                     type: block.querySelector('.type')?.value || null,
                     address: block.querySelector('.address')?.value || '',
@@ -1167,6 +1237,7 @@ $defaultAddresses = [
             zip: document.getElementById('addresses[0][zip_code]'),
             country: document.getElementById('addresses[0][Country]'),
             phone: document.getElementById('addresses[0][phone]'),
+            email: document.getElementById('addresses[0][email]'),
         };
 
         const deliveryFields = {
@@ -1178,6 +1249,7 @@ $defaultAddresses = [
             zip: document.getElementById('addresses[1][zip_code]'),
             country: document.getElementById('addresses[1][Country]'),
             phone: document.getElementById('addresses[1][phone]'),
+            email: document.getElementById('addresses[1][email]'),
         };
 
 

@@ -14,6 +14,9 @@
 $isEdit = isset($invoice) && $invoice->id;
 $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper::generateInvoiceNumber();
 
+$lockInvoiceActions = $isEdit && 
+    in_array($invoice->invoice_status ?? null, ['paid', 'partial_paid']);
+
 @endphp
 
 {{ html()->form()->id('invoiceForm')->attributes([
@@ -33,7 +36,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 <input type="hidden" name="customer_id" id="customer_id" value="{{ $customer->id }}">
 
 @if($isEdit)
-<input type="hidden" id="invoicePaidAmount" value="{{ $invoice->paid_amount }}">
+<input type="hidden" id="invoicePaidAmount" name="paid_amount" value="{{ $invoice->paid_amount }}">
 @endif
 
 
@@ -147,9 +150,9 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             </div>
 
             <!-- Add Items -->
-            <div class="bg-white rounded-lg shadow p-5">
-                <h3 class="text-lg font-semibold mb-4">Add Items to Invoice</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <div class="bg-white rounded-lg shadow p-5 ">
+                <h3 class="text-lg font-semibold mb-4 {{ $lockInvoiceActions ? 'hidden' : '' }}">Add Items to Invoice</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5 {{ $lockInvoiceActions ? 'hidden' : '' }}">
                     <a href="javascript:void(0)" id="openChargeModal" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md text-sm font-medium flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-4 h-4">
                             <path d="M5 12h14"></path>
@@ -179,18 +182,18 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                         </svg>
                         From Order
                     </a> --}}
-               @isset($customerAccounts)
+                    @isset($customerAccounts)
 
-                    <a href="javascript:void(0)" id="openOrderModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-sm font-medium flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart w-4 h-4">
-                            <circle cx="8" cy="21" r="1"></circle>
-                            <circle cx="19" cy="21" r="1"></circle>
-                            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
-                        </svg>
-                        From Accounts
-                    </a>
+                        <a href="javascript:void(0)" id="openOrderModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-sm font-medium flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart w-4 h-4">
+                                <circle cx="8" cy="21" r="1"></circle>
+                                <circle cx="19" cy="21" r="1"></circle>
+                                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                            </svg>
+                            From Accounts
+                        </a>
 
-                @endif
+                    @endif
                 </div>
                 <!-- EMPTY STATE (when no items) -->
                 <div id="emptyState" class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">
@@ -451,71 +454,27 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
 
                     @endif
 
+                        {{--  Only show Payment button if NOT fully paid --}}
+                    @if(isset($invoice) && $invoice->invoice_status !== 'paid')
 
-                 <div class="flex flex-wrap justify-center gap-2 pt-5">
-                    
-                       <a href="javascript:void(0)" id="openTemplatesModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-md flex items-center">
-                           
-                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
-                                <line x1="12" x2="12" y1="2" y2="22"></line>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
 
-                           Payment
-                       </a>
+                        <div class="flex flex-wrap justify-center gap-2 pt-5">
+                            
+                            <a href="javascript:void(0)" id="openTemplatesModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-md flex items-center">
+                                
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
+                                        <line x1="12" x2="12" y1="2" y2="22"></line>
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                    </svg>
 
-                   </div>
+                                Payment
+                            </a>
+
+                        </div>
+                    @endif
 
                  @endif
 
-                {{-- @if ($isEdit)
-                <div class="flex items-center mt-3 mb-2">
-                    <label for="invoice_status" class="text-sm font-medium mr-2">Invoice Status:</label>
-
-                    
-                    {!! html()->select('invoice_status', [
-                    'pending' => 'Pending',
-                    'paid' => 'Paid',
-                    'overdue' => 'Overdue',
-                    ], old('invoice_status', $invoice->invoice_status ?? 'pending'))
-                    ->class([
-                    ' w-2/6 border rounded-md lg:px-1 py-2 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500',
-                    'border-red-500' => $errors->has('invoice_status'),
-                    'border-gray-300' => !$errors->has('invoice_status'),
-                    ])
-                    ->id('invoice_status')
-                    ->disabled( $invoice->invoice_status === 'paid' ) !!}
-
-
-                </div>
-               
-                <div id="payment-method-wrapper" class="hidden mt-3 p-3 border rounded-lg bg-gray-50">
-                    <label class="block text-sm font-medium mb-2">Select Payment Method:</label>
-
-                    <div class="flex flex-wrap items-center gap-3">
-                        @foreach(\App\Enums\Customers\Invoice::cases() as $case)
-                        @php
-                        
-                        $showOption = $case !== \App\Enums\Customers\Invoice::Card || $invoice->payment_method === 'card';
-                        @endphp
-
-                        @if($showOption)
-                        <label class="inline-flex items-center gap-2 cursor-pointer w-100">
-                            <input type="radio"
-                                name="payment_method"
-                                value="{{ $case->value }}"
-                                class="text-blue-600 focus:ring-blue-500"
-                                {{ old('payment_method', $invoice->payment_method ?? '') === $case->value ? 'checked' : '' }}
-                                @if($invoice->invoice_status === 'paid') disabled @endif >
-                            {{ $case->label() }}
-                        </label>
-                        @endif
-                        @endforeach
-                    </div>
-                </div>
-
-
-                @endif --}}
 
 
             </div>
@@ -867,7 +826,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                                 </tbody>
                             </table>
                         @else
-                            <p class="text-gray-500">No account entries available for invoicing.</p>
+                            <p class="text-gray-500 p-5 text-center">No account entries available for invoicing.</p>
                         @endif
                     @endif
                 </div>
@@ -1586,6 +1545,7 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
             const itemId = row.dataset.id;
             const itemType = row.dataset.type;
             const orderId = row.dataset.orderId || null;
+            const invoicePaidInput = document.getElementById("invoicePaidAmount");
 
              const accountId = row.dataset.accountId || null;
             console.log("Delete clicked:", {
@@ -1594,7 +1554,14 @@ $invoiceNumber = $isEdit ? $invoice->invoice_number : \App\Helpers\CustomHelper:
                 orderId
             });
 
+            if (itemType === "order" && orderId && invoicePaidInput) {
+                   notyf.error("This order cannot be removed because the invoice has already been created.");
+                    return;
+            }
+
             if (itemType === "order" && orderId) {
+
+    
                 // Remove all rows with same order id
                 const rowsToDelete = invoiceItemsTBody.querySelectorAll(`tr[data-order-id="${orderId}"]`);
 

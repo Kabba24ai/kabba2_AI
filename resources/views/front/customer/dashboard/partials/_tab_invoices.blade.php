@@ -86,7 +86,10 @@
                      <th class="px-4 py-3 font-medium uppercase">Date</th>
                      <th class="px-4 py-3 font-medium uppercase">Due Date</th>
                      <th class="px-4 py-3 font-medium uppercase">Amount</th>
-                     <th class="px-4 py-3 font-medium uppercase">Status</th>
+                     <th class="px-4 py-3 font-medium uppercase">Paid Amount</th>
+                     <th class="px-4 py-3 font-medium uppercase">Open Amount</th>
+
+                     <th class="px-4 py-3 font-medium uppercase">Payment Status</th>
                      <th class="px-4 py-3 font-medium uppercase">Action</th>
                  </tr>
              </thead>
@@ -95,28 +98,62 @@
                  @forelse($customer->invoices as $invoice)
                      <tr>
                          <td class="px-4 py-3 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
-                         <td class="px-4 py-3">
-                             {{ App\Helpers\CustomHelper::formatDate($invoice->invoice_date) ?? '-' }}</td>
-                         <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
-                         </td>
-                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-500">
-                             {{ App\Helpers\CustomHelper::formatCurrency($invoice->total) ?? '-' }} </td>
-                         <td class="px-4 py-3">
+                         <td class="py-4 px-6">
 
-                             @php
-                                 $statusColors = [
-                                     'paid' => 'green',
-                                     'overdue' => 'red',
-                                     'pending' => 'yellow',
-                                 ];
-                                 $color = $statusColors[$invoice->invoice_status] ?? 'gray';
-                             @endphp
+                         {{ App\Helpers\CustomHelper::formatDate($invoice->invoice_date) ?? '-' }}
 
-                             <span
-                                 class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
-                                 {{ $invoice->invoice_status }}</span>
+                     </td>
+                     <td class="py-4 px-6">
+                         {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
+                     </td>
+                     <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
-                         </td>
+                       {{-- Paid Amount --}}
+                    <td class="py-4 px-6 text-right text-green-600 font-semibold">
+                        ${{ number_format($invoice->paid_amount ?? 0, 2) }}
+                    </td>
+
+                    @php
+    $openAmount = $invoice->invoice_status === 'paid'
+        ? 0
+        : ($invoice->open_amount > 0
+            ? $invoice->open_amount
+            : ($invoice->total > 0 ? $invoice->total : 0));
+@endphp
+
+                  {{-- Open Amount --}}
+                        <td class="py-4 px-6 text-right text-red-600 font-semibold"
+                             data-open-amount="{{ $openAmount }}">
+                            ${{ number_format($openAmount, 2) }}
+                        </td>
+
+                     <td class="py-4 px-6 text-right">
+                        @php
+                            $statusColors = [
+                                'paid' => 'green',
+                                'partial_paid' => 'blue',
+                                'overdue' => 'red',
+                                'pending' => 'yellow',
+                            ];
+
+                            $color = $statusColors[$invoice->invoice_status] ?? 'gray';
+
+                            // Format label nicely
+                            $statusLabel = match ($invoice->invoice_status) {
+                                'partial_paid' => 'Partial Paid',
+                                'paid' => 'Paid',
+                                'overdue' => 'Overdue',
+                                'pending' => 'Pending',
+                                default => ucfirst(str_replace('_', ' ', $invoice->invoice_status)),
+                            };
+                        @endphp
+
+                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                            {{ $statusLabel }}
+                        </span>
+                    </td>
+
+                     
                          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                              <a href="{{ route('front.customer.dashboard.invoice.view', $invoice->unique_id) }}"
                                  target="_blank" class="text-blue-600 inline-flex items-center">
@@ -133,7 +170,7 @@
                                  class="{{ $invoice->invoice_status !== 'paid' ? 'text-purple-600' : 'text-gray-600' }} inline-flex items-center cursor-pointer @if ($invoice->invoice_status !== 'paid') openDiscountModal @endif "
                                  data-invoice="{{ $invoice->invoice_number }}"
                                  data-due="{{ App\Helpers\CustomHelper::formatDate($invoice->due_date) }}"
-                                 data-amount="{{ App\Helpers\CustomHelper::formatCurrency($invoice->total) }}">
+                                 data-amount="{{ App\Helpers\CustomHelper::formatCurrency($openAmount) }}">
                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                      stroke-linecap="round" stroke-linejoin="round"

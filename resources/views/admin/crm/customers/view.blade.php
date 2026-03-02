@@ -97,7 +97,7 @@
 </div>
 
 @include('flash::message')
-@include('admin.partials.formErrors')
+{{-- @include('admin.partials.formErrors') --}}
 
 <div id="customerTabs" class="rounded-xl dark:border-gray-800" x-data="{ activeTab: '{{ session('active_tab', 'dashboard') }}' }">
     <div class="border-b border-gray-200 dark:border-gray-800">

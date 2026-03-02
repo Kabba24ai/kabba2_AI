@@ -101,128 +101,6 @@
                         </td>
                     </tr>
 
-                    {{-- @php
-                    $billingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Billing' );
-                    $shippingAddress = $customer->addresses->where('is_primary', 1)->firstWhere(fn ($a) => $a->type === 'Shipping');
-
-                    $defaultAddresses = [
-                    ['label' => 'Billing', 'data' => $billingAddress],
-                    ['label' => 'Shipping', 'data' => $shippingAddress],
-                    ];
-                    @endphp
-
-                 
-                    <tr>
-                        <td style="padding:20px 0;">
-                         
-
-                            <table role="presentation" style="width:100%; border-radius:6px; background:#f9fafb; padding:15px;">
-                                <tr>
-                                    <td>
-                                        <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
-
-                                        <span style="margin:0 0 10px; font-weight:600; font-size:15px;">Bill To:-</span>
-
-                                        <p style="margin:0; font-size:16px; font-weight:600;">{{ $customer->full_name }}</p>
-                                        <p style="margin:0; color:#374151;">{{ $customer->company_name }}</p>
-
-                                        <!-- Contact info in 2 columns -->
-                                        <table role="presentation" style="width:100%; margin-top:8px; border-collapse:collapse;">
-                                            <tr>
-                                                <!-- Phone -->
-                                                <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top; width:50%;">
-                                                    <table role="presentation" style="border-collapse:collapse;">
-                                                        <tr>
-                                                            <td style="padding-right:5px;">
-                                                                <img src="{{ public_path('storage/admin/images/icons/img-4.png') }}" width="17" height="17">
-                                                            </td>
-                                                            <td>
-                                                                {{ \App\Helpers\CustomHelper::formatPhone($customer->phone ?? '') ?: 'N/A' }}
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-
-                                                <!-- Email -->
-                                                <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
-                                                    <table role="presentation" style="border-collapse:collapse;">
-                                                        <tr>
-                                                            <td style="padding-right:5px;">
-                                                                <img src="{{ public_path('storage/admin/images/icons/img-5.png') }}" width="17" height="17">
-                                                            </td>
-                                                            <td>
-                                                                {{ $customer->email ?? 'N/A' }}
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                        @php
-                            $billing = $defaultAddresses[0]['data'] ?? null;
-                            $shipping = $defaultAddresses[1]['data'] ?? null;
-
-                            $addressesAreSame = $billing && $shipping &&
-                                $billing->address === $shipping->address &&
-                                $billing->city === $shipping->city &&
-                                $billing->state_id === $shipping->state_id &&
-                                $billing->zip_code === $shipping->zip_code;
-                        @endphp
-
-                        @foreach ($defaultAddresses as $index => $addressItem)
-                            @php $addresse = $addressItem['data']; @endphp
-
-                            <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
-                                <table role="presentation" style="border-collapse:collapse;">
-                                    <tr>
-                                        <td style="padding-right:5px;">
-                                            <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
-                                        </td>
-                                        <td>
-                                            <p style="margin:0; font-weight:500; color:#000;">
-                                                {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
-                                            </p>
-
-                                            <div style="line-height:1.4;">
-
-                                               
-                                                @if($index == 1 && $addressesAreSame)
-                                                    <div>Same as Billing Address</div>
-
-                                                @else
-                                                    @if($addresse?->address)
-                                                        <div>{{ $addresse->address }},</div>
-                                                    @endif
-
-                                                    <div>
-                                                        @if($addresse?->city)
-                                                            {{ $addresse->city }},
-                                                        @endif
-                                                        @if($addresse?->state?->name)
-                                                            {{ $addresse->state->name }}
-                                                        @endif
-                                                        @if($addresse?->zip_code)
-                                                            {{ ' ' . $addresse->zip_code }}
-                                                        @endif
-                                                    </div>
-                                                @endif
-
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        @endforeach
-                    </tr>
-
-                                        </table>
-
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr> --}}
 
 
                     @php
@@ -237,125 +115,151 @@
 
                     <!-- Bill To -->
                     <tr>
-                        <td >
+                        <td>
                             
+                                                            
+                                                            <table role="presentation" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                                                                <tr>
+                                                                    <!-- LEFT SIDE -->
+                                                                    <td style="vertical-align:top;">
 
-                            <table role="presentation" style="width:100%; border-radius:6px; background:#f9fafb; padding:15px; padding-top:0px;">
-                                <tr>
-                                    <td>
-                                        
-                            <p> 
-                                <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
+                                                                        <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" 
+                                                                            width="20" height="20" 
+                                                                            style="vertical-align:middle; margin-right:5px;">
 
-                                <span style="margin:0 0 10px; font-weight:600; font-size:15px;">Bill To:-</span>
-                                <span style="margin:0; font-size:16px; font-weight:600;">{{ $receipt->customer->full_name }}</span>
-                                  @if(!empty($receipt->customer->company_name)) 
-                                <span style="margin:0; color:#374151;">({{ $receipt->customer->company_name }})</span>
-                                @endif
+                                                                        <span style="font-weight:600; font-size:15px;">Bill To :</span><br>
 
-                            </p>
-                                       
-                                        <!-- Contact info in 2 columns -->
-                                        <table role="presentation" style="width:100%; margin-top:8px; border-collapse:collapse;">
-                                            <tr>
-                                                <!-- Phone -->
-                                                <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top; width:50%;">
-                                                    <table role="presentation" style="border-collapse:collapse;">
-                                                        <tr>
-                                                            <td style="padding-right:5px;">
-                                                                <img src="{{ public_path('storage/admin/images/icons/img-4.png') }}" width="17" height="17">
-                                                            </td>
-                                                            <td>
-                                                                {{ \App\Helpers\CustomHelper::formatPhone($receipt->customer->phone ?? '') ?: 'N/A' }}
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
+                                                                        {{-- <span style="font-size:16px; font-weight:600; width:100%" >
+                                                                            {{ $invoice->customer->full_name }}
+                                                                        </span> --}}
 
-                                                <!-- Email -->
-                                                <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
-                                                    <table role="presentation" style="border-collapse:collapse;">
-                                                        <tr>
-                                                            <td style="padding-right:5px;">
-                                                                <img src="{{ public_path('storage/admin/images/icons/img-5.png') }}" width="17" height="17">
-                                                            </td>
-                                                            <td>
-                                                                {{ $receipt->customer->email ?? 'N/A' }}
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                            <tr>
 
-                                                @php
-                                                    $billing = collect($defaultAddresses)->firstWhere('label', 'Billing')['data'] ?? null;
-                                                    $shipping = collect($defaultAddresses)->firstWhere('label', 'Shipping')['data'] ?? null;
+                                                                        <table role="presentation" style="width:100%; border-collapse:collapse;">
+                                                                            <tr>
+                                                                                <!-- LEFT 50% -->
+                                                                                <td style="width:50%; vertical-align:top; font-size:16px; font-weight:600;">
+                                                                                    {{ $receipt->customer->full_name }}
 
-                                                    $isSameAddress = $billing && $shipping &&
-                                                        $billing->address === $shipping->address &&
-                                                        $billing->city === $shipping->city &&
-                                                        $billing->state_id === $shipping->state_id &&
-                                                        $billing->zip_code === $shipping->zip_code;
-                                                @endphp
+                                                                                    @if(!empty($receipt->customer->company_name)) 
+                                                                                        <span style="color:#374151; font-weight:normal;">
+                                                                                            ({{ $receipt->customer->company_name }})
+                                                                                        </span>
+                                                                                    @endif
+                                                                                </td>
 
-                                                @foreach ($defaultAddresses as $addressItem)
-                                                    @php $addresse = $addressItem['data']; @endphp
+                                                                                <!-- RIGHT 50% -->
+                                                                                <td style="width:50%; text-align:left; vertical-align:top; font-size:14px;">
+                                                                                    <span style="font-weight:600;">Account ID:</span>
+                                                                                    {{ $receipt->customer->unique_id ?? 'N/A' }}
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
 
-                                                    <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
-                                                        <table role="presentation" style="border-collapse:collapse;">
-                                                            <tr>
-                                                                <td style="padding-right:5px;">
-                                                                    <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
-                                                                </td>
-                                                                <td>
 
-                                                                    <p style="margin:0; font-weight:500; color:#000;">
-                                                                        {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
-                                                                    </p>
+                                                                    </td>
 
-                                                                    <div style="line-height:1.4;">
+                                                                  
+                                                                </tr>
+                                                            </table>
+                                                        
+                                                            <!-- Contact info in 2 columns -->
+                                                            <table role="presentation" style="width:100%; margin-top:8px; border-collapse:collapse;">
+                                                                <tr>
+                                                                    <!-- Phone -->
+                                                                    <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top; width:50%;">
+                                                                        <table role="presentation" style="border-collapse:collapse;">
+                                                                            <tr>
+                                                                                <td style="padding-right:5px;">
+                                                                                    <img src="{{ public_path('storage/admin/images/icons/img-4.png') }}" width="17" height="17">
+                                                                                </td>
+                                                                                <td>
+                                                                                    {{ \App\Helpers\CustomHelper::formatPhone($receipt->customer->phone ?? '') ?: 'N/A' }}
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
 
-                                                                        {{-- If Shipping and same as Billing --}}
-                                                                        @if($addressItem['label'] === 'Shipping' && $isSameAddress)
-                                                                            <div>Same as Billing Address</div>
-                                                                        @else
-                                                                        @if($addresse?->address)
-                                                                            <div>{{ $addresse->address }},  @if($addresse?->city)
-                                                                                {{ $addresse->city }},
-                                                                            @endif </div>
-                                                                        @endif
+                                                                    <!-- Email -->
+                                                                    <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
+                                                                        <table role="presentation" style="border-collapse:collapse;">
+                                                                            <tr>
+                                                                                <td style="padding-right:5px;">
+                                                                                    <img src="{{ public_path('storage/admin/images/icons/img-5.png') }}" width="17" height="17">
+                                                                                </td>
+                                                                                <td>
+                                                                                    {{ $receipt->customer->email ?? 'N/A' }}
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
 
-                                                                        <div>
-                                                                        
-                                                                            @if($addresse?->state?->name)
-                                                                                {{ $addresse->state->name }} , 
-                                                                            @endif
-                                                                            @if($addresse?->zip_code)
-                                                                                {{ ' ' . $addresse->zip_code }}
-                                                                            @endif
-                                                                            @if($addresse?->country)
-                                                                                {{ ', ' . $addresse->country }}
-                                                                            @endif
-                                                                        </div>
-                                                                    @endif
+                                                                    @php
+                                                                        $billing = collect($defaultAddresses)->firstWhere('label', 'Billing')['data'] ?? null;
+                                                                        $shipping = collect($defaultAddresses)->firstWhere('label', 'Shipping')['data'] ?? null;
 
-                                                                    </div>
+                                                                        $isSameAddress = $billing && $shipping &&
+                                                                            $billing->address === $shipping->address &&
+                                                                            $billing->city === $shipping->city &&
+                                                                            $billing->state_id === $shipping->state_id &&
+                                                                            $billing->zip_code === $shipping->zip_code;
+                                                                    @endphp
 
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
+                                                                    @foreach ($defaultAddresses as $addressItem)
+                                                                        @php $addresse = $addressItem['data']; @endphp
 
-                                                @endforeach
+                                                                        <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
+                                                                            <table role="presentation" style="border-collapse:collapse;">
+                                                                                <tr>
+                                                                                    <td style="padding-right:5px;">
+                                                                                        <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
+                                                                                    </td>
+                                                                                    <td>
 
-                                            </tr>
+                                                                                        <p style="margin:0; font-weight:500; color:#000;">
+                                                                                            {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
+                                                                                        </p>
 
-                                        </table>
+                                                                                        <div style="line-height:1.4;">
 
-                                    </td>
-                                </tr>
-                            </table>
+                                                                                            {{-- If Shipping and same as Billing --}}
+                                                                                            @if($addressItem['label'] === 'Shipping' && $isSameAddress)
+                                                                                                <div>Same as Billing Address</div>
+                                                                                            @else
+                                                                                            @if($addresse?->address)
+                                                                                                <div>{{ $addresse->address }},  @if($addresse?->city)
+                                                                                                    {{ $addresse->city }},
+                                                                                                @endif </div>
+                                                                                            @endif
+
+                                                                                            <div>
+                                                                                            
+                                                                                                @if($addresse?->state?->name)
+                                                                                                    {{ $addresse->state->name }} , 
+                                                                                                @endif
+                                                                                                @if($addresse?->zip_code)
+                                                                                                    {{ ' ' . $addresse->zip_code }}
+                                                                                                @endif
+                                                                                                @if($addresse?->country)
+                                                                                                    {{ ', ' . $addresse->country }}
+                                                                                                @endif
+                                                                                            </div>
+                                                                                        @endif
+
+                                                                                        </div>
+
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+
+                                                                    @endforeach
+
+                                                                </tr>
+
+                                                            </table>
+
                         </td>
                     </tr>
 
@@ -487,25 +391,49 @@
                     </tr>
 
 
-                    <!-- Totals -->
+
                     <tr>
-                        <td style="">
-                            <table role="presentation" style="width:100%; font-size:14px;">
-                                <tr>
-                                    <td align="left">Subtotal:</td>
-                                    <td align="right">{{ \App\Helpers\CustomHelper::formatCurrency($receipt->subtotal) }}</td>
-                                </tr>
-                                <tr>
-                                    <td align="left">Tax ( {{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }} %):</td>
-                                    <td align="right">{{ \App\Helpers\CustomHelper::formatCurrency($receipt->sales_tax) }}</td>
-                                </tr>
-                                <tr style="border-top:2px solid #111827;">
-                                    <td align="left" style="padding-top:8px; font-weight:700; font-size:16px;">Total:</td>
-                                    <td align="right" style="padding-top:8px; font-weight:700; font-size:16px;">{{ \App\Helpers\CustomHelper::formatCurrency($receipt->total) }}</td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
+    <td style="padding-top:20px;">
+        <table role="presentation" width="100%" style="font-size:14px; border-collapse:collapse;">
+            
+            <tr>
+                <td style="text-align:right; padding:4px 0;">
+                    Subtotal :
+                </td>
+                <td style="text-align:right; padding:4px 0; width:110px;">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($receipt->subtotal) }}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; padding:4px 0;">
+                    Tax ( {{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }} %) :
+                </td>
+                <td style="text-align:right; padding:4px 0;">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($receipt->sales_tax) }}
+                </td>
+            </tr>
+
+            
+
+            <!-- TOTAL -->
+            <tr>
+                <td colspan="2" style="border-top:1px solid #111827; padding-top:10px;"></td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; font-weight:700; font-size:16px;">
+                    Total :
+                </td>
+                <td style="text-align:right; font-weight:700; font-size:16px;">
+                   {{ \App\Helpers\CustomHelper::formatCurrency($receipt->total) }}
+                </td>
+            </tr>
+
+        </table>
+    </td>
+</tr>
+         
 
                     <!-- Footer -->
                     <tr>

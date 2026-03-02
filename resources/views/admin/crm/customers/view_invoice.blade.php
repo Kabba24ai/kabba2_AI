@@ -173,43 +173,54 @@
                 </div>
 
                 <div class="flex gap-2">
-                    <p class="font-semibold text-gray-900">Account:</p>
-                    <p class=" font-medium text-gray-600">{{ $invoice->customer->unique_id }}</p>
+                    {{-- <p class="font-semibold text-gray-900">Account:</p>
+                    <p class=" font-medium text-gray-600">{{ $invoice->customer->unique_id }}</p> --}}
                 </div>
             </div>
         </div>
 
-      <!-- Bill To -->
-<div class="flex items-center gap-2 text-gray-800">
+            <!-- Bill To -->
+              
+        <div class="flex items-center gap-2 text-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
 
-    <svg xmlns="http://www.w3.org/2000/svg"
-        class="w-5 h-5 text-gray-600"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        stroke-width="2">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-    </svg>
+            <span class="font-semibold">Bill To:</span>
+        </div>
 
-    <span class="font-semibold">Bill To:</span>
+        <!-- 50 / 50 Name + Customer ID -->
+        <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-    <span class="font-medium text-lg text-gray-700">
-        {{ $invoice->customer->full_name }}
-    </span>
+            <!-- LEFT 50% -->
+            <div class="text-lg font-semibold text-gray-700">
+                {{ $invoice->customer->full_name }}
 
-    @if($invoice->customer->company_name)
-        <span class="text-sm text-gray-600">
-            ({{ $invoice->customer->company_name }})
-        </span>
-    @endif
+                @if($invoice->customer->company_name)
+                    <span class="text-sm font-normal text-gray-600">
+                        ({{ $invoice->customer->company_name }})
+                    </span>
+                @endif
+            </div>
 
-</div>
+            <!-- RIGHT 50% -->
+            <div class="text-sm text-gray-700 sm:text-left flex items-end">
+                <span class="font-semibold">Account ID:</span>
+                {{ $invoice->customer->unique_id ?? 'N/A' }}
+            </div>
+
+        </div>
 
         <!-- Customer Card -->
-        <div class=" p-4">
+        <div class="pt-2 pb-2">
             
-            <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-700">
+            <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-700">
                 <!-- Phone -->
                 <div class="flex text-md items-center space-x-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone w-4 h-4">
@@ -236,75 +247,75 @@
                     </svg>
                     <span>{{ $invoice->customer->email ?? 'N/A' }}</span>
                 </div>
-<!-- Address -->
-<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:col-span-2 gap-6">
+                <!-- Address -->
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:col-span-2 gap-6">
 
-    @php
-        $billing = collect($defaultAddresses)->firstWhere('label', 'Billing')['data'] ?? null;
-        $shipping = collect($defaultAddresses)->firstWhere('label', 'Shipping')['data'] ?? null;
+                    @php
+                        $billing = collect($defaultAddresses)->firstWhere('label', 'Billing')['data'] ?? null;
+                        $shipping = collect($defaultAddresses)->firstWhere('label', 'Shipping')['data'] ?? null;
 
-        $isSameAddress = $billing && $shipping &&
-            $billing->address === $shipping->address &&
-            $billing->city === $shipping->city &&
-            $billing->state_id === $shipping->state_id &&
-            $billing->zip_code === $shipping->zip_code;
-    @endphp
+                        $isSameAddress = $billing && $shipping &&
+                            $billing->address === $shipping->address &&
+                            $billing->city === $shipping->city &&
+                            $billing->state_id === $shipping->state_id &&
+                            $billing->zip_code === $shipping->zip_code;
+                    @endphp
 
-    @foreach ($defaultAddresses as $addressItem)
-        @php $addresse = $addressItem['data']; @endphp
+                    @foreach ($defaultAddresses as $addressItem)
+                        @php $addresse = $addressItem['data']; @endphp
 
-        <div class="flex items-start space-x-2 flex-1">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4 mt-1"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-            </svg>
+                        <div class="flex items-start space-x-2 flex-1">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4 mt-1"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
 
-            <span>
-                <p class="font-medium">
-                    {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
-                </p>
+                            <span>
+                                <p class="font-medium">
+                                    {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
+                                </p>
 
-                <div class="leading-relaxed">
+                                <div class="leading-relaxed">
 
-                    {{-- If Shipping and same as Billing --}}
-                    @if($addressItem['label'] === 'Shipping' && $isSameAddress)
-                        <div>Same as Billing Address</div>
+                                    {{-- If Shipping and same as Billing --}}
+                                    @if($addressItem['label'] === 'Shipping' && $isSameAddress)
+                                        <div>Same as Billing Address</div>
 
-                    @else
-                        @if($addresse?->address)
-                            <div>{{ $addresse->address }},  @if($addresse?->city)
-                                {{ $addresse->city }},
-                            @endif </div>
-                        @endif
+                                    @else
+                                        @if($addresse?->address)
+                                            <div>{{ $addresse->address }},  @if($addresse?->city)
+                                                {{ $addresse->city }},
+                                            @endif </div>
+                                        @endif
 
-                        <div>
-                           
-                            @if($addresse?->state?->name)
-                                {{ $addresse->state->name }} , 
-                            @endif
-                            @if($addresse?->zip_code)
-                                {{ ' ' . $addresse->zip_code }}
-                            @endif
-                            @if($addresse?->country)
-                                {{ ', ' . $addresse->country }}
-                            @endif
+                                        <div>
+                                        
+                                            @if($addresse?->state?->name)
+                                                {{ $addresse->state->name }} , 
+                                            @endif
+                                            @if($addresse?->zip_code)
+                                                {{ ' ' . $addresse->zip_code }}
+                                            @endif
+                                            @if($addresse?->country)
+                                                {{ ', ' . $addresse->country }}
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                </div>
+                            </span>
                         </div>
-                    @endif
+
+                    @endforeach
 
                 </div>
-            </span>
-        </div>
-
-    @endforeach
-
-</div>
 
             </div>
         </div>
@@ -546,53 +557,86 @@
             $finalTotal = $invoice->total - $adjustmentsTotal;
         @endphp
 
-
-       <!-- Totals Section -->
-<div class="mt-6 text-sm space-y-1">
+<!-- Totals Section -->
+<div class="mt-8 text-sm max-w-md ml-auto space-y-2">
 
     <!-- Subtotal -->
-    <div class="flex justify-between">
-        <span class="text-gray-700">Subtotal:</span>
-        <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal ) }}</span>
+    <div class="grid grid-cols-4">
+        <div></div>
+        <div></div>
+
+        <div class="text-right text-gray-700">Subtotal:</div>
+        <div class="text-right ">
+            {{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal) }}
+        </div>
     </div>
 
     <!-- Tax -->
-    <div class="flex justify-between">
-        <span class="text-gray-700">
+    <div class="grid grid-cols-4">
+        <div></div>
+        <div></div>
+
+        <div class="text-right text-gray-700">
             Tax ({{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }}%):
-        </span> 
-        <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}</span>
+        </div>
+        <div class="text-right ">
+            {{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}
+        </div>
     </div>
 
-    {{-- Show Discount --}}
     @if($discountTotal > 0)
-    <div class="flex justify-between text-green-600">
-        <span>Discount:</span>
-        <span>-{{ \App\Helpers\CustomHelper::formatCurrency($discountTotal) }}</span>
+    <div class="grid grid-cols-4 text-green-600">
+
+        <div></div>
+        <div></div>
+
+        <div class="text-right">Discount:</div>
+        <div class="text-right ">
+            -{{ \App\Helpers\CustomHelper::formatCurrency($discountTotal) }}
+        </div>
     </div>
     @endif
 
-    {{-- Show Refund --}}
     @if($refundTotal > 0)
-    <div class="flex justify-between text-green-600">
-        <span>Refund:</span>
-        <span>-{{ \App\Helpers\CustomHelper::formatCurrency($refundTotal) }}</span>
+    <div class="grid grid-cols-4 text-green-600">
+        <div></div>
+        <div></div>
+
+        <div class="text-right">Refund:</div>
+        <div class="text-right">
+            -{{ \App\Helpers\CustomHelper::formatCurrency($refundTotal) }}
+        </div>
     </div>
     @endif
 
-    <!-- Final Total -->
-    <div class="flex justify-between border-t mt-2 pt-2 font-semibold text-lg">
-        <span>Total:</span>
-        <span>{{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}</span>
+    <!-- Divider -->
+    {{-- <div class=" my-3"></div> --}}
+
+    <!-- Total -->
+    <div class=" grid grid-cols-4 font-semibold text-lg">
+        <div></div>
+        <div></div>
+
+        <div class="border-t border-gray-300 text-right">Total:</div>
+        <div class="text-right border-t border-gray-300 ">
+            {{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}
+        </div>
     </div>
 
 </div>
 
 
         <!-- Footer -->
-        <div class="mt-6 text-center text-sm text-gray-500 border-t border-gray-800">
-            <p class="mt-6">Thank you for your business!</p>
-            @php
+        <div class="mt-3 text-center text-sm text-gray-500 border-t border-gray-800">
+
+             @if(!empty($invoice->invoice_notes))
+                    <p class="mt-6">
+                    {{ $invoice->invoice_notes }}
+                    </p>
+                @endif
+
+            <p  style="margin:0;">Thank you for your business!</p>
+                @php
                     $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
                 @endphp
 
@@ -601,15 +645,12 @@
                         For questions about this receipt, contact us at {{ $supportPhone }}
                     </p>
                 @endif
+
+               
+
         </div>
 
-        <div class="mt-6 text-start text-sm text-gray-500 border-gray-800">
-                @if(!empty($invoice->invoice_notes))
-                    <p style="margin:0;">
-                    {{ $invoice->invoice_notes }}
-                    </p>
-                @endif
-        </div>
+        
 
         <!-- Buttons -->
         <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 no-print">

@@ -15,7 +15,7 @@ class PostRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'code' => 'required|string|max:5|exists:clients,code',
+            'code' => 'required|string|max:10|exists:clients,code',
         ];
     }
 

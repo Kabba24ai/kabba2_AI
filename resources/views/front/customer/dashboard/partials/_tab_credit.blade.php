@@ -137,59 +137,67 @@
             </thead>
             <tbody id="transactionTable" class="divide-y divide-gray-200">
 
-                @php
-                $typeStyles = [
-                'charge' => [
-                'bg' => 'bg-red-100',
-                'text' => 'text-red-800',
-                'amount' => 'text-red-600',
-                'sign' => '+',
-                'icon' => 'plus',
+                 @php
+                   $typeStyles = [
+                   'charge' => [
+                   'bg' => 'bg-red-100',
+                   'text' => 'text-red-800',
+                   'amount' => 'text-red-600',
+                   'sign' => '+',
+                   'icon' => 'plus',
+                   ],
+                   'payment' => [
+                   'bg' => 'bg-green-100',
+                   'text' => 'text-green-800',
+                   'amount' => 'text-green-600',
+                   'sign' => '-',
+                   'icon' => 'credit-card',
+                   ],
+                   'order' => [
+                   'bg' => 'bg-red-100',
+                   'text' => 'text-red-800',
+                   'amount' => 'text-red-600',
+                   'sign' => '+',
+                   'icon' => 'cart',
+                   ],
+                   'discount' => [
+                   'bg' => 'bg-purple-100',
+                   'text' => 'text-purple-800',
+                   'amount' => 'text-green-600',
+                   'sign' => '-',
+                   'icon' => 'award',
+                   ],
+                   'credit' => [
+                   'bg' => 'bg-yellow-100',
+                   'text' => 'text-yellow-800',
+                   'amount' => 'text-green-600',
+                   'sign' => '-',
+                   'icon' => 'arrow-down-left',
+                   ],
+                   'debit' => [
+                   'bg' => 'bg-orange-100',
+                   'text' => 'text-orange-800',
+                   'amount' => 'text-red-600',
+                   'sign' => '+',
+                   'icon' => 'arrow-up-right',
+                   ],
+                   'refund' => [
+                   'bg' => 'bg-blue-100',
+                   'text' => 'text-blue-800',
+                   'amount' => 'text-green-600',
+                   'sign' => '-',
+                   'icon' => 'trending-up',
+                   ],
+                   'account_invoice' => [
+                    'bg' => 'bg-indigo-100',
+                    'text' => 'text-indigo-800',
+                    'amount' => 'text-indigo-600', 
+                    'sign' => '',
+                    'icon' => 'file-text',
+                     'label' => 'Account Invoice',
                 ],
-                'payment' => [
-                'bg' => 'bg-green-100',
-                'text' => 'text-green-800',
-                'amount' => 'text-green-600',
-                'sign' => '-',
-                'icon' => 'credit-card',
-                ],
-                'order' => [
-                'bg' => 'bg-red-100',
-                'text' => 'text-red-800',
-                'amount' => 'text-red-600',
-                'sign' => '+',
-                'icon' => 'cart',
-                ],
-                'discount' => [
-                'bg' => 'bg-purple-100',
-                'text' => 'text-purple-800',
-                'amount' => 'text-green-600',
-                'sign' => '-',
-                'icon' => 'award',
-                ],
-                'credit' => [
-                'bg' => 'bg-yellow-100',
-                'text' => 'text-yellow-800',
-                'amount' => 'text-green-600',
-                'sign' => '-',
-                'icon' => 'arrow-down-left',
-                ],
-                'debit' => [
-                'bg' => 'bg-orange-100',
-                'text' => 'text-orange-800',
-                'amount' => 'text-red-600',
-                'sign' => '+',
-                'icon' => 'arrow-up-right',
-                ],
-                'refund' => [
-                'bg' => 'bg-blue-100',
-                'text' => 'text-blue-800',
-                'amount' => 'text-green-600',
-                'sign' => '-',
-                'icon' => 'trending-up',
-                ],
-                ];
-                @endphp
+                   ];
+                   @endphp
 
                 @foreach ($customer->accounts as $transaction)
                 @php
@@ -219,6 +227,18 @@
                                 <circle cx="12" cy="8" r="6"></circle>
                                 <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
                             </svg>
+
+                              @elseif ($style['icon'] === 'file-text')
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 12h6m-6 4h6M7 4h6l4 4v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                                </svg>
+
                             @elseif ($style['icon'] === 'arrow-down-left')
                             <svg class="lucide w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M17 7L7 17" />
@@ -244,66 +264,90 @@
 
                             <!-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3 h-3"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg> -->
 
-                            <span class="ml-1 capitalize">{{ $transaction->type }}</span>
+                            <span class="ml-1 capitalize">
+                                {{ $style['label'] ?? ucfirst($transaction->type) }}
+                            </span>
 
                         </span>
+                        <div class="text-xs text-gray-500 mt-1">
+                                 @if ($transaction->invoice)
+                                    Invoice #{{ $transaction->invoice->invoice_number }}
+                                @elseif ($transaction->type !== 'payment')
+                                    {{ $transaction->responsible_person_name }}
+                                @endif
+                           </div>
                     </td>
-                    <td class="px-3 py-3 text-sm text-gray-900">
-                        <div class="max-w-xs truncate text-gray-700">@if ($transaction->type === 'payment')
+                     <td class="py-4 px-6 text-sm text-gray-900">
+                           <div class="max-w-xs truncate text-gray-700">
 
-                            {{ $transaction->payment_type?->label() ?? 'N/A' }}
+                               @if ($transaction->type === 'payment')
+                               {{ $transaction->payment_type?->label() ?? 'N/A' }}
+                               @else
+                               {{ $transaction->reason ?? 'N/A' }}
+                               @endif
 
+                           </div>
+                           <div class="text-xs text-gray-500 hidden">Ref: {{ $transaction->unique_id }}</div>
+                       </td>
+                     <td class="py-4 px-6 text-right">
 
-                            @else
-                            {{ $transaction->reason ?? 'N/A' }}
-                            @endif
-                        </div>
-                        <div class="text-xs text-gray-500 hidden">Ref: {{ $transaction->unique_id }}</div>
-                    </td>
-                    <!-- Amount Without Tax -->
-                    <td class="px-4 py-3 text-right">
+                           @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
+                           {{-- Tax is included in the amount (payment or reverse charge) --}}
+                           {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) / (1 + $transaction->sales_tax)) }}
 
-                        @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
-                        {{-- Tax is included in the amount (payment or reverse charge) --}}
-                        {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) / (1 + $transaction->sales_tax)) }}
-                        @else
-                        {{-- No tax or tax added on top --}}
-                        {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount ?? 0) }}
+                           @elseif($transaction->type === 'account_invoice')
+
+                           {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount - $transaction->sales_tax) }}
+
+                           @else
+                           {{-- No tax or tax added on top --}}
+                           {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount ?? 0) }}
+                           @endif
+
+                       </td>
+                       {{-- Sales Tax Column --}}
+                       <td class="py-4 px-6 text-right">
+
+                           @if($transaction->type === 'account_invoice') 
+                    {{ \App\Helpers\CustomHelper::formatCurrency($transaction->sales_tax) }}
+                           @elseif($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
+                           {{-- Tax is included in the amount (payment or reverse charge) --}}
+                           @php
+                           $taxAmount = ($transaction->amount ?? 0) - (($transaction->amount ?? 0) / (1 + $transaction->sales_tax));
+                           @endphp
+                           {{ \App\Helpers\CustomHelper::formatCurrency($taxAmount) }}
+                           @elseif($transaction->sales_tax > 0)
+                           {{-- Tax is added on top --}}
+                           {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) * $transaction->sales_tax) }}
+                           @else
+                           {{ \App\Helpers\CustomHelper::formatCurrency(0) }}
+                           @endif
+                       </td>
+
+                       {{-- Total Amount with Tax if Applicable --}}
+                       <td class="py-4 px-6 text-right whitespace-nowrap {{ $style['amount'] }}">
+                           @php
+                           $totalWithTax = $transaction->amount;
+
+                           if($transaction->type === 'account_invoice')
+                                                     $totalWithTax = $transaction->amount;
+                           elseif ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+                           // Only add tax if it's NOT already included
+                           $totalWithTax += ($transaction->amount * $transaction->sales_tax);
+                           }
+                           @endphp
+
+                           {{ $style['sign'] }}
+                           {{ \App\Helpers\CustomHelper::formatCurrency($totalWithTax) }}
+                       </td>
+
+                    <td class="py-4 px-6 text-right whitespace-nowrap"> 
+                         @if($transaction->type === 'account_invoice') 
+                         -
+                         @else
+                        {{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance ?? 0) }} 
                         @endif
-
                     </td>
-
-                    {{-- Sales Tax Column --}}
-                    <td class="px-4 py-3 text-right">
-                        @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
-                        {{-- Tax is included in the amount (payment or reverse charge) --}}
-                        @php
-                        $taxAmount = ($transaction->amount ?? 0) - (($transaction->amount ?? 0) / (1 + $transaction->sales_tax));
-                        @endphp
-                        {{ \App\Helpers\CustomHelper::formatCurrency($taxAmount) }}
-                        @elseif($transaction->sales_tax > 0)
-                        {{-- Tax is added on top --}}
-                        {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) * $transaction->sales_tax) }}
-                        @else
-                        {{ \App\Helpers\CustomHelper::formatCurrency(0) }}
-                        @endif
-                    </td>
-                    {{-- Total Amount with Tax if Applicable --}}
-                    <td class="px-4 py-3 text-right whitespace-nowrap {{ $style['amount'] }}">
-                        @php
-                        $totalWithTax = $transaction->amount;
-
-                        if ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
-                        // Only add tax if it's NOT already included
-                        $totalWithTax += ($transaction->amount * $transaction->sales_tax);
-                        }
-                        @endphp
-
-                        {{ $style['sign'] }}
-                        {{ \App\Helpers\CustomHelper::formatCurrency($totalWithTax) }}
-                    </td>
-
-                    <td class="px-3 py-3 text-right">{{ \App\Helpers\CustomHelper::formatCurrency($transaction->balance ?? 0) }}</td>
                     <td class="px-3 py-3 text-blue-600 text-left">
                         <div class="flex justify-end items-center text-left space-x-2">
 

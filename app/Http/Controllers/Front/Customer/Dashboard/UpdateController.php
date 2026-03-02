@@ -71,12 +71,12 @@ class UpdateController extends Controller
                             'last_name'     => $address['last_name'] ?? null,
                             'type' => $address['type'] ?? null,
                             'phone'         => $address['phone'] ?? null,
+                            'email'         => $address['email'] ?? null,
                             'address'       => $address['address'] ?? null,
                             'city'          => $address['city'] ?? null,
                             'state_id'      => !empty($address['state_id']) ? (int)$address['state_id'] : null,
                             'zip_code'      => $address['zip_code'] ?? null,
                             'country'      => $address['country'] ?? null,
-
                             'customer_id'   => $customer->id,
                             'is_primary'  => 1 ,
                         ];

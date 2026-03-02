@@ -41,9 +41,14 @@ class UpdateRequest extends FormRequest
             'subtotal'          => ['nullable', 'numeric', 'min:0'],
             'tax'               => ['nullable', 'numeric', 'min:0'],
             'total'             => ['required', 'numeric', 'min:0'],
+           'paid_amount' => ['nullable', 'numeric', 'min:0'],
+
+            
+
             'invoice_notes'     => ['nullable', 'string'],
             'invoice_data'      => ['required', 'json'],
             'payment_method'    => ['nullable'],
+
         ];
     }
 

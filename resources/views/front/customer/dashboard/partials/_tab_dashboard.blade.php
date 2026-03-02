@@ -62,53 +62,6 @@
 
                        
  
-                            <!-- <div class="text-sm text-gray-700 space-y-4">
-                                <hr class="border-gray-200">
-                                   @php
-                                        $billingAddress = $customer->addresses->firstWhere('type', 'billing');
-                                        $deliveryAddress = $customer->addresses->firstWhere('type', 'delivery');
-                                        @endphp
-
-
-
-                                    @foreach ($customer->addresses->where('is_primary', 1) as $addresse)
-                                    <div>
-                                        <p class="text-xs font-medium text-gray-500 mb-1">
-                                            {{ ($addresse->type=='Shipping' ? 'Delivery' : $addresse->type) }} Address
-                                        
-                                        </p>
-                                        @php
-                                        // Collect all non-empty fields except country
-                                        $mainParts = array_filter([
-                                        $addresse->address,
-                                        $addresse->city,
-                                        $addresse->state?->name,
-                                        $addresse->zip_code,
-                                        ]);
-
-                                        // Add country only if there is at least one other part
-                                        $parts = $mainParts;
-                                        if (!empty($mainParts) && !empty($addresse->country)) {
-                                        $parts[] = $addresse->country;
-                                        }
-                                        @endphp
-
-                                    
-                                    @if (!empty($parts))
-                                        <p>{{ implode(', ', $parts) }}</p>
-                                    @else
-                                        <a href="javascript:void(0)"
-                                        onclick="OpenCustomerEditModal()"
-                                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                                            + Add  {{ ($addresse->type=='Shipping' ? 'Delivery' : $addresse->type) }} Address Now
-                                        </a>
-                                    @endif
-
-                                    </div>
-                                    <hr class="border-gray-200">
-                                    @endforeach
-                                        
-                            </div> -->
 
 
                             <div class="text-sm text-gray-700 space-y-4">
@@ -139,8 +92,17 @@
                                                 }
                                             @endphp
 
-                                            @if (!empty($parts))
-                                                <p>{{ implode(', ', $parts) }}</p>
+                                           @if (!empty($parts))
+                                                @if ($addresse->type === 'Shipping' && ($customer->same_as_billing ?? false))
+                                                    <p class="text-gray-500 italic">
+                                                        Same as Billing Address
+                                                    </p>
+                                                @elseif (!empty($parts))
+                                                    <p>
+                                                        {{ $addresse->address }}, {{ $addresse->city }}<br>
+                                                        {{ $addresse->state?->name }}, {{ $addresse->zip_code }}, {{ $addresse->country }}
+                                                    </p>
+                                                 @endif
                                             @else
                                                 <a href="javascript:void(0)"
                                                 onclick="OpenCustomerEditModal()"

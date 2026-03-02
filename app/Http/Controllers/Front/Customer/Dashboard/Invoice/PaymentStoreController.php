@@ -19,7 +19,6 @@ class PaymentStoreController extends Controller
 {
     public function __invoke(Request $request)
     {
-
         //  Validation
         $validated = $request->validate([
             'customer_id'        => 'required|exists:customers,id',
@@ -83,14 +82,36 @@ class PaymentStoreController extends Controller
 
                 $invoice = Invoice::where('invoice_number', $validated['invoice_id'])->firstOrFail();
 
-                $invoice->invoice_status = 'paid';
-
                 $invoice->payment_number_id  = $paymentResult['transaction_id'] ?? null;
                 $invoice->auth_code          = $paymentResult['auth_code'] ?? null;
                 $invoice->customer_profile_id = $paymentResult['customer_profile_id'] ?? $customerProfileId;
                 $invoice->payment_profile_id  = $paymentResult['payment_profile_id'] ?? $paymentProfileId;
 
                 $invoice->payment_method =  'card';
+
+
+
+              
+                // $invoice->invoice_status = 'paid';
+
+                    $paymentAmount = (float) $amount;
+
+                    // Add to paid amount
+                    $invoice->paid_amount += $paymentAmount;
+
+                    // Recalculate open amount
+                    $invoice->open_amount = max(0, $invoice->total - $invoice->paid_amount);
+
+                    // Update invoice status
+                    if ($invoice->open_amount <= 0) {
+                        $invoice->invoice_status = 'paid';
+                    } elseif ($invoice->paid_amount > 0) {
+                        $invoice->invoice_status = 'partial_paid';
+                    } else {
+                        $invoice->invoice_status = 'pending';
+                    }
+
+                  
 
                 $invoice->save();
 
@@ -129,8 +150,25 @@ class PaymentStoreController extends Controller
 
                 $invoice = Invoice::where('invoice_number', $validated['invoice_id'])->first();
 
-                $invoice->invoice_status = 'paid';
+                // $invoice->invoice_status = 'paid';
 
+                
+                    $paymentAmount = (float) $amount;
+
+                    // Add to paid amount
+                    $invoice->paid_amount += $paymentAmount;
+
+                    // Recalculate open amount
+                    $invoice->open_amount = max(0, $invoice->total - $invoice->paid_amount);
+
+                    // Update invoice status
+                    if ($invoice->open_amount <= 0) {
+                        $invoice->invoice_status = 'paid';
+                    } elseif ($invoice->paid_amount > 0) {
+                        $invoice->invoice_status = 'partial_paid';
+                    } else {
+                        $invoice->invoice_status = 'pending';
+                    }
 
                 $invoice->payment_number_id  = $paymentResult['transaction_id'] ?? null;
                 $invoice->auth_code          = $paymentResult['auth_code'] ?? null;
@@ -161,71 +199,105 @@ class PaymentStoreController extends Controller
 
 
             }
+            
+                        Log::debug('Creating new CustomerAccount record...');
 
-            // Loop through all invoice items of type 'order'
-            $invoice->items()->where('type', 'order')->get()->each(function ($invoiceItem) use ($amount, $validated, $customer, $paymentResult) {
-                $orderProduct = $invoiceItem->orderProduct;
+                        $record = new CustomerAccount();
 
-                if ($orderProduct && $orderProduct->order) {
-                    $order = $orderProduct->order;
+                        $record->customer_id = $customer->id;
 
-                    // Update the invoice_id on the order
-                    $order->invoice_id = $invoiceItem->invoice_id;
-                    $order->save();
+                        $record->order_id = null ;
 
-                    // Record payment against the order
+                        $record->balance =  0;
 
-                    $payment = $order->payments()->create([
-                        'payment_datetime'     => now(),
-                        'payment_method'       => 'Card',
-                        'status'               => 'Invoice Card',
-                        'amount'               => $amount,
-                        'transaction_id'       => $paymentResult['transaction_id'] ?? null,
-                        'auth_code'            => $paymentResult['auth_code'] ?? null,
-                        'customer_profile_id'  => $paymentResult['customer_profile_id'] ?? null,
-                        'payment_profile_id'   => $paymentResult['payment_profile_id'] ?? null ,
-                        'card_number'          => $paymentResult['card_number'] ?? null,
-                        'card_first_name'      => $paymentResult['first_name'] ?? $validated['firstName'] ?? null, // <-- fixed
-                        'card_last_name'       => $paymentResult['last_name'] ?? $validated['lastName'] ?? null,   // <-- fixed
-                        'created_by_id'        => $customer->id,
-                        'created_by_type'      => Customer::class,
-                    ]);
+                        $record->amount = $amount;
 
-                    Log::info('Recorded Payment for Order', [
-                        'order_id' => $order->id,
-                        'order_number' => $order->order_number,
-                        'payment_id' => $payment->id,
-                        'amount' => $payment->amount,
-                        'transaction_id' => $payment->transaction_id,
-                        'status' => $payment->status,
-                    ]);
+                        $record->payment_type = 'CreditCard';
+
+                        $record->reason = 'Account Invoice #' . $invoice->invoice_number ;
+
+                        $record->date = now();
+
+                        $record->payment_number_id = $paymentResult['transaction_id'] ?? null;
+
+                        $record->auth_code = $paymentResult['auth_code'] ?? null;
+
+                        $record->sales_tax = 0;
+
+                        $record->type = 'payment';
+
+                        $record->invoice_id = $invoice->id;
+                        
+                        $record->save();
+
+                        Log::debug('CustomerAccount saved:', $record->toArray());
+
+                        CustomHelper::updateCreditBalance($record);
+
+                        Log::debug('Credit balance updated for record:', ['id' => $record->id]);
 
 
+                    // Loop through all invoice items of type 'order'
+                    // $invoice->items()->where('type', 'order')->get()->each(function ($invoiceItem) use ($amount, $validated, $customer, $paymentResult) {
+                    //     $orderProduct = $invoiceItem->orderProduct;
 
-                    // $orderActionType = 'invoice_card_payment';
-                    $employee = null;
+                    //     if ($orderProduct && $orderProduct->order) {
+                    //         $order = $orderProduct->order;
 
-                    // Fire OrderPlaced event
-                    //event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+                    //             // Update the invoice_id on the order
+                    //             $order->invoice_id = $invoiceItem->invoice_id;
+                    //             $order->save();
 
-                    event(new InvoicePaidEvent($order, $customer, $payment, $employee));
+                    //             // Record payment against the order
+
+                    //             // $payment = $order->payments()->create([
+                    //             //     'payment_datetime'     => now(),
+                    //             //     'payment_method'       => 'Card',
+                    //             //     'status'               => 'Invoice Card',
+                    //             //     'amount'               => $amount,
+                    //             //     'transaction_id'       => $paymentResult['transaction_id'] ?? null,
+                    //             //     'auth_code'            => $paymentResult['auth_code'] ?? null,
+                    //             //     'customer_profile_id'  => $paymentResult['customer_profile_id'] ?? null,
+                    //             //     'payment_profile_id'   => $paymentResult['payment_profile_id'] ?? null ,
+                    //             //     'card_number'          => $paymentResult['card_number'] ?? null,
+                    //             //     'card_first_name'      => $paymentResult['first_name'] ?? $validated['firstName'] ?? null, // <-- fixed
+                    //             //     'card_last_name'       => $paymentResult['last_name'] ?? $validated['lastName'] ?? null,   // <-- fixed
+                    //             //     'created_by_id'        => $customer->id,
+                    //             //     'created_by_type'      => Customer::class,
+                    //             // ]);
+                    //             // Log::info('Recorded Payment for Order', [
+                    //             //     'order_id' => $order->id,
+                    //             //     'order_number' => $order->order_number,
+                    //             //     'payment_id' => $payment->id,
+                    //             //     'amount' => $payment->amount,
+                    //             //     'transaction_id' => $payment->transaction_id,
+                    //             //     'status' => $payment->status,
+                    //             // ]);
+
+                    //             // $orderActionType = 'invoice_card_payment';
+                    //         // $employee = null;
+
+                    //         // Fire OrderPlaced event
+                    //         //event(new OrderPlacedEvent($order, $customer, $payment, $orderActionType, $employee));
+
+                    //         // event(new InvoicePaidEvent($order, $customer, $payment, $employee));
 
 
 
-                }
-            });
+                    //     }
+                    // });
 
-            Log::info('Linked Orders to Invoice', [
-                'invoice_id' => $invoice->id,
-                'orders' => $invoice->items()->where('type', 'order')->get()->map(function ($item) {
-                    return $item->orderProduct?->order?->order_number;
-                })
-            ]);
+                    // Log::info('Linked Orders to Invoice', [
+                    //     'invoice_id' => $invoice->id,
+                    //     'orders' => $invoice->items()->where('type', 'order')->get()->map(function ($item) {
+                    //         return $item->orderProduct?->order?->order_number;
+                    //     })
+                    // ]);
 
             DB::commit();
             flash('Payment recorded successfully.')->success();
             // session()->flash('active_tab', 'invoices');
-session(['active_tab' => 'invoices']);
+            session(['active_tab' => 'invoices']);
 
 
             return redirect()->back();
@@ -239,7 +311,7 @@ session(['active_tab' => 'invoices']);
 
             flash('Something went wrong while recording the payment.')->error();
             // session()->flash('active_tab', 'invoices');
-session(['active_tab' => 'invoices']);
+            session(['active_tab' => 'invoices']);
 
             return redirect()->back()->withInput()->withErrors([
                 'error' => 'An error occurred while recording the payment.',

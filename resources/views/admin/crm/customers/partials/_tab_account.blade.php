@@ -330,55 +330,55 @@
                     <label class="text-xs text-gray-500 font-medium edit-view ">Address </label>
                     <div class="static-view text-gray-900 text-sm">
                           @if ($addresse)
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
 
-                                <!-- Left Column -->
-                                <div>
-                                    {{-- Name --}}
-                                    {{ trim($addresse->first_name . ' ' . $addresse->last_name) }}
+                        <!-- Left Column -->
+                        <div>
+                            {{-- Name --}}
+                            {{ trim($addresse->first_name . ' ' . $addresse->last_name) }}
 
-                                    {{-- Address Line --}}
-                                    @if($addresse->address)
-                                        <br>{{ $addresse->address }}
-                                    @endif
+                            {{-- Address Line --}}
+                            @if($addresse->address)
+                                <br>{{ $addresse->address }}
+                            @endif
 
-                                    {{-- City --}}
-                                    @if($addresse->city)
-                                        , {{ $addresse->city }}
-                                    @endif
+                            {{-- City --}}
+                            @if($addresse->city)
+                                , {{ $addresse->city }}
+                            @endif
 
-                                    <br>
+                            <br>
 
-                                    {{-- State + Zip --}}
-                                    @if($addresse->state?->name)
-                                        {{ $addresse->state->name }}
-                                    @endif
+                            {{-- State + Zip --}}
+                            @if($addresse->state?->name)
+                                {{ $addresse->state->name }}
+                            @endif
 
-                                    @if($addresse->zip_code)
-                                        {{ $addresse->state?->name ? ',' : '' }} {{ $addresse->zip_code }}
-                                    @endif
+                            @if($addresse->zip_code)
+                                {{ $addresse->state?->name ? ',' : '' }} {{ $addresse->zip_code }}
+                            @endif
 
-                                    {{-- Country --}}
-                                    @if($addresse->country)
-                                        , {{ $addresse->country }}
-                                    @endif
-                                </div>
+                            {{-- Country --}}
+                            @if($addresse->country)
+                                , {{ $addresse->country }}
+                            @endif
+                        </div>
 
-                                <!-- Right Column -->
-                                <div>
-                                    @if($addresse->phone)
-                                        {{ $addresse->phone }} <br>
-                                    @endif
+                        <!-- Right Column -->
+                        <div>
+                            @if($addresse->phone)
+                                {{ $addresse->phone }} <br>
+                            @endif
 
-                                    @if($addresse->email)
-                                        {{ $addresse->email }}
-                                    @endif
-                                </div>
+                            @if($addresse->email)
+                                {{ $addresse->email }}
+                            @endif
+                        </div>
 
-                            </div>
-                        @else
-                            <p>No address provided.</p>
-                        @endif
+                    </div>
+                @else
+                    <p>No address provided.</p>
+                @endif
                     </div>
                     {!! html()->text("addresses[$index][address]", old("addresses.$index.address", $addresse->address ?? ''))->class([
                             'edit-view pl-2 pr-2 px-3 py-3 w-full border rounded-md text-sm border-gray-300',

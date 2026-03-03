@@ -531,7 +531,13 @@ class PostController extends Controller
             ]);
         } catch (\Exception $e) {
             // Log the error if needed: logger($e);
-            logger($e);
+            Log::error('Checkout failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             DB::rollback();
 
             $totalDuration = round((microtime(true) - $checkoutStart) * 1000, 2);

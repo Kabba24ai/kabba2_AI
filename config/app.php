@@ -220,6 +220,8 @@ return [
 
     'demo_enabled' => env('DEMO_ENABLED', false),
 
+    'sales_funnel_flag' => env('SALES_FUNNEL_ENABLED', false),
+
     'vite_origin_protocol' => env('VITE_ORIGIN_PROTOCOL', 'http'),
 
     'contact_number' => env('CONTACT_NUMBER', ''),

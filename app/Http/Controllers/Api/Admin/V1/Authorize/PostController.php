@@ -52,7 +52,7 @@ class PostController extends BaseController
             $authorizeService = new AuthorizeNetService([
                 'login_id' => "8E695xRcs",
                 'transaction_key' => "85Xb468m38RQh3uC",
-                'test_mode' => true,
+                'test_mode' => false,
             ]);
 
             $customerPayload = [

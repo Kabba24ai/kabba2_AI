@@ -21,6 +21,18 @@
     {{-- Search and Filters --}}
     <form method="GET" action="{{ route('admin.stores.index') }}" class="mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+            <div class="w-full sm:w-auto">
+                <button type="button" id="clear-filters"
+                    class="text-sm text-gray-600 bg-white px-4 py-2 flex gap-2 items-center rounded-md border border-gray-300">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                    Clear
+                </button>
+            </div>
+
             {{-- Search Input --}}
             <div class="flex-1 relative">
                 <input type="text" name="search" placeholder="Search by store name, email" value="{{ request('search') }}"
@@ -75,6 +87,12 @@
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
+
+            // Clear filters functionality using global clearFilters
+            document.getElementById('clear-filters').addEventListener('click', function() {
+                window.clearFilters(fieldMap, screenKey);
+                fetchStores();
+            });
 
             fetchStores(pageParam, perPageParam); // initial fetch after loading saved filters
             function fetchStores(page = 1, perPage = 10) {

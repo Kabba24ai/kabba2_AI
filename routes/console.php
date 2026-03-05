@@ -44,7 +44,6 @@ Schedule::job(new \App\Jobs\SendReturnSameDayRentalReminderJob())
 //     ->onOneServer()
 //     ->name('refresh-staging-database');
 
-
 Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())
     ->cron('*/20 * * * *')
     ->timezone('America/Chicago')

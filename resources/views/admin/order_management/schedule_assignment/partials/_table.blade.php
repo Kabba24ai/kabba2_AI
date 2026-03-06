@@ -35,6 +35,16 @@
                 </td>
                 <td class="px-4 py-4">
                     <div class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                        @php
+                            // Check if equipment is overdue at row level
+                            $rowIsOverdue = false;
+                            if ($eq->lastOrderProduct?->pickup_date && $eq->status_label == 'Rented') {
+                                $now = now();
+                                $pickupTime = $eq->lastOrderProduct->pickup_time ?: '09:00:00';
+                                $pickupDueAt = \Carbon\Carbon::parse($eq->lastOrderProduct->pickup_date . ' ' . $pickupTime);
+                                $rowIsOverdue = $now->gt($pickupDueAt);
+                            }
+                        @endphp
                         @switch($eq->status_label)
                             @case('Damaged')
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-red-600" fill="none"
@@ -59,13 +69,13 @@
                             @break
 
                             @case('Rented')
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none"
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 {{ $rowIsOverdue ? 'text-red-600' : 'text-blue-600' }}" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path d="M16 21v-2a4 4 0 0 0-8 0v2" />
                                     <circle cx="12" cy="7" r="4" />
                                 </svg>
                                 <span
-                                    class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 uppercase">{{ $eq->status_label }}</span>
+                                    class="px-2 py-1 rounded-full text-xs font-medium {{ $rowIsOverdue ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' }} uppercase">{{ $eq->status_label }}</span>
                             @break
 
                             @case('Available')
@@ -135,8 +145,24 @@
                             $textColor = 'text-gray-600';
                             // Light blue for soft assign, dark blue with white text for hard assign
                             $isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
+
+                            // Use the row-level overdue check calculated earlier
+                            $isOverdue = $rowIsOverdue;
+
                             if ($isBooked && !$isReturnDay) {
                                 $color = 'blue-600';
+                                $textColor = 'text-white';
+                            }
+
+                            // Override to red if overdue and is return day
+                            if ($isReturnDay && $isOverdue) {
+                                $color = 'red-600';
+                                $textColor = 'text-white';
+                            }
+
+                            // Also show red for any days AFTER the overdue pickup date
+                            if ($isBooked && $isOverdue && $date->format('Y-m-d') > $eq->lastOrderProduct?->pickup_date) {
+                                $color = 'red-600';
                                 $textColor = 'text-white';
                             }
 
@@ -158,7 +184,7 @@
                                         title="{{ $eq->lastOrderProduct?->order?->customer_name }}">
                                         @if ($isReturnDay)
                                             <span
-                                                class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
+                                                class="absolute inset-y-0 left-0 w-[15%] {{ $isOverdue ? 'bg-red-600' : 'bg-blue-600' }} rounded-l"></span>
                                         @endif
                                         <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $eq?->lastOrderProduct?->order?->unique_id]) ?? '#' }}"
                                             class="underline @if($eq->lastOrderProduct?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" target="_blank">

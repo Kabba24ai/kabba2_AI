@@ -176,6 +176,15 @@
                 </label>
             </div>
 
+            {{-- Overdue --}}
+            <div class="{{ $pill }}">
+                <label class="{{ $lbl }}">
+                    <input type="checkbox" name="overdue" value="1" id="overdue"
+                        class="{{ $chk }}" {{ request('overdue') ? 'checked' : '' }}>
+                    Overdue
+                </label>
+            </div>
+
         </div>
 
     </div>
@@ -400,6 +409,7 @@
         document.addEventListener("DOMContentLoaded", function() {
             let searchInput = document.querySelector('input[name="search"]');
             let pastSevenDays = document.querySelector('input[name="past_seven_days"]');
+            let overdue = document.querySelector('input[name="overdue"]');
             let categorySelect = document.querySelector('select[name="category"]');
             let assignmentFilter = document.getElementById('assignment_filter');
             // let statusSelect = document.querySelector('select[name="status"]');
@@ -422,6 +432,7 @@
                 'store': storeSelect,
                 'equipment_status': equipmentStatusCheckboxes,
                 'past_seven_days': pastSevenDays,
+                'overdue': overdue,
                 'assignment_filter': assignmentFilter,
             };
 
@@ -441,6 +452,7 @@
                 if (searchInput.value.length >= 3 || searchInput.value === '') params.append('search', searchInput
                     .value);
                 if (pastSevenDays.checked) params.append('past_seven_days', '1');
+                if (overdue.checked) params.append('overdue', '1');
                 if (categorySelect.value) params.append('category', categorySelect.value);
                 // if (statusSelect.value) params.append('status', statusSelect.value);
                 if (storeSelect.value) params.append('store', storeSelect.value);
@@ -523,6 +535,8 @@
             equipmentStatusCheckboxes.forEach(cb => cb.addEventListener('change', fetchEquipments));
 
             pastSevenDays.addEventListener('change', fetchEquipments);
+
+            overdue.addEventListener('change', fetchEquipments);
 
             let loadingIndicator = document.querySelector('#schedule-loading');
             let scheduleTableWrapper = document.querySelector('#schedule-table-wrapper');

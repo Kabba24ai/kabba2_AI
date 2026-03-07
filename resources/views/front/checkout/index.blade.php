@@ -3,7 +3,6 @@
 @section('title', $title)
 
 @push('css')
-
 @endpush
 
 @section('content')
@@ -143,7 +142,8 @@
                                 <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create
                                     Account</a>
                                 <span class="mx-1">|</span>
-                                <a id="loginWithEmailLink" href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To
+                                <a id="loginWithEmailLink" href="{{ route('front.auth.login.index') }}"
+                                    class="text-blue-600 hover:underline">Login To
                                     Account</a>
                             </div>
                         </div>
@@ -195,23 +195,37 @@
                                 @enderror
                             </div>
                         </div>
-                        <div>
-                            <label for="billingCompany" class="block text-sm text-gray-600 mb-1">Company Name</label>
-                            {{ html()->text('billingCompany', old('billingCompany', $companyName ? $companyName : null))->class(
-                                    'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
-                                )->attributes([
-                                    'maxlength' => 240,
-                                    'data-parsley-maxlength' => 240,
-                                    'placeholder' => 'Company Name',
-                                    'autocomplete' => 'off',
-                                    'id' => 'billingCompany',
-                                ]) }}
-                            @error('billingCompany')
-                                <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
-                            @enderror
-                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <div >
+                            <div>
+                                <label for="billingCompany" class="block text-sm text-gray-600 mb-1">Company Name</label>
+                                {{ html()->text('billingCompany', old('billingCompany', $companyName ? $companyName : null))->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                    )->attributes([
+                                        'maxlength' => 240,
+                                        'data-parsley-maxlength' => 240,
+                                        'placeholder' => 'Company Name',
+                                        'autocomplete' => 'off',
+                                        'id' => 'billingCompany',
+                                    ]) }}
+                                @error('billingCompany')
+                                    <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="po_id" class="block text-sm text-gray-600 mb-1">PO#</label>
+                                {{ html()->text('po_id', old('po_id'))->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                    )->attributes([
+                                        'maxlength' => 255,
+                                        'data-parsley-maxlength' => 255,
+                                        'placeholder' => 'PO Number',
+                                        'autocomplete' => 'off',
+                                    ]) }}
+                                @error('po_id')
+                                    <p class="mt-1 text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
                                 <label for="billingEmail" class="block text-sm text-gray-600 mb-1">Email</label>
                                 {{ html()->email(
                                         'billingEmail',
@@ -232,7 +246,7 @@
                                             auth('customer')->check() ? ['readonly' => 'readonly'] : [],
                                         ),
                                     )->required() }}
-                                    <p id="billingEmailError" class="hidden mt-1 text-xs text-red-600"></p>
+                                <p id="billingEmailError" class="hidden mt-1 text-xs text-red-600"></p>
                                 @error('billingEmail')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
@@ -348,6 +362,23 @@
                                                 <a href="#" class="text-blue-600 hover:underline ml-1">Learn More</a>
                                             </div> --}}
                     </div>
+
+                    @if ($primaryAddress)
+                        <div >
+                            <label for="po_id" class="block text-sm text-gray-600 mb-1">PO#</label>
+                            {{ html()->text('po_id', old('po_id'))->class(
+                                    'w-full sm:w-56 rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                )->attributes([
+                                    'maxlength' => 255,
+                                    'data-parsley-maxlength' => 255,
+                                    'placeholder' => 'PO Number',
+                                    'autocomplete' => 'off',
+                                ]) }}
+                            @error('po_id')
+                                <p class="mt-1 text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
 
                     <!-- Delivery Info -->
                     <h4 class="text-lg font-semibold">Delivery information</h4>
@@ -833,25 +864,25 @@
             function submitCheckout(data) {
                 const url = window.location.href; // Post to same URL
                 apiFetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'X-Requested-With': 'XMLHttpRequest' // To indicate AJAX
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => {
-                    if (response.success) {
-                        window.location.replace(response.redirect_url);
-                    } else {
-                        notyf.error(response.message || 'An error occurred during checkout.');
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-Requested-With': 'XMLHttpRequest' // To indicate AJAX
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (response.success) {
+                            window.location.replace(response.redirect_url);
+                        } else {
+                            notyf.error(response.message || 'An error occurred during checkout.');
+                            enableCheckoutButton();
+                        }
+                    })
+                    .catch(() => {
                         enableCheckoutButton();
-                    }
-                })
-               .catch(() => {
-                    enableCheckoutButton();
-                });
+                    });
             }
 
             form.addEventListener('submit', function(e) {
@@ -971,12 +1002,15 @@
 
                         Accept.dispatchData(secureData, function(response) {
                             if (response.messages.resultCode === "Error") {
-                                let errorMsg = response.messages.message.map(m => m.text).join(', ');
+                                let errorMsg = response.messages.message.map(m => m.text).join(
+                                ', ');
                                 notyf.error('Card Error: ' + errorMsg);
                                 enableCheckoutButton();
                             } else {
-                                document.getElementById('opaqueDataValue').value = response.opaqueData.dataValue;
-                                document.getElementById('opaqueDataDescriptor').value = response.opaqueData.dataDescriptor;
+                                document.getElementById('opaqueDataValue').value = response
+                                    .opaqueData.dataValue;
+                                document.getElementById('opaqueDataDescriptor').value = response
+                                    .opaqueData.dataDescriptor;
                                 const data = getFormDataAsObject(form);
                                 submitCheckout(data);
                             }
@@ -1066,6 +1100,7 @@
                     lastNameInput.dispatchEvent(new Event('input'));
                 });
             }
+
             function updateName() {
                 const name = (firstNameInput.value + ' ' + lastNameInput.value).trim();
                 displayFullName.textContent = name || 'FULL NAME';
@@ -1379,7 +1414,7 @@
             const loginLink = document.getElementById('loginWithEmailLink');
 
 
-         function showEmailError(msg, email = null) {
+            function showEmailError(msg, email = null) {
 
                 emailValid = false;
                 emailError.textContent = msg;
@@ -1420,12 +1455,12 @@
                 checkoutBtn.disabled = true;
                 checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 try {
-                   const res = await fetch(`${CHECK_URL}?email=${encodeURIComponent(email)}`, {
-                                    method: "GET",
-                                    headers: {
-                                        "Accept": "application/json"
-                                    }
-                                });
+                    const res = await fetch(`${CHECK_URL}?email=${encodeURIComponent(email)}`, {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    });
 
 
                     const data = await res.json();
@@ -1455,8 +1490,5 @@
                 checkEmailUnique(emailInput.value.trim());
             });
         });
-
-
-
     </script>
 @endpush

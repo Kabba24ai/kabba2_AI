@@ -201,6 +201,7 @@ class PostController extends Controller
                 'coupon_code' => null,
                 'discount_amount' => $cartSummary['discount'],
                 'grand_total' => $cartSummary['grand_total'],
+                'po_id' => $validated['po_id'] ?? null,
                 'cart_data' => $cart,
                 'is_tax_exempt' => $cartSummary['tax_exempt'] ? 'Yes' : 'No',
                 'platform' => 'Web',

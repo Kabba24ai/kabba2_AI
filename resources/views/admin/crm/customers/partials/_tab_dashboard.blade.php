@@ -46,7 +46,7 @@
 
     <!-- Contact Information -->
     <div class="bg-white rounded-xl shadow-sm p-5">
-      
+
     <div class="flex items-center justify-between mb-4">
         <h3 class="text-base font-semibold text-gray-900 flex items-center gap-1">
             <svg class="w-5 h-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -104,8 +104,8 @@
                     <div>
                         <a href="{{ !empty($customer->company_website) ? $customer->company_website : 'jaavscript:void(0)' }}"
                             class="text-blue-600 hover:text-blue-800">
-                        
-                    
+
+
                         <p class="text-xs  font-medium">          {{ !empty($customer->company_website) ? $customer->company_website : 'N/A' }}</p>
                         </a>
                         <p class="text-xs text-gray-500 font-medium">Company Website</p>
@@ -132,7 +132,7 @@
 
     <!-- Address Information -->
     <div class="bg-white rounded-xl shadow-sm p-5  overflow-y-scroll overflow-x-hidden">
-       
+
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-base font-semibold text-gray-800 flex items-center gap-1">
                  <svg class="w-5 h-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -167,7 +167,7 @@
             <div>
                 <p class="text-xs font-medium text-gray-500 mb-1">
                     {{ ($addresse->type=='Shipping' ? 'Delivery' : $addresse->type) }} Address
-                    
+
                 </p>
                 @php
                 // Collect all non-empty fields except country
@@ -348,7 +348,7 @@
 
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
-            <thead class="border-b bg-gray-50 font-semibold text-gray-700 border-gray-200"> 
+            <thead class="border-b bg-gray-50 font-semibold text-gray-700 border-gray-200">
                 <tr>
                     <th class="py-4 px-6">Order ID</th>
                     <th class="py-4 px-6">Product Name</th>
@@ -393,14 +393,14 @@
 
                     {{-- Payment Type --}}
                     <td class="py-4 px-6 text-right">
-                        {{ $order->last_payment_type->value === 'Cheque' ? 'Check' : $order->last_payment_type->value }}
+                        {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}
                     </td>
 
                     {{-- Status Badge --}}
                     <td class="py-4 px-6 text-right">
 
 
-                        {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
+                        {!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}
 
 
                     </td>
@@ -502,7 +502,7 @@
         const userSelect = document.getElementById('user_id');
         const noteList = document.querySelector('#noteListContainer ul');
 
-      
+
         const addNoteBtn2 = document.getElementById('addNoteBtn2');
         const saveNoteBtn2 = document.getElementById('saveNoteBtn2');
         const modalTitle = document.getElementById('noteModalTitle2');
@@ -538,7 +538,7 @@
                 .catch(() => notyf.error("Error fetching notes"));
         }
 
-        
+
        // Render Notes List
         function renderNotes() {
             if (notes.length === 0) {
@@ -574,7 +574,7 @@
 
                                     </div>
                                 </div>
-                                
+
                             </div>
                         </li>
                     `;
@@ -597,7 +597,7 @@
                 text,
                 user_id: userId
             };
-            
+
                 fetch(`{{ route('admin.crm.customers.notes.store', $customer->id ?? 0) }}`, {
                         method: 'POST',
                         headers: {
@@ -610,22 +610,22 @@
                     .then(data => {
                         if (data.success) {
                             notyf.success('Note added successfully');
-                          
+
                             closeNotesModal2();
 
             //  fetchNotes2();
-            reloadGlobalNotes();                
+            reloadGlobalNotes();
                         } else {
                             notyf.error(data.message || 'Failed to add note');
                         }
                     })
                     .catch(() => notyf.error('Error adding note'));
-            
+
         });
 
 
     });
 </script>
 
-    
+
 @endpush

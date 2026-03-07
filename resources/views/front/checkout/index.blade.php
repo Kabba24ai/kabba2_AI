@@ -42,10 +42,16 @@
                     @csrf
 
                     <!-- Billing Info -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 mb-2 gap-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 mb-4 gap-3">
                         <h2 class="text-2xl font-bold m-0">Billing information</h2>
+                        @guest('customer')
+                            <div class="text-sm text-gray-600 flex items-center gap-x-2">
+                                <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create Account</a>
+                                <span>|</span>
+                                <a id="loginWithEmailLink" href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To Account</a>
+                            </div>
+                        @endguest
                     </div>
-
 
                     <input type="hidden" name="cart" id="cart-input">
                     @error('cart')
@@ -104,16 +110,6 @@
                             </div>
                         </div>
                     @else
-                        <div class="mb-6 text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-2">
-                            <div class="flex items-center gap-x-2">
-                                <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create
-                                    Account</a>
-                                <span class="mx-1">|</span>
-                                <a id="loginWithEmailLink" href="{{ route('front.auth.login.index') }}"
-                                    class="text-blue-600 hover:underline">Login To
-                                    Account</a>
-                            </div>
-                        </div>
                         @php
                             $primaryAddress = null;
                             $companyName = null;

@@ -44,39 +44,6 @@
                     <!-- Billing Info -->
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 mb-2 gap-3">
                         <h2 class="text-2xl font-bold m-0">Billing information</h2>
-
-                        <!-- Inputs row -->
-                        <div class="flex items-center justify-between w-full sm:w-auto gap-3">
-                            <!-- Employee Code (left) -->
-                            <div class="flex flex-col">
-                                <label for="employeeCode" class="sr-only">Employee Code</label>
-                                <div class="w-40">
-                                    {{ html()->text('employee_code', old('employee_code'))->class([
-                                            'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
-                                            'input-error' => $errors->has('employee_code'),
-                                        ])->attributes([
-                                            'maxlength' => 20,
-                                            'data-parsley-maxlength' => 20,
-                                            'placeholder' => 'Employee Code',
-                                            'autocomplete' => 'off',
-                                            'id' => 'employee_code',
-                                        ]) }}
-
-                                    @error('employee_code')
-                                        <p class="mt-1 text-red-600 dark:text-red-400 text-xs">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Tax Exempt (right) -->
-                            <div class="flex items-center gap-2">
-                                <input type="hidden" name="tax_exempt" value="0" />
-                                <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
-                                    class="accent-blue-500 h-5 w-5 sm:h-4 sm:w-4 align-middle"
-                                    {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
-                                <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
-                            </div>
-                        </div>
                     </div>
 
 
@@ -211,20 +178,23 @@
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
-                            <div>
-                                <label for="po_id" class="block text-sm text-gray-600 mb-1">PO#</label>
-                                {{ html()->text('po_id', old('po_id'))->class(
-                                        'w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none',
-                                    )->attributes([
-                                        'maxlength' => 255,
-                                        'data-parsley-maxlength' => 255,
-                                        'placeholder' => 'PO Number',
-                                        'autocomplete' => 'off',
-                                    ]) }}
-                                @error('po_id')
-                                    <p class="mt-1 text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            @if (!$primaryAddress)
+                                <div>
+                                    <label for="po_id" class="block text-sm text-gray-600 mb-1">PO#</label>
+                                    {{ html()->text('po_id', old('po_id'))->class(
+                                            'w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                        )->attributes([
+                                            'maxlength' => 255,
+                                            'data-parsley-maxlength' => 255,
+                                            'placeholder' => 'PO Number',
+                                            'autocomplete' => 'off',
+                                            'id' => 'po_id',
+                                        ]) }}
+                                    @error('po_id')
+                                        <p class="mt-1 text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endif
                             <div>
                                 <label for="billingEmail" class="block text-sm text-gray-600 mb-1">Email</label>
                                 {{ html()->email(
@@ -748,26 +718,58 @@
                 </div>
 
                 <!-- Cart Summary -->
-                <div id="cartSummary" class="w-full md:w-1/2 mt:0 lg:mt-10 pl-0 lg:pl-6">
-                    <div class="border-b pb-4 mb-6">
-                        <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
-                        <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>
+                <div class="w-full md:w-1/2 mt:0 lg:mt-10 pl-0 lg:pl-6">
+                    <!-- Dynamic Cart Summary (Replaced by AJAX) -->
+                    <div id="cartSummary">
+                        <div class="border-b pb-4 mb-6">
+                            <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
+                            <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>
+                        </div>
+                        <div class="border-b pb-6">
+                            <ul class="flex flex-col">
+                                <li class="flex justify-between mb-1">
+                                    <span class="">Subtotal:</span>
+                                    <span class=" font-bold">$0.00</span>
+                                </li>
+                                <li class="flex justify-between mb-1">
+                                    <span class="">Tax</span>
+                                    <span class=" font-bold">$0.00</span>
+                                </li>
+                                <li class="flex justify-between mb-1">
+                                    <span class=" font-bold">Total</span>
+                                    <span class=" font-bold">$0.00</span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="border-b pb-6">
-                        <ul class="flex flex-col">
-                            <li class="flex justify-between mb-1">
-                                <span class="">Subtotal:</span>
-                                <span class=" font-bold">$0.00</span>
-                            </li>
-                            <li class="flex justify-between mb-1">
-                                <span class="">Tax</span>
-                                <span class=" font-bold">$0.00</span>
-                            </li>
-                            <li class="flex justify-between mb-1">
-                                <span class=" font-bold">Total</span>
-                                <span class=" font-bold">$0.00</span>
-                            </li>
-                        </ul>
+
+                    <!-- Employee Code & Tax Exempt - Static Section -->
+                    <div class="flex flex-wrap items-center gap-3 mt-6">
+                        <div class="w-full sm:w-auto">
+                            <label for="employee_code" class="sr-only">Employee Code</label>
+                            {{ html()->text('employee_code', old('employee_code'))->class([
+                                    'w-full sm:w-44 rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm',
+                                    'input-error' => $errors->has('employee_code'),
+                                ])->attributes([
+                                    'maxlength' => 20,
+                                    'data-parsley-maxlength' => 20,
+                                    'placeholder' => 'Employee Code',
+                                    'autocomplete' => 'off',
+                                    'id' => 'employee_code',
+                                ]) }}
+
+                            @error('employee_code')
+                                <p class="mt-1 text-red-600 dark:text-red-400 text-xs">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="tax_exempt" value="0" />
+                            <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
+                                class="accent-blue-500 h-4 w-4 align-middle"
+                                {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
+                            <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -3,7 +3,6 @@
 @section('title', $title)
 
 @push('css')
-
 @endpush
 
 @section('content')
@@ -43,43 +42,16 @@
                     @csrf
 
                     <!-- Billing Info -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 mb-2 gap-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 mb-4 gap-3">
                         <h2 class="text-2xl font-bold m-0">Billing information</h2>
-
-                        <!-- Inputs row -->
-                        <div class="flex items-center justify-between w-full sm:w-auto gap-3">
-                            <!-- Employee Code (left) -->
-                            <div class="flex flex-col">
-                                <label for="employeeCode" class="sr-only">Employee Code</label>
-                                <div class="w-40">
-                                    {{ html()->text('employee_code', old('employee_code'))->class([
-                                            'w-full rounded-lg border border border-gray-300 px-4 py-2  shadow-sm text-sm',
-                                            'input-error' => $errors->has('employee_code'),
-                                        ])->attributes([
-                                            'maxlength' => 20,
-                                            'data-parsley-maxlength' => 20,
-                                            'placeholder' => 'Employee Code',
-                                            'autocomplete' => 'off',
-                                            'id' => 'employee_code',
-                                        ]) }}
-
-                                    @error('employee_code')
-                                        <p class="mt-1 text-red-600 dark:text-red-400 text-xs">{{ $message }}</p>
-                                    @enderror
-                                </div>
+                        @guest('customer')
+                            <div class="text-sm text-gray-600 flex items-center gap-x-2">
+                                <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create Account</a>
+                                <span>|</span>
+                                <a id="loginWithEmailLink" href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To Account</a>
                             </div>
-
-                            <!-- Tax Exempt (right) -->
-                            <div class="flex items-center gap-2">
-                                <input type="hidden" name="tax_exempt" value="0" />
-                                <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
-                                    class="accent-blue-500 h-5 w-5 sm:h-4 sm:w-4 align-middle"
-                                    {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
-                                <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
-                            </div>
-                        </div>
+                        @endguest
                     </div>
-
 
                     <input type="hidden" name="cart" id="cart-input">
                     @error('cart')
@@ -138,15 +110,6 @@
                             </div>
                         </div>
                     @else
-                        <div class="mb-6 text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-2">
-                            <div class="flex items-center gap-x-2">
-                                <a href="{{ route('front.auth.register.index') }}" class="text-blue-600 hover:underline">Create
-                                    Account</a>
-                                <span class="mx-1">|</span>
-                                <a id="loginWithEmailLink" href="{{ route('front.auth.login.index') }}" class="text-blue-600 hover:underline">Login To
-                                    Account</a>
-                            </div>
-                        </div>
                         @php
                             $primaryAddress = null;
                             $companyName = null;
@@ -195,23 +158,40 @@
                                 @enderror
                             </div>
                         </div>
-                        <div>
-                            <label for="billingCompany" class="block text-sm text-gray-600 mb-1">Company Name</label>
-                            {{ html()->text('billingCompany', old('billingCompany', $companyName ? $companyName : null))->class(
-                                    'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
-                                )->attributes([
-                                    'maxlength' => 240,
-                                    'data-parsley-maxlength' => 240,
-                                    'placeholder' => 'Company Name',
-                                    'autocomplete' => 'off',
-                                    'id' => 'billingCompany',
-                                ]) }}
-                            @error('billingCompany')
-                                <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
-                            @enderror
-                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <div >
+                            <div>
+                                <label for="billingCompany" class="block text-sm text-gray-600 mb-1">Company Name</label>
+                                {{ html()->text('billingCompany', old('billingCompany', $companyName ? $companyName : null))->class(
+                                        'w-full rounded-lg border border-gray-300 px-4 py-2  shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                    )->attributes([
+                                        'maxlength' => 240,
+                                        'data-parsley-maxlength' => 240,
+                                        'placeholder' => 'Company Name',
+                                        'autocomplete' => 'off',
+                                        'id' => 'billingCompany',
+                                    ]) }}
+                                @error('billingCompany')
+                                    <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            @if (!$primaryAddress)
+                                <div>
+                                    <label for="po_id" class="block text-sm text-gray-600 mb-1">PO#</label>
+                                    {{ html()->text('po_id', old('po_id'))->class(
+                                            'w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                        )->attributes([
+                                            'maxlength' => 255,
+                                            'data-parsley-maxlength' => 255,
+                                            'placeholder' => 'PO Number',
+                                            'autocomplete' => 'off',
+                                            'id' => 'po_id',
+                                        ]) }}
+                                    @error('po_id')
+                                        <p class="mt-1 text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endif
+                            <div>
                                 <label for="billingEmail" class="block text-sm text-gray-600 mb-1">Email</label>
                                 {{ html()->email(
                                         'billingEmail',
@@ -232,7 +212,7 @@
                                             auth('customer')->check() ? ['readonly' => 'readonly'] : [],
                                         ),
                                     )->required() }}
-                                    <p id="billingEmailError" class="hidden mt-1 text-xs text-red-600"></p>
+                                <p id="billingEmailError" class="hidden mt-1 text-xs text-red-600"></p>
                                 @error('billingEmail')
                                     <p class="mt-1  text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
@@ -348,6 +328,23 @@
                                                 <a href="#" class="text-blue-600 hover:underline ml-1">Learn More</a>
                                             </div> --}}
                     </div>
+
+                    @if ($primaryAddress)
+                        <div >
+                            <label for="po_id" class="block text-sm text-gray-600 mb-1">PO#</label>
+                            {{ html()->text('po_id', old('po_id'))->class(
+                                    'w-full sm:w-56 rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm focus:border-gray-900 focus:outline-none',
+                                )->attributes([
+                                    'maxlength' => 255,
+                                    'data-parsley-maxlength' => 255,
+                                    'placeholder' => 'PO Number',
+                                    'autocomplete' => 'off',
+                                ]) }}
+                            @error('po_id')
+                                <p class="mt-1 text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
 
                     <!-- Delivery Info -->
                     <h4 class="text-lg font-semibold">Delivery information</h4>
@@ -717,26 +714,58 @@
                 </div>
 
                 <!-- Cart Summary -->
-                <div id="cartSummary" class="w-full md:w-1/2 mt:0 lg:mt-10 pl-0 lg:pl-6">
-                    <div class="border-b pb-4 mb-6">
-                        <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
-                        <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>
+                <div class="w-full md:w-1/2 mt:0 lg:mt-10 pl-0 lg:pl-6">
+                    <!-- Dynamic Cart Summary (Replaced by AJAX) -->
+                    <div id="cartSummary">
+                        <div class="border-b pb-4 mb-6">
+                            <h2 class="text-2xl font-bold mb-2">Cart Summary</h2>
+                            <p class="text-sm text-gray-600">Review your items before proceeding to checkout.</p>
+                        </div>
+                        <div class="border-b pb-6">
+                            <ul class="flex flex-col">
+                                <li class="flex justify-between mb-1">
+                                    <span class="">Subtotal:</span>
+                                    <span class=" font-bold">$0.00</span>
+                                </li>
+                                <li class="flex justify-between mb-1">
+                                    <span class="">Tax</span>
+                                    <span class=" font-bold">$0.00</span>
+                                </li>
+                                <li class="flex justify-between mb-1">
+                                    <span class=" font-bold">Total</span>
+                                    <span class=" font-bold">$0.00</span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="border-b pb-6">
-                        <ul class="flex flex-col">
-                            <li class="flex justify-between mb-1">
-                                <span class="">Subtotal:</span>
-                                <span class=" font-bold">$0.00</span>
-                            </li>
-                            <li class="flex justify-between mb-1">
-                                <span class="">Tax</span>
-                                <span class=" font-bold">$0.00</span>
-                            </li>
-                            <li class="flex justify-between mb-1">
-                                <span class=" font-bold">Total</span>
-                                <span class=" font-bold">$0.00</span>
-                            </li>
-                        </ul>
+
+                    <!-- Employee Code & Tax Exempt - Static Section -->
+                    <div class="flex flex-wrap items-center gap-3 mt-6">
+                        <div class="w-full sm:w-auto">
+                            <label for="employee_code" class="sr-only">Employee Code</label>
+                            {{ html()->text('employee_code', old('employee_code'))->class([
+                                    'w-full sm:w-44 rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm',
+                                    'input-error' => $errors->has('employee_code'),
+                                ])->attributes([
+                                    'maxlength' => 20,
+                                    'data-parsley-maxlength' => 20,
+                                    'placeholder' => 'Employee Code',
+                                    'autocomplete' => 'off',
+                                    'id' => 'employee_code',
+                                ]) }}
+
+                            @error('employee_code')
+                                <p class="mt-1 text-red-600 dark:text-red-400 text-xs">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="tax_exempt" value="0" />
+                            <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
+                                class="accent-blue-500 h-4 w-4 align-middle"
+                                {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
+                            <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -833,25 +862,25 @@
             function submitCheckout(data) {
                 const url = window.location.href; // Post to same URL
                 apiFetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'X-Requested-With': 'XMLHttpRequest' // To indicate AJAX
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => {
-                    if (response.success) {
-                        window.location.replace(response.redirect_url);
-                    } else {
-                        notyf.error(response.message || 'An error occurred during checkout.');
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-Requested-With': 'XMLHttpRequest' // To indicate AJAX
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (response.success) {
+                            window.location.replace(response.redirect_url);
+                        } else {
+                            notyf.error(response.message || 'An error occurred during checkout.');
+                            enableCheckoutButton();
+                        }
+                    })
+                    .catch(() => {
                         enableCheckoutButton();
-                    }
-                })
-               .catch(() => {
-                    enableCheckoutButton();
-                });
+                    });
             }
 
             form.addEventListener('submit', function(e) {
@@ -971,12 +1000,15 @@
 
                         Accept.dispatchData(secureData, function(response) {
                             if (response.messages.resultCode === "Error") {
-                                let errorMsg = response.messages.message.map(m => m.text).join(', ');
+                                let errorMsg = response.messages.message.map(m => m.text).join(
+                                ', ');
                                 notyf.error('Card Error: ' + errorMsg);
                                 enableCheckoutButton();
                             } else {
-                                document.getElementById('opaqueDataValue').value = response.opaqueData.dataValue;
-                                document.getElementById('opaqueDataDescriptor').value = response.opaqueData.dataDescriptor;
+                                document.getElementById('opaqueDataValue').value = response
+                                    .opaqueData.dataValue;
+                                document.getElementById('opaqueDataDescriptor').value = response
+                                    .opaqueData.dataDescriptor;
                                 const data = getFormDataAsObject(form);
                                 submitCheckout(data);
                             }
@@ -1066,6 +1098,7 @@
                     lastNameInput.dispatchEvent(new Event('input'));
                 });
             }
+
             function updateName() {
                 const name = (firstNameInput.value + ' ' + lastNameInput.value).trim();
                 displayFullName.textContent = name || 'FULL NAME';
@@ -1379,7 +1412,7 @@
             const loginLink = document.getElementById('loginWithEmailLink');
 
 
-         function showEmailError(msg, email = null) {
+            function showEmailError(msg, email = null) {
 
                 emailValid = false;
                 emailError.textContent = msg;
@@ -1420,12 +1453,12 @@
                 checkoutBtn.disabled = true;
                 checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 try {
-                   const res = await fetch(`${CHECK_URL}?email=${encodeURIComponent(email)}`, {
-                                    method: "GET",
-                                    headers: {
-                                        "Accept": "application/json"
-                                    }
-                                });
+                    const res = await fetch(`${CHECK_URL}?email=${encodeURIComponent(email)}`, {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    });
 
 
                     const data = await res.json();
@@ -1455,8 +1488,5 @@
                 checkEmailUnique(emailInput.value.trim());
             });
         });
-
-
-
     </script>
 @endpush

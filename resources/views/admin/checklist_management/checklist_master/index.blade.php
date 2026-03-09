@@ -40,71 +40,62 @@
 
 
     <div class="bg-white border border-gray-200 rounded-md p-4 w-full mt-6">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-
-       
-        <div class="md:col-span-4">
-            <label class="text-sm font-medium text-gray-700 mb-1 block">Search Systems</label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z" />
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            <div class="w-full sm:w-auto">
+                <label class="text-sm font-medium text-gray-700 mb-1 block">Clear Filters</label>
+                <button type="button" id="clear-filters"
+                    class="text-sm text-gray-600 bg-white px-4 py-2 flex gap-2 items-center rounded-md border border-gray-300">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
                     </svg>
+                    Clear
+                </button>
+            </div>
+
+            <div class="md:col-span-4">
+                <label class="text-sm font-medium text-gray-700 mb-1 block">Search Systems</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z" />
+                        </svg>
+                    </div>
+                    <input type="text" placeholder="Search checklist systems..."
+                        class="w-full border pl-10 pr-3 py-2 rounded-md text-sm" />
                 </div>
-                <input type="text"
-                    placeholder="Search checklist systems..."
-                    class="w-full border pl-10 pr-3 py-2 rounded-md text-sm" />
+            </div>
+
+
+            <div class="md:col-span-4">
+                <label class="text-sm font-medium text-gray-700 mb-1 block">Filter by Category</label>
+                {!! html()->select('equipment_category', ['' => 'All Categories'] + $equipmentCategories)->class('w-full border px-3 py-2 rounded-md text-sm')->attribute('id', 'categoryFilter') !!}
+            </div>
+
+
+            <div class="md:col-span-3">
+                <label class="text-sm font-medium text-gray-700 mb-1 block">Results</label>
+                <div class="flex items-center gap-2 border rounded-md px-3 py-2 text-sm">
+                    <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                    </svg>
+
+                    <span>
+                        {{ $checklistMasters->count() }} of {{ $checklistMasters->count() }}
+                        {{ Str::plural('system', $checklistMasters->count()) }}
+                    </span>
+                </div>
             </div>
         </div>
-
-       
-        <div class="md:col-span-4">
-            <label class="text-sm font-medium text-gray-700 mb-1 block">Filter by Category</label>
-            {!! html()->select('equipment_category', ['' => 'All Categories'] + $equipmentCategories)
-                ->class('w-full border px-3 py-2 rounded-md text-sm')
-                ->attribute('id', 'categoryFilter') !!}
-        </div>
-
-       
-        <div class="md:col-span-3">
-            <label class="text-sm font-medium text-gray-700 mb-1 block">Results</label>
-            <div class="flex items-center gap-2 border rounded-md px-3 py-2 text-sm">
-                <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
-                            </svg>
-
-                <span>
-                    {{ $checklistMasters->count() }} of {{ $checklistMasters->count() }}
-                    {{ Str::plural('system', $checklistMasters->count()) }}
-                </span>
-            </div>
-        </div>
-
-        
-        <div class="md:col-span-1 flex items-end justify-start">
-            <button type="button"
-                id="clearChecklistFiltersBtn"
-                class="hidden flex items-center gap-2 text-sm text-gray-600 bg-white px-3 py-2 rounded-md border border-gray-300">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Clear
-            </button>
-        </div>
-
     </div>
-</div>
 
 
-<div id="checklist-wrapper">
-@include('admin.checklist_management.checklist_master.partials._table', ['checklistMasters' => []])
-</div>
+    <div id="checklist-wrapper">
+        @include('admin.checklist_management.checklist_master.partials._table', ['checklistMasters' => []])
+    </div>
 
     <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mt-6">
         <div class="flex items-start space-x-3">
@@ -152,120 +143,96 @@
 
     <!-- delete- -->
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
 
-    const screenKey = "checklist_master_filters";
-    const categoryFilter = document.getElementById('categoryFilter');
-    const searchInput = document.querySelector('input[placeholder="Search checklist systems..."]');
-    const wrapper = document.querySelector('#checklist-wrapper');
-const clearBtn = document.getElementById('clearChecklistFiltersBtn');
+            const screenKey = "checklist_master_filters";
+            const categoryFilter = document.getElementById('categoryFilter');
+            const searchInput = document.querySelector('input[placeholder="Search checklist systems..."]');
+            const wrapper = document.querySelector('#checklist-wrapper');
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location
+                    .search)
+                .get('per_page') || null;
 
-function updateClearButton() {
+            let timeout = null;
 
-    const hasFilters =
-        categoryFilter?.value !== '' ||
-        searchInput?.value.trim() !== '';
+            const fieldMap = {
+                'categoryFilter': categoryFilter,
+                'search': searchInput,
+            };
 
-    if (hasFilters) {
-        clearBtn?.classList.remove('hidden');
-    } else {
-        clearBtn?.classList.add('hidden');
-    }
-}
+            FilterFreezer.loadFilters(screenKey, fieldMap);
 
-    let timeout = null;
-
-    const fieldMap = {
-        'categoryFilter': categoryFilter,
-        'search': searchInput,
-    };
-
-    FilterFreezer.loadFilters(screenKey, fieldMap);
-updateClearButton();
-
-    function fetchList(page = 1, perPage = 10) {
-        const params = new URLSearchParams();
-        params.append('page', page);
-        params.append('per_page', perPage);
-        params.append('categoryFilter', categoryFilter.value);
-        params.append('search', searchInput.value);
-
-        wrapper.classList.add('opacity-50', 'pointer-events-none');
-
-        fetch(`{{ route('admin.checklist-management.checklist-master.index') }}?${params.toString()}`, {
-            headers: {'X-Requested-With': 'XMLHttpRequest'}
-        })
-        .then(res => res.json())
-        .then(data => {
-            wrapper.innerHTML = data.html;
-
-            FilterFreezer.saveFilters(screenKey, fieldMap);
-            bindPagination();
-        })
-        .catch(() => {
-            wrapper.innerHTML = '<div class="text-red-500 p-4">Error loading data.</div>';
-        })
-        .finally(() => {
-            wrapper.classList.remove('opacity-50', 'pointer-events-none');
-        });
-    }
-
-    function bindPagination() {
-        wrapper.querySelectorAll('.pagination a').forEach(a => {
-            a.addEventListener('click', function(e) {
-                e.preventDefault();
-                const url = new URL(this.href);
-                const page = url.searchParams.get('page');
-                const perPage = url.searchParams.get('per_page');
-                fetchList(page, perPage);
+            // Clear filters functionality using global clearFilters
+            document.getElementById('clear-filters').addEventListener('click', function() {
+                window.clearFilters(fieldMap, screenKey);
+                fetchList(1, perPageParam);
             });
+
+            function fetchList(page = 1, perPage = 10) {
+                const params = new URLSearchParams();
+                params.append('page', page);
+                params.append('per_page', perPage);
+                params.append('categoryFilter', categoryFilter.value);
+                params.append('search', searchInput.value);
+
+                wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+                fetch(`{{ route('admin.checklist-management.checklist-master.index') }}?${params.toString()}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        wrapper.innerHTML = data.html;
+
+                        FilterFreezer.saveFilters(screenKey, fieldMap);
+                        bindPagination();
+                    })
+                    .catch(() => {
+                        wrapper.innerHTML = '<div class="text-red-500 p-4">Error loading data.</div>';
+                    })
+                    .finally(() => {
+                        wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                    });
+            }
+
+            function bindPagination() {
+                wrapper.querySelectorAll('.pagination a').forEach(a => {
+                    a.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const url = new URL(this.href);
+                        const page = url.searchParams.get('page');
+                        const perPage = url.searchParams.get('per_page');
+                        fetchList(page, perPage);
+                    });
+                });
+            }
+
+            function filtersUpdated() {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => fetchList(1, perPageParam), 400);
+            }
+
+            // categoryFilter.addEventListener('change', () => fetchList());
+
+            categoryFilter.addEventListener('change', function() {
+                fetchList(1, perPageParam);
+            });
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => fetchList(1, perPageParam), 400);
+            });
+
+            // searchInput.addEventListener('input', filtersUpdated);
+
+            // Initial load
+            fetchList(
+                new URLSearchParams(location.search).get('page') || 1,
+                new URLSearchParams(location.search).get('per_page') || 10
+            );
         });
-    }
-
-    function filtersUpdated() {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fetchList(), 400);
-    }
-
-    // categoryFilter.addEventListener('change', () => fetchList());
-
-    categoryFilter.addEventListener('change', function () {
-    fetchList();
-    updateClearButton();
-});
-
-searchInput.addEventListener('input', function () {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => fetchList(), 400);
-    updateClearButton();
-});
-
-
-clearBtn?.addEventListener('click', function () {
-
-    //  Clear localStorage
-    localStorage.removeItem(screenKey);
-
-    //  Reset fields
-    categoryFilter.value = '';
-    searchInput.value = '';
-
-    //  Reload first page
-    fetchList(1, 10);
-    // Hide button
-    updateClearButton();
-});
-
-
-    // searchInput.addEventListener('input', filtersUpdated);
-
-    // Initial load
-    fetchList(
-        new URLSearchParams(location.search).get('page') || 1,
-        new URLSearchParams(location.search).get('per_page') || 10
-    );
-});
-</script>
-
+    </script>
 @endpush

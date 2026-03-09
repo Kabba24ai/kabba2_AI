@@ -6,8 +6,8 @@
                             <h2 class="text-2xl font-bold text-gray-900">{{ $customer->full_name }}</h2>
                             <p class="text-sm text-gray-600">Account: {{ $customer->unique_id }}</p>
 
-                           
-                            
+
+
                         </div>
 
                         <!-- Center: Tax Status (Responsive) -->
@@ -40,9 +40,9 @@
 
 
                            <div class="flex items-center gap-2">
-                                
+
                                 <div>
-                                  
+
                                        @if (!empty($customer->phone))
                                         <p class="text-xs text-gray-500 font-medium">Phone Number</p>
                                        <p class="text-sm text-gray-900">
@@ -55,13 +55,13 @@
                                             + Add Phone Number Now
                                         </a>
                                     @endif
-                                  
-                                   
+
+
                                 </div>
                             </div>
 
-                       
- 
+
+
 
 
                             <div class="text-sm text-gray-700 space-y-4">
@@ -115,7 +115,7 @@
                                     @endforeach
                                 @else
                                     <div class="text-right text-xs text-gray-500">
-                                      
+
                                         <a href="javascript:void(0)"
                                         onclick="OpenCustomerEditModal()"
                                         class="text-blue-600 hover:underline font-medium">
@@ -229,7 +229,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900"> {{ $order->order_number }}</td>
                                         <td class="px-4 py-3">{{ $product->product_name ?? 'N/A' }}</td>
                                         <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total ) }}</td>
-                                        <td class="px-4 py-3"> {{ $order->last_payment_type->value === 'Cheque' ? 'Check' : $order->last_payment_type->value }}</td>
+                                        <td class="px-4 py-3"> {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}</td>
                                         <td class="px-4 py-3">
                                             <!-- <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span> -->
 
@@ -243,7 +243,7 @@
                                             <button title="View" class="openOrderModalBtn" data-order="{{ $order->order_number }}"
                                                 data-date="{{ App\Helpers\CustomHelper::formatDate($order->order_date) }}"
                                                 data-status='{!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}'
-                                                data-method="{{ $order->last_payment_type->value === 'Cheque' ? 'Check' : $order->last_payment_type->value }}"
+                                                data-method="{{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}"
                                                 data-total="{{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}"
                                                 data-product="{{ $product->product_name ?? 'N/A' }}">
                                                 <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />

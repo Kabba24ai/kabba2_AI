@@ -19,6 +19,14 @@ class PostRequest extends ApiBaseFormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'code.exists' => 'Invalid Code.',
+        ];
+    }
+
+
     /**
      * Get the body parameters for the request documentation.
      *

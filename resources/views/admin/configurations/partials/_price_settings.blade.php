@@ -13,7 +13,7 @@
 
             <div class="relative">
                 {!! html()->input(
-                        'number',
+                        'text',
                         'diesel_price_per_gallon',
                         $settings['Price Settings']['diesel_price_per_gallon']['setting_value'],
                     )->class([
@@ -41,7 +41,7 @@
 
             <div class="relative">
                 {!! html()->input(
-                        'number',
+                        'text',
                         'gas_price_per_gallon',
                         $settings['Price Settings']['gas_price_per_gallon']['setting_value'],
                     )->class([
@@ -69,7 +69,7 @@
 
             <div class="relative">
                 {!! html()->input(
-                        'number',
+                        'text',
                         'def_price_per_gallon',
                         $settings['Price Settings']['def_price_per_gallon']['setting_value'],
                     )->class([

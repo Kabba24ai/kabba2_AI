@@ -91,7 +91,7 @@
 							</svg>
 							Send New SMS Broadcast
 						</a>
-						<!-- Create Messenger (Green) -->
+						<!-- Create Message (Green) -->
 						<a href="javascript:void(0)"  onclick="openModal('new-smsbroadcast')"
 							class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
 							text-white font-medium px-6 py-3 text-md rounded-lg transition">
@@ -101,7 +101,7 @@
 								<path stroke-linecap="round" stroke-linejoin="round"
 									d="M12 4.5v15m7.5-7.5h-15"/>
 							</svg>
-							Create New Messenger
+							Create New Message
 						</a>
 					</div>
 					<!-- ====================== -->
@@ -121,7 +121,7 @@
 							</svg>
 							Send New SMS Broadcast
 						</a>
-						<!-- Create Messenger (Green) -->
+						<!-- Create Message (Green) -->
 						<a href="javascript:void(0)" onclick="openModal('new-sms-funnel')"
 							class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
 							text-white font-medium px-6 py-3 text-md rounded-lg transition">
@@ -131,7 +131,7 @@
 								<path stroke-linecap="round" stroke-linejoin="round"
 									d="M12 4.5v15m7.5-7.5h-15"/>
 							</svg>
-							Create New Messenger
+							Create New Message
 						</a>
 					</div>
 					<!-- ====================== -->
@@ -161,7 +161,7 @@
 								<path stroke-linecap="round" stroke-linejoin="round"
 									d="M12 4.5v15m7.5-7.5h-15"/>
 							</svg>
-							Create New Messenger
+							Create New Message
 						</a>
 					</div>
 					<!-- ====================== -->
@@ -191,7 +191,7 @@
 								<path stroke-linecap="round" stroke-linejoin="round"
 									d="M12 4.5v15m7.5-7.5h-15"/>
 							</svg>
-							Create New Messenger
+							Create New Message
 						</a>
 					</div>
 				</div>
@@ -335,7 +335,7 @@
 					<button onclick="showTab('created-smsbroadcast', this)"
 						class="inner-tab inline-flex items-center px-3 pt-3 pb-2
 						text-sm font-medium text-blue-600 border-b-2 border-blue-600">
-					 SMS List  
+					 SMS List
 					</button>
 					<!-- <button onclick="showTab('created-smsfunnel', this)"
 						class="inner-tab inline-flex items-center px-3 pt-3 pb-2
@@ -349,7 +349,7 @@
 					<!-- 1. SMS BROADCAST BUTTONS -->
 					<!-- ====================== -->
 					<div id="btn-sms-creted" class="tab-action  flex items-center gap-3">
-						<!-- Create Messenger (Green) -->
+						<!-- Create Message (Green) -->
 						<a href="javascript:void(0)"  onclick="openModal('new-smsbroadcast')"
 							class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
 							text-white font-medium px-6 py-3 text-md rounded-lg transition">
@@ -359,10 +359,10 @@
 								<path stroke-linecap="round" stroke-linejoin="round"
 									d="M12 4.5v15m7.5-7.5h-15"/>
 							</svg>
-							Create New Broadcast 
+							Create New Broadcast
 						</a>
 
-                        <!-- Create Messenger (Green) -->
+                        <!-- Create Message (Green) -->
 						<a href="javascript:void(0)" onclick="openModal('new-sms-funnel')"
 							class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
 							text-white font-medium px-6 py-3 text-md rounded-lg transition">
@@ -375,7 +375,7 @@
 							Create New Funnel
 						</a>
 					</div>
-					
+
 				</div>
 			</div>
 		</div>
@@ -384,14 +384,14 @@
 			@include('admin.crm.message_management.partials._tab_created_sms')
 			<!-- Add your SMS Broadcast CRUD here -->
 		</div>
-		
+
 	</div>
 </div>
 
 
 
 
-<!-- CREATE NEW MESSENGER MODAL -->
+<!-- CREATE NEW Message MODAL -->
 <div id="new-smsbroadcast"
      class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
 
@@ -720,7 +720,7 @@
 
 
 
-<!-- CREATE NEW MESSENGER MODAL -->
+<!-- CREATE NEW Message MODAL -->
 <div id="new-sms-funnel"
      class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
 
@@ -908,7 +908,7 @@
                         Characters: <span id="editFunnelCharCount">0</span>
                     </p>
                 </div>
-               
+
 
                 <!-- FOOTER -->
                 <div class="flex justify-end gap-2 pb-4">
@@ -1155,7 +1155,7 @@ function showTab(tabId, clickedBtn) {
 
 
         if (tabId === 'created-messages') {
-        
+
             document.getElementById('btn-sms-creted').classList.remove('hidden');
                 return;
         }
@@ -1361,11 +1361,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // refresh table
 
-                fetchBroadcasts(); 
+                fetchBroadcasts();
 
                 fetchCreatedBroadcasts();
 
-                 refreshCreatedBroadcastAndFunnelSelects(); 
+                 refreshCreatedBroadcastAndFunnelSelects();
             } else {
                 notyf.error(data.message || "Update failed.");
             }
@@ -1414,7 +1414,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         notyf.error(data.message || 'Delete failed.');
                     }
 
-                     refreshCreatedBroadcastAndFunnelSelects(); 
+                     refreshCreatedBroadcastAndFunnelSelects();
                 })
                 .catch(err => {
                     console.error(err);
@@ -1506,7 +1506,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                  fetchCreatedBroadcasts();
 
-                  refreshCreatedBroadcastAndFunnelSelects(); 
+                  refreshCreatedBroadcastAndFunnelSelects();
 
             } else {
                 notyf.error(data.message || "Update failed.");
@@ -1524,7 +1524,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
-</script> 
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1560,7 +1560,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         notyf.error(data.message || 'Delete failed.');
                     }
 
-                     refreshCreatedBroadcastAndFunnelSelects(); 
+                     refreshCreatedBroadcastAndFunnelSelects();
                 })
                 .catch(err => {
                     console.error(err);

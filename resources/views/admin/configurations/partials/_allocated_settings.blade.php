@@ -104,7 +104,7 @@
 
     </div>
 
-    <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0 mb-6">
+    {{-- <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0 mb-6">
         <div>
             <label for="overage_rate_percentage" class="block text-sm font-medium text-gray-700 mb-1">
                 Overage Rate (%)
@@ -112,7 +112,7 @@
 
             <div class="flex items-center flex-wrap gap-2">
                 {!! html()->input(
-                        'number',
+                        'text',
                         'overage_rate_percentage',
                         $settings['Product Settings']['overage_rate_percentage']['setting_value'],
                     )->class([
@@ -169,5 +169,5 @@
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
-    </div>
+    </div> --}}
 </div>

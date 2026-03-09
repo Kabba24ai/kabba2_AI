@@ -68,7 +68,6 @@
 
                 </div>
 
-
                 {{-- Stats Cards --}}
                 <div class="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-5 xl:grid-cols-5 gap-4 mb-6">
                     <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-status="">
@@ -144,7 +143,18 @@
 
                 {{-- Filter Controls --}}
                 <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-6">
-                    <form class="flex flex-wrap gap-4 items-end">
+                    <div class="flex flex-wrap gap-4 items-end">
+                        <div class="w-full sm:w-auto">
+                            <button type="button" id="clear-filters"
+                                class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12">
+                                    </path>
+                                </svg>
+                                Clear
+                            </button>
+                        </div>
 
                         {{-- Search --}}
                         <div class=" relative w-full sm:w-48">
@@ -202,12 +212,11 @@
 
                         <!-- <div class="flex gap-2">
 
-                            <a href="#" class="text-sm bg-blue-100 text-blue-700 px-4 py-3 flex gap-2 items-center rounded-md ">
-                                Quick: Supplies
-                            </a>
+                                        <a href="#" class="text-sm bg-blue-100 text-blue-700 px-4 py-3 flex gap-2 items-center rounded-md ">
+                                            Quick: Supplies
+                                        </a>
 
-                        </div> -->
-
+                                    </div> -->
 
                         <div class="flex gap-2">
                             <a href="javascript:void(0)" onclick="openSupplierModal()"
@@ -222,7 +231,6 @@
                             </a>
                         </div>
 
-                        
                         <div class="flex gap-2">
                             <button type="button" id="clear-filters"
                                 class="hidden text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
@@ -234,7 +242,6 @@
                             </button>
                         </div>
 
-
                         <div class="flex gap-2 w-full sm:w-auto sm:ml-auto">
                             <a href="{{ route('admin.maintenance-management.parts.create') }}"
                                 class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
@@ -245,7 +252,7 @@
                                 Add Parts
                             </a>
                         </div>
-                    </form>
+                    </div>
                 </div>
 
                 <!-- table  -->
@@ -274,13 +281,23 @@
                     <p class="text-gray-600">Create and manage reusable parts lists for different equipment categories</p>
                 </div>
 
-
                 {{-- Filter Controls --}}
                 <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-6">
-                    <form class="flex flex-wrap items-end justify-between gap-4">
+                    <div class="flex flex-wrap items-end justify-between gap-4">
 
                         {{-- Left Side: Filters --}}
                         <div class="flex flex-wrap gap-4 items-end">
+                            <div class="w-full sm:w-auto">
+                                <button type="button" id="clear-filters-template"
+                                    class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12">
+                                        </path>
+                                    </svg>
+                                    Clear
+                                </button>
+                            </div>
                             {{-- Search --}}
                             <div class="relative w-full sm:w-48">
                                 <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"
@@ -298,20 +315,11 @@
                                 <select id="tcategory" name="tcategory"
                                     class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-900">
                                     <option value="">All Category</option>
-                                  @foreach ($categories as $id => $title)
+                                    @foreach ($categories as $id => $title)
                                         <option value="{{ $id }}">{{ $title }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                           <button type="button"
-                                id="clearTplFiltersBtn"
-                                class="hidden flex items-center gap-2 text-sm text-gray-600 bg-white px-6 py-3 rounded-lg border border-gray-300">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Clear
-                            </button>
 
                         </div>
 
@@ -325,11 +333,9 @@
                                 </svg>
                                 Create Parts List
                             </a>
-
-
                         </div>
 
-                    </form>
+                    </div>
                 </div>
 
                 <!-- table -->
@@ -339,7 +345,6 @@
                         'partlists' => [],
                     ])
                 </div>
-
 
             </div>
 
@@ -402,8 +407,6 @@
         </div>
     </div>
 
-
-
     @include('admin.maintenance_management.parts.partials._model_category')
 
 @endsection
@@ -419,21 +422,19 @@
             document.getElementById('supplierModal').classList.add('hidden');
         }
 
+        function openPartListModal(element) {
+            const modal = document.getElementById('partListModal');
+            const container = document.getElementById('partListModalContent');
 
+            let lists = JSON.parse(element.getAttribute('data-lists'));
 
-       function openPartListModal(element) {
-    const modal = document.getElementById('partListModal');
-    const container = document.getElementById('partListModalContent');
+            if (!lists.length) {
+                container.innerHTML = `<p class='text-center text-gray-500'>No lists assigned.</p>`;
+            } else {
+                let html = "";
 
-    let lists = JSON.parse(element.getAttribute('data-lists'));
-
-    if (!lists.length) {
-        container.innerHTML = `<p class='text-center text-gray-500'>No lists assigned.</p>`;
-    } else {
-        let html = "";
-
-        lists.forEach(list => {
-            html += `
+                lists.forEach(list => {
+                    html += `
                 <div class="mb-4">
                     <h3 class="text-md font-bold text-gray-800 mb-2 border-b pb-1">
                         ${list.list_name}
@@ -441,32 +442,30 @@
                     <ul class="space-y-1">
             `;
 
-            list.products.forEach(product => {
-                html += `
+                    list.products.forEach(product => {
+                        html += `
                     <li class="p-2 bg-gray-100 rounded-md text-gray-700">
                         ${product}
                     </ li>
                 `;
-            });
+                    });
 
-            html += `
+                    html += `
                     </ul>
                 </div>
             `;
-        });
+                });
 
-        container.innerHTML = html;
-    }
+                container.innerHTML = html;
+            }
 
-    modal.classList.remove('hidden');
-}
+            modal.classList.remove('hidden');
+        }
 
-function closePartListModal() {
-    document.getElementById('partListModal').classList.add('hidden');
-}
-
+        function closePartListModal() {
+            document.getElementById('partListModal').classList.add('hidden');
+        }
     </script>
-
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -482,7 +481,6 @@ function closePartListModal() {
                 if (modal) modal.classList.add('hidden');
             }
 
-
             // === Optional: Close when clicking outside modal content ===
             window.addEventListener('click', function(e) {
                 if (e.target.classList.contains('modal-wrapper')) {
@@ -496,7 +494,6 @@ function closePartListModal() {
         });
     </script>
 
-
     <script>
         // Define global variable (like your static example)
         let SUPPLIERS_DATA = [];
@@ -509,7 +506,7 @@ function closePartListModal() {
             })
             .then(response => response.json())
             .then(data => {
-               
+
                 // Assign response to global variable
                 SUPPLIERS_DATA = data;
 
@@ -635,102 +632,91 @@ function closePartListModal() {
         ${
           s.parts.length
             ? s.parts.map(p => `
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all mb-3">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex-1">
-                                <h5 class="font-semibold text-sm text-gray-900">${p.name}</h5>
-                                <p class="text-sm text-gray-600">CAT 320D Excavator <span class="text-gray-400">•</span> ${p.category}</p>
-                            </div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border text-green-700 bg-green-100 border-green-200">In Stock</span>
-                        </div>
-                        <div class="flex items-center justify-between text-sm">
-                            <div class="space-y-1">
-                                <div class="text-gray-600">
-                                    <span class="font-medium">Part #:</span>
-                                    <span class="font-mono">${p.part}</span>
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all mb-3">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex-1">
+                                            <h5 class="font-semibold text-sm text-gray-900">${p.name}</h5>
+                                            <p class="text-sm text-gray-600">CAT 320D Excavator <span class="text-gray-400">•</span> ${p.category}</p>
+                                        </div>
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border text-green-700 bg-green-100 border-green-200">In Stock</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <div class="space-y-1">
+                                            <div class="text-gray-600">
+                                                <span class="font-medium">Part #:</span>
+                                                <span class="font-mono">${p.part}</span>
+                                            </div>
+                                            <div class="text-gray-600">
+                                                <span class="font-medium">Equipment ID:</span>
+                                                <span class="font-mono">${p.id}</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-lg font-bold text-green-600">$${p.price.toFixed(2)}</div>
+                                            <div class="text-xs text-gray-500 ">Stock: 15 / Min: 10</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="text-gray-600">
-                                    <span class="font-medium">Equipment ID:</span>
-                                    <span class="font-mono">${p.id}</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-lg font-bold text-green-600">$${p.price.toFixed(2)}</div>
-                                <div class="text-xs text-gray-500 ">Stock: 15 / Min: 10</div>
-                            </div>
-                        </div>
-                    </div>
-                  `).join('')
+                              `).join('')
             : `<p class="text-gray-400 text-sm">No parts found for this supplier.</p>`
         }
       </div>
     `;
-    }
+        }
 
-    // Your open/close remain the same, just ensure open calls renderOptions()
-    function openSupplierModal() {
-        document.getElementById('supplierModal').classList.remove('hidden');
-        renderOptions(); // mount + render content
-    }
+        // Your open/close remain the same, just ensure open calls renderOptions()
+        function openSupplierModal() {
+            document.getElementById('supplierModal').classList.remove('hidden');
+            renderOptions(); // mount + render content
+        }
 
-    function closeSupplierModal() {
-        document.getElementById('supplierModal').classList.add('hidden');
-    }
-</script>
+        function closeSupplierModal() {
+            document.getElementById('supplierModal').classList.add('hidden');
+        }
+    </script>
 
-<!-- search filter  -->
+    <!-- search filter  -->
 
     <script>
-            document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function() {
             let searchInput = document.querySelector('input[name="search"]');
             let categorySelect = document.querySelector('select[name="category"]');
             let partlistSelect = document.querySelector('select[name="partlist"]');
 
+            let equipmentSelect = document.querySelector('select[name="equipment_id"]');
+            let wrapper = document.querySelector('#parts-table-wrapper');
+            let loader = document.querySelector('#parts-loader');
 
+            let timeout = null;
+            let selectedStatus = '';
 
-        let equipmentSelect = document.querySelector('select[name="equipment_id"]');
-        let wrapper = document.querySelector('#parts-table-wrapper');
-        let loader = document.querySelector('#parts-loader');
-        let clearBtn = document.querySelector('#clear-filters');
+            /* -----------------------------
+                FREEZE FILTER SETUP
+            ------------------------------*/
+            const screenKey = "parts_filters";
 
-        let timeout = null;
-        let selectedStatus = '';
+            const fieldMap = {
+                'search': searchInput,
+                'category': categorySelect,
+                'partlist': partlistSelect,
+                'equipment_id': equipmentSelect,
+            };
 
+            document.getElementById('clear-filters').addEventListener('click', function() {
+                window.clearFilters(fieldMap, screenKey);
+                fetchParts();
+            });
 
+            // Load saved filter values into inputs
+            FilterFreezer.loadFilters(screenKey, fieldMap);
 
-    /* -----------------------------
-        FREEZE FILTER SETUP
-    ------------------------------*/
-    const screenKey = "parts_filters";
+            const perPageParam = document.getElementById('per_page_sm')?.value ||
+                new URLSearchParams(location.search).get('per_page') ||
+                10;
 
-    const fieldMap = {
-        'search': searchInput,
-        'category': categorySelect,
-        'partlist': partlistSelect,
-        'equipment_id': equipmentSelect,
-    };
+            const pageParam = new URLSearchParams(location.search).get('page') || 1;
 
-    // Load saved filter values into inputs
-    FilterFreezer.loadFilters(screenKey, fieldMap);
-
-        function updateClearButton() {
-                const hasFilters =
-                    (searchInput?.value.trim() !== '') ||
-                    (categorySelect && categorySelect.value) ||
-                    (partlistSelect && partlistSelect.value) ||
-                    (equipmentSelect && equipmentSelect.value) ||
-                    (selectedStatus !== '');
-                if (hasFilters) clearBtn?.classList.remove('hidden');
-                else clearBtn?.classList.add('hidden');
-            }
-
-            const perPageParam = document.getElementById('per_page_sm')?.value
-    || new URLSearchParams(location.search).get('per_page')
-    || 10;
-
-const pageParam = new URLSearchParams(location.search).get('page') || 1;
-
-function fetchParts(page = 1, perPage = 10) {
+            function fetchParts(page = 1, perPage = 10) {
                 const params = new URLSearchParams();
 
                 if (searchInput.value.length >= 2 || searchInput.value.length === 0)
@@ -741,19 +727,14 @@ function fetchParts(page = 1, perPage = 10) {
                 if (partlistSelect && partlistSelect.value)
                     params.append('partlist', partlistSelect.value);
 
-
                 if (equipmentSelect && equipmentSelect.value)
                     params.append('equipment_id', equipmentSelect.value);
 
                 if (selectedStatus)
                     params.append('stock_status', selectedStatus);
 
-                   params.append('page', page);
-params.append('per_page', perPage);
-
-
-                updateClearButton();
-
+                params.append('page', page);
+                params.append('per_page', perPage);
 
                 // Save freeze values
                 FilterFreezer.saveFilters(screenKey, fieldMap);
@@ -768,7 +749,6 @@ params.append('per_page', perPage);
                     })
                     .then(response => response.json())
                     .then(data => {
-
 
                         wrapper.innerHTML = data.html;
                         // document.querySelector('#parts-total-count')?.textContent = data.total;
@@ -836,86 +816,53 @@ params.append('per_page', perPage);
                 });
             });
 
-
-            //  Clear button logic
-            clearBtn?.addEventListener('click', function() {
-                searchInput.value = '';
-                if (categorySelect) categorySelect.value = '';
-                if (partlistSelect) partlistSelect.value = '';
-                if (equipmentSelect) equipmentSelect.value = '';
-                selectedStatus = '';
-
-                // Remove card highlights
-                statusCards.forEach(c => c.classList.remove(
-                    'ring-2', 'ring-green-500', 'ring-yellow-500', 'ring-red-500', 'ring-gray-400'
-                ));
-
-                localStorage.removeItem(screenKey);
-
-                fetchParts();
+            Paginator.init({
+                wrapper: wrapper,
+                fetchCallback: fetchParts
             });
 
-            Paginator.init({
-    wrapper: wrapper,
-    fetchCallback: fetchParts
-});
-
-
-
             /* -----------------------------
-            INITIAL LOAD (AFTER FREEZE)
-        ------------------------------*/
-fetchParts(pageParam, perPageParam); // initial load
-
+                INITIAL LOAD (AFTER FREEZE)
+            ------------------------------*/
+            fetchParts(pageParam, perPageParam); // initial load
 
             // <!-- delete  -->
 
             // Fetch templates
 
-
             let tsearchInput = document.querySelector('input[name="tsearch"]');
             let tcategorySelect = document.querySelector('select[name="tcategory"]');
 
             let twrapper = document.querySelector('#templates-table-wrapper');
-const clearTplBtn = document.getElementById('clearTplFiltersBtn');
 
-function updateTplClearButton() {
-    const hasFilters =
-        (tsearchInput?.value.trim() !== '') ||
-        (tcategorySelect?.value !== '');
+            /* -----------------------------
+                PART LIST FILTER FREEZE SETUP
+            ------------------------------*/
+            const tplScreenKey = "partlist_filters";
 
-    if (hasFilters) {
-        clearTplBtn?.classList.remove('hidden');
-    } else {
-        clearTplBtn?.classList.add('hidden');
-    }
-}
+            const tplFieldMap = {
+                'tsearch': tsearchInput,
+                'tcategory': tcategorySelect,
+            };
 
-/* -----------------------------
-    PART LIST FILTER FREEZE SETUP
-------------------------------*/
-const tplScreenKey = "partlist_filters";
+            // Load before any fetch
+            FilterFreezer.loadFilters(tplScreenKey, tplFieldMap);
 
-const tplFieldMap = {
-    'tsearch': tsearchInput,
-    'tcategory': tcategorySelect,
-};
+            // Clear filters functionality using global clearFilters
+            document.getElementById('clear-filters-template').addEventListener('click', function() {
+                window.clearFilters(tplFieldMap, tplScreenKey);
+                fetchTemplates(1, tplPerPageParam);
+            });
 
-// Load before any fetch
-FilterFreezer.loadFilters(tplScreenKey, tplFieldMap);
-updateTplClearButton();
+            let currentTplPage = 1;
+            let tplPerPageParam = 10;
 
-let currentTplPage = 1;     
-let tplPerPageParam = 10;  
+            fetchTemplates(currentTplPage, tplPerPageParam);
 
+            function fetchTemplates(page = currentTplPage, perPage = tplPerPageParam) {
 
-fetchTemplates(currentTplPage, tplPerPageParam);
-
-function fetchTemplates(page = currentTplPage, perPage = tplPerPageParam) {
-
-
-    // update current page
-    currentTplPage = page;
+                // update current page
+                currentTplPage = page;
 
                 const params = new URLSearchParams();
 
@@ -925,11 +872,10 @@ function fetchTemplates(page = currentTplPage, perPage = tplPerPageParam) {
                 if (tcategorySelect && tcategorySelect.value)
                     params.append('tcategory', tcategorySelect.value);
 
+                params.append('tpl_page', page);
+                params.append('tpl_per_page', perPage);
 
-    params.append('tpl_page', page);
-    params.append('tpl_per_page', perPage);
-
-    FilterFreezer.saveFilters(tplScreenKey, tplFieldMap);
+                FilterFreezer.saveFilters(tplScreenKey, tplFieldMap);
 
                 loader?.classList.remove('hidden');
                 twrapper?.classList.add('opacity-50', 'pointer-events-none');
@@ -941,7 +887,7 @@ function fetchTemplates(page = currentTplPage, perPage = tplPerPageParam) {
                     })
                     .then(response => response.json())
                     .then(data => {
-                                console.log("AJAX response received");
+                        console.log("AJAX response received");
 
                         twrapper.innerHTML = data.html; // Partial HTML view returned from controller
                     })
@@ -957,52 +903,32 @@ function fetchTemplates(page = currentTplPage, perPage = tplPerPageParam) {
 
             // Search debounce
             tsearchInput?.addEventListener('input', function() {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => fetchTemplates(1, tplPerPageParam), 400);
-        updateTplClearButton();
+                clearTimeout(timeout);
+                timeout = setTimeout(() => fetchTemplates(1, tplPerPageParam), 400);
 
-});
+            });
 
-// tcategorySelect?.addEventListener('change', () => fetchTemplates(1, tplPerPageParam));
+            // tcategorySelect?.addEventListener('change', () => fetchTemplates(1, tplPerPageParam));
 
-
-tcategorySelect?.addEventListener('change', function() {
-    fetchTemplates(1, tplPerPageParam);
-    updateTplClearButton();
-});
-
-clearTplBtn?.addEventListener('click', function () {
-
-    //  Clear localStorage
-    localStorage.removeItem(tplScreenKey);
-
-    //  Reset fields
-    if (tsearchInput) tsearchInput.value = '';
-    if (tcategorySelect) tcategorySelect.value = '';
-
-    //  Reload first page
-    fetchTemplates(1, tplPerPageParam);
-
-    //  Hide button again
-    updateTplClearButton();
-});
+            tcategorySelect?.addEventListener('change', function() {
+                fetchTemplates(1, tplPerPageParam);
+            });
 
 
-twrapper.addEventListener('click', function(e){
-    const link = e.target.closest('a'); // catch any <a> clicks
-    
-    if (!link) return;
+            twrapper.addEventListener('click', function(e) {
+                const link = e.target.closest('a'); // catch any <a> clicks
 
-    const url = new URL(link.href);
+                if (!link) return;
 
-    if (url.searchParams.has('tpl_page')) {
-        e.preventDefault(); // stop normal page reload
+                const url = new URL(link.href);
 
-        const page = parseInt(url.searchParams.get('tpl_page')) || 1;
-        fetchTemplates(page, tplPerPageParam); 
-    }
-});
+                if (url.searchParams.has('tpl_page')) {
+                    e.preventDefault(); // stop normal page reload
 
+                    const page = parseInt(url.searchParams.get('tpl_page')) || 1;
+                    fetchTemplates(page, tplPerPageParam);
+                }
+            });
 
             // --- Global delete Template function ---
             window.deleteTemplate = function(id, name) {
@@ -1028,7 +954,8 @@ twrapper.addEventListener('click', function(e){
                                 if (data.success) {
                                     notyf.success(data.message);
 
-                    fetchTemplates(currentTplPage, tplPerPageParam); // refresh current page
+                                    fetchTemplates(currentTplPage,
+                                        tplPerPageParam); // refresh current page
 
                                 } else {
                                     notyf.error(data.message || "Failed to delete template!");
@@ -1038,7 +965,6 @@ twrapper.addEventListener('click', function(e){
                     }
                 });
             };
-
 
         });
     </script>

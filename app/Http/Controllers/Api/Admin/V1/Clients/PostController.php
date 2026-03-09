@@ -6,13 +6,13 @@ use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
 // Request
-use App\Http\Requests\Api\Admin\V1\Clients\PostRequest;
 
 // Model
 use App\Models\Clients\Client;
 
 // Resource
 use App\Http\Resources\Api\Admin\V1\Clients\ListResource;
+use Illuminate\Support\Facades\Request;
 
 class PostController extends BaseController
 {
@@ -21,11 +21,41 @@ class PostController extends BaseController
      *
      * @group Admin App
      */
-    public function __invoke(PostRequest $request): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
-        $validated = $request->validated();
+        $code = $request->input('code');
 
-        $client = Client::where('code', $validated['code'])->first();
+        if (!$code) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Code is required.',
+                ],
+                JsonResponse::HTTP_BAD_REQUEST,
+            );
+        }
+
+        if (strlen($code) > 10) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Code must not exceed 10 characters.',
+                ],
+                JsonResponse::HTTP_BAD_REQUEST,
+            );
+        }
+
+        if (!Client::where('code', $code)->exists()) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Invalid Code.',
+                ],
+                JsonResponse::HTTP_BAD_REQUEST,
+            );
+        }
+
+        $client = Client::where('code', $code)->first();
 
         if (!$client) {
             return response()->json(

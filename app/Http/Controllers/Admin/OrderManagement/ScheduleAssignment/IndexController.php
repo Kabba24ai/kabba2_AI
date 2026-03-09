@@ -29,7 +29,10 @@ class IndexController extends Controller
         if ($request->filled('past_seven_days') && $request->past_seven_days === '1') {
             $startDate = now()->subDays(6); // 7 days total (including today)
             $endDate = now();
-        }else{
+        } elseif ($request->filled('overdue') && $request->overdue === '1') {
+            $startDate = now()->subDays(30); // Show last 30 days to see when items became overdue
+            $endDate = now()->addDays(7); // Include next 7 days to see full rental period
+        } else {
             $startDate = now();
             $endDate = $startDate->copy()->addDays(13); // 14 days total (2 weeks)
         }
@@ -119,6 +122,17 @@ class IndexController extends Controller
                                 });
                             });
                         }
+                    })
+                    ->when($request->filled('overdue') && $request->overdue === '1', function ($q) {
+                        $now = now()->format('Y-m-d H:i:s');
+
+                        // Overdue when due datetime (pickup_date + pickup_time) has passed.
+                        // If pickup_time is missing, default to 09:00:00.
+                        $q->where('current_status', 'Rented')
+                            ->whereHas('lastOrderProduct', function ($lop) use ($now) {
+                                $lop->whereNotNull('pickup_date')
+                                    ->whereRaw("CONCAT(pickup_date, ' ', COALESCE(NULLIF(pickup_time, ''), '09:00:00')) < ?", [$now]);
+                            });
                     });
 
             $order = ['damaged', 'maintenance', 'rented', 'available'];

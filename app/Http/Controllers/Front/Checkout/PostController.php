@@ -201,6 +201,7 @@ class PostController extends Controller
                 'coupon_code' => null,
                 'discount_amount' => $cartSummary['discount'],
                 'grand_total' => $cartSummary['grand_total'],
+                'po_id' => $validated['po_id'] ?? null,
                 'cart_data' => $cart,
                 'is_tax_exempt' => $cartSummary['tax_exempt'] ? 'Yes' : 'No',
                 'platform' => 'Web',
@@ -531,7 +532,13 @@ class PostController extends Controller
             ]);
         } catch (\Exception $e) {
             // Log the error if needed: logger($e);
-            logger($e);
+            Log::error('Checkout failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             DB::rollback();
 
             $totalDuration = round((microtime(true) - $checkoutStart) * 1000, 2);

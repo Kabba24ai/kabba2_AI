@@ -112,7 +112,7 @@
 
             <div class="flex items-center flex-wrap gap-2">
                 {!! html()->input(
-                        'number',
+                        'text',
                         'overage_rate_percentage',
                         $settings['Product Settings']['overage_rate_percentage']['setting_value'],
                     )->class([

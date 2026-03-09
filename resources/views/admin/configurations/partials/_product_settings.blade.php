@@ -77,7 +77,7 @@
 
             <div class="relative">
                 {!! html()->input(
-                        'number',
+                        'text',
                         'sales_tax',
                         \App\Helpers\CustomHelper::displayPercentage($settings['Product Settings']['sales_tax']['setting_value']),
                     )->class([

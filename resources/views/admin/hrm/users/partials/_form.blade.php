@@ -177,24 +177,62 @@
                     @enderror
                 </div>
 
+                @php
+                    $isEdit = isset($user) && $user->exists;
+                @endphp
 
-                <div>
-                    <label for="social_security" class="text-xs text-gray-500 font-medium">
-                        Social Security
-                    </label>
+                @if(!$isEdit)
+                            <div>
+                                <label for="social_security" class="text-xs text-gray-500 font-medium">
+                                    Social Security
+                                </label>
 
-                    {!! html()->text('social_security', old('social_security', $user->social_security ?? ''))
-                        ->id('social_security')
-                        ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
-                        ->attributes([
-                            'maxlength' => 10, // 8 digits + 2 dashes
-                            'data-parsley-pattern' => '^\d{3}-\d{2}-\d{3}$',
-                            'data-parsley-error-message' => 'Please enter in format xxx-xx-xxx',
-                            'placeholder' => 'xxx-xx-xxx',
-                            'autocomplete' => 'off',
-                        ])
-                    !!}
-                </div>
+                                {!! html()->text('social_security', old('social_security'))
+                                    ->id('social_security')
+                                    ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
+                                    ->attributes([
+                                        'maxlength' => 10, // 8 digits + 2 dashes
+                                        'data-parsley-pattern' => '^\d{3}-\d{2}-\d{3}$',
+                                        'data-parsley-error-message' => 'Please enter in format xxx-xx-xxx',
+                                        'placeholder' => 'xxx-xx-xxx',
+                                        'autocomplete' => 'off',
+                                    ])
+                                !!}
+                            </div>
+                @endif
+
+               @if($isEdit)
+                    <div>
+                        <label class="text-xs text-gray-500 font-medium">
+                            Social Security
+                        </label>
+
+                        <div class="relative">
+                            {!! html()->password('social_security', 'xxx-xx-xxxx')
+                                ->id('social_security')
+                                ->class('pl-2 pr-10 py-2 w-full border rounded-md text-sm border-gray-300 bg-gray-100 cursor-not-allowed')
+                                ->attributes([
+                                    'disabled' => true,
+                                    'maxlength' => 10,
+                                    'data-parsley-pattern' => '^\d{3}-\d{2}-\d{3}$',
+                                    'data-parsley-error-message' => 'Please enter in format xxx-xx-xxx',
+                                    'placeholder' => 'xxx-xx-xxx',
+                                    'autocomplete' => 'off',
+                                ])
+                            !!}
+
+                            <!-- Lock Button -->
+                            <button type="button"
+                                data-open-verify
+                                data-field-id="social_security"
+                                data-verify-url="{{ route('admin.hrm.users.verify-ssn', $user->id) }}"
+                                class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
+
+                                <x-heroicon-o-lock-closed class="w-5 h-5"/>
+                            </button>
+                        </div>
+                    </div>
+                @endif
 
 
 
@@ -910,6 +948,68 @@
     </div>
 </div>
 
+
+
+{{-- Modal (hidden by default) --}}
+<div id="verify-modal" class="fixed inset-0 z-[99999] hidden" role="dialog" aria-modal="true"
+    aria-labelledby="verify-title">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/40"></div>
+
+    <!-- Panel -->
+    <div class="relative mx-auto my-10 max-w-lg w-[92%]">
+        <div class="bg-white rounded-xl shadow-xl border border-gray-200">
+            <div class="px-5 pt-4 pb-2 flex items-start justify-between">
+                <div class="flex items-center space-x-2">
+                    <x-heroicon-o-lock-closed class="w-5 h-5 text-red-500" />
+                    <h3 id="verify-title" class="text-lg font-semibold text-gray-900">Security Verification Required
+                    </h3>
+                </div>
+                <button type="button" class="p-1 text-gray-400 hover:text-gray-600" data-modal-close
+                    aria-label="Close">
+                    <x-heroicon-o-x-mark class="w-5 h-5" />
+                </button>
+            </div>
+
+            <div class="px-5 pb-4">
+                <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Master Passcode.</p>
+
+                <div class="relative">
+                    <input id="verify-password" type="password" autocomplete="current-password"
+                        class="w-full pr-12 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                        placeholder="Enter your Master Password">
+                    <!-- eye -->
+                    <button type="button"
+                        class="absolute inset-y-0 right-0 w-10 grid place-items-center text-gray-400 hover:text-gray-600"
+                        data-toggle="visibility" data-target="verify-password" aria-label="Show password">
+                        <x-heroicon-o-eye data-eye class="w-5 h-5" />
+                        <x-heroicon-o-eye-slash data-eye-off class="w-5 h-5 hidden" />
+                    </button>
+                </div>
+
+                <p id="verify-error" class="text-sm text-red-600 mt-2 hidden"></p>
+
+                <div class="mt-4 flex items-center gap-3">
+                    <button type="button"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-60"
+                        id="verify-submit">
+                        <x-heroicon-o-lock-closed class="w-4 h-4" />
+                        Verify & Edit
+                    </button>
+                    <button type="button"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        data-modal-close>
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 @push('js')
 
 <script>
@@ -1028,6 +1128,156 @@ document.addEventListener("DOMContentLoaded", function () {
 
         e.target.value = formatted;
     });
+});
+</script>
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+        // password visibility (delegated)
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-toggle="visibility"]');
+            if (!btn) return;
+            const targetId = btn.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            // Only allow visibility toggle if input is NOT disabled (i.e., verified)
+            if (input.hasAttribute('disabled')) {
+                // If not verified, open modal for verification
+                if (input.id === 'verify-password') return; // Don't open modal for the modal's own input
+                // Find related lock button and trigger modal
+                const opener = document.querySelector(`[data-open-verify][data-field-id="${input.id}"]`);
+                if (opener) opener.click();
+                return;
+            }
+
+            const eye = btn.querySelector('[data-eye]');
+            const eyeOff = btn.querySelector('[data-eye-off]');
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            if (eye) eye.classList.toggle('hidden', !isPassword);
+            if (eyeOff) eyeOff.classList.toggle('hidden', isPassword);
+            btn.setAttribute('aria-label', isPassword ? 'Hide value' : 'Show value');
+            btn.setAttribute('aria-pressed', String(isPassword));
+        });
+
+        const modal = document.getElementById('verify-modal');
+        const verifyInput = document.getElementById('verify-password');
+        const verifyError = document.getElementById('verify-error');
+        const verifyBtn = document.getElementById('verify-submit');
+
+        let targetFieldId = null;
+        let verifyUrl = null;
+
+
+        // open modal from lock buttons
+        document.addEventListener('click', function(e) {
+            const opener = e.target.closest('[data-open-verify]');
+            if (!opener) return;
+
+            targetFieldId = opener.getAttribute('data-field-id');
+
+                verifyUrl = opener.getAttribute('data-verify-url');
+
+
+           const field = document.getElementById(targetFieldId);
+
+        // Only block if it is an INPUT and already enabled
+        if (field && field.tagName !== 'P' && !field.hasAttribute('disabled')) return;
+
+
+            openModal();
+        });
+
+        // close modal (X or Cancel or backdrop)
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('[data-modal-close]') || e.target.closest('[data-modal-close]')) {
+                closeModal();
+            }
+            if (e.target === modal) { // click backdrop
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+        });
+
+        function openModal() {
+            verifyInput.value = '';
+            verifyError.textContent = '';
+            verifyError.classList.add('hidden');
+            modal.classList.remove('hidden');
+            setTimeout(() => verifyInput.focus(), 0);
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+
+   
+
+   
+
+    // Submit verification
+    verifyBtn.addEventListener('click', async function () {
+
+        if (!verifyUrl) return;
+
+        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        const response = await fetch(verifyUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                password: verifyInput.value,
+                field_name: targetFieldId
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+                    const field = document.getElementById(targetFieldId);
+
+            if (!field) return;
+
+            // Set decrypted value
+            field.value = data.ssn || '';
+
+            field.removeAttribute('disabled');
+            field.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            field.type = 'text';
+
+            // Re-bind parsley validation
+            if (window.$ && $(field).parsley) {
+                $(field).parsley().reset();
+            }
+
+            // Optional: remove lock button after verification
+            const lockBtn = document.querySelector(
+                `[data-open-verify][data-field-id="${targetFieldId}"]`
+            );
+
+            if (lockBtn) {
+                lockBtn.remove();
+            }
+
+            modal.classList.add('hidden');
+        } else {
+            verifyError.textContent = data.message;
+            verifyError.classList.remove('hidden');
+        }
+    });
+
+
 });
 </script>
 

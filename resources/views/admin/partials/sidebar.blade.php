@@ -576,7 +576,7 @@
                                 </li>
 
                                 <li>
-                                    <a href="{{ config('app.domains.timetrackerpro') }}"
+                                    <a href="{{ config('app.domains.timetrackerpro') }}/?logout=1"
                                     target="_blank"
                                     class="menu-dropdown-item group menu-dropdown-item-inactive">
                                         <x-heroicon-o-clock class="w-5 h-5" />

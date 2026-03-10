@@ -100,7 +100,7 @@
         <div class="dark:border-gray-800">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4  mx-auto mt-6">
-                <!-- Total Collected- All Sources  -->
+                <!-- Total Revenue - All Sources  -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-blue-100 text-blue-600 rounded-md p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -111,9 +111,9 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500">Total Collected- All Sources </p>
+                        <p class="text-sm text-gray-500">Total Revenue - All Sources </p>
                         <p class="text-xl font-semibold text-gray-900" id="totalCollectedAllSources">
-                            $5555
+                            
                         </p>
                     </div>
                 </div>
@@ -130,7 +130,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">
-                            Total Revenue - Excluding Sales Tax
+                            Total Revenue - Excluding Tax Free Revenue
                         </p>
                         <p class="text-xl font-semibold text-gray-900" id="totalRevenue">
                         </p>
@@ -295,8 +295,13 @@
                                         .stats.totalCollectedAllSources;
                                     document.querySelector('#taxFreeRevenue').textContent = data.stats
                                         .taxFreeRevenue;
-                                    document.querySelector('#taxableRevenue').textContent = data.stats
+                                    
+                                        document.querySelector('#taxableRevenue').textContent = data.stats
                                         .taxableRevenue;
+
+                                    // document.querySelector('#taxableRevenue').textContent = data.stats
+                                    //     .totalRevenue;
+
                                     document.querySelector('#salesTaxCollected').textContent = data.stats
                                         .salesTaxCollected;
                                 }

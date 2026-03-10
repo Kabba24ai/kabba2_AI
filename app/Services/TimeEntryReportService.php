@@ -8,22 +8,27 @@ use Illuminate\Support\Collection;
 
 class TimeEntryReportService
 {
+
+private function secondsToHoursMinutes($seconds)
+{
+    return number_format($seconds / 3600, 2);
+}
+
     public function build(Collection $entries): Collection
     {
         return $entries->groupBy(fn ($e) => $e->clock_in->toDateString())
             ->map(function ($dayEntries, $date) {
             $dayWorkedSeconds = 0;
             $dayUnpaidSeconds = 0;
-
-            $entriesData = $dayEntries->map(function ($entry) use (&$dayWorkedSeconds, &$dayUnpaidSeconds) {
+            $dayPaidSeconds = 0;
+            $entriesData = $dayEntries->map(function ($entry) use (&$dayWorkedSeconds, &$dayUnpaidSeconds, &$dayPaidSeconds) {
 
                 $workedSeconds = 0;
                 $unpaidSeconds = 0;
 
-                if ($entry->clock_in && $entry->clock_out) {
-                    $workedSeconds =
-                        $entry->clock_in->diffInSeconds($entry->clock_out);
-                }
+              if ($entry->clock_in && $entry->clock_out) {
+$workedSeconds = $entry->clock_in->diffInSeconds($entry->clock_out);
+}
 
                 $lunchBreaks = [];
                 $unpaidBreaks = [];
@@ -65,7 +70,7 @@ class TimeEntryReportService
 
                 $dayWorkedSeconds += $workedSeconds;
                 $dayUnpaidSeconds += $unpaidSeconds;
-
+                $dayPaidSeconds   += $paidSeconds;
                 return [
                     'entry_id' => $entry->id,
 
@@ -75,7 +80,7 @@ class TimeEntryReportService
                     ],
 
                     'clock_out' => $entry->clock_out ? [
-                        'actual'   => $entry->clock_out,
+                        'actual'   => $entry->updated_at,
                         'adjusted' => $entry->clock_out,
                     ] : null,
 
@@ -92,12 +97,9 @@ class TimeEntryReportService
                 'date' => $date,
                 'entries' => $entriesData,
                 'totals' => [
-                    'worked_hours' => round($dayWorkedSeconds / 3600, 2),
-                    'unpaid_hours' => round($dayUnpaidSeconds / 3600, 2),
-                    'paid_hours'   => round(
-                        max($dayWorkedSeconds - $dayUnpaidSeconds, 0) / 3600,
-                        2
-                    ),
+                    'worked_hours' => $this->secondsToHoursMinutes($dayWorkedSeconds),
+'unpaid_hours' => $this->secondsToHoursMinutes($dayUnpaidSeconds),
+'paid_hours' => $this->secondsToHoursMinutes($dayPaidSeconds),
                 ],
             ];
         })->values();

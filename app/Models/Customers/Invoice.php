@@ -31,6 +31,8 @@ class Invoice extends Model
         'invoice_type',
         'paid_amount',
         'open_amount',
+        'is_mail',
+        'is_mail_date',
     ];
 
     public static function boot()

@@ -26,6 +26,16 @@ class TimeTrackerHelper
             ->second(0);
     }
 
+    public static function roundDown(Carbon $time, int $incrementMinutes): Carbon
+    {
+        $minutes = $time->minute;
+        $remainder = $minutes % $incrementMinutes;
+
+        return $time
+            ->copy()
+            ->subMinutes($remainder)
+            ->second(0);
+    }
 
        public static function getTimeTrackerSetting(string $key, mixed $default = null): mixed
     {

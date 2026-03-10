@@ -85,6 +85,7 @@ class Store extends Model
                 $model->updated_by = auth()->id();
             }
         });
+        
     }
 
     public function hours()

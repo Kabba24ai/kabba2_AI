@@ -683,6 +683,20 @@
                 </svg>
                 Download PDF
             </a>
+             <!-- bottom checkbox -->
+               <button
+                id="mark-mail-sent"
+                data-invoice-id="{{ $invoice->unique_id }}"
+                {{ $invoice->is_mail === 'yes' ? 'disabled' : '' }}
+                class="bg-gray-700 hover:bg-gray-800 disabled:bg-gray-400 text-white gap-2 text-sm px-4 py-2 rounded-lg font-medium flex items-center justify-center space-x-2">
+
+                @if($invoice->is_mail === 'yes' && $invoice->is_mail_date)
+                    Mail Sent: {{ App\Helpers\CustomHelper::formatDate($invoice->is_mail_date) }}
+                @else
+                    Mark Mail Sent
+                @endif
+
+            </button>
         </div>
     </div>
 </div>
@@ -883,6 +897,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
         spinner.classList.remove('hidden');
         text.innerText = 'Sending...';
+    });
+
+});
+</script>
+<script>
+document.getElementById('mark-mail-sent').addEventListener('click', function () {
+
+    const invoiceId = this.dataset.invoiceId;
+
+    window.showConfirm(
+        'Are you sure you want to mark this email as sent?',
+        'Confirm Email Status'
+    ).then((result) => {
+
+        if (result.isConfirmed) {
+
+            const url = "{{ route('admin.crm.customers.invoice.mark-mail', ':id') }}".replace(':id', invoiceId);
+
+            fetch(url, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                location.reload();
+            });
+
+        }
+
     });
 
 });

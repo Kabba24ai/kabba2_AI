@@ -310,7 +310,6 @@
                 .get('per_page') || null;
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
-
             const screenKey = "order_filters";
 
             const fieldMap = {

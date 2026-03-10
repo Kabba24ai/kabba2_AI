@@ -8,6 +8,7 @@ use App\Models\Iam\Personnel\TimeEntry;
 use App\Models\Iam\Personnel\TimeEntryBreak;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\TimeTrackerHelper;
 use Exception;
 
 class TimeEntryUpdateController extends BaseController
@@ -18,11 +19,6 @@ class TimeEntryUpdateController extends BaseController
 
             $validated = $request->validated();
 
-            // Log::info(' TimeEntry Update Request Received', [
-            //     'payload' => $request->all(),
-            //     'validated' => $validated,
-            // ]);
-
             $entryId   = $validated['entry_id'];
             $breakId   = $validated['break_id'] ?? null;
             $type      = $validated['entry_type'];
@@ -30,15 +26,14 @@ class TimeEntryUpdateController extends BaseController
 
             $entry = TimeEntry::findOrFail($entryId);
 
-            // Log::info('Before Update', [
-            //     'entry_id' => $entry->id,
-            //     'clock_in' => $entry->clock_in,
-            //     'clock_out' => $entry->clock_out,
-            //     'total_hours' => $entry->total_hours,
-            // ]);
 
             $baseDate = $entry->clock_in->toDateString();
             $newDateTime = Carbon::parse($baseDate . ' ' . $newTime);
+
+            $payIncrement = (int) TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 30);
+
+            // rounded version (same rule you use in clock-in/out)
+            $roundedDateTime = TimeTrackerHelper::roundDown($newDateTime, $payIncrement);
 
             /*
             |--------------------------------------------------------------------------
@@ -47,14 +42,11 @@ class TimeEntryUpdateController extends BaseController
             */
             if ($type === 'clock_in') {
 
-                $entry->clock_in = $newDateTime;
+                $entry->clock_in = $roundedDateTime;
                 $entry->created_at = $newDateTime;
 
                 $entry->save();
 
-                // Log::info('Clock In Updated', [
-                //     'new_clock_in' => $entry->clock_in,
-                // ]);
             }
 
             /*
@@ -64,18 +56,14 @@ class TimeEntryUpdateController extends BaseController
             */
             elseif ($type === 'clock_out') {
 
-               $entry->clock_out = $finalClockOutTime;
-                $entry->status = 'completed';
+               $entry->clock_out = $roundedDateTime;
+               $entry->status = 'completed';
 
-                $entry->timestamps = false; // disable auto timestamp
-                $entry->updated_at = $finalClockOutTime;
+                // $entry->timestamps = false; // disable auto timestamp
+                $entry->updated_at = $newDateTime;
 
                 $entry->save();
 
-
-                // Log::info(' Clock Out Updated', [
-                //     'new_clock_out' => $entry->clock_out,
-                // ]);
             }
 
             /*
@@ -86,20 +74,21 @@ class TimeEntryUpdateController extends BaseController
             elseif ($breakId) {
 
                 $break = TimeEntryBreak::findOrFail($breakId);
+                //  Get default lunch duration (minutes)
+                        $lunchMinutes = TimeTrackerHelper::getTimeTrackerSetting(
+                            'default_lunch_duration_minutes',
+                            30 // fallback
+                        );
 
-                // Log::info(' Before Break Update', [
-                //     'break_id' => $break->id,
-                //     'start_time' => $break->start_time,
-                //     'end_time' => $break->end_time,
-                // ]);
+                          $roundedBreakendTime   = $newDateTime->copy()->addMinutes((int) $lunchMinutes);
 
                 if (in_array($type, ['lunch_out', 'unpaid_out'])) {
-                    $break->start_time = $newDateTime;
+                    $break->start_time = $roundedBreakendTime;
                     $break->created_at = $newDateTime;
                 }
 
                 if (in_array($type, ['lunch_in', 'unpaid_in'])) {
-                    $break->end_time = $newDateTime;
+                    $break->end_time = $roundedBreakendTime;
                     $break->updated_at = $newDateTime;
                 }
 
@@ -109,20 +98,9 @@ class TimeEntryUpdateController extends BaseController
                 $entry->refresh();
                 $entry->save();
 
-                // Log::info(' Break Updated', [
-                //     'break_id' => $break->id,
-                //     'updated_start' => $break->start_time,
-                //     'updated_end' => $break->end_time,
-                // ]);
             }
 
-            // Log::info(' After Update', [
-            //     'entry_id' => $entry->id,
-            //     'clock_in' => $entry->clock_in,
-            //     'clock_out' => $entry->clock_out,
-            //     'total_hours' => $entry->fresh()->total_hours,
-            // ]);
-
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Time entry updated successfully',

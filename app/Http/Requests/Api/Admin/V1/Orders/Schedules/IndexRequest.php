@@ -24,6 +24,7 @@ class IndexRequest extends ApiBaseFormRequest
             'schedule_type'   => ['required', 'in:Delivery,Return'],
             'schedule_status'  => ['required', 'in:Pending,Completed'],
             'transport_mode'   => ['required', 'in:All,Truck,Store'],
+            'date_filter'   => ['required', 'in:All,Today,This Week,This Month'],
         ];
     }
 
@@ -67,6 +68,11 @@ class IndexRequest extends ApiBaseFormRequest
             ],
             'transport_mode' => [
                 'description' => 'The mode of transport, either "All", "Truck", or "In Store".',
+                'example' => 'All',
+                'type' => 'string',
+            ],
+            'date_filter' => [
+                'description' => 'The date filter for the schedules, either "All", "Today", "This Week", or "This Month".',
                 'example' => 'All',
                 'type' => 'string',
             ],

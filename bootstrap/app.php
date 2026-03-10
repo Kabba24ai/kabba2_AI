@@ -39,6 +39,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // Front Middleware
             'front.common-front-data' => \App\Http\Middleware\Front\CommonDataMiddleware::class,
 
+            // Admin API middleware
+            'admin.common-data' => \App\Http\Middleware\Admin\CommonDataMiddleware::class,
+
             // Chehck Middleware that customer active
             'customer.active' => \App\Http\Middleware\Front\EnsureCustomerIsActive::class,
         ]);

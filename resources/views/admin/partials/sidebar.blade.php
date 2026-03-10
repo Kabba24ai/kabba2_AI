@@ -6,14 +6,14 @@
         class="sidebar-header flex items-center gap-2 pt-8 pb-7">
         <a href="{{ route('admin.dashboard.index') }}">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-                <img class="dark:hidden w-10" src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}"
+                <img class="dark:hidden w-10" src="{{ $adminlogo }}"
                     alt="Logo" />
                 <img class="hidden dark:block w-10"
-                    src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
+                    src="{{ $adminlogo }}" alt="Logo" />
             </span>
 
             <img class="logo-icon w-10" :class="sidebarToggle ? 'lg:block' : 'hidden'"
-                src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
+                src="{{ $adminlogo }}" alt="Logo" />
         </a>
     </div>
     <!-- SIDEBAR HEADER -->

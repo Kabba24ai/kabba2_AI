@@ -12,9 +12,11 @@ class CommonFrontDataHelper
         $categoryTree = self::categoryTree();
         $contactUsSettings = self::contactUsSettings();
 
+        $logo = \App\Helpers\ConfigurationHelper::getProfileLogo();
         $data = [
             'frontCategoryTree' => $categoryTree,
             'contactUsSettings' => $contactUsSettings,
+            'logo'=> $logo,
         ];
 
         view()->share($data);

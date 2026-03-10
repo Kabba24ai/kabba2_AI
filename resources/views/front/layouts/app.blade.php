@@ -10,10 +10,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicon icon-->
-    <link rel="shortcut icon" href="{{ asset('storage/front/images/fav.png') }}">
+    <link rel="shortcut icon" href="{{ $logo }}">
 
     <title>@yield('title', config('app.name'))</title>
-    
     @stack('meta')
 
 

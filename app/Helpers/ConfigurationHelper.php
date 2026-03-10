@@ -29,7 +29,7 @@ class ConfigurationHelper
         foreach ($settings as $setting) {
             $value = $setting->getSetting();
             $result[$setting->setting_name] = $value;
-            $result[$setting->setting_name . '_formatted'] = $value > 0 ? number_format((float)$value) : '';
+            $result[$setting->setting_name . '_formatted'] = $value > 0 ? number_format((float) $value) : '';
         }
 
         if (!is_null($key)) {
@@ -38,7 +38,6 @@ class ConfigurationHelper
 
         return $result;
     }
-
 
     /**
      *  Safely decrypt any given value.
@@ -73,19 +72,16 @@ class ConfigurationHelper
         return self::safeDecrypt($value);
     }
 
-  
+    public static function getProfileLogo(): ?string
+    {
+        $logoId = self::getSettings('Profile Settings', 'logo');
 
+        if (empty($logoId)) {
+            return null;
+        }
 
-public static function getProfileLogo(): ?string
-{
-    $logoId = self::getSettings('Profile Settings', 'logo');
+        $media = \App\Models\Global\Media::find($logoId);
 
-    if (empty($logoId)) {
-        return null;
+        return $media->url ?? null;
     }
-
-    $media = \App\Models\Global\Media::find($logoId);
-
-    return $media->url ?? null;
-}
 }

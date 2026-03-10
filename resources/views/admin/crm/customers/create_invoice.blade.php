@@ -351,7 +351,7 @@ $lockInvoiceActions = $isEdit &&
 
                 $defaultAddresses = [
                 ['label' => 'Billing', 'data' => $billingAddress],
-                ['label' => 'Shipping', 'data' => $shippingAddress],
+                ['label' => 'Delivery', 'data' => $shippingAddress],
                 ];
                 @endphp
 
@@ -383,13 +383,14 @@ $lockInvoiceActions = $isEdit &&
                             <!-- Row 1 -->
                             <div>
                                 {{ $addresse->address ?? '' }}
-                                @if(!empty($addresse->city))
-                                    , {{ $addresse->city }}
-                                @endif
+                               
                             </div>
 
                          
                             <div>
+                                 @if(!empty($addresse->city))
+                                     {{ $addresse->city }} ,
+                                @endif 
                                 @if(!empty($addresse->state?->name))
                                     {{ $addresse->state->name }},
                                 @endif
@@ -430,10 +431,10 @@ $lockInvoiceActions = $isEdit &&
 
                 </div>
 
-                 @if ($isEdit)
+                 {{-- @if ($isEdit) --}}
 
 
-                    @if(isset($invoice) && $invoice->id)
+                    {{-- @if(isset($invoice) && $invoice->id)
 
                         @php
                             $statusColors = [
@@ -452,13 +453,13 @@ $lockInvoiceActions = $isEdit &&
                             </span>
                         </div>
 
-                    @endif
+                    @endif --}}
 
                         {{--  Only show Payment button if NOT fully paid --}}
-                    @if(isset($invoice) && $invoice->invoice_status !== 'paid')
+                    {{-- @if(isset($invoice) && $invoice->invoice_status !== 'paid') --}}
 
 
-                        <div class="flex flex-wrap justify-center gap-2 pt-5">
+                        {{-- <div class="flex flex-wrap justify-center gap-2 pt-5">
                             
                             <a href="javascript:void(0)" id="openTemplatesModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-md flex items-center">
                                 
@@ -470,10 +471,10 @@ $lockInvoiceActions = $isEdit &&
                                 Payment
                             </a>
 
-                        </div>
-                    @endif
+                        </div> --}}
+                    {{-- @endif --}}
 
-                 @endif
+                 {{-- @endif --}}
 
 
 
@@ -518,21 +519,21 @@ $lockInvoiceActions = $isEdit &&
 
                 <!-- Paid & Open Amount (Only Edit Mode) -->
                 @if($isEdit)
-                <hr class="my-2 border-gray-200">
+                {{-- <hr class="my-2 border-gray-200"> --}}
 
-                <div class="flex justify-between py-1 text-sm">
+                {{-- <div class="flex justify-between py-1 text-sm">
                     <span class="text-gray-700">Paid Amount:</span>
                     <span class="text-green-600 font-medium" id="invoice-paid">
                         ${{ number_format($invoice->paid_amount ?? 0, 2) }}
                     </span>
-                </div>
+                </div> --}}
 
-                <div class="flex justify-between py-1 text-sm">
+                {{-- <div class="flex justify-between py-1 text-sm">
                     <span class="text-gray-700">Open Amount:</span>
                     <span class="text-red-600 font-medium" id="invoice-open">
                         ${{ number_format($invoice->open_amount ?? 0, 2) }}
                     </span>
-                </div>
+                </div> --}}
                 @endif
 
             </div>

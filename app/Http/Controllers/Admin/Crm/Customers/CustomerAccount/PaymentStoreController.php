@@ -36,7 +36,9 @@ class PaymentStoreController extends Controller
             $record->order_id = $validated['order_id'] ?? null;
             $record->balance = $validated['balance'] ?? 0;
             $record->amount = $validated['amount'];
-            $record->payment_type = $validated['payment_type'];
+            $record->payment_type = ($validated['payment_type'] === 'Other')
+    ? null
+    : $validated['payment_type'];
 
 
                 $user = User::findOrFail($validated['responsible_person']);

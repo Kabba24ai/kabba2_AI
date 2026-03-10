@@ -12,6 +12,7 @@ use App\Helpers\CustomHelper;
 use App\Http\Requests\Admin\Hrm\Users\StoreRequest;
 use App\Models\Iam\AccessControl\Role;
 use Hash;
+use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
 
 class StoreController extends Controller
@@ -49,10 +50,13 @@ class StoreController extends Controller
 
                 'auto_clockout_penalty' => $validated['auto_clockout_penalty'] ?? null,
                 
-'store_id' => $validated['store_id'] ?? null,
+            'store_id' => $validated['store_id'] ?? null,
 
                 
-                   'social_security'        => $validated['social_security'] ?? null,
+                   'social_security' => !empty($validated['social_security'])
+                   
+    ? Crypt::encryptString($validated['social_security'])
+    : null,
 
                 'shift_start_time' => !empty($validated['shift_start_time'])
         ? Carbon::createFromFormat('h:i A', $validated['shift_start_time'])->format('H:i')
@@ -67,6 +71,10 @@ class StoreController extends Controller
 
             // Create User
             $user = User::create($userData);
+
+            
+                //    'social_security'        => $validated['social_security'] ?? null,
+
 
             // Assign selected roles
             if (!empty($validated['roles']) && is_array($validated['roles'])) {

@@ -30,7 +30,7 @@ class ViewController extends Controller
         // Fetch the user data based on unique_id or any other identifier
 
         $user = User::with('roles')->where('unique_id', $unique_id)->first();
-     $paytypes = UserPayType::options();
+        $paytypes = UserPayType::options();
 
          return view('admin.hrm.users.view', [
             'states' => $states,

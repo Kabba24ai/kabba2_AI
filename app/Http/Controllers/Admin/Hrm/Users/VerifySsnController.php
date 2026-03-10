@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Iam\Personnel\User;
 use App\Models\Configurations\Setting;
+use Illuminate\Support\Facades\Crypt;
 
 class VerifySsnController extends Controller
 {
@@ -26,9 +27,19 @@ class VerifySsnController extends Controller
             ], 403);
         }
 
+         $decryptedSsn = null;
+
+        if ($user->social_security) {
+            try {
+                $decryptedSsn = Crypt::decryptString($user->social_security);
+            } catch (\Exception $e) {
+                $decryptedSsn = null;
+            }
+        }
+
         return response()->json([
             'success' => true,
-            'ssn' => $user->social_security, // original SSN
+            'ssn' => $decryptedSsn, // original SSN
         ]);
     }
 }

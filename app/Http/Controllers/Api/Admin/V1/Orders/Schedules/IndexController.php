@@ -64,14 +64,19 @@ class IndexController extends BaseController
                             $query->where('delivery_transport_mode', $transportMode);
                         }
                     } elseif ($scheduleType === "Return") {
-                        $query->where('pickup_status', $scheduleStatus);
+                        $query->where('pickup_status', $scheduleStatus)
+                              ->where('delivery_status', 'Completed');
                         if ($transportMode && $transportMode !== 'All') {
                             $query->where('pickup_transport_mode', $transportMode);
                         }
                     }
                 }
             )
-            ->orderBy('delivery_date', 'asc')
+            ->when(
+                $scheduleType === "Return",
+                fn($query) => $query->orderBy('pickup_date', 'asc'),
+                fn($query) => $query->orderBy('delivery_date', 'asc')
+            )
             ->paginate($perPage);
 
         if ($orders->isEmpty()) {

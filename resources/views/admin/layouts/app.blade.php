@@ -45,6 +45,11 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
     @include('admin.partials.preloader')
     <!-- ===== Preloader End ===== -->
 
+    @php
+        $adminlogo = \App\Helpers\ConfigurationHelper::getProfileLogo();
+    @endphp
+
+
     <!-- ===== Page Wrapper Start ===== -->
     <div class="flex h-screen overflow-hidden">
         <!-- ===== Sidebar Start ===== -->
@@ -58,6 +63,7 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
             </div>
 
             <!-- Small Device Overlay End -->
+
 
             <!-- ===== Header Start ===== -->
             @include('admin.partials.header')
@@ -89,9 +95,6 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
             success: @json(session('success')),
             error: @json(session('error'))
         };
-
-
-
     </script>
 </body>
 

@@ -72,4 +72,17 @@ class PayPeriodHelper
 
         return $periods;
     }
+
+    public static function currentPeriod(): int
+{
+    $today = now();
+
+    foreach (self::listPeriods(52) as $period) {
+        if ($today->between($period['start_date'], $period['end_date'])) {
+            return $period['number'];
+        }
+    }
+
+    return 1;
+}
 }

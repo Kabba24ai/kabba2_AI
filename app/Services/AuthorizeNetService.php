@@ -85,12 +85,12 @@ class AuthorizeNetService
             // if (!empty($customer['billing_address']['address'])) {
             //     $customerAddress->setAddress($customer['billing_address']['address']);
             // }
-            if (!empty($customer['billing_address']['city'])) {
-                $customerAddress->setCity($customer['billing_address']['city']);
-            }
-            if (!empty($customer['billing_address']['state_name'])) {
-                $customerAddress->setState($customer['billing_address']['state_name']);
-            }
+            // if (!empty($customer['billing_address']['city'])) {
+            //     $customerAddress->setCity($customer['billing_address']['city']);
+            // }
+            // if (!empty($customer['billing_address']['state_name'])) {
+            //     $customerAddress->setState($customer['billing_address']['state_name']);
+            // }
             if (!empty($customer['billing_address']['zip_code'])) {
                 $customerAddress->setZip($customer['billing_address']['zip_code']);
             }

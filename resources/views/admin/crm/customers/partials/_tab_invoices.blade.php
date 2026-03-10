@@ -116,12 +116,14 @@
                      <th class="py-4 px-6 w-32">Created</th>
                      <th class="py-4 px-6 w-32">Due Date</th>
                      <th class="py-4 px-6 w-32 text-right">Amount</th>
-                          <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
+                          {{-- <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
                                <th class="py-4 px-6 w-32 text-right">Open Amount</th>
-                     <th class="py-4 px-6 w-32 text-right">Payment Status</th>
-                     <th class="py-4 px-6 w-32 text-right">Mail Status</th>
+                     <th class="py-4 px-6 w-32 text-right">Payment Status</th> --}}
+                     <th class="py-4 px-6 w-32 text-right">Mail Date</th>
 
-                     <th class="py-4 px-6 w-24 text-right">Action</th>
+                     <th class="py-4 px-6 w-32 text-right">Email Status</th>
+
+                     <th class="py-4 px-6 w-24 text-center">Action</th>
                  </tr>
              </thead>
 
@@ -146,13 +148,13 @@
                      <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
                        {{-- Paid Amount --}}
-                    <td class="py-4 px-6 text-right text-green-600 font-semibold">
+                    {{-- <td class="py-4 px-6 text-right text-green-600 font-semibold">
                         ${{ number_format($invoice->paid_amount ?? 0, 2) }}
-                    </td>
+                    </td> --}}
 
                   {{-- Open Amount --}}
 
-                        <td class="py-4 px-6 text-right text-red-600 font-semibold"
+                        {{-- <td class="py-4 px-6 text-right text-red-600 font-semibold"
                             data-open-amount="{{
                                 $invoice->invoice_status === 'paid'
                                     ? 0
@@ -184,7 +186,6 @@
 
                             $color = $statusColors[$invoice->invoice_status] ?? 'gray';
 
-                            // Format label nicely
                             $statusLabel = match ($invoice->invoice_status) {
                                 'partial_paid' => 'Partial Paid',
                                 'paid' => 'Paid',
@@ -197,8 +198,25 @@
                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
                             {{ $statusLabel }}
                         </span>
-                    </td>
+                    </td> --}}
 
+                   <td class="py-4 px-6 text-right">
+
+                        
+
+                
+                        @if($invoice->is_mail === 'yes' && $invoice->is_mail_date)
+                            <span class="ml-2 text-gray-600 text-[11px]">
+                                {{ App\Helpers\CustomHelper::formatDate($invoice->is_mail_date) ?? '-' }}
+                            </span>
+
+                        @else
+                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                            Pending
+                        </span>
+                        @endif
+
+                    </td>
                      <td class="py-4 px-6 text-right">
                          @php
                          $mailstatusColors = [
@@ -212,10 +230,9 @@
                          @if($invoice->is_email_send === 'send' && $invoice->mail_send_at)
                          {{-- Show the date next to "Sent" --}}
                          <span class="ml-2 text-gray-600 text-[11px]">
-                             {{ App\Helpers\CustomHelper::formatDate($invoice->mail_send_at) ?? '-' }}
+                             {{ App\Helpers\CustomHelper::formatDateTime($invoice->mail_send_at) ?? '-' }}
                          </span>
                          @else
-
 
                          <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $statusData['color'] }}-100 text-{{ $statusData['color'] }}-800">
                              {{ $statusData['label'] }}
@@ -226,14 +243,14 @@
                      <td class="py-4 px-6 whitespace-nowrap">
                          <div class="flex gap-2 items-center justify-end">
 
-                            @if($invoice->invoice_status !== 'paid')
+                            {{-- @if($invoice->invoice_status !== 'paid')
                                 <button  class="text-green-600 inline-flex items-center i_openPaymentModal" data-invoice-id="{{ $invoice->id }}" >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
                                         <line x1="12" x2="12" y1="2" y2="22"></line>
                                         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                                     </svg>
                                 </button>
-                            @endif
+                            @endif --}}
 
                              <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}" target="_blank" class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
@@ -254,7 +271,21 @@
                                 data-billing-email="{{ optional($invoice->customer->billingAddress)->email }}"
                                 data-customer-email="{{ optional($invoice->customer)->email }}">
                                     <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                                </a>
+                            </a>
+
+
+                             <!-- Transaction delete button -->
+                                    <form action="{{ route('admin.crm.customers.invoice.delete-invoice', $invoice->unique_id) }}"
+                                        method="POST"
+                                        class="flex delete-invoice-form"
+                                        data-InvoiceNumber="{{ $invoice->invoice_number }}">
+                                        @csrf
+                                        <button type="submit"
+                                                class="text-red-600 hover:text-red-800"
+                                                title="Delete">
+                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                        </button>
+                                    </form>
 
 
                          </div>
@@ -589,6 +620,31 @@
 {{-- invoice payment   --}}
 
 @push('js')
+
+
+    <!-- delete invoice script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.delete-invoice-form').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault(); // stop auto submit
+
+                    const InvoiceNumber = form.getAttribute('data-InvoiceNumber') || 'this Invoice';
+
+                    window.showConfirm(
+                        `Delete "${InvoiceNumber}"? This action cannot be undone!`,
+                        'Delete Invoice'
+                    ).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+    <!-- delete invoice script -->
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -1021,6 +1077,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 {{-- -----invoice payment -------- --}}
+
+
+
 
 @endpush
 

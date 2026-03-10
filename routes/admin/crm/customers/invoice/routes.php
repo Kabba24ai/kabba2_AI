@@ -23,7 +23,9 @@ use App\Http\Controllers\Admin\Crm\Customers\Invoice\PaymentStoreController;
 
 use App\Http\Controllers\Admin\Crm\Customers\Invoice\CreateFromAccountController;
 
+use App\Http\Controllers\Admin\Crm\Customers\Invoice\DeleteInvoiceController;
 
+use App\Http\Controllers\Admin\Crm\Customers\Invoice\MarkMailController;
 
 
 Route::prefix('invoice')
@@ -52,10 +54,20 @@ Route::prefix('invoice')
     ->name('sendemail');
 
 
+    // Route::get('{unique_id}/sendemail', SendEmailController::class)->name('sendemail');
+    Route::get('{unique_id}/mark-mail', MarkMailController::class)
+    ->name('mark-mail');
+
     // store
     Route::post('/payment-store', PaymentStoreController::class)->name('paymentstore');
 
 
 
     Route::get('/get/orders/details/{unique_id}',  OrderDetailsController::class)->name('orders.details');
+
+
+
+    Route::post('{unique_id}/delete', DeleteInvoiceController::class)->name('delete-invoice');
+
+
 });

@@ -86,8 +86,8 @@
 
 
                     <td class="py-4 px-6 truncate min-w-xs max-w-xs">
-                        {{ $orderProduct->order->shippingAddress->full_address }}</td>
-                    <td class="py-4 px-6 text-left ">{{ $orderProduct->order->shippingAddress->phone }}</td>
+                        {{ $orderProduct->order->shippingAddress?->full_address ?? '-' }}</td>
+                    <td class="py-4 px-6 text-left ">{{ $orderProduct->order->shippingAddress?->phone ?? '-' }}</td>
                     <td class="py-4 px-6 text-center">
                         @if ($orderProduct?->checklistQuestions->isNotEmpty())
                             <button type="button" class="text-blue-600 underline equipment-assign-btn"
@@ -96,7 +96,7 @@
                                 data-order-id="{{ $orderProduct?->order?->order_number }}"
                                 data-customer-name="{{ $orderProduct?->order?->customer_name }}"
                                 data-product-name="{{ $orderProduct->product_name }}">
-                                {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
+                                {{ isset($orderProduct->equipment_details['equipment_name']) ? $orderProduct->equipment_details['equipment_name'] : 'Assign' }}
                             </button>
                         @else
                             <button type="button" class="text-blue-600 underline equipment-assign-btn"
@@ -113,7 +113,7 @@
                         @if ($orderProduct?->checklistQuestions->isNotEmpty())
                             <span
                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
-                                {{ $orderProduct->equipment_details['equipment_id'] }}
+                                {{ isset($orderProduct->equipment_details['equipment_id']) ? $orderProduct->equipment_details['equipment_id'] : '-' }}
                             </span>
                         @else
                             <span

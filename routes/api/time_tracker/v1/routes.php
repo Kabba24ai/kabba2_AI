@@ -38,6 +38,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
               require base_path('routes/api/time_tracker/v1/vacation_summary/routes.php');
 
 
+                 require base_path('routes/api/time_tracker/v1/time_reports/routes.php');
+
+                  require base_path('routes/api/time_tracker/v1/users/routes.php');
               /*
         |--------------------------------------------------------------------------
         | Admin Only Routes
@@ -45,12 +48,13 @@ Route::group(['prefix' => 'v1'], function ($router) {
         */
 
               Route::middleware(['role.short:master_admin'])->group(function () {
-                     require base_path('routes/api/time_tracker/v1/users/routes.php');
+                    
                      require base_path('routes/api/time_tracker/v1/system/routes.php');
                      
                      require base_path('routes/api/time_tracker/v1/vacation/routes.php');
 
-                     require base_path('routes/api/time_tracker/v1/time_reports/routes.php');
+                     require base_path('routes/api/time_tracker/v1/work_schedule/routes.php');
+                  
               });
 
        });

@@ -10,6 +10,7 @@ use App\Helpers\CustomHelper;
 use App\Http\Requests\Admin\Hrm\Users\UpdateRequest;
 use App\Models\Iam\AccessControl\Role;
 use Hash;
+use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
 
 
@@ -43,15 +44,14 @@ class UpdateController extends Controller
                 'state'          => $validated['state'] ?? null,
                 'zip_code'       => $validated['zip'] ?? null,
                 'country'        => $validated['country'] ?? null,
-                   'social_security'        => $validated['social_security'] ?? null,
+                
                 'start_date'     => CustomHelper::parseDateFromInput($validated['startDate'] ?? null),
                 'end_date'       => CustomHelper::parseDateFromInput($validated['endDate'] ?? null),
                 'pay_type'       => $validated['payType'],
 
                 'status'         => $validated['status'],
 
-                
-'store_id' => $validated['store_id'] ?? null,
+                'store_id' => $validated['store_id'] ?? null,
 
                 'limit_start_time' => $validated['limit_start'] ?? false,
 
@@ -71,6 +71,16 @@ class UpdateController extends Controller
             // Only update password if provided
             if (!empty($validated['password'])) {
                 $userData['password'] = Hash::make($validated['password']);
+            }
+
+            //    'social_security'        => $validated['social_security'] ?? null,
+
+            if (!empty($validated['social_security']) &&
+                $validated['social_security'] !== 'xxx-xx-xxx') {
+
+                $userData['social_security'] = Crypt::encryptString(
+                    $validated['social_security']
+                );
             }
 
             // Update User

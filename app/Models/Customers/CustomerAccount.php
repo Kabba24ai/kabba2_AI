@@ -95,6 +95,7 @@ public function scopeInvoiceEntries($query)
 {
     return $query
         ->where('type', '!=', 'payment')
+        ->where('type', '!=', 'account_invoice')
         ->whereNull('invoice_id')
         ->where(function ($q) {
             $q->where('type', '!=', 'order')

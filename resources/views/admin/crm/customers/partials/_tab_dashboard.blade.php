@@ -374,7 +374,7 @@
                 <tr class="hover:bg-gray-50" data-status="{{ strtolower($order->status) }}">
                     {{-- Order Number --}}
                     <td class="py-4 px-6 font-medium text-gray-900">
-                        {{ $order->order_number }}
+                        {!! $order->view_link !!}
                     </td>
 
                     {{-- Product Name --}}

@@ -10,6 +10,8 @@ use App\Models\Orders\OrderExtraCharges;
 use App\Models\Stores\Store;
 use Carbon\Carbon;
 use App\Models\Customers\Customer;
+use App\Models\Customers\CustomerAccount;
+
 use App\Helpers\CustomHelper;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Helpers\ConfigurationHelper;
@@ -50,8 +52,6 @@ class IndexController extends Controller
             });
 
         $orders = $ordersQuery->get();
-
-
 
         // Load payment accounts ONLY when a store is NOT selected
         $paymentAccounts = collect(); // default empty collection
@@ -144,41 +144,57 @@ class IndexController extends Controller
 
             //  dd($reportRows);
 
-        $totalRevenue = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->grand_total));
+        // $totalRevenue = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->grand_total));
 
         $reportRowsTotal = $reportRows->sum(fn($row) => $row->grand_total);
 
-        $taxFreeRevenue = CustomHelper::formatCurrency($reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal));
+
+        $rowsalesTaxCollected = $reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal) ;
+
+        
+        $orderExtraCharges = OrderExtraCharges::query()
+            ->when($request->filled('month_range'), function ($q) use ($request) {
+                [$year, $month] = explode('-', $request->month_range);
+                $start = Carbon::create($year, $month, 1)->startOfMonth();
+                $end = Carbon::create($year, $month, 1)->endOfMonth();
+                $q->whereBetween('created_at', [$start, $end]);
+            })
+            ->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($request) {
+                $start = Carbon::parse($request->start_date)->startOfDay();
+                $end = Carbon::parse($request->end_date)->endOfDay();
+                $q->whereBetween('created_at', [$start, $end]);
+            })
+            ->get();
+
+          
+        $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
+        // $extraChargesTotalRaw = 0;
+
+        $taxFreeRevenue = CustomHelper::formatCurrency($rowsalesTaxCollected + $extraChargesTotalRaw);
 
         $reversetaxableRevenue = $reportRows->filter(fn($row) => $row->tax_amount > 0)->sum(fn($row) => $row->grand_total);
 
         $taxableRevenue = $reversetaxableRevenue / (1 + $sales_tax);
 
-        $taxableRevenue = CustomHelper::formatCurrency($taxableRevenue);
+        $salesTaxCollectedbeforCurrencyicon = $reportRows->sum(fn($row) => $row->tax_amount) ;
+       
+        // $salesTaxCollected = CustomHelper::formatCurrency($salesTaxCollectedbeforCurrencyicon);
 
-        $salesTaxCollected = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->tax_amount));
+        // $taxableRevenue = CustomHelper::formatCurrency($taxableRevenue + $salesTaxCollectedbeforCurrencyicon);
+
+        $rowtaxableRevenue = $reportRowsTotal - $rowsalesTaxCollected ;
+
+        $taxableRevenue = CustomHelper::formatCurrency( $rowtaxableRevenue );
+
+        $salesTaxCollected = CustomHelper::formatCurrency( $rowtaxableRevenue * $sales_tax );
 
         $reportRows = $reportRows->filter(fn($row) => $row->tax_amount > 0)->values();
 
- $orderExtraCharges = OrderExtraCharges::query()
-    ->when($request->filled('month_range'), function ($q) use ($request) {
-        [$year, $month] = explode('-', $request->month_range);
-        $start = Carbon::create($year, $month, 1)->startOfMonth();
-        $end = Carbon::create($year, $month, 1)->endOfMonth();
-        $q->whereBetween('created_at', [$start, $end]);
-    })
-    ->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($request) {
-        $start = Carbon::parse($request->start_date)->startOfDay();
-        $end = Carbon::parse($request->end_date)->endOfDay();
-        $q->whereBetween('created_at', [$start, $end]);
-    })
-    ->get();
-
-$extraChargesTotalRaw = $orderExtraCharges->sum('amount');
-
-
         $totalCollectedAllSources = CustomHelper::formatCurrency($extraChargesTotalRaw + $reportRowsTotal);
 
+        $totalRevenue = CustomHelper::formatCurrency( $reportRowsTotal - $rowsalesTaxCollected);
+
+       
 
         // Pagination
         $perPage = $request->get('per_page', 30);
@@ -193,13 +209,15 @@ $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
 
         //  AJAX response
         if ($request->ajax()) {
+            
             $orders = $paginated;
 
             $html = view('admin.reports.sales_tax.partials._table', compact('orders'))->render();
 
             $stats = [
+                  'totalCollectedAllSources' => $totalCollectedAllSources,
                 'totalRevenue' => $totalRevenue,
-                'totalCollectedAllSources' => $totalCollectedAllSources,
+              
                 'taxFreeRevenue' => $taxFreeRevenue,
                 'taxableRevenue' => $taxableRevenue,
                 'salesTaxCollected' => $salesTaxCollected,
@@ -209,12 +227,46 @@ $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
         }
 
         // Normal view
-        $availableMonths = Order::selectRaw('YEAR(order_date) as year, MONTH(order_date) as month')->groupBy('year', 'month')->orderByDesc('year')->orderByDesc('month')->limit(12)->get()->map(
-            fn($item) => [
-                'value' => "{$item->year}-" . str_pad($item->month, 2, '0', STR_PAD_LEFT),
-                'label' => 'Pay for ' . Carbon::create($item->year, $item->month, 1)->format('M 1') . ' - ' . Carbon::create($item->year, $item->month, 1)->endOfMonth()->format('M d'),
-            ],
-        );
+        // $availableMonths = Order::selectRaw('YEAR(order_date) as year, MONTH(order_date) as month')->groupBy('year', 'month')->orderByDesc('year')->orderByDesc('month')->limit(12)->get()->map(
+        //     fn($item) => [
+        //         'value' => "{$item->year}-" . str_pad($item->month, 2, '0', STR_PAD_LEFT),
+        //         'label' => 'Pay for ' . Carbon::create($item->year, $item->month, 1)->format('M 1') . ' - ' . Carbon::create($item->year, $item->month, 1)->endOfMonth()->format('M d'),
+        //     ],
+        // );  
+
+        // Get months from Orders
+        $orderMonths = Order::selectRaw('YEAR(order_date) as year, MONTH(order_date) as month')
+            ->groupBy('year', 'month')
+            ->get();
+
+        // Get months from Payment Accounts
+        $paymentMonths = CustomerAccount::selectRaw('YEAR(date) as year, MONTH(date) as month')
+        ->where('type', 'payment') 
+            ->groupBy('year', 'month')
+            ->get();
+
+        // Merge both collections
+        $allMonths = $orderMonths
+            ->concat($paymentMonths)
+            ->unique(function ($item) {
+                return $item->year . '-' . $item->month;
+            })
+            ->sortByDesc(function ($item) {
+                return $item->year . str_pad($item->month, 2, '0', STR_PAD_LEFT);
+            })
+            ->take(12)
+            ->values();
+
+        // Format for dropdown
+        $availableMonths = $allMonths->map(fn($item) => [
+            'value' => "{$item->year}-" . str_pad($item->month, 2, '0', STR_PAD_LEFT),
+            'label' => 'Pay for '
+                . Carbon::create($item->year, $item->month, 1)->format('M 1')
+                . ' - '
+                . Carbon::create($item->year, $item->month, 1)->endOfMonth()->format('M d'),
+        ]);
+
+
 
         return view('admin.reports.sales_tax.index', [
             'orders' => $paginated,

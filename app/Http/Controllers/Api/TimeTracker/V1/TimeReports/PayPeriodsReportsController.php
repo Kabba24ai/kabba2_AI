@@ -15,6 +15,7 @@
         {
              return response()->json([
                 'success' => true,
+                'current_period' => PayPeriodHelper::currentPeriod(),
                 'data' => PayPeriodHelper::listPeriods(12),
             ]);
         }

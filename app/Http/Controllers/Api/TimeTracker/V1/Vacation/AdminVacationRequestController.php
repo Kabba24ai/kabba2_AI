@@ -28,7 +28,7 @@ class AdminVacationRequestController extends BaseController
                     'start_date' => $request->start_date->toDateString(),
                     'end_date' => $request->end_date->toDateString(),
                     'hours' => $request->requestHour?->hours ?? 0,
-                     'denial_reason' => $request->denial_reason,
+                    'denial_reason' => $request->denial_reason,
                     'status' => $request->status,
                     'created_at' => $request->created_at->toISOString(),
                 ];

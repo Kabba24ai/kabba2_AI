@@ -121,12 +121,12 @@
                                 && $day <= $activeOrderProduct->pickup_date;
 
                             $visibleOverdueOrders = $overdueOrders->filter(function ($overdueOrder) use ($day, $today) {
-                                if (!$overdueOrder?->delivery_date) {
+                                if (!$overdueOrder?->pickup_date) {
                                     return false;
                                 }
 
-                                $deliveryDay = \Illuminate\Support\Carbon::parse($overdueOrder->delivery_date)->toDateString();
-                                return $day >= $deliveryDay && $day <= $today;
+                                $pickupDay = \Illuminate\Support\Carbon::parse($overdueOrder->pickup_date)->toDateString();
+                                return $day >= $pickupDay && $day <= $today;
                             });
 
                             $softAssignments = $allSoftAssignments->filter(function ($assignment) use ($day) {

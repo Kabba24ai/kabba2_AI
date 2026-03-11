@@ -23,6 +23,9 @@
             @php
                 $overdueOrders = $eq->overdueOrderProducts;
                 $hasOverdueOrders = $overdueOrders->isNotEmpty();
+                $activeOrderProduct = $eq->lastOrderProduct;
+                $allSoftAssignments = $eq->softAssignments;
+                $today = today()->toDateString();
             @endphp
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-4 font-semibold  text-gray-700">
@@ -110,31 +113,32 @@
                         @php
                             $day = $date->format('Y-m-d');
 
-                            // Common date filter as a closure so we don't repeat it
-                            $dateFilter = function ($query) use ($day) {
-                                $query->whereDate('delivery_date', '<=', $day)->whereDate('pickup_date', '>=', $day);
-                            };
+                            // Uses eager-loaded lastOrderProduct instead of querying per cell.
+                            $isBooked = $activeOrderProduct
+                                && $activeOrderProduct->delivery_date
+                                && $activeOrderProduct->pickup_date
+                                && $day >= $activeOrderProduct->delivery_date
+                                && $day <= $activeOrderProduct->pickup_date;
 
-                            // Is booked for that day?
-                            $isBooked = $eq->lastOrderProduct()
-                                ->where($dateFilter)
-                                ->exists();
-
-                            $visibleOverdueOrders = $overdueOrders->filter(function ($overdueOrder) use ($day) {
+                            $visibleOverdueOrders = $overdueOrders->filter(function ($overdueOrder) use ($day, $today) {
                                 if (!$overdueOrder?->delivery_date) {
                                     return false;
                                 }
 
                                 $deliveryDay = \Illuminate\Support\Carbon::parse($overdueOrder->delivery_date)->toDateString();
-                                return $day >= $deliveryDay && $day <= today()->toDateString();
+                                return $day >= $deliveryDay && $day <= $today;
                             });
 
-                            // Get soft assignments for that day (single query + reuse result)
-                            $softAssignments = $eq
-                                ->softAssignments()
-                                ->whereHas('orderProduct', $dateFilter)
-                                ->with('order')
-                                ->get();
+                            $softAssignments = $allSoftAssignments->filter(function ($assignment) use ($day) {
+                                $orderProduct = $assignment->orderProduct;
+
+                                if (!$orderProduct?->delivery_date || !$orderProduct?->pickup_date) {
+                                    return false;
+                                }
+
+                                return $day >= $orderProduct->delivery_date
+                                    && $day <= $orderProduct->pickup_date;
+                            });
 
                             $isSoftAssigned = $softAssignments->isNotEmpty();
 
@@ -147,7 +151,7 @@
 
                             $textColor = 'text-gray-600';
                             // Light blue for soft assign, dark blue with white text for hard assign
-                            $isReturnDay = $date->format('Y-m-d') == $eq->lastOrderProduct?->pickup_date;
+                            $isReturnDay = $day == $activeOrderProduct?->pickup_date;
                             if ($isBooked && !$isReturnDay) {
                                 $color = 'blue-600';
                                 $textColor = 'text-white';
@@ -182,14 +186,14 @@
 
                                 @if ($isBooked)
                                     <div class="px-2 font-bold group relative {{ $textColor }} bg-{{ $color }} rounded w-full text-center"
-                                        title="{{ $eq->lastOrderProduct?->order?->customer_name }}">
+                                        title="{{ $activeOrderProduct?->order?->customer_name }}">
                                         @if ($isReturnDay)
                                             <span
                                                 class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
                                         @endif
-                                        <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $eq?->lastOrderProduct?->order?->unique_id]) ?? '#' }}"
-                                            class="underline @if($eq->lastOrderProduct?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" target="_blank">
-                                            {{ $eq->lastOrderProduct?->order?->order_number }}
+                                        <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $activeOrderProduct?->order?->unique_id]) ?? '#' }}"
+                                            class="underline @if($activeOrderProduct?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" target="_blank">
+                                            {{ $activeOrderProduct?->order?->order_number }}
                                         </a>
                                     </div>
                                 @endif

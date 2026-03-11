@@ -37,7 +37,21 @@ class IndexController extends Controller
             $dates[] = $date->copy();
         }
         if ($request->ajax()) {
-            $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'order', 'order.customer', 'store', 'orderProduct', 'lastOrderProduct', 'activeEquipmentRentalReadyTemplate', 'softAssignments', 'softAssignments.order', 'overdueOrderProducts')
+            $query = Equipment::with(
+                'statusUpdatedByUser',
+                'productCategory',
+                'order',
+                'order.customer',
+                'store',
+                'orderProduct',
+                'lastOrderProduct',
+                'activeEquipmentRentalReadyTemplate',
+                'softAssignments',
+                'softAssignments.order',
+                'softAssignments.orderProduct',
+                'softAssignments.orderProduct.order',
+                'overdueOrderProducts'
+            )
                 ->where('not_for_rent', 0)
                 ->when($request->filled('search'), function ($q) use ($request) {
                     $search = $request->search;

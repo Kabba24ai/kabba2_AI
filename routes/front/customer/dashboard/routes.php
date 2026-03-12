@@ -27,6 +27,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     Route::post('/password-update', CustomersPasswordUpdateController::class)->name('password.update');
 
+    require base_path('routes/front/customer/dashboard/order/routes.php');
+
+    
 
 });
  

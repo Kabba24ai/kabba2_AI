@@ -208,6 +208,25 @@
                 </select>
             </div>
 
+            <div class="flex flex-col billing-summary-w-16">
+                <label class="text-sm text-gray-500 mb-1">Missing Invoice Month</label>
+                <input type="month" id="invoice_month" name="invoice_month"
+                    class="px-3 py-3 border border-gray-300 rounded-md w-full">
+            </div>
+
+            <div class="flex flex-col billing-summary-w-16">
+                <label class="text-sm text-gray-500 mb-1">Payment Aging</label>
+                <select id="payment_aging" name="payment_aging"
+                    class="px-3 py-3 border border-gray-300 rounded-md w-full">
+                    <option value="">All</option>
+                    <option value="no_payment">No Payment</option>
+                    <option value="30">0 - 30 Days</option>
+                    <option value="45">31 - 45 Days</option>
+                    <option value="90">46 - 90 Days</option>
+                    <option value="90_plus">More than 90 Days</option>
+                </select>
+            </div>
+
         </div>
     </div>
 
@@ -247,6 +266,8 @@
                 'alert_status': alertStatusSelect,
                 'credit_types[]': creditCheckboxes,
                 'balanceSortSelect': document.getElementById('balanceSortSelect'),
+                'invoice_month': document.getElementById('invoice_month'),
+                'payment_aging': document.getElementById('payment_aging'),
             };
 
             // Load saved filters on page load
@@ -267,9 +288,17 @@
                     let sortValue = document.getElementById('balanceSortSelect').value;
 
                 const alert_status = alertStatusSelect.value;
+
+                const invoiceMonth = document.getElementById('invoice_month').value;
+
+                const paymentAging = document.getElementById('payment_aging').value;
+
+
                 // Get selected credit types
                 const params = new URLSearchParams();
                 if (name.length >= 3 || name.length === 0) params.append('search_name', name);
+if (invoiceMonth) params.append('invoice_month', invoiceMonth);
+if (paymentAging) params.append('payment_aging', paymentAging);
                 if (phone.length >= 3 || phone.length === 0) params.append('search_phone', phone);
                 if (company.length >= 3 || company.length === 0) params.append('search_company_name', company);
                 if (alert_status.length > 0) params.append('alert_status', alert_status);
@@ -347,6 +376,14 @@
             });
 
             alertStatusSelect.addEventListener('change', function() {
+                fetchCustomers();
+            });
+
+            document.getElementById('payment_aging').addEventListener('change', function () {
+    fetchCustomers();
+});
+
+            document.getElementById('invoice_month').addEventListener('change', function() {
                 fetchCustomers();
             });
 

@@ -78,9 +78,6 @@
                         ];
                     @endphp
 
-
-
-
                     <td class="px-4 py-3 inline-flex ">
                         <span
                             class="items-center gap-2 px-2 py-1 text-xs font-medium rounded-full {{ $style['bg'] }} {{ $style['text'] }} px-2 py-0.5 text-xs font-medium">

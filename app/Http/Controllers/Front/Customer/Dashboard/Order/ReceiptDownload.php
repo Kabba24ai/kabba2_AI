@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\OrderManagement\Orders;
+namespace App\Http\Controllers\Front\Customer\Dashboard\Order;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

@@ -33,7 +33,7 @@
          </span>
 
          <!-- Visit Website Button -->
-         <a target="_blank" href="{{ route('admin.crm.customers.login', ['unique_id' => $customer->unique_id]) }}"
+         <a  href="{{ route('admin.crm.customers.login', ['unique_id' => $customer->unique_id]) }}"
              class="inline-flex items-center gap-2  px-6 py-3 text-md font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 w-auto">
              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                  stroke-width="1.5" stroke="currentColor" aria-hidden="true">
@@ -206,7 +206,7 @@
                              <td class="py-4 px-6">
                                  <div class="flex gap-2 items-center justify-end">
                                      <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}"
-                                         target="_blank" title="View">
+                                          title="View">
                                          <x-heroicon-o-eye class="w-5 h-5 text-blue-600" />
                                      </a>
                                      <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"

@@ -204,6 +204,7 @@
                            <option value="discount">Discount</option>
 
                            <option value="charge">Charge</option>
+                           <option value="account_invoice">Account Invoice</option>
                        </select>
                    </div>
                </div>
@@ -218,6 +219,7 @@
                    <tr>
                        <th class="py-4 px-6">Date</th>
                        <th class="py-4 px-6">Type</th>
+                       <th class="py-4 px-6">ID#</th>
                        <th class="py-4 px-6  truncate min-w-3xs max-w-3xs">Description</th>
                        <th class="py-4 px-6 w-40 text-right">Note</th>
                        <th class="py-4 px-6 w-40 text-right">Amount</th>
@@ -369,11 +371,7 @@
 
                                 
                            </span>
-                           <span >
-                                    @if ($transaction->order_id)
-                                        {!! $transaction->order->view_link !!}
-                                    @endif
-                            </span>
+                         
                             </div>
 
                            <div class="text-xs text-gray-500 mt-1">
@@ -384,6 +382,26 @@
                                 @endif
                            </div>
                        </td>
+
+                       <td class="py-4 px-6 text-sm text-gray-900">
+                           <div class="max-w-xs truncate text-gray-700">
+
+                                 <span>
+                                @if ($transaction->order_id)
+                                    {!! $transaction->order->view_link !!}
+
+                                @elseif($transaction->type === 'payment' && $transaction->payment_type?->label() === 'Check' && $transaction->payment_number_id)
+                                    {{ $transaction->payment_number_id }}
+
+                                @else
+                                    -
+                                @endif
+                                </span>
+
+                           </div>
+                          
+                       </td>
+
                        <td class="py-4 px-6 text-sm text-gray-900">
                            <div class="max-w-xs truncate text-gray-700">
 
@@ -466,7 +484,7 @@
 
                         {{-- view icon  --}}
                             @if ($transaction->invoice_id && $transaction->type === 'payment')
-                                <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice->unique_id) }}" target="_blank"  title="View" >
+                                <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice->unique_id) }}"   title="View" >
                                                                 <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                                 </a>
                             @else
@@ -474,7 +492,7 @@
 
                                     @if($transaction->invoice?->unique_id && $transaction->type === 'account_invoice')
 
-                                    <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice?->unique_id) }}" target="_blank" title="View" >
+                                    <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice?->unique_id) }}"  title="View" >
                                         <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                                     </a>
                                             
@@ -493,10 +511,15 @@
 
                                 @if ($transaction->invoice_id && in_array($transaction->type, ['payment', 'account_invoice']))
 
-                                    <a href="{{ route('admin.crm.customers.invoice.edit', $transaction->invoice->unique_id) }}" target="_blank" class=" text-green-600 hover:text-green-800"
+                                    <a href="{{ route('admin.crm.customers.invoice.edit', $transaction->invoice->unique_id) }}"  class=" text-green-600 hover:text-green-800"
                                     
                                     title="Edit">
-                                    <x-heroicon-o-pencil class="w-4 h-4" />
+                                    {{-- <x-heroicon-o-pencil class="w-4 h-4" /> --}}
+
+                                    <svg class="w-4 h-4 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
+</svg>
+
                                     </a>
                                
                               
@@ -520,7 +543,12 @@
                                         @endif
 
                                         title="Edit">
-                                        <x-heroicon-o-pencil class="w-4 h-4" />
+                                        {{-- <x-heroicon-o-pencil class="w-4 h-4" /> --}}
+                                        
+                                             <svg class="w-4 h-4 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
+</svg>
+                                        
                                     </button>
 
                                 @endif
@@ -537,7 +565,7 @@
                             @else
                                 <form method="GET"
                                     action="{{ route('admin.crm.customers.customer-account.download', $transaction->id) }}"
-                                    target="_blank"
+                                    
                                     style="display:flex;">
                                     <button title="Download" type="submit">
                                         <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
@@ -1343,6 +1371,43 @@
 
                    const total = netAmount + taxAmount;
 
+
+
+                   let extraFields = '';
+
+                    // If transaction is payment
+                    if (tx.type === 'payment') {
+
+                        extraFields += `
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 font-medium">Payment Type:</span>
+                            <span class="text-gray-700">${tx.payment_type || '-'}</span>
+                        </div>
+                        `;
+
+                        // If payment type = Check
+                        if (tx.payment_type === 'Cheque' && tx.payment_number_id) {
+                            extraFields += `
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 font-medium">Cheque Number:</span>
+                                <span class="text-gray-700">${tx.payment_number_id}</span>
+                            </div>
+                            `;
+                        }
+                    }
+
+                    // If order exists
+                    if (tx.order_id && tx.order?.view_link) {
+                        extraFields += `
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 font-medium">Order Id:</span>
+                            <span class="text-gray-700">${tx.order.view_link}</span>
+                        </div>
+                        `;
+                    }
+
+
+
                    const html = `
                 <div class=" rounded-lg mb-4 text-sm space-y-1">
                     <div class="flex justify-between">
@@ -1355,11 +1420,16 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500 font-medium">Type:</span>
-                        <span class="text-gray-700">${tx.type}</span>
+                        <span class="text-gray-700">
+                            ${tx.type ? tx.type.charAt(0).toUpperCase() + tx.type.slice(1) : '-'}
+                        </span>
                     </div>
+
+                    ${extraFields}
+
                     <div class="flex justify-between">
                         <span class="text-gray-500 font-medium">Amount:</span>
-    <span class="text-gray-700">$${netAmount.toFixed(2)}</span>
+                     <span class="text-gray-700">$${netAmount.toFixed(2)}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500 font-medium">Sales Tax (${(tx.sales_tax * 100).toFixed(2)}%) :</span>

@@ -84,6 +84,7 @@ class Equipment extends Model
         'warranty_duration_hours',
         'key_starting_mechanism',
         'equipment_value',
+        'coi_submitted',
     ];
 
     protected $casts = [

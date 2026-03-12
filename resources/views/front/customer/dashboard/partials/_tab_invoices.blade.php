@@ -79,17 +79,18 @@
 
      <!-- Table -->
      <div class="overflow-x-auto">
-         <table class="min-w-full text-sm text-left text-gray-700">
+         <table class="min-w-full text-sm text-left text-gray-700 whitespace-nowrap">
              <thead class="bg-gray-50 text-gray-500 text-xs border-b border-gray-200">
                  <tr>
                      <th class="px-4 py-3 font-medium uppercase">Invoice</th>
                      <th class="px-4 py-3 font-medium uppercase">Date</th>
                      <th class="px-4 py-3 font-medium uppercase">Due Date</th>
                      <th class="px-4 py-3 font-medium uppercase">Amount</th>
-                     <th class="px-4 py-3 font-medium uppercase">Paid Amount</th>
-                     <th class="px-4 py-3 font-medium uppercase">Open Amount</th>
+                      <th class="px-4 py-3 font-medium uppercase">Mail Date</th>
 
-                     <th class="px-4 py-3 font-medium uppercase">Payment Status</th>
+                     <th class="px-4 py-3 font-medium uppercase">Email Status</th>
+
+                     {{-- <th class="px-4 py-3 font-medium uppercase">Payment Status</th> --}}
                      <th class="px-4 py-3 font-medium uppercase">Action</th>
                  </tr>
              </thead>
@@ -106,51 +107,47 @@
                      <td class="py-4 px-6">
                          {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
                      </td>
-                     <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
+                     <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 ">${{ number_format($invoice->total, 2) }}</td>
 
-                       {{-- Paid Amount --}}
-                    <td class="py-4 px-6 text-right text-green-600 font-semibold">
-                        ${{ number_format($invoice->paid_amount ?? 0, 2) }}
-                    </td>
+                   
+                    
 
-                    @php
-    $openAmount = $invoice->invoice_status === 'paid'
-        ? 0
-        : ($invoice->open_amount > 0
-            ? $invoice->open_amount
-            : ($invoice->total > 0 ? $invoice->total : 0));
-@endphp
+               
+                        <td class="py-4 px-6  text-red-600 font-semibold"
+                             >
+                            @if($invoice->is_mail === 'yes' && $invoice->is_mail_date)
+                            <span class="ml-2 text-gray-600 text-[11px]">
+                                {{ App\Helpers\CustomHelper::formatDate($invoice->is_mail_date) ?? '-' }}
+                            </span>
 
-                  {{-- Open Amount --}}
-                        <td class="py-4 px-6 text-right text-red-600 font-semibold"
-                             data-open-amount="{{ $openAmount }}">
-                            ${{ number_format($openAmount, 2) }}
+                        @else
+                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                            Pending
+                        </span>
+                        @endif
                         </td>
 
-                     <td class="py-4 px-6 text-right">
-                        @php
-                            $statusColors = [
-                                'paid' => 'green',
-                                'partial_paid' => 'blue',
-                                'overdue' => 'red',
-                                'pending' => 'yellow',
-                            ];
+                     <td class="py-4 px-6 ">
+                       @php
+                         $mailstatusColors = [
+                         'send' => ['color' => 'green', 'label' => 'Sent'],
+                         'unsend' => ['color' => 'yellow', 'label' => 'Pending'],
+                         ];
 
-                            $color = $statusColors[$invoice->invoice_status] ?? 'gray';
+                         $statusKey = strtolower($invoice->is_email_send ?? '');
+                         $statusData = $mailstatusColors[$statusKey] ?? ['color' => 'gray', 'label' => ucfirst($statusKey) ?: 'N/A'];
+                         @endphp
+                         @if($invoice->is_email_send === 'send' && $invoice->mail_send_at)
+                         {{-- Show the date next to "Sent" --}}
+                         <span class="ml-2 text-gray-600 text-[11px]">
+                             {{ App\Helpers\CustomHelper::formatDateTime($invoice->mail_send_at) ?? '-' }}
+                         </span>
+                         @else
 
-                            // Format label nicely
-                            $statusLabel = match ($invoice->invoice_status) {
-                                'partial_paid' => 'Partial Paid',
-                                'paid' => 'Paid',
-                                'overdue' => 'Overdue',
-                                'pending' => 'Pending',
-                                default => ucfirst(str_replace('_', ' ', $invoice->invoice_status)),
-                            };
-                        @endphp
-
-                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
-                            {{ $statusLabel }}
-                        </span>
+                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $statusData['color'] }}-100 text-{{ $statusData['color'] }}-800">
+                             {{ $statusData['label'] }}
+                         </span>
+                         @endif
                     </td>
 
                      
@@ -166,11 +163,11 @@
                                  <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                              </a>
 
-                             <a href="javascript:void(0)"
+                             {{-- <a href="javascript:void(0)"
                                  class="{{ $invoice->invoice_status !== 'paid' ? 'text-purple-600' : 'text-gray-600' }} inline-flex items-center cursor-pointer @if ($invoice->invoice_status !== 'paid') openDiscountModal @endif "
                                  data-invoice="{{ $invoice->invoice_number }}"
                                  data-due="{{ App\Helpers\CustomHelper::formatDate($invoice->due_date) }}"
-                                 data-amount="{{ App\Helpers\CustomHelper::formatCurrency($openAmount) }}">
+                                 >
                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                      stroke-linecap="round" stroke-linejoin="round"
@@ -178,7 +175,7 @@
                                      <rect width="20" height="14" x="2" y="5" rx="2"></rect>
                                      <line x1="2" x2="22" y1="10" y2="10"></line>
                                  </svg>
-                             </a>
+                             </a> --}}
 
                          </td>
                      </tr>

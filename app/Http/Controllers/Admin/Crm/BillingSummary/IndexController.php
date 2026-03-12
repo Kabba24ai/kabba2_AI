@@ -16,7 +16,7 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         if ($request->ajax()) {
-            $query = Customer::with('orders.payments', 'addresses', 'accounts')->whereIn('status', ['Active', 'Archived'])->where('available_credit_balance', '!=', 0);
+            $query = Customer::with('orders.payments', 'addresses', 'accounts' ,'latestInvoice')->whereIn('status', ['Active', 'Archived'])->where('available_credit_balance', '!=', 0);
 
             // Apply filters
             if ($request->filled('search_name')) {
@@ -32,6 +32,54 @@ class IndexController extends Controller
             if ($request->filled('search_phone')) {
                 $searchPhone = CustomHelper::unformatPhone($request->search_phone);
                 $query->where('phone', 'like', '%' . $searchPhone . '%');
+            }
+
+            if ($request->filled('invoice_month')) {
+
+                $month = $request->invoice_month;
+
+                $start = \Carbon\Carbon::parse($month)->startOfMonth();
+                $end = \Carbon\Carbon::parse($month)->endOfMonth();
+
+                $query->whereDoesntHave('invoices', function ($q) use ($start, $end) {
+                    $q->whereBetween('invoice_date', [$start, $end]);
+                });
+            }
+
+            if ($request->filled('payment_aging')) {
+
+                switch ($request->payment_aging) {
+
+                    case 'no_payment':
+                        $query->whereDoesntHave('accounts', function ($q) {
+                            $q->where('type', 'payment');
+                        });
+                        break;
+
+                    case '30':
+                        $query->whereHas('accounts', function ($q) {
+                            $q->where('type', 'payment');
+                        })->whereRaw('DATEDIFF(NOW(), (SELECT MAX(date) FROM customer_accounts WHERE customer_id = customers.id AND type = "payment")) <= 30');
+                        break;
+
+                    case '45':
+                        $query->whereHas('accounts', function ($q) {
+                            $q->where('type', 'payment');
+                        })->whereRaw('DATEDIFF(NOW(), (SELECT MAX(date) FROM customer_accounts WHERE customer_id = customers.id AND type = "payment")) BETWEEN 31 AND 45');
+                        break;
+
+                    case '90':
+                        $query->whereHas('accounts', function ($q) {
+                            $q->where('type', 'payment');
+                        })->whereRaw('DATEDIFF(NOW(), (SELECT MAX(date) FROM customer_accounts WHERE customer_id = customers.id AND type = "payment")) BETWEEN 46 AND 90');
+                        break;
+
+                    case '90_plus':
+                        $query->whereHas('accounts', function ($q) {
+                            $q->where('type', 'payment');
+                        })->whereRaw('DATEDIFF(NOW(), (SELECT MAX(date) FROM customer_accounts WHERE customer_id = customers.id AND type = "payment")) > 90');
+                        break;
+                }
             }
 
             if ($request->filled('alert_status')) {

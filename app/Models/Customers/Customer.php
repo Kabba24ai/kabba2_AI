@@ -230,9 +230,10 @@ class Customer extends Authenticatable
         }
     }
 
- /**
+    /**
      * Get all  invoices for the customer.
      */
+    
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
@@ -306,5 +307,10 @@ class Customer extends Authenticatable
     public function getTagsArrayAttribute()
     {
         return $this->tags ? array_map('trim', explode(',', $this->tags)) : [];
+    }
+
+    public function latestInvoice()
+    {
+        return $this->hasOne(Invoice::class)->latestOfMany('invoice_date');
     }
 }

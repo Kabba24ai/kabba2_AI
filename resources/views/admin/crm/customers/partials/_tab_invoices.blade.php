@@ -9,12 +9,12 @@
          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
              <!-- Create Account Invoice Button -->
             <a href="{{ route('admin.crm.customers.invoice.create-from-account',$customer->unique_id ) }}" 
-               target="_blank"
+               
                class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
                 + Create From Account 
             </a>
 
-             <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}" target="_blank" class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
+             <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}"  class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
                  + Create Invoice
              </a>
              <div class="text-left sm:text-right">
@@ -252,13 +252,13 @@
                                 </button>
                             @endif --}}
 
-                             <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}" target="_blank" class="text-blue-600 inline-flex items-center">
+                             <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}"  class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
                              </a>
                              <a href="{{ route('admin.crm.customers.invoice.download',$invoice->unique_id ) }}" class=" text-green-600 inline-flex items-center">
                                  <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
                              </a>
-                             <a href="{{ route('admin.crm.customers.invoice.edit', $invoice->unique_id) }}" target="_blank" class="text-green-600 inline-flex items-center">
+                             <a href="{{ route('admin.crm.customers.invoice.edit', $invoice->unique_id) }}"  class="text-green-600 inline-flex items-center">
                                  <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
                              </a>
                              {{-- <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="text-purple-600 inline-flex items-center send-invoice-email">

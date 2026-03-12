@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Receipt - {{ $invoice->invoice_number }}</title>
+    <title>Invoice - {{ $invoice->invoice_number }}</title>
 
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
@@ -35,16 +35,16 @@
                                                 </td>
                                                 <td style="padding-left:12px; vertical-align:middle;">
                                                     <h3 style="font-weight:600; font-size:20px; margin:0; color:#111;">Rent 'n King</h3>
-                                                    <p style="margin:0; font-size:13px; color:#6b7280;">Professional Rentals & Sales</p>
+                                                    <p style="margin:0; font-size:13px; color:#111;">Professional Rentals & Sales</p>
                                                 </td>
                                             </tr>
                                         </table>
                                     </td>
 
-                                    <!-- Right: Receipt Info -->
+                                    <!-- Right: Invoice Info -->
                                     <td style="text-align:right; vertical-align:middle;">
-                                        <h3 style="font-weight:700; font-size:20px; margin:0; color:#111;">RECEIPT</h3>
-                                        <p style="margin:4px 0; color:#6b7280;">#{{ $invoice->invoice_number }}</p>
+                                        <h3 style="font-weight:700; font-size:20px; margin:0; color:#111;">Invoice</h3>
+                                        <p style="margin:4px 0; color:#111;">#{{ $invoice->invoice_number }}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -59,7 +59,7 @@
                                     <!-- Left -->
                                     <td style="width:60%; vertical-align:top;  font-size:14px;">
                                         <h3 style="font-weight:600; font-size:16px; margin:0 0 6px; color:#000;">From:</h3>
-                                        <p style="margin:0; color:#374151;">
+                                        <p style="margin:0; color:#000; line-height:1.3;">
                                             Rent 'n King .<br>
                                             10296 Highway 46<br>
                                             Bon Aqua, TN 37025<br>
@@ -80,19 +80,17 @@
                                     </td>
                                     <!-- Right -->
                                     <td style="width:40%; text-align:left; vertical-align:top; ">
-                                        <p style="margin:8px 0 4px; font-weight:600; font-size:16px;">
-                                            <img src="{{ public_path('storage/admin/images/icons/img-2.jpg') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
+                                        <p style="margin:8px 0 4px; font-weight:600; font-size:16px; vertical-align:top;">
+                                            <img src="{{ public_path('storage/admin/images/icons/img-2.jpg') }}" width="20" height="20" style="vertical-align:top; margin-right:5px;">
                                             Invoice Date: <span style="margin:0; font-size:15px; font-weight:500;"> {{ \App\Helpers\CustomHelper::formatDate($invoice->invoice_date ?? null) }} </span>
                                         </p>
 
-                                        <p style="margin:8px 0 4px; font-weight:600; font-size:16px;">
-                                            <img src="{{ public_path('storage/admin/images/icons/img-2.jpg') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
-                                            Due Date: <span style="margin:0; font-size:15px; font-weight:500;"> {{ $invoice->due_date ? \App\Helpers\CustomHelper::formatDate($invoice->due_date) : 'Pay Upon Receipt' }} </span>
+                                        <p style="margin:8px 0 4px; font-weight:600; font-size:16px; vertical-align:top;">
+                                            <img src="{{ public_path('storage/admin/images/icons/img-2.jpg') }}" width="20" height="20" style="vertical-align:top; margin-right:5px;">
+                                            Due Date: <span style="margin:0; font-size:15px; font-weight:500;"> {{ $invoice->due_date ? \App\Helpers\CustomHelper::formatDate($invoice->due_date) : 'Pay Upon Invoice' }} </span>
                                         </p>
 
                                         
-                                            {{-- <p style="margin:16px 0 4px; font-weight:600; font-size:16px;">Customer PO: <span style="margin:0; font-size:14px; color:#374151; font-weight:500;">{{ $invoice->customer->unique_id }}</span></p> --}}
-                                            
                                         
                                     </td>
                                 </tr>
@@ -115,7 +113,7 @@
                         <td >
                             
 
-                            <table role="presentation" style="width:100%; border-radius:6px; background:#f9fafb; padding:15px; padding-top:5px;">
+                            <table role="presentation" style="width:100%; border-radius:6px;  padding:5px 15px 15px 0px; ">
                                 <tr>
                                     <td>
                                         
@@ -124,15 +122,20 @@
                                                 <!-- LEFT SIDE -->
                                                 <td style="vertical-align:top;">
 
-                                                    <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" 
-                                                        width="20" height="20" 
-                                                        style="vertical-align:middle; margin-right:5px;">
+                                                    <table role="presentation" style="border-collapse:collapse;">
+                                                                                <tr>
+                                                                                    <td style="vertical-align:top; padding-right:5px;">
+                                                                                        <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}"
+                                                                                            width="20" height="20">
+                                                                                    </td>
 
-                                                    <span style="font-weight:600; font-size:15px; ">Bill To :</span><br>
+                                                                                    <td style="vertical-align:top; font-weight:600; font-size:15px;">
+                                                                                        Bill To :
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
 
-                                                    {{-- <span style="font-size:16px; font-weight:600; width:100%" >
-                                                        {{ $invoice->customer->full_name }}
-                                                    </span> --}}
+                                                                            
 
 
                                                     <table role="presentation" style="margin-top:10px; width:100%; border-collapse:collapse;">
@@ -142,7 +145,7 @@
                                                                 {{ $invoice->customer->full_name }}
 
                                                                 @if(!empty($invoice->customer->company_name)) 
-                                                                    <span style="color:#374151; font-weight:normal;">
+                                                                    <span style="color:#000;font-size:14px; font-weight:normal;">
                                                                         ({{ $invoice->customer->company_name }})
                                                                     </span>
                                                                 @endif
@@ -156,20 +159,10 @@
                                                         </tr>
                                                     </table>
 
-                                                    {{-- @if(!empty($invoice->customer->company_name)) 
-                                                        <span style="color:#374151;">
-                                                            ({{ $invoice->customer->company_name }})
-                                                        </span>
-                                                    @endif --}}
+                                            
 
                                                 </td>
 
-                                                <!-- RIGHT SIDE -->
-                                                {{-- <td style="text-align:left; vertical-align:top; margin-left:30px; font-size:14px; color:#374151;">
-                                                    
-                                                    <span style="font-weight:600; font-size:15px;">Customer ID :-</span>
-                                                       {{ $invoice->customer->unique_id ?? 'N/A' }}
-                                                </td> --}}
                                             </tr>
                                         </table>
                                        
@@ -177,7 +170,7 @@
                                         <table role="presentation" style="width:100%; margin-top:8px; border-collapse:collapse;">
                                             <tr>
                                                 <!-- Phone -->
-                                                <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top; width:50%;">
+                                                <td style="font-size:14px; color:#000; padding:4px 0; vertical-align:top; width:50%;">
                                                     <table role="presentation" style="border-collapse:collapse;">
                                                         <tr>
                                                             <td style="padding-right:5px;">
@@ -191,7 +184,7 @@
                                                 </td>
 
                                                 <!-- Email -->
-                                                <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
+                                                <td style="font-size:14px; color:#000; padding:4px 0; vertical-align:top;">
                                                     <table role="presentation" style="border-collapse:collapse;">
                                                         <tr>
                                                             <td style="padding-right:5px;">
@@ -206,68 +199,68 @@
                                             </tr>
                                             <tr>
 
-                                                @php
-                                                    $billing = collect($defaultAddresses)->firstWhere('label', 'Billing')['data'] ?? null;
-                                                    $shipping = collect($defaultAddresses)->firstWhere('label', 'Shipping')['data'] ?? null;
+                                                                    @php
+                                                                        $billing = collect($defaultAddresses)->firstWhere('label', 'Billing')['data'] ?? null;
+                                                                        $shipping = collect($defaultAddresses)->firstWhere('label', 'Shipping')['data'] ?? null;
 
-                                                    $isSameAddress = $billing && $shipping &&
-                                                        $billing->address === $shipping->address &&
-                                                        $billing->city === $shipping->city &&
-                                                        $billing->state_id === $shipping->state_id &&
-                                                        $billing->zip_code === $shipping->zip_code;
-                                                @endphp
+                                                                        $isSameAddress = $billing && $shipping &&
+                                                                            $billing->address === $shipping->address &&
+                                                                            $billing->city === $shipping->city &&
+                                                                            $billing->state_id === $shipping->state_id &&
+                                                                            $billing->zip_code === $shipping->zip_code;
+                                                                    @endphp
 
-                                                @foreach ($defaultAddresses as $addressItem)
-                                                    @php $addresse = $addressItem['data']; @endphp
+                                                                    @foreach ($defaultAddresses as $addressItem)
+                                                                        @php $addresse = $addressItem['data']; @endphp
 
-                                                    <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
-                                                        <table role="presentation" style="border-collapse:collapse;">
-                                                            <tr>
-                                                                <td style="padding-right:5px;">
-                                                                    <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
-                                                                </td>
-                                                                <td>
+                                                                        <td style="font-size:14px; color:#000; padding:4px 0; vertical-align:top;">
+                                                                            <table role="presentation" style="border-collapse:collapse;">
+                                                                                <tr>
+                                                                                    <td style="padding-right:5px;  vertical-align:top; ">
+                                                                                        <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
+                                                                                    </td>
+                                                                                    <td style="vertical-align:top;">
 
-                                                                    <p style="margin:0; font-weight:500; color:#000;">
-                                                                        {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
-                                                                    </p>
+                                                                                        <p style="margin:0; font-weight:500; color:#000;">
+                                                                                            {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
+                                                                                        </p>
 
-                                                                    <div style="line-height:1.4;">
+                                                                                        <div style="line-height:1.4;">
 
-                                                                        {{-- If Shipping and same as Billing --}}
-                                                                        @if($addressItem['label'] === 'Shipping' && $isSameAddress)
-                                                                            <div>Same as Billing Address</div>
-                                                                        @else
-                                                                        @if($addresse?->address)
-                                                                            <div>{{ $addresse->address }},  @if($addresse?->city)
-                                                                                {{ $addresse->city }},
-                                                                            @endif </div>
-                                                                        @endif
+                                                                                            {{-- If Shipping and same as Billing --}}
+                                                                                            @if($addressItem['label'] === 'Shipping' && $isSameAddress)
+                                                                                                <div>Same as Billing Address</div>
+                                                                                            @else
+                                                                                            @if($addresse?->address)
+                                                                                                <div>{{ $addresse->address }},  @if($addresse?->city)
+                                                                                                    {{ $addresse->city }},
+                                                                                                @endif </div>
+                                                                                            @endif
 
-                                                                        <div>
-                                                                        
-                                                                            @if($addresse?->state?->name)
-                                                                                {{ $addresse->state->name }} , 
-                                                                            @endif
-                                                                            @if($addresse?->zip_code)
-                                                                                {{ ' ' . $addresse->zip_code }}
-                                                                            @endif
-                                                                            @if($addresse?->country)
-                                                                                {{ ', ' . $addresse->country }}
-                                                                            @endif
-                                                                        </div>
-                                                                    @endif
+                                                                                            <div>
+                                                                                            
+                                                                                                @if($addresse?->state?->name)
+                                                                                                    {{ $addresse->state->name }} , 
+                                                                                                @endif
+                                                                                                @if($addresse?->zip_code)
+                                                                                                    {{ ' ' . $addresse->zip_code }}
+                                                                                                @endif
+                                                                                                @if($addresse?->country)
+                                                                                                    {{ ', ' . $addresse->country }}
+                                                                                                @endif
+                                                                                            </div>
+                                                                                        @endif
 
-                                                                    </div>
+                                                                                        </div>
 
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
 
-                                                @endforeach
+                                                                    @endforeach
 
-                                            </tr>
+                                                                </tr>
 
                                         </table>
 
@@ -284,13 +277,13 @@
                             <table role="presentation" style="width:100%; border-collapse:collapse; font-size:14px;">
                                 <thead>
                                     <tr style="border-bottom:1px solid #d1d5db;">
-                                        <th align="left" style="padding:8px 0; font-weight:600; color:#374151;">Id</th>
-                                        <th align="left" style="padding:8px 0; font-weight:600; color:#374151;">Item</th>
-                                        <th align="left" style="padding:8px 0; font-weight:600; color:#374151;">PO#</th>
-                                        <th align="center" style="padding:8px 0; font-weight:600; color:#374151;">Qty</th>
-                                        <th align="right" style="padding:8px 0; font-weight:600; color:#374151;">Unit Price</th>
-                                        <th align="right" style="padding:8px 0; font-weight:600; color:#374151;">Tax</th>
-                                        <th align="right" style="padding:8px 0; font-weight:600; color:#374151;">Total</th>
+                                        <th align="left" style="padding:8px 0; font-weight:600; color:#000;">Id</th>
+                                        <th align="left" style="padding:8px 0; font-weight:600; color:#000;">Item</th>
+                                        <th align="left" style="padding:8px 0; font-weight:600; color:#000;">PO#</th>
+                                        {{-- <th align="center" style="padding:8px 0; font-weight:600; color:#000;">Qty</th> --}}
+                                        <th align="right" style="padding:8px 0; font-weight:600; color:#000;">Price</th>
+                                        <th align="right" style="padding:8px 0; font-weight:600; color:#000;">Tax</th>
+                                        <th align="right" style="padding:8px 0; font-weight:600; color:#000;">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -302,7 +295,7 @@
                                     $qty = $item->orderProduct->quantity ?? 1;
 
                                      $total_without_data = $rowprice * $qty;
-                                     $total = $total_without_data + $item->orderProduct->tax ;
+                                     $total = $item->orderProduct->sub_total + $item->orderProduct->tax ;
                                     } else {
                                     $rowprice = $item->total;
                                     $qty = $item->qty ?? 1;
@@ -319,7 +312,7 @@
                                                             @endif
                                                         </td>
                                                         <td style="padding:8px 0; font-weight:500;">{{ $item->item_name }} 
-                                                <div style="font-size:12px; color:#6b7280;"> {{  $item->notes ?? ''}} </div>
+                                                <div style="font-size:12px; color:#111;"> {{  $item->notes ?? ''}} </div>
                                         </td>
 
                                         <td align="left">   
@@ -336,11 +329,11 @@
                                             $textColor = $isAdjustment ? 'green' : '';
                                             $prefix = $isAdjustment ? '-' : '';
                                         @endphp
-                                        <td align="center">{{ $qty }}</td>
+                                        {{-- <td align="center">{{ $qty }}</td> --}}
                                         <td align="right" style="font-weight:600;color:{{ $textColor }};">
                                             {{-- {{ \App\Helpers\CustomHelper::formatCurrency($rowprice) }} --}}
                                              @if ($item->type === 'order')
-                                      {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->price) }}
+                                      {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->sub_total) }}
                                         @else
                                       {{ $prefix }}  {{ \App\Helpers\CustomHelper::formatCurrency($item->unit) }}
                                         @endif
@@ -353,7 +346,7 @@
                                     </tr>
 
                                     {{-- Rental Items --}}
-                                    @if($item->type === 'order' && $item->orderProduct && $item->orderProduct->product_data)
+                                    {{-- @if($item->type === 'order' && $item->orderProduct && $item->orderProduct->product_data)
                                     @foreach ($item->orderProduct->product_data['product_rental_items_prices'] ?? [] as $rentalKey => $rentalPrice)
                                     @php
                                     $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())
@@ -362,30 +355,30 @@
                                     @endphp
                                     <tr>
                                         <td></td>
-                                        <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:5px;">
+                                        <td style="padding-left:15px; font-size:12px; color:#111; padding-bottom:5px;">
                                             + {{ $case ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
                                             <span class="text-xs text-gray-400">(x{{ $quantity }})</span>
                                         </td>
                                         <td></td>
                                         <td></td>
-                                        <td align="right" style="font-size:12px; color:#6b7280;">
+                                        <td align="right" style="font-size:12px; color:#111;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice) }}
                                         </td>
                                            <td></td>
-                                        <td align="right" style="font-size:12px; color:#6b7280;">
+                                        <td align="right" style="font-size:12px; color:#111;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice * $quantity) }}
                                         </td>
                                     </tr>
-                                    @endforeach
+                                    @endforeach --}}
 
                                     
 
-                                      @if (!empty($item->orderProduct->distance_range))
+                                      {{-- @if (!empty($item->orderProduct->distance_range))
 
                                          <tr style="border-bottom:1px solid #d1d5db;">
                                         <td></td>
 
-                                            <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:10px;">
+                                            <td style="padding-left:15px; font-size:12px; color:#111; padding-bottom:10px;">
                                                 + Distance Range
                                                 <span class="text-xs text-gray-400">( {{ ucfirst($item->orderProduct->distance_type) }}
                                                             ({{ ucfirst($item->orderProduct->distance_range) }}))</span>
@@ -393,47 +386,47 @@
                                         <td></td>
 
                                             <td></td>
-                                            <td align="right" style="font-size:12px; color:#6b7280;">
+                                            <td align="right" style="font-size:12px; color:#111;">
                                                
 
                                                              {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
                                             </td>
                                                <td></td>
-                                            <td align="right" style="font-size:12px; color:#6b7280;">
+                                            <td align="right" style="font-size:12px; color:#111;">
                                                  {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
                                             </td>
                                         </tr>
 
-                                        @endif
+                                        @endif --}}
                                     {{-- Option Items --}}
-                                    @foreach ($item->orderProduct->product_data['product_option_items'] ?? [] as $option)
+                                    {{-- @foreach ($item->orderProduct->product_data['product_option_items'] ?? [] as $option)
                                     <tr style="border-bottom:1px solid #d1d5db;">
                                         <td></td>
 
-                                        <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:10px;">
+                                        <td style="padding-left:15px; font-size:12px; color:#111; padding-bottom:10px;">
                                             + {{ $option['name'] }}
                                             <span class="text-xs text-gray-400">(x{{ $item->orderProduct->quantity ?? 1 }})</span>
                                         </td>
                                         <td></td>
 
                                         <td></td>
-                                        <td align="right" style="font-size:12px; color:#6b7280;">
+                                        <td align="right" style="font-size:12px; color:#111;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($option['price'] ?? 0) }}
                                         </td>
                                            <td></td>
-                                        <td align="right" style="font-size:12px; color:#6b7280;">
+                                        <td align="right" style="font-size:12px; color:#111;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency(($option['price'] ?? 0) * ($item->orderProduct->quantity ?? 1)) }}
                                         </td>
                                     </tr>
-                                    @endforeach
-                                    @endif
+                                    @endforeach --}}
+                                    {{-- @endif --}}
 
                                     {{-- Divider --}}
                                     <tr style="border-bottom:1px solid #d1d5db;">
                                         <td></td>
                                         <td></td>
 
-                                        <td></td>
+                                        {{-- <td></td> --}}
                                         <td></td>
                                         <td></td>
                                            <td></td>
@@ -471,70 +464,70 @@
                         @endphp
 
 
-<tr>
-    <td style="padding-top:20px;">
-        <table role="presentation" width="100%" style="font-size:14px; border-collapse:collapse;">
-            
-            <tr>
-                <td style="text-align:right; padding:4px 0;">
-                    Subtotal:
-                </td>
-                <td style="text-align:right; padding:4px 0; width:90px;">
-                    {{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal) }}
-                </td>
-            </tr>
+                    <tr>
+                        <td style="padding-top:20px;">
+                            <table role="presentation" width="100%" style="font-size:14px; border-collapse:collapse;">
+                                
+                                <tr>
+                                    <td style="text-align:right; padding:4px 0;">
+                                        Subtotal:
+                                    </td>
+                                    <td style="text-align:right; padding:4px 0; width:90px;">
+                                        {{ \App\Helpers\CustomHelper::formatCurrency($invoice->subtotal) }}
+                                    </td>
+                                </tr>
 
-            <tr>
-                <td style="text-align:right; padding:4px 0;">
-                    Tax ({{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }}%):
-                </td>
-                <td style="text-align:right; padding:4px 0;">
-                    {{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}
-                </td>
-            </tr>
+                                <tr>
+                                    <td style="text-align:right; padding:4px 0;">
+                                        Tax ({{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }}%):
+                                    </td>
+                                    <td style="text-align:right; padding:4px 0;">
+                                        {{ \App\Helpers\CustomHelper::formatCurrency($invoice->sales_tax) }}
+                                    </td>
+                                </tr>
 
-            @if($discountTotal > 0)
-            <tr>
-                <td style="text-align:right; padding:4px 0; color:green;">
-                    Discount:
-                </td>
-                <td style="text-align:right; padding:4px 0; color:green;">
-                    -{{ \App\Helpers\CustomHelper::formatCurrency($discountTotal) }}
-                </td>
-            </tr>
-            @endif
+                                @if($discountTotal > 0)
+                                <tr>
+                                    <td style="text-align:right; padding:4px 0; color:green;">
+                                        Discount:
+                                    </td>
+                                    <td style="text-align:right; padding:4px 0; color:green;">
+                                        -{{ \App\Helpers\CustomHelper::formatCurrency($discountTotal) }}
+                                    </td>
+                                </tr>
+                                @endif
 
-            @if($refundTotal > 0)
-            <tr>
-                <td style="text-align:right; padding:4px 0; color:green;">
-                    Refund:
-                </td>
-                <td style="text-align:right; padding:4px 0; color:green;">
-                    -{{ \App\Helpers\CustomHelper::formatCurrency($refundTotal) }}
-                </td>
-            </tr>
-            @endif
+                                @if($refundTotal > 0)
+                                <tr>
+                                    <td style="text-align:right; padding:4px 0; color:green;">
+                                        Refund:
+                                    </td>
+                                    <td style="text-align:right; padding:4px 0; color:green;">
+                                        -{{ \App\Helpers\CustomHelper::formatCurrency($refundTotal) }}
+                                    </td>
+                                </tr>
+                                @endif
 
-            <!-- TOTAL -->
-            <tr>
-                <td colspan="2" style="border-top:1px solid #111827; padding-top:10px;"></td>
-            </tr>
+                                <!-- TOTAL -->
+                                <tr>
+                                    <td colspan="2" style="border-top:1px solid #111827; padding-top:10px;"></td>
+                                </tr>
 
-            <tr>
-                <td style="text-align:right; font-weight:700; font-size:16px;">
-                    Total:
-                </td>
-                <td style="text-align:right; font-weight:700; font-size:16px;">
-                    {{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}
-                </td>
-            </tr>
+                                <tr>
+                                    <td style="text-align:right; font-weight:700; font-size:16px;">
+                                        Total:
+                                    </td>
+                                    <td style="text-align:right; font-weight:700; font-size:16px;">
+                                        {{ \App\Helpers\CustomHelper::formatCurrency($invoice->total) }}
+                                    </td>
+                                </tr>
 
-        </table>
-    </td>
-</tr>
+                            </table>
+                        </td>
+                    </tr>
                     <!-- Footer -->
                     <tr>
-                        <td style="text-align:center; padding:30px 0 0; border-top:1px solid #111827; font-size:13px; color:#6b7280;">
+                        <td style="text-align:center; padding:30px 0 0; border-top:1px solid #111827; font-size:13px; color:#111;">
 
                               @if(!empty($invoice->invoice_notes))
                                     <p style="margin:6px 0px 10px 0px;">
@@ -543,18 +536,18 @@
                                 @endif
 
                             <p  style="margin:0;">Thank you for your business!</p>
+
+                            <p  style="margin:0;">*Order details can be found In your Customer Portal</p>
+
                                 @php
                                     $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
                                 @endphp
 
                                 @if(!empty($supportPhone))
                                     <p style="margin:0;">
-                                        For questions about this receipt, contact us at {{ $supportPhone }}
+                                        For questions about this Invoice, contact us at {{ $supportPhone }}
                                     </p>
                                 @endif
-
-                              
-
                         </td>
                     </tr>
 

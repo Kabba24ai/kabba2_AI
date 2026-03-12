@@ -29,6 +29,7 @@
                             onclick="sortTable(3, 'date')">Last Payment Date <span id="icon-3" class="ml-1"></span>
                         </th>
                         <th class="px-4 py-3 font-medium text-left whitespace-nowrap">Payment Due</th>
+                          <th class="px-4 py-3 font-medium text-left whitespace-nowrap">Last Invoice Date</th>
                         <th class="px-4 py-3 font-medium text-left cursor-pointer whitespace-nowrap"
                             onclick="sortTable(4, 'days')">Days Aging <span id="icon-4" class="ml-1"></span></th>
                         <th class="px-4 py-3 font-medium w-24 whitespace-nowrap text-center">Actions</th>
@@ -39,18 +40,40 @@
                 <tbody class="text-gray-700">
                     @forelse($customers as $customer)
 
+                   
 
 
                         <tr class="border-t hover:bg-gray-50">
                             <td class="px-4 py-2 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round"
-                                        class="lucide lucide-user w-4 h-4 text-gray-400 mr-2">
-                                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="12" cy="7" r="4"></circle>
-                                    </svg>
+
+                                        {{-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-user w-4 h-4 text-gray-400 mr-2">
+                                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg> --}}
+
+                                        @php
+                                            $days = $customer->days_since_last_payment;
+
+                                            if ($days === null) {
+                                                $iconColor = 'text-gray-400';
+                                            } elseif ($days <= 30) {
+                                                $iconColor = 'text-green-500';
+                                            } elseif ($days <= 45) {
+                                                $iconColor = 'text-orange-500';
+                                            } elseif ($days <= 90) {
+                                                $iconColor = 'text-red-500';
+                                            } else {
+                                                $iconColor = 'text-black';
+                                            }
+                                        @endphp
+
+                                                  <x-heroicon-o-currency-dollar class="w-5 h-5 mr-2 {{ $iconColor }}" />
+
+
                                     <div class="text-sm font-medium text-gray-900">{{ $customer->full_name }}</div>
                                 </div>
                             </td>
@@ -154,9 +177,12 @@
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-semibold text-red-600"> - </div>
                             </td>
+                             <td class="px-4 py-4 whitespace-nowrap">
+                                   
+                                <div class="text-sm ">   {{ App\Helpers\CustomHelper::formatDate(optional($customer->latestInvoice)->invoice_date) ?? '-' }} </div>
+                            </td>
 
-
-                            <td class="px-4 py-4 whitespace-nowrap">
+                            {{-- <td class="px-4 py-4 whitespace-nowrap">
                                 @php
                                     $days = $customer->days_since_last_payment;
                                     $badge = $customer->payment_status_badge;
@@ -214,13 +240,70 @@
 
 
 
-                            </td>
+                            </td> --}}
+
+
+
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                @php
+                                    $days = $customer->days_since_last_payment;
+                                @endphp
+
+                                @if ($days === null)
+
+                                    <span class="text-xs text-gray-500">No payment</span>
+
+                                @elseif ($days <= 30)
+
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                            <path d="m9 11 3 3L22 4"/>
+                                        </svg>
+                                        <span class="ml-1">{{ (int) $days }} days</span>
+                                    </span>
+
+                                @elseif ($days <= 45)
+
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                            <path d="M12 9v4"/>
+                                            <path d="M12 17h.01"/>
+                                        </svg>
+                                        <span class="ml-1">{{ (int) $days }} days</span>
+                                    </span>
+
+                                @elseif ($days <= 90)
+
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                            <path d="M12 9v4"/>
+                                            <path d="M12 17h.01"/>
+                                        </svg>
+                                        <span class="ml-1">{{ (int) $days }} days</span>
+                                    </span>
+
+                                @else
+
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-900 text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                            <path d="M12 9v4"/>
+                                            <path d="M12 17h.01"/>
+                                        </svg>
+                                        <span class="ml-1">{{ (int) $days }} days</span>
+                                    </span>
+
+                                @endif
+                                </td>
 
 
                             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-center">
                                 <div class="flex items-center justify-center">
                                     <a href="{{ route('admin.crm.billing-summary.view', $customer->unique_id) }}"
-                                        target="_blank" class="text-blue-600  space-x-1">
+                                         class="text-blue-600  space-x-1">
                                         <x-heroicon-o-eye class="w-4 h-4" />
                                     </a>
                                 </div>

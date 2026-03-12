@@ -127,7 +127,7 @@ class IndexController extends Controller
                     return (object) [
                         'type' => 'payment',
                         'unique_id' => $payment->customer?->unique_id ?? '-',
-                        'link' => '<a href="' . route('admin.reports.sales-tax.paymentview', $payment->customer?->unique_id) . '" class="text-brand-500 underline font-bold" target="_blank">View Payment</a>',
+                        'link' => '<a href="' . route('admin.reports.sales-tax.paymentview', $payment->customer?->unique_id) . '" class="text-brand-500 underline font-bold" >View Payment</a>',
                         'date' => $payment->date,
                         'customer_name' => $payment->customer?->full_name ?? '-',
                         'products' => 'Payment Account',

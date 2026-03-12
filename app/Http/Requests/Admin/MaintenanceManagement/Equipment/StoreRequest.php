@@ -34,6 +34,16 @@ class StoreRequest extends FormRequest
             }
         }
 
+        if (!empty($this->coi_submitted)) {
+            try {
+            $this->merge([
+                'coi_submitted' => date('Y-m-d', strtotime($this->coi_submitted))
+            ]);
+            } catch (\Exception $e) {
+            // Ignore invalid date format
+            }
+        }
+
     }
 
     public function rules()
@@ -82,6 +92,7 @@ class StoreRequest extends FormRequest
             'equipment_value' => 'nullable|numeric|min:0',
             'warranty_duration_months' => 'nullable|integer|min:0',
             'warranty_duration_hours' => 'nullable|integer|min:0',
+            'coi_submitted' => 'nullable|date',
 
             // fixed rule
             'power_source_type'     => 'nullable|in:diesel,gas,batteries,electric',

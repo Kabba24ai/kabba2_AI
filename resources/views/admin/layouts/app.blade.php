@@ -45,11 +45,6 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
     @include('admin.partials.preloader')
     <!-- ===== Preloader End ===== -->
 
-    @php
-        $adminlogo = \App\Helpers\ConfigurationHelper::getProfileLogo();
-    @endphp
-
-
     <!-- ===== Page Wrapper Start ===== -->
     <div class="flex h-screen overflow-hidden">
         <!-- ===== Sidebar Start ===== -->

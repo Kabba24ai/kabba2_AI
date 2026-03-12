@@ -78,6 +78,6 @@ class Module extends Model
             return '<strong><a href="#" target="_blank">' . $this->title . ' [' . $this->unique_id . ']</a></strong>';
         } else {
             return '<strong>' . $this->title . ' [' . $this->unique_id . ']</strong>';
-        }
+        }   
     }
 }

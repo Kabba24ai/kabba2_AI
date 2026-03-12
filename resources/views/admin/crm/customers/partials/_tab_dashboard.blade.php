@@ -413,7 +413,7 @@
                     {{-- Actions --}}
                     <td class="py-4 px-6 ">
                         <div class="flex gap-2 items-center justify-end">
-                            <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}" target="_blank" title="View">
+                            <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}"  title="View">
                                 <x-heroicon-o-eye class="w-5 h-5 text-blue-600" />
                             </a>
                             <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}" title="Download">

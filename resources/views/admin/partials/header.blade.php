@@ -27,9 +27,9 @@
 
             <a href="index.html" class="lg:hidden">
                 <img class="dark:hidden w-10"
-                    src="{{ $adminlogo }}" alt="Logo" />
+                    src="{{ $logo }}" alt="Logo" />
                 <img class="hidden dark:block w-10"
-                    src="{{ $adminlogo }}" alt="Logo" />
+                    src="{{ $logo }}" alt="Logo" />
             </a>
 
             <!-- Application nav menu button -->
@@ -367,7 +367,7 @@
                 <a class="flex items-center text-gray-700 dark:text-gray-400" href="#"
                     @click.prevent="dropdownOpen = ! dropdownOpen">
                     <span class="mr-3 h-11 w-11 overflow-hidden rounded-full">
-                        <img src="{{ $adminlogo }}"
+                        <img src="{{ $logo }}"
                             class="w-10" alt="User" />
                     </span>
 

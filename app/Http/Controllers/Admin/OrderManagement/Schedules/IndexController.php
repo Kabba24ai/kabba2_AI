@@ -81,17 +81,6 @@ class IndexController extends Controller
                 });
             }
 
-            if ($request->filled('date_filter')) {
-                $dateFilter = $request->date_filter;
-                if ($dateFilter === 'today') {
-                    $query->whereDate('delivery_date', today());
-                } elseif ($dateFilter === 'week') {
-                    $query->whereBetween('delivery_date', [now()->startOfWeek(), now()->endOfWeek()]);
-                } elseif ($dateFilter === 'month') {
-                    $query->whereMonth('delivery_date', now()->month);
-                }
-            }
-
             // Filter: SCHEDULE TYPE + TRANSPORT MODE
             $scheduleTypes = [];
             $transportModes = [];
@@ -100,13 +89,19 @@ class IndexController extends Controller
             // Get filters, clean them
             if ($request->filled('schedule_type')) {
                 $scheduleTypes = array_filter((array) $request->input('schedule_type', []), fn($v) => $v !== '' && $v !== 'false');
+                $isReturnOnly = in_array('Return', $scheduleTypes) && !in_array('Delivery', $scheduleTypes);
 
-                $query->where(function ($q) use ($scheduleTypes) {
+                $query->where(function ($q) use ($scheduleTypes, $isReturnOnly) {
                     if (in_array('Delivery', $scheduleTypes)) {
                         $q->where('delivery_status', 'Pending');
                     }
                     if (in_array('Return', $scheduleTypes)) {
-                        $q->orWhere('pickup_status', 'Pending');
+                        if ($isReturnOnly) {
+                            $q->where('pickup_status', 'Pending')
+                                ->where('delivery_status', 'Completed');
+                        } else {
+                            $q->orWhere('pickup_status', 'Pending');
+                        }
                     }
                 });
             }
@@ -117,6 +112,17 @@ class IndexController extends Controller
 
             if (in_array('Return', $scheduleTypes) && !in_array('Delivery', $scheduleTypes)) {
                 $orderByField = 'pickup_date';
+            }
+
+            if ($request->filled('date_filter')) {
+                $dateFilter = $request->date_filter;
+                if ($dateFilter === 'today') {
+                    $query->whereDate($orderByField, today());
+                } elseif ($dateFilter === 'week') {
+                    $query->whereBetween($orderByField, [now()->startOfWeek(), now()->endOfWeek()]);
+                } elseif ($dateFilter === 'month') {
+                    $query->whereMonth($orderByField, now()->month);
+                }
             }
 
             // If no schedule type, fallback to original logic

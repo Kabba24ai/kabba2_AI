@@ -84,6 +84,7 @@ class Equipment extends Model
         'warranty_duration_hours',
         'key_starting_mechanism',
         'equipment_value',
+        'coi_submitted',
     ];
 
     protected $casts = [
@@ -142,6 +143,19 @@ class Equipment extends Model
         return $this->hasMany(OrderProduct::class, 'equipment_id');
     }
 
+    public function overdueOrderProducts()
+    {
+        return $this->hasMany(OrderProduct::class, 'equipment_id')
+            ->whereNotNull('pickup_date')
+            ->whereRaw(
+                "TIMESTAMP(pickup_date, COALESCE(NULLIF(pickup_time, ''), '09:00:00')) < ?",
+                [now()]
+            )
+            ->where('delivery_status', 'Completed')
+            ->where('pickup_status', 'Pending')
+            ->with(['order', 'order.customer']);
+    }
+
     public function lastOrderProduct()
     {
         return $this->hasOne(OrderProduct::class, 'equipment_id')
@@ -149,7 +163,7 @@ class Equipment extends Model
                 $query->where('delivery_status', 'Pending')
                     ->orWhere('pickup_status', 'Pending');
             })
-            ->orderByDesc('id');
+            ->latestOfMany('id');
     }
 
 

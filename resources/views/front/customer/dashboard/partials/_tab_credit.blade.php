@@ -111,6 +111,7 @@
                     <select id="typeFilters" class="border border-gray-300 rounded px-3 py-1 text-sm">
                         <option value="all">All Transactions</option>
                         <option value="order">Order</option>
+                         <option value="account_invoice">Account Invoice</option>
                         <option value="charge">Charge</option>
                         <option value="payment">Payment</option>
                         <option value="discount">Discount</option>
@@ -122,11 +123,12 @@
     </div>
     <!-- Table -->
     <div class="overflow-x-auto">
-        <table class="min-w-full text-sm text-left text-gray-700">
+        <table class="min-w-full text-sm text-left text-gray-700 whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 text-xs divide-y divide-gray-200 uppercase border-b border-gray-200">
                 <tr>
                     <th class="px-3 py-3 font-medium">Date</th>
                     <th class="px-3 py-3 font-medium">Type</th>
+                     <th class="py-4 px-6">ID#</th>
                     <th class="px-3 py-3 font-medium">Description</th>
                     <th class="px-3 py-3 text-right font-medium">Amount</th>
                     <th class="px-3 py-3 text-right font-medium">Sales Tax</th>
@@ -277,6 +279,30 @@
                                 @endif
                            </div>
                     </td>
+
+                     <td class="py-4 px-6 text-sm text-gray-900">
+                           <div class="max-w-xs truncate text-gray-700">
+
+                                 <span>
+                                @if ($transaction->order_id)
+                                
+                                  
+                                    
+
+                                    <a href="{{ route('front.customer.dashboard.order.view', $transaction->order->unique_id) }}" class="text-brand-500 underline font-bold">{{$transaction->order->order_number}}</a>
+
+                                @elseif($transaction->type === 'payment' && $transaction->payment_type?->label() === 'Check' && $transaction->payment_number_id)
+                                    {{ $transaction->payment_number_id }}
+
+                                @else
+                                    -
+                                @endif
+                                </span>
+
+                           </div>
+                          
+                       </td>
+
                      <td class="py-4 px-6 text-sm text-gray-900">
                            <div class="max-w-xs truncate text-gray-700">
 
@@ -352,10 +378,20 @@
                         <div class="flex justify-end items-center text-left space-x-2">
 
 
-                            <!-- View -->
+                           @if($transaction->invoice?->unique_id && $transaction->type === 'account_invoice')
+                         <!-- View -->
+                            <a href="{{ route('front.customer.dashboard.invoice.view', $transaction->invoice?->unique_id) }}" class="cursor-pointer" title="View" >
+                                <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
+                            </a>
+                            
+                         @else
+<!-- View -->
                             <button class="openTransactionViewModalBtn cursor-pointer" title="View" data-transaction='@json($transaction)' data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}">
                                 <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                             </button>
+                            
+                         @endif
+
                             <!-- Download -->
                             <form method="GET" action="{{ route('front.customer.dashboard.download', $transaction->id) }}" target="_blank" style="display:flex;">
                                 <button class="cursor-pointer" title="Download" type="submit">
@@ -458,96 +494,131 @@
         const closeBtn = document.getElementById('closeTransactionViewModalBtn');
         const modalBody = document.getElementById('transactionViewModalBody');
 
-        document.querySelectorAll('.openTransactionViewModalBtn').forEach(button => {
-            button.addEventListener('click', () => {
-                const tx = JSON.parse(button.getAttribute('data-transaction') || '{}');
+      document.querySelectorAll('.openTransactionViewModalBtn').forEach(button => {
+               button.addEventListener('click', () => {
+                   const tx = JSON.parse(button.getAttribute('data-transaction') || '{}');
+                   const txdate = button.getAttribute('data-date') || '';
+                   modalBody.innerHTML = '';
 
-                console.log('tx:-');
-                console.log(tx);
+                   if (!tx || !tx.amount) {
+                       modalBody.innerHTML = `<p class="text-gray-500 text-sm">Transaction not found.</p>`;
+                       return;
+                   }
 
-                const txdate = button.getAttribute('data-date') || '';
-                modalBody.innerHTML = '';
+                   let netAmount = parseFloat(tx.amount) || 0;
+                   let taxAmount = 0;
 
-                if (!tx || !tx.amount) {
-                    modalBody.innerHTML = `<p class="text-gray-500 text-sm">Transaction not found.</p>`;
-                    return;
-                }
-
-                let netAmount = parseFloat(tx.amount) || 0;
-                let taxAmount = 0;
-
-                // If tax exists
-                if (tx.sales_tax > 0) {
-                    // Tax included in amount (payment or reverse charge)
-                    if (tx.type === 'payment' || (tx.type === 'charge' && tx.sales_tax_type === 'reverse')) {
-                        netAmount = netAmount / (1 + parseFloat(tx.sales_tax));
-                        taxAmount = parseFloat(tx.amount) - netAmount;
-                    } else {
-                        // Tax added on top
-                        taxAmount = netAmount * parseFloat(tx.sales_tax);
-                    }
-                }
+                   // If tax exists
+                   if (tx.sales_tax > 0) {
+                       // Tax included in amount (payment or reverse charge)
+                       if (tx.type === 'payment' || (tx.type === 'charge' && tx.sales_tax_type === 'reverse')) {
+                           netAmount = netAmount / (1 + parseFloat(tx.sales_tax));
+                           taxAmount = parseFloat(tx.amount) - netAmount;
+                       } else {
+                           // Tax added on top
+                           taxAmount = netAmount * parseFloat(tx.sales_tax);
+                       }
+                   }
 
 
-                const total = netAmount + taxAmount;
+                   const total = netAmount + taxAmount;
 
 
 
-                const html = `
-                            <div class=" rounded-lg mb-4 text-sm space-y-1">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 font-medium">Transaction:</span>
-                                    <span class="text-gray-700">${tx.unique_id}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 font-medium">Date:</span>
-                                    <span class="text-gray-700">${txdate} </span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 font-medium">Type:</span>
-                                    <span class="text-gray-700">${tx.type}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 font-medium">Amount:</span>
- <span class="text-gray-700">$${netAmount.toFixed(2)}</span>
-                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 font-medium">Sales Tax (${(tx.sales_tax * 100).toFixed(2)}%):</span>
-                                    <span class="text-gray-700">$${taxAmount.toFixed(2)} </span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 font-medium">Total With Tax:</span>
-                                    <span class="text-gray-700">$${total.toFixed(2)}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 font-medium">Running Balance:</span>
-                                    <span class="text-gray-700">$${tx.balance || '-'}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 font-medium">Reason:</span>
-                                    <span class="text-gray-700">${tx.reason || '-'}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 font-medium">Responsible:</span>
-                                    <span class="text-gray-700">${tx.responsible_person_name || 'N/A'}</span>
-                                </div>
-                            </div>
+                   let extraFields = '';
 
-                            <div class="mb-4">
-                                <label class="text-sm font-medium text-gray-700 block mb-1">Note</label>
-                                <div id="noteContainer" class="border border-gray-300 rounded-md p-3 text-sm text-gray-700 bg-white">
-                                    ${tx.notes || '—'}
-                                </div>
-                            </div>
+                    // If transaction is payment
+                    if (tx.type === 'payment') {
 
-
+                        extraFields += `
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 font-medium">Payment Type:</span>
+                            <span class="text-gray-700">${tx.payment_type || '-'}</span>
+                        </div>
                         `;
 
-                modalBody.innerHTML = html;
-                modalWrapper.style.display = 'flex';
-            });
-        });
+                        // If payment type = Check
+                        if (tx.payment_type === 'Cheque' && tx.payment_number_id) {
+                            extraFields += `
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 font-medium">Cheque Number:</span>
+                                <span class="text-gray-700">${tx.payment_number_id}</span>
+                            </div>
+                            `;
+                        }
+                    }
 
+                    // If order exists
+                    if (tx.order_id && tx.order?.view_link) {
+                        extraFields += `
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 font-medium">Order Id:</span>
+                            <span class="text-gray-700">${tx.order.view_link}</span>
+                        </div>
+                        `;
+                    }
+
+
+
+                   const html = `
+                <div class=" rounded-lg mb-4 text-sm space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Transaction:</span>
+                        <span class="text-gray-700">${tx.unique_id}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Date:</span>
+                        <span class="text-gray-700">${txdate} </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Type:</span>
+                        <span class="text-gray-700">
+                            ${tx.type ? tx.type.charAt(0).toUpperCase() + tx.type.slice(1) : '-'}
+                        </span>
+                    </div>
+
+                    ${extraFields}
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Amount:</span>
+                     <span class="text-gray-700">$${netAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Sales Tax (${(tx.sales_tax * 100).toFixed(2)}%) :</span>
+                        <span class="text-gray-700">$${taxAmount.toFixed(2)} </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Total With Tax:</span>
+                        <span class="text-gray-700">$${total.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Running Balance:</span>
+                        <span class="text-gray-700">$${tx.balance || '-'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Reason:</span>
+                        <span class="text-gray-700">${tx.reason || '-'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 font-medium">Responsible:</span>
+                        <span class="text-gray-700">${tx.responsible_person_name || 'N/A'}</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-sm font-medium text-gray-700 block mb-1">Note</label>
+                    <div id="noteContainer" class="border border-gray-300 rounded-md p-3 text-sm text-gray-700 bg-white">
+                        ${tx.notes || '—'}
+                    </div>
+                </div>
+
+
+            `;
+
+                   modalBody.innerHTML = html;
+                   modalWrapper.style.display = 'flex';
+               });
+           });
 
         closeBtn.addEventListener('click', () => {
             modalWrapper.style.display = 'none';

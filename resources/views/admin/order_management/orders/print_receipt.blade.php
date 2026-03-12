@@ -35,7 +35,7 @@
                                                 </td>
                                                 <td style="padding-left:12px; vertical-align:middle;">
                                                     <h3 style="font-weight:600; font-size:20px; margin:0; color:#111;">Rent 'n King</h3>
-                                                    <p style="margin:0; font-size:13px; color:#6b7280;">Professional Rentals & Sales</p>
+                                                    <p style="margin:0; font-size:13px; color:#000;">Professional Rentals & Sales</p>
                                                 </td>
                                             </tr>
                                         </table>
@@ -44,7 +44,7 @@
                                     <!-- Right: Receipt Info -->
                                     <td style="text-align:right; vertical-align:middle;">
                                         <h3 style="font-weight:700; font-size:20px; margin:0; color:#111;">RECEIPT</h3>
-                                        <p style="margin:4px 0; color:#6b7280;">Order ID: #{{ $receipt->order_id }}</p>
+                                        <p style="margin:4px 0; color:#000;">Order ID: #{{ $receipt->order_id }}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -58,8 +58,8 @@
                                 <tr>
                                     <!-- Left -->
                                     <td style="width:60%; vertical-align:top;  font-size:14px;">
-                                        <h3 style="font-weight:600; font-size:16px; margin:0 0 6px; color:#000;">From:</h3>
-                                        <p style="margin:0; color:#374151;">
+                                        <p style="font-weight:600; font-size:16px; margin:0 0 6px; color:#000;">From:</p>
+                                        <p style="margin:0; color:#000; line-height:1.3;">
                                             Rent 'n King .<br>
                                             10296 Highway 46<br>
                                             Bon Aqua, TN 37025<br>
@@ -80,19 +80,16 @@
                                     </td>
                                     <!-- Right -->
                                     <td style="width:40%; text-align:left; vertical-align:top; ">
-                                        <p style="margin:8px 0 4px; font-weight:600; font-size:16px;">
-                                            <img src="{{ public_path('storage/admin/images/icons/img-2.jpg') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;">
+                                        <p style="margin:0px 0 4px; font-weight:600; font-size:16px;">
+                                            {{-- <img src="{{ public_path('storage/admin/images/icons/img-2.jpg') }}" width="20" height="20" style="vertical-align:middle; margin-right:5px;"> --}}
                                             Order Date: <span style="margin:0; font-size:15px; font-weight:500;">
                                                 {{ \App\Helpers\CustomHelper::formatDate($receipt->order_date ?? null) }}
 
                                             </span>
                                         </p>
 
-                                        <p style="margin:12px 0 4px; font-weight:600; font-size:16px;">Customer PO:</p>
-                                        <p style="margin:0; font-size:15px; font-weight:500;">
-                                            {{ $order->po_id }}
-                                        </p>
-
+                                        <p style="margin:12px 0 4px; font-weight:600; font-size:16px;">Customer PO: <span style="margin:0; font-size:15px; font-weight:500;"> {{ $order->po_id ?? '-' }} </span></p>
+                                    
                                             {{-- <p style="margin:16px 0 4px; font-weight:600; font-size:16px;">Customer PO: <span style="margin:0; font-size:14px; color:#374151; font-weight:500;">{{ $order->po_id }}</span></p> --}}
 
                                     </td>
@@ -123,11 +120,26 @@
                                                                     <!-- LEFT SIDE -->
                                                                     <td style="vertical-align:top;">
 
-                                                                        <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" 
+                                                                        {{-- <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" 
                                                                             width="20" height="20" 
                                                                             style="vertical-align:middle; margin-right:5px;">
 
-                                                                        <span style="font-weight:600; font-size:15px;">Bill To :</span><br>
+                                                                        <span style="font-weight:600; font-size:15px; ">Bill To :</span><br> <br> --}}
+
+
+                                                                            <table role="presentation" style="border-collapse:collapse; margin-bottom:15px;">
+                                                                                <tr>
+                                                                                    <td style="vertical-align:top; ">
+                                                                                        <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}"
+                                                                                            width="20" height="20">
+                                                                                    </td>
+
+                                                                                    <td style="vertical-align:top; font-weight:600; font-size:15px;">
+                                                                                        Bill To :
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+
 
                                                                         {{-- <span style="font-size:16px; font-weight:600; width:100%" >
                                                                             {{ $invoice->customer->full_name }}
@@ -141,7 +153,7 @@
                                                                                     {{ $receipt->customer->full_name }}
 
                                                                                     @if(!empty($receipt->customer->company_name)) 
-                                                                                        <span style="color:#374151; font-weight:normal;">
+                                                                                        <span style="color:#000; font-weight:normal;font-size:15px;">
                                                                                             ({{ $receipt->customer->company_name }})
                                                                                         </span>
                                                                                     @endif
@@ -166,7 +178,7 @@
                                                             <table role="presentation" style="width:100%; margin-top:8px; border-collapse:collapse;">
                                                                 <tr>
                                                                     <!-- Phone -->
-                                                                    <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top; width:50%;">
+                                                                    <td style="font-size:14px; color:#000; padding:4px 0; vertical-align:top; width:50%;">
                                                                         <table role="presentation" style="border-collapse:collapse;">
                                                                             <tr>
                                                                                 <td style="padding-right:5px;">
@@ -180,7 +192,7 @@
                                                                     </td>
 
                                                                     <!-- Email -->
-                                                                    <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
+                                                                    <td style="font-size:14px; color:#000; padding:4px 0; vertical-align:top;">
                                                                         <table role="presentation" style="border-collapse:collapse;">
                                                                             <tr>
                                                                                 <td style="padding-right:5px;">
@@ -209,13 +221,13 @@
                                                                     @foreach ($defaultAddresses as $addressItem)
                                                                         @php $addresse = $addressItem['data']; @endphp
 
-                                                                        <td style="font-size:14px; color:#374151; padding:4px 0; vertical-align:top;">
+                                                                        <td style="font-size:14px; color:#000; padding:4px 0; vertical-align:top;">
                                                                             <table role="presentation" style="border-collapse:collapse;">
                                                                                 <tr>
-                                                                                    <td style="padding-right:5px;">
+                                                                                    <td style="padding-right:5px;  vertical-align:top; ">
                                                                                         <img src="{{ public_path('storage/admin/images/icons/img-6.png') }}" width="17">
                                                                                     </td>
-                                                                                    <td>
+                                                                                    <td style="vertical-align:top;">
 
                                                                                         <p style="margin:0; font-weight:500; color:#000;">
                                                                                             {{ ($addressItem['label']=='Shipping' ? 'Delivery' : $addressItem['label']) }} Address
@@ -272,10 +284,10 @@
                             <table role="presentation" style="width:100%; border-collapse:collapse; font-size:14px;">
                                 <thead>
                                     <tr style="border-bottom:1px solid #d1d5db;">
-                                        <th align="left" style="padding:8px 0; font-weight:600; color:#374151;">Item</th>
-                                        <th align="center" style="padding:8px 0; font-weight:600; color:#374151;">Qty</th>
-                                        <th align="right" style="padding:8px 0; font-weight:600; color:#374151;">Unit Price</th>
-                                        <th align="right" style="padding:8px 0; font-weight:600; color:#374151;">Total</th>
+                                        <th align="left" style="padding:8px 0; font-weight:600; color:#000;">Item</th>
+                                        <th align="center" style="padding:8px 0; font-weight:600; color:#000;">Qty</th>
+                                        <th align="right" style="padding:8px 0; font-weight:600; color:#000;">Unit Price</th>
+                                        <th align="right" style="padding:8px 0; font-weight:600; color:#000;">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -307,15 +319,15 @@
                                     $quantity = $case ? $item->orderProduct->quantity : 1;
                                     @endphp
                                     <tr>
-                                        <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:5px;">
+                                        <td style="padding-left:15px; font-size:12px; color:#000; padding-bottom:5px;">
                                             + {{ $case ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
                                             <span class="text-xs text-gray-400">(x{{ $quantity }})</span>
                                         </td>
                                         <td></td>
-                                        <td align="right" style="font-size:12px; color:#6b7280;">
+                                        <td align="right" style="font-size:12px; color:#000;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice) }}
                                         </td>
-                                        <td align="right" style="font-size:12px; color:#6b7280;">
+                                        <td align="right" style="font-size:12px; color:#000;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($rentalPrice * $quantity) }}
                                         </td>
                                     </tr>
@@ -324,18 +336,18 @@
                                          @if (!empty($item->orderProduct->distance_range))
 
                                          <tr style="border-bottom:1px solid #d1d5db;">
-                                            <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:10px;">
+                                            <td style="padding-left:15px; font-size:12px; color:#000; padding-bottom:10px;">
                                                 + Distance Range
                                                 <span class="text-xs text-gray-400">( {{ ucfirst($item->orderProduct->distance_type) }}
                                                             ({{ ucfirst($item->orderProduct->distance_range) }}))</span>
                                             </td>
                                             <td></td>
-                                            <td align="right" style="font-size:12px; color:#6b7280;">
+                                            <td align="right" style="font-size:12px; color:#000;">
                                                
 
                                                              {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
                                             </td>
-                                            <td align="right" style="font-size:12px; color:#6b7280;">
+                                            <td align="right" style="font-size:12px; color:#000;">
                                                  {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
                                             </td>
                                         </tr>
@@ -345,15 +357,15 @@
                                     {{-- Option Items --}}
                                     @foreach ($item->orderProduct->product_data['product_option_items'] ?? [] as $option)
                                     <tr style="border-bottom:1px solid #d1d5db;">
-                                        <td style="padding-left:15px; font-size:12px; color:#6b7280; padding-bottom:10px;">
+                                        <td style="padding-left:15px; font-size:12px; color:#000; padding-bottom:10px;">
                                             + {{ $option['name'] }}
                                             <span class="text-xs text-gray-400">(x{{ $item->orderProduct->quantity ?? 1 }})</span>
                                         </td>
                                         <td></td>
-                                        <td align="right" style="font-size:12px; color:#6b7280;">
+                                        <td align="right" style="font-size:12px; color:#000;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($option['price'] ?? 0) }}
                                         </td>
-                                        <td align="right" style="font-size:12px; color:#6b7280;">
+                                        <td align="right" style="font-size:12px; color:#000;">
                                             {{ \App\Helpers\CustomHelper::formatCurrency(($option['price'] ?? 0) * ($item->orderProduct->quantity ?? 1)) }}
                                         </td>
                                     </tr>
@@ -437,7 +449,7 @@
 
                     <!-- Footer -->
                     <tr>
-                        <td style="text-align:center; padding:30px 0 0; border-top:1px solid #111827; font-size:13px; color:#6b7280;">
+                        <td style="text-align:center; padding:30px 0 0; border-top:1px solid #111827; font-size:13px; color:#000;">
                             <p style="margin:6px 0;">Thank you for your business!</p>
                           @php
                                 $supportPhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');

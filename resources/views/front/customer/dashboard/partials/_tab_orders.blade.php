@@ -84,7 +84,7 @@
                    @forelse ($customer->orders->sortByDesc('order_date') as $order)
                        @foreach ($order->products as $product)
                            <tr class="order-row">
-                               <td class="px-4 py-3 font-medium text-gray-900"> {{ $order->order_number }}</td>
+                               <td class="px-4 py-3 font-medium text-gray-900"> <a href="{{ route('front.customer.dashboard.order.view', $order->unique_id) }}" class="text-brand-500 underline font-bold">{{$order->order_number}}</a> </td>
                                <td class="px-4 py-3">{{ $order->po_id ?? '' }}</td>
                                <td class="px-4 py-3">{{ $product->product_name ?? 'N/A' }}</td>
                                <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}
@@ -97,22 +97,22 @@
                                </td>
                                <td class="px-4 py-3">
                                    {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }}</td>
-                               <td class="px-4 py-3 items-center whitespace-nowrap text-blue-600">
+                               <td class="px-4 py-3 items-center whitespace-nowrap text-blue-600 flex">
                                    <!-- View -->
-                                   <button title="View" class="openOrderModalBtn"
-                                       data-order="{{ $order->order_number }}"
-                                       data-date="{{ App\Helpers\CustomHelper::formatDate($order->order_date) }}"
-                                       data-status='{!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}'
-                                       data-method="{{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}"
-                                       data-total="{{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}"
-                                       data-product="{{ $product->product_name ?? 'N/A' }}">
-                                       <x-heroicon-o-eye class="w-4 h-4 mr-1 cursor-pointer" />
-                                   </button>
+
+                                 
+
+                                 <a href="{{ route('front.customer.dashboard.order.view', $order->unique_id) }}"
+                                     class="text-blue-600 inline-flex items-center">
+                                    <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                                </a>
 
                                    <!-- Download -->
-                                   <button title="Download">
-                                       <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 cursor-pointer" />
-                                   </button>
+                                             <a href="{{ route('front.customer.dashboard.order.receipt-download', $order->unique_id) }}" title="Download">
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 cursor-pointer" />
+                                             </a>
+
+                                             <!-- Download -->
                                </td>
                            </tr>
                        @endforeach

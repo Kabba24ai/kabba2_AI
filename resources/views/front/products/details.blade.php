@@ -297,7 +297,10 @@
                             <div id="storeDiv" class="hidden w-full mt-5 mb-5">
                                 <select id="storeSelect"
                                     class="block w-full md:w-10/12 lg:w-8/12 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
-                                    <option disabled selected value="">Select Store Location</option>
+                                    @if (count($stores) > 1)
+                                        <option disabled selected value="">Select Store Location</option>
+                                    @endif
+
                                     @foreach ($stores as $store)
                                         <option value="{{ $store->id }}">
                                             {{ $store->store_name }}

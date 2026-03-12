@@ -203,8 +203,16 @@ class UpdateController extends Controller
             }
         }
 
+        $action = $request->input('action', 'save');
+
+        if ($action === 'save_exit') {
+            return redirect()
+                ->route('admin.maintenance-management.equipment.index')
+                ->with('success', 'Equipment updated successfully!');
+        }
+
         return redirect()
-            ->route('admin.maintenance-management.equipment.index')
+            ->route('admin.maintenance-management.equipment.edit', $equipment->unique_id)
             ->with('success', 'Equipment updated successfully!');
     }
 }

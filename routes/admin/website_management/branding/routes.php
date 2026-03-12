@@ -16,9 +16,7 @@ use App\Http\Controllers\Admin\WebsiteManagement\Branding\IndexController;
 */
 
 Route::prefix('branding')
-->name('branding.')
-->group(function ($router) {
-
-     Route::get('/', IndexController::class)->name('index');
-
-});
+    ->name('branding.')
+    ->group(function ($router) {
+        Route::get('/', IndexController::class)->name('index');
+    });

@@ -3,19 +3,25 @@
 namespace App\Http\Controllers\Admin\WebsiteManagement\Branding;
 
 use App\Http\Controllers\Controller;
+use App\Models\Configurations\Setting;
 use Illuminate\Http\Request;
-use App\Models\Locations\State;
-
-use App\Models\MaintenanceManagement\Supplier;
-use App\Models\MaintenanceManagement\SupplierTag;
-
-
 
 class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-                      return view('admin.website_management.faq_page.index');
 
+        $settings = Setting::whereIn('setting_type', ['Profile Settings'])
+            ->orderBy('sort_order', 'asc')
+            ->get()
+            ->groupBy('setting_type'); // keys are strings
+
+        $settings = $settings->sortKeys();
+        $settings = $settings->map(function ($group) {
+            return $group->keyBy('setting_name');
+        });
+
+
+        return view('admin.website_management.branding.index', compact('settings'));
     }
 }

@@ -7,7 +7,7 @@
         <div class="flex-1 overflow-auto">
             {{-- Header --}}
             <div class="bg-white border-b border-gray-200 px-6 py-4">
-                <div class="flex items-center justify-between">
+                <div class="max-w-5xl flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <a href="{{ route('admin.maintenance-management.equipment.index') }}"
                             class="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors">
@@ -22,12 +22,20 @@
                             <p class="text-sm text-gray-600">Edit equipment information</p>
                         </div>
                     </div>
+
+                    <button type="submit" form="productForm" name="save_as_new" value="1"
+                        class="inline-flex items-center px-5 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-semibold shadow transition">
+                        Save as New
+                        <svg class="w-4 h-4 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
             {{-- Main Content --}}
             <div class="p-6">
-                <!-- Form -->
                 {{ html()->modelForm($equipment, 'PUT')->attributes([
                         'action' => route('admin.maintenance-management.equipment.edit', $equipment->unique_id),
                         'id' => 'productForm',
@@ -38,22 +46,18 @@
                 @csrf
                 @method('PUT')
 
-                <div class="mb-6 flex justify-end">
-                    <button type="submit" name="save_as_new" value="1"
-                        class="inline-flex items-center px-6 py-2 mr-3 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-semibold shadow transition">
-                        Save as New
-                        <svg class="w-4 h-4 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
-                        </svg>
+                {{-- Main actions --}}
+                <div class="mb-6 flex justify-end gap-3">
+                    <button type="submit" name="action" value="save"
+                        class="inline-flex items-center px-6 py-2 rounded-md border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 text-sm font-semibold shadow-sm transition">
+                        Save
                     </button>
 
-
-                    <button type="submit"
+                    <button type="submit" name="action" value="save_exit"
                         class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold shadow transition">
                         Save &amp; Exit
                         <svg class="w-4 h-4 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                            stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9">
                             </path>
@@ -63,16 +67,6 @@
 
                 @include('admin.maintenance_management.equipment.partials._form')
 
-                <div class="mt-6 flex justify-end">
-                    <button type="submit"
-                        class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        <span>Save Changes</span>
-                    </button>
-                </div>
                 {{ html()->form()->close() }}
             </div>
         </div>

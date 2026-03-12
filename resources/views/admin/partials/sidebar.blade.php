@@ -657,12 +657,6 @@
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
-                                    <a href="javascript:void(0)"
-                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.home-page.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-home class="w-5 h-5" /> Home Page
-                                    </a>
-                                </li>
-                                <li>
                                     <a href="{{ route('admin.website-management.faq-page.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.faq-page.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-question-mark-circle class="w-5 h-5" /> FAQ Page
@@ -682,7 +676,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('admin.website-management.branding.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.branding.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-swatch class="w-5 h-5" /> Branding
                                     </a>

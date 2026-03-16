@@ -344,9 +344,13 @@
                                 <li>
                                     @php
                                         $salesReportUrl = config('app.domains.sales_report');
-                                        $ssoUrl = auth()->check()
-                                            ? \App\Helpers\SsoHelper::generateSsoUrl(auth()->user()->email, $salesReportUrl)
-                                            : $salesReportUrl;
+                                        // Use hash router for SSO (works without server config)
+                                        if (auth()->check()) {
+                                            $token = \App\Helpers\SsoHelper::generateToken(auth()->user()->email);
+                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/#/auth/sso?token=' . urlencode($token);
+                                        } else {
+                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/#/auth/sso';
+                                        }
                                     @endphp
                                     <a href="{{ $ssoUrl }}" target="_blank"
                                         class="menu-dropdown-item group menu-dropdown-item-inactive">

@@ -6,7 +6,7 @@ class CommonAdminDataHelper
 {
     public static function setCommonData()
     {
-        $logo = \App\Helpers\ConfigurationHelper::getProfileLogo();
+        $logo = \App\Helpers\ConfigurationHelper::getBrandingLogo();
         $data = [
             'logo'=> $logo,
         ];

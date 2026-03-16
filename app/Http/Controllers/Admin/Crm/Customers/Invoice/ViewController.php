@@ -29,9 +29,6 @@ class ViewController extends Controller
             ->where('unique_id', $invoice->customer->unique_id)
             ->firstOrFail();
 
-            
-        // dd($customer);
-
         return view('admin.crm.customers.view_invoice', ['invoice' => $invoice, 'sales_tax'=> $sales_tax, 'customer'=> $customer]);
     }
 }

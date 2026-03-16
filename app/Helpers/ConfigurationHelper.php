@@ -74,7 +74,7 @@ class ConfigurationHelper
 
     public static function getProfileLogo(): ?string
     {
-        $logoId = self::getSettings('Profile Settings', 'logo');
+        $logoId = self::getSettings('Website Management Branding', 'site_logo');
 
         if (empty($logoId)) {
             return null;
@@ -84,4 +84,35 @@ class ConfigurationHelper
 
         return $media->url ?? null;
     }
+
+
+    public static function getBrandingLogo(): ?string
+    {
+        $logoId = self::getSettings('Website Management Branding', 'site_logo');
+
+        if (empty($logoId)) {
+            return null;
+        }
+
+        $media = \App\Models\Global\Media::find($logoId);
+
+        return $media->url ?? null;
+    }
+
+
+    public static function getHomePageImage(): ?string
+    {
+        $imageId = self::getSettings('Website Management Branding', 'home_page_image');
+
+        if (empty($imageId)) {
+            return null;
+        }
+
+        $media = \App\Models\Global\Media::find($imageId);
+
+        return $media->url ?? null;
+    }
+
+
+
 }

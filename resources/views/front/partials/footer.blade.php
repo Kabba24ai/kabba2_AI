@@ -1,6 +1,6 @@
 <footer class=" bg-neutral-800 text-white py-8 border-t no-print">
     <div class="container md:px-0">
-        <div class="mx-auto px-4 lg:px-8 lg:flex lg:items-center flex flex-wrap gap-8 justify-between">
+        <div class="mx-auto px-4 lg:px-8 lg:flex lg:items-start flex flex-wrap gap-8 justify-between">
             <div class="lg:flex gap-4 w-5/5 md:w-2/5 lg:w-1/5 items-center">
                 <div class=" mt-4 lg:mt-0 leading-[1.6]">
                     <h3 class="font-bold text-white text-base mb-2 ">Quick Links</h3>
@@ -80,8 +80,29 @@
 
         </div>
     </div>
-    <h2 class="text-sm text-center mt-4 text-neutral-200/60">© {{ date('Y') }}
-        <a href="http://Kabba.ai" target="_blank" rel="noopener noreferrer">Kabba.ai </a> . All rights
-        reserved.</h2>
+    <div class="container mt-4 text-sm text-neutral-200/60 grid grid-cols-3 items-center">
+
+        <!-- Empty column (left spacer) -->
+        <div></div>
+
+        <!-- Center text -->
+        <div class="text-center mt-4">
+            © {{ date('Y') }}
+            <a href="javascript:void(0)" rel="noopener noreferrer">
+                {{ $branding['footer_middle_text'] ?? 'Rent `n King' }}
+            </a>. All rights reserved.
+        </div>
+
+        <!-- Right text -->
+            <div class="text-right mt-4 text-white font-bold">
+                <span>Powered by :</span>
+                <a href="javascript:void(0)"
+                
+                rel="noopener noreferrer"
+                class="text-white font-bold hover:text-yellow-400">
+                    {{ $branding['powered_by'] ?? 'abc.com' }}
+                </a>
+            </div>
+
     </div>
 </footer>

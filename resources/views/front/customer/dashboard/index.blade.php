@@ -446,9 +446,19 @@
         // Add counters to select options
         Array.from(filter.options).forEach(option => {
             const value = option.value;
+// console.log('value:-',value);
+
+            
             if (value === 'all') {
                 option.textContent = `All  (${rows.length})`;
-            } else if (statusCounts[value] !== undefined) {
+            } else if (value == 'account_invoice') {
+
+
+
+                option.textContent =
+                    `Invoice (${statusCounts[value]})`;
+            }
+            else if (statusCounts[value] !== undefined) {
                 option.textContent =
                     `${value.charAt(0).toUpperCase() + value.slice(1)} (${statusCounts[value]})`;
             }

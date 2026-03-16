@@ -25,7 +25,7 @@
         </div>
 
         {{-- Main Content --}}
- {{-- Notice (now half width) --}}
+                {{-- Notice (now half width) --}}
                 <div class="mt-4 rounded-md p-4 text-left bg-blue-50 border border-blue-200 text-blue-900">
 
                     <div class="flex items-start space-x-3">
@@ -44,5 +44,55 @@
                 </div>
       
     </div>
+
+{{-- FORM SECTION --}}
+<div class="px-6 mt-6">
+   <form method="POST" action="{{ route('admin.website-management.contact-us.update') }}" data-parsley-validate>
+      @csrf
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+         <div class="flex items-center space-x-2 mb-6">
+            <x-heroicon-o-pencil-square class="h-5 w-5 text-blue-600"/>
+            <h3 class="text-lg font-bold text-gray-900">
+               Contact Us Content
+            </h3>
+         </div>
+         <div class="grid grid-cols-1 gap-6">
+            {{-- Title --}}
+            <div>
+               <label class="block text-sm font-medium text-gray-700 mb-1">
+               Title
+               </label>
+               {!! html()->text('contact_title', old('contact_title', $settings['contact_title'] ?? ''))
+               ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
+               ->attributes([
+               'placeholder' => 'Example: Speak with a human – No frustrating menus and bots'
+               ]) !!}
+            </div>
+            {{-- Subtitle --}}
+            <div>
+               <label class="block text-sm font-medium text-gray-700 mb-1">
+               Subtitle
+               </label>
+               {!! html()->textarea('contact_subtitle', old('contact_subtitle', $settings['contact_subtitle'] ?? ''))
+               ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
+               ->attributes([
+               'rows' => 3,
+               'placeholder' => 'Example: We might be on the phone with others ...'
+               ]) !!}
+            </div>
+         </div>
+         {{-- Save Button --}}
+         <div class="mt-6 text-right">
+            <button type="submit"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium shadow-sm">
+            Save Settings
+            </button>
+         </div>
+      </div>
+   </form>
+</div>
+
+
+
 </div>
 @endsection

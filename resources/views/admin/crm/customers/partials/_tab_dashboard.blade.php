@@ -351,9 +351,11 @@
             <thead class="border-b bg-gray-50 font-semibold text-gray-700 border-gray-200">
                 <tr>
                     <th class="py-4 px-6">Order ID</th>
+                    <th class="py-4 px-6">PO#</th>
+
                     <th class="py-4 px-6">Product Name</th>
                     <th class="py-4 px-6 w-32 ">Amount</th>
-                    <th class="py-4 px-6 w-32  text-right">Payment Methods</th>
+                    <th class="py-4 px-6 w-32  text-right">Payment Method</th>
                     <th class="py-4 px-6 w-32 text-right">Status</th>
                     <th class="py-4 px-6 w-32 text-right">Created</th>
                     <th class="py-4 px-6 w-24 text-end">Action</th>
@@ -362,7 +364,7 @@
             <tbody class="divide-y divide-gray-200">
                 @php $rowCount = 0; @endphp
 
-                @forelse ($customer->orders->sortByDesc('id') as $order)
+                @forelse ($customer->orders->sortByDesc('order_date') as $order)
                 @foreach ($order->products as $product)
 
                 @if ($rowCount >= 5)
@@ -376,6 +378,11 @@
                     <td class="py-4 px-6 font-medium text-gray-900">
                         {!! $order->view_link !!}
                     </td>
+                     {{-- Order Number --}}
+                    <td class="py-4 px-6 font-medium text-gray-900">
+                        {{ $order->po_id }}
+                    </td>
+
 
                     {{-- Product Name --}}
                     <td class="py-4 px-6 truncate min-w-3xs max-w-3xs ">

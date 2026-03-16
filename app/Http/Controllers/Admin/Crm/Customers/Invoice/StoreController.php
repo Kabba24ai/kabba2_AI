@@ -204,12 +204,11 @@ class StoreController extends Controller
                 $accountInvoiceRecord->notes = $invoice->invoice_notes;
                 $accountInvoiceRecord->amount = $invoice->total ?? 0;
                 $accountInvoiceRecord->sales_tax = $invoice->sales_tax ?? 0;
-                $accountInvoiceRecord->reason = 'Account Invoice #' . $invoice->invoice_number;
+                $accountInvoiceRecord->reason = 'Invoice #' . $invoice->invoice_number;
                 $accountInvoiceRecord->type = 'account_invoice';
                 $accountInvoiceRecord->invoice_id = $invoice->id;
                 $accountInvoiceRecord->date = now();
                 $accountInvoiceRecord->save();
-
 
             }
 

@@ -1,7 +1,7 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-document-text class="h-5 w-5 text-blue-600" />
-        <h3 class="text-lg font-bold text-gray-900">Invoice And Receipt</h3>
+        <h3 class="text-lg font-bold text-gray-900">Invoice and Receipt</h3>
     </div>
 
     <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0 mb-6">
@@ -10,7 +10,7 @@
         <div>
             <label for="invoice_email"
                    class="block text-sm font-medium text-gray-700 mb-1">
-                Invoice Email
+                Invoice and Receipt Email
             </label>
 
             {!! html()->email(
@@ -22,7 +22,7 @@
                 'border-gray-300' => !$errors->has('invoice_email'),
             ])->attributes([
                 'id' => 'invoice_email',
-                'placeholder' => 'Enter invoice email',
+                'placeholder' => 'Enter Invoice and Receipt Email',
                 'autocomplete' => 'off',
                 'data-parsley-type' => 'email',
                 'data-parsley-trigger' => 'change',
@@ -37,7 +37,7 @@
         <div>
             <label for="invoice_phone"
                    class="block text-sm font-medium text-gray-700 mb-1">
-                Invoice Phone Number
+                Invoice and Receipt Phone Number
             </label>
 
             {!! html()->text(

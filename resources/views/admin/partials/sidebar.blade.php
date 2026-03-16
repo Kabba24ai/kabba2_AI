@@ -341,6 +341,19 @@
                                         Sales Tax
                                     </a>
                                 </li>
+                                <li>
+                                    @php
+                                        $salesReportUrl = config('app.domains.sales_report');
+                                        $ssoUrl = auth()->check()
+                                            ? \App\Helpers\SsoHelper::generateSsoUrl(auth()->user()->email, $salesReportUrl)
+                                            : $salesReportUrl;
+                                    @endphp
+                                    <a href="{{ $ssoUrl }}" target="_blank"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-chart-bar class="w-6 h-6" />
+                                        Sales Report
+                                    </a>
+                                </li>
 
                             </ul>
                         </div>

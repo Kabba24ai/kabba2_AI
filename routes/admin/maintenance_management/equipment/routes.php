@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\FetchWithCatContr
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\AssignChecklistMasterController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\AssignStoreController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\ServiceController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\WorksheetController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\WorksheetUpdateController;
 
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CopyController;
 
@@ -43,6 +45,8 @@ Route::prefix('equipment')
 
         Route::get('/fetch-equipment', FetchController::class)->name('fetch');
         Route::get('/fetch-categories-equipments', FetchWithCatController::class)->name('fetch-with-categories');
+        Route::get('/worksheet', WorksheetController::class)->name('worksheet');
+        Route::put('/worksheet', WorksheetUpdateController::class)->name('worksheet.update');
 
 
         Route::post('/checklist-master-assign', AssignChecklistMasterController::class)->name('checklist-master-assign');
@@ -51,7 +55,7 @@ Route::prefix('equipment')
         Route::get('/{unique_id}/copy', CopyController::class)->name('copy');
 
 
-            
+
         Route::get('/get-parts-lists/{category}',GetPartslistsController::class)->name('get-parts-lists');
 
 

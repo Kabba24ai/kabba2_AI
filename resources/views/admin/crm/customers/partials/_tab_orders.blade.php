@@ -155,7 +155,7 @@
                      <th class="py-4 px-6 w-32">PO#</th>
                      <th class="py-4 px-6">Product Name</th>
                      <th class="py-4 px-6 w-32">Amount</th>
-                     <th class="py-4 px-6 w-32 text-right">Payment Methods</th>
+                     <th class="py-4 px-6 w-32 text-right">Payment Method</th>
                      <th class="py-4 px-6 w-32 text-right">Status</th>
                      <th class="py-4 px-6 w-32 text-right">Created</th>
                      <th class="py-4 px-6 w-24 text-right">Action</th>

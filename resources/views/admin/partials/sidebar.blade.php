@@ -405,9 +405,18 @@
                                 <li>
                                     <a href="{{ route('admin.maintenance-management.equipment.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.maintenance-management.equipment.*') && !Route::is('admin.maintenance-management.equipment-service.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        {{ Route::is('admin.maintenance-management.equipment.*') && !Route::is('admin.maintenance-management.equipment-service.*') && !Route::is('admin.maintenance-management.equipment.worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment Mgt.
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('admin.maintenance-management.equipment.worksheet') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.equipment.worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+
+                                        <x-heroicon-o-table-cells class="h-5 w-5" /> Equipment Worksheet
                                     </a>
                                 </li>
 
@@ -657,12 +666,6 @@
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
-                                    <a href="javascript:void(0)"
-                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.home-page.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-home class="w-5 h-5" /> Home Page
-                                    </a>
-                                </li>
-                                <li>
                                     <a href="{{ route('admin.website-management.faq-page.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.faq-page.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-question-mark-circle class="w-5 h-5" /> FAQ Page
@@ -682,7 +685,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('admin.website-management.branding.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.branding.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-swatch class="w-5 h-5" /> Branding
                                     </a>

@@ -196,7 +196,7 @@
                     'amount' => 'text-indigo-600', 
                     'sign' => '',
                     'icon' => 'file-text',
-                     'label' => 'Account Invoice',
+                     'label' => 'Invoice',
                 ],
                    ];
                    @endphp
@@ -273,7 +273,7 @@
                         </span>
                         <div class="text-xs text-gray-500 mt-1">
                                  @if ($transaction->invoice)
-                                    Invoice #{{ $transaction->invoice->invoice_number }}
+                                     #{{ $transaction->invoice->invoice_number }}
                                 @elseif ($transaction->type !== 'payment')
                                     {{ $transaction->responsible_person_name }}
                                 @endif

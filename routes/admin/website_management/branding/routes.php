@@ -3,22 +3,18 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Admin\WebsiteManagement\Branding\IndexController;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+use App\Http\Controllers\Admin\WebsiteManagement\Branding\SaveController;
 
 Route::prefix('branding')
-->name('branding.')
-->group(function ($router) {
+    ->name('branding.')
+     ->group(function () {
 
-     Route::get('/', IndexController::class)->name('index');
+        // Branding page
+        Route::get('/', IndexController::class)
+            ->name('index');
 
-});
+        // Save branding settings
+        Route::post('/update', SaveController::class)
+            ->name('update');
+
+    });

@@ -12,7 +12,7 @@ class CommonFrontDataHelper
         $categoryTree = self::categoryTree();
         $contactUsSettings = self::contactUsSettings();
 
-        $logo = \App\Helpers\ConfigurationHelper::getProfileLogo();
+        $logo = \App\Helpers\ConfigurationHelper::getBrandingLogo();
         $data = [
             'frontCategoryTree' => $categoryTree,
             'contactUsSettings' => $contactUsSettings,

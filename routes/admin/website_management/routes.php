@@ -14,24 +14,21 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('website-management')
-->name('website-management.')
-->group(function ($router) {
+    ->name('website-management.')
+    ->group(function ($router) {
+        // website-management
+        // branding
+        require base_path('routes/admin/website_management/branding/routes.php');
 
-// website-management
-    // branding
-    require base_path('routes/admin/website_management/branding/routes.php');
+        // contact_us
+        require base_path('routes/admin/website_management/contact_us/routes.php');
 
-    // contact_us
-    require base_path('routes/admin/website_management/contact_us/routes.php');
+        //faq_page
+        require base_path('routes/admin/website_management/faq_page/routes.php');
 
-    //faq_page
-    require base_path('routes/admin/website_management/faq_page/routes.php');
+        // footer
+        require base_path('routes/admin/website_management/footer/routes.php');
 
-
-    // footer
-     require base_path('routes/admin/website_management/footer/routes.php');
-
-     
-    // home_page
-     require base_path('routes/admin/website_management/home_page/routes.php');
-});
+        // home_page
+        require base_path('routes/admin/website_management/home_page/routes.php');
+    });

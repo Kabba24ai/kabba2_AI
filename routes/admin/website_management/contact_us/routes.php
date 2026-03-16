@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Admin\WebsiteManagement\ContactUs\IndexController;
 
-
+use App\Http\Controllers\Admin\WebsiteManagement\ContactUs\SaveController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -21,5 +21,9 @@ Route::prefix('contact-us')
 ->group(function ($router) {
 
      Route::get('/', IndexController::class)->name('index');
+
+        // Save  settings
+        Route::post('/update', SaveController::class)
+            ->name('update');
 
 });

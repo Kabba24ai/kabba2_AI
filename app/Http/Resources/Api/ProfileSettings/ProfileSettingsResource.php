@@ -41,7 +41,9 @@ class ProfileSettingsResource extends JsonResource
          * 3. Add Logo URL
          * ----------------------------------
          */
-        $data['logo_url'] = ConfigurationHelper::getProfileLogo();
+        $data['logo_url'] = ConfigurationHelper::getBrandingLogo();
+
+
 
         return $data;
     }

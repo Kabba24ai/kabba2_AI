@@ -29,7 +29,6 @@ class CreateFromAccountController extends Controller
 
         $sales_tax = ConfigurationHelper::getSettings(null , 'sales_tax');
 
-
         $invoiceItems = []; // your array
         $jsonInvoiceItems = json_encode($invoiceItems); // now it's a JSON string
 

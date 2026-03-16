@@ -275,7 +275,7 @@
                 </a>
 
                 <div class="text-sm text-gray-500">
-                    Variant: {{ ucwords($orderProduct->product_data['product_variant'] ?? '—') }}
+                    Duration: {{ ucwords($orderProduct->product_data['product_variant'] ?? '—') }}
                 </div>
 
                 <div class="text-sm text-gray-500">

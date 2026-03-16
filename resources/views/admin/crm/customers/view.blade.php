@@ -609,6 +609,9 @@
             const value = option.value;
             if (value === 'all') {
                 option.textContent = `All (${rows.length})`;
+            } else if (value == 'account_invoice') {
+                option.textContent =
+                    `Invoice (${statusCounts[value]})`;
             } else if (statusCounts[value] !== undefined) {
                 option.textContent = `${value.charAt(0).toUpperCase() + value.slice(1)} (${statusCounts[value]})`;
             }

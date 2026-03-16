@@ -30,12 +30,19 @@ When time is money… we put the money in your pocket!">
 @section('title', $title)
 
 @section('content')
+
+    @php
+         $homeImage = \App\Helpers\ConfigurationHelper::getHomePageImage();
+        @endphp
+
 <!-- Hero Section -->
 <section id="banner" class="pb-3 md:pt-17 pt-17 lg:pt-20 transform transition-all duration-300 ease-in-out">
     <div class="max-w-full mx-auto px-0">
         <div class="flex flex-col items-center ">
-            <img src="{{ asset('storage/front/images/banner.jpg') }}"
-                class="w-[100%] lg:w-full banner object-cover object-top ml-auto " alt="Equipment 1">
+           <img
+                src="{{ $homeImage ? $homeImage : asset('storage/front/images/banner.jpg') }}"
+                class="w-[100%] lg:w-full banner object-cover object-top ml-auto"
+                alt="Equipment Banner">
         </div>
     </div>
 </section>
@@ -48,9 +55,15 @@ When time is money… we put the money in your pocket!">
             <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
                 <!-- Heading with phone link -->
                 <h3 class="text-base md:text-lg font-semibold text-gray-700">
-                    Call For Live Assistance from a Real Person:
-                    <a href="{{ route('front.contact-us.index') }}" class="text-yellow-600 hover:underline ml-1">
-                        {{ config('app.contact_number') }}
+                     {{ $branding['top_text'] ?? 'Call For Live Assistance from a Real Person:' }}
+
+                     @php 
+
+                     $top_phone =   $branding['top_phone'] ?? config('app.contact_number') ;
+
+                     @endphp
+                    <a href="{{ $top_phone }}" class="text-yellow-600 hover:underline ml-1">
+                   {{ $top_phone }}
                     </a>
                 </h3>
 
@@ -110,11 +123,16 @@ When time is money… we put the money in your pocket!">
 
 <section class="pb-20 pt-20 bg-gray-2">
     <div class="container relative overflow-hidden">
-        <h2 class="section-title">About the company</h2>
+        <h2 class="section-title">  {{ $branding['bottom_title'] ?? 'About the company' }}</h2>
         <!-- about content -->
         <div class="about-content text-center mx-auto">
-            <p>Locally owned and committed to 1st-tier customer service that encourages long-term, repeat customers.
-                We’re growing fast to serve you better across multiple locations.</p>
+            <p>
+
+                {{ $branding['bottom_text'] ?? 'Locally owned and committed to 1st-tier customer service that encourages long-term, repeat customers.
+                We’re growing fast to serve you better across multiple locations.' }}
+
+                
+            </p>
         </div>
     </div>
 </section>

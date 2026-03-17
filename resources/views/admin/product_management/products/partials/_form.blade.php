@@ -407,6 +407,7 @@
             <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
         @enderror
     </div>
+
 </div>
 
 <div x-data x-show="$store.productForm.selectedType === 'Rental'" x-cloak>

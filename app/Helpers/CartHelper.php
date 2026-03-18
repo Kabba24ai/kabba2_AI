@@ -54,8 +54,9 @@ class CartHelper
         $items = [];
         $subTotal = 0;
         $taxTotal = 0;
+        $specialTaxTotal = 0;
+        $addedFeesTotal = 0;
         $grandTotal = 0;
-
 
         foreach ($cartData as $validated) {
             $product = Product::published()->where('unique_id', $validated['product_unique_id'])->first();
@@ -67,7 +68,9 @@ class CartHelper
             $items[] = $item;
             $subTotal += $item['sub_total'];
             $taxTotal += $taxExempt ? 0 : $item['tax'];
-            $grandTotal += $taxExempt ? $item['sub_total'] : $item['total'];
+            $specialTaxTotal += $item['special_tax'];
+            $addedFeesTotal += $item['added_fees'];
+            $grandTotal += $item['sub_total'] + ($taxExempt ? 0 : $item['tax']) + $item['special_tax'] + $item['added_fees'];
         }
 
         $grandTotalAfterDiscount = $grandTotal - $discount;
@@ -81,6 +84,10 @@ class CartHelper
             'cart_items' => $items,
             'sub_total' => round($subTotal, 2),
             'tax_total' => round($taxTotal, 2),
+            'special_taxes_description' => $productSettings['special_taxes_description'] ?? 'Special Taxes',
+            'special_tax_total' => round($specialTaxTotal, 2),
+            'added_fees_description' => $productSettings['added_fees_description'] ?? 'Added Fees',
+            'added_fees_total' => round($addedFeesTotal, 2),
             'coupon_code' => $couponCode,
             'discount' => $discount,
             'grand_total' => round($grandTotalAfterDiscount, 2),
@@ -132,8 +139,10 @@ class CartHelper
 
 
         $itemSubTotal = $price * $quantity + $optionsTotal + $serviceOptionPrice + $rentalItemsTotal;
-        $itemTax = $taxExempt ? 0 : $itemSubTotal * $taxRate;
-        $itemTotal = $itemSubTotal + $itemTax;
+        $itemTax = ($taxExempt || $product->is_tax_free_item) ? 0 : $itemSubTotal * $taxRate;
+        $itemSpecialTax = $product->apply_special_tax ? $itemSubTotal * (floatval($productSettings['special_taxes'] ?? 0) / 100) : 0;
+        $itemAddedFees = $product->apply_added_fees ? floatval($productSettings['added_fees'] ?? 0) * $quantity : 0;
+        $itemTotal = $itemSubTotal + $itemTax + $itemSpecialTax + $itemAddedFees;
 
         $addDays = 1; // Default to 1 day per item
         $deliveryTime = null;
@@ -229,6 +238,8 @@ class CartHelper
             'product_rental_items_prices' => $selectedRentalItemsWithPrices,
             'sub_total' => round($itemSubTotal, 2),
             'tax' => round($itemTax, 2),
+            'special_tax' => round($itemSpecialTax, 2),
+            'added_fees' => round($itemAddedFees, 2),
             'total' => round($itemTotal, 2),
         ];
     }

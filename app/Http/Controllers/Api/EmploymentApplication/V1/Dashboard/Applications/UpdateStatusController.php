@@ -10,7 +10,7 @@ class UpdateStatusController extends BaseController
 {
     public function __invoke(Application $application, string $status): JsonResponse
     {
-        if (!in_array($status, ['pending', 'reviewed', 'accepted', 'rejected'])) {
+        if (!in_array($status, ['pending', 'reviewed', 'accepted', 'rejected','archive'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid status value',
@@ -22,6 +22,7 @@ class UpdateStatusController extends BaseController
             'reviewed' => 1,
             'accepted' => 2,
             'rejected' => 3,
+            'archive'  => 4,
         ];
 
         $application->update([

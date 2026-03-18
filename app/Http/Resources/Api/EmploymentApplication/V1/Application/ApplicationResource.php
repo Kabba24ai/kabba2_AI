@@ -52,6 +52,7 @@ class ApplicationResource extends JsonResource
                 1 => 'reviewed',
                 2 => 'accepted',
                 3 => 'rejected',
+                4 => 'archive',
                 default => 'pending',
             },
 

@@ -156,6 +156,7 @@
                   ->attributes([
                   'accept' => 'image/*'
                   ]) !!}
+                  
                </div>
             </div>
             {{-- Top Text --}}

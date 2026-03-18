@@ -16,7 +16,7 @@ class StatsController extends BaseController
             'success' => true,
             'message' => 'Dashboard stats fetched successfully.',
             'data' => [
-                'totalApplications'   => Application::count(),
+                'totalApplications'   => Application::where('status', '!=', 4)->count(),
                 'pendingApplications' => Application::where('status', 0)->count(),
                 'totalStores'         => Store::count(),
                 'totalPositions'      => EmploymentPosition::count(),

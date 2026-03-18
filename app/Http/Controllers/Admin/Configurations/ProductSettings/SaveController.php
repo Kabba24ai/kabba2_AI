@@ -26,6 +26,11 @@ class SaveController extends Controller
                     $value = floatval($value) / 100;
                 }
 
+                if ($setting->setting_name === 'special_taxes') {
+                    // Convert percentage input to decimal
+                    $value = floatval($value) / 100;
+                }
+
                 if ($setting->setting_name === 'prepaid_fuel_rates' || $setting->setting_name === 'prepaid_cleaning_rates') {
                     // Remove empty values from fuel array
                     $jsonData = array_filter($validated[$key] ?? [], function ($item) {

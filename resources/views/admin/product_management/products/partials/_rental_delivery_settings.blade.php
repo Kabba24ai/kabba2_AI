@@ -779,6 +779,38 @@
                     </div>
                 </div>
             </div>
+
+            <div class="flex flex-wrap items-center gap-8">
+                <label for="is_tax_free_item" class="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        id="is_tax_free_item"
+                        name="is_tax_free_item"
+                        value="1"
+                        @checked(old('is_tax_free_item', $objProduct->is_tax_free_item ?? false))>
+                    <span class="text-gray-700 dark:text-gray-300">Tax Free Item</span>
+                </label>
+
+                <label for="apply_special_tax" class="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        id="apply_special_tax"
+                        name="apply_special_tax"
+                        value="1"
+                        @checked(old('apply_special_tax', $objProduct->apply_special_tax ?? false))>
+                    <span class="text-gray-700 dark:text-gray-300">Apply Special Tax</span>
+                </label>
+
+                <label for="apply_added_fees" class="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        id="apply_added_fees"
+                        name="apply_added_fees"
+                        value="1"
+                        @checked(old('apply_added_fees', $objProduct->apply_added_fees ?? false))>
+                    <span class="text-gray-700 dark:text-gray-300">Apply Added Fees</span>
+                </label>
+            </div>
         </div>
 
         <div class="mt-auto flex justify-end pt-25">

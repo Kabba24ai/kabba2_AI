@@ -11,7 +11,9 @@ class ListController extends BaseController
 {
     public function __invoke(): JsonResponse
     {
-        $applications = Application::orderBy('created_at', 'desc')->get();
+        $applications = Application::where('status', '!=', 4)
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         return response()->json([
             'success' => true,

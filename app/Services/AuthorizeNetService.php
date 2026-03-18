@@ -561,17 +561,34 @@ class AuthorizeNetService
             }
         }
 
-        logger()->error('AuthorizeNet transaction failed: ' . $errorMessage);
+        $paymentResponse = $response && method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null;
+        $errorCode = $response && $response->getMessages() && isset($response->getMessages()->getMessage()[0]) ? $response->getMessages()->getMessage()[0]->getCode() : null;
 
-        return [
+        $errorData = [
             'status' => 'failure',
-            'payment_response' => $response && method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null,
-            'error_code' => $response->getMessages()->getMessage()[0]->getCode() ?? null,
+            'payment_response' => $paymentResponse,
+            'error_code' => $errorCode,
             'payment_status' => 'Failed',
             'message' => $errorMessage,
             'customer_profile_id' => $customerProfileId,
             'payment_profile_id' => $paymentProfileId,
         ];
+
+        logger()->error('AuthorizeNet chargeCustomerProfile failed', [
+            'customer_profile_id' => $customerProfileId,
+            'payment_profile_id'  => $paymentProfileId,
+            'message'             => $errorMessage,
+            'error_code'          => $errorData['error_code'],
+            'payment_response'    => $paymentResponse,
+            'result_code'         => $response ? $response->getMessages()->getResultCode() : null,
+            'transaction_errors'  => $tr && method_exists($tr, 'getErrors') && $tr->getErrors()
+                ? array_map(fn($e) => ['code' => $e->getErrorCode(), 'text' => $e->getErrorText()], $tr->getErrors())
+                : [],
+            'transaction_id'      => $tr && method_exists($tr, 'getTransId') ? $tr->getTransId() : null,
+            'response_code'       => $tr && method_exists($tr, 'getResponseCode') ? $tr->getResponseCode() : null,
+        ]);
+
+        return $errorData;
     }
 
     /**
@@ -682,19 +699,48 @@ class AuthorizeNetService
 
         // ---- 6. Handle Error ----
         $errorMessage = 'Payment failed';
-        if ($response && $response->getMessages() && isset($response->getMessages()->getMessage()[0])) {
-            $errorMessage .= ': ' . $response->getMessages()->getMessage()[0]->getText();
+
+        if ($response) {
+            // Prefer transactionResponse errors first if present
+            $tr = method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null;
+            if ($tr && method_exists($tr, 'getErrors') && $tr->getErrors()) {
+                $err = $tr->getErrors()[0];
+                $errorMessage .= ': ' . ($err->getErrorText() ?? 'Unknown error');
+            } elseif ($response->getMessages() && isset($response->getMessages()->getMessage()[0])) {
+                $errorMessage .= ': ' . $response->getMessages()->getMessage()[0]->getText();
+            }
         }
+
         logger()->error('AuthorizeNet transaction failed for order ' . ($options['order_number'] ?? 'N/A') . ': ' . $errorMessage);
-        return [
+
+        $paymentResponse = $response && method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null;
+        $errorCode = $response && $response->getMessages() && isset($response->getMessages()->getMessage()[0]) ? $response->getMessages()->getMessage()[0]->getCode() : null;
+
+        $errorData = [
             'status' => 'failure',
-            'payment_response' => $response && method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null,
-            'error_code' => $response->getMessages()->getMessage()[0]->getCode() ?? null,
+            'payment_response' => $paymentResponse,
+            'error_code' => $errorCode,
             'payment_status' => 'Failed',
             'message' => $errorMessage,
             'customer_profile_id' => $customerProfileId,
             'payment_profile_id' => $paymentProfileId,
         ];
+
+        logger()->error('AuthorizeNet transaction failed', [
+            'customer_profile_id' => $customerProfileId,
+            'payment_profile_id'  => $paymentProfileId,
+            'message'             => $errorMessage,
+            'error_code'          => $errorData['error_code'],
+            'payment_response'    => $paymentResponse,
+            'result_code'         => $response ? $response->getMessages()->getResultCode() : null,
+            'transaction_errors'  => $tr && method_exists($tr, 'getErrors') && $tr->getErrors()
+                ? array_map(fn($e) => ['code' => $e->getErrorCode(), 'text' => $e->getErrorText()], $tr->getErrors())
+                : [],
+            'transaction_id'      => $tr && method_exists($tr, 'getTransId') ? $tr->getTransId() : null,
+            'response_code'       => $tr && method_exists($tr, 'getResponseCode') ? $tr->getResponseCode() : null,
+        ]);
+
+        return $errorData;
     }
 
     /**
@@ -838,14 +884,34 @@ class AuthorizeNetService
         }
         logger()->error('AuthorizeNet card transaction failed: ' . $errorMessage);
 
-        return [
+        $paymentResponse = $response && method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null;
+        $errorCode = $response && $response->getMessages() && isset($response->getMessages()->getMessage()[0]) ? $response->getMessages()->getMessage()[0]->getCode() : null;
+
+        $errorData = [
             'status' => 'failure',
-            'error_code' => $response && $response->getMessages() && $response->getMessages()->getMessage()[0] ? $response->getMessages()->getMessage()[0]->getCode() : null,
+            'payment_response' => $paymentResponse,
+            'error_code' => $errorCode,
             'payment_status' => 'Failed',
             'message' => $errorMessage,
             'customer_profile_id' => $customerProfileId,
             'payment_profile_id' => $paymentProfileId,
         ];
+
+        logger()->error('AuthorizeNet card transaction failed', [
+            'customer_profile_id' => $customerProfileId,
+            'payment_profile_id'  => $paymentProfileId,
+            'message'             => $errorMessage,
+            'error_code'          => $errorData['error_code'],
+            'payment_response'    => $paymentResponse,
+            'result_code'         => $response ? $response->getMessages()->getResultCode() : null,
+            'transaction_errors'  => $tr && method_exists($tr, 'getErrors') && $tr->getErrors()
+                ? array_map(fn($e) => ['code' => $e->getErrorCode(), 'text' => $e->getErrorText()], $tr->getErrors())
+                : [],
+            'transaction_id'      => $tr && method_exists($tr, 'getTransId') ? $tr->getTransId() : null,
+            'response_code'       => $tr && method_exists($tr, 'getResponseCode') ? $tr->getResponseCode() : null,
+        ]);
+
+        return $errorData;
     }
 
     /**

@@ -46,6 +46,9 @@ class UpdateController extends Controller
                 'track_insurance_size_setting' => $validated['track_insurance_size_setting'] ?? null,
                 'prepaid_cleaning_rate_setting' => $validated['prepaid_cleaning_rate_setting'] ?? null,
                 'prepaid_fuel_rate_setting' => $validated['prepaid_fuel_rate_setting'] ?? null,
+                'is_tax_free_item' => $validated['is_tax_free_item'] ?? false,
+                'apply_special_tax' => $validated['apply_special_tax'] ?? false,
+                'apply_added_fees' => $validated['apply_added_fees'] ?? false,
             ];
 
             // Include only relevant fields and clear opposite-type fields

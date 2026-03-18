@@ -159,11 +159,12 @@ class Equipment extends Model
     public function lastOrderProduct()
     {
         return $this->hasOne(OrderProduct::class, 'equipment_id')
-            ->where(function ($query) {
-                $query->where('delivery_status', 'Pending')
-                    ->orWhere('pickup_status', 'Pending');
-            })
-            ->latestOfMany('id');
+            ->ofMany(['id' => 'max'], function ($query) {
+                $query->where(function ($pending) {
+                    $pending->where('delivery_status', 'Pending')
+                        ->orWhere('pickup_status', 'Pending');
+                });
+            });
     }
 
 

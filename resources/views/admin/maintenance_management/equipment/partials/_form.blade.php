@@ -241,7 +241,7 @@
                         'none' => 'None',
                         '1_key' => '1 Key',
                         '2_keys' => '2 Keys',
-                        'key_pad' => 'Key Pad (Code Provided)',
+                        'key_pad' => 'Key Pad',
                         'pull_cord' => 'Pull Cord',
                     ], old('key_starting_mechanism', $equipment->key_starting_mechanism?->value ?? ''))->class([
                         'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',

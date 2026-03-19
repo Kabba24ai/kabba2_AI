@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
+namespace App\Http\Controllers\Admin\MaintenanceManagement\EquipmentWorksheet;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Equipment;
@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class WorksheetUpdateController extends Controller
+class UpdateController extends Controller
 {
     public function __invoke(Request $request)
     {
@@ -20,6 +20,13 @@ class WorksheetUpdateController extends Controller
         $rows = $request->input('rows', []);
 
         if (empty($rows) || !is_array($rows)) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No worksheet rows were submitted.',
+                ], 422);
+            }
+
             return redirect()
                 ->back()
                 ->with('error', 'No worksheet rows were submitted.');
@@ -171,6 +178,14 @@ class WorksheetUpdateController extends Controller
         }
 
         if (!empty($errors)) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Some rows contain invalid data. Please fix highlighted values and save again.',
+                    'errors' => $errors,
+                ], 422);
+            }
+
             return redirect()
                 ->back()
                 ->withErrors($errors)
@@ -222,6 +237,13 @@ class WorksheetUpdateController extends Controller
                 ]);
             }
         });
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Equipment worksheet updated successfully.',
+            ]);
+        }
 
         return redirect()
             ->back()

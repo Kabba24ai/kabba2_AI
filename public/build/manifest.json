@@ -1,6 +1,6 @@
 {
-  "_api-BUFzoznZ.js": {
-    "file": "assets/api-BUFzoznZ.js",
+  "_api-BSY-DDMf.js": {
+    "file": "assets/api-BSY-DDMf.js",
     "name": "api",
     "css": [
       "assets/api-DVkapAgo.css"
@@ -53,12 +53,12 @@
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-7QbacwUA.js",
+    "file": "assets/app-Cfp3GOIK.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-BUFzoznZ.js"
+      "_api-BSY-DDMf.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
@@ -71,7 +71,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-B0bpiaNy.css",
+    "file": "assets/app-BzgsL_98.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -81,12 +81,12 @@
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-Dl-5piun.js",
+    "file": "assets/app-BsmUn2K9.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-BUFzoznZ.js"
+      "_api-BSY-DDMf.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"

@@ -63,9 +63,14 @@ class PostController extends BaseController
                 'address' => trim($validated['street_address']),
                 'city' => $validated['city'] ?? null,
                 'state' => $validated['state'] ?? null,
-                'zip' => $validated['zip_code'] ?? null,
+                'zip_code' => $validated['zip_code'] ?? null,
+                'country' => "US",
                 'phone' => $validated['phone_number'] ?? null,
                 'description' => 'Authrise onboarding ' . $submission->unique_id,
+                'billing_address' => [
+                    'zip_code' => $validated['zip_code'] ?? null,
+                    'country' => "US",
+                ],
             ];
 
             $cardData = [
@@ -106,6 +111,18 @@ class PostController extends BaseController
                     'charge_response' => $chargeResponse,
                 ],
             ])->save();
+
+            if (!$isChargeSuccessful) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $chargeResponse['message'] ?? 'Payment could not be completed.',
+                    'data' => [
+                        'reference' => $submission->unique_id,
+                        'customer_profile_id' => $submission->customer_profile_id,
+                        'payment_profile_id' => $submission->payment_profile_id,
+                    ],
+                ], 422);
+            }
 
             $twilio = new TwilioService();
 

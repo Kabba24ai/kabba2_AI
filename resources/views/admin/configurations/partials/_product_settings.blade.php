@@ -71,33 +71,6 @@
         </div>
 
         <div>
-            <label for="sales_tax" class="block text-sm font-medium text-gray-700 mb-1">
-                Sales Tax Rate (%)
-            </label>
-
-            <div class="relative">
-                {!! html()->input(
-                        'text',
-                        'sales_tax',
-                        \App\Helpers\CustomHelper::displayPercentage($settings['Product Settings']['sales_tax']['setting_value']),
-                    )->class([
-                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('sales_tax'),
-                        'border-red-500' => $errors->has('sales_tax'),
-                    ])->attributes([
-                        'autocomplete' => 'off',
-                        'placeholder' => $settings['Product Settings']['sales_tax']['placeholder'],
-                        'required' => true,
-                        'id' => 'sales_tax',
-                    ]) !!}
-            </div>
-
-            @error('sales_tax')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
             <label for="extended_delivery_range" class="block text-sm font-medium text-gray-700 mb-1">
                 Extended Delivery Range
             </label>
@@ -152,6 +125,8 @@
 </div>
 
 @include('admin.configurations.partials._allocated_settings')
+
+@include('admin.configurations.partials._tax_settings')
 
 @include('admin.configurations.partials._product_rate_settings')
 

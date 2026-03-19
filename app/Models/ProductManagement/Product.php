@@ -71,6 +71,10 @@ class Product extends Model
         'is_default_funnel', // Boolean: is this the default sales funnel
         'has_high_demand_alert', // Boolean: does this product have a high demand alert
 
+        'is_tax_free_item', // Boolean: is this product tax-free
+        'apply_special_tax', // Boolean: apply special tax rate
+        'apply_added_fees', // Boolean: apply additional fees
+
         'truck_fee_size_setting', // Size setting for truck fee
         'track_insurance_size_setting', // Size setting for track insurance
         'prepaid_cleaning_rate_setting', // Rate setting for prepaid cleaning
@@ -86,6 +90,9 @@ class Product extends Model
     protected $casts = [
         'is_default_funnel' => 'boolean',
         'has_high_demand_alert' => 'boolean',
+        'is_tax_free_item' => 'boolean',
+        'apply_special_tax' => 'boolean',
+        'apply_added_fees' => 'boolean',
     ];
 
     public function sluggable(): array

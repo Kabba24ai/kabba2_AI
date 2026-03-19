@@ -82,27 +82,27 @@
     </div>
     <div class="container mt-4 text-sm text-neutral-200/60 grid grid-cols-3 items-center">
 
-        <!-- Empty column (left spacer) -->
-        <div></div>
-
         <!-- Center text -->
-        <div class="text-center mt-4">
+        <div class="text-left mt-4">
             © {{ date('Y') }}
             <a href="javascript:void(0)" rel="noopener noreferrer">
                 {{ $branding['footer_middle_text'] ?? 'Rent `n King' }}
             </a>. All rights reserved.
         </div>
 
+        <!-- Empty column (left spacer) -->
+        <div></div>
+
         <!-- Right text -->
-            <div class="text-right mt-4 text-white font-bold">
+        <div class="text-right mt-4 text-white font-bold">
                 <span>Powered by :</span>
                 <a href="javascript:void(0)"
-                
+
                 rel="noopener noreferrer"
                 class="text-white font-bold hover:text-yellow-400">
-                    {{ $branding['powered_by'] ?? 'abc.com' }}
+                    {{ $branding['powered_by'] ?? 'kabba.ai' }}
                 </a>
-            </div>
+        </div>
 
     </div>
 </footer>

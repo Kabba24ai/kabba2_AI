@@ -169,7 +169,7 @@
                 fetchList(1, perPageParam);
             });
 
-            function fetchList(page = 1, perPage = 10) {
+            function fetchList(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
                 params.append('page', page);
                 params.append('per_page', perPage);

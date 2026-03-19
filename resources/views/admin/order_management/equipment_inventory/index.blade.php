@@ -181,7 +181,7 @@
             });
 
             fetchEquipments(pageParam, perPageParam); // initial fetch after loading saved filters
-            function fetchEquipments(page = 1, perPage = 10) {
+            function fetchEquipments(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
                 if (searchInput.value.length >= 3 || searchInput.value === '') params.append('search', searchInput
                     .value);

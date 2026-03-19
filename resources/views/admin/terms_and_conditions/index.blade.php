@@ -88,7 +88,7 @@
         });
 
         fetchTerms(pageParam, perPageParam); // Initial fetch on page load
-        function fetchTerms(page = 1, perPage = 10) {
+        function fetchTerms(page = 1, perPage = 30) {
             const params = new URLSearchParams();
 
             const isGlobal = isGlobalInput?.value || '';

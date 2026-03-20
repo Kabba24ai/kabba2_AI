@@ -43,6 +43,16 @@ class UploadMediaController extends Controller
 
             if ($request->hasFile('media')) {
                 foreach ($request->file('media') as $file) {
+                    if ($typeEnum === OrderMediaType::LICENSE && $request->filled('side')) {
+                        // Keep only one license image per side by replacing any existing one.
+                        $order->media()
+                            ->where('type', $typeEnum->value)
+                            ->where('side', $request->input('side'))
+                            ->get()
+                            ->each
+                            ->delete();
+                    }
+
                     $mediaPath = match ($typeEnum) {
                         OrderMediaType::LICENSE => 'orders/licenses',
                         OrderMediaType::DELIVERY => 'orders/deliveries',

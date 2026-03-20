@@ -193,13 +193,81 @@ class StoreController extends Controller
                 $product->relatedProducts()->sync([]);
             }
 
+            // Determine action before transaction commit
+            $action = $request->input('action', 'save');
+            $newProduct = null;
+
+            // Save as new: duplicate the just-created product and all related data
+            if ($action === 'save_new') {
+                $product->load([
+                    'categories',
+                    'options',
+                    'funnels',
+                    'terms',
+                    'relatedProducts',
+                    'media',
+                    'mediaChildren.media',
+                ]);
+
+                $newProduct = $product->replicate();
+                $newProduct->product_name = $this->generateUniqueCopyName($product->product_name);
+                $newProduct->save();
+
+                $newProduct->categories()->sync($product->categories->pluck('id')->toArray());
+                $newProduct->options()->sync($product->options->pluck('id')->toArray());
+                $newProduct->funnels()->sync($product->funnels->pluck('id')->toArray());
+                $newProduct->terms()->sync($product->terms->pluck('id')->toArray());
+
+                $relatedSyncData = [];
+                foreach ($product->relatedProducts as $relatedProduct) {
+                    $relatedSyncData[$relatedProduct->id] = [
+                        'sort_order' => $relatedProduct->pivot->sort_order ?? 0,
+                    ];
+                }
+                $newProduct->relatedProducts()->sync($relatedSyncData);
+
+                if ($product->media) {
+                    $mediaData = MediaHelper::copyExistingMediaOnDisk(
+                        $product->media,
+                        'Public Asset',
+                        'products',
+                        $newProduct
+                    );
+
+                    if (!empty($mediaData['mediaObj'])) {
+                        $newProduct->media_id = $mediaData['mediaObj']->id;
+                        $newProduct->save();
+                    }
+                }
+
+                foreach ($product->mediaChildren as $child) {
+                    if (!$child->media) {
+                        continue;
+                    }
+
+                    $mediaData = MediaHelper::copyExistingMediaOnDisk(
+                        $child->media,
+                        'Public Asset',
+                        'products',
+                        $newProduct
+                    );
+
+                    if (!empty($mediaData['mediaObj'])) {
+                        ProductMediaChild::create([
+                            'product_id' => $newProduct->id,
+                            'sort_order' => $child->sort_order,
+                            'media_id' => $mediaData['mediaObj']->id,
+                        ]);
+                    }
+                }
+            }
+
             DB::commit();
 
             // Determine redirect target
-            $action = $request->input('action', 'save');
             $redirectUrl = match ($action) {
                 'save'      => route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
-                'save_new'  => route('admin.product-management.products.create'),
+                'save_new'  => route('admin.product-management.products.edit', ['unique_id' => $newProduct?->unique_id ?? $product->unique_id]),
                 default     => route('admin.product-management.products.index'),
             };
 
@@ -235,5 +303,21 @@ class StoreController extends Controller
             //     ->withInput()
             //     ->withErrors(['error' => 'An error occurred while saving the product.']);
         }
+    }
+
+    private function generateUniqueCopyName(string $baseName): string
+    {
+        $firstCandidate = $baseName . ' (Copy)';
+        if (!Product::where('product_name', $firstCandidate)->exists()) {
+            return $firstCandidate;
+        }
+
+        $counter = 2;
+        do {
+            $candidate = $baseName . ' (Copy ' . $counter . ')';
+            $counter++;
+        } while (Product::where('product_name', $candidate)->exists());
+
+        return $candidate;
     }
 }

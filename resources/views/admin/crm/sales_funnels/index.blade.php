@@ -522,7 +522,7 @@
             fetchCategories(pageParam, perPageParam); // initial fetch after loading saved filters
 
 
-            function fetchCategories(page = 1, perPage = 10) {
+            function fetchCategories(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
 
                 if (perPage) params.append('per_page', perPage);
@@ -834,7 +834,7 @@
 
             fetchFunnels(pageParam, perPageParam);
 
-            function fetchFunnels(page = 1, perPage = 10) {
+            function fetchFunnels(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
                 params.append('page', page);
                 params.append('per_page', perPage);

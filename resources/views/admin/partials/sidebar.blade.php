@@ -364,12 +364,13 @@
                     @php
 
                     $maintenanceActive = Route::is([
-                    'admin.maintenance-management.equipment.*',
-                    'admin.maintenance-management.equipment-service.*',
-                    'admin.maintenance-management.service-master.*',
-                    'admin.maintenance-management.parts.*',
-                    'admin.maintenance-management.suppliers.*',
-                    ]);
+                        'admin.maintenance-management.equipment.*',
+                        'admin.maintenance-management.equipment-worksheet*',
+                        'admin.maintenance-management.equipment-service.*',
+                        'admin.maintenance-management.service-master.*',
+                        'admin.maintenance-management.parts.*',
+                        'admin.maintenance-management.suppliers.*',
+                        ]);
 
                     // Checklist Management
                     $checklistManagementActive = Route::is(['admin.checklist-management.*']);
@@ -418,16 +419,16 @@
                                 <li>
                                     <a href="{{ route('admin.maintenance-management.equipment.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.maintenance-management.equipment.*') && !Route::is('admin.maintenance-management.equipment-service.*') && !Route::is('admin.maintenance-management.equipment.worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        {{ Route::is('admin.maintenance-management.equipment.*') && !Route::is('admin.maintenance-management.equipment-service.*') && !Route::is('admin.maintenance-management.equipment-worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment Mgt.
                                     </a>
                                 </li>
 
                                 <li>
-                                    <a href="{{ route('admin.maintenance-management.equipment.worksheet') }}"
+                                    <a href="{{ route('admin.maintenance-management.equipment-worksheet.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.maintenance-management.equipment.worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        {{ Route::is('admin.maintenance-management.equipment-worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
                                         <x-heroicon-o-table-cells class="h-5 w-5" /> Equipment Worksheet
                                     </a>

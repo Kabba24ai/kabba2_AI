@@ -18,7 +18,7 @@ class AddToAccountPaymentController extends Controller
     {
         $user = auth()->user();
 
-        $order = Order::where('unique_id', $uniqueId)->first();
+        $order = Order::with(['products.product'])->where('unique_id', $uniqueId)->first();
         if (!$order) {
             return response()->json([
                 'success' => false,
@@ -43,18 +43,41 @@ class AddToAccountPaymentController extends Controller
             $customer = $order->customer;
             $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
 
-            $record = new CustomerAccount();
-            $record->customer_id = $customer->id;
-            $record->order_id = $order->id;
-            $record->balance = $customer->available_credit_balance ?? 0;
-            $record->amount = $order->subtotal;
-            $record->sales_tax = $order->tax_amount > 0 ? $salesTaxSetting?->setting_value : 0.0;
-            $record->date = now();
-            $record->type = 'order';
-            $record->save();
+            // $record = new CustomerAccount();
+            // $record->customer_id = $customer->id;
+            // $record->order_id = $order->id;
+            // $record->balance = $customer->available_credit_balance ?? 0;
+            // $record->amount = $order->subtotal;
+            // $record->sales_tax = $order->tax_amount > 0 ? $salesTaxSetting?->setting_value : 0.0;
+            // $record->date = now();
+            // $record->type = 'order';
+            // $record->save();
+
+            $products = $order->products;
+
+            foreach ($products as $product) {
+                    $record = new CustomerAccount();
+                    $record->customer_id = $customer->id;
+                    $record->order_id = $order->id;
+
+                    $record->amount = $product->sub_total;
+                    // $record->sales_tax = $product->tax ?? 0;
+                    $record->sales_tax = $product->tax > 0 ? $salesTaxSetting?->setting_value : 0.0;
+
+                    $record->date = now();
+                    $record->type = 'order';
+                    $record->reason = $product->product_name;
+
+                    $record->balance = $customer->available_credit_balance ?? 0; // Optional: adjust this if you need per-product logic
+
+                    $record->save();
+
+                    // Update credit balance per product (optional, depends on logic)
+                    CustomHelper::updateCreditBalance($record, $product->tax ?? 0);
+                }
 
             // Update credit balance
-            CustomHelper::updateCreditBalance($record, $order->tax_amount);
+            // CustomHelper::updateCreditBalance($record, $order->tax_amount);
 
             // Fire event
             event(new PaymentAddedToAccountEvent($order, $user, $lastPayment));

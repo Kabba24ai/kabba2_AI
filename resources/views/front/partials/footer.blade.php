@@ -97,10 +97,10 @@
         <div class="text-right mt-4 text-white font-bold">
                 <span>Powered by :</span>
                 <a href="javascript:void(0)"
-                
+
                 rel="noopener noreferrer"
                 class="text-white font-bold hover:text-yellow-400">
-                    {{ $branding['powered_by'] ?? 'abc.com' }}
+                    {{ $branding['powered_by'] ?? 'kabba.ai' }}
                 </a>
         </div>
 

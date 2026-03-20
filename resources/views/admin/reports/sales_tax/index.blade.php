@@ -113,7 +113,7 @@
                     <div>
                         <p class="text-sm text-gray-500">Total Revenue - All Sources </p>
                         <p class="text-xl font-semibold text-gray-900" id="totalCollectedAllSources">
-                            
+
                         </p>
                     </div>
                 </div>
@@ -238,7 +238,7 @@
 
             fetchOrders(pageParam, perPageParam); // Initial fetch on page load
 
-            function fetchOrders(page = 1, perPage = 10) {
+            function fetchOrders(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
 
                 const paymentMethod = paymentMethodInput?.value || '';
@@ -295,7 +295,7 @@
                                         .stats.totalCollectedAllSources;
                                     document.querySelector('#taxFreeRevenue').textContent = data.stats
                                         .taxFreeRevenue;
-                                    
+
                                         document.querySelector('#taxableRevenue').textContent = data.stats
                                         .taxableRevenue;
 

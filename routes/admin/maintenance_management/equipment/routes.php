@@ -45,18 +45,11 @@ Route::prefix('equipment')
 
         Route::get('/fetch-equipment', FetchController::class)->name('fetch');
         Route::get('/fetch-categories-equipments', FetchWithCatController::class)->name('fetch-with-categories');
-        Route::get('/worksheet', WorksheetController::class)->name('worksheet');
-        Route::put('/worksheet', WorksheetUpdateController::class)->name('worksheet.update');
-
 
         Route::post('/checklist-master-assign', AssignChecklistMasterController::class)->name('checklist-master-assign');
         Route::post('/store-assign', AssignStoreController::class)->name('store-assign');
 
         Route::get('/{unique_id}/copy', CopyController::class)->name('copy');
 
-
-
         Route::get('/get-parts-lists/{category}',GetPartslistsController::class)->name('get-parts-lists');
-
-
     });

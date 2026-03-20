@@ -9,6 +9,8 @@ class AchievementGoalSeeder extends Seeder
 {
     public function run(): void
     {
+        $updateExisting = config('app.seeders.existing_settings_update');
+
         $goals = [
             [
                 'goal_name' => 'Gold Trophy',
@@ -68,10 +70,17 @@ class AchievementGoalSeeder extends Seeder
         ];
 
         foreach ($goals as $goal) {
-            AchievementGoal::updateOrCreate(
-                ['goal_name' => $goal['goal_name']], 
+
+            // Create if not exists
+            $item = AchievementGoal::firstOrCreate(
+                ['goal_name' => $goal['goal_name']],
                 $goal
             );
+
+            // Update only if allowed
+            if ($updateExisting && !$item->wasRecentlyCreated) {
+                $item->update($goal);
+            }
         }
     }
 }

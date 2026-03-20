@@ -2,10 +2,8 @@
 
 namespace Database\Seeders\Locations;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Stores\EmploymentPosition;
-
 
 class EmploymentPositionSeeder extends Seeder
 {
@@ -14,6 +12,9 @@ class EmploymentPositionSeeder extends Seeder
      */
     public function run(): void
     {
+        // Read flag from .env
+        $updateExisting = config('app.seeders.existing_settings_update');
+
         $positions = [
             [
                 'title' => 'Store Manager',
@@ -33,7 +34,20 @@ class EmploymentPositionSeeder extends Seeder
         ];
 
         foreach ($positions as $position) {
-            EmploymentPosition::create($position);
+
+            // Create if not exists
+            $item = EmploymentPosition::firstOrCreate(
+                ['title' => $position['title']], // unique key
+                $position
+            );
+
+            // Update only if allowed AND record already exists
+            if ($updateExisting && !$item->wasRecentlyCreated) {
+                $item->update([
+                    'description' => $position['description'],
+                    'is_active'   => $position['is_active'],
+                ]);
+            }
         }
     }
 }

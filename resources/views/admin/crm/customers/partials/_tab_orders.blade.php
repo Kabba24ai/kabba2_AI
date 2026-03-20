@@ -168,7 +168,9 @@
                              data-status="{{ strtolower(str_replace(' ', '-', $order->payments->first()->status->value ?? 'n/a')) }}">
                              {{-- Order Number --}}
                              <td class="py-4 px-6 font-medium text-gray-900">
-                                 {{ $order->order_number }}
+                               
+                                    {!! $order->view_link !!}
+                  
                              </td>
 
                              <td class="py-4 px-6 font-medium text-gray-900">

@@ -51,7 +51,6 @@ class AutoClockOutEmployeesJob implements ShouldQueue
 
         // 2. Fetch employees with active time entry
         $employees = User::active()
-            ->whereNotNull('shift_end_time')
             ->whereHas('activeTimeEntry')
             ->with('activeTimeEntry')
             ->get();
@@ -62,6 +61,10 @@ class AutoClockOutEmployeesJob implements ShouldQueue
 
         
         foreach ($employees as $employee) {
+
+            if ($employee->limit_end_time != 1) {
+                continue;
+            }
 
             $entry = $employee->activeTimeEntry;
 

@@ -25,6 +25,15 @@ class StoreRequest extends FormRequest
             $cleaned["{$day}_closed"] = $this->boolean("{$day}_closed");
         }
 
+         if (!empty($cleaned['lunch_start_time'])) {
+            try {
+                $cleaned['lunch_start_time'] = \Carbon\Carbon::parse($cleaned['lunch_start_time'])
+                    ->format('H:i:s'); //  13:00:00
+            } catch (\Exception $e) {
+                $cleaned['lunch_start_time'] = null;
+            }
+    }
+
         $this->merge($cleaned);
     }
 
@@ -44,6 +53,7 @@ class StoreRequest extends FormRequest
             'latitude' => ['required', 'string'],
             'longitude' => ['required', 'string'],
             'details' => ['nullable', 'string', 'max:255'],
+            'lunch_start_time' => ['nullable'],
         ];
 
         // Days of the week

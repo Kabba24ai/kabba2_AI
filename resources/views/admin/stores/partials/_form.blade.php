@@ -293,8 +293,56 @@
                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
             </div>
+
+           
+
         </div>
     </div>
+
+     {{-- Store Lunch Start Time --}}
+            <div>
+                
+                <span for="lunch_start_time" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                   Store Lunch Start Time
+                </span>
+
+                @php
+                    $lunchStart = old(
+                        'lunch_start_time',
+                        isset($store->lunch_start_time)
+                            ? \Carbon\Carbon::parse($store->lunch_start_time)->format('g:i A')
+                            : ''
+                    );
+                @endphp
+
+                <div class="relative w-full md:w-48">
+                    <input
+                        type="text"
+                        name="lunch_start_time"
+                        id="lunch_start_time"
+                        value="{{ $lunchStart }}"
+                        class="timepicker w-full border rounded-md px-3 py-2 text-sm shadow-sm pr-10 focus:outline-none focus:ring-2 bg-white text-gray-700 border-gray-300"
+                        data-format="HH:mm"
+                        autocomplete="off"
+                        placeholder="Select time"
+                    />
+
+                    <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
+                        <x-heroicon-o-clock class="w-4 h-4 text-gray-800" />
+                    </span>
+                </div>
+
+                {{-- Note --}}
+                <p class="mt-2 text-xs text-gray-500">
+                  <strong> Note:-</strong> <span class="text-gray-500" >  All employees scheduled in this store will automatically start their lunch at this time.
+                    Lunch duration is controlled from Time Tracker Settings. Employees will be automatically clocked out for lunch and clocked back in after the duration ends.
+                    </span>
+                </p>
+
+                @error('lunch_start_time')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
 
     <div class="p-6 bg-white rounded-lg shadow border">
         <h3 class="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">

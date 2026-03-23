@@ -51,6 +51,13 @@ Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())
     ->onOneServer()
     ->name('auto-clock-out-employees');
 
+Schedule::job(new \App\Jobs\AutoLunchBreakJob())
+    ->cron('*/10 * * * *') // every 1 minutes
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('auto-lunch-break');
+
 Schedule::job(new \App\Jobs\SalesFunnelAfterEventJob())
     ->everyFifteenMinutes()
     ->timezone('America/Chicago')

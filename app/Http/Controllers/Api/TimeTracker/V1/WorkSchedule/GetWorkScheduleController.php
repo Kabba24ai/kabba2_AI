@@ -17,13 +17,17 @@ class GetWorkScheduleController extends BaseController
         $weekStart = $request->week_start;
         $employeeIds = $request->employee_ids ?? [];
 
-        $start = Carbon::parse($weekStart);
-        $end = (clone $start)->addDays(6);
+        $start = Carbon::parse($weekStart)->toDateString();
+        $end = Carbon::parse($weekStart)->addDays(6)->toDateString();
 
-        $schedules = WorkSchedule::whereIn('user_id', $employeeIds)
-            ->whereBetween('date', [$start, $end])
-            ->get()
-            ->groupBy(['user_id', 'date']);
+       $schedules = WorkSchedule::with('store')
+        ->whereIn('user_id', $employeeIds)
+        ->whereBetween('date', [$start, $end])
+        ->get()
+        ->groupBy('user_id')
+        ->map(function ($userSchedules) {
+            return $userSchedules->groupBy('date');
+        });
 
         return response()->json([
             'success' => true,

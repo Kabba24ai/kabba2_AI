@@ -28,6 +28,32 @@ class ClockInController extends BaseController
         //  Actual clock-in time
         $actualClockIn = Carbon::now();
 
+        // Check: user has store + limit_start_time enabled
+        if ($user->store && $user->limit_start_time == 1) {
+
+            $dayName = $actualClockIn->format('l');
+
+            $storeHours = $user->store->hoursOfOperation()
+                ->where('day_name', $dayName)
+                ->first();
+
+            if ($storeHours && !$storeHours->is_closed) {
+
+                $storeStartTime = Carbon::parse(
+                    $actualClockIn->format('Y-m-d') . ' ' . $storeHours->start_time
+                );
+
+                //  Block early clock-in
+                if ($actualClockIn->lt($storeStartTime)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You cannot clock in before store start time ',
+                        'data' => null,
+                    ], 422);
+                }
+            }
+        }
+
         // Get pay increment setting
         $payIncrement = TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 30);
 

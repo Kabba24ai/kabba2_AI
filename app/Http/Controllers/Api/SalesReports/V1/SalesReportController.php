@@ -133,10 +133,10 @@ class SalesReportController extends Controller
     {
         $limit = $request->input('limit', 10);
         $filters = $request->all();
+        $includePrevious = $request->input('include_previous', false);
         
-        // Calculate date range based on filters
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -147,7 +147,6 @@ class SalesReportController extends Controller
                 $endDate->format('Y-m-d')
             ]);
 
-        // Apply filters
         $this->applyFiltersToQuery($query, $filters);
 
         $topProducts = $query->select(
@@ -164,6 +163,41 @@ class SalesReportController extends Controller
             ->orderBy('total_sales', 'desc')
             ->limit($limit)
             ->get();
+
+        // Fetch previous period sales for the same product IDs
+        if ($includePrevious && $topProducts->isNotEmpty()) {
+            [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
+            $productIds = $topProducts->pluck('id')->toArray();
+
+            $prevQuery = DB::table('order_products')
+                ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+                ->join('products', 'order_products.product_id', '=', 'products.id')
+                ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
+                ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                    $prevStart->format('Y-m-d'),
+                    $prevEnd->format('Y-m-d')
+                ])
+                ->whereIn('order_products.product_id', $productIds);
+
+            $this->applyFiltersToQuery($prevQuery, $filters);
+
+            $prevSales = $prevQuery->select(
+                    'order_products.product_id as id',
+                    DB::raw('SUM(CASE 
+                        WHEN order_payments.refund_amount > 0 
+                        THEN -(order_products.total - order_products.tax) 
+                        ELSE (order_products.total - order_products.tax) 
+                    END) as total_sales')
+                )
+                ->groupBy('order_products.product_id')
+                ->get()
+                ->keyBy('id');
+
+            $topProducts = $topProducts->map(function ($product) use ($prevSales) {
+                $product->previous_total_sales = (float)($prevSales[$product->id]->total_sales ?? 0);
+                return $product;
+            });
+        }
 
         // Calculate total sales for the same filters
         $totalSalesQuery = DB::table('order_products')
@@ -198,10 +232,10 @@ class SalesReportController extends Controller
     {
         $limit = $request->input('limit', 5);
         $filters = $request->all();
+        $includePrevious = $request->input('include_previous', false);
         
-        // Calculate date range based on filters
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -214,7 +248,6 @@ class SalesReportController extends Controller
                 $endDate->format('Y-m-d')
             ]);
 
-        // Apply filters (exclude category filter for top categories)
         $filtersWithoutCategory = $filters;
         unset($filtersWithoutCategory['category']);
         $this->applyFiltersToQuery($query, $filtersWithoutCategory);
@@ -233,6 +266,43 @@ class SalesReportController extends Controller
             ->orderBy('total_sales', 'desc')
             ->limit($limit)
             ->get();
+
+        // Fetch previous period sales for the same category IDs
+        if ($includePrevious && $topCategories->isNotEmpty()) {
+            [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
+            $categoryIds = $topCategories->pluck('id')->toArray();
+
+            $prevQuery = DB::table('order_products')
+                ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+                ->join('products', 'order_products.product_id', '=', 'products.id')
+                ->join('product_category_children', 'products.id', '=', 'product_category_children.product_id')
+                ->join('product_categories', 'product_category_children.product_category_id', '=', 'product_categories.id')
+                ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
+                ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                    $prevStart->format('Y-m-d'),
+                    $prevEnd->format('Y-m-d')
+                ])
+                ->whereIn('product_categories.id', $categoryIds);
+
+            $this->applyFiltersToQuery($prevQuery, $filtersWithoutCategory);
+
+            $prevSales = $prevQuery->select(
+                    'product_categories.id',
+                    DB::raw('SUM(CASE 
+                        WHEN order_payments.refund_amount > 0 
+                        THEN -(order_products.total - order_products.tax) 
+                        ELSE (order_products.total - order_products.tax) 
+                    END) as total_sales')
+                )
+                ->groupBy('product_categories.id')
+                ->get()
+                ->keyBy('id');
+
+            $topCategories = $topCategories->map(function ($category) use ($prevSales) {
+                $category->previous_total_sales = (float)($prevSales[$category->id]->total_sales ?? 0);
+                return $category;
+            });
+        }
 
         // Calculate total sales for the same filters
         $totalSalesQuery = DB::table('order_products')
@@ -1080,24 +1150,70 @@ class SalesReportController extends Controller
     /**
      * Get date range for filters
      */
-    private function getDateRangeForFilters($dateRange)
+    private function getDateRangeForFilters($dateRange, $filters = [])
     {
+        if ($dateRange === 'custom' && !empty($filters['startDate']) && !empty($filters['endDate'])) {
+            return [Carbon::parse($filters['startDate'])->startOfDay(), Carbon::parse($filters['endDate'])->endOfDay()];
+        }
+
         switch ($dateRange) {
+            case 'today':
+                return [Carbon::today(), Carbon::now()];
+            case 'yesterday':
+                return [Carbon::yesterday(), Carbon::yesterday()->endOfDay()];
+            case 'this_week':
+                return [Carbon::now()->startOfWeek(), Carbon::now()];
+            case 'last_week':
+                return [Carbon::now()->subWeek()->startOfWeek(), Carbon::now()->subWeek()->endOfWeek()];
             case 'this_year':
                 return [Carbon::now()->startOfYear(), Carbon::now()];
-                
             case 'last_year':
                 return [Carbon::now()->subYear()->startOfYear(), Carbon::now()->subYear()->endOfYear()];
-                
             case 'this_month':
                 return [Carbon::now()->startOfMonth(), Carbon::now()];
-                
             case 'last_month':
                 return [Carbon::now()->subMonth()->startOfMonth(), Carbon::now()->subMonth()->endOfMonth()];
-                
             case 'rolling_30':
             default:
                 return [Carbon::now()->subDays(30), Carbon::now()];
+        }
+    }
+
+    /**
+     * Get the previous period date range (same duration, shifted back)
+     */
+    private function getPreviousPeriodDates($dateRange, $filters = [])
+    {
+        if ($dateRange === 'custom' && !empty($filters['startDate']) && !empty($filters['endDate'])) {
+            $start = Carbon::parse($filters['startDate'])->startOfDay();
+            $end = Carbon::parse($filters['endDate'])->endOfDay();
+            $days = $start->diffInDays($end);
+            $prevEnd = $start->copy()->subDay()->endOfDay();
+            $prevStart = $prevEnd->copy()->subDays($days)->startOfDay();
+            return [$prevStart, $prevEnd];
+        }
+
+        switch ($dateRange) {
+            case 'today':
+                return [Carbon::yesterday(), Carbon::yesterday()->endOfDay()];
+            case 'yesterday':
+                $d = Carbon::today()->subDays(2);
+                return [$d->copy()->startOfDay(), $d->copy()->endOfDay()];
+            case 'this_week':
+                return [Carbon::now()->subWeek()->startOfWeek(), Carbon::now()->subWeek()->endOfWeek()];
+            case 'last_week':
+                return [Carbon::now()->subWeeks(2)->startOfWeek(), Carbon::now()->subWeeks(2)->endOfWeek()];
+            case 'this_month':
+                return [Carbon::now()->subMonth()->startOfMonth(), Carbon::now()->subMonth()->endOfMonth()];
+            case 'last_month':
+                return [Carbon::now()->subMonths(2)->startOfMonth(), Carbon::now()->subMonths(2)->endOfMonth()];
+            case 'this_year':
+                return [Carbon::now()->subYear()->startOfYear(), Carbon::now()->subYear()->endOfYear()];
+            case 'last_year':
+                return [Carbon::now()->subYears(2)->startOfYear(), Carbon::now()->subYears(2)->endOfYear()];
+            case 'rolling_30':
+            default:
+                return [Carbon::now()->subDays(60), Carbon::now()->subDays(31)];
         }
     }
 

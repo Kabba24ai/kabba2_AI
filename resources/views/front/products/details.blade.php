@@ -273,7 +273,7 @@
                                             Choose Delivery Type
                                             <span id="distanceTypeTitle"></span>
                                         </label>
-                                        <select id="deliveryOptionSelect"
+                                        {{-- <select id="deliveryOptionSelect"
                                             class="block w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
                                             <option value="">Select Delivery Options</option>
                                             <option data-id="1" value="Delivery + Pickup">
@@ -288,7 +288,27 @@
                                                 I'll Pick Up In-Store but Need Return Service Pick Up
                                                 [<span id="PickupReturnPrice"></span>]
                                             </option>
+                                        </select> --}}
+
+                                        <select id="deliveryOptionSelect"
+                                            class="block w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
+
+                                            <option value="">Select Delivery Options</option>
+
+                                            <option value="Delivery + Pickup"
+                                                data-label="Delivery + Pick Up (To/From My Job Site)">
+                                            </option>
+
+                                            <option value="Delivery Only"
+                                                data-label="Delivery but I'll Return to Store">
+                                            </option>
+
+                                            <option value="Return Only"
+                                                data-label="I'll Pick Up In-Store but Need Return Service Pick Up">
+                                            </option>
+
                                         </select>
+
                                         <div id="deliveryOptionSelectError" class="hidden text-red-500 text-sm mt-1">
                                         </div>
                                     </div>

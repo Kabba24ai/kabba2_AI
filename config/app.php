@@ -142,9 +142,9 @@ return [
         'api' => env('API_DOMAIN', 'api.kabba.local'),
         'api_url' => env('API_DOMAIN_URL', 'http://api.kabba.local'),
         'project_manager' => env('PROJECTMANAGER_DOMAIN', 'http://projectmanager.kabba.ai'),
-        'sales_report' => env('SALES_REPORT_DOMAIN', 'http://salesreport.kabba.ai'),
         'opportunities' => env('OPPORTUNITIES_DOMAIN', 'http://opportunities.kabba.ai'),
         'timetrackerpro' => env('TIMETRACKERPRO_DOMAIN', 'http://timetrackerpro.kabba.ai'),
+        'sales_report' => env('SALES_REPORT_DOMAIN', 'http://salesreport.kabba.ai'),
     ],
 
     /*

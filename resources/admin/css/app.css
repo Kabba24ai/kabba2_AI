@@ -509,6 +509,12 @@ button:disabled,
   @apply dark:bg-gray-dark! dark:shadow-theme-xl! 2xsm:w-auto! mt-2 rounded-xl! bg-white p-5! text-gray-500! dark:text-gray-400!;
 }
 
+.flatpickr-calendar{
+  min-width: 200px;
+  width: auto;
+  padding: 15px !important;
+}
+
 .flatpickr-months .flatpickr-prev-month:hover svg,
 .flatpickr-months .flatpickr-next-month:hover svg {
   @apply stroke-brand-500;

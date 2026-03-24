@@ -1,5 +1,5 @@
 <!-- Basic Info -->
-<div class="grid grid-cols-1 lg:grid-cols-7 grid-flow-row-dense gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-8 grid-flow-row-dense gap-6">
     <div class="col-span-1">
         <label for="product_name" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
             Product Name
@@ -25,6 +25,22 @@
                 <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
             @enderror
         </div>
+    </div>
+
+    <div class="col-span-1">
+        <label for="sku" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">SKU</label>
+        {!! html()->text('sku')->attributes([
+                'placeholder' => 'Enter SKU',
+                'autocomplete' => 'off',
+                'id' => 'sku',
+            ])->class([
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                'border-red-500' => $errors->has('sku'),
+                'border-gray-300' => !$errors->has('sku'),
+            ]) !!}
+        @error('sku')
+            <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
+        @enderror
     </div>
 
 
@@ -370,23 +386,6 @@
         </div>
         <div id="retail-product-cost-errors"></div>
         @error('retail_product_cost')
-            <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
-        @enderror
-    </div>
-
-    {{-- SKU --}}
-    <div class="md:col-span-2">
-        <label for="sku" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">SKU</label>
-        {!! html()->text('sku')->attributes([
-                'placeholder' => 'Enter SKU',
-                'autocomplete' => 'off',
-                'id' => 'sku',
-            ])->class([
-                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                'border-red-500' => $errors->has('sku'),
-                'border-gray-300' => !$errors->has('sku'),
-            ]) !!}
-        @error('sku')
             <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
         @enderror
     </div>

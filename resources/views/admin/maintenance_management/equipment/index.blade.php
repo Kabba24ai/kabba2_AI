@@ -231,7 +231,7 @@
 
             fetchEquipments(pageParam, perPageParam); // initial fetch
 
-            function fetchEquipments(page = 1, perPage = 10) {
+            function fetchEquipments(page = 1, perPage = 30) {
                 const search = searchInput.value;
                 const category = categorySelect.value;
                 const checklistMasterValue = checklistMasterSelect.value;

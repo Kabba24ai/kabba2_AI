@@ -327,7 +327,7 @@
             FilterFreezer.loadFilters(screenKey, fieldMap);
 
             fetchOrders(pageParam, perPageParam); // initial fetch after loading saved filters
-            function fetchOrders(page = 1, perPage = 10) {
+            function fetchOrders(page = 1, perPage = 30) {
                 const customerName = customerNameInput.value;
                 const customerCompany = customerCompanyNameInput.value;
                 const customerPhone = customerPhoneInput.value;

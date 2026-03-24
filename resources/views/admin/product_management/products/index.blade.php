@@ -121,7 +121,7 @@
             });
 
             fetchProducts(pageParam, perPageParam); // initial fetch after loading saved filters
-            function fetchProducts(page = 1, perPage = 10) {
+            function fetchProducts(page = 1, perPage = 30) {
                 const search = searchInput.value;
                 const category = categorySelect.value;
                 const type = typeSelect.value;

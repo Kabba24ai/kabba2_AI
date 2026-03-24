@@ -14,9 +14,9 @@
                 + Create From Account 
             </a>
 
-             <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}"  class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
+             {{-- <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}"  class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
                  + Create Invoice
-             </a>
+             </a> --}}
              <div class="text-left sm:text-right">
                  <p class="text-sm text-gray-600">Current Balance</p>
                  <p class="text-lg font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}</p>

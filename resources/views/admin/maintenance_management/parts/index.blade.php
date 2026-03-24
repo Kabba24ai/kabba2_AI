@@ -716,7 +716,7 @@
 
             const pageParam = new URLSearchParams(location.search).get('page') || 1;
 
-            function fetchParts(page = 1, perPage = 10) {
+            function fetchParts(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
 
                 if (searchInput.value.length >= 2 || searchInput.value.length === 0)

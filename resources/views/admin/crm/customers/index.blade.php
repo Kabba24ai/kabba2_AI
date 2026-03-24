@@ -168,7 +168,7 @@
             });
 
             fetchCustomers(pageParam, perPageParam); // initial fetch
-            function fetchCustomers(page = 1, perPage = 10) {
+            function fetchCustomers(page = 1, perPage = 30) {
                 const name = nameInput.value;
                 const phone = phoneInput.value;
                 const company = company_name.value;

@@ -49,8 +49,5 @@ class DatabaseSeeder extends Seeder
         $this->call(VacationHourSeeder::class); // fourth to create settings
         $this->call(AchievementGoalSeeder::class); // fourth to create settings
         $this->call(VacationRequestHoursSeeder::class); // fourth to create settings
-
-
-
     }
 }

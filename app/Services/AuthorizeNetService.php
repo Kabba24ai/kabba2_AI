@@ -1102,8 +1102,15 @@ class AuthorizeNetService
         $controller = new AnetController\GetTransactionDetailsController($request);
         $response = $this->executeWithApiResponseTimed($controller);
 
-        if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && in_array($response->getTransactionResponse()->getResponseCode(), ['1', '4'])) {
-            $transaction = $response->getTransaction();
+        $transaction = $response && method_exists($response, 'getTransaction') ? $response->getTransaction() : null;
+
+        if (
+            $response !== null
+            && $response->getMessages()->getResultCode() === 'Ok'
+            && $transaction
+            && method_exists($transaction, 'getResponseCode')
+            && in_array((string) $transaction->getResponseCode(), ['1', '4'], true)
+        ) {
             $cardDetails = new \stdClass();
             $payment = $transaction->getPayment();
             $creditCard = $payment ? $payment->getCreditCard() : null;
@@ -1139,7 +1146,9 @@ class AuthorizeNetService
 
         if ($response && $response->getMessages()->getResultCode() === 'Ok') {
             $transaction = method_exists($response, 'getTransaction') ? $response->getTransaction() : null;
-            $transactionResponse = method_exists($response, 'getTransactionResponse') ? $response->getTransactionResponse() : null;
+            $payment = $transaction && method_exists($transaction, 'getPayment') ? $transaction->getPayment() : null;
+            $creditCard = $payment && method_exists($payment, 'getCreditCard') ? $payment->getCreditCard() : null;
+            $bankAccount = $payment && method_exists($payment, 'getBankAccount') ? $payment->getBankAccount() : null;
 
             $amount = null;
             if ($transaction && method_exists($transaction, 'getSettleAmount')) {
@@ -1157,11 +1166,11 @@ class AuthorizeNetService
                 'transaction_id' => $paymentId,
                 'amount' => $amount !== null ? (float) $amount : null,
                 'transaction_status' => $transaction && method_exists($transaction, 'getTransactionStatus') ? $transaction->getTransactionStatus() : null,
-                'response_code' => $transactionResponse && method_exists($transactionResponse, 'getResponseCode') ? $transactionResponse->getResponseCode() : null,
-                'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
+                'response_code' => $transaction && method_exists($transaction, 'getResponseCode') ? (string) $transaction->getResponseCode() : null,
+                'auth_code' => $transaction && method_exists($transaction, 'getAuthCode') ? $transaction->getAuthCode() : null,
                 'invoice_number' => $transaction && method_exists($transaction, 'getInvoiceNumber') ? $transaction->getInvoiceNumber() : null,
-                'account_number' => $transactionResponse && method_exists($transactionResponse, 'getAccountNumber') ? $transactionResponse->getAccountNumber() : null,
-                'account_type' => $transactionResponse && method_exists($transactionResponse, 'getAccountType') ? $transactionResponse->getAccountType() : null,
+                'account_number' => $creditCard && method_exists($creditCard, 'getCardNumber') ? $creditCard->getCardNumber() : ($bankAccount && method_exists($bankAccount, 'getAccountNumber') ? $bankAccount->getAccountNumber() : null),
+                'account_type' => $creditCard && method_exists($creditCard, 'getCardType') ? $creditCard->getCardType() : ($bankAccount && method_exists($bankAccount, 'getAccountType') ? $bankAccount->getAccountType() : null),
                 'submit_time' => $submitTimeStr,
             ];
         }

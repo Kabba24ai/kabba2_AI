@@ -199,6 +199,19 @@ window.FilterFreezer = {
 window.clearFilters = function(fieldMap, screenKey) {
     Object.values(fieldMap).forEach(function(input) {
         if (!input) return;
+
+        // Checkbox/radio group
+        if (window.NodeList && NodeList.prototype.isPrototypeOf(input)) {
+            Array.from(input).forEach(el => {
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    el.checked = false;
+                } else {
+                    el.value = '';
+                }
+            });
+            return;
+        }
+
         if (input.tagName === 'INPUT') {
             if (input.type === 'checkbox' || input.type === 'radio') {
                 input.checked = false;
@@ -211,20 +224,16 @@ window.clearFilters = function(fieldMap, screenKey) {
             if (window.jQuery && jQuery(input).data('select2')) {
                 jQuery(input).trigger('change');
             }
+
             if (window.Choices && input.classList.contains('choices-select')) {
-                if (input.choicesInstance) {
-                    input.choicesInstance.setChoiceByValue('');
+                const choicesInstance = input.choicesInstance || input.choices;
+                if (choicesInstance) {
+                    choicesInstance.removeActiveItems();
+                    if (!input.multiple) {
+                        choicesInstance.setChoiceByValue('');
+                    }
                 }
             }
-        } else if (window.NodeList && NodeList.prototype.isPrototypeOf(input)) {
-            // Checkbox/radio group
-            Array.from(input).forEach(el => {
-                if (el.type === 'checkbox' || el.type === 'radio') {
-                    el.checked = false;
-                } else {
-                    el.value = '';
-                }
-            });
         }
     });
     if (screenKey && window.FilterFreezer) {
@@ -245,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.choices-select').forEach(function (el) {
-        new Choices(el, {
+        el.choicesInstance = new Choices(el, {
             searchEnabled: true,
             itemSelectText: '',
             shouldSort: false,

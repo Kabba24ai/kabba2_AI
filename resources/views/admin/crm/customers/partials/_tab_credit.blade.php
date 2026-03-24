@@ -387,15 +387,15 @@
                            <div class="max-w-xs truncate text-gray-700">
 
                                  <span>
-                                @if ($transaction->order_id)
-                                    {!! $transaction->order->view_link !!}
+                                  @if ($transaction->order_id && $transaction->order)
+                                        {!! $transaction->order->view_link !!}
 
-                                @elseif($transaction->type === 'payment' && $transaction->payment_type?->label() === 'Check' && $transaction->payment_number_id)
-                                    {{ $transaction->payment_number_id }}
+                                    @elseif($transaction->type === 'payment' && $transaction->payment_type?->label() === 'Check' && $transaction->payment_number_id)
+                                        {{ $transaction->payment_number_id }}
 
-                                @else
-                                    -
-                                @endif
+                                    @else
+                                        -
+                                    @endif
                                 </span>
 
                            </div>

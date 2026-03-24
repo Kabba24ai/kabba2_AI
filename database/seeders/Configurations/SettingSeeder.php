@@ -1361,7 +1361,7 @@ class SettingSeeder extends Seeder
                     $setting_item->save();
                 }
 
-                if ($updateExisting && !$setting_item->wasRecentlyCreated) {
+                if ($updateExisting) {
                     $setting_item->fill([
                         'setting_title' => $setting['setting_title'],
                         'value_type' => $setting['value_type'],

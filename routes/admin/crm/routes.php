@@ -31,4 +31,6 @@ Route::prefix('crm')
 
     require base_path('routes/admin/crm/sales_funnels/routes.php');
 
+    require base_path('routes/admin/crm/kabba_ai_customers/routes.php');
+
 });

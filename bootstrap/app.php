@@ -44,6 +44,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Chehck Middleware that customer active
             'customer.active' => \App\Http\Middleware\Front\EnsureCustomerIsActive::class,
+
+            // Restrict kabba.ai customers page to selected admin hosts
+            'kabba.ai.domain' => \App\Http\Middleware\RestrictKabbaAiCustomersDomain::class,
         ]);
 
         $middleware->redirectGuestsTo(function () {

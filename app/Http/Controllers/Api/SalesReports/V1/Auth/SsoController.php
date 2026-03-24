@@ -36,10 +36,26 @@ class SsoController extends Controller
             }
 
             // Verify signature
-            $secret = env('SSO_SHARED_SECRET', config('app.key'));
+            $secret = env('SSO_SHARED_SECRET');
+            if (!$secret) {
+                Log::error('[SSO LOGIN] SSO_SHARED_SECRET is not set in .env on this server');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'SSO is not configured on this server (missing SSO_SHARED_SECRET)',
+                ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
             $expectedSignature = hash_hmac('sha256', $decoded['data'], $secret);
+
+            Log::info('[SSO LOGIN] Signature check', [
+                'received'  => $decoded['signature'],
+                'expected'  => $expectedSignature,
+                'match'     => hash_equals($expectedSignature, $decoded['signature']),
+                'secret_first_8' => substr($secret, 0, 8) . '...',
+            ]);
             
             if (!hash_equals($expectedSignature, $decoded['signature'])) {
+                Log::warning('[SSO LOGIN] Invalid token signature — wrong SSO_SHARED_SECRET on this server');
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid token signature',

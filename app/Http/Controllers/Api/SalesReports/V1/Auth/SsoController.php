@@ -56,8 +56,20 @@ class SsoController extends Controller
                 ], JsonResponse::HTTP_UNAUTHORIZED);
             }
 
-            // Check expiration
-            if (time() > $payload['expires_at']) {
+            // Check expiration with small clock-skew tolerance.
+            // This avoids false negatives when app servers are a bit out of sync.
+            $clockSkewSeconds = (int) env('SSO_CLOCK_SKEW_SECONDS', 1440);
+            $now = time();
+            $expiresAt = (int) $payload['expires_at'];
+
+            if ($now > ($expiresAt + $clockSkewSeconds)) {
+                Log::warning('[SSO LOGIN] Token expired', [
+                    'email' => $payload['email'] ?? null,
+                    'now' => $now,
+                    'expires_at' => $expiresAt,
+                    'clock_skew_seconds' => $clockSkewSeconds,
+                ]);
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Token has expired',

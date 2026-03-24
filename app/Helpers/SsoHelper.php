@@ -12,13 +12,14 @@ class SsoHelper
      * Uses a shared secret that both applications must have in their .env
      *
      * @param string $email User email
-     * @param int $minutes Token expiration time in minutes (default: 5)
+     * @param int|null $minutes Token expiration time in minutes (default from env, fallback 4320 = 3 days)
      * @return string Base64 encoded token
      */
-    public static function generateToken(string $email, int $minutes = 5): string
+    public static function generateToken(string $email, ?int $minutes = null): string
     {
         $secret = env('SSO_SHARED_SECRET', config('app.key'));
-        $expiresAt = Carbon::now()->addMinutes($minutes)->timestamp;
+        $expiresInMinutes = $minutes ?? (int) env('SSO_TOKEN_EXPIRATION_MINUTES', 4320);
+        $expiresAt = Carbon::now()->addMinutes($expiresInMinutes)->timestamp;
         
         $payload = [
             'email' => $email,
@@ -42,10 +43,10 @@ class SsoHelper
      *
      * @param string $email User email
      * @param string $targetUrl Base URL of the target application
-     * @param int $minutes Token expiration time in minutes (default: 5)
+     * @param int|null $minutes Token expiration time in minutes (default from env, fallback 4320 = 3 days)
      * @return string Complete SSO URL
      */
-    public static function generateSsoUrl(string $email, string $targetUrl, int $minutes = 5): string
+    public static function generateSsoUrl(string $email, string $targetUrl, ?int $minutes = null): string
     {
         $token = self::generateToken($email, $minutes);
         $targetUrl = rtrim($targetUrl, '/');

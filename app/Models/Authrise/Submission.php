@@ -28,6 +28,8 @@ class Submission extends Model
         'customer_profile_id',
         'payment_profile_id',
         'status',
+        'setup_status',
+        'comment',
         'amount',
         'schedule_datetime',
         'response_message',

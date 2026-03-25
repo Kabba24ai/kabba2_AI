@@ -347,9 +347,9 @@
                                         // Use hash router for SSO (works without server config)
                                         if (auth()->check()) {
                                             $token = \App\Helpers\SsoHelper::generateToken(auth()->user()->email);
-                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/#/auth/sso?token=' . urlencode($token);
+                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/auth/sso?token=' . urlencode($token);
                                         } else {
-                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/#/auth/sso';
+                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/auth/sso';
                                         }
                                     @endphp
                                     <a href="{{ $ssoUrl }}" target="_blank"

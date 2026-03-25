@@ -553,7 +553,7 @@
                     <li x-data="{ open: 'false' }">
                         <a href="{{ route('admin.crm.kabba-ai-customers.index') }}"
                             class="menu-item group flex items-center gap-3 {{ Route::is('admin.crm.kabba-ai-customers.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-o-squares-plus class="w-6 h-6" />
+                            <x-heroicon-o-users class="w-6 h-6" />
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
                                 Kabba AI (Customers)
                             </span>

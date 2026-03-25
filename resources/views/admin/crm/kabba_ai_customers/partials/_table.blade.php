@@ -8,7 +8,7 @@
                 <th class="py-4 px-6 text-left">Phone</th>
                 <th class="py-4 px-6 text-left">Business</th>
                 <th class="py-4 px-6 text-left">Amount</th>
-                <th class="py-4 px-6 text-left">Status</th>
+                <th class="py-4 px-6 text-center">Payment Status</th>
                 <th class="py-4 px-6 text-left">Demo Status</th>
                 <th class="py-4 px-6 text-center">Action</th>
             </tr>
@@ -38,15 +38,15 @@
                     </td>
                     <td class="py-4 px-6">
                         @php
-                            $demoStatus = (string) $submission->setup_status ?? 'pending';;
+                            $demoStatus = (string) ($submission->setup_status ?? 'pending');
                             $demoStatusClasses = match(strtolower($demoStatus)) {
                                 'completed' => 'bg-green-100 text-green-700',
-                                'in progress' => 'bg-blue-100 text-blue-700',
+                                'in_progress' => 'bg-blue-100 text-blue-700',
                                 default => 'bg-yellow-100 text-yellow-700',
                             };
                         @endphp
                         <span class="px-2 py-1 rounded-full text-xs font-medium {{ $demoStatusClasses }}">
-                            {{ ucfirst($demoStatus) }}
+                            {{ ucwords(str_replace('_', ' ', $demoStatus)) }}
                         </span>
                     </td>
                     <td class="py-4 px-6">

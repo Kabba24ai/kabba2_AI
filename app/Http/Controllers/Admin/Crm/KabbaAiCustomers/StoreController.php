@@ -18,7 +18,7 @@ class StoreController extends Controller
             'email'          => ['required', 'email', 'max:255'],
             'phone_number'   => ['required', 'string', 'max:32'],
             'business_name'  => ['required', 'string', 'max:255'],
-            'street_address' => ['required', 'string', 'max:255'],
+            'street_address' => ['nullable', 'string', 'max:255'],
             'city'           => ['nullable', 'string', 'max:255'],
             'state'          => ['nullable', 'string', 'max:64'],
             'zip_code'       => ['nullable', 'string', 'max:32'],
@@ -33,7 +33,7 @@ class StoreController extends Controller
             'email'          => $validated['email'],
             'phone_number'   => $validated['phone_number'],
             'business_name'  => $validated['business_name'],
-            'street_address' => $validated['street_address'],
+            'street_address' => $validated['street_address'] ?? null,
             'city'           => $validated['city'] ?? null,
             'state'          => $validated['state'] ?? null,
             'zip_code'       => $validated['zip_code'] ?? null,
@@ -41,7 +41,7 @@ class StoreController extends Controller
             'status'         => $validated['status'],
             'setup_status'   => $validated['setup_status'],
             'comment'        => $validated['comment'] ?? null,
-            'password'       => bcrypt(Str::random(16)),
+            'password'       => null,
         ]);
 
         flash('Customer created successfully.')->success();

@@ -245,6 +245,10 @@ button:disabled,
     @apply left-1/2 -translate-x-1/2 bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2;
   }
 
+  .tooltip-panel--right {
+    @apply left-auto right-0 bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2;
+  }
+
     /* NEW Custom Tooltip */
   .custom-tooltip {
     @apply absolute z-[9999]

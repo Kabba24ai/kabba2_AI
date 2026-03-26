@@ -16,7 +16,7 @@
         <div id="kabba-ai-customers-loading" class="hidden"></div>
         <tbody class="divide-y">
             @forelse ($submissions as $submission)
-                <tr class="hover:bg-gray-50">
+                <tr id="submission-row-{{ $submission->unique_id }}" class="hover:bg-gray-50">
                     <td class="py-4 px-6">{{ optional($submission->created_at)->format(config('app.date.date_format') . ' h:i A') ?: '-' }}</td>
                     <td class="py-4 px-6">{{ trim(($submission->first_name ?? '') . ' ' . ($submission->last_name ?? '')) ?: '-' }}</td>
                     <td class="py-4 px-6">{{ $submission->email ?: '-' }}</td>
@@ -59,6 +59,12 @@
                                class="inline-flex items-center gap-1 text-amber-600 hover:text-amber-800 font-medium text-xs">
                                 <x-heroicon-o-pencil-square class="w-4 h-4" />
                             </a>
+                            <button type="button"
+                                    class="delete-customer-btn inline-flex items-center gap-1 text-red-600 hover:text-red-800 font-medium text-xs"
+                                    data-unique-id="{{ $submission->unique_id }}"
+                                    data-url="{{ route('admin.crm.kabba-ai-customers.destroy', $submission->unique_id) }}">
+                                <x-heroicon-o-trash class="w-4 h-4" />
+                            </button>
                         </div>
                     </td>
                 </tr>

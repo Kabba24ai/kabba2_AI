@@ -13,11 +13,18 @@
             <x-heroicon-o-user-group class="w-6 h-6 text-blue-600" />
             kabba.ai Customers
         </h1>
-        <a href="{{ route('admin.crm.kabba-ai-customers.index') }}"
-            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2">
-            <x-heroicon-o-arrow-path class="w-5 h-5" />
-            Reload
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.crm.kabba-ai-customers.create') }}"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2">
+                <x-heroicon-o-plus class="w-5 h-5" />
+                Create Customer
+            </a>
+            <a href="{{ route('admin.crm.kabba-ai-customers.index') }}"
+                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2">
+                <x-heroicon-o-arrow-path class="w-5 h-5" />
+                Reload
+            </a>
+        </div>
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0 mb-6">
@@ -102,6 +109,7 @@
                     .then(response => {
                         wrapper.innerHTML = response.html;
                         totalCount.textContent = response.total ?? 0;
+                        initSingleDeleteButtons();
                     })
                     .finally(() => {
                         wrapper.classList.remove('opacity-50', 'pointer-events-none');
@@ -119,6 +127,42 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(fetchSubmissions, 400);
             });
+
+            function initSingleDeleteButtons() {
+                document.querySelectorAll('.delete-customer-btn').forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        const uniqueId = this.dataset.uniqueId;
+                        const url = this.dataset.url;
+
+                        window.showConfirm(
+                            'Delete this customer? This action cannot be undone!',
+                            'Delete Customer'
+                        ).then(function(result) {
+                            if (result.isConfirmed) {
+                                fetch(url, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    }
+                                })
+                                .then(res => res.json())
+                                .then(function(data) {
+                                    if (data.success) {
+                                        notyf.success(data.message, 'Deleted!');
+                                        const row = document.getElementById('submission-row-' + uniqueId);
+                                        if (row) row.remove();
+                                        const count = parseInt(totalCount.textContent, 10);
+                                        if (!isNaN(count)) totalCount.textContent = Math.max(0, count - 1);
+                                    } else {
+                                        notyf.error(data.message || 'Failed to delete customer.');
+                                    }
+                                });
+                            }
+                        });
+                    });
+                });
+            }
         });
     </script>
 @endpush

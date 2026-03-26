@@ -773,9 +773,9 @@
 
                     <!-- Tooltip -->
                     <div class="tooltip-panel max-w-sm">
-                        <a href="http://youtube.com" target="_blank" rel="noopener noreferrer">
-                            Link will be provided soon.
-                        </a>
+                        <p>
+                            Display a checkout alert to inform customers that this product is in high demand or has limited availability.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -789,6 +789,14 @@
                         value="1"
                         @checked(old('is_tax_free_item', $objProduct->is_tax_free_item ?? false))>
                     <span class="text-gray-700 dark:text-gray-300">Tax Free Item</span>
+                    <span class="relative group" aria-label="Tax Free Item info">
+                        <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                        </span>
+                        <span class="tooltip-panel max-w-sm">
+                            Sales tax is applied to all products by default. Enable this option to override standard tax behavior for this product.
+                        </span>
+                    </span>
                 </label>
 
                 <label for="apply_special_tax" class="inline-flex items-center gap-2 cursor-pointer">
@@ -799,6 +807,15 @@
                         value="1"
                         @checked(old('apply_special_tax', $objProduct->apply_special_tax ?? false))>
                     <span class="text-gray-700 dark:text-gray-300">Apply Special Tax</span>
+                    <span class="relative group" aria-label="Apply Special Tax info">
+                        <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                        </span>
+                        <span class="tooltip-panel max-w-sm">
+                            Apply Special Tax to the base product only. Optional add-ons such as Prepaid Fuel,
+                            Prepaid Cleaning, Damage Waiver Protection, and Track Coverage are not taxed.
+                        </span>
+                    </span>
                 </label>
 
                 <label for="apply_added_fees" class="inline-flex items-center gap-2 cursor-pointer">
@@ -809,6 +826,15 @@
                         value="1"
                         @checked(old('apply_added_fees', $objProduct->apply_added_fees ?? false))>
                     <span class="text-gray-700 dark:text-gray-300">Apply Added Fees</span>
+                    <span class="relative group" aria-label="Apply Added Fees info">
+                        <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                        </span>
+                        <span class="tooltip-panel tooltip-panel--right max-w-sm">
+                            Apply one-time fees to the order for special situations (e.g., environmental or disposal
+                            fees). These fees increase based on the number of products in the order.
+                        </span>
+                    </span>
                 </label>
             </div>
         </div>

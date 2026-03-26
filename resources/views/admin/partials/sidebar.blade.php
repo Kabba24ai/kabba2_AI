@@ -347,9 +347,9 @@
                                         // Use hash router for SSO (works without server config)
                                         if (auth()->check()) {
                                             $token = \App\Helpers\SsoHelper::generateToken(auth()->user()->email);
-                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/#/auth/sso?token=' . urlencode($token);
+                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/auth/sso?token=' . urlencode($token);
                                         } else {
-                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/#/auth/sso';
+                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/auth/sso';
                                         }
                                     @endphp
                                     <a href="{{ $ssoUrl }}" target="_blank"
@@ -544,6 +544,22 @@
                         </a>
 
                     </li>
+
+                    @php
+                        $kabbaAiAllowedHosts = ['admin.rentnking.com', 'admin.kabba.local', 'admin.kabba.ai'];
+                        $showKabbaAiCustomersMenu = in_array(request()->getHost(), $kabbaAiAllowedHosts, true);
+                    @endphp
+                    @if ($showKabbaAiCustomersMenu)
+                    <li x-data="{ open: 'false' }">
+                        <a href="{{ route('admin.crm.kabba-ai-customers.index') }}"
+                            class="menu-item group flex items-center gap-3 {{ Route::is('admin.crm.kabba-ai-customers.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-users class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+                                Kabba AI (Customers)
+                            </span>
+                        </a>
+                    </li>
+                    @endif
 
 
 

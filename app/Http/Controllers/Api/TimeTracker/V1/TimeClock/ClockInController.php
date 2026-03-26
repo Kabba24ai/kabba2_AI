@@ -27,7 +27,7 @@ class ClockInController extends BaseController
 
         //  Actual clock-in time
         $actualClockIn = Carbon::now();
-
+        $finalClockIn = $actualClockIn; 
         // Check: user has store + limit_start_time enabled
         if ($user->store && $user->limit_start_time == 1) {
 
@@ -44,12 +44,16 @@ class ClockInController extends BaseController
                 );
 
                 //  Block early clock-in
+                // if ($actualClockIn->lt($storeStartTime)) {
+                //     return response()->json([
+                //         'success' => false,
+                //         'message' => 'You cannot clock in before store start time ',
+                //         'data' => null,
+                //     ], 422);
+                // }
+
                 if ($actualClockIn->lt($storeStartTime)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You cannot clock in before store start time ',
-                        'data' => null,
-                    ], 422);
+                    $finalClockIn = $storeStartTime;
                 }
             }
         }
@@ -59,7 +63,7 @@ class ClockInController extends BaseController
 
         //  Round clock-in UP
         $roundedClockIn = TimeTrackerHelper::roundDown(
-            Carbon::parse($actualClockIn),
+            Carbon::parse($finalClockIn),
             (int) $payIncrement
         );
 
@@ -70,7 +74,7 @@ class ClockInController extends BaseController
             $notes = sprintf(
                 '%s clocked in at %s, rounded to %s',
                 $user->first_name . ' ' . $user->last_name,
-                $actualClockIn->format('H:i'),
+                $finalClockIn->format('H:i'),
                 $roundedClockIn->format('H:i')
             );
         }

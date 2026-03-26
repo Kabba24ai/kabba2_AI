@@ -14,7 +14,6 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-
         if (Auth::check()) {
             $user = auth()->user();
             return redirect(route('admin.dashboard.index'));

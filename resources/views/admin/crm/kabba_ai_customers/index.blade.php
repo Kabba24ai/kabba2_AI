@@ -15,7 +15,7 @@
         </h1>
         <div class="flex items-center gap-3">
             <a href="{{ route('admin.crm.kabba-ai-customers.create') }}"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2">
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2 hidden">
                 <x-heroicon-o-plus class="w-5 h-5" />
                 Create Customer
             </a>

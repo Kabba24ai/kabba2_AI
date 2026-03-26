@@ -23,6 +23,7 @@ class ViewUpdateController extends Controller
     public function __invoke(ViewUpdateRequest $request, string $unique_id)
     {
 
+
         $validated = $request->validated();
 
         // dd($validated);
@@ -43,6 +44,9 @@ class ViewUpdateController extends Controller
                 'company_phone' => isset($validated['company_phone']) ? CustomHelper::unformatPhone($validated['company_phone']) : null,
                 'tax_document_valid_until' => CustomHelper::parseDateFromInput($validated['tax_document_valid_until'] ?? null),
                 'tax_document_upload_date' => CustomHelper::parseDateFromInput($validated['tax_document_upload_date'] ?? null),
+
+                'license_expiry_date' => CustomHelper::parseDateFromInput($validated['license_expiry_date'] ?? null),
+
                 'is_credit_account' => $validated['is_credit_account'] ?? false,
                  'tax_status' => $validated['tax_status'] ?? 'Taxable',
 
@@ -67,6 +71,54 @@ class ViewUpdateController extends Controller
             }
                 $customerData['company_website'] = $fullWebsite ?? '';
             $customer->update($customerData);
+
+
+
+            // =============================
+            // LICENSE FRONT UPLOAD
+            // =============================
+            if ($request->hasFile('license_front')) {
+
+                if ($customer->licenseFront) {
+                    MediaHelper::removeFile($customer->licenseFront);
+                }
+
+                $mediaData = MediaHelper::uploadStorageFile(
+                    'Public Asset',
+                    $request->file('license_front'),
+                    'customers',
+                    $customer
+                );
+
+                if (!empty($mediaData['mediaObj'])) {
+                    $customer->license_front_media_id = $mediaData['mediaObj']->id;
+                }
+            }
+
+            // =============================
+            // LICENSE BACK UPLOAD
+            // =============================
+            if ($request->hasFile('license_back')) {
+
+                if ($customer->licenseBack) {
+                    MediaHelper::removeFile($customer->licenseBack);
+                }
+
+                $mediaData = MediaHelper::uploadStorageFile(
+                    'Public Asset',
+                    $request->file('license_back'),
+                    'customers',
+                    $customer
+                );
+
+                if (!empty($mediaData['mediaObj'])) {
+                    $customer->license_back_media_id = $mediaData['mediaObj']->id;
+                }
+            }
+
+            //  SAVE MEDIA IDS
+            $customer->save();
+
 
             // Process address list
                 if (!empty($validated['alladdresslist'])) {

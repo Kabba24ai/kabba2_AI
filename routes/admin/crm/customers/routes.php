@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\Crm\Customers\DeleteController;
 use App\Http\Controllers\Admin\Crm\Customers\CheckEmailController;
 use App\Http\Controllers\Admin\Crm\Customers\ViewController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentDeleteController;
+use App\Http\Controllers\Admin\Crm\Customers\LicenseDeleteController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxStatusUpdateController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerStatusUpdateController;
 use App\Http\Controllers\Admin\Crm\Customers\TaxDocumentUploadController;
@@ -56,6 +57,10 @@ Route::prefix('customers')
     // Route::post('/tax-document/{unique_id}', TaxDocumentDeleteController::class)->name('tax-document.delete');
     Route::delete('/tax-document/{unique_id}', TaxDocumentDeleteController::class)
     ->name('tax-document.delete');
+
+
+    Route::delete('/{unique_id}/license/{type}', LicenseDeleteController::class)->name('license.delete');
+
 
     Route::get('/{unique_id}/login', LoginController::class)->name('login');
 

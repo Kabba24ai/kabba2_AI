@@ -330,7 +330,10 @@
                     <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
                         <x-heroicon-o-clock class="w-4 h-4 text-gray-800" />
                     </span>
-                </div>
+                </div>  
+                @error('lunch_start_time')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
 
                 {{-- Note --}}
                 <p class="mt-2 text-xs text-gray-500">
@@ -339,9 +342,7 @@
                     </span>
                 </p>
 
-                @error('lunch_start_time')
-                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
+              
             </div>
 
     <div class="p-6 bg-white rounded-lg shadow border">

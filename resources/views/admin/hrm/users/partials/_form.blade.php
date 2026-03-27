@@ -466,7 +466,7 @@
                 ])->attributes(['id' => 'limit_start']) !!}
 
                 <label for="limit_start" class="flex items-center text-xs text-gray-500 font-medium cursor-pointer">
-                    Limit to Shift Start Time
+                    Allow Override at Shift Start
                     <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400 ml-1" />
                 </label>
             </div>
@@ -478,12 +478,12 @@
                 ])->attributes(['id' => 'limit_end']) !!}
 
                 <label for="limit_end" class="flex items-center text-xs text-gray-500 font-medium cursor-pointer">
-                    Limit to Shift End Time
+                    Allow Override at Shift End
                     <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400 ml-1" />
                 </label>
             </div>
 
-            <div class="flex flex-col">
+            {{-- <div class="flex flex-col">
                 <label class="block text-xs font-medium text-gray-500 mb-1">
                     Auto Clock-Out Penalty
                 </label>
@@ -500,6 +500,19 @@
                     <option value="120" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 120 ? 'selected' : '' }}>120 Minutes</option>
 
                 </select>
+            </div> --}}
+
+            <div class="flex items-center gap-2">
+
+                {!! html()->checkbox('lunch_override',(bool) old('lunch_override', $user->lunch_override ?? false))->class([
+                'mt-1 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500'
+                ])->attributes(['id' => 'lunch_override']) !!}
+
+                <label for="lunch_override" class="flex items-center text-xs text-gray-500 font-medium cursor-pointer">
+                    Allow Lunch Override 
+                    <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400 ml-1" />
+                </label>
+
             </div>
 
 

@@ -42,6 +42,7 @@ class UpdateRequest extends FormRequest
             'clockCode' => ['nullable'],
             'limit_start' => ['nullable', 'boolean'],
             'limit_end' => ['nullable', 'boolean'],
+            'lunch_override' => ['nullable', 'boolean'],
 
             'shift_start_time' => ['nullable'],
             'shift_end_time'   => ['nullable'],

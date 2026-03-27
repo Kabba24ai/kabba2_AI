@@ -57,7 +57,24 @@ class UpdateRequest extends FormRequest
             'latitude' => ['required', 'string'],
             'longitude' => ['required', 'string'],
             'details' => ['nullable', 'string', 'max:255'],
-                        'lunch_start_time' => ['nullable'],
+                        // 'lunch_start_time' => ['nullable'],
+            'lunch_start_time' => [
+                    'nullable',
+                    function ($attribute, $value, $fail) {
+
+                        try {
+                            $time = \Carbon\Carbon::parse($value);
+                            $minutes = $time->minute;
+
+                            if ($minutes % 5 !== 0) {
+                                $fail('Lunch start time must be in 5-minute intervals (00, 05, 10...).');
+                            }
+
+                        } catch (\Exception $e) {
+                            $fail('Invalid time format.');
+                        }
+                    }
+                ],
 
         ];
 

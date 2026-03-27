@@ -30,7 +30,7 @@ public function __invoke(): JsonResponse
 
     $payIncrement = (int) TimeTrackerHelper::getTimeTrackerSetting(
         'pay_increments',
-        15
+        5
     );
 
     // TIMES
@@ -49,7 +49,7 @@ public function __invoke(): JsonResponse
     } else {
 
         // APPLY PAY INCREMENT ROUNDING (ROUND UP)
-        $finalEnd = TimeTrackerHelper::roundUp(
+        $finalEnd = TimeTrackerHelper::roundNearest(
             $actualEnd,
             $payIncrement
         );
@@ -72,41 +72,4 @@ public function __invoke(): JsonResponse
     ]);
 }
 
-    // public function __invoke(): JsonResponse
-    // {
-    //     $entry = auth()->user()->activeTimeEntry;
-    //     $break = $entry?->activeBreak;
-
-    //     if (!$break || $break->type !== 'lunch') {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'No active lunch break',
-    //         ], 422);
-    //     }
-
-    //     //  Get default lunch duration (minutes)
-    //     $lunchMinutes = TimeTrackerHelper::getTimeTrackerSetting(
-    //         'default_lunch_duration_minutes',
-    //         30 // fallback
-    //     );
-
-    //     //  Calculate end time
-    //     $startTime = Carbon::parse($break->start_time);
-    //     $endTime   = $startTime->copy()->addMinutes((int) $lunchMinutes);
-
-    //     //  Update break
-    //     $break->update([
-    //         'end_time' => $endTime,
-    //     ]);
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Lunch ended',
-    //         'data' => [
-    //             'start_time' => $startTime->toDateTimeString(),
-    //             'end_time'   => $endTime->toDateTimeString(),
-    //             'duration'   => $lunchMinutes . ' minutes',
-    //         ],
-    //     ]);
-    // }
 }

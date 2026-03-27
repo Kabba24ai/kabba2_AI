@@ -37,7 +37,7 @@ class TimeEntryBulkUpdateController extends BaseController
 
                 $newDateTime = Carbon::parse($baseDate . ' ' . $newTime);
 
-                $payIncrement = (int) TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 30);
+                $payIncrement = (int) TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 5);
 
                 $roundedDateTime = TimeTrackerHelper::roundDown($newDateTime, $payIncrement);
 

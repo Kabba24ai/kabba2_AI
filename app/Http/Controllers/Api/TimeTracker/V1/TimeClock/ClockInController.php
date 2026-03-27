@@ -28,8 +28,15 @@ class ClockInController extends BaseController
         //  Actual clock-in time
         $actualClockIn = Carbon::now();
         $finalClockIn = $actualClockIn; 
+
+        // GLOBAL + USER logic
+        $globalLimitStart = TimeTrackerHelper::getTimeTrackerSetting('limit_start_time_to_shift', false);
+        $userLimitStart = (bool) $user->limit_start_time;
+        $shouldLimitStart = $globalLimitStart || $userLimitStart;
+
+
         // Check: user has store + limit_start_time enabled
-        if ($user->store && $user->limit_start_time == 1) {
+         if ($user->store && $shouldLimitStart) {
 
             $dayName = $actualClockIn->format('l');
 
@@ -43,15 +50,6 @@ class ClockInController extends BaseController
                     $actualClockIn->format('Y-m-d') . ' ' . $storeHours->start_time
                 );
 
-                //  Block early clock-in
-                // if ($actualClockIn->lt($storeStartTime)) {
-                //     return response()->json([
-                //         'success' => false,
-                //         'message' => 'You cannot clock in before store start time ',
-                //         'data' => null,
-                //     ], 422);
-                // }
-
                 if ($actualClockIn->lt($storeStartTime)) {
                     $finalClockIn = $storeStartTime;
                 }
@@ -59,10 +57,10 @@ class ClockInController extends BaseController
         }
 
         // Get pay increment setting
-        $payIncrement = TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 30);
+        $payIncrement = TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 5);
 
         //  Round clock-in UP
-        $roundedClockIn = TimeTrackerHelper::roundDown(
+        $roundedClockIn = TimeTrackerHelper::roundNearest(
             Carbon::parse($finalClockIn),
             (int) $payIncrement
         );

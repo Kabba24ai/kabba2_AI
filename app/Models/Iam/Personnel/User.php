@@ -46,6 +46,7 @@ class User extends Authenticatable
         'pay_type',
         'limit_start_time',
         'limit_end_time',
+        'lunch_override',
         'status', // 'Active' or 'Inactive'
         'password',
 

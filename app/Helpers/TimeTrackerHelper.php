@@ -9,6 +9,26 @@ use App\Models\Configurations\TimeTrackerSetting;
 
 class TimeTrackerHelper
 {
+     public static function roundNearest(Carbon $time, int $incrementMinutes): Carbon
+    {
+        $minutes = $time->minute;
+        $remainder = $minutes % $incrementMinutes;
+
+        $half = $incrementMinutes / 2;
+
+        if ($remainder < $half) {
+            // ROUND DOWN
+            return $time->copy()
+                ->subMinutes($remainder)
+                ->second(0);
+        } else {
+            // ROUND UP
+            return $time->copy()
+                ->addMinutes($incrementMinutes - $remainder)
+                ->second(0);
+        }
+    }
+    
      public static function roundUp(Carbon $time, int $incrementMinutes): Carbon
     {
         $minutes = $time->minute;
@@ -47,5 +67,7 @@ class TimeTrackerHelper
 
         return $settings->settings[$key];
     }
+
+   
 
 }

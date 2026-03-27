@@ -31,10 +31,10 @@ class ClockOutController extends BaseController
     }
 
     //  Get pay increment setting
-    $payIncrement = TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 30);
+    $payIncrement = TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 5);
 
     //  Round DOWN clock-out
-    $roundedClockOut = TimeTrackerHelper::roundDown(
+    $roundedClockOut = TimeTrackerHelper::roundNearest(
         $actualNow,
         (int) $payIncrement
     );

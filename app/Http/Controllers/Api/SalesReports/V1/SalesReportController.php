@@ -883,9 +883,9 @@ class SalesReportController extends Controller
             $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply shipping filter — cart_data is a JSON array; if no item has service_method "Delivery", there is no shipping
+        // Apply shipping filter — orders with no shipping have terms_collection length of 0
         if (!empty($filters['excludeShipping']) && $filters['excludeShipping'] === 'true') {
-            $query->whereRaw("JSON_SEARCH((SELECT cart_data FROM orders WHERE id = order_products.order_id), 'one', 'Delivery', NULL, '\$[*].service_method') IS NULL");
+            $query->whereRaw("JSON_LENGTH((SELECT terms_collection FROM orders WHERE id = order_products.order_id)) = 0");
         }
 
         // Apply delivery filters — product_data.service_method
@@ -1298,9 +1298,9 @@ class SalesReportController extends Controller
             $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply shipping filter — cart_data is a JSON array; if no item has service_method "Delivery", there is no shipping
+        // Apply shipping filter — orders with no shipping have terms_collection length of 0
         if (!empty($filters['excludeShipping']) && $filters['excludeShipping'] === 'true') {
-            $query->whereRaw("JSON_SEARCH((SELECT cart_data FROM orders WHERE id = order_products.order_id), 'one', 'Delivery', NULL, '\$[*].service_method') IS NULL");
+            $query->whereRaw("JSON_LENGTH((SELECT terms_collection FROM orders WHERE id = order_products.order_id)) = 0");
         }
 
         // Apply delivery filters — product_data.service_method

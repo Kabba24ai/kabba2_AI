@@ -149,7 +149,6 @@
     </div>
 </div>
 
-
 {{-- Short Description --}}
 <div class="mb-8">
     <label for="short_description"
@@ -238,9 +237,9 @@
         @enderror
 
         <!-- Main Image Previews -->
-        <div class="grid grid-cols-4 gap-2 mt-4" id="mainImagePreview">
+        <div class="flex flex-wrap gap-3 mt-4" id="mainImagePreview">
             @foreach ($mediaChildren as $image)
-                <div class="relative group" data-key="{{ $image->id }}">
+                <div class="relative group w-full sm:w-[260px]" data-key="{{ $image->id }}">
                     <a href="{{ $image->media->getUrl() }}" target="_blank">
                         <img src="{{ $image->media->getUrl() }}" class="w-full aspect-square object-cover rounded-md border" />
                     </a>
@@ -283,7 +282,7 @@
 
         <!-- Hover Image Preview -->
         @if (!empty($hoverImage))
-            <div class="relative mt-4" id="hoverImagePreview">
+            <div class="relative mt-4 w-full sm:w-[260px]" id="hoverImagePreview">
                 <img src="{{ $hoverImage }}" alt="Hover Image" class="w-full aspect-square object-cover rounded-md border"
                     id="hoverImageTag" />
                 <button type="button"
@@ -294,7 +293,7 @@
                 <input type="hidden" name="existing_hover_image" value="{{ $hoverImageId }}">
             </div>
         @else
-            <div class="relative mt-4" id="hoverImagePreview" style="display: none;">
+            <div class="relative mt-4 w-full sm:w-[260px]" id="hoverImagePreview" style="display: none;">
                 <img id="hoverImageTag" class="w-full aspect-square object-cover rounded-md border" />
                 <button type="button"
                     class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 hover:opacity-100"
@@ -767,7 +766,7 @@
                         const reader = new FileReader();
                         reader.onload = function (e) {
                             const wrapper = document.createElement("div");
-                            wrapper.className = "relative group";
+                            wrapper.className = "relative group w-full sm:w-[260px]";
                             wrapper.dataset.key = `new-${file.name}-${file.size}-${file.lastModified}`;
 
                             const anchor = document.createElement("a");

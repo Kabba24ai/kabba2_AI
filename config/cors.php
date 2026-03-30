@@ -23,6 +23,12 @@ return [
 
     ],
 
+    'allowed_origins_patterns' => [
+        // Allow any local network IP on the Vite dev server port (local development only)
+        '#^http://\d+\.\d+\.\d+\.\d+:5173$#',
+        '#^http://\d+\.\d+\.\d+\.\d+:5174$#',
+    ],
+
     'allowed_headers' => ['*'],
 
     'exposed_headers' => [],

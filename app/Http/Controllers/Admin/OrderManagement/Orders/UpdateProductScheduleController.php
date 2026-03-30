@@ -197,6 +197,11 @@ class UpdateProductScheduleController extends Controller
             }
         }
 
+        // Optionally update allocated_hours if provided
+        if (array_key_exists('allocated_hours', $validatedData) && $validatedData['allocated_hours'] !== null) {
+            $orderProduct->allocated_hours = $validatedData['allocated_hours'];
+        }
+
         $orderProduct->save();
 
         if ($storeChange) {

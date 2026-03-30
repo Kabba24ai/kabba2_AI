@@ -2316,6 +2316,101 @@
         </div>
     </div>
 
+    <!-- Change Return Date Modal -->
+    @php
+        $hoursSettings = $allocatedHoursSettings ?? [];
+        $dailyHours   = floatval($hoursSettings['daily_hours']   ?? 8);
+        $weekendHours = round(floatval($hoursSettings['weekend_hours'] ?? 14) / 2.5, 1);
+        $weeklyHours  = floatval($hoursSettings['weekly_hours']  ?? 40);
+        $monthlyHours = floatval($hoursSettings['monthly_hours'] ?? 160);
+    @endphp
+    <div id="changeReturnDateModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center px-4">
+        <div class="bg-white rounded-xl w-full max-w-md shadow-xl flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center px-6 py-4 border-b">
+                <h2 class="text-base font-semibold text-gray-900">Change Return Date</h2>
+                <button type="button" id="closeChangeReturnDateModal"
+                    class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <!-- Body -->
+            <div class="px-6 py-4 space-y-3">
+                <!-- Option 1 -->
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" name="returnDateOption" id="returnDateOnly" value="date_only"
+                        class="w-4 h-4 accent-blue-600">
+                    <span class="text-sm font-medium text-gray-800">Change Return Date only</span>
+                </label>
+                <!-- Option 2 -->
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" name="returnDateOption" id="returnDateAndHours" value="date_and_hours"
+                        class="w-4 h-4 accent-blue-600" checked>
+                    <span class="text-sm font-medium text-gray-800">Change Return Date &amp; update Equipment hours</span>
+                </label>
+
+                <!-- Hours options -->
+                <div id="returnHoursOptions" class="ml-7 space-y-2 pt-1">
+                    @foreach ([
+                        ['id' => 'hoursTypeDaily',   'value' => 'daily',   'label' => 'Daily',        'hours' => $dailyHours],
+                        ['id' => 'hoursTypeWeekend', 'value' => 'weekend', 'label' => 'Weekend Spcl', 'hours' => $weekendHours],
+                        ['id' => 'hoursTypeWeekly',  'value' => 'weekly',  'label' => 'Weekly',       'hours' => $weeklyHours],
+                        ['id' => 'hoursTypeMonthly', 'value' => 'monthly', 'label' => 'Monthly',      'hours' => $monthlyHours],
+                    ] as $hoursOption)
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer flex-1">
+                            <input type="radio" name="hoursType" id="{{ $hoursOption['id'] }}"
+                                value="{{ $hoursOption['value'] }}"
+                                data-hours="{{ $hoursOption['hours'] }}"
+                                class="hours-type-radio w-4 h-4 accent-blue-600"
+                                @if($hoursOption['value'] === 'daily') checked @endif>
+                            <span class="text-sm text-gray-700">{{ $hoursOption['label'] }} <span class="text-gray-500">{!! '{' . $hoursOption['hours'] . ' Hours}' !!}</span></span>
+                        </label>
+                        <div class="flex items-center gap-1 hours-qty-row" data-type="{{ $hoursOption['value'] }}">
+                            <button type="button"
+                                class="hours-qty-minus w-6 h-6 rounded-full bg-yellow-400 text-white font-bold text-sm flex items-center justify-center leading-none"
+                                data-type="{{ $hoursOption['value'] }}">−</button>
+                            <span class="hours-qty-display text-sm font-medium w-5 text-center"
+                                data-type="{{ $hoursOption['value'] }}">1</span>
+                            <button type="button"
+                                class="hours-qty-plus w-6 h-6 rounded-full bg-yellow-400 text-white font-bold text-sm flex items-center justify-center leading-none"
+                                data-type="{{ $hoursOption['value'] }}">+</button>
+                            <span class="text-xs text-gray-400 ml-0.5">Qty</span>
+                        </div>
+                    </div>
+                    @endforeach
+                    <!-- Custom -->
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer flex-1">
+                            <input type="radio" name="hoursType" id="hoursTypeCustom" value="custom"
+                                data-hours="0"
+                                class="hours-type-radio w-4 h-4 accent-blue-600">
+                            <span class="text-sm text-gray-700">Custom</span>
+                        </label>
+                        <input type="number" id="customHoursInput" min="0" step="0.5"
+                            class="border rounded px-2 py-1 text-sm w-20 text-right hidden"
+                            placeholder="Hours">
+                    </div>
+                    <!-- Total -->
+                    <div class="pt-2 border-t text-sm font-semibold text-gray-800 text-right">
+                        Current Allocated Hours: <span id="returnCurrentAllocatedHours">0</span> |
+                        Total Hours Added: <span id="returnTotalHoursAdded">{{ $dailyHours }}</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-xl">
+                <button type="button" id="cancelChangeReturnDate"
+                    class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="button" id="saveChangeReturnDate"
+                    class="px-5 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('js')
@@ -2880,7 +2975,16 @@
                 // Return listeners
                 if (returnDate) {
                     returnDate.addEventListener('change', function() {
-                        updateScheduleField('return', 'pickup_date', returnDate.value);
+                        const orderProducts = @json($order->products);
+                        const orderProduct = orderProducts.find(op => op.unique_id === orderProductId);
+                        const currentAllocatedHours = parseFloat(orderProduct?.allocated_hours) || 0;
+
+                        window.openChangeReturnDateModal(
+                            orderProductId,
+                            returnDate.value,
+                            updateScheduleField,
+                            currentAllocatedHours
+                        );
                     });
                 }
                 if (returnTime) {
@@ -4313,6 +4417,151 @@
             });
 
         });
+
+        // ── Change Return Date Modal ──────────────────────────────────────────
+        (function () {
+            const modal           = document.getElementById('changeReturnDateModal');
+            const optionDateOnly  = document.getElementById('returnDateOnly');
+            const optionDateHours = document.getElementById('returnDateAndHours');
+            const hoursSection    = document.getElementById('returnHoursOptions');
+            const currentAllocatedDisplay = document.getElementById('returnCurrentAllocatedHours');
+            const totalDisplay    = document.getElementById('returnTotalHoursAdded');
+            const customInput     = document.getElementById('customHoursInput');
+            const saveBtn         = document.getElementById('saveChangeReturnDate');
+            const cancelBtns      = [
+                document.getElementById('closeChangeReturnDateModal'),
+                document.getElementById('cancelChangeReturnDate'),
+            ];
+
+            let _orderProductId   = null;
+            let _newDateValue     = null;
+            let _updateFn         = null;
+
+            // qty state per type
+            const qty = { daily: 1, weekend: 1, weekly: 1, monthly: 1 };
+
+            function getSelectedHoursType() {
+                return document.querySelector('input[name="hoursType"]:checked')?.value ?? 'daily';
+            }
+
+            function getBaseHours(type) {
+                const radio = document.querySelector(`input[name="hoursType"][value="${type}"]`);
+                return radio ? parseFloat(radio.dataset.hours) : 0;
+            }
+
+            function recalcTotal() {
+                const type = getSelectedHoursType();
+                let total;
+                if (type === 'custom') {
+                    total = parseFloat(customInput.value) || 0;
+                } else {
+                    total = getBaseHours(type) * (qty[type] ?? 1);
+                }
+                totalDisplay.textContent = total;
+                return total;
+            }
+
+            function updateQtyDisplay(type) {
+                document.querySelectorAll(`.hours-qty-display[data-type="${type}"]`).forEach(el => {
+                    el.textContent = qty[type];
+                });
+            }
+
+            // Toggle hours section visibility
+            function syncHoursSection() {
+                if (optionDateHours.checked) {
+                    hoursSection.classList.remove('hidden');
+                } else {
+                    hoursSection.classList.add('hidden');
+                }
+            }
+
+            optionDateOnly.addEventListener('change', syncHoursSection);
+            optionDateHours.addEventListener('change', syncHoursSection);
+
+            // Hours type radios
+            document.querySelectorAll('.hours-type-radio').forEach(radio => {
+                radio.addEventListener('change', function () {
+                    customInput.classList.toggle('hidden', this.value !== 'custom');
+                    recalcTotal();
+                });
+            });
+
+            // Qty buttons
+            document.querySelectorAll('.hours-qty-minus, .hours-qty-plus').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const type  = this.dataset.type;
+                    const delta = this.classList.contains('hours-qty-plus') ? 1 : -1;
+                    qty[type]   = Math.max(1, (qty[type] ?? 1) + delta);
+                    // Select the corresponding radio
+                    const radio = document.querySelector(`input[name="hoursType"][value="${type}"]`);
+                    if (radio) { radio.checked = true; customInput.classList.add('hidden'); }
+                    updateQtyDisplay(type);
+                    recalcTotal();
+                });
+            });
+
+            // Custom hours input
+            customInput.addEventListener('input', recalcTotal);
+
+            // Close handlers
+            cancelBtns.forEach(btn => btn?.addEventListener('click', closeModal));
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal();
+            });
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                _orderProductId = null;
+                _newDateValue   = null;
+                _updateFn       = null;
+            }
+
+            // Save
+            saveBtn.addEventListener('click', function () {
+                if (!_updateFn || !_orderProductId) return;
+
+                // Capture values before closeModal() nulls them
+                const fn        = _updateFn;
+                const dateValue = _newDateValue;
+                const updateHours = optionDateHours.checked;
+                const totalHours  = updateHours ? recalcTotal() : 0;
+
+                closeModal();
+
+                // Always save the date
+                const datePromise = fn('return', 'pickup_date', dateValue);
+
+                if (updateHours) {
+                    Promise.resolve(datePromise).then(() => {
+                        fn('return', 'allocated_hours', totalHours);
+                    });
+                }
+            });
+
+            // Public opener
+            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0) {
+                _orderProductId = orderProductId;
+                _newDateValue   = newDate;
+                _updateFn       = updateScheduleField;
+
+                if (currentAllocatedDisplay) {
+                    currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;
+                }
+
+                // Reset qty
+                Object.keys(qty).forEach(k => { qty[k] = 1; updateQtyDisplay(k); });
+                // Default: daily checked, hours section visible
+                document.getElementById('hoursTypeDaily').checked = true;
+                customInput.classList.add('hidden');
+                customInput.value = '';
+                optionDateHours.checked = true;
+                syncHoursSection();
+                recalcTotal();
+
+                modal.classList.remove('hidden');
+            };
+        })();
 
     </script>
 

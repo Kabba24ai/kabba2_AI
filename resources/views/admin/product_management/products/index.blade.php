@@ -177,7 +177,6 @@
             // Instant change on selects
             categorySelect.addEventListener('change', fetchProducts);
             priceSelect.addEventListener('change', fetchProducts);
-            highDemandSelect.addEventListener('change', fetchProducts);
             typeSelect.addEventListener('change', fetchProducts);
         });
 

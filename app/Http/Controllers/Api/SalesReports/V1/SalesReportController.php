@@ -405,41 +405,47 @@ class SalesReportController extends Controller
         )->get();
 
         $totalGrossSales = 0;
-        $totalDiscounts = 0;
-        $totalRefunds = 0;
-        $totalNetSales = 0;
-        $itemsSold = 0;
-        $orderIds = collect();
+        $totalDiscounts  = 0;
+        $totalRefunds    = 0;
+        $totalTax        = 0;
+        $itemsSold       = 0;
+        $orderIds        = collect();
 
         foreach ($data as $item) {
-            $amount = $item->total - $item->tax; // Exclude tax
-            $quantity = $item->quantity ?? 1;
+            $lineTotal = (float)($item->total ?? 0);
+            $lineTax   = (float)($item->tax ?? 0);
+            $quantity  = $item->quantity ?? 1;
+
+            // Gross Sales = face value of ALL sales (before any deductions)
+            $totalGrossSales += $lineTotal;
 
             if ($item->refund_amount > 0) {
-                // Refunded order
-                $totalRefunds += $amount;
+                // Refunded: track the full line amount as a return
+                $totalRefunds += $lineTotal;
             } else {
-                // Paid order
-                $totalGrossSales += $item->total; // Gross includes tax
-                $totalNetSales += $amount;
+                $totalTax += $lineTax;
                 $itemsSold += $quantity;
                 $orderIds->push($item->order_id);
             }
         }
 
-        $transactionCount = $orderIds->unique()->count();
-        $averageSaleValue = $transactionCount > 0 ? $totalNetSales / $transactionCount : 0;
+        // Net Sales = Gross Sales − Returns − Discounts − Allowances (tax is NOT a deduction here)
+        $totalNetSales = $totalGrossSales - $totalRefunds - $totalDiscounts;
+
+        $transactionCount    = $orderIds->unique()->count();
+        $averageSaleValue    = $transactionCount > 0 ? $totalNetSales / $transactionCount : 0;
         $averageItemsPerSale = $transactionCount > 0 ? $itemsSold / $transactionCount : 0;
 
         return response()->json([
-            'totalGrossSales' => (float)$totalGrossSales,
-            'totalDiscounts' => (float)$totalDiscounts,
-            'totalRefunds' => (float)$totalRefunds,
-            'totalNetSales' => (float)($totalNetSales - $totalRefunds),
-            'transactionCount' => $transactionCount,
-            'itemsSold' => (int)$itemsSold,
-            'averageSaleValue' => (float)$averageSaleValue,
-            'averageItemsPerSale' => (float)$averageItemsPerSale
+            'totalGrossSales'    => (float)$totalGrossSales,
+            'totalDiscounts'     => (float)$totalDiscounts,
+            'totalRefunds'       => (float)$totalRefunds,
+            'totalNetSales'      => (float)$totalNetSales,
+            'totalTax'           => (float)$totalTax,
+            'transactionCount'   => $transactionCount,
+            'itemsSold'          => (int)$itemsSold,
+            'averageSaleValue'   => (float)$averageSaleValue,
+            'averageItemsPerSale' => (float)$averageItemsPerSale,
         ]);
     }
 
@@ -726,63 +732,87 @@ class SalesReportController extends Controller
             'order_products.quantity',
             'products.product_name',
             'products.product_type',
-            'order_payments.refund_amount'
+            'order_payments.refund_amount',
+            DB::raw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_variant')) as product_variant")
         )->get();
+
+        // Rental usage multipliers by variant (normalized to equivalent daily rental days)
+        $rentalMultipliers = [
+            'daily'   => 1,
+            'weekend' => 2.5,
+            'weekly'  => 7,
+            'monthly' => 28,
+        ];
 
         $productMap = [];
 
         foreach ($data as $item) {
-            $productId = (string)$item->product_id;
-            $amount = $item->total - $item->tax;
-            $quantity = $item->quantity ?? 1;
-            $isRefund = $item->refund_amount > 0;
+            $productId    = (string)$item->product_id;
+            $lineTotal    = (float)($item->total ?? 0);
+            $lineTax      = (float)($item->tax ?? 0);
+            $quantity     = $item->quantity ?? 1;
+            $isRefund     = $item->refund_amount > 0;
+            $isRental     = strtolower($item->product_type ?? '') === 'rental';
+            $variant      = strtolower($item->product_variant ?? 'daily');
+            $multiplier   = $rentalMultipliers[$variant] ?? 1;
+            $usageQty     = $isRental ? $quantity * $multiplier : 0;
 
             if (!isset($productMap[$productId])) {
                 $productMap[$productId] = [
-                    'productId' => $productId,
-                    'productName' => $item->product_name ?? 'Unknown',
-                    'sku' => strtoupper(substr($productId, 0, 8)),
-                    'quantitySold' => 0,
-                    'grossSales' => 0,
-                    'discountAmount' => 0,
-                    'netSales' => 0,
-                    'refundQuantity' => 0,
-                    'refundAmount' => 0,
-                    'taxCollected' => 0,
-                    'itemType' => strtolower($item->product_type ?? 'retail') === 'rental' ? 'rental' : 'retail',
-                    'salesCount' => 0
+                    'productId'              => $productId,
+                    'productName'            => $item->product_name ?? 'Unknown',
+                    'sku'                    => strtoupper(substr($productId, 0, 8)),
+                    'quantitySold'           => 0,
+                    'grossSales'             => 0,
+                    'discountAmount'         => 0,
+                    'refundQuantity'         => 0,
+                    'refundAmount'           => 0,
+                    'taxCollected'           => 0,
+                    'itemType'               => $isRental ? 'rental' : 'retail',
+                    'salesCount'             => 0,
+                    'rentalUsageQuantity'    => 0,
+                    'refundRentalUsageQty'   => 0,
                 ];
             }
 
+            // Gross Sales = face value of ALL sales (before any deductions)
+            $productMap[$productId]['grossSales'] += $lineTotal;
+
             if ($isRefund) {
-                $productMap[$productId]['refundQuantity'] += $quantity;
-                $productMap[$productId]['refundAmount'] += $amount;
+                $productMap[$productId]['refundQuantity']       += $quantity;
+                $productMap[$productId]['refundAmount']         += ($lineTotal - $lineTax);
+                $productMap[$productId]['refundRentalUsageQty'] += $usageQty;
             } else {
-                $productMap[$productId]['quantitySold'] += $quantity;
-                $productMap[$productId]['grossSales'] += $item->total;
-                $productMap[$productId]['netSales'] += $amount;
-                $productMap[$productId]['taxCollected'] += ($item->tax ?? 0);
+                $productMap[$productId]['quantitySold']        += $quantity;
+                $productMap[$productId]['taxCollected']        += $lineTax;
                 $productMap[$productId]['salesCount']++;
+                $productMap[$productId]['rentalUsageQuantity'] += $usageQty;
             }
         }
 
         $result = [];
         foreach ($productMap as $product) {
             $salesCount = $product['salesCount'];
+
+            // Net Sales = Gross Sales − Returns − Discounts − Allowances
+            $netSales = $product['grossSales'] - $product['refundAmount'] - $product['discountAmount'];
+
             $result[] = [
-                'productId' => $product['productId'],
-                'productName' => $product['productName'],
-                'sku' => $product['sku'],
-                'quantitySold' => (int)$product['quantitySold'],
-                'grossSales' => (float)$product['grossSales'],
-                'discountAmount' => (float)$product['discountAmount'],
-                'netSales' => (float)$product['netSales'],
-                'averageSellingPrice' => $salesCount > 0 ? (float)($product['netSales'] / $salesCount) : 0,
-                'refundQuantity' => (int)$product['refundQuantity'],
-                'refundAmount' => (float)$product['refundAmount'],
-                'netQuantitySold' => (int)($product['quantitySold'] - $product['refundQuantity']),
-                'taxCollected' => (float)$product['taxCollected'],
-                'itemType' => $product['itemType']
+                'productId'              => $product['productId'],
+                'productName'            => $product['productName'],
+                'sku'                    => $product['sku'],
+                'quantitySold'           => (int)$product['quantitySold'],
+                'grossSales'             => (float)$product['grossSales'],
+                'discountAmount'         => (float)$product['discountAmount'],
+                'netSales'               => (float)$netSales,
+                'averageSellingPrice'    => $salesCount > 0 ? (float)($netSales / $salesCount) : 0,
+                'refundQuantity'         => (int)$product['refundQuantity'],
+                'refundAmount'           => (float)$product['refundAmount'],
+                'netQuantitySold'        => (int)($product['quantitySold'] - $product['refundQuantity']),
+                'taxCollected'           => (float)$product['taxCollected'],
+                'itemType'               => $product['itemType'],
+                'rentalUsageQuantity'    => (float)$product['rentalUsageQuantity'],
+                'netRentalUsageQuantity' => (float)($product['rentalUsageQuantity'] - $product['refundRentalUsageQty']),
             ];
         }
 
@@ -839,30 +869,30 @@ class SalesReportController extends Controller
             $query->where('products.product_type', $itemType);
         }
 
-        // Apply waiver filters
+        // Apply waiver filters — rental_damage_waiver in product_data.product_rental_items
         if (!empty($filters['waiverOnly']) && $filters['waiverOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%waiver%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NOT NULL");
         } elseif (!empty($filters['excludeWaiver']) && $filters['excludeWaiver'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%waiver%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply insurance filters
+        // Apply insurance filters — rental_track_insurance in product_data.product_rental_items
         if (!empty($filters['insuranceOnly']) && $filters['insuranceOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%insurance%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NOT NULL");
         } elseif (!empty($filters['excludeInsurance']) && $filters['excludeInsurance'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%insurance%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply shipping filter
+        // Apply shipping filter — orders with no shipping have terms_collection length of 0
         if (!empty($filters['excludeShipping']) && $filters['excludeShipping'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%shipping%');
+            $query->whereRaw("JSON_LENGTH((SELECT terms_collection FROM orders WHERE id = order_products.order_id)) = 0");
         }
 
-        // Apply delivery filters
+        // Apply delivery filters — product_data.service_method
         if (!empty($filters['deliveryOnly']) && $filters['deliveryOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%delivery%');
+            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'Delivery'");
         } elseif (!empty($filters['excludeDelivery']) && $filters['excludeDelivery'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%delivery%');
+            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'In Store Pickup'");
         }
 
         return $query->get();
@@ -891,14 +921,17 @@ class SalesReportController extends Controller
         }
 
         $result = [];
-        for ($i = 60; $i >= 1; $i--) {
+        // i=59 down to i=0: 60 data points where i=0 is today
+        // current period  → i=0  to i=29 (today back 29 days = 30 days total)
+        // previous period → i=30 to i=59 (30 days before the current window)
+        for ($i = 59; $i >= 0; $i--) {
             $date = Carbon::parse($today)->subDays($i);
             $dateStr = $date->format('Y-m-d');
             
             $result[] = [
                 'date' => $dateStr,
                 'sales' => $salesByDate[$dateStr] ?? 0,
-                'period' => $i <= 30 ? 'current' : 'previous'
+                'period' => $i <= 29 ? 'current' : 'previous'
             ];
         }
 
@@ -1251,30 +1284,30 @@ class SalesReportController extends Controller
             $query->where('products.product_type', $itemType);
         }
 
-        // Apply waiver filters
+        // Apply waiver filters — rental_damage_waiver in product_data.product_rental_items
         if (!empty($filters['waiverOnly']) && $filters['waiverOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%waiver%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NOT NULL");
         } elseif (!empty($filters['excludeWaiver']) && $filters['excludeWaiver'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%waiver%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply insurance filters
+        // Apply insurance filters — rental_track_insurance in product_data.product_rental_items
         if (!empty($filters['insuranceOnly']) && $filters['insuranceOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%insurance%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NOT NULL");
         } elseif (!empty($filters['excludeInsurance']) && $filters['excludeInsurance'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%insurance%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply shipping filter
+        // Apply shipping filter — orders with no shipping have terms_collection length of 0
         if (!empty($filters['excludeShipping']) && $filters['excludeShipping'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%shipping%');
+            $query->whereRaw("JSON_LENGTH((SELECT terms_collection FROM orders WHERE id = order_products.order_id)) = 0");
         }
 
-        // Apply delivery filters
+        // Apply delivery filters — product_data.service_method
         if (!empty($filters['deliveryOnly']) && $filters['deliveryOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%delivery%');
+            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'Delivery'");
         } elseif (!empty($filters['excludeDelivery']) && $filters['excludeDelivery'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%delivery%');
+            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'In Store Pickup'");
         }
     }
 }

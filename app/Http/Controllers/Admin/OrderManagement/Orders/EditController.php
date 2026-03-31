@@ -26,6 +26,7 @@ class EditController extends Controller
         $employees = User::orderBy('first_name')->get();
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+        $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');
 
         // Get categories with equipments for assignment modal
         $categories = ProductCategory::with(['equipments' => function ($query) {
@@ -37,6 +38,6 @@ class EditController extends Controller
 
         // dd($order);
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories'));
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings'));
     }
 }

@@ -77,6 +77,7 @@ class UpdateProductScheduleRequest extends ApiBaseFormRequest
             'pickup_status' => 'nullable|string|in:Pending,Completed,Reschedule,Close as Completed',
             'pickup_store_id' => 'nullable|integer|exists:stores,id',
             'pickup_by' => 'nullable|integer|exists:users,id',
+            'allocated_hours' => 'nullable|numeric|min:0',
         ];
     }
 

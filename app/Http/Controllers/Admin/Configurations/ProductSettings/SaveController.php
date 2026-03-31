@@ -18,7 +18,7 @@ class SaveController extends Controller
         $validated = $request->validated();
 
         foreach ($validated as $key => $value) {
-            $setting = Setting::where('setting_name', $key)->whereIn('setting_type', ['Product Settings', 'Allocated Hours Settings'])->first();
+            $setting = Setting::where('setting_name', $key)->whereIn('setting_type', ['Product Settings', 'Allocated Hours Settings', 'Price Rate Multiplier Settings'])->first();
             if ($setting) {
                 // Special case for sales tax
                 if ($setting->setting_name === 'sales_tax') {

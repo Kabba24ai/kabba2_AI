@@ -21,14 +21,9 @@
         {{-- Weekend multiplier --}}
         <div class="flex flex-col">
             <div class="flex items-center justify-between mb-1">
-                <label for="weekend_multiplier" class="block text-sm font-medium text-gray-700">Weekend</label>
-                <button type="button"
-                    onclick="document.getElementById('weekend_multiplier').value=''"
-                    class="ml-2 text-gray-400 hover:text-red-500 transition-colors" title="Clear">
-                    <x-heroicon-o-x-mark class="w-3.5 h-3.5" />
-                </button>
+                <label for="weekend_multiplier" class="block text-sm font-medium text-gray-700">Weekend-X</label>
             </div>
-            {!! html()->input('number', 'weekend_multiplier', $settings['Allocated Hours Settings']['weekend_multiplier']['setting_value'] ?? '')->class([
+            {!! html()->input('number', 'weekend_multiplier', $settings['Price Rate Multiplier Settings']['weekend_multiplier']['setting_value'] ?? '')->class([
                     'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                     'border-gray-300' => !$errors->has('weekend_multiplier'),
                     'border-red-500' => $errors->has('weekend_multiplier'),
@@ -47,14 +42,9 @@
         {{-- Weekly multiplier --}}
         <div class="flex flex-col">
             <div class="flex items-center justify-between mb-1">
-                <label for="weekly_multiplier" class="block text-sm font-medium text-gray-700">Weekly</label>
-                <button type="button"
-                    onclick="document.getElementById('weekly_multiplier').value=''"
-                    class="ml-2 text-gray-400 hover:text-red-500 transition-colors" title="Clear">
-                    <x-heroicon-o-x-mark class="w-3.5 h-3.5" />
-                </button>
+                <label for="weekly_multiplier" class="block text-sm font-medium text-gray-700">Weekly-X</label>
             </div>
-            {!! html()->input('number', 'weekly_multiplier', $settings['Allocated Hours Settings']['weekly_multiplier']['setting_value'] ?? '')->class([
+            {!! html()->input('number', 'weekly_multiplier', $settings['Price Rate Multiplier Settings']['weekly_multiplier']['setting_value'] ?? '')->class([
                     'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                     'border-gray-300' => !$errors->has('weekly_multiplier'),
                     'border-red-500' => $errors->has('weekly_multiplier'),
@@ -73,14 +63,9 @@
         {{-- Monthly multiplier --}}
         <div class="flex flex-col">
             <div class="flex items-center justify-between mb-1">
-                <label for="monthly_multiplier" class="block text-sm font-medium text-gray-700">Monthly</label>
-                <button type="button"
-                    onclick="document.getElementById('monthly_multiplier').value=''"
-                    class="ml-2 text-gray-400 hover:text-red-500 transition-colors" title="Clear">
-                    <x-heroicon-o-x-mark class="w-3.5 h-3.5" />
-                </button>
+                <label for="monthly_multiplier" class="block text-sm font-medium text-gray-700">Monthly-X</label>
             </div>
-            {!! html()->input('number', 'monthly_multiplier', $settings['Allocated Hours Settings']['monthly_multiplier']['setting_value'] ?? '')->class([
+            {!! html()->input('number', 'monthly_multiplier', $settings['Price Rate Multiplier Settings']['monthly_multiplier']['setting_value'] ?? '')->class([
                     'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                     'border-gray-300' => !$errors->has('monthly_multiplier'),
                     'border-red-500' => $errors->has('monthly_multiplier'),

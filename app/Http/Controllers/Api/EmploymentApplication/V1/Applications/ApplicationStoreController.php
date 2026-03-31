@@ -50,6 +50,7 @@ class ApplicationStoreController extends BaseController
                     'city' => $request->city,
                     'state' => $request->state,
                     'zip_code' => $request->zip_code,
+                    'street_address' => $request->street_address,
                 ],
 
                 'job_preferences' => [

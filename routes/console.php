@@ -45,14 +45,14 @@ Schedule::job(new \App\Jobs\SendReturnSameDayRentalReminderJob())
 //     ->name('refresh-staging-database');
 
 Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())
-    ->cron('*/1 * * * *')
+    ->cron('*/20 * * * *')
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()
     ->name('auto-clock-out-employees');
 
 Schedule::job(new \App\Jobs\AutoLunchBreakJob())
-    ->cron('*/10 * * * *') // every 1 minutes
+    ->cron('*/10 * * * *') // every 10 minutes
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()

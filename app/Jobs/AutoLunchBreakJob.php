@@ -20,9 +20,11 @@ class AutoLunchBreakJob implements ShouldQueue
     {
         $now = Carbon::now();
 
-        Log::info('[AUTO LUNCH] Job started', [
+        
+        Log::info('================ AUTO LUNCH JOB START ================', [
             'time' => $now->toDateTimeString(),
-        ]);
+        ]); 
+
 
         $lunchDuration = (int) TimeTrackerHelper::getTimeTrackerSetting(
             'default_lunch_duration_minutes',
@@ -38,45 +40,40 @@ class AutoLunchBreakJob implements ShouldQueue
             ])
             ->get();
 
-            Log::info('[AUTO LUNCH] Active employees fetched', [
-                'count' => $employees->count(),
+
+            Log::info('[AUTO LUNCH] Employees fetched', [
+                        'count' => $employees->count(),
+                    ]);
+
+            
+        foreach ($employees as $employee) {
+
+
+            Log::info('---------------- EMPLOYEE START ----------------', [
+                'employee_id' => $employee->id,
+                'name' => $employee->full_name,
             ]);
 
-            foreach ($employees as $employee) {
+             // 🔍 DEBUG OVERRIDE VALUE
+            Log::info('[AUTO LUNCH CHECK]', [
+                'employee_id' => $employee->id,
+                'lunch_override_raw' => $employee->lunch_override,
+                'type' => gettype($employee->lunch_override),
+                'casted_int' => (int) $employee->lunch_override,
+            ]);
 
-                $entry = $employee->activeTimeEntry;
 
-                if (!$entry) {
-                    continue;
-                }
+               // ✅ STRICT OVERRIDE CHECK
+            if ((int) $employee->lunch_override === 1) {
 
-                $store = $employee->store;
-
-                $today = now()->toDateString();
-
-                $lunchStartTime = $store && $store->lunch_start_time
-                    ? Carbon::parse($today . ' ' . $store->lunch_start_time)
-                    : null;
-
-                $lunchDuration = (int) TimeTrackerHelper::getTimeTrackerSetting(
-                    'default_lunch_duration_minutes',
-                    30
-                );
-
-                $expectedEnd = $lunchStartTime
-                    ? $lunchStartTime->copy()->addMinutes($lunchDuration)
-                    : null;
-
-                Log::info('[AUTO LUNCH DEBUG]', [
+                Log::warning('🚫 [AUTO LUNCH BLOCKED - OVERRIDE ENABLED]', [
                     'employee_id' => $employee->id,
-                    'employee_name' => $employee->full_name,
-                    'clock_in' => optional($entry->clock_in)->toDateTimeString(),
-                    'lunch_start_time' => $lunchStartTime?->toDateTimeString(),
-                    'expected_lunch_end' => $expectedEnd?->toDateTimeString(),
-                    'has_active_break' => (bool) $entry->activeBreak,
                 ]);
+
+                continue;
             }
-        foreach ($employees as $employee) {
+
+
 
             $entry = $employee->activeTimeEntry;
 

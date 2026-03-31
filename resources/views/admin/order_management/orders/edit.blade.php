@@ -1929,7 +1929,9 @@
                                             $finalFuelTotal = max(0, $fuelBaseTotal + $fuelAdjustmentTotal);
                                         @endphp
 
-                                        @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0)
+                                        {{-- @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0) --}}
+                                        @if (!is_null($product->fuel_initial_reading))
+
                                             @php
                                                 $arrFuelDelivery = [
                                                     ['id' => 10, 'name' => 'Prepaid'],

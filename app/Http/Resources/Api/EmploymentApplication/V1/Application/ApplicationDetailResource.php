@@ -15,6 +15,8 @@ class ApplicationDetailResource extends JsonResource
        $city = data_get($this->personal_details, 'city');
         $stateId = data_get($this->personal_details, 'state');
         $zip = data_get($this->personal_details, 'zip_code');
+        $street_address = data_get($this->personal_details, 'street_address');
+
 
         // Resolve state safely
         $state = $stateId
@@ -52,18 +54,26 @@ class ApplicationDetailResource extends JsonResource
             'resume_url' => $this->media?->getUrl(),
 
               'address' => trim(
-                collect([$city, $stateAbbr ?? $stateName, $zip])
+                collect([$street_address , $city, $stateAbbr ?? $stateName, $zip])
                     ->filter()
                     ->implode(', ')
             ),
 
             'store_id' => $this->store_id,
 
-            'status' => match ((int) $this->status) {
+           'status' => match ((int) $this->status) {
                 0 => 'pending',
                 1 => 'reviewed',
                 2 => 'accepted',
                 3 => 'rejected',
+                4 => 'archive',
+
+                //  NEW
+                5 => 'call_first_interview',
+                6 => 'call_second_interview',
+                7 => 'extend_offer',
+
+                default => 'pending',
             },
 
             'created_at' => optional($this->created_at)->toDateString(),

@@ -115,16 +115,21 @@ class ListResource extends JsonResource
             return $productData;
         }
 
-        $withLabels = [];
+        $newData = [];
 
         foreach ($productData['product_rental_items_prices'] as $key => $value) {
-            $label = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $key)?->value;
+            $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases(),)->firstWhere('name', $key)?->value;
 
-            $label = $label ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $key)));
-            $withLabels[$label] = $value;
+            $label = $case ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $key)));
+
+            $newData[] = [
+                'label' => $label,
+                'value' => $value
+            ];
         }
 
-        $productData['product_rental_items_prices_with_labels'] = $withLabels;
+        // ✅ Add new key (now as array of objects)
+        $productData['product_rental_items_prices_with_labels'] = $newData;
 
         return $productData;
     }

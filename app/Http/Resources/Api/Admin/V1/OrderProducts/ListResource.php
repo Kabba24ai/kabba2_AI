@@ -30,14 +30,14 @@ class ListResource extends JsonResource
             'price' => $this->price ? CustomHelper::formatCurrency($this->price) : '0.00',
             'quantity' => $this->quantity ?? 0,
 
-            'hour_tracking' =>  ($this->hour_tracking == "Yes") ? true : false,
+            'hour_tracking' => $this->hour_tracking == 'Yes' ? true : false,
             'hour_rate' => (float) $this->hour_rate ?? 0,
             'allocated_hours' => (float) $this->allocated_hours ?? 0,
 
             'sub_total' => $this->sub_total ? CustomHelper::formatCurrency($this->sub_total) : '0.00',
             'tax' => $this->tax ? CustomHelper::formatCurrency($this->tax) : '0.00',
             'total' => $this->total ? CustomHelper::formatCurrency($this->total) : '0.00',
-            'product_data' => $this->product_data ?? [],
+            'product_data' => $this->transformProductData($this->product_data ?? []),
             'service_method' => $this->service_method ?? '',
             'service_option' => $this->service_option ?? '',
             'distance_type' => $this->distance_type ?? '',
@@ -89,7 +89,7 @@ class ListResource extends JsonResource
 
             'equipment_id' => $this->equipment_id ?? 0,
 
-            'equipment_details' => $this->equipment_details ?? new EquipmentListResource($this->whenLoaded('softEquipment')) ?? '',
+            'equipment_details' => $this->equipment_details ?? (new EquipmentListResource($this->whenLoaded('softEquipment')) ?? ''),
 
             'assigned_by' => $this->equipment_assigned_by ?? '',
 
@@ -104,9 +104,28 @@ class ListResource extends JsonResource
             'customer_checklist_questions' => CustomerChecklistQuestionsListResource::collection($this->whenLoaded('checklistQA')),
 
             'rental_ready_checklist_questions' => RentalReadyChecklistQuestionsListResource::collection($this->whenLoaded('rentalReadyQA')),
-
         ];
 
         return $return;
+    }
+
+    private function transformProductData($productData)
+    {
+        if (!isset($productData['product_rental_items_prices'])) {
+            return $productData;
+        }
+
+        $withLabels = [];
+
+        foreach ($productData['product_rental_items_prices'] as $key => $value) {
+            $label = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $key)?->value;
+
+            $label = $label ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $key)));
+            $withLabels[$label] = $value;
+        }
+
+        $productData['product_rental_items_prices_with_labels'] = $withLabels;
+
+        return $productData;
     }
 }

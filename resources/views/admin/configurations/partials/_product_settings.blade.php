@@ -7,103 +7,67 @@
 @endpush
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
-        <x-heroicon-o-currency-dollar class="w-5 h-5 text-blue-600" aria-hidden="true" />
-        <h3 class="text-lg font-bold text-gray-900">Range & Sales Tax Rate</h3>
+        <x-heroicon-o-truck class="w-5 h-5 text-blue-600" aria-hidden="true" />
+        <h3 class="text-lg font-bold text-gray-900">Delivery Range & Sales Tax Rate</h3>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div>
+    <div class="flex flex-wrap items-end gap-8">
+        {{-- Standard Delivery --}}
+        <div class="flex flex-col">
             <label for="standard_delivery_range" class="block text-sm font-medium text-gray-700 mb-1">
-                Standard Delivery Range
+                Standard Delivery
             </label>
-
-            <div class="relative">
-                {!! html()->input(
-                        'number',
-                        'standard_delivery_range',
-                        $settings['Product Settings']['standard_delivery_range']['setting_value'],
-                    )->class([
-                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('standard_delivery_range'),
-                        'border-red-500' => $errors->has('standard_delivery_range'),
-                    ])->attributes([
-                        'data-parsley-type' => 'number',
-                        'autocomplete' => 'off',
-                        'placeholder' => $settings['Product Settings']['standard_delivery_range']['placeholder'],
-                        'required' => true,
-                        'id' => 'standard_delivery_range',
-                    ]) !!}
-            </div>
-
+            {!! html()->input(
+                    'number',
+                    'standard_delivery_range',
+                    $settings['Product Settings']['standard_delivery_range']['setting_value'],
+                )->class([
+                    'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                    'border-gray-300' => !$errors->has('standard_delivery_range'),
+                    'border-red-500' => $errors->has('standard_delivery_range'),
+                ])->attributes([
+                    'data-parsley-type' => 'number',
+                    'autocomplete' => 'off',
+                    'placeholder' => $settings['Product Settings']['standard_delivery_range']['placeholder'],
+                    'required' => true,
+                    'id' => 'standard_delivery_range',
+                ]) !!}
             @error('standard_delivery_range')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
 
-        <div>
-            <label for="distance_unit" class="block text-sm font-medium text-gray-700 mb-1">
-                Distance Unit
-            </label>
-
-            <div class="relative">
-                {!! html()->select(
-                        'distance_unit',
-                        [
-                            'Kilometers' => 'Kilometers',
-                            'Miles' => 'Miles',
-                        ],
-                        $settings['Product Settings']['distance_unit']['setting_value'],
-                    )->class([
-                        'w-28 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('distance_unit'),
-                        'border-red-500' => $errors->has('distance_unit'),
-                    ])->attributes([
-                        'id' => 'distance_unit',
-                        'required' => true,
-                        'autocomplete' => 'off',
-                        'placeholder' => $settings['Product Settings']['distance_unit']['placeholder'] ?? '',
-                    ]) !!}
-            </div>
-
-            @error('distance_unit')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
+        {{-- Extended Delivery --}}
+        <div class="flex flex-col">
             <label for="extended_delivery_range" class="block text-sm font-medium text-gray-700 mb-1">
-                Extended Delivery Range
+                Extended Delivery
             </label>
-
-            <div class="relative">
-                {!! html()->input(
-                        'number',
-                        'extended_delivery_range',
-                        $settings['Product Settings']['extended_delivery_range']['setting_value'],
-                    )->class([
-                        'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                        'border-gray-300' => !$errors->has('extended_delivery_range'),
-                        'border-red-500' => $errors->has('extended_delivery_range'),
-                    ])->attributes([
-                        'data-parsley-type' => 'number',
-                        'autocomplete' => 'off',
-                        'placeholder' => $settings['Product Settings']['extended_delivery_range']['placeholder'],
-                        'required' => true,
-                        'id' => 'extended_delivery_range',
-                    ]) !!}
-            </div>
-
+            {!! html()->input(
+                    'number',
+                    'extended_delivery_range',
+                    $settings['Product Settings']['extended_delivery_range']['setting_value'],
+                )->class([
+                    'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                    'border-gray-300' => !$errors->has('extended_delivery_range'),
+                    'border-red-500' => $errors->has('extended_delivery_range'),
+                ])->attributes([
+                    'data-parsley-type' => 'number',
+                    'autocomplete' => 'off',
+                    'placeholder' => $settings['Product Settings']['extended_delivery_range']['placeholder'],
+                    'required' => true,
+                    'id' => 'extended_delivery_range',
+                ]) !!}
             @error('extended_delivery_range')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
 
-        <div>
-            <label for="include_extended_range" class="block text-sm font-medium text-gray-700 mb-1">
-                Extended Range Option
+        {{-- Extended Range checkbox --}}
+        <div class="flex flex-col">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Extended Range
             </label>
-
-            <div class="relative">
+            <label for="include_extended_range" class="inline-flex items-center gap-2 cursor-pointer py-2">
                 {!! html()->checkbox(
                         'include_extended_range',
                         $settings['Product Settings']['include_extended_range']['setting_value'] == '1',
@@ -114,10 +78,36 @@
                     ])->attributes([
                         'id' => 'include_extended_range',
                     ]) !!}
-                <span class="ml-2 text-sm text-gray-700">Include</span>
-            </div>
-
+                <span class="text-sm text-gray-700">Include Option</span>
+            </label>
             @error('include_extended_range')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Distance Unit --}}
+        <div class="flex flex-col">
+            <label for="distance_unit" class="block text-sm font-medium text-gray-700 mb-1">
+                Distance Unit
+            </label>
+            {!! html()->select(
+                    'distance_unit',
+                    [
+                        'Kilometers' => 'Kilometers',
+                        'Miles' => 'Miles',
+                    ],
+                    $settings['Product Settings']['distance_unit']['setting_value'],
+                )->class([
+                    'w-32 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                    'border-gray-300' => !$errors->has('distance_unit'),
+                    'border-red-500' => $errors->has('distance_unit'),
+                ])->attributes([
+                    'id' => 'distance_unit',
+                    'required' => true,
+                    'autocomplete' => 'off',
+                    'placeholder' => $settings['Product Settings']['distance_unit']['placeholder'] ?? '',
+                ]) !!}
+            @error('distance_unit')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>

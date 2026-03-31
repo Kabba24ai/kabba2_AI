@@ -63,6 +63,9 @@ class SaveRequest extends FormRequest
             'weekly_hours' => 'nullable|numeric|min:0',
             'monthly_hours' => 'nullable|numeric|min:0',
             'overage_rate_percentage' => 'nullable|numeric|min:0',
+            'weekend_multiplier' => 'nullable|numeric|min:0',
+            'weekly_multiplier' => 'nullable|numeric|min:0',
+            'monthly_multiplier' => 'nullable|numeric|min:0',
 
             'prepaid_fuel_decline_label' => 'nullable|string|max:255',
             'prepaid_fuel_approve_label' => 'nullable|string|max:255',

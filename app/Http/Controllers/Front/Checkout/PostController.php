@@ -251,7 +251,7 @@ class PostController extends Controller
                 ],
             ]);
 
-            $primaryStoreId = Store::primary()->value('id');
+            $primaryStoreId = Store::primary()->value('id') ?? Store::orderBy('id', 'asc')->first()?->id ?? null;
 
             $dateFormat = config('app.date.db_date_format');
             $timeFormat = config('app.date.db_time_format');

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin\OrderManagement\Orders\Reorder;
 
 use App\Helpers\SignedUrlHelper;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 // Requests
 use App\Http\Requests\Admin\OrderManagement\Orders\Reorder\PostRequest;
@@ -30,6 +32,12 @@ class PostController extends Controller
                 }
             }
 
+            $cartRef = null;
+            if ($validated['order_type'] === 'existing_order' && !empty($newCartData)) {
+                $cartRef = (string) Str::uuid();
+                Cache::put('reorder_cart_data:' . $cartRef, $newCartData, now()->addMinutes(5));
+            }
+
             $signedUrl = SignedUrlHelper::make(
                 'front.auth.login.impersonate',
                 [
@@ -40,7 +48,7 @@ class PostController extends Controller
                         ? ($order->reference_order_number ?? $order->order_number)
                         : $order->order_number,
                     'order_type' => $validated['order_type'],
-                    'cart_data' => $newCartData,
+                    'cart_ref' => $cartRef,
                 ],
                 1,
             );

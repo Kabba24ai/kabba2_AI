@@ -85,6 +85,7 @@ class IndexController extends Controller
             $scheduleTypes = [];
             $transportModes = [];
             $orderByField = 'delivery_date'; // Default order by field
+            $orderBy = 'asc'; // Default order direction
 
             // Get filters, clean them
             if ($request->filled('schedule_type')) {
@@ -118,6 +119,7 @@ class IndexController extends Controller
                 $dateFilter = $request->date_filter;
                 if ($dateFilter === 'today') {
                     $query->whereDate($orderByField, "<=", today());
+                    $orderBy = 'desc';
                 } elseif ($dateFilter === 'week') {
                     $query->whereBetween($orderByField, [now()->startOfWeek(), now()->endOfWeek()]);
                 } elseif ($dateFilter === 'month') {
@@ -196,7 +198,7 @@ class IndexController extends Controller
 
             $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
-            $orderProducts = $query->orderBy($orderByField, $dateFilter === 'Today' ? 'desc' : 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
+            $orderProducts = $query->orderBy($orderByField, $orderBy)->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
 
             if ($request->filled('unassigned_equipment')) {
                 $html = view('admin.order_management.schedule_assignment.partials._schedule_table', [

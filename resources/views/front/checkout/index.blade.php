@@ -69,6 +69,7 @@
                             $companyWebsite = auth('customer')->user()->company_website ?? null;
                             $firstName = auth('customer')->user()->first_name ?? null;
                             $lastName = auth('customer')->user()->last_name ?? null;
+                            $email = auth('customer')->user()->email ?? null;
                             $phone = auth('customer')->user()->phone ?? null;
                         @endphp
                         <div>
@@ -102,7 +103,7 @@
                                     {{ $primaryAddress ? 'Phone: ' . $primaryAddress->phone : '' }}
                                 </p>
                                 <p class="mt-2 text-sm" id="addressEmail">
-                                    {{ $primaryAddress ? 'Email: ' . $primaryAddress->email : '' }}
+                                    {{ $primaryAddress ? 'Email: ' . ($primaryAddress->email ?? $email) : '' }}
                                 </p>
                                 <span class="text-green-600 font-medium text-xs absolute top-2 right-3" id="addressDefault">
                                     {{ $primaryAddress && $primaryAddress->is_primary ? 'Default' : '' }}

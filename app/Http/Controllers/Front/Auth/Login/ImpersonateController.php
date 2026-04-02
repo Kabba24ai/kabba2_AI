@@ -49,6 +49,7 @@ class ImpersonateController extends Controller
         $orderNumber     = $params['order_number'] ?? null;
         $orderType       = $params['order_type'] ?? null;
         $cartRef        = $params['cart_ref'] ?? null;
+        $cartData       = null;
 
         if ($cartRef) {
             $cartData = Cache::pull('reorder_cart_data:' . $cartRef, []);

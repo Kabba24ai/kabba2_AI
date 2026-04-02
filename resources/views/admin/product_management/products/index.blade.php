@@ -31,7 +31,7 @@
         </div>
 
         {{-- Search Input --}}
-        <div class="w-full sm:w-48">
+        <div class="relative w-full sm:w-48">
             <input type="text" name="search" placeholder="Search products..." value="{{ request('search') }}"
                 class="w-full pl-3 pr-10 py-3 px-3 bg-white border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
 

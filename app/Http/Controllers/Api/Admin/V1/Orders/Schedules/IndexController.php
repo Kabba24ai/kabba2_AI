@@ -78,7 +78,7 @@ class IndexController extends BaseController
                 function ($query) use ($dateFilter, $scheduleType) {
                     if ($scheduleType === "Delivery") {
                         if ($dateFilter === "Today") {
-                            $query->whereDate('delivery_date', "<", today());
+                            $query->whereDate('delivery_date', "<=", today());
                         } elseif ($dateFilter === "Tomorrow") {
                             $query->whereDate('delivery_date', now()->addDay()->toDateString());
                         } elseif ($dateFilter === "This Week") {
@@ -88,7 +88,7 @@ class IndexController extends BaseController
                         }
                     } elseif ($scheduleType === "Return") {
                         if ($dateFilter === "Today") {
-                            $query->whereDate('pickup_date', "<", today());
+                            $query->whereDate('pickup_date', "<=", today());
                         } elseif ($dateFilter === "Tomorrow") {
                             $query->whereDate('pickup_date', now()->addDay()->toDateString());
                         } elseif ($dateFilter === "This Week") {

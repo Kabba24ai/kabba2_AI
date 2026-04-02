@@ -117,7 +117,7 @@ class IndexController extends Controller
             if ($request->filled('date_filter')) {
                 $dateFilter = $request->date_filter;
                 if ($dateFilter === 'today') {
-                    $query->whereDate($orderByField, today());
+                    $query->whereDate($orderByField, "<=", today());
                 } elseif ($dateFilter === 'week') {
                     $query->whereBetween($orderByField, [now()->startOfWeek(), now()->endOfWeek()]);
                 } elseif ($dateFilter === 'month') {

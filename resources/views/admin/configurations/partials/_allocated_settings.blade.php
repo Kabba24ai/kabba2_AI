@@ -176,7 +176,7 @@
         </div>
 
         {{-- Overage Rate (%) --}}
-        <div class="flex flex-col">
+        {{-- <div class="flex flex-col">
             <label for="overage_rate_percentage" class="block text-sm font-medium text-gray-700 mb-1">
                 Overage Rate (%)
             </label>
@@ -194,10 +194,10 @@
             @error('overage_rate_percentage')
                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
             @enderror
-        </div>
+        </div> --}}
 
         {{-- Calculation info tooltip --}}
-        <div class="flex flex-col justify-end pb-2">
+        {{-- <div class="flex flex-col justify-end pb-2">
             <div class="relative group">
                 <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center gap-1 cursor-pointer whitespace-nowrap">
                     <x-heroicon-o-information-circle class="w-5 h-5" />
@@ -214,6 +214,6 @@
                     <strong>Note:</strong> Partial hours are billed as a full hour.
                 </div>
             </div>
-        </div>
+        </div> --}}
     </div>
 </div>

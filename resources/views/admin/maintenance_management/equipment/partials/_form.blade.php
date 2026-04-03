@@ -80,13 +80,6 @@
                         <label for="overage_rate" class="block text-sm font-medium text-gray-700 mb-1">
                             Overage Rate
                         </label>
-                        <div>
-                            {!! html()->checkbox('is_tracked', true)->id('is_tracked')->checked(old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? true : false) : true))->class('mr-2') !!}
-
-                            <label for="is_tracked" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Tracked
-                            </label>
-                        </div>
                     </div>
                     <div class="relative">
                         <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
@@ -102,9 +95,6 @@
                                 'maxlength' => 8,
                                 'placeholder' => '0.00',
                                 'autocomplete' => 'off',
-                                old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? false : true) : false)
-                                    ? 'readonly'
-                                    : null,
                             ]) !!}
                     </div>
                     @error('overage_rate')
@@ -1481,21 +1471,6 @@
 
             // Initial toggle based on existing values
             toggleFields();
-
-            const isTracked = document.getElementById('is_tracked');
-            const overageRate = document.querySelector('input[name="overage_rate"]');
-
-            function toggleOverageRate() {
-                if (isTracked.checked) {
-                    overageRate.removeAttribute('readonly');
-                    overageRate.setAttribute('required', 'required');
-                } else {
-                    overageRate.setAttribute('readonly', 'readonly');
-                    overageRate.removeAttribute('required');
-                    overageRate.value = '';
-                }
-            }
-            isTracked.addEventListener('change', toggleOverageRate);
         });
     </script>
 

@@ -30,6 +30,8 @@ class CreateController extends Controller
         $productOptions = ProductOption::orderBy('name')->get();
         $products = Product::published()->orderBy('product_name')->get();
         $productSettings = ConfigurationHelper::getSettings('Product Settings');
+        $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');
+        $priceRateMultiplierSettings = ConfigurationHelper::getSettings('Price Rate Multiplier Settings');
 
         return view('admin.product_management.products.create', [
             'categoryTree' => $categoryTree,
@@ -38,6 +40,8 @@ class CreateController extends Controller
             'productOptions' => $productOptions,
             'products' => $products,
             'productSettings' => $productSettings,
+            'allocatedHoursSettings' => $allocatedHoursSettings,
+            'priceRateMultiplierSettings' => $priceRateMultiplierSettings,
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\TimeTracker\V1\TimeReports;
 use App\Http\Controllers\Api\BaseController;
 use App\Models\Iam\Personnel\User;
 use App\Helpers\PayPeriodHelper;
+use App\Helpers\TimeTrackerHelper;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Carbon\Carbon;
@@ -24,9 +25,10 @@ class ExportTimeReportsController extends BaseController
             fputcsv($handle, [
                 'Employee Name',
                 'Total Hours',
-                'Paid Hours',
+               
                 'Lunch Hours',
                 'Unpaid Hours',
+                 'Paid Hours',
                 'Vacation Hours',
             ]);
 
@@ -38,7 +40,6 @@ class ExportTimeReportsController extends BaseController
                 },
                 'approvedVacationRequests.requestHour',
             ])
-            ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'admin'))
             ->active()
             ->orderBy('first_name')
             ->get();
@@ -72,11 +73,18 @@ class ExportTimeReportsController extends BaseController
 
                 fputcsv($handle, [
                     $user->full_name,
-                    $totalHours,
-                    $paidHours,
-                    $lunchHours,
-                    $unpaidHours,
-                    $vacationHours,
+                        TimeTrackerHelper::formatHoursToTime($totalHours),
+                      
+                        TimeTrackerHelper::formatHoursToTime($lunchHours),
+                        TimeTrackerHelper::formatHoursToTime($unpaidHours),
+                  
+                          TimeTrackerHelper::formatHoursToTime($paidHours),
+                                TimeTrackerHelper::formatHoursToTime($vacationHours),
+                    // $totalHours,
+                    // $paidHours,
+                    // $lunchHours,
+                    // $unpaidHours,
+                    // $vacationHours,
                 ]);
             }
 

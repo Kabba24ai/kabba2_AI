@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use DB;
 
 // Enums
+use App\Enums\Orders\OrderMediaType;
 use App\Enums\Orders\OrderTermsStatus;
 
 // Services
@@ -251,7 +252,7 @@ class PostController extends Controller
                 ],
             ]);
 
-            $primaryStoreId = Store::primary()->value('id');
+            $primaryStoreId = Store::primary()->value('id') ?? Store::orderBy('id', 'asc')->first()?->id ?? null;
 
             $dateFormat = config('app.date.db_date_format');
             $timeFormat = config('app.date.db_time_format');
@@ -297,6 +298,32 @@ class PostController extends Controller
 
             if (!empty($orderProductRows)) {
                 $order->products()->insert($orderProductRows);
+            }
+
+            $licenseMediaRows = [];
+
+            if (!empty($customer->license_front_media_id)) {
+                $licenseMediaRows[] = [
+                    'type' => OrderMediaType::LICENSE->value,
+                    'side' => 'front',
+                    'media_id' => $customer->license_front_media_id,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            if (!empty($customer->license_back_media_id)) {
+                $licenseMediaRows[] = [
+                    'type' => OrderMediaType::LICENSE->value,
+                    'side' => 'back',
+                    'media_id' => $customer->license_back_media_id,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            if (!empty($licenseMediaRows)) {
+                $order->media()->createMany($licenseMediaRows);
             }
 
             // Eager load products and their terms for terms generation

@@ -18,7 +18,7 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <p class="text-xs text-gray-500 mt-1">8 Hrs Allocated</p>
+                        <p class="text-[10px] leading-tight text-gray-500 mt-1">{{ $allocatedHoursSettings['daily_hours'] ?? 8 }} Hrs Allocated</p>
                 <div id="rental-daily-errors"></div>
             </div>
 
@@ -38,7 +38,10 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <p class="text-xs text-gray-500 mt-1">14 Hrs Allocated</p>
+                <p class="text-[10px] leading-tight text-gray-500 mt-1">
+                    {{ $allocatedHoursSettings['weekend_hours'] ?? 14 }} Hrs Allocated -
+                    {{ $priceRateMultiplierSettings['weekend_multiplier'] ?? '1.5' }} Daily Rate
+                </p>
                 <div id="rental-weekend-errors"></div>
             </div>
 
@@ -57,7 +60,10 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <p class="text-xs text-gray-500 mt-1">40 Hrs Allocated</p>
+                <p class="text-[10px] leading-tight text-gray-500 mt-1">
+                    {{ $allocatedHoursSettings['weekly_hours'] ?? 40 }} Hrs Allocated -
+                    {{ $priceRateMultiplierSettings['weekly_multiplier'] ?? '4.0' }} Daily Rate
+                </p>
                 <div id="rental-weekly-errors"></div>
             </div>
 
@@ -76,7 +82,10 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <p class="text-xs text-gray-500 mt-1">160 Hrs Allocated</p>
+                <p class="text-[10px] leading-tight text-gray-500 mt-1">
+                    {{ $allocatedHoursSettings['monthly_hours'] ?? 160 }} Hrs Allocated -
+                    {{ $priceRateMultiplierSettings['monthly_multiplier'] ?? '16.0' }} Daily Rate
+                </p>
                 <div id="rental-monthly-errors"></div>
             </div>
         </div>
@@ -852,6 +861,9 @@
     <script>
         const damageWaiverPercentage = "{{ $productSettings['damage_waiver_percentage'] }}"
         const overageRatePercentage = "{{ $productSettings['overage_rate_percentage'] }}";
+        const weekendRateMultiplier = "{{ $priceRateMultiplierSettings['weekend_multiplier'] ?? '' }}";
+        const weeklyRateMultiplier = "{{ $priceRateMultiplierSettings['weekly_multiplier'] ?? '' }}";
+        const monthlyRateMultiplier = "{{ $priceRateMultiplierSettings['monthly_multiplier'] ?? '' }}";
 
         // Auto-fill delivery fees based on selected size
         const sizeFeeMap = {
@@ -982,10 +994,35 @@
                 }
             }
 
+            function calculatePriceByMultiplier(dailyPrice, multiplier) {
+                const parsedDailyPrice = parseFloat(dailyPrice);
+                const parsedMultiplier = parseFloat(multiplier);
+
+                if (isNaN(parsedDailyPrice) || parsedDailyPrice <= 0 || isNaN(parsedMultiplier) || parsedMultiplier <=
+                    0) {
+                    return "";
+                }
+
+                return (parsedDailyPrice * parsedMultiplier).toFixed(2);
+            }
+
+            function updateCalculatedRentalPricesFromDaily() {
+                const dailyPrice = dailyPriceInput.value;
+
+                weekendPriceInput.value = calculatePriceByMultiplier(dailyPrice, weekendRateMultiplier);
+                weeklyPriceInput.value = calculatePriceByMultiplier(dailyPrice, weeklyRateMultiplier);
+                monthlyPriceInput.value = calculatePriceByMultiplier(dailyPrice, monthlyRateMultiplier);
+
+                updateDamageWaiver(weekendPriceInput, damageWaiverWeekendInput);
+                updateDamageWaiver(weeklyPriceInput, damageWaiverWeeklyInput);
+                updateDamageWaiver(monthlyPriceInput, damageWaiverMonthlyInput);
+            }
+
             dailyPriceInput.addEventListener("input", () => {
                 // if (hourTracking.checked) {
                 //     updateOverageRate(dailyPriceInput, hourRateInput);
                 // }
+                updateCalculatedRentalPricesFromDaily();
                 updateDamageWaiver(dailyPriceInput, damageWaiverDailyInput);
             });
 

@@ -21,6 +21,7 @@ class SettingSeeder extends Seeder
         $this->addEmailSettings();
         $this->addAllocatedHoursSettings();
         $this->addProductSettings();
+        $this->addPriceRateMultiplierSettings();
         $this->addContactUsSettings();
         $this->addSocialMediaSettings();
         $this->addAdminSettings();
@@ -303,6 +304,39 @@ class SettingSeeder extends Seeder
             ],
 
         ];
+    }
+
+    private function addPriceRateMultiplierSettings()
+    {
+        $sortOrder = 0;
+
+        $this->settings['Price Rate Multiplier Settings'] = [
+            [
+                'value_type' => 'number',
+                'setting_name' => 'weekend_multiplier',
+                'setting_title' => 'Weekend Rate Multiplier',
+                'placeholder' => '1.5',
+                'default_value' => null,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'weekly_multiplier',
+                'setting_title' => 'Weekly Rate Multiplier',
+                'placeholder' => '4.0',
+                'default_value' => null,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'monthly_multiplier',
+                'setting_title' => 'Monthly Rate Multiplier',
+                'placeholder' => '16.0',
+                'default_value' => null,
+                'sort_order' => $sortOrder++,
+            ],
+        ];
+
     }
 
     private function addProductSettings()

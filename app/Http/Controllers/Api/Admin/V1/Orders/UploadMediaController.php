@@ -34,15 +34,18 @@ class UploadMediaController extends Controller
         $validated = $request->validated();
 
         try {
-            $order = Order::where('unique_id', $validated['order_unique_id'])->firstOrFail();
+            $order = Order::with('customer')->where('unique_id', $validated['order_unique_id'])->firstOrFail();
 
             $typeEnum = OrderMediaType::from($validated['type']); // Will throw if invalid value
             if (in_array($typeEnum, [OrderMediaType::DELIVERY, OrderMediaType::PICKUP])) {
                 $orderProduct = $order->products()->where('unique_id', $validated['order_product_unique_id'])->firstOrFail();
             }
 
+            $customer = $order->customer; 
+
             if ($request->hasFile('media')) {
                 foreach ($request->file('media') as $file) {
+
                     if ($typeEnum === OrderMediaType::LICENSE && $request->filled('side')) {
                         // Keep only one license image per side by replacing any existing one.
                         $order->media()
@@ -76,6 +79,49 @@ class UploadMediaController extends Controller
                         // Add 'side' if license
                         if ($typeEnum === OrderMediaType::LICENSE && $request->filled('side')) {
                             $mediaAttributes['side'] = $request->input('side');
+
+                            $side = $mediaAttributes['side'] ;
+
+
+                            // ============================
+                            //  CUSTOMER SEPARATE UPLOAD
+                            // ============================
+                            if ($customer) {
+
+                                //  Upload AGAIN for customer (NEW media)
+                                $customerMediaData = MediaHelper::uploadStorageFile(
+                                    'Public Asset',
+                                    $file,
+                                    'customers', // different path
+                                    $customer
+                                );
+
+                                if (!empty($customerMediaData['mediaObj'])) {
+
+                                    $customerMediaId = $customerMediaData['mediaObj']->id;
+
+                                    if ($side === 'front') {
+
+                                        if ($customer->licenseFront) {
+                                            MediaHelper::removeFile($customer->licenseFront);
+                                        }
+
+                                        $customer->license_front_media_id = $customerMediaId;
+
+                                    } elseif ($side === 'back') {
+
+                                        if ($customer->licenseBack) {
+                                            MediaHelper::removeFile($customer->licenseBack);
+                                        }
+
+                                        $customer->license_back_media_id = $customerMediaId;
+                                    }
+
+                                    $customer->save();
+
+                                }
+                            }
+
                         }
                         $order->media()->create($mediaAttributes);
                     }

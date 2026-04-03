@@ -44,7 +44,7 @@
         </div>
     </section>
     <!-- product details -->
-    <section class="pb-[60px] pt-[60px]">
+    <section class="pb-[10px] pt-[60px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
 
@@ -490,11 +490,11 @@
         <!-- Amazing Additions -->
         <section class="pb-[60px]">
             <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
-                <h2 class="md:text-[28px] font-bold text-left mb-10  text-purple">Amazing Additions</h2>
+                <h2 class="md:text-[28px] font-bold text-left mb-2  text-purple">Amazing Additions</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-y-0 gap-x-8 lg:gap-8">
 
                     @foreach ($productDetail->relatedProducts as $relatedProduct)
-                        <div class="py-[20px] lg:py-[30px] rounded-lg text-center">
+                        <div class="py-[20px] lg:py-[10px] rounded-lg text-center">
                             <div class="transition-all duration-300 ease-in-out hover:text-black">
                                 <div
                                     class="lg:h-80 w-full flex items-center justify-center relative rounded-lg overflow-hidden group transition-all duration-500">
@@ -515,8 +515,17 @@
                                         <div class="grid grid-cols-2 gap-2">
                                             <!-- Repeat this button block for each rental period -->
                                             @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
-                                                <a href="{{ route('front.products.details', ['slug' => $relatedProduct->slug, 'productVariant' => $type]) }}"
-                                                    class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
+
+                                              @php
+                                                $isActive = $productVariant === $type;
+                                             @endphp
+
+                                                <a 
+                                                href="{{ $isActive ? route('front.products.details', ['slug' => $relatedProduct->slug, 'productVariant' => $type]) : 'javascript:void(0)' }}"
+                                                {{-- href="{{ route('front.products.details', ['slug' => $relatedProduct->slug, 'productVariant' => $type]) }}" --}}
+                                                    class="relative border-0  font-medium flex flex-col items-center px-2 rounded-xl overflow-hidden min-h-[40]         {{ $isActive 
+            ? 'bg-yellow-400 text-black hover:bg-yellow-500' 
+            : 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none' }}">
                                                     {{-- @if ($relatedProduct->isRentalOnSale($type))
                                                         <span
                                                             class="absolute left-[-25px] top-2 w-[100px] h-6 bg-white text-yellow-400 font-bold text-xs flex items-center justify-center"
@@ -578,8 +587,12 @@
                                             </a>
                                         </div>
                                     @endif
-                                    <h6 class="text-[12px] mt-2 text-black text-center ">Select an Option to Learn More or
-                                        Reserve Today</h6>
+                                    <h6 class="text-[12px] mt-2 text-black text-center ">
+                                        {{-- Select an Option to Learn More or
+                                        Reserve Today --}}
+
+                                        *Must Match Primary Rental Duration
+                                    </h6>
                                 </div>
 
                             </div>

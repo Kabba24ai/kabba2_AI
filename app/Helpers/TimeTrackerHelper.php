@@ -68,6 +68,23 @@ class TimeTrackerHelper
         return $settings->settings[$key];
     }
 
-   
+   public static function formatHoursToTime($hours)
+{
+    $totalMinutes = round($hours * 60);
+
+    $hrs = floor($totalMinutes / 60);
+    $mins = $totalMinutes % 60;
+
+    return sprintf('%d:%02d', $hrs, $mins);
+}
+
+public static function formatSecondsToTime($seconds)
+{
+    $minutes = floor($seconds / 60);
+    $hrs = floor($minutes / 60);
+    $mins = $minutes % 60;
+
+    return sprintf('%d:%02d', $hrs, $mins);
+}
 
 }

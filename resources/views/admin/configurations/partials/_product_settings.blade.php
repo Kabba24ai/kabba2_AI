@@ -676,3 +676,162 @@
     @endforeach
 
 </div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div class="flex items-center space-x-2 mb-4">
+        <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
+        <h3 class="text-lg font-bold text-gray-900">Tire Insurance</h3>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+            <label for="tire_insurance_decline_label" class="block text-sm font-medium text-gray-700 mb-1">
+                Decline Button Label
+            </label>
+
+            <div class="relative">
+                {!! html()->text(
+                        'tire_insurance_decline_label',
+                        old(
+                            'tire_insurance_decline_label',
+                            $settings['Product Settings']['tire_insurance_decline_label']['setting_value'] ?? null,
+                        ),
+                    )->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('tire_insurance_decline_label'),
+                        'border-red-500' => $errors->has('tire_insurance_decline_label'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'Enter tire insurance decline label',
+                        'autocomplete' => 'off',
+                        'id' => 'tire_insurance_decline_label',
+                    ]) !!}
+            </div>
+
+            @error('tire_insurance_decline_label')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="tire_insurance_approve_label" class="block text-sm font-medium text-gray-700 mb-1">
+                Accept Button Label
+            </label>
+
+            <div class="relative">
+                {!! html()->text(
+                        'tire_insurance_approve_label',
+                        old(
+                            'tire_insurance_approve_label',
+                            $settings['Product Settings']['tire_insurance_approve_label']['setting_value'] ?? null,
+                        ),
+                    )->class([
+                        'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        'border-gray-300' => !$errors->has('tire_insurance_approve_label'),
+                        'border-red-500' => $errors->has('tire_insurance_approve_label'),
+                    ])->attributes([
+                        'maxlength' => 240,
+                        'data-parsley-maxlength' => 240,
+                        'placeholder' => 'Enter tire insurance accept label',
+                        'autocomplete' => 'off',
+                        'id' => 'tire_insurance_approve_label',
+                    ]) !!}
+            </div>
+
+            @error('tire_insurance_approve_label')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div class="sm:col-span-2">
+            <label for="tire_insurance_info" class="block text-sm font-medium text-gray-700 mb-1">
+                Tire Insurance Message
+            </label>
+
+            <div class="relative">
+                {!! html()->textarea('tire_insurance_info', $settings['Product Settings']['tire_insurance_info']['setting_value'] ?? null)->class([
+                        'tinymce w-full pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'border-gray-300' => !$errors->has('tire_insurance_info'),
+                        'border-red-500' => $errors->has('tire_insurance_info'),
+                    ])->attributes([
+                        'autocomplete' => 'off',
+                        'placeholder' => $settings['Product Settings']['tire_insurance_info']['placeholder'] ?? 'Enter message for tire insurance popup...',
+                        'id' => 'tire_insurance_info',
+                        'rows' => 3,
+                    ]) !!}
+            </div>
+
+            @error('tire_insurance_info')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div class="flex items-center space-x-2 mb-4">
+        <x-heroicon-o-currency-dollar class="w-5 h-5 text-blue-600" aria-hidden="true" />
+        <h3 class="text-lg font-bold text-gray-900">Tire Insurance Fees</h3>
+    </div>
+
+    @php
+        $sizes = [
+            'small' => 'Small',
+            'medium' => 'Medium',
+            'large' => 'Large',
+            'x_large' => 'X-Large',
+            '2x_large' => '2X Large',
+            'commercial' => 'Commercial',
+        ];
+
+        $periods = [
+            'daily' => 'Daily',
+            'weekend' => 'Weekend',
+            'weekly' => 'Weekly',
+            'monthly' => 'Monthly',
+        ];
+    @endphp
+
+    @foreach ($sizes as $sizeKey => $sizeLabel)
+        <div class="mb-6">
+            <h4 class="text-md font-semibold text-gray-800 border-b border-gray-200 my-2">{{ $sizeLabel }}</h4>
+
+            <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0">
+                @foreach ($periods as $periodKey => $periodLabel)
+                    @php
+                        $name = "{$sizeKey}_{$periodKey}_tire_insurance_fee";
+                        $id = $name;
+                        $hasError = $errors->has($name);
+                        $value = old($name, data_get($settings, "Product Settings.$name.setting_value"));
+                        $placeholder = data_get($settings, "Product Settings.$name.placeholder");
+                    @endphp
+
+                    <div>
+                        <label for="{{ $id }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ $periodLabel }}
+                        </label>
+
+                        <div class="relative">
+                            {!! html()->input('number', $name, $value)->class([
+                                    'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                                    'border-gray-300' => !$hasError,
+                                    'border-red-500' => $hasError,
+                                ])->attributes([
+                                    'data-parsley-type' => 'number',
+                                    'autocomplete' => 'off',
+                                    'placeholder' => $placeholder ?? '0',
+                                    'id' => $id,
+                                ]) !!}
+                        </div>
+
+                        @error($name)
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endforeach
+
+</div>

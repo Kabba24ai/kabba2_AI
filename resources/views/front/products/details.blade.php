@@ -471,6 +471,39 @@
                                     </label>
                                 @endif
                             @endif
+
+                            @if (
+                                $productDetail->rental_tire_insurance_daily !== null ||
+                                    $productDetail->rental_tire_insurance_weekend !== null ||
+                                    $productDetail->rental_tire_insurance_weekly !== null ||
+                                    $productDetail->rental_tire_insurance_monthly !== null)
+                                <!-- Tire Insurance -->
+                                @php
+                                    $tireInsurancePrice = match ($productVariant) {
+                                        'daily' => $productDetail->rental_tire_insurance_daily,
+                                        'weekend' => $productDetail->rental_tire_insurance_weekend,
+                                        'weekly' => $productDetail->rental_tire_insurance_weekly,
+                                        'monthly' => $productDetail->rental_tire_insurance_monthly,
+                                        default => '-',
+                                    };
+                                @endphp
+                                @if ($tireInsurancePrice !== '0.00' && $tireInsurancePrice !== null)
+                                    <label class="inline-flex items-center space-x-2 mt-1 w-fit">
+                                        <input type="checkbox" class="form-checkbox h-4 w-4" checked
+                                            id="tireInsuranceCheckbox" data-charged="1 Time Max"
+                                            data-name="{{ \App\Enums\Products\ProductCustomStaticLabel::rental_tire_insurance->name }}"
+                                            data-keep="{{ $productSettings['tire_insurance_approve_label'] ?? 'Yes, Add Tire Insurance' }}"
+                                            data-discard="{{ $productSettings['tire_insurance_decline_label'] ?? 'I\'ll Take The Risk' }}"
+                                            data-message="{{ $productSettings['tire_insurance_info'] ?? '' }}" />
+
+                                        <span>{{ \App\Enums\Products\ProductCustomStaticLabel::rental_tire_insurance->label() }}
+                                            <span class="font-medium">
+                                                + {{ App\Helpers\CustomHelper::formatCurrency($tireInsurancePrice) }}
+                                            </span>
+                                        </span>
+                                    </label>
+                                @endif
+                            @endif
                         </div>
                     @endif
 

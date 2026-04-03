@@ -9,12 +9,14 @@ enum ProductCustomStaticLabel : string
     // If you must change them, update all relevant order data first.
     case rental_damage_waiver = 'Damage Waiver Protection';
     case rental_track_insurance = 'Thrown Track Coverage';
+    case rental_tire_insurance = 'Tire Insurance';
 
     public function label(): string
     {
         return match($this) {
             self::rental_damage_waiver => 'Damage Waiver Protection',
             self::rental_track_insurance => 'Thrown Track Coverage',
+            self::rental_tire_insurance => 'Tire Insurance',
         };
     }
 

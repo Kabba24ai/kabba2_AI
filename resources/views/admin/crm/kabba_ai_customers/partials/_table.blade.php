@@ -3,6 +3,7 @@
         <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
             <tr>
                 <th class="py-4 px-6 text-left">Date</th>
+                <th class="py-4 px-6 text-left">Schedule DateTime</th>
                 <th class="py-4 px-6 text-left">Name</th>
                 <th class="py-4 px-6 text-left">Email</th>
                 <th class="py-4 px-6 text-left">Phone</th>
@@ -18,6 +19,19 @@
             @forelse ($submissions as $submission)
                 <tr id="submission-row-{{ $submission->unique_id }}" class="hover:bg-gray-50">
                     <td class="py-4 px-6">{{ optional($submission->created_at)->format(config('app.date.date_format') . ' h:i A') ?: '-' }}</td>
+                    <td class="py-4 px-6">
+                        @if($submission->schedule_datetime)
+                            @php
+                                $scheduleDate = \Carbon\Carbon::parse($submission->schedule_datetime);
+                                $isUpcoming = $scheduleDate->isFuture();
+                            @endphp
+                            <span class="px-3 py-2 rounded-lg font-medium {{ $isUpcoming ? 'bg-yellow-100 text-yellow-800 font-semibold' : 'text-gray-600' }}">
+                                {{ $scheduleDate->format(config('app.date.date_format') . ' h:i A') }}
+                            </span>
+                        @else
+                            <span class="text-gray-400 italic">-</span>
+                        @endif
+                    </td>
                     <td class="py-4 px-6">{{ trim(($submission->first_name ?? '') . ' ' . ($submission->last_name ?? '')) ?: '-' }}</td>
                     <td class="py-4 px-6">{{ $submission->email ?: '-' }}</td>
                     <td class="py-4 px-6">{{ \App\Helpers\CustomHelper::formatPhone($submission->phone_number) ?: '-' }}</td>

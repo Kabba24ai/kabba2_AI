@@ -51,6 +51,11 @@ class Product extends Model
         'rental_track_insurance_weekly', // Weekly track insurance fee
         'rental_track_insurance_monthly', // Monthly track insurance fee
 
+        'rental_tire_insurance_daily', // Daily tire insurance fee
+        'rental_tire_insurance_weekend', // Weekend tire insurance fee
+        'rental_tire_insurance_weekly', // Weekly tire insurance fee
+        'rental_tire_insurance_monthly', // Monthly tire insurance fee
+
         'rental_prepaid_cleaning', // Prepaid cleaning fee
         'rental_prepaid_fuel', // Prepaid fuel fee
 
@@ -77,6 +82,7 @@ class Product extends Model
 
         'truck_fee_size_setting', // Size setting for truck fee
         'track_insurance_size_setting', // Size setting for track insurance
+        'tire_insurance_size_setting', // Size setting for tire insurance
         'prepaid_cleaning_rate_setting', // Rate setting for prepaid cleaning
         'prepaid_fuel_rate_setting', // Rate setting for prepaid fuel
 
@@ -343,7 +349,7 @@ class Product extends Model
 
     public function hasOptions()
     {
-        $optionFields = ['rental_prepaid_fuel', 'rental_prepaid_cleaning', 'rental_damage_waiver_daily', 'rental_damage_waiver_weekend', 'rental_damage_waiver_weekly', 'rental_damage_waiver_monthly', 'rental_track_insurance_daily', 'rental_track_insurance_weekend', 'rental_track_insurance_weekly', 'rental_track_insurance_monthly'];
+        $optionFields = ['rental_prepaid_fuel', 'rental_prepaid_cleaning', 'rental_damage_waiver_daily', 'rental_damage_waiver_weekend', 'rental_damage_waiver_weekly', 'rental_damage_waiver_monthly', 'rental_track_insurance_daily', 'rental_track_insurance_weekend', 'rental_track_insurance_weekly', 'rental_track_insurance_monthly', 'rental_tire_insurance_daily', 'rental_tire_insurance_weekend', 'rental_tire_insurance_weekly', 'rental_tire_insurance_monthly'];
 
         $hasSettingOption = collect($optionFields)->contains(function ($field) {
             return $this->{$field} !== null;

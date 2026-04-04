@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\IndexControll
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\CreateController;
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\StoreController;
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\EditController;
+use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\AssignChecklistController;
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\UpdateController;
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\DeleteController;
 use App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster\FetchController;
@@ -32,6 +33,9 @@ Route::prefix('checklist-master')
     Route::post('/store', StoreController::class)->name('store');
 
     Route::get('/edit/{unique_id}', EditController::class)->name('edit');
+
+    Route::get('/assign-checklist/{unique_id}', AssignChecklistController::class)->name('assign-checklist');
+
     Route::put('/update/{unique_id}', UpdateController::class)->name('update');
 
     Route::post('/{id}/copy', CopyController::class)->name('copy');

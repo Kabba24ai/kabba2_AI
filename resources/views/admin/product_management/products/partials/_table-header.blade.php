@@ -24,7 +24,7 @@
         <th class="px-6 py-4 text-center font-semibold text-gray-600 dark:text-gray-300 uppercase w-24">
             Status
         </th>
-        <th class="px-6 py-4 text-right font-semibold text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap min-w-[120px]">
+        <th class="px-6 py-4 text-right font-semibold text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap w-30">
             Actions
         </th>
     </tr>

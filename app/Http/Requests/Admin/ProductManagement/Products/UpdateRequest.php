@@ -70,6 +70,12 @@ class UpdateRequest extends ApiBaseFormRequest
             'rental_track_insurance_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_track_insurance_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
+            // Tire insurance
+            'rental_tire_insurance_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_tire_insurance_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_tire_insurance_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_tire_insurance_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+
             // Prepaid options
             'rental_prepaid_cleaning' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_prepaid_fuel' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
@@ -115,6 +121,7 @@ class UpdateRequest extends ApiBaseFormRequest
 
             'truck_fee_size_setting' => ['nullable', 'string', 'max:255'],
             'track_insurance_size_setting' => ['nullable', 'string', 'max:255'],
+            'tire_insurance_size_setting' => ['nullable', 'string', 'max:255'],
             'prepaid_cleaning_rate_setting' => ['nullable', 'string', 'max:255'],
             'prepaid_fuel_rate_setting' => ['nullable', 'string', 'max:255'],
 

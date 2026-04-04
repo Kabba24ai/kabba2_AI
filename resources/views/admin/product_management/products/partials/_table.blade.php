@@ -57,7 +57,7 @@
                             {{ $product->status }}
                         </span>
                     </td>
-                    <td class="text-right px-4 py-4 whitespace-nowrap">
+                    <td class="text-right px-4 py-4">
                         <div class="inline-flex items-center justify-end gap-2 whitespace-nowrap">
                             {{-- Copy Button --}}
                             <form action="{{ route('admin.product-management.products.copy', $product->unique_id) }}" method="POST" class="inline-flex">

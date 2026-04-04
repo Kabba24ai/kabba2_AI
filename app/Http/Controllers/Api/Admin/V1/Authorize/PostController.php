@@ -134,7 +134,17 @@ class PostController extends BaseController
             ];
 
             foreach ($phoneNumbers as $to) {
-                $twilio->sendSms($to, 'Hello, A New Customer has just signed up for a Kabba account', [], [
+                $adminMessage = sprintf(
+                    "New Customer Signup: %s %s | Email: %s | Phone: %s | Business: %s | Ref: %s",
+                    $validated['first_name'],
+                    $validated['last_name'],
+                    $validated['email'],
+                    $validated['phone_number'] ?? 'N/A',
+                    $validated['business_name'] ?? 'N/A',
+                    $submission->unique_id
+                );
+
+                $twilio->sendSms($to, $adminMessage, [], [
                     'sms_type' => SmsType::NEW_CUSTOMER_SIGNUP_NOTIFICATION,
                 ]);
             }

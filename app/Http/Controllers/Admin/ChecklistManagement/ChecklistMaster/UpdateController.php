@@ -11,6 +11,8 @@ use App\Http\Requests\Admin\ChecklistManagement\ChecklistMaster\UpdateRequest;
 
 use App\Http\Requests\Admin\ChecklistManagement\ChecklistMaster\StoreRequest;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
+use App\Models\MaintenanceManagement\Equipment;
+
 
 class UpdateController extends Controller
 {
@@ -34,6 +36,21 @@ class UpdateController extends Controller
 
             ]);
 
+            //  Assign new equipment (if selected)
+        if (!empty($validated['assign_equipment']) ){
+
+                //  Remove old assignments
+                Equipment::where('checklist_master_id', $ChecklistMaster->id)
+                ->update(['checklist_master_id' => null]);
+
+
+                $equipmentIds = explode(',', $validated['equipment_ids']);
+
+                Equipment::whereIn('id', $equipmentIds)
+                    ->update([
+                        'checklist_master_id' => $ChecklistMaster->id
+                    ]);
+            }
 
             DB::commit();
 

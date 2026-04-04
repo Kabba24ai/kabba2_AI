@@ -93,11 +93,12 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Damage Waiver</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Daily -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_daily')->attributes([
@@ -141,10 +142,8 @@
                 <div id="rental-damage-waiver-daily-errors"></div>
             </div>
 
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Weekend -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_weekend')->attributes([
@@ -160,10 +159,8 @@
                 <div id="rental-damage-waiver-weekend-errors"></div>
             </div>
 
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Weekly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_weekly')->attributes([
@@ -179,10 +176,8 @@
                 <div id="rental-damage-waiver-weekly-errors"></div>
             </div>
 
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Monthly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_monthly')->attributes([
@@ -202,11 +197,11 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Track Insurance</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_daily')->attributes([
@@ -223,9 +218,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_weekend')->attributes([
@@ -242,9 +234,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_weekly')->attributes([
@@ -261,9 +250,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_monthly')->attributes([
@@ -350,11 +336,152 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tire Insurance</label>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_tire_insurance_daily', $product->rental_tire_insurance_daily ?? null)->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-tire-insurance-daily-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="rental-tire-insurance-daily-errors"></div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_tire_insurance_weekend', $product->rental_tire_insurance_weekend ?? null)->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-tire-insurance-weekend-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="rental-tire-insurance-weekend-errors"></div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_tire_insurance_weekly', $product->rental_tire_insurance_weekly ?? null)->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-tire-insurance-weekly-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="rental-tire-insurance-weekly-errors"></div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_tire_insurance_monthly', $product->rental_tire_insurance_monthly ?? null)->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-tire-insurance-monthly-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="rental-tire-insurance-monthly-errors"></div>
+            </div>
+        </div>
+
+        {{-- Tire Insurance Sizes --}}
+        <div class="mt-3">
+            <div class="flex items-center flex-wrap gap-6">
+                <label for="tire_insurance_small"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'Small',
+                            'Small',
+                        )->id('tire_insurance_small')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    Small
+                </label>
+
+                <label for="tire_insurance_medium"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'Medium',
+                            'Medium',
+                        )->id('tire_insurance_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    Medium
+                </label>
+
+                <label for="tire_insurance_large"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'Large',
+                            'Large',
+                        )->id('tire_insurance_large')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    Large
+                </label>
+
+                <label for="tire_insurance_xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'X-Large',
+                            'X-Large',
+                        )->id('tire_insurance_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    X-Large
+                </label>
+
+                <label for="tire_insurance_2xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == '2X-Large',
+                            '2X-Large',
+                        )->id('tire_insurance_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    2X-Large
+                </label>
+
+                <label for="tire_insurance_commercial"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'Commercial',
+                            'Commercial',
+                        )->id('tire_insurance_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    Commercial
+                </label>
+            </div>
+
+            <div id="tire-insurance-sizes-errors"></div>
+        </div>
+
+        <!-- Spacer -->
+        <div class="h-3 md:h-4"></div>
+
         <!-- Sale Prices -->
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sale Price</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 ">
             <!-- Daily -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_daily')->attributes([
@@ -375,7 +502,6 @@
 
             <!-- Weekend Spcl. -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_weekend')->attributes([
@@ -396,7 +522,6 @@
 
             <!-- Weekly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_weekly')->attributes([
@@ -417,7 +542,6 @@
 
             <!-- Monthly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_monthly')->attributes([
@@ -934,6 +1058,46 @@
             }
         };
 
+        // Auto-fill tire insurance based on selected size
+        const sizeTireInsuranceFeeMap = {
+            Small: {
+                daily: "{{ $productSettings['small_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['small_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['small_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['small_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            Medium: {
+                daily: "{{ $productSettings['medium_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['medium_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['medium_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['medium_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            Large: {
+                daily: "{{ $productSettings['large_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['large_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['large_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['large_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            "X-Large": {
+                daily: "{{ $productSettings['x_large_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['x_large_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['x_large_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['x_large_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            "2X-Large": {
+                daily: "{{ $productSettings['2x_large_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['2x_large_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['2x_large_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['2x_large_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            Commercial: {
+                daily: "{{ $productSettings['commercial_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['commercial_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['commercial_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['commercial_monthly_tire_insurance_fee'] ?? '' }}"
+            }
+        };
+
         // console.log(sizeFeeMap,sizeTrackInsuranceFeeMap);
         document.addEventListener("DOMContentLoaded", function() {
             // const hourTracking = document.querySelector('input[name="hour_tracking"]');
@@ -1183,6 +1347,51 @@
             }
 
             enforceTrackInsuranceSingleSizeSelection();
+
+            const rentalTireInsuranceInputs = [
+                document.querySelector('input[name="rental_tire_insurance_daily"]'),
+                document.querySelector('input[name="rental_tire_insurance_weekend"]'),
+                document.querySelector('input[name="rental_tire_insurance_weekly"]'),
+                document.querySelector('input[name="rental_tire_insurance_monthly"]')
+            ];
+            // Make tire insurance size checkboxes behave like single-select (no radios)
+            const sizeTireInsuranceCheckboxes = Array.from(document.querySelectorAll(
+                'input[name="tire_insurance_size_setting"]'));
+
+            sizeTireInsuranceCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function(e) {
+                    // Auto-fill tire insurance fees if a size is selected
+                    if (cb.checked) {
+                        const fees = sizeTireInsuranceFeeMap[cb.value];
+                        if (fees) {
+                            if (rentalTireInsuranceInputs[0]) rentalTireInsuranceInputs[0].value = fees.daily;
+                            if (rentalTireInsuranceInputs[1]) rentalTireInsuranceInputs[1].value = fees.weekend;
+                            if (rentalTireInsuranceInputs[2]) rentalTireInsuranceInputs[2].value = fees.weekly;
+                            if (rentalTireInsuranceInputs[3]) rentalTireInsuranceInputs[3].value = fees.monthly;
+                        }
+                    } else {
+                        // If unchecked, clear tire insurance fees
+                        rentalTireInsuranceInputs.forEach(input => { if (input) input.value = ''; });
+                    }
+                    enforceTireInsuranceSingleSizeSelection(e.target);
+                });
+            });
+
+            function enforceTireInsuranceSingleSizeSelection(changed) {
+                if (!sizeTireInsuranceCheckboxes.length) return;
+                if (changed && changed.checked) {
+                    sizeTireInsuranceCheckboxes.forEach(cb => {
+                        if (cb !== changed) cb.checked = false;
+                    });
+                } else {
+                    const checked = sizeTireInsuranceCheckboxes.filter(cb => cb.checked);
+                    if (checked.length > 1) {
+                        checked.slice(1).forEach(cb => (cb.checked = false));
+                    }
+                }
+            }
+
+            enforceTireInsuranceSingleSizeSelection();
 
             const prepaidCleaningRates = document.getElementById('prepaid_cleaning_rate_setting');
             const prepaidFuelRates = document.getElementById('prepaid_fuel_rate_setting');

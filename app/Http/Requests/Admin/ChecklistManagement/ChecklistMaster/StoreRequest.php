@@ -24,6 +24,7 @@ class StoreRequest extends FormRequest
             'equipment_category_id' => ['required'],
             'rental_ready_template_id' => ['required'],
             'customer_admin_template_id' => ['required'],
+            'equipment_ids' => ['nullable', 'string'],
         ];
     }       
 

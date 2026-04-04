@@ -11,7 +11,7 @@ use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistTemplate;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 
 
-class EditController extends Controller
+class AssignChecklistController extends Controller
 {
 
     public function __invoke(Request $request, $unique_id)
@@ -40,6 +40,7 @@ class EditController extends Controller
          $equipments = Equipment::orderBy('equipment_name', 'asc')->get();
 
 
-        return view('admin.checklist_management.checklist_master.edit', compact('equipmentCategories', 'checklisttemplate', 'checklistmaster', 'customeradmintemplate','equipments'));
+
+        return view('admin.checklist_management.checklist_master.edit', compact('equipmentCategories', 'checklisttemplate', 'checklistmaster', 'customeradmintemplate','equipments'))->with('ActiveAssign', true);
     }
 }

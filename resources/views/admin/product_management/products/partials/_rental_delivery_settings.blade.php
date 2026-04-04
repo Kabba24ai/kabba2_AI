@@ -93,11 +93,12 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Damage Waiver</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Daily -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_daily')->attributes([
@@ -141,10 +142,8 @@
                 <div id="rental-damage-waiver-daily-errors"></div>
             </div>
 
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Weekend -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_weekend')->attributes([
@@ -160,10 +159,8 @@
                 <div id="rental-damage-waiver-weekend-errors"></div>
             </div>
 
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Weekly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_weekly')->attributes([
@@ -179,10 +176,8 @@
                 <div id="rental-damage-waiver-weekly-errors"></div>
             </div>
 
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Monthly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_monthly')->attributes([
@@ -202,11 +197,11 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Track Insurance</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_daily')->attributes([
@@ -223,9 +218,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_weekend')->attributes([
@@ -242,9 +234,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_weekly')->attributes([
@@ -261,9 +250,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_monthly')->attributes([
@@ -350,11 +336,11 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tire Insurance</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Tire Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_tire_insurance_daily', $product->rental_tire_insurance_daily ?? null)->attributes([
@@ -371,9 +357,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Tire Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_tire_insurance_weekend', $product->rental_tire_insurance_weekend ?? null)->attributes([
@@ -390,9 +373,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Tire Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_tire_insurance_weekly', $product->rental_tire_insurance_weekly ?? null)->attributes([
@@ -409,9 +389,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Tire Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_tire_insurance_monthly', $product->rental_tire_insurance_monthly ?? null)->attributes([
@@ -499,10 +476,12 @@
         <div class="h-3 md:h-4"></div>
 
         <!-- Sale Prices -->
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sale Price</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 ">
             <!-- Daily -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_daily')->attributes([
@@ -523,7 +502,6 @@
 
             <!-- Weekend Spcl. -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_weekend')->attributes([
@@ -544,7 +522,6 @@
 
             <!-- Weekly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_weekly')->attributes([
@@ -565,7 +542,6 @@
 
             <!-- Monthly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_monthly')->attributes([

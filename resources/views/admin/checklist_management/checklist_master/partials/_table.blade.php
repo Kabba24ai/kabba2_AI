@@ -68,6 +68,23 @@
                                     </button>
                                 </form> -->
 
+                                <a href="{{ route('admin.checklist-management.checklist-master.assign-checklist', $Master->unique_id) }}"
+   class="flex items-center gap-2 px-2 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all"
+   title="Assign Checklist to Equipment">
+
+                                    {{-- <x-heroicon-o-link class="w-4 h-4" /> --}}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list w-4 h-4">
+                    <rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect>
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <path d="M12 11h4"></path>
+                    <path d="M12 16h4"></path>
+                    <path d="M8 11h.01"></path>
+                    <path d="M8 16h.01"></path>
+                </svg>
+                                    
+                                    <span class="hidden md:inline text-xs font-medium">Assign Checklist</span>
+                                </a>
+
 
 
                                 <a href="{{ route('admin.checklist-management.checklist-master.edit', $Master->unique_id) }}"

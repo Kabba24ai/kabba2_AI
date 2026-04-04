@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\MaintenanceManagement\Equipment;
 // Request
 use App\Http\Requests\Admin\ChecklistManagement\ChecklistMaster\StoreRequest;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
@@ -17,13 +17,7 @@ class StoreController extends Controller
     public function __invoke(StoreRequest $request)
     {
 
-
-    // dd($request->all());
-
         $validated = $request->validated();
-
-
-        // dd($validated['customer_admin_template_id']);
 
 
         DB::beginTransaction();
@@ -36,6 +30,20 @@ class StoreController extends Controller
                 'rental_ready_template_id' => $validated['rental_ready_template_id'] ?? null,
                 'customer_admin_template_id' => $validated['customer_admin_template_id'],
             ]);
+
+
+
+            if (!empty($validated['equipment_ids'])) {
+
+                // Convert CSV to array
+                $equipmentIds = explode(',', $validated['equipment_ids']);
+
+                // Assign checklist_master_id to equipment
+                Equipment::whereIn('id', $equipmentIds)
+                    ->update([
+                        'checklist_master_id' => $checklistMaster->id
+                    ]);
+            }
 
             DB::commit();
 

@@ -41,6 +41,7 @@ class Submission extends Model
     ];
 
     protected $casts = [
+        'schedule_datetime' => 'datetime',
         'meta' => 'array',
     ];
 

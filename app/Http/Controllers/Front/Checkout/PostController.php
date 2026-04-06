@@ -206,6 +206,7 @@ class PostController extends Controller
                 'cart_data' => $cart,
                 'is_tax_exempt' => $cartSummary['tax_exempt'] ? 'Yes' : 'No',
                 'platform' => 'Web',
+                'auto_inject' => $validated['auto_inject'] ?? false,
             ]);
 
             if (!empty($validated['orderNotes'])) {
@@ -300,31 +301,35 @@ class PostController extends Controller
                 $order->products()->insert($orderProductRows);
             }
 
-            $licenseMediaRows = [];
+            if($validated['auto_inject'] ?? false){
+                $licenseMediaRows = [];
 
-            if (!empty($customer->license_front_media_id)) {
-                $licenseMediaRows[] = [
-                    'type' => OrderMediaType::LICENSE->value,
-                    'side' => 'front',
-                    'media_id' => $customer->license_front_media_id,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
+                if (!empty($customer->license_front_media_id)) {
+                    $licenseMediaRows[] = [
+                        'type' => OrderMediaType::LICENSE->value,
+                        'side' => 'front',
+                        'media_id' => $customer->license_front_media_id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                if (!empty($customer->license_back_media_id)) {
+                    $licenseMediaRows[] = [
+                        'type' => OrderMediaType::LICENSE->value,
+                        'side' => 'back',
+                        'media_id' => $customer->license_back_media_id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                if (!empty($licenseMediaRows)) {
+                    $order->media()->createMany($licenseMediaRows);
+                }
+
             }
 
-            if (!empty($customer->license_back_media_id)) {
-                $licenseMediaRows[] = [
-                    'type' => OrderMediaType::LICENSE->value,
-                    'side' => 'back',
-                    'media_id' => $customer->license_back_media_id,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-            }
-
-            if (!empty($licenseMediaRows)) {
-                $order->media()->createMany($licenseMediaRows);
-            }
 
             // Eager load products and their terms for terms generation
             $order->load(['products.product.terms']);

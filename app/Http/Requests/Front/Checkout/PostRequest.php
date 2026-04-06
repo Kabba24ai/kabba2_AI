@@ -57,6 +57,7 @@ class PostRequest extends ApiBaseFormRequest
         // Order notes (optional)
         $rules['orderNotes'] = ['nullable', 'string', 'max:500'];
         $rules['po_id'] = ['nullable', 'string', 'max:255'];
+        $rules['auto_inject'] = ['nullable', 'boolean'];
 
         // Tax exempt (if checked, require admin code)
         $rules['taxExempt'] = ['nullable'];

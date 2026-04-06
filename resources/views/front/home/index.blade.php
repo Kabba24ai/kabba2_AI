@@ -41,7 +41,8 @@ When time is money… we put the money in your pocket!">
         <div class="flex flex-col items-center ">
            <img
                 src="{{ $homeImage ? $homeImage : asset('storage/front/images/banner.jpg') }}"
-                class="w-[100%] lg:w-full banner object-cover object-top ml-auto"
+                {{-- class="w-[100%] lg:w-full banner object-cover object-top ml-auto" --}}
+                class="w-[100%] lg:w-full banner ml-auto"
                 alt="Equipment Banner">
         </div>
     </div>
@@ -59,7 +60,7 @@ When time is money… we put the money in your pocket!">
 
                      @php 
 
-                     $top_phone =   $branding['top_phone'] ?? config('app.contact_number') ;
+                     $top_phone =   $branding['top_phone'] ?? '(xxx) xxx-xxxx' ;
 
                      @endphp
                     <a href="{{ $top_phone }}" class="text-yellow-600 hover:underline ml-1">

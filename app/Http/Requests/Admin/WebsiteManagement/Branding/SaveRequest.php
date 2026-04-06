@@ -48,7 +48,7 @@ class SaveRequest extends FormRequest
             ],
 
         
-            'home_page_image' => 'nullable|image',
+            'home_page_image' => 'nullable|image|dimensions:width=1900,height=430',
 
             'top_text' => [
                 'nullable',
@@ -76,4 +76,12 @@ class SaveRequest extends FormRequest
 
         ];
     }
+
+    public function messages(): array
+{
+    return [
+        'home_page_image.dimensions' => 'The home page image must be exactly 1900 × 430 pixels.',
+        'home_page_image.image' => 'Please upload a valid image file.',
+    ];
+}
 }

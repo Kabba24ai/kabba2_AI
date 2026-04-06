@@ -769,7 +769,10 @@
                         </div>
                         <!-- Preview -->
                         <div id="front_previewWrapper" class="hidden relative">
-                            <img id="preview_front" class="w-full h-32 object-cover rounded-md" />
+                            {{-- <img id="preview_front" class="w-full h-32 object-cover rounded-md" /> --}}
+                            <img id="preview_front"
+     src="{{ $customer->licenseFront ? $customer->licenseFront->getUrl() : '' }}"
+     class="w-full h-32 object-cover rounded-md" />
                             <!-- REMOVE BUTTON -->
                             <button type="button"
                                 onclick="removeImage('license_front','preview_front','front_uploadUI','front_previewWrapper')"
@@ -846,7 +849,10 @@
                             </label>
                         </div>
                         <div id="back_previewWrapper" class="hidden relative">
-                            <img id="preview_back" class="w-full h-32 object-cover rounded-md" />
+                            {{-- <img id="preview_back" class="w-full h-32 object-cover rounded-md" /> --}}
+                            <img id="preview_back"
+     src="{{ $customer->licenseBack ? $customer->licenseBack->getUrl() : '' }}"
+     class="w-full h-32 object-cover rounded-md" />
                             <button type="button"
                                 onclick="removeImage('license_back','preview_back','back_uploadUI','back_previewWrapper')"
                                 class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
@@ -857,8 +863,13 @@
                 </div>
             </div>
             <!-- EXPIRY -->
-            <div class="flex flex-col">
-               <label class="text-xs text-gray-500 font-medium mb-1">Expiry Date</label>
+            <div class="flex flex-col md:col-span-2">
+               <label class="text-xs text-gray-500 font-medium mb-1">
+                    Expiration Date 
+                    <span class="text-red-500 text-xs">
+                        * Expiration Date  Required to activate License Auto Injection
+                    </span>
+                </label>
 
                 <!-- STATIC VIEW -->
                 <div class="static-view">
@@ -872,10 +883,20 @@
                 <!-- EDIT VIEW -->
                 <div class="edit-view hidden">
 
-                    <input type="text" name="license_expiry_date"
-                        class="w-full border rounded-md px-3 py-3 text-sm datepicker"
+                    {{-- <input type="text" name="license_expiry_date"
+                        class="w-50 border rounded-md px-3 py-3 text-sm datepicker"
                         value="{{ \App\Helpers\CustomHelper::formatDate($customer->license_expiry_date ?? null) }}"
-                        placeholder="MM-DD-YYYY" />
+                        placeholder="MM-DD-YYYY" /> --}}
+
+
+                        <input type="text" 
+    name="license_expiry_date"
+    class="w-50 border rounded-md px-3 py-3 text-sm datepicker"
+    value="{{ \App\Helpers\CustomHelper::formatDate($customer->license_expiry_date ?? null) }}"
+    placeholder="MM-DD-YYYY"
+    data-min-date="{{ now()->format('Y-m-d') }}" />
+
+    
                 </div>
 
             </div>
@@ -2075,5 +2096,29 @@ function deleteLicense(type) {
 
     });
 }
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    function initPreview(previewId, uploadUIId, previewWrapperId) {
+        const preview = document.getElementById(previewId);
+        const uploadUI = document.getElementById(uploadUIId);
+        const previewWrapper = document.getElementById(previewWrapperId);
+
+        if (preview && preview.src && preview.src !== window.location.href) {
+            uploadUI.classList.add('hidden');
+            previewWrapper.classList.remove('hidden');
+        }
+    }
+
+    // FRONT
+    initPreview('preview_front', 'front_uploadUI', 'front_previewWrapper');
+
+    // BACK
+    initPreview('preview_back', 'back_uploadUI', 'back_previewWrapper');
+
+});
 </script>
 @endpush

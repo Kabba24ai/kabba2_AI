@@ -5,34 +5,56 @@ namespace App\Http\Controllers\Admin\Hrm\Opportunities;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class LoginTokenController extends Controller
 {
       public function __invoke(Request $request)
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        // short-lived SSO token with ability
-        $token = $user->createToken(
-            'opportunities_sso',
-            ['sso']
-        )->plainTextToken;
+             if (!$user) {
+                Log::warning('SSO Login attempt without authenticated user', [
+                    'ip' => $request->ip(),
+                    'url' => $request->fullUrl(),
+                ]);
 
-        $host = $request->getHost();
-
-        // $redirectUrl = match ($host) {
-        //     'admin.kabba.local'   => 'http://localhost:5173/',
-        //     'admin.kabba.ai'      => 'https://opportunities.kabba.ai/',
-        //     'admin.rentnking.com' => 'https://opportunities.rentnking.com/',
-        //     default               => 'https://opportunities.kabba.ai/',
-        // };
+                abort(401, 'Unauthorized');
+            }
 
 
-       $redirectUrl =   config('app.domains.opportunities') ;
-    //    dd($redirectUrl);
+            // short-lived SSO token with ability
+            $token = $user->createToken(
+                'opportunities_sso',
+                ['sso']
+            )->plainTextToken;
 
-        return redirect()->away(
-            $redirectUrl . '/admin/SsoLogin?token=' . urlencode($token)
-        );
+             
+
+            // $host = $request->getHost();
+
+            $redirectUrl =   config('app.domains.opportunities') ;
+
+            Log::info('SSO token generated successfully', [
+                'user_id' => $user->id,
+                'email' => $user->email ?? null,
+                'redirect_url' => $redirectUrl,
+                'ip' => $request->ip(),
+            ]);
+
+    
+            return redirect()->away(
+                $redirectUrl . '/admin/SsoLogin?token=' . urlencode($token)
+            );
+        } catch (\Exception $e) {
+            Log::error('SSO LoginTokenController error', [
+                'message' => $e->getMessage(),
+                'user_id' => optional(Auth::user())->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            abort(500, 'Something went wrong');
+        }
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models\Orders;
 
 use App\Enums\Orders\OrderMediaType;

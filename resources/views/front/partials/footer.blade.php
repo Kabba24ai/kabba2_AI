@@ -86,7 +86,7 @@
         <div class="text-left mt-4">
             © {{ date('Y') }}
             <a href="javascript:void(0)" rel="noopener noreferrer">
-                {{ $branding['footer_middle_text'] ?? 'Rent `n King' }}
+                {{ $branding['all_rights_reserved'] ?? $branding['site_name'] }}
             </a>. All rights reserved.
         </div>
 

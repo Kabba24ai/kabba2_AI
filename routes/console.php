@@ -72,5 +72,12 @@ Schedule::job(new \App\Jobs\SalesFunnelBeforeEventJob())
     ->onOneServer()
     ->name('sales-funnel-before-event-job');
 
+Schedule::job(new \App\Jobs\SendMeetingReminderJob())
+    ->everyThirtyMinutes()
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('send-meeting-reminder-job');
+
 
 

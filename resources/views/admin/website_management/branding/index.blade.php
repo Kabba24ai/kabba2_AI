@@ -5,7 +5,7 @@
 @section('content')
 
 @include('flash::message')
-@include('admin.partials.formErrors')
+{{-- @include('admin.partials.formErrors') --}}
 
 <form method="POST" action="{{route('admin.website-management.branding.update')}}" enctype="multipart/form-data" data-parsley-validate>
 @csrf
@@ -121,9 +121,10 @@
                Footer - Powered By
                </label>
                {!! html()->text('powered_by', old('powered_by', $settings['powered_by'] ?? ''))
-               ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
+               ->class('w-full border border-gray-300 -md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
                ->attributes([
-               'placeholder' => 'Example: Kabba.ai'
+               'placeholder' => 'Example: Kabba.ai',
+               'readonly' => true
                ]) !!}
             </div>
          </div>
@@ -138,7 +139,7 @@
             <div class="md:col-span-2">
                <label class="block text-sm font-medium text-gray-700 mb-1">
                Upload Home Page Image
-               <span class="text-red-600 text-xs">(Recommended Size: 500px × 1200px)</span>
+               <span class="text-red-600 text-xs">(Recommended Size: 1900px × 430px)</span>
                </label>
                <div class="flex items-center space-x-4">
                   @if(!empty($homeImage))
@@ -158,6 +159,10 @@
                   ]) !!}
                   
                </div>
+                {{--  Error Message --}}
+    @error('home_page_image')
+        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
             </div>
             {{-- Top Text --}}
             <div >

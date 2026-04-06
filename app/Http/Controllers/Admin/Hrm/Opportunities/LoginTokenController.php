@@ -15,10 +15,11 @@ class LoginTokenController extends Controller
             $user = Auth::user();
 
              if (!$user) {
-                Log::warning('SSO Login attempt without authenticated user', [
-                    'ip' => $request->ip(),
-                    'url' => $request->fullUrl(),
-                ]);
+
+                // Log::warning('SSO Login attempt without authenticated user', [
+                //     'ip' => $request->ip(),
+                //     'url' => $request->fullUrl(),
+                // ]);
 
                 abort(401, 'Unauthorized');
             }
@@ -30,29 +31,27 @@ class LoginTokenController extends Controller
                 ['sso']
             )->plainTextToken;
 
-             
-
             // $host = $request->getHost();
 
             $redirectUrl =   config('app.domains.opportunities') ;
 
-            Log::info('SSO token generated successfully', [
-                'user_id' => $user->id,
-                'email' => $user->email ?? null,
-                'redirect_url' => $redirectUrl,
-                'ip' => $request->ip(),
-            ]);
+            // Log::info('SSO token generated successfully', [
+            //     'user_id' => $user->id,
+            //     'email' => $user->email ?? null,
+            //     'redirect_url' => $redirectUrl,
+            //     'ip' => $request->ip(),
+            // ]);
 
     
             return redirect()->away(
                 $redirectUrl . '/admin/SsoLogin?token=' . urlencode($token)
             );
         } catch (\Exception $e) {
-            Log::error('SSO LoginTokenController error', [
-                'message' => $e->getMessage(),
-                'user_id' => optional(Auth::user())->id,
-                'trace' => $e->getTraceAsString(),
-            ]);
+            // Log::error('SSO LoginTokenController error', [
+            //     'message' => $e->getMessage(),
+            //     'user_id' => optional(Auth::user())->id,
+            //     'trace' => $e->getTraceAsString(),
+            // ]);
 
             abort(500, 'Something went wrong');
         }

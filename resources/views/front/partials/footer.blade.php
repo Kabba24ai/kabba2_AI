@@ -1,3 +1,13 @@
+   
+    @php
+             use App\Models\Configurations\Setting;
+   $branding = Setting::where('setting_type', 'Website Management Branding')
+            ->pluck('setting_value', 'setting_name')
+            ->toArray(); 
+   
+            @endphp
+
+
 <footer class=" bg-neutral-800 text-white py-8 border-t no-print">
     <div class="container md:px-0">
         <div class="mx-auto px-4 lg:px-8 lg:flex lg:items-start flex flex-wrap gap-8 justify-between">

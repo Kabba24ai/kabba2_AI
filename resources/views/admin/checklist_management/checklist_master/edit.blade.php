@@ -639,10 +639,27 @@
 
         <!-- Select All + Count -->
         <div class="flex items-center justify-between mb-4">
-            
-            <p class="text-sm text-gray-500">
-                Selected: <span id="selectedEquipmentCount">0</span>
+    
+            <div class="flex gap-3">
+            <!-- Left: Count -->
+                        <p class="text-sm text-gray-500">
+                            Selected: <span id="selectedEquipmentCount">0</span>
+                        </p>
+
+                        <div class="flex items-center gap-3">
+
+                            <label class="flex items-center gap-2 text-sm text-gray-600">
+                                <input type="checkbox" id="filterSelectedOnly">
+                                View Selected Only
+                            </label>
+
+                        </div>
+            </div>
+            <!-- Right: Note -->
+            <p class="text-xs text-gray-400 text-right max-w-md">
+               * Greyed-out products already have a checklist assigned.
             </p>
+
         </div>
 
         <!-- Equipment List -->
@@ -1130,6 +1147,39 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
+    const selectedOnlyCheckbox = document.getElementById('filterSelectedOnly');
+    const equipmentItems = document.querySelectorAll('#step5 .equipment-item');
+
+    selectedOnlyCheckbox.addEventListener('change', function () {
+
+        let selectedOnly = this.checked;
+
+        equipmentItems.forEach(function(item) {
+
+            let checkbox = item.querySelector('input[name="equipment_ids[]"]');
+
+            if (selectedOnly) {
+                // show only checked
+                if (checkbox.checked) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            } else {
+                // reset (show all again)
+                item.style.display = 'flex';
+            }
+
+        });
+
+    });
+
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
     const checkboxes = document.querySelectorAll('#step5 input[name="equipment_ids[]"]');
     const countSpan = document.getElementById('selectedEquipmentCount');
 
@@ -1141,7 +1191,7 @@ document.addEventListener('DOMContentLoaded', function () {
     checkboxes.forEach(cb => {
         cb.addEventListener('change', updateCount);
     });
-
+updateCount();
 });
 </script>
 

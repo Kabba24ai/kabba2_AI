@@ -64,6 +64,11 @@ class Product extends Model
         'sale_price_weekly', // Sale price for a week
         'sale_price_monthly', // Sale price for a month
 
+        'related_product_price_daily', // Related product add-on price for daily rental
+        'related_product_price_weekend', // Related product add-on price for weekend rental
+        'related_product_price_weekly', // Related product add-on price for weekly rental
+        'related_product_price_monthly', // Related product add-on price for monthly rental
+
         'standard_delivery_fee',
         'extended_delivery_fee',
 

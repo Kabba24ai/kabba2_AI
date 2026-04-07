@@ -563,7 +563,91 @@
 
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
-        @include('admin.product_management.products.partials._terms_checklist')
+
+        <!-- Related Products Price -->
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Related Products Price</label>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 ">
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('related_product_price_daily')->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#related-product-price-daily-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="related-product-price-daily-errors"></div>
+                @error('related_product_price_daily')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('related_product_price_weekend')->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#related-product-price-weekend-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="related-product-price-weekend-errors"></div>
+                @error('related_product_price_weekend')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('related_product_price_weekly')->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#related-product-price-weekly-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="related-product-price-weekly-errors"></div>
+                @error('related_product_price_weekly')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('related_product_price_monthly')->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#related-product-price-monthly-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="related-product-price-monthly-errors"></div>
+                @error('related_product_price_monthly')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Spacer -->
+        <div class="h-3 md:h-4"></div>
     </div>
 
     <!-- Additional Prices -->
@@ -971,6 +1055,9 @@
                 </label>
             </div>
         </div>
+
+        <div class="h-3 md:h-4"></div>
+        @include('admin.product_management.products.partials._terms_checklist')
 
         <div class="mt-auto flex justify-end pt-25">
             <a href="{{ route('admin.configurations.index') }}" target="_blank"

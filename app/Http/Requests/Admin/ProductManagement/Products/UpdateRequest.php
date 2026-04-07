@@ -86,6 +86,12 @@ class UpdateRequest extends ApiBaseFormRequest
             'sale_price_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'sale_price_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
+            // Related product prices
+            'related_product_price_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'related_product_price_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'related_product_price_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'related_product_price_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+
             // Delivery
             'standard_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'extended_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],

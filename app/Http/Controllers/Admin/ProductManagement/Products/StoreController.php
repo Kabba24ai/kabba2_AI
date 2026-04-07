@@ -81,6 +81,10 @@ class StoreController extends Controller
                     'sale_price_weekend' => null,
                     'sale_price_weekly' => null,
                     'sale_price_monthly' => null,
+                    'related_product_price_daily' => null,
+                    'related_product_price_weekend' => null,
+                    'related_product_price_weekly' => null,
+                    'related_product_price_monthly' => null,
 
                     // is_default_funnel field
                     'is_default_funnel' => false, // Rentals cannot be default funnel
@@ -121,6 +125,11 @@ class StoreController extends Controller
                     'sale_price_weekend' => $validated['sale_price_weekend'] ?? null,
                     'sale_price_weekly' => $validated['sale_price_weekly'] ?? null,
                     'sale_price_monthly' => $validated['sale_price_monthly'] ?? null,
+
+                    'related_product_price_daily' => $validated['related_product_price_daily'] ?? null,
+                    'related_product_price_weekend' => $validated['related_product_price_weekend'] ?? null,
+                    'related_product_price_weekly' => $validated['related_product_price_weekly'] ?? null,
+                    'related_product_price_monthly' => $validated['related_product_price_monthly'] ?? null,
 
                     // Clear Retail fields
                     'retail_price' => null,

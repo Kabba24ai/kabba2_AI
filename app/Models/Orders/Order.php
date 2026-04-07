@@ -38,6 +38,7 @@ class Order extends Model
         'coupon_code',
         'discount_amount',
         'grand_total',
+        'auto_inject',
         'order_note',
         'cart_data', // JSON data of cart items
         'platform', // Web*, Android, iOS
@@ -55,6 +56,7 @@ class Order extends Model
 
     protected $casts = [
         'cart_data' => 'array',
+        'auto_inject' => 'boolean',
         'terms_collection' => 'array',
         'terms_status' => OrderTermsStatus::class,
     ];

@@ -89,7 +89,7 @@ class SaveController extends Controller
                         'setting_type' => 'Website Management Branding',
                     ],
                     [
-                        'setting_value' => $value,
+                        'setting_value' => $value, 
                     ]
                 );
             }

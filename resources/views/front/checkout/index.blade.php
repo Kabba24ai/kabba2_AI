@@ -71,6 +71,9 @@
                             $lastName = auth('customer')->user()->last_name ?? null;
                             $email = auth('customer')->user()->email ?? null;
                             $phone = auth('customer')->user()->phone ?? null;
+                            $customerLicenseFrontUrl = auth('customer')->user()->licenseFront?->url;
+                            $customerLicenseBackUrl = auth('customer')->user()->licenseBack?->url;
+                            $hasCustomerLicenseOnFile = !empty($customerLicenseFrontUrl) || !empty($customerLicenseBackUrl);
                         @endphp
                         <div>
                             {{-- <label for="selAddress" class="block text-sm font-medium text-gray-800 mt-3">
@@ -109,6 +112,33 @@
                                     {{ $primaryAddress && $primaryAddress->is_primary ? 'Default' : '' }}
                                 </span>
                             </div>
+
+                            @if ($hasCustomerLicenseOnFile)
+                                <div class="mt-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="aspect-[4/3] rounded-2xl border-2 border-gray-400 overflow-hidden bg-gray-50">
+                                            @if (!empty($customerLicenseFrontUrl))
+                                                <img src="{{ $customerLicenseFrontUrl }}" alt="License front"
+                                                    class="h-full w-full object-cover" />
+                                            @endif
+                                        </div>
+                                        <div class="aspect-[4/3] rounded-2xl border-2 border-gray-400 overflow-hidden bg-gray-50">
+                                            @if (!empty($customerLicenseBackUrl))
+                                                <img src="{{ $customerLicenseBackUrl }}" alt="License back"
+                                                    class="h-full w-full object-cover" />
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3 flex items-center gap-2">
+                                        <input type="hidden" name="auto_inject" value="0">
+                                        <input id="auto_inject" name="auto_inject" type="checkbox" value="1"
+                                            class="accent-blue-500 h-4 w-4"
+                                            {{ old('auto_inject', '1') == '1' ? 'checked' : '' }}>
+                                        <label for="auto_inject" class="text-sm text-grey-600">Use License On File</label>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     @else
                         @php

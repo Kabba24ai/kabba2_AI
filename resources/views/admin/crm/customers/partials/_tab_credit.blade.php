@@ -1196,6 +1196,7 @@
                             'Cleaning Charge' => 'Cleaning Charge',
                             'Damages' => 'Damages',
                             'Fuel Charge' => 'Fuel Charge',
+                            'Labor' => 'Labor' ,
                             'Missing Items' => 'Missing Items',
                             'Miscellaneous' => 'Miscellaneous',
                             'New Rental' => 'New Rental',

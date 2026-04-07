@@ -4,9 +4,12 @@ namespace App\Models\Authrise;
 
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Submission extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'authorise_submissions';
 
     protected $fillable = [

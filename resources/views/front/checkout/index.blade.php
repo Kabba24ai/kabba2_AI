@@ -3,6 +3,17 @@
 @section('title', $title)
 
 @push('css')
+    <style>
+        .license-file-preview {
+            transition: opacity 280ms ease, filter 280ms ease, transform 280ms ease;
+        }
+
+        .license-file-preview.is-inactive {
+            opacity: 0.45;
+            filter: grayscale(100%);
+            transform: scale(0.99);
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -114,18 +125,24 @@
                             </div>
 
                             @if ($hasCustomerLicenseOnFile)
-                                <div class="mt-4">
+                                <div id="licenseOnFileSection" class="mt-4 license-file-preview">
                                     <div class="grid grid-cols-2 gap-4">
-                                        <div class="aspect-[4/3] rounded-2xl border-2 border-gray-400 overflow-hidden bg-gray-50">
+                                        <div
+                                            class="aspect-[16/10] rounded-md border-2 border-gray-400 overflow-hidden bg-white flex items-center justify-center">
                                             @if (!empty($customerLicenseFrontUrl))
                                                 <img src="{{ $customerLicenseFrontUrl }}" alt="License front"
-                                                    class="h-full w-full object-cover" />
+                                                    class="h-full w-full object-cover object-center" />
+                                            @else
+                                                <span class="text-xs text-gray-500">Front image not available</span>
                                             @endif
                                         </div>
-                                        <div class="aspect-[4/3] rounded-2xl border-2 border-gray-400 overflow-hidden bg-gray-50">
+                                        <div
+                                            class="aspect-[16/10] rounded-md border-2 border-gray-400 overflow-hidden bg-white flex items-center justify-center">
                                             @if (!empty($customerLicenseBackUrl))
                                                 <img src="{{ $customerLicenseBackUrl }}" alt="License back"
-                                                    class="h-full w-full object-cover" />
+                                                    class="h-full w-full object-cover object-center" />
+                                            @else
+                                                <span class="text-xs text-gray-500">Back image not available</span>
                                             @endif
                                         </div>
                                     </div>
@@ -866,6 +883,18 @@
             const checkoutBtn = document.getElementById('checkoutBtn');
             const checkoutBtnText = document.getElementById('checkoutBtnText');
             const checkoutBtnLoader = document.getElementById('checkoutBtnLoader');
+            const autoInjectCheckbox = document.getElementById('auto_inject');
+            const licenseOnFileSection = document.getElementById('licenseOnFileSection');
+
+            function syncLicenseOnFilePreviewState() {
+                if (!autoInjectCheckbox || !licenseOnFileSection) return;
+                licenseOnFileSection.classList.toggle('is-inactive', !autoInjectCheckbox.checked);
+            }
+
+            if (autoInjectCheckbox && licenseOnFileSection) {
+                autoInjectCheckbox.addEventListener('change', syncLicenseOnFilePreviewState);
+                syncLicenseOnFilePreviewState();
+            }
 
             function disableCheckoutButton() {
                 if (!checkoutBtn) return;

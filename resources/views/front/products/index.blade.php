@@ -204,6 +204,7 @@
             formattedStandardFee: "{{ App\Helpers\CustomHelper::formatCurrency($productDetail->standard_delivery_fee ?? 0) }}",
             formattedExtendedFeeX2: "{{ App\Helpers\CustomHelper::formatCurrency(($productDetail->extended_delivery_fee ?? 0) * 2) }}",
             formattedExtendedFee: "{{ App\Helpers\CustomHelper::formatCurrency($productDetail->extended_delivery_fee ?? 0) }}",
+            formattedZeroFee: "{{ App\Helpers\CustomHelper::formatCurrency(0) }}",
             distanceUnit: "{{ $productSettings['distance_unit'] ?? '' }}",
             standardDeliveryRange: "{{ $productSettings['standard_delivery_range'] ?? '' }}",
             extendedDeliveryRange: "{{ $productSettings['extended_delivery_range'] ?? '' }}",

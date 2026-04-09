@@ -66,13 +66,32 @@ class CartHelper
 
         $cartProductIds = $cartProducts->pluck('id')->values()->all();
 
-        $childProductIdsWithParentInCart = ProductRelatedProductChild::query()
+        $relatedProductPairs = ProductRelatedProductChild::query()
             ->whereIn('related_product_id', $cartProductIds)
             ->whereIn('product_id', $cartProductIds)
-            ->distinct()
+            ->get(['product_id', 'related_product_id']);
+
+        $childProductIdsWithParentInCart = $relatedProductPairs
             ->pluck('related_product_id')
             ->flip()
             ->all();
+
+        $parentProductIdByChildId = $relatedProductPairs
+            ->mapWithKeys(function ($pair) {
+                return [$pair->related_product_id => $pair->product_id];
+            })
+            ->all();
+
+        $cartInputByProductId = [];
+        foreach ($cartData as $validated) {
+            $inputProduct = $cartProducts->get($validated['product_unique_id'] ?? null);
+            if (!$inputProduct) {
+                continue;
+            }
+            if (!isset($cartInputByProductId[$inputProduct->id])) {
+                $cartInputByProductId[$inputProduct->id] = $validated;
+            }
+        }
 
         $items = [];
         $subTotal = 0;
@@ -88,6 +107,19 @@ class CartHelper
             }
 
             $hasParentInCart = isset($childProductIdsWithParentInCart[$product->id]);
+
+            if ($hasParentInCart) {
+                $parentProductId = $parentProductIdByChildId[$product->id] ?? null;
+                $parentCartInput = $parentProductId ? ($cartInputByProductId[$parentProductId] ?? null) : null;
+                if ($parentCartInput) {
+                    foreach (['quantity', 'service_method', 'distance_type', 'service_option', 'delivery_store_id', 'delivery_date'] as $field) {
+                        if (array_key_exists($field, $parentCartInput)) {
+                            $validated[$field] = $parentCartInput[$field];
+                        }
+                    }
+                }
+            }
+
             $item = self::buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings, $hasParentInCart);
             $items[] = $item;
             $subTotal += $item['sub_total'];
@@ -163,7 +195,7 @@ class CartHelper
         [$selectedRentalItemsWithPrices, $rentalItemsTotal] = self::resolveRentalItems($product, $validated, $variant, $quantity);
 
         // --- Calculate delivery/service option price ---
-        $serviceOptionPrice = self::resolveServiceOptionPrice($product, $validated);
+        $serviceOptionPrice = self::resolveServiceOptionPrice($product, $validated, $hasParentInCart);
 
         // --- Calculate options/add-ons from product_option_items ---
         [$resolvedOptions, $optionsTotal] = self::resolveProductOptions($product, $validated, $variant, $quantity);
@@ -298,8 +330,12 @@ class CartHelper
         return [$selectedRentalItemsWithPrices, $rentalItemsTotal];
     }
 
-    private static function resolveServiceOptionPrice($product, $validated)
+    private static function resolveServiceOptionPrice($product, $validated, $hasParentInCart = false)
     {
+        if ($hasParentInCart) {
+            return 0;
+        }
+
         $serviceOptionPrice = 0;
         if (($validated['service_method'] ?? null) === 'Delivery' && !empty($validated['distance_type']) && !empty($validated['service_option'])) {
             $distanceType = $validated['distance_type'];

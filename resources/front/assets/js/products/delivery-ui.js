@@ -3,7 +3,8 @@ export function updateDeliveryPrices(type, context) {
         formattedStandardFeeX2,
         formattedStandardFee,
         formattedExtendedFeeX2,
-        formattedExtendedFee
+        formattedExtendedFee,
+        formattedZeroFee
     } = context;
 
     const dropdown = document.getElementById('deliveryOptionsDropdown');
@@ -67,6 +68,17 @@ export function updateDeliveryPrices(type, context) {
     // ------- ---------------------------------------------------------------
 
     const select = document.getElementById('deliveryOptionSelect');
+    const isParentLockedRelatedProduct = Boolean(context?.parentRentalLock?.enabled);
+    const zeroFee = formattedZeroFee || '$0.00';
+
+    if (isParentLockedRelatedProduct) {
+        dropdown.classList.remove('hidden');
+        customBox.classList.add('hidden');
+        updateOptionText(select, 'Delivery + Pickup', zeroFee);
+        updateOptionText(select, 'Delivery Only', zeroFee);
+        updateOptionText(select, 'Return Only', zeroFee);
+        return;
+    }
 
     if (type === 'Standard' || type === 'Extended') {
         dropdown.classList.remove('hidden');

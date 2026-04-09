@@ -33,6 +33,89 @@ const syncStoreVisibility = (deliveryOptionValue) => {
     }
 };
 
+const disableElement = (element) => {
+    if (!element) {
+        return;
+    }
+
+    element.disabled = true;
+    element.classList.add('opacity-60', 'cursor-not-allowed');
+};
+
+const applyParentRentalLock = () => {
+    const lock = context.parentRentalLock;
+    if (!lock || !lock.enabled || context.productType !== 'Rental') {
+        return;
+    }
+
+    const qtyInput = document.getElementById('qty');
+    if (qtyInput && lock.quantity != null) {
+        qtyInput.value = lock.quantity;
+    }
+    disableElement(qtyInput);
+
+    disableElement(document.getElementById('qtyDecreaseBtn'));
+    disableElement(document.getElementById('qtyIncreaseBtn'));
+
+    const dateInput = document.getElementById('scheduleStartDateInput');
+    const dateText = document.getElementById('selectedDateText');
+    if (dateInput && lock.delivery_date) {
+        dateInput.value = lock.delivery_date;
+        if (dateInput._airPicker && typeof dateInput._airPicker.selectDate === 'function') {
+            dateInput._airPicker.selectDate(new Date(lock.delivery_date));
+        }
+    }
+    if (dateText && lock.delivery_date) {
+        dateText.textContent = lock.delivery_date;
+    }
+    disableElement(dateInput);
+
+    const openDatePicker = document.getElementById('openDatePicker');
+    if (openDatePicker) {
+        openDatePicker.classList.add('pointer-events-none', 'opacity-60');
+        openDatePicker.setAttribute('aria-disabled', 'true');
+        openDatePicker.setAttribute('tabindex', '-1');
+    }
+
+    if (lock.service_method) {
+        document.querySelectorAll('input[name="service_method"]').forEach((radio) => {
+            radio.checked = radio.value === lock.service_method;
+            disableElement(radio);
+            if (radio.checked) {
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    }
+
+    if (lock.distance_type) {
+        document.querySelectorAll('input[name="distance_type"]').forEach((radio) => {
+            radio.checked = radio.value === lock.distance_type;
+            disableElement(radio);
+            if (radio.checked) {
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    }
+
+    const deliverySelect = document.getElementById('deliveryOptionSelect');
+    if (deliverySelect) {
+        if (lock.service_option) {
+            deliverySelect.value = lock.service_option;
+            deliverySelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        disableElement(deliverySelect);
+    }
+
+    const storeSelect = document.getElementById('storeSelect');
+    if (storeSelect) {
+        if (lock.delivery_store_id != null && lock.delivery_store_id !== '') {
+            storeSelect.value = String(lock.delivery_store_id);
+            storeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        disableElement(storeSelect);
+    }
+};
+
 const bindGlobalListeners = () => {
     if (hasBoundGlobalListeners) {
         return;
@@ -90,6 +173,8 @@ const initDynamicDetailsUI = () => {
     if (window.CartStorage && typeof window.CartStorage.updateProductFormFromCart === 'function') {
         window.CartStorage.updateProductFormFromCart();
     }
+
+    applyParentRentalLock();
 };
 
 document.addEventListener('DOMContentLoaded', function() {

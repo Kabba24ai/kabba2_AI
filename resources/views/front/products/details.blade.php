@@ -65,7 +65,11 @@
                             @if ($productDetail->product_type == 'Rental')
                                 <span>
                                     <span class="font-bold text-xl lg:text-xl">
-                                        {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productVariant)) }}
+                                        @if ($parentProductDetails->isEmpty())
+                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRentalPrice($productVariant)) }}
+                                        @else
+                                            {{ App\Helpers\CustomHelper::formatCurrency($productDetail->getRelatedPrice($productVariant)) }}
+                                        @endif
                                     </span>
                                     {{-- @if ($productDetail->isRentalOnSale($productVariant))
                                         <span class="line-through text-gray-500 text-base ml-1 font-normal italic">
@@ -122,6 +126,7 @@
                             <!-- Qty controls -->
                             <div class="flex items-center space-x-2 pr-5">
                                 <button type="button"
+                                    id="qtyDecreaseBtn"
                                     class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
                                     onclick="changeQty(-1)">−</button>
                                 <input type="text" id="qty" name="qty" value="1"
@@ -129,6 +134,7 @@
                                     oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);"
                                     min="1" />
                                 <button type="button"
+                                    id="qtyIncreaseBtn"
                                     class="border-0 bg-yellow-400 rounded-full w-[30px] h-[30px] text-xl font-bold hover:bg-yellow-300 transition-all duration-500 ease-in-out"
                                     onclick="changeQty(1)">+</button>
                                 <span class="text-sm md:text-base text-gray-700">Qty</span>

@@ -237,6 +237,7 @@
                         })
                     .then(response => {
                         if (response.html) {
+                            window.productPageContext.parentRentalLock = response.parent_rental_lock || null;
                             document.getElementById('productDetails').innerHTML = response.html;
                             document.dispatchEvent(new CustomEvent('product:details-loaded'));
                         } else {

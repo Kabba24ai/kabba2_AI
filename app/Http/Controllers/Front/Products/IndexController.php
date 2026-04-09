@@ -55,12 +55,27 @@ class IndexController extends Controller
             // those products are treated as its parent products.
             $parentProductIds = ProductRelatedProductChild::query()->where('related_product_id', $productDetail->id)->pluck('product_id')->unique()->values();
 
-            $cartData = $request->kabba_cart ?? [];
+            $cartData = $request->input('kabba_cart', []);
 
-            // 2. Build summary using CartHelper
-            $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cartData]);
+            if (is_string($cartData)) {
+                $decodedCartData = json_decode($cartData, true);
+                $cartData = is_array($decodedCartData) ? $decodedCartData : [];
+            }
 
-            $cartItems = $cartSummary['cart_items'] ?? [];
+            if (isset($cartData['cart_items']) && is_array($cartData['cart_items'])) {
+                $cartData = $cartData['cart_items'];
+            }
+
+            if (!is_array($cartData)) {
+                $cartData = [];
+            }
+
+            $cartItems = [];
+            if (!empty($cartData)) {
+                // Build summary only when there are cart items.
+                $cartSummary = CartHelper::buildCartSummary(['cart_items' => $cartData]);
+                $cartItems = $cartSummary['cart_items'] ?? [];
+            }
 
             // Filter matching cart items
             $matchedParentProducts = collect($cartItems)

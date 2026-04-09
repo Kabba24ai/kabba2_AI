@@ -12,8 +12,17 @@ const syncStoreVisibility = (deliveryOptionValue) => {
     const storeDiv = document.getElementById('storeDiv');
     const storeSelect = document.getElementById('storeSelect');
     const storeError = document.getElementById('storeError');
+    const selectedServiceMethod = document.querySelector('input[name="service_method"]:checked')?.value || '';
 
     if (!storeDiv) {
+        return;
+    }
+
+    // Delivery option should only control store visibility when Delivery is selected.
+    if (selectedServiceMethod !== 'Delivery') {
+        if (selectedServiceMethod === 'In Store Pickup') {
+            storeDiv.classList.remove('hidden');
+        }
         return;
     }
 

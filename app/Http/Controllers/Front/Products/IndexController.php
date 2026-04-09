@@ -9,18 +9,26 @@ use App\Helpers\ConfigurationHelper;
 
 // Models
 use App\Models\ProductManagement\Product;
+use App\Models\ProductManagement\ProductRelatedProductChild;
 use App\Models\Stores\Store;
-use App\Models\Configurations\Setting;
-use App\Models\ProductManagement\ProductCategory;
+use Illuminate\Http\Request;
 
 class IndexController extends Controller
 {
     /**
      * Handle the incoming request.
      */
-    public function __invoke($slug, $productVariant)
+    public function __invoke($slug, $productVariant, Request $request)
     {
         $productDetail = Product::published()->with('categories', 'options.items', 'relatedProducts', 'mediaChildren.media')->where('slug', $slug)->firstOrFail();
+
+        // If current product is used as a related item in any other product,
+        // those products are treated as its parent products.
+        $parentProductIds = ProductRelatedProductChild::query()
+            ->where('related_product_id', $productDetail->id)
+            ->pluck('product_id')
+            ->unique()
+            ->values();
 
         $stores = Store::active()->with('state')->get();
 
@@ -50,7 +58,20 @@ class IndexController extends Controller
 
         $productSettings = ConfigurationHelper::getSettings('Product Settings');
 
-        return view('front.products.details', [
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'html' => view('front.products.details', [
+                    'productVariant' => $productVariant,
+                    'productDetail' => $productDetail,
+                    'stores' => $stores,
+                    'productSettings' => $productSettings,
+                ])->render(),
+            ]);
+        }
+
+        return view('front.products.index', [
             'title' => $productDetail->product_name,
             'category' => $category,
             'productVariant' => $productVariant,

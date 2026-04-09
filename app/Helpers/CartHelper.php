@@ -6,6 +6,7 @@ namespace App\Helpers;
 use App\Enums\Products\ProductCustomStaticLabel;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductOptionItem;
+use App\Models\ProductManagement\ProductRelatedProductChild;
 use App\Models\Stores\Store;
 
 class CartHelper
@@ -51,6 +52,28 @@ class CartHelper
             $cartData = [$cartData];
         }
 
+        $cartUniqueIds = collect($cartData)
+            ->pluck('product_unique_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $cartProducts = Product::published()
+            ->whereIn('unique_id', $cartUniqueIds)
+            ->get()
+            ->keyBy('unique_id');
+
+        $cartProductIds = $cartProducts->pluck('id')->values()->all();
+
+        $childProductIdsWithParentInCart = ProductRelatedProductChild::query()
+            ->whereIn('related_product_id', $cartProductIds)
+            ->whereIn('product_id', $cartProductIds)
+            ->distinct()
+            ->pluck('related_product_id')
+            ->flip()
+            ->all();
+
         $items = [];
         $subTotal = 0;
         $taxTotal = 0;
@@ -59,12 +82,13 @@ class CartHelper
         $grandTotal = 0;
 
         foreach ($cartData as $validated) {
-            $product = Product::published()->where('unique_id', $validated['product_unique_id'])->first();
+            $product = $cartProducts->get($validated['product_unique_id'] ?? null);
             if (!$product) {
                 continue;
             }
 
-            $item = self::buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings);
+            $hasParentInCart = isset($childProductIdsWithParentInCart[$product->id]);
+            $item = self::buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings, $hasParentInCart);
             $items[] = $item;
             $subTotal += $item['sub_total'];
             $taxTotal += $taxExempt ? 0 : $item['tax'];
@@ -94,7 +118,7 @@ class CartHelper
         ];
     }
 
-    private static function buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings)
+    private static function buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings, $hasParentInCart = false)
     {
         $quantity = $validated['quantity'];
         $variant = $validated['product_variant'] ?? null;
@@ -124,6 +148,13 @@ class CartHelper
 
         // --- Get product base price ---
         $price = $product->product_type === 'Rental' ? $product->getRentalPrice($variant, $isSale) : $product->getRetailPrice($isSale);
+
+        if ($hasParentInCart && $product->product_type === 'Rental' && !empty($variant)) {
+            $relatedPrice = $product->getRelatedPrice(strtolower($variant));
+            if ($relatedPrice !== false && $relatedPrice !== null) {
+                $price = floatval($relatedPrice);
+            }
+        }
 
         // daily, weekend, weekly, monthly
         $allocatedHours = $product->product_type === 'Rental' ? floatval($allocatedHoursSettings[$variant.'_hours'] ?? 0) : 0.00;

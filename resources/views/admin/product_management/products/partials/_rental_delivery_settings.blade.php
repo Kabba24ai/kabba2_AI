@@ -566,7 +566,17 @@
 
         <!-- Related Products Price -->
         <div class="flex items-center justify-between mb-3">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Related Products Price</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <span>Related Products Price</span>
+                <span class="relative group" aria-label="Related Products Price info">
+                    <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                        <x-heroicon-o-information-circle class="w-5 h-5" />
+                    </span>
+                    <span class="tooltip-panel max-w-sm">
+                        This is an alternate pricing rule. It is triggered only when the product is added to the cart via a Related Products component. Products added through standard product displays will use the default product price.
+                    </span>
+                </span>
+            </label>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 ">
             <div>

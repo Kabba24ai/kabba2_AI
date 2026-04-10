@@ -396,9 +396,7 @@
                 };
             });
 
-            // console.log('equipment :- ', equipment);
-
-            // console.log(equipment);
+           
             let groups = []; // use 'let' so you can reassign
 
             function renderChecklist(groups) {}
@@ -464,6 +462,17 @@
             @if($selectedEquipmentId)
                 const selectedEquipmentId = @json($selectedEquipmentId);
                 renderEquipment(selectedEquipmentId);
+
+
+                const selectedEquipmentName = @json($selectedEquipmentName);
+              
+                 if (selectedEquipmentName) {
+                    const input = document.getElementById("searchInput");
+                    input.value = selectedEquipmentName;
+
+                    input.dispatchEvent(new Event('input')); 
+                }
+
             @else
                 renderEquipment();
             @endif
@@ -824,6 +833,7 @@
                 <textarea id="generalNotes" name="general_notes" class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="4" placeholder="Add any additional notes or observations..."></textarea>
             `;
                             checklistContent.appendChild(generalNotes);
+                            
 
                             // === Apply saved data if available ===
                             if (data.existing_data && data.existing_data.questions) {
@@ -869,9 +879,23 @@
                             }
 
                             if (data.existing_data && data.existing_data.existingTemplate && data.existing_data
-                                .existingTemplate.employee_id) {
-                                document.getElementById("inspectorSelect").value = data.existing_data
-                                    .existingTemplate.employee_id;
+                                .existingTemplate.employee_name) {
+                                // document.getElementById("inspectorSelect").innerText = data.existing_data
+                                //     .existingTemplate.employee_name;
+
+                                //     console.log('document.getElementById("inspectorSelect").innerText:- ',document.getElementById("inspectorSelect").innerText);
+                                //     console.log('data.existing_data.existingTemplate.employee_name ',data.existing_data.existingTemplate.employee_name);
+
+
+                                const select = document.getElementById("inspectorSelect");
+                                const targetName = data.existing_data.existingTemplate.employee_name;
+
+                                [...select.options].forEach(option => {
+                                    if (option.text.trim() === targetName.trim()) {
+                                        select.value = option.value;
+                                    }
+                                });
+
                             }
 
                             if (data.existing_data && data.existing_data.existingTemplate && data.existing_data
@@ -879,6 +903,46 @@
                                 document.getElementById("equipmentHours").value = data.existing_data
                                     .existingTemplate.equipment_hours;
                             }
+
+
+
+
+                            //  Handle Misc default selection
+                                const miscItem = groups
+                                    .flatMap(g => g.items)
+                                    .find(it => it.title === "Miscellaneous");
+
+                                if (miscItem) {
+                                    const miscId = miscItem.question_id || miscItem.id;
+
+                                    // check if already selected (existing data)
+                                    const alreadySelected = document.querySelector(
+                                        `input[name="answer-${miscId}"]:checked`
+                                    );
+
+                                    //  ONLY if no existing selection
+                                    if (!alreadySelected) {
+
+                                        // select "Rental Ready" (Operable)
+                                        const defaultRadio = document.querySelector(
+                                            `input[name="answer-${miscId}"][value="Rental Ready"]`
+                                        );
+
+                                        if (defaultRadio) {
+                                            defaultRadio.checked = true;
+
+                                            // apply UI
+                                            colorItemCard(miscId, "Rental Ready");
+                                            setHeaderIcon(miscId, "Rental Ready");
+
+                                            // sync group data
+                                            miscItem.answer_id = parseInt(defaultRadio.dataset.optId, 10);
+                                            miscItem.status = "Rental Ready";
+                                        }
+                                    }
+                                }
+
+
 
                             checklistContent.querySelectorAll('input[type="radio"]').forEach(r => {
                                 r.addEventListener("change", onChoice);
@@ -926,6 +990,52 @@
                         itemObj.status = status;
                     }
                 }
+
+                // 
+                // check if THIS is Miscellaneous question
+                const miscItem = groups
+                    .flatMap(g => g.items)
+                    .find(it => it.title === "Miscellaneous");
+
+                if (miscItem && itemId === (miscItem.question_id || miscItem.id)) {
+
+                    if (status === "Damaged") {
+
+                        // loop all questions except misc
+                        groups.forEach(g => {
+                            g.items.forEach(item => {
+
+                                const id = item.question_id || item.id;
+
+                                // skip misc itself
+                                if (id === itemId) return;
+
+                                const labels = document.querySelectorAll(`input[name="answer-${id}"]`);
+
+                                    let radio = null;
+
+                                    labels.forEach(r => {
+                                        const labelText = r.closest('label').innerText.toLowerCase();
+
+                                        if (labelText.includes("inspection required")) {
+                                            radio = r;
+                                        }
+                                    });
+
+                                if (radio) {
+                                    radio.checked = true;
+
+                                    colorItemCard(id, "Maint. Hold");
+                                    setHeaderIcon(id, "Maint. Hold");
+
+                                    item.answer_id = parseInt(radio.dataset.optId, 10);
+                                    item.status = "Maint. Hold";
+                                }
+                            });
+                        });
+
+                    }
+                } //  END BLOCK
 
                 updateGroupCount(groupKey);
                 updateProgress();

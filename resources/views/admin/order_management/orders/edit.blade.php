@@ -1040,6 +1040,7 @@
                                                     {!! $order->licenseMedia->map(fn($m) => [
                                                         'url'  => optional($m->media)->url,
                                                         'type' => $m->type, // "image" or "video"
+                                                        'side' => $m->side
                                                     ])->toJson() !!}
                                                 </script>
                                             @else
@@ -4299,37 +4300,64 @@
             let html = '';
             mediaData.forEach(m => {
                 if (!m.url) return;
+                 let parts = [];
 
+                // add type if exists
+                if (type) parts.push(type);
+
+                // add side if exists
+                if (m.side) parts.push(m.side);
+
+
+                // remove duplicates + clean + format
+                let title = [...new Set(parts)]
+                    .join(' ')
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, c => c.toUpperCase()) || 'Media';
+
+                    
                 // Video
                 if (m.url.match(/\.(mp4|mov|webm)$/)) {
                     html += `
-                <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
-                    <video class="w-full h-48 object-cover" muted>
-                        <source src="${m.url}" type="video/mp4">
-                    </video>
-                    <a href="${m.url}" target="_blank"
-                        class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
-                        <!-- Play Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2 6.5l6 3.5-6 3.5v-7z"/>
-                        </svg>
-                    </a>
-                </div>
-            `;
-                }
+                        <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
+                            <video class="w-full h-48 object-cover" muted>
+                                <source src="${m.url}" type="video/mp4">
+                            </video>
+                            <a href="${m.url}" target="_blank"
+                                class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
+                                <!-- Play Icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2 6.5l6 3.5-6 3.5v-7z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    `;
+                    }
 
                 // Image
                 else if (m.url.match(/\.(jpeg|jpg|png|gif|webp)$/)) {
                     html += `
-                <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
-                    <img src="${m.url}" class="w-full h-48 object-cover" />
-                    <a href="${m.url}" target="_blank"
-                        class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
-                        <!-- Zoom Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/>
-                        </svg>
-                    </a>
+              <div class="group bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden border border-gray-200">
+
+                    <!-- Image -->
+                    <div class="relative">
+                        <img src="${m.url}" class="w-full h-48 object-cover" />
+
+                        <!-- Overlay -->
+                        <a href="${m.url}" target="_blank"
+                            class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/>
+                            </svg>
+                        </a>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="px-3 py-2">
+                        <p class="text-sm font-medium text-gray-800 truncate">
+                            ${title}
+                        </p>
+                    </div>
                 </div>
             `;
                 }

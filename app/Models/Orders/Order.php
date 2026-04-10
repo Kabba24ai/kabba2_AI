@@ -141,17 +141,9 @@ class Order extends Model
         return $this->hasMany(OrderMedia::class, 'order_id');
     }
 
-   public function licenseMedia()
+    public function licenseMedia()
     {
-        return $this->hasMany(OrderMedia::class, 'order_id')
-            ->where('type', OrderMediaType::LICENSE)
-            ->orderByRaw("
-                CASE 
-                    WHEN side = 'front' THEN 1
-                    WHEN side = 'back' THEN 2
-                    ELSE 3
-                END
-            ");
+        return $this->hasMany(OrderMedia::class, 'order_id')->where('type', OrderMediaType::LICENSE);
     }
 
     public function deliveryMedia()

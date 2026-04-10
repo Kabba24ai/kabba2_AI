@@ -4300,29 +4300,20 @@
             let html = '';
             mediaData.forEach(m => {
                 if (!m.url) return;
-                let base = type ? type.toLowerCase() : '';
-                let side = m.side ? m.side.toLowerCase() : '';
+                 let parts = [];
 
-                let title = '';
+                // add type if exists
+                if (type) parts.push(type);
 
-                // License case
-                if (base.includes('license')) {
-                    if (side === 'front') {
-                        title = 'Front Side of License';
-                    } else if (side === 'back') {
-                        title = 'Back Side of License';
-                    } else {
-                        title = 'License';
-                    }
-                }
-                // Other types
-                else if (base) {
-                    title = base.charAt(0).toUpperCase() + base.slice(1);
-                }
-                // Fallback
-                else {
-                    title = 'Media';
-                }
+                // add side if exists
+                if (m.side) parts.push(m.side);
+
+
+                // remove duplicates + clean + format
+                let title = [...new Set(parts)]
+                    .join(' ')
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, c => c.toUpperCase()) || 'Media';
 
                     
                 // Video

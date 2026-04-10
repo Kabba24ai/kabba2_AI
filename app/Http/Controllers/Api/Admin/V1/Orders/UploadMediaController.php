@@ -96,7 +96,7 @@ class UploadMediaController extends Controller
                             // ============================
                             //  CUSTOMER SEPARATE UPLOAD
                             // ============================
-                            if ($customer) {
+                            if ($customer && $request->filled('license_expiry_date')) {
 
                                 //  Upload AGAIN for customer (NEW media)
                                 $customerMediaData = MediaHelper::uploadStorageFile(

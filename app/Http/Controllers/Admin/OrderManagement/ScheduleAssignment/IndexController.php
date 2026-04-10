@@ -144,9 +144,25 @@ class IndexController extends Controller
             $equipment = $query->paginate(max(1, $query->count()))->withQueryString();
 
             $html = view('admin.order_management.schedule_assignment.partials._table', compact('equipment', 'dates'))->render();
+
+            $groups = collect($equipment->items())
+                ->groupBy('equipment_name')
+                ->map(function ($group, $name) {
+                    return [
+                        'name'        => $name,
+                        'total'       => $group->count(),
+                        'available'   => $group->filter(fn($e) => $e->status_label === 'Available')->count(),
+                        'rented'      => $group->filter(fn($e) => $e->status_label === 'Rented')->count(),
+                        'maintenance' => $group->filter(fn($e) => $e->status_label === 'Maint. Hold')->count(),
+                        'damaged'     => $group->filter(fn($e) => $e->status_label === 'Damaged')->count(),
+                    ];
+                })
+                ->values();
+
             return response()->json([
-                'html' => $html,
-                'total' => $equipment->count(),
+                'html'   => $html,
+                'total'  => $equipment->count(),
+                'groups' => $groups,
             ]);
         }
 

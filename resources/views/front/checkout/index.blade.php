@@ -74,16 +74,20 @@
                             // $addresses =
                             //     auth('customer')->user()->addresses()->where('type', 'Billing')->get() ?? collect();
                             // $primaryAddress = $addresses->firstWhere('is_primary', true);
+                            $customer = auth('customer')->user();
 
-                            $primaryAddress = auth('customer')->user()->billingAddress;
-                            $companyName = auth('customer')->user()->company_name ?? null;
-                            $companyWebsite = auth('customer')->user()->company_website ?? null;
-                            $firstName = auth('customer')->user()->first_name ?? null;
-                            $lastName = auth('customer')->user()->last_name ?? null;
-                            $email = auth('customer')->user()->email ?? null;
-                            $phone = auth('customer')->user()->phone ?? null;
-                            $customerLicenseFrontUrl = auth('customer')->user()->licenseFront?->url;
-                            $customerLicenseBackUrl = auth('customer')->user()->licenseBack?->url;
+                            $primaryAddress = $customer->billingAddress;
+                            $companyName = $customer->company_name ?? null;
+                            $companyWebsite = $customer->company_website ?? null;
+                            $firstName = $customer->first_name ?? null;
+                            $lastName = $customer->last_name ?? null;
+                            $email = $customer->email ?? null;
+                            $phone = $customer->phone ?? null;
+                            $licenseExpiryDate = $customer->license_expiry_date;
+                            $isValidLicense = !empty($licenseExpiryDate) && \Carbon\Carbon::parse($licenseExpiryDate)->endOfDay()->gte(now());
+
+                            $customerLicenseFrontUrl = $isValidLicense ? optional($customer->licenseFront)->url : null;
+                            $customerLicenseBackUrl  = $isValidLicense ? optional($customer->licenseBack)->url : null;
                             $hasCustomerLicenseOnFile = !empty($customerLicenseFrontUrl) || !empty($customerLicenseBackUrl);
                         @endphp
                         <div>

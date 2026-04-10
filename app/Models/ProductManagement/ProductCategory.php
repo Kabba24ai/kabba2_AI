@@ -62,6 +62,11 @@ class ProductCategory extends Model
         return $this->hasMany(ProductCategory::class, 'parent_id', 'id');
     }
 
+    public function schedulesCategories()
+    {
+        return $this->hasMany(ProductCategory::class, 'schedule_assignment_category_id', 'id');
+    }
+
     public function pageCategoriesBySortOrder()
     {
         return $this->hasMany(ProductCategory::class, 'parent_id', 'id')->orderBy('sort_order', 'ASC');

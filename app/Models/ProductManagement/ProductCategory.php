@@ -27,6 +27,7 @@ class ProductCategory extends Model
         'media_id',
         'hover_media_id',
         'status', // Published, Draft, Pending
+        'schedule_assignment_category_id',
         'is_featured', // Yes, No
         'sort_order',
         'created_by',

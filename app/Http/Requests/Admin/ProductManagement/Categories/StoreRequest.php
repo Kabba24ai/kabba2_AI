@@ -45,6 +45,7 @@ class StoreRequest extends FormRequest
                 'dimensions:width=650,height=650',
             ],
             'status' => ['required', 'in:Published,Draft,Pending'],
+            'schedule_assignment_category_id' => ['nullable', 'exists:product_categories,id'],
             'is_featured' => ['nullable', 'in:Yes,No'],
             'seo_title' => ['nullable', 'string', 'max:240'],
             'seo_description' => ['nullable', 'string', 'max:240'],

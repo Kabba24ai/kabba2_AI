@@ -16,9 +16,16 @@ class IndexController extends Controller
     {
         $users = User::where('status', 'Active')->get();
 
+
         $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0)->orderBy('equipment_name', 'asc')->get();
 
         $categories = ProductCategory::getHierarchy();
+
+        $selectedEquipment = null;
+
+        if ($equipment) {
+            $selectedEquipment = Equipment::where('unique_id', $equipment)->firstOrFail();
+        }
 
         // Load service settings
         $settings = DB::table('service_master_settings')->first();
@@ -33,13 +40,14 @@ class IndexController extends Controller
                 return $record->equipment_id . '_' . $record->service_task_id;
             });
 
-        // dd($equipments);
+        // dd($selectedEquipment);
 
         return view('admin.checklist_management.equipment_management.index', [
             'users' => $users,
             'equipments' => $equipments,
             'categories' => $categories,
             'selectedEquipmentId' => $equipment,
+            'selectedEquipmentName'=> $selectedEquipment->equipment_name ?? null ,
             'serviceRecords' => $serviceRecords,
             'pendingBeforeHours' => $pendingBeforeHours,
             'pendingAfterHours' => $pendingAfterHours,

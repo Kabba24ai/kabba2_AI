@@ -39,6 +39,7 @@ class Order extends Model
         'discount_amount',
         'grand_total',
         'auto_inject',
+        'auto_inject_by',
         'order_note',
         'cart_data', // JSON data of cart items
         'platform', // Web*, Android, iOS

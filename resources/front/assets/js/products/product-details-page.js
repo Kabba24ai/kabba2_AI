@@ -6,12 +6,133 @@ import { initAddToCart } from './add-to-cart';
 
 // You can inject these context values in the Blade (see tip below)
 const context = window.productPageContext || {};
+let hasBoundGlobalListeners = false;
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Attach globally if needed in inline HTML
-    window.changeQty = changeQty;
+const syncStoreVisibility = (deliveryOptionValue) => {
+    const storeDiv = document.getElementById('storeDiv');
+    const storeSelect = document.getElementById('storeSelect');
+    const storeError = document.getElementById('storeError');
+    const selectedServiceMethod = document.querySelector('input[name="service_method"]:checked')?.value || '';
 
-    // Set up delivery and UI logic
+    if (!storeDiv) {
+        return;
+    }
+
+    // Delivery option should only control store visibility when Delivery is selected.
+    if (selectedServiceMethod !== 'Delivery') {
+        if (selectedServiceMethod === 'In Store Pickup') {
+            storeDiv.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const needsStore = deliveryOptionValue === 'Delivery Only' || deliveryOptionValue === 'Return Only';
+
+    if (needsStore) {
+        storeDiv.classList.remove('hidden');
+        return;
+    }
+
+    storeDiv.classList.add('hidden');
+    if (storeSelect) {
+        storeSelect.selectedIndex = 0;
+    }
+    if (storeError) {
+        storeError.classList.add('hidden');
+    }
+};
+
+const disableElement = (element) => {
+    if (!element) {
+        return;
+    }
+
+    element.disabled = true;
+    element.classList.add('opacity-60', 'cursor-not-allowed');
+};
+
+const applyParentRentalLock = () => {
+    const lock = context.parentRentalLock;
+    if (!lock || !lock.enabled || context.productType !== 'Rental') {
+        return;
+    }
+
+    const qtyInput = document.getElementById('qty');
+    if (qtyInput && lock.quantity != null) {
+        qtyInput.value = lock.quantity;
+    }
+    disableElement(qtyInput);
+
+    disableElement(document.getElementById('qtyDecreaseBtn'));
+    disableElement(document.getElementById('qtyIncreaseBtn'));
+
+    const dateInput = document.getElementById('scheduleStartDateInput');
+    const dateText = document.getElementById('selectedDateText');
+    if (dateInput && lock.delivery_date) {
+        dateInput.value = lock.delivery_date;
+        if (dateInput._airPicker && typeof dateInput._airPicker.selectDate === 'function') {
+            dateInput._airPicker.selectDate(new Date(lock.delivery_date));
+        }
+    }
+    if (dateText && lock.delivery_date) {
+        dateText.textContent = lock.delivery_date;
+    }
+    disableElement(dateInput);
+
+    const openDatePicker = document.getElementById('openDatePicker');
+    if (openDatePicker) {
+        openDatePicker.classList.add('pointer-events-none', 'opacity-60');
+        openDatePicker.setAttribute('aria-disabled', 'true');
+        openDatePicker.setAttribute('tabindex', '-1');
+    }
+
+    if (lock.service_method) {
+        document.querySelectorAll('input[name="service_method"]').forEach((radio) => {
+            radio.checked = radio.value === lock.service_method;
+            disableElement(radio);
+            if (radio.checked) {
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    }
+
+    if (lock.distance_type) {
+        document.querySelectorAll('input[name="distance_type"]').forEach((radio) => {
+            radio.checked = radio.value === lock.distance_type;
+            disableElement(radio);
+            if (radio.checked) {
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    }
+
+    const deliverySelect = document.getElementById('deliveryOptionSelect');
+    if (deliverySelect) {
+        if (lock.service_option) {
+            deliverySelect.value = lock.service_option;
+            deliverySelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        disableElement(deliverySelect);
+    }
+
+    const storeSelect = document.getElementById('storeSelect');
+    if (storeSelect) {
+        if (lock.delivery_store_id != null && lock.delivery_store_id !== '') {
+            storeSelect.value = String(lock.delivery_store_id);
+            storeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        disableElement(storeSelect);
+    }
+};
+
+const bindGlobalListeners = () => {
+    if (hasBoundGlobalListeners) {
+        return;
+    }
+
+    hasBoundGlobalListeners = true;
+
+    // Set up delivery and UI logic using event delegation (details markup is loaded via AJAX)
     document.body.addEventListener('change', function(event) {
         if (event.target.name === 'service_method') {
             toggleServiceMethod(event.target.value, context);
@@ -19,50 +140,60 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target.name === 'distance_type') {
             updateDeliveryPrices(event.target.value, context);
         }
-    });
 
-    // Set initial state for service_method
-    let checkedService = document.querySelector('input[name="service_method"]:checked');
-    toggleServiceMethod(checkedService ? checkedService.value : '', context);
+        if (event.target.id === 'deliveryOptionSelect') {
+            syncStoreVisibility(event.target.value);
+        }
 
-    // Delivery option select
-    const deliveryOptionSelect = document.getElementById('deliveryOptionSelect');
-    if (deliveryOptionSelect) {
-        deliveryOptionSelect.addEventListener('change', function(event) {
+        if (event.target.id === 'storeSelect') {
             const value = event.target.value;
-            const storeDiv = document.getElementById('storeDiv');
-            const storeSelect = document.getElementById('storeSelect');
-            if (storeSelect) {
-                storeSelect.selectedIndex = 0;
+            const storeError = document.getElementById('storeError');
+            if (!storeError) {
+                return;
             }
-            if (value === "Delivery Only" || value === "Return Only") {
-                storeDiv.classList.remove('hidden');
-            } else {
-                storeDiv.classList.add('hidden');
-            }
-        });
-    }
 
-    storeSelect.addEventListener('change', function(event) {
-        const value = event.target.value;
-        const storeError = document.getElementById('storeError');
-        if (!value) {
-            storeError.textContent = 'Please select a store before adding to cart.';
-            storeError.classList.remove('hidden');
-        } else {
-            storeError.classList.add('hidden');
+            if (!value) {
+                storeError.textContent = 'Please select a store before adding to cart.';
+                storeError.classList.remove('hidden');
+            } else {
+                storeError.classList.add('hidden');
+            }
         }
     });
+};
+
+const initDynamicDetailsUI = () => {
+    // Set initial state for service_method
+    const checkedService = document.querySelector('input[name="service_method"]:checked');
+    toggleServiceMethod(checkedService ? checkedService.value : '', context);
+
+    // Apply initial store visibility state if delivery option exists.
+    const currentDeliveryOption = document.getElementById('deliveryOptionSelect');
+    if (currentDeliveryOption) {
+        syncStoreVisibility(currentDeliveryOption.value);
+    }
 
     // Datepicker, option grid modal, add to cart
     initDatepicker();
     initProductOptions();
     initAddToCart(context);
 
-
-    // --- Here: Update product form from cart, if present ---
+    // Update product form from cart, if present
     if (window.CartStorage && typeof window.CartStorage.updateProductFormFromCart === 'function') {
         window.CartStorage.updateProductFormFromCart();
     }
 
+    applyParentRentalLock();
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Attach globally if needed in inline HTML
+    window.changeQty = changeQty;
+
+    bindGlobalListeners();
+    initDynamicDetailsUI();
+});
+
+document.addEventListener('product:details-loaded', function() {
+    initDynamicDetailsUI();
 });

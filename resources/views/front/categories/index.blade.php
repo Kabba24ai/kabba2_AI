@@ -79,7 +79,7 @@
                                     <div class="grid grid-cols-2 gap-2">
                                         <!-- Repeat this button block for each rental period -->
                                         @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
-                                            <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productVariant' => $type]) }}"
+                                            <a href="{{ route('front.products.index', ['slug' => $product->slug, 'productVariant' => $type]) }}"
                                                 class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
                                                 {{-- @if ($product->isRentalOnSale($type))
                                                     <span
@@ -113,7 +113,7 @@
                                 @else
                                     <!-- Retail Product (centered button, no inline styles) -->
                                     <div class="grid grid-cols-2 gap-2">
-                                        <a href="{{ route('front.products.details', ['slug' => $product->slug, 'productVariant' => 'retail']) }}"
+                                        <a href="{{ route('front.products.index', ['slug' => $product->slug, 'productVariant' => 'retail']) }}"
                                             class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
                                             {{-- @if ($product->isRetailOnSale())
                                                 <span

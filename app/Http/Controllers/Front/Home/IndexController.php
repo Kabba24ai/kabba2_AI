@@ -16,7 +16,7 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $category_tree = ProductCategory::published()->with('media')->whereNull('parent_id')->sortOrder()->get();
+        $category_tree = ProductCategory::has('products')->published()->with('media')->whereNull('parent_id')->sortOrder()->get();
 
         $order = session('order', []);
         $cartData = $order['cart_data'] ?? [];

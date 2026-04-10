@@ -36,7 +36,7 @@ class EditController extends Controller
         //  define payments from relationship
         $payments = $order->extraCharges->sortByDesc('type');
 
-        // dd($order);
+        // dd($order->licenseMedia);
 
         return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings'));
     }

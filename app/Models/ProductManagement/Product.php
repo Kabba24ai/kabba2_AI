@@ -270,6 +270,16 @@ class Product extends Model
         return $this->$rentField;
     }
 
+    public function getRelatedPrice($type)
+    {
+        // $type = daily, weekend, weekly, monthly
+        $relatedField = 'related_product_price_' . $type;
+        if (empty($this->$relatedField)) {
+            return false;
+        }
+        return $this->$relatedField;
+    }
+
     public function isRentalOnSale($period)
     {
         $saleField = 'sale_price_' . $period;

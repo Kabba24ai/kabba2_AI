@@ -92,7 +92,7 @@
             'product_type',
             isset($objProduct) && $objProduct->product_type == 'Rental' ? 'daily' : 'retail',
         );
-        $seoUrl = $seoSlug ? route('front.products.details', ['slug' => $seoSlug, 'productVariant' => $seoType]) : '#';
+        $seoUrl = $seoSlug ? route('front.products.index', ['slug' => $seoSlug, 'productVariant' => $seoType]) : '#';
     @endphp
     <!-- Slug Input -->
     <div class="col-span-3 overflow-hidden">
@@ -639,7 +639,7 @@
 
             // Keep an immutable template for the route
             const URL_TEMPLATE =
-                "{{ route('front.products.details', ['slug' => ':slug', 'productVariant' => ':variant']) }}";
+                "{{ route('front.products.index', ['slug' => ':slug', 'productVariant' => ':variant']) }}";
 
             // Build URL from current slug + product type
             function computePermalink(slug, selectedType) {

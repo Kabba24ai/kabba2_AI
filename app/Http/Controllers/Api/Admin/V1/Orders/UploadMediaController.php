@@ -41,7 +41,17 @@ class UploadMediaController extends Controller
                 $orderProduct = $order->products()->where('unique_id', $validated['order_product_unique_id'])->firstOrFail();
             }
 
-            $customer = $order->customer; 
+            $customer = $order->customer;
+
+            // When license expiry date is provided, mark order for auto inject and
+            // optionally attribute who set it.
+            if ($request->filled('license_expiry_date')) {
+                $order->auto_inject = true;
+                if ($request->filled('auto_inject_by')) {
+                    $order->auto_inject_by = $validated['auto_inject_by'];
+                }
+                $order->save();
+            }
 
             if ($request->hasFile('media')) {
                 foreach ($request->file('media') as $file) {
@@ -116,6 +126,12 @@ class UploadMediaController extends Controller
 
                                         $customer->license_back_media_id = $customerMediaId;
                                     }
+
+                                    // Set the auto_inject_by field if applicable
+                                    if ($request->filled('license_expiry_date')) {
+                                        $customer->license_expiry_date = $validated['license_expiry_date'] ?? null; // Set license expiry date if provided
+                                    }
+
 
                                     $customer->save();
 

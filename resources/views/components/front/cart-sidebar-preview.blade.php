@@ -128,7 +128,7 @@
                             Remove
                         </a>
                         <span class="text-gray-300">|</span>
-                        <a href="{{ route('front.products.details', ['slug' => $item['product_slug'], 'productVariant' => $item['product_variant']]) }}" class="text-blue-500 hover:text-blue-700 font-medium">
+                        <a href="{{ route('front.products.index', ['slug' => $item['product_slug'], 'productVariant' => $item['product_variant']]) }}" class="text-blue-500 hover:text-blue-700 font-medium">
                             Update
                         </a>
                     </div>

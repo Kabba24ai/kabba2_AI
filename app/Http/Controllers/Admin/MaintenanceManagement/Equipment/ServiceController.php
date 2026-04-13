@@ -34,10 +34,8 @@ class ServiceController extends Controller
                 return strtolower($item->equipment_name);
             });
 
-        $users = User::active()->orderBy('first_name')->get();
-
         // Load all service records
-        $serviceRecords = DB::table('equipment_service_tasks')
+        $serviceRows = DB::table('equipment_service_tasks')
             ->leftJoin('users as performed_user', 'equipment_service_tasks.performed_by', '=', 'performed_user.id')
             ->leftJoin('users as checked_user', 'equipment_service_tasks.checked_by', '=', 'checked_user.id')
             ->select(
@@ -45,7 +43,17 @@ class ServiceController extends Controller
                 DB::raw('CONCAT(performed_user.first_name, " ", COALESCE(performed_user.last_name, "")) as performed_by_name'),
                 DB::raw('CONCAT(checked_user.first_name, " ", COALESCE(checked_user.last_name, "")) as checked_by_name')
             )
-            ->get()
+            ->get();
+
+        $assignedUserIds = $serviceRows->pluck('performed_by')
+            ->merge($serviceRows->pluck('checked_by'))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $users = User::activeOrIds($assignedUserIds)->orderBy('first_name')->get();
+
+        $serviceRecords = $serviceRows
             ->groupBy(function($record) {
                 return $record->equipment_id . '_' . $record->service_task_id;
             });

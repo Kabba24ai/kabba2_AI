@@ -115,6 +115,31 @@ class User extends Authenticatable
     }
 
     /**
+     * Include active users and optionally specific assigned user IDs.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param iterable<int|string>|null $ids
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActiveOrIds($query, $ids = null)
+    {
+        $ids = collect($ids)
+            ->filter(fn($id) => !is_null($id) && $id !== '')
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        return $query->where(function ($q) use ($ids) {
+            $q->active();
+
+            if (!empty($ids)) {
+                $q->orWhereIn('id', $ids);
+            }
+        });
+    }
+
+    /**
      * Get the user's full name.
      *
      * @return string

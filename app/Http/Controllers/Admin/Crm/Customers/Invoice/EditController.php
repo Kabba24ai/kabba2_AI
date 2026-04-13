@@ -31,7 +31,7 @@ class EditController extends Controller
 
         $order = Order::with('shippingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia')->where('customer_id', $customer->id)->get();
 
-        $users = User::where('status', 'Active')->orderBy('first_name')->get();
+        $users = User::active()->orderBy('first_name')->get();
 
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
@@ -60,7 +60,7 @@ class EditController extends Controller
 
         $invoiceItems->values()->toJson();
 
-        
+
         // biling sumary
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 

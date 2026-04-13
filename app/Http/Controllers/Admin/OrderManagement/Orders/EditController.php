@@ -23,7 +23,7 @@ class EditController extends Controller
             ->firstOrFail();
 
         $stores = Store::orderBy('store_name')->get();
-        $employees = User::orderBy('first_name')->get();
+        $employees = User::active()->orderBy('first_name')->get();
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
         $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');

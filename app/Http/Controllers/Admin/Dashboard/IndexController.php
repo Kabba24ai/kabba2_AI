@@ -88,7 +88,7 @@ class IndexController extends Controller
                         ? route('admin.order-management.orders.edit', $order->unique_id)
                         : null,
             'order_number' => $order?->order_number ?? '—',
-                                'amountOwed' => $currentDamage > 0  
+                                'amountOwed' => $currentDamage > 0
                                     ? '$' . number_format($currentDamage, 2)
                                     : 'Pending',
 
@@ -165,7 +165,7 @@ class IndexController extends Controller
                     ? route('admin.order-management.orders.edit', $order->unique_id)
                     : null,
 
-                 'amountOwed' => $currentFuelCharge > 0  
+                 'amountOwed' => $currentFuelCharge > 0
                         ? '$' . number_format($currentFuelCharge, 2)
                         : 'Pending',
 
@@ -194,9 +194,9 @@ class IndexController extends Controller
         $salesData = $this->getSalesData();
 
         $chartData = $this->getMaintenanceChartData();
-        
-        $users = User::where('status', 'Active')->get();
-      
+
+        $users = User::active()->get();
+
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
         // Calculate service status counts
@@ -204,16 +204,16 @@ class IndexController extends Controller
         $pendingCount = $serviceStatusCounts['pendingCount'];
         $overdueCount = $serviceStatusCounts['overdueCount'];
         // dd($salesData);
-        
+
         return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount'));
-                        
+
     }
 
 
         private function getScheduleCount(
-            string $type,       
-            string $transport,  
-            string $status,     
+            string $type,
+            string $transport,
+            string $status,
             bool $todayOnly = false
         ) {
             $query = OrderProduct::query()
@@ -325,23 +325,23 @@ class IndexController extends Controller
     private function getSalesData()
     {
         $now = Carbon::now();
-        
+
         // Rolling 30 days data
         $rolling30Days = $this->getRolling30DaysData($now);
-        
+
         // Current month data
         $currentMonth = $this->getCurrentMonthData($now);
-        
+
         // Last month data
         $lastMonth = $this->getLastMonthData($now);
-        
+
         return [
             'rolling30' => $rolling30Days,
             'currentMonth' => $currentMonth,
             'lastMonth' => $lastMonth,
         ];
     }
-    
+
     private function getRolling30DaysData($now)
 {
     $endDate = $now->copy()->endOfDay();
@@ -630,20 +630,20 @@ private function getLastMonthData($now)
         ->select('orders.id', 'orders.order_date', 'orders.grand_total')
         ->distinct()
         ->get();
-        
+
         // Group by week
         $weeklyData = [0, 0, 0, 0]; // 4 weeks
         $categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-        
+
         foreach ($orders as $order) {
             $orderDate = Carbon::parse($order->order_date);
             $dayOfMonth = $orderDate->day;
-            
+
             // Determine which week (0-3)
             $weekIndex = min(3, floor(($dayOfMonth - 1) / 7));
             $weeklyData[$weekIndex] += (float)$order->grand_total;
         }
-        
+
         return [
             'categories' => $categories,
             'data' => $weeklyData,
@@ -696,8 +696,8 @@ private function getServiceStatusCounts()
         ->whereNotNull('equipment_service_id')
         ->latest()
         ->get()
-        ->sortBy(function($item) { 
-            return strtolower($item->equipment_name); 
+        ->sortBy(function($item) {
+            return strtolower($item->equipment_name);
         });
 
     $serviceRecords = DB::table('equipment_service_tasks')
@@ -712,38 +712,38 @@ private function getServiceStatusCounts()
         ->groupBy(function($record) {
             return $record->equipment_id . '_' . $record->service_task_id;
         });
-    
+
     $settings = DB::table('service_master_settings')->first();
     $pendingBeforeHours = $settings->pending_before_hours ?? 20;
     $pendingAfterHours = $settings->pending_after_hours ?? 15;
-    
+
     $pendingCount = 0;
     $overdueCount = 0;
     foreach($equipmentWithService as $item) {
         if (!$item->serviceTemplate || !$item->serviceTemplate->preset || !$item->serviceTemplate->templateTasks->count()) {
             continue;
         }
-        
+
         $intervalType = $item->serviceTemplate->preset->interval_type ?? 'hour';
         $isDateBased = ($intervalType !== 'hour');
-        
+
         // Calculate current value
         if ($isDateBased && $item->date_acquired) {
             $currentValue = ceil((time() - strtotime($item->date_acquired)) / (60 * 60 * 24));
         } else {
             $currentValue = $item->equipment_hours ?? 0;
         }
-        
+
         $intervals = $item->serviceTemplate->preset->intervals ?? [];
         $tasks = $item->serviceTemplate->templateTasks;
-        
+
         $hasOverdue = false;
         $hasPending = false;
-        
+
         foreach ($tasks as $templateTask) {
             $taskId = $templateTask->task?->id;
             if (!$taskId) continue;
-            
+
             $ints = $templateTask->intervals ?? $templateTask->intervals_json ?? $templateTask->interval ?? [];
             $arr = [];
             if (is_array($ints)) {
@@ -753,7 +753,7 @@ private function getServiceStatusCounts()
             } elseif (is_numeric($ints)) {
                 $arr = [$ints];
             }
-            
+
             foreach ($arr as $interval) {
                 // Check if this interval is completed
                 $recordKey = $item->id . '_' . $taskId;
@@ -761,17 +761,17 @@ private function getServiceStatusCounts()
                 $isCompleted = $records->contains(function($record) use ($interval) {
                     return $record->interval_value == $interval;
                 });
-                
+
                 if ($isCompleted) {
                     continue;
                 }
-                
+
                 // Calculate status for this interval
                 $before = intval($pendingBeforeHours);
                 $after = intval($pendingAfterHours);
                 $greyThreshold = $interval - $before;
                 $yellowMax = $interval + $after;
-                
+
                 if ($currentValue < $greyThreshold) {
                     // Not due - skip
                 } elseif ($currentValue <= $yellowMax) {
@@ -781,15 +781,15 @@ private function getServiceStatusCounts()
                 }
             }
         }
-        
+
         if ($hasOverdue) {
             $overdueCount++;
         } elseif ($hasPending) {
             $pendingCount++;
         }
     }
-    
-    
+
+
     return [
         'pendingCount' => $pendingCount,
         'overdueCount' => $overdueCount

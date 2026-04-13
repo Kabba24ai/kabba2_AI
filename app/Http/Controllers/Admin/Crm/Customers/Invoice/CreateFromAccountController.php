@@ -25,7 +25,7 @@ class CreateFromAccountController extends Controller
 
         $order = Order::with('shippingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia')->where('customer_id', $customer->id)->whereNull('invoice_id')->get();
 
-        $users = User::where('status', 'Active')->orderBy('first_name')->get();
+        $users = User::active()->orderBy('first_name')->get();
 
         $sales_tax = ConfigurationHelper::getSettings(null , 'sales_tax');
 

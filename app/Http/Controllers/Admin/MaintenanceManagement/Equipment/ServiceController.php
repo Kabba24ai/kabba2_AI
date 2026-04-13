@@ -30,12 +30,12 @@ class ServiceController extends Controller
             ->whereNotNull('equipment_service_id')
             ->latest()
             ->get()
-            ->sortBy(function($item) { 
-                return strtolower($item->equipment_name); 
+            ->sortBy(function($item) {
+                return strtolower($item->equipment_name);
             });
 
-        $users = User::orderBy('first_name')->get();
-        
+        $users = User::active()->orderBy('first_name')->get();
+
         // Load all service records
         $serviceRecords = DB::table('equipment_service_tasks')
             ->leftJoin('users as performed_user', 'equipment_service_tasks.performed_by', '=', 'performed_user.id')
@@ -49,7 +49,7 @@ class ServiceController extends Controller
             ->groupBy(function($record) {
                 return $record->equipment_id . '_' . $record->service_task_id;
             });
-        
+
         $settings = DB::table('service_master_settings')->first();
 
         return view('admin.maintenance_management.equipment.service', compact('equipment', 'equipmentWithService', 'users', 'serviceRecords', 'settings'));

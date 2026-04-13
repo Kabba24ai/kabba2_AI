@@ -45,7 +45,7 @@ class ReceiptDownload extends Controller
             'media'
         )->where('id', $order->customer_id)->firstOrFail();
 
-        $users = User::where('status', 'Active')->get();
+        $users = User::active()->get();
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
 

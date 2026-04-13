@@ -45,7 +45,7 @@ class DownloadController extends Controller
             'products.returnSignatureMedia'
         )->where('customer_id', $customer->id)->get();
 
-        $users = User::where('status', 'Active')->get();
+        $users = User::active()->get();
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
         $invoiceItems = $invoice->items->map(function ($item) {

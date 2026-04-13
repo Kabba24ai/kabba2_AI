@@ -14,7 +14,7 @@ class IndexController extends Controller
 {
     public function __invoke($equipment = null)
     {
-        $users = User::where('status', 'Active')->get();
+        $users = User::active()->get();
 
 
         $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0)->orderBy('equipment_name', 'asc')->get();

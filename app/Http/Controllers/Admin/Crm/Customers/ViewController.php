@@ -10,7 +10,7 @@ use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
 use Illuminate\View\View;
-use App\Models\Customers\Tag;   
+use App\Models\Customers\Tag;
 
 class ViewController extends Controller
 {
@@ -19,7 +19,7 @@ class ViewController extends Controller
      */
     public function __invoke(string $unique_id): View
     {
-        $employees = User::orderBy('first_name')->get();
+        $employees = User::active()->orderBy('first_name')->get();
 
         $customer = Customer::with('orders.products', 'orders.payments',
             'notes.user',
@@ -59,7 +59,7 @@ class ViewController extends Controller
             }
         }
 
-        $users = User::where('status', 'Active')->orderBy('first_name')->get();
+        $users = User::active()->orderBy('first_name')->get();
         // biling sumary
 
         $query = Customer::with('orders.payments', 'addresses', 'accounts')->whereIn('status', ['Active', 'Inactive']);

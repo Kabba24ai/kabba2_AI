@@ -18,27 +18,35 @@ class IndexController extends Controller
     public function __invoke($slug, Request $request)
     {
         $category = ProductCategory::published()
-            ->with(['media', 'publishedProducts.media', 'publishedProducts.mediaChildren.media'])
+            ->with([
+                'media',
+                'categoryChildren.product.media',
+                'categoryChildren.subCategory.media',
+                'publishedProducts.media',
+                'publishedProducts.mediaChildren.media',
+            ])
             ->whereNull('parent_id')
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $products = $category->publishedProducts;
-
-        if ($request->has('search') && $request->search != '' && count($products) > 0) {
-            $keyword = $request->search;
-
-            // Only exact match
-            $products = $products->filter(function ($product) use ($keyword) {
-                return trim(strtolower($product->product_name)) === trim(strtolower($keyword));
-            });
-        }
-
+        // categoryChildren contains both products and subcategories with sort_order
+        $items = $category->categoryChildren->map(function ($child) {
+            if ($child->product) {
+                $child->product->item_type = 'product';
+                $child->product->sort_order = $child->sort_order;
+                return $child->product;
+            } elseif ($child->subCategory) {
+                $child->subCategory->item_type = 'subcategory';
+                $child->subCategory->sort_order = $child->sort_order;
+                return $child->subCategory;
+            }
+            return null;
+        })->filter()->sortBy('sort_order')->values();
 
         return view('front.categories.index', [
             'title' => $category->title,
             'category' => $category,
-            'products' => $products,
+            'items' => $items,
         ]);
     }
 }

@@ -161,9 +161,15 @@ class ProductCategory extends Model
     public function products()
     {
         return $this->belongsToMany(Product::class, ProductCategoryChild::class)
-                    ->withPivot('sort_order')
+                    ->withPivot('sort_order', 'sub_category_id')
                     ->withTimestamps()
                     ->orderBy('pivot_sort_order', 'asc');
+    }
+
+    public function categoryChildren()
+    {
+        return $this->hasMany(ProductCategoryChild::class, 'product_category_id', 'id')
+            ->orderBy('sort_order', 'asc');
     }
 
     public function publishedProducts()

@@ -72,7 +72,22 @@ class UpdateRequest extends FormRequest
             'seo_description' => ['nullable', 'string', 'max:240'],
 
             'products' => ['nullable', 'array'],
-            'products.*' => ['exists:products,id'],
+            'products.*' => [
+                function ($attribute, $value, $fail) {
+                    $hasProduct = !empty($value['product_id']);
+                    $hasSubcategory = !empty($value['sub_category_id']);
+
+                    if ($hasProduct === $hasSubcategory) {
+                        $fail('Each products row must contain either product_id or sub_category_id.');
+                    }
+                },
+            ],
+            'products.*.product_id' => ['nullable', 'exists:products,id'],
+            'products.*.sub_category_id' => ['nullable', 'exists:product_categories,id'],
+            'products.*.sort_order' => ['required', 'integer', 'min:1'],
+
+            'subcategories' => ['nullable', 'array'],
+            'subcategories.*' => ['exists:product_categories,id'],
         ];
 
         if (!is_null($this->request->get('parent_id')) && $this->request->get('parent_id') > 0) {

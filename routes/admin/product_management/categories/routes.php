@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ProductManagement\Categories\UpdateController;
 use App\Http\Controllers\Admin\ProductManagement\Categories\ReorderController;
 use App\Http\Controllers\Admin\ProductManagement\Categories\UpdateOrderController;
 use App\Http\Controllers\Admin\ProductManagement\Categories\DeleteController;
+use App\Http\Controllers\Admin\ProductManagement\Categories\SubcategorySearchController;
 
 
 Route::prefix('categories')
@@ -29,6 +30,9 @@ Route::prefix('categories')
 
     // Sort Order
     Route::post('/sort-order', UpdateOrderController::class)->name('sort-order');
+
+    // Search subcategories with products
+    Route::get('/fetch/subcategories/{search?}', SubcategorySearchController::class)->name('search-subcategories');
 
     // Delete
     Route::delete('/{unique_id}', DeleteController::class)->name('delete');

@@ -21,9 +21,12 @@
                                 </li>
                             @else
                                 <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                                    <a href="{{ route('front.categories.index', ['slug' => $category->parentCategory->slug]) }}"
+                                    @php
+                                        $parentCategory = $category->parentCategory;
+                                    @endphp
+                                    <a href="{{ route('front.categories.index', ['slug' => $parentCategory ? $parentCategory->slug : $category->slug]) }}"
                                         class="opacity-75">
-                                        {{ $category->parentCategory->title }}
+                                        {{ $parentCategory ? $parentCategory->title : $category->title }}
                                     </a>
                                 </li>
                                 <li>
@@ -64,12 +67,18 @@
                                     <h3 class="mt-4 font-bold text-black md:text-xl p-2 bg-gray-100 mb-4">
                                         {{ $item->title }}
                                     </h3>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <a href="{{ route('front.categories.index', ['slug' => $item->slug]) }}"
-                                            class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 py-3 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40] col-span-2">
-                                            Click to View Multiple Options
-                                        </a>
-                                    </div>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            @php
+                                                // If current category is a parent, use child route, else use main route
+                                                $parentCategorySlug = $item->parentCategory->slug ?? null;
+
+                                                $categoryRoute = $parentCategorySlug ? route('front.categories.sub-category', ['slug' => $parentCategorySlug, 'childCategorySlug' => $item->slug]) : route('front.categories.index', ['slug' => $item->slug]);
+                                            @endphp
+                                            <a href="{{ $categoryRoute }}"
+                                                class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40] col-span-2">
+                                                Click to View Multiple Options
+                                            </a>
+                                        </div>
                                     <h6 class="text-[12px] mt-2 text-black text-center ">
                                         Select an Option to Learn More or Reserve Today
                                     </h6>

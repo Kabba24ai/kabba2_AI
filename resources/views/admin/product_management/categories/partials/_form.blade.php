@@ -98,7 +98,7 @@
         {{-- View Mode --}}
         <div id="permalinkView" class="flex items-center">
             <span class="text-gray-500 dark:text-gray-400 text-sm break-words">
-                <a href="{{ $categoryUrl }}" target="_blank" class="underline text-blue-600 permalink break-all">
+                <a href="{{ $categoryUrl }}" class="underline text-blue-600 permalink break-all">
                     {{ $categoryUrl !== '#' ? $categoryUrl : 'Product link will be generated after saving.' }}
                 </a>
             </span>
@@ -277,7 +277,7 @@
                         $categoryUrl = route('front.categories.index', ['slug' => $objProductCategory->slug]);
                     }
                 @endphp
-                <a href="{{ $categoryUrl }}" class="text-blue-600 hover:underline break-all" target="_blank">
+                <a href="{{ $categoryUrl }}" class="text-blue-600 hover:underline break-all" >
                     {{ $categoryUrl }}
                 </a>
             </p>

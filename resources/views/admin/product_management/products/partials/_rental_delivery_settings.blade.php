@@ -1070,7 +1070,7 @@
         @include('admin.product_management.products.partials._terms_checklist')
 
         <div class="mt-auto flex justify-end pt-25">
-            <a href="{{ route('admin.configurations.index') }}" target="_blank"
+            <a href="{{ route('admin.configurations.index') }}" 
                 class="text-sm text-blue-500 hover:underline font-medium">
                 Update Settings
             </a>

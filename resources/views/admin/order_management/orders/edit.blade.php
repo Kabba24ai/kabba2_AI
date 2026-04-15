@@ -128,14 +128,14 @@
 
                 {{-- links under the pill/buttons (like screenshot) --}}
                 <div class="flex items-center gap-6 text-sm text-blue-600">
-                    <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}" target="_blank"
+                    <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}" 
                         class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
                         @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
                         <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
                     </a>
 
                     <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}"
-                        method="POST" target="_blank" class="inline-flex items-center">
+                        method="POST" class="inline-flex items-center">
                         @csrf
                         <button type="submit" class="inline-flex items-center hover:underline">
                             <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
@@ -294,7 +294,7 @@
                         <div class="grid grid-cols-3" id="billing_map_link">
                             <span></span>
                             <a href="https://maps.google.com/?q={{ urlencode($order->billingAddress->full_address) }}"
-                                target="_blank" class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
+                                 class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
                                 maps</a>
                         </div>
                     @endif
@@ -363,7 +363,7 @@
                         <div class="grid grid-cols-3" id="shipping_map_link">
                             <span></span>
                             <a href="https://maps.google.com/?q={{ urlencode($order->shippingAddress->full_address) }}"
-                                target="_blank" class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
+                                 class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
                                 maps</a>
                         </div>
                     @endif
@@ -450,7 +450,7 @@
                                                 </span>
                                             @else
                                                 <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}"
-                                                    target="_blank" class="text-xs text-green-600 hover:underline">
+                                                     class="text-xs text-green-600 hover:underline">
                                                     {{ $orderProduct->equipment->equipment_name ?? '—' }} ||
                                                     ({{ $orderProduct->equipment->equipment_id ?? '—' }})
                                                 </a>
@@ -478,7 +478,7 @@
                                                     </span>
                                                 @else
                                                     <a href="{{ route('admin.maintenance-management.equipment.edit', $softUnique) }}"
-                                                        target="_blank" class="text-xs text-blue-600 hover:underline">
+                                                       class="text-xs text-blue-600 hover:underline">
                                                         {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }} ||
                                                         ({{ $orderProduct?->softAssignment?->equipment->equipment_id ?? '—' }})
                                                     </a>
@@ -989,7 +989,7 @@
                                         <div class="flex justify-center mb-1 gap-1">
                                             @if ($order->terms_status->isPending())
                                                 <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                                    target="_blank" title="View Terms">
+                                                     title="View Terms">
                                                     <span
                                                         class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
                                                         <x-heroicon-o-x-mark class="w-4 h-4" />
@@ -1010,7 +1010,7 @@
                                                 </button>
                                             @else
                                                 <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                                    target="_blank" title="View Terms">
+                                                     title="View Terms">
                                                     <span
                                                         class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
                                                         <x-heroicon-o-check class="w-4 h-4" />
@@ -2293,7 +2293,7 @@
                             </select>
                             <div class="flex items-center justify-between gap-3 mt-2">
                                 <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                                <a href="#" target="_blank"
+                                <a href="#" 
                                     class="text-blue-600 hover:underline text-sm font-semibold"
                                     id="equipment-page-link"></a>
                             </div>
@@ -4333,7 +4333,7 @@
                             <video class="w-full h-48 object-cover" muted>
                                 <source src="${m.url}" type="video/mp4">
                             </video>
-                            <a href="${m.url}" target="_blank"
+                            <a href="${m.url}" 
                                 class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
                                 <!-- Play Icon -->
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -4354,7 +4354,7 @@
                         <img src="${m.url}" class="w-full h-48 object-cover" />
 
                         <!-- Overlay -->
-                        <a href="${m.url}" target="_blank"
+                        <a href="${m.url}" 
                             class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/>

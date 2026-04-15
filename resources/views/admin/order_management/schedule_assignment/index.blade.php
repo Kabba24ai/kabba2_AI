@@ -189,6 +189,13 @@
 
     </div>
 
+    {{-- Equipment name group bar --}}
+    <div id="equipment-group-bar" class="hidden bg-white rounded-lg border border-gray-200 shadow-sm px-3 py-2 mb-2">
+        <div class="flex gap-2 overflow-x-auto flex-nowrap pb-0.5">
+            {{-- pills rendered by JS --}}
+        </div>
+    </div>
+
     <div class="flex flex-col gap-5 h-[calc(90vh-180px)] min-h-0"> {{-- adjust 180px as needed --}}
         {{-- Equipment table --}}
         <div id="equipment-table-wrapper"
@@ -236,7 +243,7 @@
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Order ID:</span>
-                        <a id="assign-order-id" href="#" target="_blank" class="text-sm text-blue-900 font-semibold">-</a>
+                        <a id="assign-order-id" href="#"  class="text-sm text-blue-900 font-semibold">-</a>
                     </div>
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Customer:</span>
@@ -277,7 +284,7 @@
                     </select>
                     <div class="flex items-center justify-between gap-3 mt-2">
                         <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                        <a href="#" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"
+                        <a href="#" class="text-blue-600 hover:underline text-sm font-semibold"
                             id="equipment-page-link"></a>
                     </div>
                 </div>
@@ -478,6 +485,7 @@
                     .then(response => response.json())
                     .then(data => {
                         equipmentTableWrapper.innerHTML = data.html;
+                        renderGroupBar(data.groups || []);
                     })
                     .catch(err => {
                         equipmentTableWrapper.innerHTML =
@@ -857,7 +865,37 @@
 
             fetchEquipment(); // initial fetch without loading all equipments
 
-            //  Fetch equipment options with cat
+            const groupBar = document.getElementById('equipment-group-bar');
+            const groupBarInner = groupBar?.querySelector('div');
+
+            function renderGroupBar(groups) {
+                if (!groupBar || !groupBarInner) return;
+
+                if (!groups || groups.length === 0) {
+                    groupBar.classList.add('hidden');
+                    groupBarInner.innerHTML = '';
+                    return;
+                }
+
+                const circle = (count, bg, text, title) =>
+                    count > 0
+                        ? `<span title="${title}" style="width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0;" class="${bg} ${text}">${count}</span>`
+                        : '';
+
+                groupBarInner.innerHTML = groups.map(g => `
+                    <div class="flex-shrink-0 inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700 whitespace-nowrap shadow-sm">
+                        <span>${g.name}</span>
+                        ${circle(g.available,   'bg-green-100',  'text-green-700',  'Available')}
+                        ${circle(g.rented,      'bg-blue-100',   'text-blue-700',   'Rented')}
+                        ${circle(g.maintenance, 'bg-yellow-100', 'text-yellow-700', 'Maint. Hold')}
+                        ${circle(g.damaged,     'bg-red-100',    'text-red-700',    'Damaged')}
+                        <span title="Total" style="width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0;" class="bg-gray-200 text-gray-600">${g.total}</span>
+                    </div>`).join('');
+
+                groupBar.classList.remove('hidden');
+            }
+
+
             function fetchEquipment(loadAll = true) {
                 apiFetch('{{ route('admin.maintenance-management.equipment.fetch-with-categories') }}')
                     .then(data => {

@@ -21,9 +21,12 @@
                                 </li>
                             @else
                                 <li class="tracking-[0] whitespace-nowrap after:content-['/'] after:pl-[5px]">
-                                    <a href="{{ route('front.categories.index', ['slug' => $category->parentCategory->slug]) }}"
+                                    @php
+                                        $parentCategory = $category->parentCategory;
+                                    @endphp
+                                    <a href="{{ route('front.categories.index', ['slug' => $parentCategory ? $parentCategory->slug : $category->slug]) }}"
                                         class="opacity-75">
-                                        {{ $category->parentCategory->title }}
+                                        {{ $parentCategory ? $parentCategory->title : $category->title }}
                                     </a>
                                 </li>
                                 <li>
@@ -37,7 +40,7 @@
         </div>
     </section>
 
-    <!-- Categories Listing -->
+    <!-- Categories & Products Listing -->
     <section class="pb-[60px] relative overflow-hidden">
         <div class="rent-bg">
             <div class="rent-bg-inner">
@@ -46,112 +49,114 @@
         </div>
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-
-                @foreach ($products as $product)
-                    <div class="py-[20px] lg:py-[30px] rounded-lg text-center">
-                        <div class="transition-all duration-300 ease-in-out hover:text-black">
-                            <div
-                                class="lg:h-80 w-full flex items-center justify-center relative rounded-lg overflow-hidden group transition-all duration-500">
-                                <div
-                                    class="w-full h-full flex items-center justify-center bg-white transition-all duration-500 rounded-lg">
-                                    {{-- <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
-                                        class="w-[90%] h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105 "
-                                        loading="lazy" /> --}}
-                                    <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
-                                        class="w-[90%] h-full object-contain transition-opacity duration-500 ease-in-out group-hover:opacity-0"
-                                        loading="lazy" />
-
-                                    <!-- Hover image (first gallery image) -->
-                                    <img src="{{ $product->hover_image_url }}"
-                                        alt="{{ $product->product_name }} hover"
-                                        class="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
-                                        loading="lazy" />
+                @foreach ($items as $item)
+                    @if ($item->item_type === 'subcategory')
+                        <div class="py-[20px] lg:py-[30px] rounded-lg text-center">
+                            <div class="transition-all duration-300 ease-in-out hover:text-black">
+                                <div class="lg:h-80 w-full flex items-center justify-center relative rounded-lg overflow-hidden group transition-all duration-500">
+                                    <div class="w-full h-full flex items-center justify-center bg-white transition-all duration-500 rounded-lg">
+                                        <img src="{{ $item->image_url }}" alt="{{ $item->title }}"
+                                            class="w-[90%] h-full object-contain transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+                                            loading="lazy" />
+                                        <img src="{{ $item->hover_image_url ?? $item->image_url }}" alt="{{ $item->title }} hover"
+                                            class="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
+                                            loading="lazy" />
+                                    </div>
                                 </div>
+                                <div>
+                                    <h3 class="mt-4 font-bold text-black md:text-xl p-2 bg-gray-100 mb-4">
+                                        {{ $item->title }}
+                                    </h3>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            @php
+                                                // If current category is a parent, use child route, else use main route
+                                                $parentCategorySlug = $item->parentCategory->slug ?? null;
 
+                                                $categoryRoute = $parentCategorySlug ? route('front.categories.sub-category', ['slug' => $parentCategorySlug, 'childCategorySlug' => $item->slug]) : route('front.categories.index', ['slug' => $item->slug]);
+                                            @endphp
+                                            <a href="{{ $categoryRoute }}"
+                                                class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40] col-span-2">
+                                                Click to View Multiple Options
+                                            </a>
+                                        </div>
+                                    <h6 class="text-[12px] mt-2 text-black text-center ">
+                                        Select an Option to Learn More or Reserve Today
+                                    </h6>
+                                </div>
                             </div>
-
-
-                            <div>
-                                <h3 class="mt-4 font-bold text-black md:text-xl p-2 bg-gray-100 mb-4">
-                                    {{ $product->product_name }}
-                                </h3>
-                                @if ($product->product_type == 'Rental')
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <!-- Repeat this button block for each rental period -->
-                                        @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
-                                            <a href="{{ route('front.products.index', ['slug' => $product->slug, 'productVariant' => $type]) }}"
-                                                class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
-                                                {{-- @if ($product->isRentalOnSale($type))
-                                                    <span
-                                                        class="absolute left-[-25px] top-2 w-[100px] h-6 bg-white text-yellow-400 font-bold text-xs flex items-center justify-center"
-                                                        style="transform: rotate(-50deg); z-index: 20; box-shadow: 0 4px 6px rgba(0,0,0,0.10); letter-spacing: 0.5px;">
-                                                        Sale
+                        </div>
+                    @elseif ($item->item_type === 'product')
+                        <div class="py-[20px] lg:py-[30px] rounded-lg text-center">
+                            <div class="transition-all duration-300 ease-in-out hover:text-black">
+                                <div class="lg:h-80 w-full flex items-center justify-center relative rounded-lg overflow-hidden group transition-all duration-500">
+                                    <div class="w-full h-full flex items-center justify-center bg-white transition-all duration-500 rounded-lg">
+                                        <img src="{{ $item->image_url }}" alt="{{ $item->product_name }}"
+                                            class="w-[90%] h-full object-contain transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+                                            loading="lazy" />
+                                        <img src="{{ $item->hover_image_url }}" alt="{{ $item->product_name }} hover"
+                                            class="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
+                                            loading="lazy" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="mt-4 font-bold text-black md:text-xl p-2 bg-gray-100 mb-4">
+                                        {{ $item->product_name }}
+                                    </h3>
+                                    @if ($item->product_type == 'Rental')
+                                        <div class="grid grid-cols-2 gap-2">
+                                            @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
+                                                <a href="{{ route('front.products.index', ['slug' => $item->slug, 'productVariant' => $type]) }}"
+                                                    class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
+                                                    <span class="z-30">
+                                                        {{ ucfirst(($type === 'weekend') ? 'Weekend Spcl.' : $type) }}
+                                                        @if ($item->isRentalOnSale($type))
+                                                            - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                        @endif
                                                     </span>
-                                                @endif --}}
+                                                    <span>
+                                                        <span class="font-normal text-black">
+                                                            {{ App\Helpers\CustomHelper::formatCurrency($item->getRentalPrice($type)) }}
+                                                        </span>
+                                                        @if ($item->isRentalOnSale($type))
+                                                            <span class="line-through text-gray-500 text-base ml-1 font-normal italic">
+                                                                {{ App\Helpers\CustomHelper::formatCurrency($item->getRentalPrice($type, false)) }}
+                                                            </span>
+                                                        @endif
+                                                    </span>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <a href="{{ route('front.products.index', ['slug' => $item->slug, 'productVariant' => 'retail']) }}"
+                                                class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
                                                 <span class="z-30">
-                                                    {{ ucfirst(($type === 'weekend') ? 'Weekend Spcl.' : $type) }}
-                                                    @if ($product->isRentalOnSale($type))
-                                                        - <span
-                                                            class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
+                                                    {{ ucfirst('Buy Now') }}
+                                                    @if ($item->isRetailOnSale())
+                                                        - <span class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
                                                     @endif
                                                 </span>
                                                 <span>
-                                                    <span class="font-normal text-black">
-                                                        {{ App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice($type)) }}
+                                                    <span class="font-normal text-lg text-black">
+                                                        {{ App\Helpers\CustomHelper::formatCurrency($item->getRetailPrice(false)) }}
                                                     </span>
-                                                    @if ($product->isRentalOnSale($type))
-                                                        <span
-                                                            class="line-through text-gray-500 text-base ml-1 font-normal italic">
-                                                            {{ App\Helpers\CustomHelper::formatCurrency($product->getRentalPrice($type, false)) }}
+                                                    @if ($item->isRetailOnSale())
+                                                        <span class="line-through text-gray-500 text-base ml-1 font-normal italic">
+                                                            {{ App\Helpers\CustomHelper::formatCurrency($item->getRetailPrice(false)) }}
                                                         </span>
                                                     @endif
                                                 </span>
-
                                             </a>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <!-- Retail Product (centered button, no inline styles) -->
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <a href="{{ route('front.products.index', ['slug' => $product->slug, 'productVariant' => 'retail']) }}"
-                                            class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
-                                            {{-- @if ($product->isRetailOnSale())
-                                                <span
-                                                    class="absolute left-[-25px] top-2 w-[100px] h-6 bg-white text-yellow-400 font-bold text-xs flex items-center justify-center"
-                                                    style="transform: rotate(-50deg); z-index: 20; box-shadow: 0 4px 6px rgba(0,0,0,0.10); letter-spacing: 0.5px;">
-                                                    Sale
-                                                </span>
-                                            @endif --}}
-                                            <span class="z-30">
-                                                {{ ucfirst('Buy Now') }}
-                                                @if ($product->isRetailOnSale())
-                                                    - <span
-                                                        class="font-bold bg-white text-yellow-400 text-xs me-2 px-2.5 py-0.5 rounded-full dark:bg-white dark:text-yellow-600">Sale</span>
-                                                @endif
-                                            </span>
-                                            <span>
-                                                <span class="font-normal text-lg text-black">
-                                                    {{ App\Helpers\CustomHelper::formatCurrency($product->getRetailPrice(false)) }}
-                                                </span>
-                                                @if ($product->isRetailOnSale())
-                                                    <span
-                                                        class="line-through text-gray-500 text-base ml-1 font-normal italic">
-                                                        {{ App\Helpers\CustomHelper::formatCurrency($product->getRetailPrice(false)) }}
-                                                    </span>
-                                                @endif
-                                            </span>
-                                        </a>
-                                    </div>
-                                @endif
-                                <h6 class="text-[12px] mt-2 text-black text-center ">
-                                    Select an Option to Learn More or Reserve Today
-                                </h6>
+                                        </div>
+                                    @endif
+                                    <h6 class="text-[12px] mt-2 text-black text-center ">
+                                        Select an Option to Learn More or Reserve Today
+                                    </h6>
+                                </div>
                             </div>
-
                         </div>
-                    </div>
+                    @endif
                 @endforeach
-
             </div>
         </div>
     </section>

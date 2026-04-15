@@ -27,6 +27,7 @@ class ProductCategory extends Model
         'media_id',
         'hover_media_id',
         'status', // Published, Draft, Pending
+        'schedule_assignment_category_id',
         'is_featured', // Yes, No
         'sort_order',
         'created_by',
@@ -59,6 +60,11 @@ class ProductCategory extends Model
     public function childCategories()
     {
         return $this->hasMany(ProductCategory::class, 'parent_id', 'id');
+    }
+
+    public function schedulesCategories()
+    {
+        return $this->hasMany(ProductCategory::class, 'schedule_assignment_category_id', 'id');
     }
 
     public function pageCategoriesBySortOrder()
@@ -155,9 +161,15 @@ class ProductCategory extends Model
     public function products()
     {
         return $this->belongsToMany(Product::class, ProductCategoryChild::class)
-                    ->withPivot('sort_order')
+                    ->withPivot('sort_order', 'sub_category_id')
                     ->withTimestamps()
                     ->orderBy('pivot_sort_order', 'asc');
+    }
+
+    public function categoryChildren()
+    {
+        return $this->hasMany(ProductCategoryChild::class, 'product_category_id', 'id')
+            ->orderBy('sort_order', 'asc');
     }
 
     public function publishedProducts()

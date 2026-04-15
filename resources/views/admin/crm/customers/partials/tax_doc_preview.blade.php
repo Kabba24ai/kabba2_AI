@@ -26,7 +26,7 @@
             </div>
          </div>
          <div class="flex gap-4 text-sm justify-end sm:justify-start">
-            <a href="{{ $customer->media->getUrl() }}" target="_blank" class="text-blue-600">View</a>
+            <a href="{{ $customer->media->getUrl() }}" class="text-blue-600">View</a>
             <button type="button" class="text-red-600" onclick="confirmAndDelete({{ $customer->id }})">Delete</button>
             {{-- Conditional Action Buttons --}}
             @php $status = $customer->tax_document_status; @endphp

@@ -75,7 +75,7 @@ class Module extends Model
     {
         // route('admin.iam.modules.index')
         if ($add_link) {
-            return '<strong><a href="#" target="_blank">' . $this->title . ' [' . $this->unique_id . ']</a></strong>';
+            return '<strong><a href="#" >' . $this->title . ' [' . $this->unique_id . ']</a></strong>';
         } else {
             return '<strong>' . $this->title . ' [' . $this->unique_id . ']</strong>';
         }   

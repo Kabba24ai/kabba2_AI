@@ -88,7 +88,7 @@
                         <div class="inline-flex items-center gap-1">
                             @if ($eq->status_label == 'Rented' && $eq?->orderProduct?->checklistQuestions->isNotEmpty())
                                 <a href="{{ route('admin.crm.customers.view', $eq->order->customer->unique_id) }}"
-                                    target="_blank" class="text-blue-600 hover:underline">
+                                    class="text-blue-600 hover:underline">
                                     {{ $eq->order->customer_name ?? '-' }}
                                 </a>
                             @else

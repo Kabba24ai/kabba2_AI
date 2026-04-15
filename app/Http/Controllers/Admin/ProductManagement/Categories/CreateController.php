@@ -18,7 +18,7 @@ class CreateController extends Controller
      */
     public function __invoke(?int $categoryId = null)
     {
-        // $categories = ProductCategory::whereNull('parent_id')->orderByAdmin()->pluck('title', 'id');
+        $categories = ProductCategory::orderByAdmin()->pluck('title', 'id');
 
         // Generate category tree for parent selection
         $category = $categoryId ? ProductCategory::where('id', $categoryId)->first() : null;
@@ -36,6 +36,7 @@ class CreateController extends Controller
             'categoryId' => $categoryId,
             'category' => $category,
             'category_tree' => $category_tree,
+            'categories' => $categories,
         ]);
     }
 }

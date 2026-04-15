@@ -3,6 +3,7 @@
 namespace App\Models\Iam\Personnel;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -17,7 +18,7 @@ use App\Models\Stores\Store;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasRoles, HasPermissions, HasFactory, Notifiable, HasApiTokens;
+    use HasRoles, HasPermissions, HasFactory, Notifiable, HasApiTokens, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -111,6 +112,31 @@ class User extends Authenticatable
     public function scopeActive($query)
     {
         return $query->where('status', 'Active');
+    }
+
+    /**
+     * Include active users and optionally specific assigned user IDs.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param iterable<int|string>|null $ids
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActiveOrIds($query, $ids = null)
+    {
+        $ids = collect($ids)
+            ->filter(fn($id) => !is_null($id) && $id !== '')
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        return $query->where(function ($q) use ($ids) {
+            $q->active();
+
+            if (!empty($ids)) {
+                $q->orWhereIn('id', $ids);
+            }
+        });
     }
 
     /**

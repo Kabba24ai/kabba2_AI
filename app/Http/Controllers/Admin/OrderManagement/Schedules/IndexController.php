@@ -220,7 +220,7 @@ class IndexController extends Controller
         $categories = ProductCategory::getHierarchy();
         $stores = Store::orderBy('store_name')->get();
 
-        $users = User::orderBy('first_name', 'asc')
+        $users = User::active()->orderBy('first_name', 'asc')
             ->get()
             ->map(function ($user) {
                 return [

@@ -31,7 +31,7 @@
                     {{ $customer->company_name }}
 
                     <a
-                        @if (!empty($customer->company_website)) href="{{ $customer->company_website ?? 'javascript:void(0)' }}" target="_blank" @endif>
+                        @if (!empty($customer->company_website)) href="{{ $customer->company_website ?? 'javascript:void(0)' }}" @endif>
                         @if (!empty($customer->company_website))
                         <div class="text-sm text-gray-500 flex items-center gap-1">
                             <x-heroicon-o-globe-alt class="w-4 h-4 text-gray-400" />

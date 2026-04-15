@@ -813,7 +813,7 @@ $defaultAddresses = [
 
                             <!-- Buttons: View & Close -->
                             <div class="flex justify-center sm:justify-start gap-2">
-                                <a id="viewFileLink" href="#" target="_blank"
+                                <a id="viewFileLink" href="#" 
                                     class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
                                 <button type="button" onclick="clearFile()" class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
                             </div>

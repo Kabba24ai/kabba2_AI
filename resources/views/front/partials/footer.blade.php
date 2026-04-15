@@ -75,7 +75,7 @@
 
                             @foreach ($socialIcons as $settingKey => $iconClass)
                                 @if (!empty($settings[$settingKey]))
-                                    <a href="{{ $settings[$settingKey] }}" target="_blank"
+                                    <a href="{{ $settings[$settingKey] }}" 
                                         class="w-10 h-10 flex items-center justify-center text-neutral-200/60 border border-neutral-200/40 rounded-md hover:text-white hover:border-white transition">
                                         <i class="{{ $iconClass }} text-lg"></i>
                                     </a>

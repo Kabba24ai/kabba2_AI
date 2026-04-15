@@ -9,6 +9,7 @@ class ProductCategoryChild extends Model
     protected $fillable = [
         'product_id',
         'product_category_id',
+        'sub_category_id',
         'sort_order'
     ];
 
@@ -23,6 +24,11 @@ class ProductCategoryChild extends Model
     public function productCategory()
     {
         return $this->belongsTo(ProductCategory::class);
+    }
+
+    public function subCategory()
+    {
+        return $this->belongsTo(ProductCategory::class, 'sub_category_id');
     }
 
     public function scopeSortOrder($query)

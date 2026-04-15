@@ -136,6 +136,8 @@ const bindGlobalListeners = () => {
     document.body.addEventListener('change', function(event) {
         if (event.target.name === 'service_method') {
             toggleServiceMethod(event.target.value, context);
+            const deliveryOptionValue = document.getElementById('deliveryOptionSelect')?.value || '';
+            syncStoreVisibility(deliveryOptionValue);
         }
         if (event.target.name === 'distance_type') {
             updateDeliveryPrices(event.target.value, context);

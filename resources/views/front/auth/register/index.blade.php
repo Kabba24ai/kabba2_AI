@@ -174,7 +174,7 @@
                                 <p class="text-xs text-gray-500">
                                     Your personal data will be used to support your experience throughout this website, to
                                     manage access to your account, and for other purposes described in our
-                                    <a href="{{ route('front.privacy-policy.index') }}" target="_blank" class="underline">privacy policy</a>.
+                                    <a href="{{ route('front.privacy-policy.index') }}" class="underline">privacy policy</a>.
                                 </p>
 
                                 {{-- Terms Agreement --}}
@@ -184,7 +184,7 @@
                                 </div> -->
                                  <div class="flex items-center">
                                     <input type="checkbox" class="mr-2" id="terms" required>
-                                    <a href="{{ route('front.terms-and-conditions.general') }}" target="_blank" class="text-center text-sm block">
+                                    <a href="{{ route('front.terms-and-conditions.general') }}" class="text-center text-sm block">
                                         I agree to
                                         <span class="underline"> terms & conditions.</span>
                                     </a>

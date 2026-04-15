@@ -144,13 +144,56 @@ class IndexController extends Controller
             $equipment = $query->paginate(max(1, $query->count()))->withQueryString();
 
             $html = view('admin.order_management.schedule_assignment.partials._table', compact('equipment', 'dates'))->render();
+
+            $scheduleCategoryIds = [];
+            if ($request->filled('category')) {
+                $selectedCategory = ProductCategory::with('schedulesCategories:id,schedule_assignment_category_id')
+                    ->find($request->category);
+
+                $scheduleCategoryIds = collect($selectedCategory?->schedulesCategories?->pluck('id') ?? [])
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+            }
+
+
+
+            if (!empty($scheduleCategoryIds)) {
+                // Build groups from a cloned query so we can apply schedule category rules independently.
+                $groupQuery = Equipment::query()
+                    ->where('not_for_rent', 0);
+
+                $groupQuery->whereIn('equipment.product_category_id', $scheduleCategoryIds);
+
+                $groupEquipment = $groupQuery->get();
+            }else {
+                $groupEquipment = collect([]); // empty collection if no schedule categories to group by
+            }
+
+
+            $groups = collect($groupEquipment)
+                ->groupBy('equipment_name')
+                ->map(function ($group, $name) {
+                    return [
+                        'name'        => $name,
+                        'total'       => $group->count(),
+                        'available'   => $group->filter(fn($e) => $e->status_label === 'Available')->count(),
+                        'rented'      => $group->filter(fn($e) => $e->status_label === 'Rented')->count(),
+                        'maintenance' => $group->filter(fn($e) => $e->status_label === 'Maint. Hold')->count(),
+                        'damaged'     => $group->filter(fn($e) => $e->status_label === 'Damaged')->count(),
+                    ];
+                })
+                ->values();
+
             return response()->json([
-                'html' => $html,
-                'total' => $equipment->count(),
+                'html'   => $html,
+                'total'  => $equipment->count(),
+                'groups' => $groups,
             ]);
         }
 
-        $users = User::orderBy('first_name', 'asc')
+        $users = User::active()->orderBy('first_name', 'asc')
             ->get()
             ->map(function ($user) {
                 return [

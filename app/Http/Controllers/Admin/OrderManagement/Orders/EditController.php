@@ -22,8 +22,16 @@ class EditController extends Controller
             ->where('unique_id', $uniqueid)
             ->firstOrFail();
 
+        $assignedUserIds = collect()
+            ->merge($order->products->pluck('delivery_by'))
+            ->merge($order->products->pluck('pickup_by'))
+            ->merge($order->extraCharges->pluck('responsible_person_id'))
+            ->filter()
+            ->unique()
+            ->values();
+
         $stores = Store::orderBy('store_name')->get();
-        $employees = User::orderBy('first_name')->get();
+        $employees = User::activeOrIds($assignedUserIds)->orderBy('first_name')->get();
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
         $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');

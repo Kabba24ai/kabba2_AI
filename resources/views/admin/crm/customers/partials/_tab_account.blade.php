@@ -28,7 +28,16 @@
                     <button onclick="confirmAndSuspend({{ $customer->id }})" type="button"
                         class="bg-red-600 text-white px-6 py-3 rounded-lg text-md static-view">Suspend Account</button>
                 @elseif($customer->status != 'Active')
-                    <button onclick="confirmAndActive({{ $customer->id }})" type="button"
+                
+                
+            @php
+                    $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
+                
+                     
+
+                @endphp
+
+                    <button onclick="confirmAndActive({{ $customer->id }}, '{{ $account['status'] }}')" type="button"
                         class="bg-green-600 text-white px-6 py-3 rounded-lg text-md static-view">Activate
                         Account</button>
                 @endif
@@ -299,8 +308,6 @@
                     </label>
                 @endif
             </div>
-
-
             <div class="space-y-4">
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -726,7 +733,7 @@
 
                                 <!-- VIEW -->
                                 <a href="{{ $customer->licenseFront->getUrl() ?? '#' }}"
-                                target="_blank"
+                                
                                 class="text-blue-600 hover:underline">
                                 View
                                 </a>
@@ -810,7 +817,7 @@
                             <div class="flex gap-3 text-xs">
 
                                 <a href="{{ $customer->licenseBack->getUrl() ?? '#' }}"
-                                target="_blank"
+                               
                                 class="text-blue-600 hover:underline">
                                 View
                                 </a>
@@ -896,7 +903,7 @@
     placeholder="MM-DD-YYYY"
     data-min-date="{{ now()->format('Y-m-d') }}" />
 
-    
+
                 </div>
 
             </div>
@@ -1065,7 +1072,7 @@
 
                             <!-- Buttons: View & Close -->
                             <div class="flex justify-center sm:justify-start gap-2">
-                                <a id="viewFileLink" href="#" target="_blank"
+                                <a id="viewFileLink" href="#" 
                                     class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
                                 <button type="button" onclick="clearFile()"
                                     class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
@@ -1356,7 +1363,14 @@
             }
         }
 
-        function confirmAndActive(id) {
+        function confirmAndActive(id , accountbadge) {
+            // console.log('accountbadge',accountbadge);
+
+    //  Block if Bad Debt
+    if (accountbadge == 'Bad Debt') {
+        notyf.error("This account is in Bad Debt. It cannot be activated.");
+        return;
+    }
             if (confirm("Are you sure you want to activate this customer?")) {
                 document.getElementById(`cstatus`).value = "Active";
                 document.getElementById(`suspend-customer-form-${id}`).submit();

@@ -65,7 +65,7 @@
 
                             @if (!empty($customer->company_website))
                                 <!-- With website: underline + clickable -->
-                                <a href="{{ $customer->company_website }}" target="_blank" class="underline ">
+                                <a href="{{ $customer->company_website }}"  class="underline ">
                                     {{ $customer->company_name }}
                                 </a>
                             @else
@@ -123,7 +123,7 @@
                     <div class="inline-flex items-center gap-1">
                         @if ($orderProduct?->checklistQuestions->isNotEmpty())
                             <a href="{{ route('admin.crm.customers.view', $orderProduct?->order?->customer->unique_id) }}"
-                                target="_blank" class="text-blue-600 hover:underline">
+                                 class="text-blue-600 hover:underline">
                                 {{ $orderProduct?->order->customer_name ?? '-' }}
                             </a>
                         @else
@@ -188,7 +188,7 @@
                 <td class="whitespace-nowrap px-4 py-3">
                     <div class="flex gap-2 items-center justify-center">
                         <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
-                            class="text-sky-600 hover:text-sky-800" title="View" target="_blank">
+                            class="text-sky-600 hover:text-sky-800" title="View" >
                             <x-heroicon-o-eye class="w-4 h-4" />
                         </a>
                     </div>

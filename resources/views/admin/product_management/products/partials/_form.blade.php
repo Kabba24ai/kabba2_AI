@@ -103,7 +103,7 @@
         {{-- View Mode --}}
         <div id="permalinkView" class="flex items-center">
             <span class="text-gray-500 dark:text-gray-400 text-sm break-words">
-                <a href="{{ $seoUrl }}" target="_blank" class="underline text-blue-600 permalink break-all">
+                <a href="{{ $seoUrl }}" class="underline text-blue-600 permalink break-all">
                     {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
                 </a>
             </span>
@@ -240,7 +240,7 @@
         <div class="flex flex-wrap gap-3 mt-4" id="mainImagePreview">
             @foreach ($mediaChildren as $image)
                 <div class="relative group w-full sm:w-[260px]" data-key="{{ $image->id }}">
-                    <a href="{{ $image->media->getUrl() }}" target="_blank">
+                    <a href="{{ $image->media->getUrl() }}" >
                         <img src="{{ $image->media->getUrl() }}" class="w-full aspect-square object-cover rounded-md border" />
                     </a>
 
@@ -507,7 +507,7 @@
         <p class="text-blue-600 font-semibold truncate">
             {{ old('seo_title', $objProduct->seo_title ?? 'Sample Category Title') }}</p>
         <p class="text-green-700 text-xs truncate">
-            <a href="{{ $seoUrl }}" target="_blank" rel="noopener" class="permalink">
+            <a href="{{ $seoUrl }}" rel="noopener" class="permalink">
                 {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
             </a>
         </p>

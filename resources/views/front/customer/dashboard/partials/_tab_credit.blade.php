@@ -393,7 +393,7 @@
                          @endif
 
                             <!-- Download -->
-                            <form method="GET" action="{{ route('front.customer.dashboard.download', $transaction->id) }}" target="_blank" style="display:flex;">
+                            <form method="GET" action="{{ route('front.customer.dashboard.download', $transaction->id) }}" style="display:flex;">
                                 <button class="cursor-pointer" title="Download" type="submit">
                                     <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600" />
                                 </button>

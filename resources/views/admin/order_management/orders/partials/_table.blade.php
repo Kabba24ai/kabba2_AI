@@ -37,7 +37,7 @@
                         {{ $order->company_name }}
 
                         @if (!empty($order->company_website))
-                            <a href="{{ $order->company_website }}" target="_blank">
+                            <a href="{{ $order->company_website }}" >
                                 <div class="text-sm text-brand-500 flex items-center gap-1">
                                     <x-heroicon-o-globe-alt class="w-4 h-4 text-brand-400" />
                                     <span>{{ $order->company_website }}</span>
@@ -65,7 +65,7 @@
                     <td class="py-4 px-6">
                         <div class="flex gap-2 items-center justify-center">
                             <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}"
-                                class="text-sky-600 hover:text-sky-800" title="View" target="_blank">
+                                class="text-sky-600 hover:text-sky-800" title="View" >
                                 @if ($order->notes_count > 0)
                                     <x-heroicon-o-book-open class="w-4 h-4" />
                                 @else

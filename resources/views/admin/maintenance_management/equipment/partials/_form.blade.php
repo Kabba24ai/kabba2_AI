@@ -843,7 +843,7 @@
                     </label>
                     @if (isset($equipment) && $equipment->checklist_master_id)
                         <a href="{{ route('admin.checklist-management.checklist-master.edit', $equipment->checklistMaster->unique_id) }}"
-                            target="_blank" rel="noopener"
+                             rel="noopener"
                             class="inline-flex items-center text-gray-500 hover:text-blue-600"
                             title="View Checklist Master">
                             <x-heroicon-o-eye class="h-4 w-4" />
@@ -878,7 +878,7 @@
                         Schedule</label>
                     @if (isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
                         <a href="{{ route('admin.maintenance-management.service-master.index', ['tab' => 'templates']) }}"
-                            target="_blank" rel="noopener"
+                             rel="noopener"
                             class="inline-flex items-center text-gray-500 hover:text-blue-600"
                             title="View Service Template">
                             <x-heroicon-o-eye class="h-4 w-4" />
@@ -943,7 +943,7 @@
                 </label>
                 @if (isset($equipment) && $equipment->parts_list_id)
                     <a href="{{ route('admin.maintenance-management.parts.parts-list.view', $equipment->partsList->unique_id) }}"
-                        target="_blank" rel="noopener"
+                         rel="noopener"
                         class="inline-flex items-center text-gray-500 hover:text-blue-600" title="View Parts List">
                         <x-heroicon-o-eye class="h-4 w-4" />
                     </a>
@@ -1053,7 +1053,7 @@
                         </div>
                         <div class="mt-2 flex items-center gap-2">
                             @if ($media)
-                                <a href="{{ $media->getUrl() }}" target="_blank" rel="noopener"
+                                <a href="{{ $media->getUrl() }}"  rel="noopener"
                                     class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50">
                                     View
                                 </a>

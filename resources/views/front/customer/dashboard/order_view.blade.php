@@ -164,7 +164,7 @@
                             <div class="grid grid-cols-3" id="billing_map_link">
                                 <span></span>
                                 <a href="https://maps.google.com/?q={{ urlencode($order->billingAddress->full_address) }}"
-                                    target="_blank" class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
+                                     class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
                                     maps</a>
                             </div>
                         @endif
@@ -232,7 +232,7 @@
                             <div class="grid grid-cols-3" id="shipping_map_link">
                                 <span></span>
                                 <a href="https://maps.google.com/?q={{ urlencode($order->shippingAddress->full_address) }}"
-                                    target="_blank" class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
+                                     class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
                                     maps</a>
                             </div>
                         @endif

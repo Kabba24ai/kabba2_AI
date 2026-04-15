@@ -542,7 +542,7 @@ class CustomHelper
     DB::transaction(function () use ($customerId) {
 
         $customer = Customer::lockForUpdate()->findOrFail($customerId);
-
+ 
         $creditLimit = (float) ($customer->credit_limit ?? 0);
         $availableCredit = (float) self::getAvailableCredit($customer);
 

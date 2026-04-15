@@ -243,7 +243,7 @@
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Order ID:</span>
-                        <a id="assign-order-id" href="#" target="_blank" class="text-sm text-blue-900 font-semibold">-</a>
+                        <a id="assign-order-id" href="#"  class="text-sm text-blue-900 font-semibold">-</a>
                     </div>
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Customer:</span>
@@ -284,7 +284,7 @@
                     </select>
                     <div class="flex items-center justify-between gap-3 mt-2">
                         <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                        <a href="#" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"
+                        <a href="#" class="text-blue-600 hover:underline text-sm font-semibold"
                             id="equipment-page-link"></a>
                     </div>
                 </div>

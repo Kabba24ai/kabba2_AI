@@ -39,6 +39,11 @@
                             Suspended
                         </span>
 
+                    @elseif(!$isSuspended && $isBadDebt)
+                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800">
+                            Active (Bad Debt)
+                        </span>
+                        
                     @else
                         <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
                             Active
@@ -1406,10 +1411,10 @@
             // console.log('accountbadge',accountbadge);
 
     //  Block if Bad Debt
-    if (accountbadge == 'Bad Debt') {
-        notyf.error("This account is in Bad Debt. It cannot be activated.");
-        return;
-    }
+    // if (accountbadge == 'Bad Debt') {
+    //     notyf.error("This account is in Bad Debt. It cannot be activated.");
+    //     return;
+    // }
             if (confirm("Are you sure you want to activate this customer?")) {
                 document.getElementById(`cstatus`).value = "Active";
                 document.getElementById(`suspend-customer-form-${id}`).submit();

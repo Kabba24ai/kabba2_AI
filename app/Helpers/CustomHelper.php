@@ -638,7 +638,7 @@ public static function updateInvoiceSummary(Invoice $invoice): void
 
     $finalTotal = $subtotal + $totalTax - $totalDiscount - $totalRefund;
     $finalTotal = max(0, $finalTotal);
-
+-
     $invoice->subtotal  = round($subtotal, 2);
     $invoice->sales_tax = round($totalTax, 2);
     $invoice->total     = round($finalTotal, 2);

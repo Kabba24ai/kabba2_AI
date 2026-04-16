@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Front\Auth\Login\PostRequest;
 use App\Models\Customers\Customer;
 use App\Helpers\ConfigurationHelper;
+use App\Helpers\CustomHelper;
 
 class PostController extends Controller
 {
@@ -28,9 +29,41 @@ class PostController extends Controller
 
         try {
 
-            if (!empty($passcode) && $passcode === $master_passcode) {
-                $customer = Customer::where('email', $credentials['email'])->first();
+           $customer = Customer::where('email', $credentials['email'])->first();
 
+            if (!$customer) {
+                return redirect()->route('front.auth.login.index')
+                    ->withInput($request->only('email'))
+                    ->with('error', 'No customer found with this email.');
+            }
+
+            if ($customer) {
+
+                $account = CustomHelper::getCustomerAccountStatus($customer);
+
+                //  If Bad Debt and still Active
+                if ($account['status'] === 'Bad Debt' && $customer->status === 'Active') {
+
+                    // Update status
+                    $customer->update([
+                        'status' => 'Archived' // or 'Suspended'
+                    ]);
+
+                    return redirect()->route('front.auth.login.index')
+                        ->withInput($request->only('email'))
+                        ->with('error', 'Your account has been suspended due to outstanding balance. Please contact support.');
+                }
+
+                // Existing inactive check
+                if ($customer->status !== 'Active') {
+                    return redirect()->route('front.auth.login.index')
+                        ->withInput($request->only('email'))
+                        ->with('error', 'Your account is inactive. Please contact support.');
+                }
+            }
+
+            if (!empty($passcode) && $passcode === $master_passcode) {
+                
                 if ($customer) {
                     if ($customer->status !== 'Active') {
                         return redirect()->route('front.auth.login.index')
@@ -55,7 +88,7 @@ class PostController extends Controller
             }
 
             // Regular login
-            $customer = Customer::where('email', $credentials['email'])->first();
+           
             if ($customer && $customer->status !== 'Active') {
                 return redirect()->route('front.auth.login.index')
                     ->withInput($request->only('email'))

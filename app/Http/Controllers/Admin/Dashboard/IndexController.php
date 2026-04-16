@@ -394,60 +394,6 @@ class IndexController extends Controller
 
 
 
-    /**
-     * Get current month sales data (grouped by week)
-     */
-
-//     private function getCurrentMonthData($now)
-// {
-//     $startDate = $now->copy()->startOfMonth()->startOfDay();
-//     $endDate   = $now->copy()->endOfMonth()->endOfDay();
-
-//     // ---------- CURRENT PERIOD ----------
-//     $currentRows = $this->getRevenueRows($startDate, $endDate);
-
-//     $currentPeriodData = $currentRows
-//         ->groupBy(function ($row) {
-//             $day = Carbon::parse($row->date)->day;
-//             return min(3, floor(($day - 1) / 7)); // week index
-//         })
-//         ->map(fn ($items) => $items->sum('grand_total'))
-//         ->toArray();
-
-//     // ---------- PREVIOUS PERIOD ----------
-//     $prevStart = $startDate->copy()->subMonth()->startOfMonth();
-//     $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
-
-//     $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
-
-//     $previousPeriodData = $previousRows
-//         ->groupBy(function ($row) {
-//             $day = Carbon::parse($row->date)->day;
-//             return min(3, floor(($day - 1) / 7));
-//         })
-//         ->map(fn ($items) => $items->sum('grand_total'))
-//         ->toArray();
-
-//     // ---------- BUILD OUTPUT ----------
-//     $categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-//     $currentData = [];
-//     $previousData = [];
-
-//     for ($i = 0; $i < 4; $i++) {
-//         $currentData[]  = (float) ($currentPeriodData[$i] ?? 0);
-//         $previousData[] = (float) ($previousPeriodData[$i] ?? 0);
-//     }
-
-//     return [
-//         'categories' => $categories,
-//         'current' => $currentData,
-//         'previous' => $previousData,
-//         'totalSales' => array_sum($currentData),
-//         'previousTotalSales' => array_sum($previousData),
-//     ];
-// }
-
-
 private function getCurrentMonthData($now)
 {
     $startDate = $now->copy()->startOfMonth()->startOfDay();
@@ -498,61 +444,6 @@ private function getCurrentMonthData($now)
         'previousTotalSales' => array_sum($previousData),
     ];
 }
-
-
-
-    /**
-     * Get last month sales data (grouped by week)
-     */
-
-//     private function getLastMonthData($now)
-// {
-//     $startDate = $now->copy()->subMonth()->startOfMonth()->startOfDay();
-//     $endDate   = $now->copy()->subMonth()->endOfMonth()->endOfDay();
-
-//     // ---------- CURRENT PERIOD ----------
-//     $currentRows = $this->getRevenueRows($startDate, $endDate);
-
-//     $currentPeriodData = $currentRows
-//         ->groupBy(function ($row) {
-//             $day = Carbon::parse($row->date)->day;
-//             return min(3, floor(($day - 1) / 7));
-//         })
-//         ->map(fn ($items) => $items->sum('grand_total'))
-//         ->toArray();
-
-//     // ---------- PREVIOUS PERIOD ----------
-//     $prevStart = $startDate->copy()->subMonth()->startOfMonth();
-//     $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
-
-//     $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
-
-//     $previousPeriodData = $previousRows
-//         ->groupBy(function ($row) {
-//             $day = Carbon::parse($row->date)->day;
-//             return min(3, floor(($day - 1) / 7));
-//         })
-//         ->map(fn ($items) => $items->sum('grand_total'))
-//         ->toArray();
-
-//     // ---------- BUILD OUTPUT ----------
-//     $categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-//     $currentData = [];
-//     $previousData = [];
-
-//     for ($i = 0; $i < 4; $i++) {
-//         $currentData[]  = (float) ($currentPeriodData[$i] ?? 0);
-//         $previousData[] = (float) ($previousPeriodData[$i] ?? 0);
-//     }
-
-//     return [
-//         'categories' => $categories,
-//         'current' => $currentData,
-//         'previous' => $previousData,
-//         'totalSales' => array_sum($currentData),
-//         'previousTotalSales' => array_sum($previousData),
-//     ];
-// }
 
 
 private function getLastMonthData($now)

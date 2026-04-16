@@ -13,15 +13,54 @@
 
 
 <div class="bg-white p-6 rounded-xl shadow mt-6 mb-0">
+       <div class="flex justify-between items-center mb-1">
+    
+                <div>
+                    
+                </div>
+
+                @php
+                    $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
+
+                    $isBadDebt = $account['status'] === 'Bad Debt';
+                    $isSuspended = $customer->status === 'Suspended' || $customer->status === 'Archived';
+                @endphp
+
+                <div class="flex items-center gap-2">
+
+                    {{-- STATUS BADGE --}}
+                    @if($isSuspended && $isBadDebt)
+                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-red-100 text-red-800">
+                            Suspended (Bad Debt)
+                        </span>
+
+                    @elseif($isSuspended)
+                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-red-100 text-red-800">
+                            Suspended
+                        </span>
+
+                    @else
+                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
+                            Active
+                        </span>
+                    @endif
+
+                </div>
+
+        </div>
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- Title and Description -->
         <div>
             <h2 class="text-2xl font-bold text-gray-900">Customer Account Management</h2>
             <p class="text-sm text-gray-500">Manage customer account information and administrative settings</p>
         </div>
+        
 
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+
+         
+
             <span class="text-sm text-gray-700 mr-2 sm:mr-0 sm:mb-1 mb-1">Admin Actions:</span>
             <div class="flex flex-wrap items-center gap-2">
                 @if ($customer->status != 'Archived')
@@ -30,7 +69,7 @@
                 @elseif($customer->status != 'Active')
                 
                 
-            @php
+                 @php
                     $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
                 
                      

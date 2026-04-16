@@ -282,7 +282,7 @@ class CustomHelper
 
          // default
     $extraClass = 'text-xs font-semibold';
-    $icon = '';
+    $icon = '';     
 
     if (in_array($normalizedStatus, ['rented', 'available', 'damaged', 'maint. hold'])) {
         $extraClass = 'text-xs font-medium';

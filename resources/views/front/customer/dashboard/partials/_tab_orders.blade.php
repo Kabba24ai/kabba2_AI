@@ -31,7 +31,8 @@
 
        <!-- Right: Status + Button -->
        <div class="flex flex-col items-start md:items-end gap-2 text-left md:text-right w-auto">
-           @if ($approved && $hasCreditLimit)
+
+           {{-- @if ($approved && $hasCreditLimit)
                <!-- Status Badge -->
                <span
                    class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 w-auto">
@@ -44,7 +45,30 @@
                    Pending
                </span>
            @else
-           @endif
+           @endif --}}
+
+
+           
+                @php
+                    $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
+                
+                        $isSuspended = $customer->status === 'Archived' || $customer->status === 'Suspended';
+
+                @endphp
+
+         
+
+                @if($isSuspended)
+                        <span  class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 w-auto">
+                            Suspended
+                        </span>
+                    @else
+                    <!-- Status Badge -->
+                    <span  class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full  w-auto
+                        {{ $account['badge']['bg'] }} {{ $account['badge']['text'] }}">
+                        {{ $account['badge']['label'] }}
+                    </span>
+                    @endif
 
            <!-- Visit Website Button -->
            <a href="#"

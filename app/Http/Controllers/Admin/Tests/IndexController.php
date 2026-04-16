@@ -18,6 +18,7 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
 use App\Models\Orders\OrderProductFunnelLog;
 use App\Services\MailService;
+use App\Services\OpenAIService;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
@@ -662,5 +663,27 @@ class IndexController extends Controller
         ];
         $results = $twilio->sendBulkSms($numbers, $message, $options);
         return response()->json($results);
+    }
+
+    public function testOpenAi(OpenAIService $openAIService)
+    {
+        try {
+            $response = $openAIService->chatCompletion([
+                ['role' => 'user', 'content' => 'Say hello in one sentence.'],
+            ], [
+                'max_tokens' => 50,
+            ]);
+
+            $reply = data_get($response, 'choices.0.message.content');
+
+            return response()->json([
+                'status'  => 'success',
+                'model'   => data_get($response, 'model'),
+                'reply'   => $reply,
+                'usage'   => data_get($response, 'usage'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

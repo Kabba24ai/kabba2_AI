@@ -40,4 +40,11 @@ return [
         'service_account_path' => env('FIREBASE_SERVICE_ACCOUNT_PATH'),
     ],
 
+   'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-4.1-mini'),
+        'web_model' => env('OPENAI_WEB_MODEL', 'gpt-4o-search-preview'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+    ],
+
 ];

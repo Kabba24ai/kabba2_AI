@@ -191,6 +191,26 @@
                     </td>
                     <td class="py-4 px-6">
                         <div class="flex gap-2 items-center justify-center">
+                            @if (!empty($orderProduct->equipment_id))
+                                <button
+                                    type="button"
+                                    class="text-blue-600 hover:text-blue-800"
+                                    onclick="openScheduleAssistantModal({{ $orderProduct->id }})"
+                                    title="Suggest"
+                                >
+                                    <x-heroicon-o-sparkles class="w-4 h-4" />
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="text-sky-600 hover:text-sky-800"
+                                    onclick="openAIScheduleAdvisorModal({{ $orderProduct->id }})"
+                                    title="AI Schedule Advisor"
+                                >
+                                    <x-heroicon-o-cpu-chip class="w-4 h-4" />
+                                </button>
+                            @endif
+
                             <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
                                 class="text-sky-600 hover:text-sky-800" title="View" >
                                 @if ($orderProduct?->order?->notes->isNotEmpty())

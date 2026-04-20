@@ -45,6 +45,7 @@ return [
         'model' => env('OPENAI_MODEL', 'gpt-4.1-mini'),
         'web_model' => env('OPENAI_WEB_MODEL', 'gpt-4o-search-preview'),
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+        'timeout' => env('OPENAI_TIMEOUT', 45),
     ],
 
 ];

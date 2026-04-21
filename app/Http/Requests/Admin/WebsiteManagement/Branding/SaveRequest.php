@@ -47,7 +47,7 @@ class SaveRequest extends FormRequest
                 'string'
             ],
 
-        
+
             'home_page_image' => 'nullable|image|dimensions:width=1900,height=430',
 
             'top_text' => [
@@ -73,6 +73,25 @@ class SaveRequest extends FormRequest
             'powered_by' => 'nullable',
             'all_rights_reserved' => 'nullable',
 
+            'terms_and_conditions_url' => [
+                'nullable',
+                'string'
+            ],
+
+            'terms_condition_text_1' => [
+                'nullable',
+                'string'
+            ],
+
+            'terms_condition_text_2' => [
+                'nullable',
+                'string'
+            ],
+
+            'terms_condition_text_3' => [
+                'nullable',
+                'string'
+            ],
 
         ];
     }

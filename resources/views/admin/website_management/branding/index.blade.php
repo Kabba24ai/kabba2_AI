@@ -202,7 +202,7 @@
                 <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
                     <div class="flex items-center space-x-2 mb-6">
                         <x-heroicon-o-document-text class="h-5 w-5 text-blue-600" />
-                        <h3 class="text-lg font-bold text-gray-900">Terms and Conditions Box</h3>
+                        <h3 class="text-lg font-bold text-gray-900">Terms and Conditions (Order)</h3>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div>

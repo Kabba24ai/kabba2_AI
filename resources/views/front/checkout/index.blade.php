@@ -553,7 +553,7 @@
                     $customer = auth('customer')->user();
                 @endphp
                     @php
-                        $account = $customer 
+                        $account = $customer
                             ? \App\Helpers\CustomHelper::getCustomerAccountStatus($customer)
                             : null;
 
@@ -566,7 +566,7 @@
                         $canCheckout = $customer && ((!$isSuspended && !$isBadDebt) || $isImpersonating);
                     @endphp
 
-                   
+
 
                     @if((!$isSuspended && !$isBadDebt) || $isImpersonating)
                     <!-- Payment Method -->
@@ -683,11 +683,11 @@
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="COD"
                                         {{ old('payment') == 'COD' ? 'checked' : '' }} />
-                                    <span>Cash on Delivery (COD)</span>
+                                    <span>Pay on Delivery (POD)</span>
                                 </label>
                                 <p id="codNote"
                                     class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2">
-                                    COD Orders are not reserved / locked in until paid. If you want to lock in your order,
+                                    POD Orders are not reserved / locked in until paid. If you want to lock in your order,
                                     please pay using a credit card or call sales.
                                 </p>
                             </div>
@@ -779,7 +779,7 @@
                                         </p>
                                          <p class="text-sm mt-2 text-red-600">
                 If you believe this is incorrect, please contact your administrator or support team.
-            </p>    
+            </p>
                                     </div>
                                 </div>
                             @endif

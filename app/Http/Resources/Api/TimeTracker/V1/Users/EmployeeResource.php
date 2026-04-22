@@ -75,6 +75,11 @@ class EmployeeResource extends JsonResource
             ),
             'vacation_eligible' => $this->vacation_eligible ?? 0,
            
+            'bonus_vacation_hours' => $this->bonus_vacation_hours ?? null,
+            'bonus_vacation_hours_start_date' => $this->bonus_vacation_hours_start_date ?? null,
+            'bonus_vacation_hours_end_date' => $this->bonus_vacation_hours_end_date ?? null,
+
+
             'created_at' => $this->created_at,
         ];
     }

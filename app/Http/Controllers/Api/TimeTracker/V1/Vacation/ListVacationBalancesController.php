@@ -33,42 +33,26 @@ class ListVacationBalancesController extends BaseController
 
            $data = $users->map(function ($user) use ($year) {
 
-            // worked this year
-            $hoursWorked = $user->timeEntries->sum('total_hours');
-
-            // Accrued hours (80 hrs/year rule)
-            $accruedHours = round($hoursWorked * (80 / 2080), 2);
-
-            //  Allotted hours
             $allottedHours = optional($user->vacationAllotmentHour)->hours ?? 0;
 
-            //  Cap accrued hours to allotment
-            $accruedHours = min($accruedHours, $allottedHours);
+                //  Use model functions (single source of truth)
+                $accruedHours = $user->getVacationAccruedHours($year);
+                $usedHours = $user->getVacationUsedHours($year);
+                $workedHours = $user->getEligibleWorkedHours($year);
 
-            //  Used vacation hours (approved)
+                return [
+                    'id' => (string) $user->id,
+                    'employee_id' => (string) $user->id,
+                    'employee_name' => trim($user->first_name . ' ' . $user->last_name),
 
-            $usedHours = $user
-                        ->approvedVacationRequestsForYear($year)
-                        ->with('requestHour')
-                        ->get()
-                        ->sum(fn ($req) => $req->requestHour?->hours ?? 0);
+                    'allotted_hours' => $allottedHours,
+                    'accrued_hours' => min($accruedHours, $allottedHours),
+                    'used_hours' => $usedHours,
+                    'hours_worked_this_year' => $workedHours,
 
-            $vacation_allotment_hour_id =  $user->vacation_allotment_hour_id ;
-
-            return [
-                'id' => (string) $user->id,
-                'employee_id' => (string) $user->id,
-                'employee_name' => trim($user->first_name . ' ' . $user->last_name),
-
-                'allotted_hours' => $allottedHours,
-                'accrued_hours' => $accruedHours,
-                'used_hours' => $usedHours,
-
-                'hours_worked_this_year' => round($hoursWorked, 2),
-
-                'vacation_allotment_hour_id'=> $vacation_allotment_hour_id,
-            ];
-        });
+                    'vacation_allotment_hour_id' => $user->vacation_allotment_hour_id,
+                ];
+            });
 
         return response()->json([
             'success' => true,

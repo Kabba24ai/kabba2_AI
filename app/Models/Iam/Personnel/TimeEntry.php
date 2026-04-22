@@ -19,11 +19,13 @@ class TimeEntry extends Model
         'notes',
         'status',
         'total_hours',
+        'lunch_reminder_sent',
     ];
 
     protected $casts = [
         'clock_in' => 'datetime',
         'clock_out' => 'datetime',
+        'lunch_reminder_sent' => 'boolean', 
     ];
 
     protected static function booted()

@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\TimeTracker\V1\WorkSchedule\ListUsersController;
 use App\Http\Controllers\Api\TimeTracker\V1\WorkSchedule\GetWorkScheduleController;
 use App\Http\Controllers\Api\TimeTracker\V1\WorkSchedule\SaveWorkScheduleController;
 use App\Http\Controllers\Api\TimeTracker\V1\WorkSchedule\UpdateWorkScheduleController;
+use App\Http\Controllers\Api\TimeTracker\V1\WorkSchedule\GetStartWeekController;
+
 
 
 
@@ -22,6 +24,8 @@ Route::group(['prefix' => 'work-schedule'], function () {
    Route::post('/work-schedule/save', SaveWorkScheduleController::class);
 
    Route::post('/work-schedule/update', UpdateWorkScheduleController::class);
+
+   Route::get('/start-date', GetStartWeekController::class);
 
 
 });

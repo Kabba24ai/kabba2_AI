@@ -5,12 +5,13 @@ namespace App\Models\Customers;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 use App\Models\Orders\Order;
 use App\Helpers\ModelHelper;
 class CustomerAccount extends Model
 {
+    use SoftDeletes;
     protected $table = 'customer_accounts';
 
     protected $fillable = [
@@ -33,13 +34,14 @@ class CustomerAccount extends Model
         'sales_tax_type',
         'type',
         'invoice_id',
-        'invoice_item_id'
+        'invoice_item_id',
+        'customer_action_log'
     ];
 
     protected $casts = [
         'date' => 'datetime',
         'payment_type' => \App\Enums\Customers\PaymentMethod::class,
-
+        'customer_action_log' => 'array',
     ];
 
      /**

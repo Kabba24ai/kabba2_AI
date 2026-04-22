@@ -219,14 +219,15 @@
         <div class="flex items-center justify-between mb-2">
             <label class="block text-sm font-medium text-gray-700">Notes</label>
 
-             <button type="button" id="addNoteBtn2"
+            <button type="button" id="addNoteBtn2"
                         class=" text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 " fill="none"
                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
                         Add
-                    </button>
+            </button>
+            
         </div>
 
         <!-- Notes List -->
@@ -385,7 +386,6 @@
                     <td class="py-4 px-6 font-medium text-gray-900">
                         {{ $order->po_id }}
                     </td>
-
 
                     {{-- Product Name --}}
                     <td class="py-4 px-6 truncate min-w-3xs max-w-3xs ">

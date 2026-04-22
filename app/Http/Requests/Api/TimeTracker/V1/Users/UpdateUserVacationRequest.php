@@ -33,6 +33,21 @@ class UpdateUserVacationRequest extends ApiBaseFormRequest
                 'exists:vacation_days,id',
                 'required_if:vacation_eligible,true',
             ],
+
+            'bonus_vacation_hours' => ['nullable', 'numeric', 'min:0'],
+
+            'bonus_vacation_hours_start_date' => [
+                'nullable',
+                'date',
+                'required_with:bonus_hours'
+            ],
+
+            'bonus_vacation_hours_end_date' => [
+                'nullable',
+                'date',
+                'after_or_equal:bonus_vacation_hours_start_date'
+            ],
+            
         ];
     }
 
@@ -56,6 +71,24 @@ class UpdateUserVacationRequest extends ApiBaseFormRequest
                 'description' => 'Vacation start day policy ID',
                 'example' => 3,
                 'type' => 'integer',
+            ],
+
+            'bonus_vacation_hours' => [
+                'description' => 'Extra bonus hours assigned',
+                'example' => 10,
+                'type' => 'number',
+            ],
+
+            'bonus_vacation_hours_start_date' => [
+                'description' => 'Bonus validity start date',
+                'example' => '2026-01-01',
+                'type' => 'string',
+            ],
+
+            'bonus_vacation_hours_end_date' => [
+                'description' => 'Bonus validity end date',
+                'example' => '2026-12-31',
+                'type' => 'string',
             ],
         ];
     }

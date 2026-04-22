@@ -51,6 +51,13 @@ Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())
     ->onOneServer()
     ->name('auto-clock-out-employees');
 
+Schedule::job(new \App\Jobs\AutoLunchReminderJob())
+    ->everyFiveMinutes()
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('auto-lunch-reminder');
+
 // Schedule::job(new \App\Jobs\UpdateCustomerStatusJob())
 //     ->daily()
 //     ->timezone('America/Chicago')

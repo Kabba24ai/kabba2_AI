@@ -58,6 +58,11 @@ class User extends Authenticatable
         'vacation_eligible',
         'vacation_allotment_hour_id',
         'vacation_start_day_id',
+
+        'bonus_vacation_hours',
+        'bonus_vacation_hours_start_date',
+        'bonus_vacation_hours_end_date',
+
         'social_security',
     ];
 
@@ -246,4 +251,102 @@ public function store()
 {
     return $this->belongsTo(Store::class);
 }
+
+
+
+public function getVacationAccruedHours(int $year): float
+{
+    $entries = $this->timeEntries()
+        ->whereYear('clock_in', $year)
+        ->whereNotNull('clock_out')
+        ->get();
+
+    $weeks = [];
+
+    foreach ($entries as $entry) {
+        $weekStart = \Carbon\Carbon::parse($entry->clock_in)
+            ->startOfWeek()
+            ->toDateString();
+
+        $weeks[$weekStart][] = $entry;
+    }
+
+    $totalEligibleHours = 0;
+
+    foreach ($weeks as $weekEntries) {
+        $weekHours = collect($weekEntries)->sum('total_hours');
+        $totalEligibleHours += min($weekHours, 40);
+    }
+
+    $allottedHours = optional($this->vacationAllotmentHour)->hours ?? 0;
+
+    if ($allottedHours == 0) {
+        return 0;
+    }
+
+    $rate = $allottedHours / 2080;
+
+    $accrued = $totalEligibleHours * $rate;
+
+    //  BONUS LOGIC START
+    $bonus = 0;
+
+    if (
+        $this->vacation_eligible &&
+        $this->bonus_vacation_hours &&
+        $this->bonus_vacation_hours_start_date &&
+        $this->bonus_vacation_hours_end_date
+    ) {
+        $now = now();
+
+        if (
+            $now->between(
+                $this->bonus_vacation_hours_start_date,
+                $this->bonus_vacation_hours_end_date
+            )
+        ) {
+            $bonus = $this->bonus_vacation_hours;
+        }
+    }
+    // BONUS LOGIC END
+
+    return round($accrued + $bonus, 2);
+}
+
+
+public function getVacationUsedHours(int $year): float
+{
+    return $this->approvedVacationRequestsForYear($year)
+        ->with('requestHour')
+        ->get()
+        ->sum(fn ($req) => $req->requestHour?->hours ?? 0);
+}
+
+
+public function getEligibleWorkedHours(int $year): float
+{
+    $entries = $this->timeEntries()
+        ->whereYear('clock_in', $year)
+        ->whereNotNull('clock_out')
+        ->get();
+
+    $weeks = [];
+
+    foreach ($entries as $entry) {
+        $weekStart = \Carbon\Carbon::parse($entry->clock_in)
+            ->startOfWeek()
+            ->toDateString();
+
+        $weeks[$weekStart][] = $entry;
+    }
+
+    $total = 0;
+
+    foreach ($weeks as $weekEntries) {
+        $total += min(collect($weekEntries)->sum('total_hours'), 40);
+    }
+
+    return round($total, 2);
+}
+
 }

@@ -549,6 +549,26 @@
                         @enderror
                     </div>
 
+                    @php
+                    $customer = auth('customer')->user();
+                @endphp
+                    @php
+                        $account = $customer
+                            ? \App\Helpers\CustomHelper::getCustomerAccountStatus($customer)
+                            : null;
+
+                        $isSuspended = $customer && in_array($customer->status, ['Archived', 'Suspended']);
+
+                        $isBadDebt = $customer && ($account['badge']['label'] ?? '') === 'Bad Debt';
+
+                        $isImpersonating = session('impersonated_by_admin') && auth('customer')->check();
+
+                        $canCheckout = $customer && ((!$isSuspended && !$isBadDebt) || $isImpersonating);
+                    @endphp
+
+
+
+                    @if((!$isSuspended && !$isBadDebt) || $isImpersonating)
                     <!-- Payment Method -->
                     <div class="mx-auto" id="paymentForm">
                         <h4 class="text-lg font-semibold mb-3">Payment method</h4>
@@ -663,11 +683,11 @@
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="COD"
                                         {{ old('payment') == 'COD' ? 'checked' : '' }} />
-                                    <span>Cash on Delivery (COD)</span>
+                                    <span>Pay on Delivery (POD)</span>
                                 </label>
                                 <p id="codNote"
                                     class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2">
-                                    COD Orders are not reserved / locked in until paid. If you want to lock in your order,
+                                    POD Orders are not reserved / locked in until paid. If you want to lock in your order,
                                     please pay using a credit card or call sales.
                                 </p>
                             </div>
@@ -743,6 +763,29 @@
                             @endif
                         </div>
                     </div>
+                    @endif
+
+                     @if($isSuspended || $isBadDebt)
+                        <div class="mb-4 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700">
+
+
+                            @if($isBadDebt)
+                                <div class="flex items-start gap-3 mt-2">
+                                    <x-heroicon-o-currency-dollar class="w-5 h-5 mt-0.5 text-red-600" />
+                                    <div>
+                                        <p class="font-semibold">Outstanding balance detected</p>
+                                        <p class="text-sm mt-1">
+                                            You have pending dues. Please clear your previous balance before placing a new order.
+                                        </p>
+                                         <p class="text-sm mt-2 text-red-600">
+                If you believe this is incorrect, please contact your administrator or support team.
+            </p>
+                                    </div>
+                                </div>
+                            @endif
+
+                        </div>
+                    @endif
 
                     <!-- Buttons -->
                     <div class="flex justify-between items-center mt-8">
@@ -754,13 +797,15 @@
                             </svg>
                             Back
                         </a>
-                        <button type="submit" id="checkoutBtn"
-                            class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition flex items-center gap-2">
-                            <span id="checkoutBtnText">Checkout</span>
-                            <span id="checkoutBtnLoader" class="hidden">
-                                <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
-                            </span>
-                        </button>
+                        @if((!$isSuspended && !$isBadDebt) || $isImpersonating)
+                            <button type="submit" id="checkoutBtn"
+                                class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition flex items-center gap-2">
+                                <span id="checkoutBtnText">Checkout</span>
+                                <span id="checkoutBtnLoader" class="hidden">
+                                    <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
+                                </span>
+                            </button>
+                         @endif
                     </div>
                     {{ html()->form()->close() }}
                 </div>

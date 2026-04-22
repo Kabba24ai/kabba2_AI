@@ -1,13 +1,3 @@
-   
-    @php
-             use App\Models\Configurations\Setting;
-   $branding = Setting::where('setting_type', 'Website Management Branding')
-            ->pluck('setting_value', 'setting_name')
-            ->toArray(); 
-   
-            @endphp
-
-
 <footer class=" bg-neutral-800 text-white py-8 border-t no-print">
     <div class="container md:px-0">
         <div class="mx-auto px-4 lg:px-8 lg:flex lg:items-start flex flex-wrap gap-8 justify-between">
@@ -75,7 +65,7 @@
 
                             @foreach ($socialIcons as $settingKey => $iconClass)
                                 @if (!empty($settings[$settingKey]))
-                                    <a href="{{ $settings[$settingKey] }}" 
+                                    <a href="{{ $settings[$settingKey] }}"
                                         class="w-10 h-10 flex items-center justify-center text-neutral-200/60 border border-neutral-200/40 rounded-md hover:text-white hover:border-white transition">
                                         <i class="{{ $iconClass }} text-lg"></i>
                                     </a>
@@ -96,7 +86,7 @@
         <div class="text-left mt-4">
             © {{ date('Y') }}
             <a href="javascript:void(0)" rel="noopener noreferrer">
-                {{ $branding['all_rights_reserved'] ?? $branding['site_name'] }}
+                {{ $brandingSettings['all_rights_reserved'] ?? $brandingSettings['site_name'] }}
             </a>. All rights reserved.
         </div>
 
@@ -110,7 +100,7 @@
 
                 rel="noopener noreferrer"
                 class="text-white font-bold hover:text-yellow-400">
-                    {{ $branding['powered_by'] ?? 'kabba.ai' }}
+                    {{ $brandingSettings['powered_by'] ?? 'kabba.ai' }}
                 </a>
         </div>
 

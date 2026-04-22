@@ -30,8 +30,8 @@ class CustomerStatusUpdateController extends Controller
             ]);
 
             flash('Status updated successfully.')->success();
-        // session()->flash('active_tab', 'account');
-session(['active_tab' => 'account']);
+            // session()->flash('active_tab', 'account');
+            session(['active_tab' => 'account']);
 
             return redirect()->back();
 

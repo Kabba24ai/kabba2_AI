@@ -45,18 +45,25 @@ Schedule::job(new \App\Jobs\SendReturnSameDayRentalReminderJob())
 //     ->name('refresh-staging-database');
 
 Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())
-    ->cron('*/1 * * * *')
+    ->cron('*/20 * * * *')
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()
     ->name('auto-clock-out-employees');
 
-Schedule::job(new \App\Jobs\UpdateCustomerStatusJob())
-    ->daily()
+Schedule::job(new \App\Jobs\AutoLunchReminderJob())
+    ->everyFiveMinutes()
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()
-    ->name('update-customer-status-job');
+    ->name('auto-lunch-reminder');
+
+// Schedule::job(new \App\Jobs\UpdateCustomerStatusJob())
+//     ->daily()
+//     ->timezone('America/Chicago')
+//     ->withoutOverlapping()
+//     ->onOneServer()
+//     ->name('update-customer-status-job');
 
 Schedule::job(new \App\Jobs\AutoLunchBreakJob())
     ->cron('*/10 * * * *') // every 10 minutes

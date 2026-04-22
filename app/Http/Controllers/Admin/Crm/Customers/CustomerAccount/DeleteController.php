@@ -24,6 +24,37 @@ class DeleteController extends Controller
 
             $customer_id = $transaction->customer_id ;
 
+            $now = now()->format('M d, Y h:i A');
+            $userName = auth()->user()?->full_name ?? 'System';
+
+        // =========================
+        //  DELETE LOG (BEFORE DELETE)
+        // =========================
+        $logEntry = [
+            'id' => uniqid('log_'),
+            'action' => 'transaction_deleted',
+            'performed_by' => [
+                'id' => auth()->id() ?? null,
+                'name' => auth()->user()?->full_name ?? 'system'
+            ],
+            'performed_at' => now()->toDateTimeString(),
+              'note' => "{$userName} deleted transaction on {$now}",
+            'snapshot' => [
+                'amount' => $transaction->amount,
+                'payment_type' => $transaction->payment_type,
+                'notes' => $transaction->notes,
+            ],
+        ];
+
+        $logs = $transaction->customer_action_log ?? [];
+        $logs[] = $logEntry;
+
+        //  limit logs (important)
+        $logs = array_slice($logs, -20);
+
+        $transaction->customer_action_log = $logs;
+        $transaction->save(); // save log before delete
+
             //  If linked to invoice
         if ($transaction->invoice_id && $transaction->invoice_item_id) {
 

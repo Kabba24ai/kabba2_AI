@@ -37,30 +37,30 @@ class PostController extends Controller
                     ->with('error', 'No customer found with this email.');
             }
 
-            if ($customer) {
+            // if ($customer) {
 
-                $account = CustomHelper::getCustomerAccountStatus($customer);
+            //     $account = CustomHelper::getCustomerAccountStatus($customer);
 
-                //  If Bad Debt and still Active
-                if ($account['status'] === 'Bad Debt' && $customer->status === 'Active') {
+            //     //  If Bad Debt and still Active
+            //     if ($account['status'] === 'Bad Debt' && $customer->status === 'Active') {
 
-                    // Update status
-                    $customer->update([
-                        'status' => 'Archived' // or 'Suspended'
-                    ]);
+            //         // Update status
+            //         $customer->update([
+            //             'status' => 'Archived' // or 'Suspended'
+            //         ]);
 
-                    return redirect()->route('front.auth.login.index')
-                        ->withInput($request->only('email'))
-                        ->with('error', 'Your account has been suspended due to outstanding balance. Please contact support.');
-                }
+            //         return redirect()->route('front.auth.login.index')
+            //             ->withInput($request->only('email'))
+            //             ->with('error', 'Your account has been suspended due to outstanding balance. Please contact support.');
+            //     }
 
-                // Existing inactive check
-                if ($customer->status !== 'Active') {
-                    return redirect()->route('front.auth.login.index')
-                        ->withInput($request->only('email'))
-                        ->with('error', 'Your account is inactive. Please contact support.');
-                }
-            }
+            //     // Existing inactive check
+            //     if ($customer->status !== 'Active') {
+            //         return redirect()->route('front.auth.login.index')
+            //             ->withInput($request->only('email'))
+            //             ->with('error', 'Your account is inactive. Please contact support.');
+            //     }
+            // }
 
             if (!empty($passcode) && $passcode === $master_passcode) {
                 

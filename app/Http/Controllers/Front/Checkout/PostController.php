@@ -80,6 +80,21 @@ class PostController extends Controller
             DB::beginTransaction();
             if (auth()->guard('customer')->check()) {
                 $customer = auth()->guard('customer')->user();
+
+                    // Get account status
+                    $account = CustomHelper::getCustomerAccountStatus($customer);
+
+                    $isBadDebt = ($account['badge']['label'] ?? '') === 'Bad Debt';
+
+                    $isImpersonating = session()->has('impersonated_by_admin');
+
+                    if ($customer && $isBadDebt && !$isImpersonating) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Your account has an outstanding balance. Please clear dues before proceeding.',
+                        ]);
+                    }
+
             } else {
                 // 1. Find or create customer
                 $customer = Customer::firstOrCreate(

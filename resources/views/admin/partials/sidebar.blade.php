@@ -41,6 +41,7 @@
                 'admin.product-management.products.*',
                 'admin.product-management.categories.*',
                 'admin.product-management.options.*',
+                'admin.product-management.equipment-assignments.*',
                 ]);
 
                 $ordersActive = Route::is([
@@ -217,6 +218,14 @@
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.product-management.categories.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-inbox-stack class="h-5 w-5" /> Product Categories
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('admin.product-management.equipment-assignments.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.product-management.equipment-assignments.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-wrench-screwdriver class="h-5 w-5" /> Equipment Assignments
                                     </a>
                                 </li>
 

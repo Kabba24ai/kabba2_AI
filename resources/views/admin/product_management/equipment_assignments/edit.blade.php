@@ -36,35 +36,14 @@
             <a href="{{ route('admin.product-management.equipment-assignments.index') }}" class="inline-flex items-center justify-center rounded-lg bg-gray-200 dark:bg-gray-700 px-6 py-2 text-sm font-medium text-gray-800 dark:text-white shadow hover:bg-gray-300 dark:hover:bg-gray-600">
                 Cancel
             </a>
-            <div class="flex gap-2">
-                <button type="button" id="deleteBtn" class="inline-flex items-center justify-center rounded-lg bg-red-500 px-6 py-2 text-sm font-medium text-white shadow hover:bg-red-600">
-                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    Delete
-                </button>
-                <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-6 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400">
+            <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-6 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400">
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     Update Assignment
                 </button>
-            </div>
         </div>
     </form>
 
-    <!-- Delete Confirmation Form -->
-    <form id="deleteForm" action="{{ route('admin.product-management.equipment-assignments.delete', $assignment->id) }}" method="POST" style="display: none;">
-        @csrf
-        @method('DELETE')
-    </form>
-
-    <script>
-        document.getElementById('deleteBtn').addEventListener('click', function() {
-            if (confirm('Are you sure you want to delete this equipment assignment? This action cannot be undone.')) {
-                document.getElementById('deleteForm').submit();
-            }
-        });
-    </script>
 
 @endsection

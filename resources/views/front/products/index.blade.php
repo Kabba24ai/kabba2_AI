@@ -136,12 +136,14 @@
                     <span class="font-semibold italic">call Customer Service</span> to confirm the schedule details:
                 </p>
 
-                <!-- Phone Number -->
-                <p class="text-black text-lg mb-6">
-                    <a href="tel:+16158156734" class="font-bold hover:underline focus:underline">
-                        (615) 815-6734
-                    </a>
-                </p>
+                @if(!empty($brandingSettings['site_phone']))
+                    <!-- Phone Number -->
+                    <p class="text-black text-lg mb-6">
+                        <a href="tel:{{ $brandingSettings['site_phone'] }}" class="font-bold hover:underline focus:underline">
+                            {{ $brandingSettings['site_phone'] }}
+                        </a>
+                    </p>
+                @endif
 
                 <!-- Buttons -->
                 <div class="flex flex-col sm:flex-row justify-center md:justify-end gap-3">

@@ -207,7 +207,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Terms &amp; Conditions Text 1
+                                Terms &amp; Conditions Line 1
                             </label>
                             {!! html()->text(
                                     'terms_condition_text_1',
@@ -216,7 +216,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Terms &amp; Conditions Text 2
+                                Terms &amp; Conditions Line 2
                             </label>
                             {!! html()->text(
                                     'terms_condition_text_2',
@@ -225,7 +225,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Terms &amp; Conditions Text 3
+                                Terms &amp; Conditions Line 3
                             </label>
                             {!! html()->text(
                                     'terms_condition_text_3',

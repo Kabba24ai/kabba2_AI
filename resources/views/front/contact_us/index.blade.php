@@ -9,7 +9,7 @@ A new kind of equipment rental company in Dickson &amp; Hickman county to servic
 
 When time is money… we put the money in your pocket!">
 <link rel="canonical" href="/contact">
-<meta property="og:site_name" content="Equipment Rentals Hickman / Dickson County">
+<meta property="og:site_name" content="{{ $brandingSettings['site_name'] }}">
 <meta property="og:title" content="Contact">
 <meta property="og:description" content="">
 <meta property="og:url" content="/contact">
@@ -33,11 +33,11 @@ When time is money… we put the money in your pocket!">
                {{ $contact_settings['contact_title'] ?? 'Speak with a human – No frustrating menus and bots' }}
             </p>
             <p class="mt-1 text-xs md:text-sm text-slate-500 italic">
-                
+
                {{ $contact_settings['contact_subtitle'] ?? '(We might be on the phone with others when you call, but we’ll always call you back as quickly as
                 possible)' }}
 
-                
+
             </p>
         </div>
 

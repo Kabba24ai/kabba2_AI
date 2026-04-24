@@ -46,7 +46,7 @@
                         {{-- Site Logo --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Upload Site Logo
+                                Upload Site Logo (Navbar & favicon)
                             </label>
                             <div class="flex items-center space-x-4">
                                 @if (!empty($siteLogo))
@@ -67,7 +67,7 @@
                         {{-- Site Name --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Site Name
+                                Site Name (opportunities page title, footer, etc.)
                             </label>
                             {!! html()->text('site_name', old('site_name', $settings['site_name'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'Example: Rent n King',
@@ -76,7 +76,7 @@
                         {{-- Phone --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Phone Number
+                                High Demand Alert Phone Number
                             </label>
                             {!! html()->text('site_phone', old('site_phone', old('site_phone', $settings['site_phone'] ?? '')))->class([
                                     'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
@@ -92,14 +92,14 @@
                                 ]) !!}
                         </div>
                         {{-- Email --}}
-                        <div>
+                        {{-- <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Email Address
                             </label>
                             {!! html()->email('site_email', old('site_email', $settings['site_email'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'example@email.com',
                                 ]) !!}
-                        </div>
+                        </div> --}}
                         {{-- Powered By --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">

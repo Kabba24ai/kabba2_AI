@@ -7,8 +7,8 @@ A new kind of equipment rental company in Dickson &amp; Hickman county to servic
 
 When time is money… we put the money in your pocket!">
 <link rel="canonical" href="/">
-<meta property="og:site_name" content="Equipment Rentals Hickman / Dickson County">
-<meta property="og:title" content="Equipment Rentals Hickman / Dickson County">
+<meta property="og:site_name" content="{{ $brandingSettings['site_name'] }}">
+<meta property="og:title" content="{{ $brandingSettings['site_name'] }}">
 <meta property="og:description" content="Rental equipment delivered to your doorstep or job site.
 
 A new kind of equipment rental company in Dickson &amp; Hickman county to service the busy schedules of the construction industry, contractors and serious DIY homeowners.
@@ -17,7 +17,7 @@ When time is money… we put the money in your pocket!">
 <meta property="og:url" content="/">
 <meta property="og:type" content="article">
 
-<meta name="twitter:title" content="Equipment Rentals Hickman / Dickson County">
+<meta name="twitter:title" content="{{ $brandingSettings['site_name'] }}">
 <meta name="twitter:description" content="Rental equipment delivered to your doorstep or job site.
 
 A new kind of equipment rental company in Dickson &amp; Hickman county to service the busy schedules of the construction industry, contractors and serious DIY homeowners.
@@ -58,7 +58,7 @@ When time is money… we put the money in your pocket!">
                 <h3 class="text-base md:text-lg font-semibold text-gray-700">
                      {{ $branding['top_text'] ?? 'Call For Live Assistance from a Real Person:' }}
 
-                     @php 
+                     @php
 
                      $top_phone =   $branding['top_phone'] ?? '(xxx) xxx-xxxx' ;
 
@@ -132,7 +132,7 @@ When time is money… we put the money in your pocket!">
                 {{ $branding['bottom_text'] ?? 'Locally owned and committed to 1st-tier customer service that encourages long-term, repeat customers.
                 We’re growing fast to serve you better across multiple locations.' }}
 
-                
+
             </p>
         </div>
     </div>

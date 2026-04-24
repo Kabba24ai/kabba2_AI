@@ -32,7 +32,7 @@ class CreateOrderListener implements ShouldQueue
         $message = match($orderActionType) {
             'reorder' => "Reorder by {$employeeName}",
             'website_login' => "Website Login by {$employeeName}",
-            'master_passcode' => "Master Passcode by {$employeeName}",
+            'master_passcode' => "Admin code by {$employeeName}",
             'new_account' => "New Account by {$employeeName}",
             'customer_account_login' => "by Customer with Account login",
             'customer_no_account' => "by Customer with no account",

@@ -92,14 +92,14 @@
                                 ]) !!}
                         </div>
                         {{-- Email --}}
-                        {{-- <div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Email Address
+                                Email Address (Opportunities page contact email)
                             </label>
                             {!! html()->email('site_email', old('site_email', $settings['site_email'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'example@email.com',
                                 ]) !!}
-                        </div> --}}
+                        </div>
                         {{-- Powered By --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">

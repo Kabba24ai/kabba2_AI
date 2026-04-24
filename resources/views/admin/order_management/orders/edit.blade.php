@@ -1140,7 +1140,7 @@
                 </button>
 
                 <div class="p-6 max-h-60 overflow-y-auto" id="noteDiv">
-                    <x-admin.order-management.orders.order-notes-list :notes="$order->notes" />
+                    <x-admin.order-management.orders.order-notes-list :notes="$order->unified_notes" />
                 </div>
             </div>
         </div>

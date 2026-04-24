@@ -15,7 +15,7 @@ use App\Helpers\ModelHelper;
 // Models
 use App\Models\Customers\Customer;
 use App\Models\Customers\Invoice;
-
+use stdClass;
 
 class Order extends Model
 {
@@ -52,7 +52,7 @@ class Order extends Model
         'last_terms_sms_sent_at',
         'signature_image', // Base64 encoded image of signature
 
-        'receipt_status'
+        'receipt_status',
     ];
 
     protected $casts = [
@@ -112,17 +112,17 @@ class Order extends Model
 
     public function lastRefundPayment()
     {
-        return $this->hasOne(OrderPayment::class, 'order_id') ->ofMany(
-            ['id' => 'max'],              // aggregate: take the row with max(id)
-            fn ($query) => $query->refund() // constraint: only refund rows
+        return $this->hasOne(OrderPayment::class, 'order_id')->ofMany(
+            ['id' => 'max'], // aggregate: take the row with max(id)
+            fn($query) => $query->refund(), // constraint: only refund rows
         );
     }
 
     public function lastPaidPayment()
     {
-         return $this->hasOne(OrderPayment::class, 'order_id') ->ofMany(
-            ['id' => 'max'],              // aggregate: take the row with max(id)
-            fn ($query) => $query->paid() // constraint: only paid rows
+        return $this->hasOne(OrderPayment::class, 'order_id')->ofMany(
+            ['id' => 'max'], // aggregate: take the row with max(id)
+            fn($query) => $query->paid(), // constraint: only paid rows
         );
     }
 
@@ -141,12 +141,10 @@ class Order extends Model
         return $this->hasMany(OrderMedia::class, 'order_id');
     }
 
-   public function licenseMedia()
+    public function licenseMedia()
     {
-        return $this->hasMany(OrderMedia::class, 'order_id')
-            ->where('type', OrderMediaType::LICENSE)
-            ->orderByRaw("
-                CASE 
+        return $this->hasMany(OrderMedia::class, 'order_id')->where('type', OrderMediaType::LICENSE)->orderByRaw("
+                CASE
                     WHEN side = 'front' THEN 1
                     WHEN side = 'back' THEN 2
                     ELSE 3
@@ -243,18 +241,85 @@ class Order extends Model
 
     public function latestReceipt()
     {
-        return $this->hasOne(\App\Models\Customers\Receipt::class)
-            ->latestOfMany(); // Laravel helper
+        return $this->hasOne(\App\Models\Customers\Receipt::class)->latestOfMany(); // Laravel helper
     }
 
     public function extraCharges()
-{
-    return $this->hasMany(
-        OrderExtraCharges::class,
-        'order_id',
-        'id'
-    )->latest();
-}
+    {
+        return $this->hasMany(OrderExtraCharges::class, 'order_id', 'id')->latest();
+    }
 
+    /**
+     * Build a single feed for all order-related notes shown in admin order edit.
+     */
+    public function getUnifiedNotesAttribute()
+    {
+        $orderNotes = $this->notes()
+            ->with(['createdBy', 'updatedBy'])
+            ->get()
+            ->map(function ($note) {
+                $note->source_label = 'Order Note';
+                $note->is_editable = class_basename((string) $note->created_by_type) === 'User';
+                return $note;
+            });
 
+        $paymentNotes = $this->payments()
+            ->with('createdBy')
+            ->whereNotNull('payment_note')
+            ->where('payment_note', '!=', '')
+            ->get()
+            ->map(function ($payment) {
+                $row = new stdClass();
+                $row->id = 'payment-' . $payment->id;
+                $row->note = $payment->payment_note;
+                $row->created_at = $payment->created_at;
+                $row->updated_at = $payment->updated_at;
+                $row->createdBy = $payment->createdBy;
+                $row->updatedBy = null;
+                $row->created_by_type_name = $payment->createdBy ? class_basename($payment->createdBy) : null;
+                $row->updated_by_type_name = null;
+                $row->source_label = 'Payment Note';
+                $row->context_label = $payment->payment_method?->label();
+                $row->is_editable = false;
+                return $row;
+            });
+
+        $orderProducts = $this->products()
+            ->with(['deliveryEmployee', 'pickupEmployee'])
+            ->get();
+
+        $deliveryNotes = $orderProducts->filter(fn($product) => filled($product->delivery_notes))->map(function ($product) {
+            $row = new stdClass();
+            $row->id = 'delivery-' . $product->id;
+            $row->note = $product->delivery_notes;
+            $row->created_at = $product->updated_at ?? $product->created_at;
+            $row->updated_at = $product->updated_at;
+            $row->createdBy = $product->deliveryEmployee;
+            $row->updatedBy = null;
+            $row->created_by_type_name = $product->deliveryEmployee ? class_basename($product->deliveryEmployee) : null;
+            $row->updated_by_type_name = null;
+            $row->source_label = 'Delivery Note';
+            $row->context_label = $product->product_name;
+            $row->is_editable = false;
+            return $row;
+        });
+
+        $pickupNotes = $orderProducts->filter(fn($product) => filled($product->pickup_notes))->map(function ($product) {
+            $row = new stdClass();
+            $row->id = 'pickup-' . $product->id;
+            $row->note = $product->pickup_notes;
+            $row->created_at = $product->updated_at ?? $product->created_at;
+            $row->updated_at = $product->updated_at;
+            $row->createdBy = $product->pickupEmployee;
+            $row->updatedBy = null;
+            $row->created_by_type_name = $product->pickupEmployee ? class_basename($product->pickupEmployee) : null;
+            $row->updated_by_type_name = null;
+            $row->source_label = 'Pickup Note';
+            $row->context_label = $product->product_name;
+            $row->is_editable = false;
+            return $row;
+        });
+
+        return $orderNotes->concat($paymentNotes)->concat($deliveryNotes)->concat($pickupNotes)->sortByDesc(fn($note) => optional(data_get($note, 'created_at'))->timestamp ?? 0)->values();
+    }
 }

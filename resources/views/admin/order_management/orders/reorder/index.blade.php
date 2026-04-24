@@ -99,7 +99,7 @@
                                 class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
                                 Payment Method
                             </label>
-                            {!! html()->select('payment_method', ['Card' => 'Credit Card', 'COD' => 'COD', 'Account' => 'Account'])->class([
+                            {!! html()->select('payment_method', ['Card' => 'Credit Card', 'COD' => 'POD', 'Account' => 'Account'])->class([
                                     'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                                     'border-gray-300' => !$errors->has('payment_method'),
                                     'border-red-500' => $errors->has('payment_method'),

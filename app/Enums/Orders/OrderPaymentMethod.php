@@ -15,7 +15,7 @@ enum OrderPaymentMethod : string
     public function label(): string
     {
         return match ($this) {
-            self::COD => 'Cash on Delivery',
+            self::COD => 'Pay on Delivery',
             self::Account => 'Account Payment',
             self::Card => 'Credit/Debit Card',
             self::Cash => 'Pay at Front Desk',

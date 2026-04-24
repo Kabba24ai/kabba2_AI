@@ -677,7 +677,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Cash On Delivery -->
+                            <!-- Pay On Delivery -->
                             <div class="border-2 rounded-lg p-4 payment-option {{ old('payment') == 'COD' ? 'border-blue-500' : '' }}"
                                 data-value="COD">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">

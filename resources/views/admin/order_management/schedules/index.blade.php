@@ -113,7 +113,7 @@
                     class= " border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-38 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Payment Types</option>
                     <option value="Card" @selected(request('payment_method') == 'Card')>Card</option>
-                    <option value="COD" @selected(request('payment_method') == 'COD')>COD</option>
+                    <option value="COD" @selected(request('payment_method') == 'COD')>POD</option>
                     <option value="Account" @selected(request('payment_method') == 'Account')>Account</option>
                 </select>
             </div>

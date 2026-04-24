@@ -103,7 +103,7 @@
                             <label class="mb-2 flex items-center">
                                 <input type="checkbox" name="remember" class="mr-2"> <span> Remember me</span>
                             </label>
-                            <a href="javascript:void(0)" id="openAddressModal" class="mb-2">Master Passcode</a>
+                            <a href="javascript:void(0)" id="openAddressModal" class="mb-2">Admin Code</a>
                             <a href="{{ route('front.auth.forgot-password.index') }}" class="text-gray-600 hover:underline mb-2">Forgot password?</a>
                         </div>
 

@@ -1239,9 +1239,9 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'password',
                 'setting_name' => 'master_passcode',
-                'setting_title' => 'Master Passcode',
+                'setting_title' => 'Admin code',
                 'default_value' => 12345678,
-                'placeholder' => 'Enter master passcode',
+                'placeholder' => 'Enter admin code',
                 'is_secure_field' => 1,
                 'is_encrypted' => 1,
                 'is_required' => 1,

@@ -490,7 +490,7 @@
 
                 <select name="auto_clockout_penalty"
                     class="border rounded px-3 py-2 text-xs w-full focus:ring-blue-500 focus:border-blue-500">
-                    
+
                     <option value="">Select penalty time</option>
                     <option value="15" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 15 ? 'selected' : '' }}>15 Minutes</option>
                     <option value="30" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 30 ? 'selected' : '' }}>30 Minutes</option>
@@ -509,7 +509,7 @@
                 ])->attributes(['id' => 'lunch_override']) !!}
 
                 <label for="lunch_override" class="flex items-center text-xs text-gray-500 font-medium cursor-pointer">
-                    Allow Lunch Override 
+                    Allow Lunch Override
                     <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400 ml-1" />
                 </label>
 
@@ -532,7 +532,7 @@
                     value="{{ old('shift_start_time', $user->shift_start_time ?? '') }}"
                     class="time-picker border rounded px-3 py-3 text-xs w-full"
                     placeholder="Select time"
-                    
+
                     readonly
                 >
             </div>
@@ -549,7 +549,7 @@
                     value="{{ old('shift_end_time', $user->shift_end_time ?? '') }}"
                     class="time-picker border rounded px-3 py-3 text-xs w-full"
                     placeholder="Select time"
-                    
+
                     readonly
                 >
             </div>
@@ -876,7 +876,7 @@
                 </div>
                 <div>
                     <label for="emergency2_country" class="text-xs text-gray-500 font-medium">Country</label>
-                    
+
                     <!-- {!! html()->text('emergency2_country', old('emergency2_country', $user->emergencyContactTwo->country ?? ''))
                     ->id('emergency2_country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
@@ -985,7 +985,7 @@
             </div>
 
             <div class="px-5 pb-4">
-                <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Master Passcode.</p>
+                <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Admin Code.</p>
 
                 <div class="relative">
                     <input id="verify-password" type="password" autocomplete="current-password"
@@ -1231,9 +1231,9 @@ document.addEventListener('DOMContentLoaded', function () {
             modal.classList.add('hidden');
         }
 
-   
 
-   
+
+
 
     // Submit verification
     verifyBtn.addEventListener('click', async function () {

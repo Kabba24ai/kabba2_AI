@@ -206,7 +206,7 @@
                 <h4 class="text-sm font-medium text-amber-800">Security Notice</h4>
                 <p class="text-sm mt-1 text-amber-700">
                     Payment integration settings contain sensitive API keys and credentials.
-                    Master Passcode verification is required to view or modify these settings for security purposes.
+                    Admin Code verification is required to view or modify these settings for security purposes.
                 </p>
             </div>
         </div>

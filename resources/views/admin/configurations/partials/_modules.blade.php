@@ -258,7 +258,7 @@
                 </div>
 
                 <div class="px-5 pb-4">
-                    <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Master Passcode.</p>
+                    <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Admin Code.</p>
 
                     <div class="relative">
                         <input id="verify-password" type="password" autocomplete="current-password"

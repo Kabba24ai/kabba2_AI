@@ -87,7 +87,7 @@
                         Back
                     </a>
 
-                 
+
 
                     <a href="{{ route('front.customer.dashboard.order.receipt-download', $order->unique_id) }}"
                         class="flex items-center gap-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -95,7 +95,7 @@
                         Print Receipt
                     </a>
 
-                   
+
 
                 </div>
 
@@ -177,7 +177,7 @@
                 <div class="px-4 py-4 rounded-t-lg border-b border-gray-200">
                     <div class="flex items-center justify-between">
                         <h3 class="text-sm font-semibold text-gray-800">Delivery Information</h3>
-                        
+
                     </div>
                 </div>
                 <div class="p-6">
@@ -322,13 +322,13 @@
 
                 @php
                 $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())
-                    ->firstWhere('name', $rentalKey)?->value;
+                    ->firstWhere('name', $rentalKey);
                 $quantity = $case ? $orderProduct->quantity : 1;
                 @endphp
 
                 <div class="flex justify-between">
                     <span>
-                        {{ $case ?? ucwords(str_replace('_',' ',preg_replace('/^rental_/','',$rentalKey))) }}
+                        {{ $case?->label() ?? ucwords(str_replace('_',' ',preg_replace('/^rental_/','',$rentalKey))) }}
                         <span class="text-xs text-gray-400">(x{{ $quantity }})</span>
                     </span>
 
@@ -376,7 +376,7 @@
                 </div>
 
             </div>
-           
+
 
         </div>
     </div>

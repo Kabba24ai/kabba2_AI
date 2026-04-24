@@ -99,7 +99,7 @@
                     <option value="">All Payment Types</option>
                     @foreach (\App\Enums\Orders\OrderPaymentMethod::cases() as $method)
                         <option value="{{ $method->value }}" @selected(request('payment_method') === $method->value)>
-                            {{ $method->value }}
+                            {{ $method->label() }}
                         </option>
                     @endforeach
                 </select>

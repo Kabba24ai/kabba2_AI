@@ -94,10 +94,7 @@ class IndexController extends Controller
             ->map(function ($order) {
                 $productNames = $order->products->pluck('product_name')->toArray();
 
-                $paymentType = $order->last_payment_type?->value;
-                if ($paymentType === 'Cheque') {
-                    $paymentType = 'Check'; // normalize spelling
-                }
+                $paymentType = $order->last_payment_type?->label();
 
                 return (object) [
                     'type' => 'order',
@@ -119,10 +116,7 @@ class IndexController extends Controller
                     $taxAmount = $amount - $amount / (1 + ($payment->sales_tax ?? 0));
                     $subtotal = $amount - $taxAmount;
 
-                    $AccountspaymentType = $payment->payment_type?->value ?? '';
-                    if (strtolower($AccountspaymentType) === 'cheque') {
-                        $AccountspaymentType = 'Check';
-                    }
+                    $AccountspaymentType = $payment->payment_type?->label() ?? '';
 
                     return (object) [
                         'type' => 'payment',
@@ -151,7 +145,7 @@ class IndexController extends Controller
 
         $rowsalesTaxCollected = $reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal) ;
 
-        
+
         $orderExtraCharges = OrderExtraCharges::query()
             ->when($request->filled('month_range'), function ($q) use ($request) {
                 [$year, $month] = explode('-', $request->month_range);
@@ -166,7 +160,7 @@ class IndexController extends Controller
             })
             ->get();
 
-          
+
         $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
         // $extraChargesTotalRaw = 0;
 
@@ -177,7 +171,7 @@ class IndexController extends Controller
         $taxableRevenue = $reversetaxableRevenue / (1 + $sales_tax);
 
         $salesTaxCollectedbeforCurrencyicon = $reportRows->sum(fn($row) => $row->tax_amount) ;
-       
+
         // $salesTaxCollected = CustomHelper::formatCurrency($salesTaxCollectedbeforCurrencyicon);
 
         // $taxableRevenue = CustomHelper::formatCurrency($taxableRevenue + $salesTaxCollectedbeforCurrencyicon);
@@ -194,7 +188,7 @@ class IndexController extends Controller
 
         $totalRevenue = CustomHelper::formatCurrency( $reportRowsTotal - $rowsalesTaxCollected);
 
-       
+
 
         // Pagination
         $perPage = $request->get('per_page', 30);
@@ -209,7 +203,7 @@ class IndexController extends Controller
 
         //  AJAX response
         if ($request->ajax()) {
-            
+
             $orders = $paginated;
 
             $html = view('admin.reports.sales_tax.partials._table', compact('orders'))->render();
@@ -217,7 +211,7 @@ class IndexController extends Controller
             $stats = [
                   'totalCollectedAllSources' => $totalCollectedAllSources,
                 'totalRevenue' => $totalRevenue,
-              
+
                 'taxFreeRevenue' => $taxFreeRevenue,
                 'taxableRevenue' => $taxableRevenue,
                 'salesTaxCollected' => $salesTaxCollected,
@@ -232,7 +226,7 @@ class IndexController extends Controller
         //         'value' => "{$item->year}-" . str_pad($item->month, 2, '0', STR_PAD_LEFT),
         //         'label' => 'Pay for ' . Carbon::create($item->year, $item->month, 1)->format('M 1') . ' - ' . Carbon::create($item->year, $item->month, 1)->endOfMonth()->format('M d'),
         //     ],
-        // );  
+        // );
 
         // Get months from Orders
         $orderMonths = Order::selectRaw('YEAR(order_date) as year, MONTH(order_date) as month')
@@ -241,7 +235,7 @@ class IndexController extends Controller
 
         // Get months from Payment Accounts
         $paymentMonths = CustomerAccount::selectRaw('YEAR(date) as year, MONTH(date) as month')
-        ->where('type', 'payment') 
+        ->where('type', 'payment')
             ->groupBy('year', 'month')
             ->get();
 

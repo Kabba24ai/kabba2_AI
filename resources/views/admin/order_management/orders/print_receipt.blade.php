@@ -89,7 +89,7 @@
                                         </p>
 
                                         <p style="margin:12px 0 4px; font-weight:600; font-size:16px;">Customer PO: <span style="margin:0; font-size:15px; font-weight:500;"> {{ $order->po_id ?? '-' }} </span></p>
-                                    
+
                                             {{-- <p style="margin:16px 0 4px; font-weight:600; font-size:16px;">Customer PO: <span style="margin:0; font-size:14px; color:#374151; font-weight:500;">{{ $order->po_id }}</span></p> --}}
 
                                     </td>
@@ -113,15 +113,15 @@
                     <!-- Bill To -->
                     <tr>
                         <td>
-                            
-                                                            
+
+
                                                             <table role="presentation" style="width:100%; border-collapse:collapse; margin-top:10px;">
                                                                 <tr>
                                                                     <!-- LEFT SIDE -->
                                                                     <td style="vertical-align:top;">
 
-                                                                        {{-- <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}" 
-                                                                            width="20" height="20" 
+                                                                        {{-- <img src="{{ public_path('storage/admin/images/icons/img-3.png') }}"
+                                                                            width="20" height="20"
                                                                             style="vertical-align:middle; margin-right:5px;">
 
                                                                         <span style="font-weight:600; font-size:15px; ">Bill To :</span><br> <br> --}}
@@ -152,7 +152,7 @@
                                                                                 <td style="width:50%; vertical-align:top; font-size:16px; font-weight:600;">
                                                                                     {{ $receipt->customer->full_name }}
 
-                                                                                    @if(!empty($receipt->customer->company_name)) 
+                                                                                    @if(!empty($receipt->customer->company_name))
                                                                                         <span style="color:#000; font-weight:normal;font-size:15px;">
                                                                                             ({{ $receipt->customer->company_name }})
                                                                                         </span>
@@ -170,10 +170,10 @@
 
                                                                     </td>
 
-                                                                  
+
                                                                 </tr>
                                                             </table>
-                                                        
+
                                                             <!-- Contact info in 2 columns -->
                                                             <table role="presentation" style="width:100%; margin-top:8px; border-collapse:collapse;">
                                                                 <tr>
@@ -246,9 +246,9 @@
                                                                                             @endif
 
                                                                                             <div>
-                                                                                            
+
                                                                                                 @if($addresse?->state?->name)
-                                                                                                    {{ $addresse->state->name }} , 
+                                                                                                    {{ $addresse->state->name }} ,
                                                                                                 @endif
                                                                                                 @if($addresse?->zip_code)
                                                                                                     {{ ' ' . $addresse->zip_code }}
@@ -315,12 +315,12 @@
                                     @foreach ($item->orderProduct->product_data['product_rental_items_prices'] ?? [] as $rentalKey => $rentalPrice)
                                     @php
                                     $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())
-                                    ->firstWhere('name', $rentalKey)?->value;
+                                    ->firstWhere('name', $rentalKey);
                                     $quantity = $case ? $item->orderProduct->quantity : 1;
                                     @endphp
                                     <tr>
                                         <td style="padding-left:15px; font-size:12px; color:#000; padding-bottom:5px;">
-                                            + {{ $case ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
+                                            + {{ $case?->label() ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
                                             <span class="text-xs text-gray-400">(x{{ $quantity }})</span>
                                         </td>
                                         <td></td>
@@ -343,12 +343,12 @@
                                             </td>
                                             <td></td>
                                             <td align="right" style="font-size:12px; color:#000;">
-                                               
 
-                                                             {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
+
+                                                             {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }}
                                             </td>
                                             <td align="right" style="font-size:12px; color:#000;">
-                                                 {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }} 
+                                                 {{ \App\Helpers\CustomHelper::formatCurrency($item->orderProduct->product_data['service_option_price'] ?? 0) }}
                                             </td>
                                         </tr>
 
@@ -391,7 +391,7 @@
                         <td style="padding-top:5px;">
                             <div style="position:relative; width:100%; display:block;">
 
-                                
+
 
                                 <!-- Text -->
                                 <div style="position:relative; font-weight:600; z-index:10;">
@@ -407,7 +407,7 @@
                     <tr>
     <td style="padding-top:20px;">
         <table role="presentation" width="100%" style="font-size:14px; border-collapse:collapse;">
-            
+
             <tr>
                 <td style="text-align:right; padding:4px 0;">
                     Subtotal :
@@ -426,7 +426,7 @@
                 </td>
             </tr>
 
-            
+
 
             <!-- TOTAL -->
             <tr>
@@ -445,7 +445,7 @@
         </table>
     </td>
 </tr>
-         
+
 
                     <!-- Footer -->
                     <tr>

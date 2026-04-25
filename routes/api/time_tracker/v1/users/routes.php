@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryListController;
 use App\Http\Controllers\Api\TimeTracker\V1\Users\ExportEmployeeTimeEntriesController;
 
 use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryUpdateController;
+use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryCreateController;
 
 use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryBulkUpdateController;
 
@@ -38,6 +39,8 @@ Route::group(['prefix' => 'users'], function () {
         Route::get('/{user}/time-entries/export', ExportEmployeeTimeEntriesController::class);
 
         Route::post('/time-entries/update', TimeEntryUpdateController::class);
+
+        Route::post('/time-entries/create', TimeEntryCreateController::class);
 
         Route::post('/time-entries/bulk-update', TimeEntryBulkUpdateController::class);
 });

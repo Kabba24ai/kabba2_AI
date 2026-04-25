@@ -27,21 +27,23 @@ private function secondsToHoursMinutes($seconds)
                 $unpaidSeconds = 0;
 
               if ($entry->clock_in && $entry->clock_out) {
-$workedSeconds = $entry->clock_in->diffInSeconds($entry->clock_out);
-}
+                $workedSeconds = $entry->clock_in->diffInSeconds($entry->clock_out);
+              }
 
                 $lunchBreaks = [];
                 $unpaidBreaks = [];
 
                 foreach ($entry->breaks as $break) {
 
-                    if (!$break->start_time || !$break->end_time) {
-                        continue;
-                    }
+                    // if (!$break->start_time || !$break->end_time) {
+                    //     continue;
+                    // }
+$seconds = 0;
 
+if ($break->start_time && $break->end_time) {
                     $seconds =
                         $break->start_time->diffInSeconds($break->end_time);
-
+}
                     $breakData = [
                         'start' => [
                             'actual'   => $break->created_at,

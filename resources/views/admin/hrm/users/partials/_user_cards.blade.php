@@ -38,6 +38,14 @@
                             </div>
                             <div class="flex gap-2">
                                 <a href="{{ route('admin.hrm.users.view',$user->unique_id ) }}"><x-heroicon-o-eye class="w-4 h-4 text-grey-600" /></a>
+
+
+                              @php
+                                $loguser = auth()->user()->fresh();
+                                @endphp
+
+                   @if(in_array('master_admin', $loguser->role_short_names))
+
                                 <a href="{{ route('admin.hrm.users.edit',$user->unique_id ) }}" >
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -52,6 +60,7 @@
                                     title="Delete">
                                     <x-heroicon-o-trash class="w-4 h-4 text-red-600" />
                                 </button>
+                    @endif
                             </div>
                         </div>
 

@@ -117,7 +117,7 @@
             <!-- Row 3 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div>
-                    <label for="password" class="text-xs text-gray-500 font-medium">Password</label>
+                    <label for="password" class="text-xs text-gray-500 font-medium">Password </label>
                     <div class="relative">
                         {!! html()->password('password')
                         ->id('password')->value(isset($user) ? '' : '12345678')
@@ -191,10 +191,10 @@
                                     ->id('social_security')
                                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                                     ->attributes([
-                                        'maxlength' => 10, // 8 digits + 2 dashes
-                                        'data-parsley-pattern' => '^\d{3}-\d{2}-\d{3}$',
-                                        'data-parsley-error-message' => 'Please enter in format xxx-xx-xxx',
-                                        'placeholder' => 'xxx-xx-xxx',
+                                        'maxlength' => 11, // 8 digits + 2 dashes
+                                        'data-parsley-pattern' => '^\d{3}-\d{2}-\d{4}$',
+                                        'data-parsley-error-message' => 'Please enter in format xxx-xx-xxxx',
+                                        'placeholder' => 'xxx-xx-xxxx',
                                         'autocomplete' => 'off',
                                     ])
                                 !!}
@@ -212,11 +212,11 @@
                                 ->id('social_security')
                                 ->class('pl-2 pr-10 py-2 w-full border rounded-md text-sm border-gray-300 bg-gray-100 cursor-not-allowed')
                                 ->attributes([
-                                    'disabled' => true,
-                                    'maxlength' => 10,
-                                    'data-parsley-pattern' => '^\d{3}-\d{2}-\d{3}$',
-                                    'data-parsley-error-message' => 'Please enter in format xxx-xx-xxx',
-                                    'placeholder' => 'xxx-xx-xxx',
+                                    'disabled' => true, 
+                                    'maxlength' => 11,
+                                    'data-parsley-pattern' => '^\d{3}-\d{2}-\d{4}$',
+                                    'data-parsley-error-message' => 'Please enter in format xxx-xx-xxxx',
+                                    'placeholder' => 'xxx-xx-xxxx',
                                     'autocomplete' => 'off',
                                 ])
                             !!}
@@ -1125,7 +1125,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     input.addEventListener("input", function (e) {
         let value = e.target.value.replace(/\D/g, ""); // remove non-digits
-        value = value.substring(0, 8); // max 8 digits
+        value = value.substring(0, 9); // max 8 digits
 
         let formatted = "";
 
@@ -1136,7 +1136,7 @@ document.addEventListener("DOMContentLoaded", function () {
             formatted += "-" + value.substring(3, 5);
         }
         if (value.length >= 6) {
-            formatted += "-" + value.substring(5, 8);
+            formatted += "-" + value.substring(5, 9);
         }
 
         e.target.value = formatted;

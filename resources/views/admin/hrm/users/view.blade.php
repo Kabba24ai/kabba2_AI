@@ -28,7 +28,11 @@
                 <p class="text-sm text-gray-500">View employee information and settings</p>
             </div>
         </div>
+            @php
+                $loguser = auth()->user()->fresh();
+            @endphp
 
+                   @if(in_array('master_admin', $loguser->role_short_names))
         <!-- Right Section: Buttons -->
         <div class="flex flex-wrap gap-2">
             <div class="inline">
@@ -37,6 +41,7 @@
                 </a>
             </div>
         </div>
+        @endif
     </div>
 </div>
 

@@ -15,7 +15,7 @@ class AIScheduleAdvisorController extends Controller
     ) {
     }
 
-    public function show(int $orderProductId): JsonResponse
+    public function __invoke(int $orderProductId): JsonResponse
     {
         try {
             $result = $this->pipelineService->analyzeWithAI($orderProductId);

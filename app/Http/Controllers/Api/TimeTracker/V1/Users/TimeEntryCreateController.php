@@ -96,15 +96,15 @@ class TimeEntryCreateController extends BaseController
 
                 $break = new TimeEntryBreak();
 
-$break->time_entry_id = $entryId;
-$break->type = $type === 'lunch_out' ? 'lunch' : 'other';
-$break->start_time = $roundedDateTime;
-$break->created_at = $roundedDateTime;
+                $break->time_entry_id = $entryId;
+                $break->type = $type === 'lunch_out' ? 'lunch' : 'other';
+                $break->start_time = $roundedDateTime;
+                $break->created_at = $roundedDateTime;
 
-//  disable auto timestamp override
-$break->timestamps = false;
+                //  disable auto timestamp override
+                $break->timestamps = false;
 
-$break->save();
+                $break->save();
 
                 Log::info('CREATE DEBUG - DB RESULT', [
                     'break_id' => $break->id,
@@ -137,7 +137,7 @@ $break->save();
                 $break->updated_at = $roundedDateTime;
 
 
-$break->timestamps = false;
+                $break->timestamps = false;
 
                 $break->save();
 

@@ -21,6 +21,7 @@ class UpdateController extends Controller
     public function __invoke(UpdateRequest $request, $id): RedirectResponse
         {
             $validated = $request->validated();
+            
 
             DB::beginTransaction();
 
@@ -201,7 +202,8 @@ class UpdateController extends Controller
                 } elseif ($invoiceItem->type === 'refund') {
                     $invoiceItem->tax = $invoiceItem->unit * $salesTaxRate;
                 } else {
-                    $invoiceItem->tax = 0;
+                    // $invoiceItem->tax = 0;
+                          $invoiceItem->tax = $invoiceItem->unit * $salesTaxRate;
                 }
 
                 $invoiceItem->total = $invoiceItem->unit + $invoiceItem->tax;

@@ -26,5 +26,8 @@ Route::prefix('product-management')
     // Products
     require base_path('routes/admin/product_management/products/routes.php');
 
-   
+    // Equipment Assignments
+    require base_path('routes/admin/product_management/equipment_assignments/routes.php');
+
+
 });

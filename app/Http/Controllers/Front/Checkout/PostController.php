@@ -524,7 +524,7 @@ class PostController extends Controller
                 // Reorder performed while impersonating
                 $orderActionType = 'reorder';
             } elseif (session()->has('master_passcode')) {
-                // Master passcode flow
+                // admin code flow
                 $orderActionType = 'master_passcode';
             } elseif (!empty($validated['employee_code']) && auth()->guard('customer')->check()) {
                 // Customer is logged in (with an employee code)

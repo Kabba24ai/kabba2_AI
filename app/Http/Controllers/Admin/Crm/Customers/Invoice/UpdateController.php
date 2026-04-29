@@ -128,7 +128,7 @@ class UpdateController extends Controller
                             $account->sales_tax = $salesTaxRate;
                             $account->sales_tax_type = 'add';
                         } elseif ($existingItem->type === 'discount') {
-                            $account->sales_tax = 0;
+                          $account->sales_tax = $salesTaxRate;
                             $account->sales_tax_type = null;
                         } elseif ($existingItem->type === 'refund') {
                             $account->sales_tax = $salesTaxRate;
@@ -192,7 +192,9 @@ class UpdateController extends Controller
                     $salesTaxType = 'add';
 
                 } elseif ($type === 'discount') {
-                    $salesTax = 0; // discount has no tax
+                    // $salesTax = 0; // discount has no tax
+                    $salesTax = $salesTaxRate; // refund reduces tax
+
                     $salesTaxType = null;
 
                 } elseif ($type === 'refund') {

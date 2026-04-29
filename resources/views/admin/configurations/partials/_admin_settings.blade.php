@@ -6,10 +6,10 @@
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {{-- Master Passcode --}}
+        {{-- Admin Code --}}
         <div>
             <label for="master_passcode" class="block text-sm font-medium text-gray-700 mb-1">
-                Master Passcode
+                Admin Code
                 <span class="text-xs text-blue-600 ml-1">(Encrypted)</span>
             </label>
 
@@ -107,7 +107,7 @@
                 <div>
                     <h4 class="text-sm font-medium text-amber-800">Security Notice</h4>
                     <p class="text-sm mt-1 text-amber-700">
-                        Both fields are critical for system security. The Master Passcode is encrypted and the Master Password is required to access/edit it. Always use strong, unique passwords and store them securely.
+                        Both fields are critical for system security. The Admin Code is encrypted and the Master Password is required to access/edit it. Always use strong, unique passwords and store them securely.
                     </p>
                 </div>
             </div>

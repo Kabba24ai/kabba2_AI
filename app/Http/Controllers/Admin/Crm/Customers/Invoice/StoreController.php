@@ -141,7 +141,7 @@ class StoreController extends Controller
                     } elseif ($type === 'discount') {
 
                     
-                        $salesTax = 0; // discount has no tax
+                        $salesTax = $salesTaxRate; // discount has no tax
                         $salesTaxType = null;
 
                     } elseif ($type === 'refund') {

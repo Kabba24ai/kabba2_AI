@@ -35,6 +35,7 @@ $stores = Store::active()
                 ->orderByAdmin()
                 ->pluck('store_name', 'id');
 
+              
 
         return view('admin.hrm.users.edit-user', [
             'states' => $states,

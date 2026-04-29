@@ -2,7 +2,7 @@
 
 namespace App\Modules\SchedulingAssistant\Services;
 
-use App\Models\Global\AIAssignmentRule;
+use App\Models\ProductManagement\ProductEquipmentAssignment;
 use App\Models\Orders\OrderProduct;
 use App\Modules\SchedulingAssistant\DTOs\AssistantResultData;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -17,7 +17,7 @@ class AIContextBuilderService
             throw new ModelNotFoundException("OrderProduct {$orderProductId} not found.");
         }
 
-        $rules = $this->loadRulesForOrderProduct($orderProduct);
+        $equipmentAssignments = $this->loadEquipmentAssignmentsForOrderProduct($orderProduct);
 
         return [
             'order' => [
@@ -35,7 +35,7 @@ class AIContextBuilderService
             'current_assignment' => $assistantResult->currentAssignment,
             'issues' => $assistantResult->issues,
             'candidates' => $assistantResult->toArray()['recommended_candidates'],
-            'rules' => $rules,
+            'equipment_assignments' => $equipmentAssignments,
             'policy' => [
                 'primary_behavior' => 'allowed_no_action',
                 'upgrade_behavior' => 'allowed_notify_only',
@@ -46,32 +46,25 @@ class AIContextBuilderService
         ];
     }
 
-    protected function loadRulesForOrderProduct(OrderProduct $orderProduct): array
+    protected function loadEquipmentAssignmentsForOrderProduct(OrderProduct $orderProduct): array
     {
-        $query = AIAssignmentRule::query()
-            ->where('active', true)
-            ->where(function ($q) use ($orderProduct) {
-                if (!empty($orderProduct->product_id)) {
-                    $q->orWhere('product_id', $orderProduct->product_id);
-                }
+        $assignment = ProductEquipmentAssignment::query()
+            ->where('product_id', $orderProduct->product_id)
+            ->where('is_active', true)
+            ->with(['paths.items'])
+            ->first();
 
-                if (!empty($orderProduct->product_name)) {
-                    $q->orWhere('product_name', $orderProduct->product_name);
-                }
-            })
-            ->orderBy('relationship_type')
-            ->orderBy('equipment_name');
+        if (!$assignment) {
+            return [];
+        }
 
-        return $query->get()->map(function (AIAssignmentRule $rule) {
-            return [
-                'product_id' => $rule->product_id,
-                'product_name' => $rule->product_name,
-                'equipment_id' => $rule->equipment_id,
-                'equipment_name' => $rule->equipment_name,
-                'relationship_type' => $rule->relationship_type,
-                'actions_required' => $rule->actions_required ?? [],
-                'notes' => $rule->notes,
-            ];
-        })->values()->all();
+        return [
+            'primary_equipment_pool' => $assignment->primary_equipment_pool,
+            'upgrade_path_primary' => $assignment->upgrade_path_primary,
+            'upgrade_path_alternate_1' => $assignment->upgrade_path_alternate_1,
+            'upgrade_path_alternate_2' => $assignment->upgrade_path_alternate_2,
+            'downgrade_path_option_1' => $assignment->downgrade_path_option_1,
+            'assignment_notes' => $assignment->assignment_notes,
+        ];
     }
 }

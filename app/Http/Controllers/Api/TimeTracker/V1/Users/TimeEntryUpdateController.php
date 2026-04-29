@@ -19,6 +19,8 @@ class TimeEntryUpdateController extends BaseController
 
             $validated = $request->validated();
 
+            // dd($validated);
+
             $entryId   = $validated['entry_id'];
             $breakId   = $validated['break_id'] ?? null;
             $type      = $validated['entry_type'];
@@ -35,6 +37,8 @@ class TimeEntryUpdateController extends BaseController
             // rounded version (same rule you use in clock-in/out)
             $roundedDateTime = TimeTrackerHelper::roundDown($newDateTime, $payIncrement);
 
+
+            
             /*
             |--------------------------------------------------------------------------
             | CLOCK IN

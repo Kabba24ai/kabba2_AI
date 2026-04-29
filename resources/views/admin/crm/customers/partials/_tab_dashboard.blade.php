@@ -82,7 +82,7 @@
                         <p class="text-xs text-gray-500 font-medium">Email Address</p>
                     </div>
                 </div>
-            
+
                  <!-- Website -->
                 <div class="md:col-span-2 flex items-center gap-2">
                     <x-heroicon-o-globe-alt class="w-4 h-4 text-blue-600 hover:text-blue-800 flex-shrink-0" />
@@ -113,7 +113,7 @@
 
             <!-- COLUMN 2 -->
             {{-- <div class="space-y-4"> --}}
-               
+
 
                 <!-- Company Phone -->
               <div class="flex items-center gap-2">
@@ -227,7 +227,7 @@
                         </svg>
                         Add
             </button>
-            
+
         </div>
 
         <!-- Notes List -->
@@ -403,7 +403,7 @@
 
                     {{-- Payment Type --}}
                     <td class="py-4 px-6 text-right">
-                        {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}
+                        {{ $order?->last_payment_type?->label() ?? '-' }}
                     </td>
 
                     {{-- Status Badge --}}

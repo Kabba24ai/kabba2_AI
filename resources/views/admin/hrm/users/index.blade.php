@@ -117,46 +117,42 @@
     </script>
     <!-- delete user script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const deleteButtons = document.querySelectorAll('.delete-user-btn');
+        document.addEventListener('click', function (e) {
+    const button = e.target.closest('.delete-user-btn');
+    if (!button) return;
 
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const url = this.dataset.url;
+    // console.log('delete clicked');
 
-                    window.showConfirm(
-                        'Are you sure you want to delete this user? This action cannot be undone.',
-                        'Delete User'
-                    ).then((result) => {
-                        if (result.isConfirmed) {
-                            fetch(url, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'X-CSRF-TOKEN': document.querySelector(
-                                            'meta[name="csrf-token"]').content,
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(res => res.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        notyf.success(data.message || 'User deleted.');
-                                        // Reload or redirect
-                                        window.location.reload();
-                                    } else {
-                                        notyf.error(data.message ||
-                                            'Could not delete user.');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error(error);
-                                    notyf.error('Something went wrong.');
-                                });
-                        }
-                    });
-                });
+    const url = button.dataset.url;
+
+    window.showConfirm(
+        'Are you sure you want to delete this user? This action cannot be undone.',
+        'Delete User'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    notyf.success(data.message || 'User deleted.');
+                    window.location.reload();
+                } else {
+                    notyf.error(data.message || 'Could not delete user.');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                notyf.error('Something went wrong.');
             });
-        });
+        }
+    });
+});
     </script>
     <!-- delete user script -->
     <script>

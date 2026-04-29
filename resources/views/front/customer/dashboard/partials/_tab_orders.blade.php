@@ -48,15 +48,15 @@
            @endif --}}
 
 
-           
+
                 @php
                     $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
-                
+
                         $isSuspended = $customer->status === 'Archived' || $customer->status === 'Suspended';
 
                 @endphp
 
-         
+
 
                 @if($isSuspended)
                         <span  class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 w-auto">
@@ -114,7 +114,7 @@
                                <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}
                                </td>
                                <td class="px-4 py-3">
-                                   {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}
+                                   {{ $order?->last_payment_type?->label() ?? '-' }}
                                </td>
                                <td class="px-4 py-3">
                                    {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
@@ -124,7 +124,7 @@
                                <td class="px-4 py-3 items-center whitespace-nowrap text-blue-600 flex">
                                    <!-- View -->
 
-                                 
+
 
                                  <a href="{{ route('front.customer.dashboard.order.view', $order->unique_id) }}"
                                      class="text-blue-600 inline-flex items-center">

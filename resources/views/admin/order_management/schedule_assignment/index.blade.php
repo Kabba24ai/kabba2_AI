@@ -362,89 +362,6 @@
         return result;
     }
 
-    function openScheduleAssistantModal(orderProductId) {
-        const content = showScheduleAssistantModal('Scheduling Assistant');
-
-        const url = '{{ route("admin.order-management.schedules.show", ["orderProductId" => "__ORDER_PRODUCT_ID__"]) }}'
-            .replace('__ORDER_PRODUCT_ID__', orderProductId);
-
-        fetchScheduleAssistantJson(url, 'Failed to load scheduling assistant.')
-        .then(result => {
-            if (!result.success) {
-                content.innerHTML = `
-                    <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        ${result.message || result.error || 'Failed to load scheduling assistant.'}
-                    </div>
-                `;
-                return;
-            }
-
-            const data = result.data;
-            const issuesHtml = (data.issues || []).map(issue => `
-                <div class="mb-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-                    <div class="font-medium text-yellow-800">${issue.code}</div>
-                    <div class="text-sm text-yellow-700">${issue.message}</div>
-                </div>
-            `).join('');
-
-            const candidatesHtml = (data.recommended_candidates || []).slice(0, 5).map(candidate => `
-                <div class="mb-4 rounded-xl border p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-base font-semibold">${candidate.equipment_name}</h3>
-                            <p class="text-sm text-gray-500">${candidate.equipment_code ?? '-'}</p>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-sm font-semibold">Score: ${candidate.score}</div>
-                            <div class="text-xs uppercase tracking-wide text-gray-500">${candidate.eligibility_status}</div>
-                        </div>
-                    </div>
-
-                    ${candidate.flags?.length ? `
-                        <div class="mt-3 flex flex-wrap gap-2">
-                            ${candidate.flags.map(flag => `
-                                <span class="rounded-full bg-red-100 px-2 py-1 text-xs text-red-700">${flag}</span>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-
-                    <ul class="mt-3 list-disc pl-5 text-sm text-gray-700">
-                        ${(candidate.reasons || []).map(reason => `<li>${reason}</li>`).join('')}
-                    </ul>
-                </div>
-            `).join('');
-
-            content.innerHTML = `
-                <div class="mb-4">
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div class="rounded-lg bg-gray-50 p-4">
-                            <div class="text-xs uppercase tracking-wide text-gray-500">Delivery</div>
-                            <div class="font-medium">${data.order_window?.delivery ?? '-'}</div>
-                        </div>
-                        <div class="rounded-lg bg-gray-50 p-4">
-                            <div class="text-xs uppercase tracking-wide text-gray-500">Pickup</div>
-                            <div class="font-medium">${data.order_window?.pickup ?? '-'}</div>
-                        </div>
-                    </div>
-                </div>
-
-                ${issuesHtml ? `<div class="mb-6">${issuesHtml}</div>` : ''}
-
-                <div>
-                    <h3 class="mb-3 text-lg font-semibold">Recommended Candidates</h3>
-                    ${candidatesHtml || '<p class="text-sm text-gray-500">No candidates found.</p>'}
-                </div>
-            `;
-        })
-        .catch(error => {
-            content.innerHTML = `
-                <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    ${error.message || 'Something went wrong while loading scheduling assistant data.'}
-                </div>
-            `;
-        });
-    }
-
     function openAIScheduleAdvisorModal(orderProductId) {
         const content = showScheduleAssistantModal('AI Schedule Advisor');
 
@@ -465,6 +382,27 @@
                 const assistant = result.data?.assistant || {};
                 const ai = result.data?.ai || {};
                 const recommendation = ai.recommendation || {};
+
+                // --- Date formatting logic ---
+                function formatDateTime(dt) {
+                    if (!dt) return '-';
+                    // Try to parse and format as per app config (from window or fallback)
+                    const configFormat = (window.APP_DATE_TIME_FORMAT || 'm/d/Y - h:i A');
+                    // Try to parse as ISO or Y-m-d H:i:s
+                    const d = new Date(dt);
+                    if (isNaN(d.getTime())) return escapeScheduleHtml(dt);
+                    // Format using config (simple, not locale-aware)
+                    const pad = n => n.toString().padStart(2, '0');
+                    let formatted = configFormat
+                        .replace('Y', d.getFullYear())
+                        .replace('m', pad(d.getMonth() + 1))
+                        .replace('d', pad(d.getDate()))
+                        .replace('H', pad(d.getHours()))
+                        .replace('h', pad((d.getHours() % 12) || 12))
+                        .replace('i', pad(d.getMinutes()))
+                        .replace('A', d.getHours() < 12 ? 'AM' : 'PM');
+                    return formatted;
+                }
 
                 const issuesHtml = (assistant.issues || []).map(issue => `
                     <div class="mb-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
@@ -510,11 +448,11 @@
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div class="rounded-lg bg-gray-50 p-4">
                                 <div class="text-xs uppercase tracking-wide text-gray-500">Delivery</div>
-                                <div class="font-medium">${escapeScheduleHtml(assistant.order_window?.delivery || '-')}</div>
+                                <div class="font-medium">${formatDateTime(assistant.order_window?.delivery)}</div>
                             </div>
                             <div class="rounded-lg bg-gray-50 p-4">
                                 <div class="text-xs uppercase tracking-wide text-gray-500">Pickup</div>
-                                <div class="font-medium">${escapeScheduleHtml(assistant.order_window?.pickup || '-')}</div>
+                                <div class="font-medium">${formatDateTime(assistant.order_window?.pickup)}</div>
                             </div>
                         </div>
 

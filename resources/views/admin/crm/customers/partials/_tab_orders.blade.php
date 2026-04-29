@@ -208,7 +208,7 @@
 
                              {{-- Payment Method --}}
                              <td class="py-4 px-6 text-right">
-                                 {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}
+                                 {{ $order?->last_payment_type?->label() ?? '-' }}
                              </td>
 
                              {{-- Order Status --}}

@@ -15,7 +15,18 @@
                         @endif
                     </td>
                     <td class="text-left px-6 py-4">
-                        <div class="font-medium text-gray-800 dark:text-gray-100">{{ $product->product_name }}</div>
+                        @php
+                            $productVariant = $product->product_type === 'Retail' ? 'retail' : 'daily';
+                        @endphp
+                        @if (!empty($product->slug))
+                            <a href="{{ route('front.products.index', ['slug' => $product->slug, 'productVariant' => $productVariant]) }}"
+                                class="font-medium text-gray-800 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 underline-offset-2 hover:underline"
+                                title="View product on frontend">
+                                {{ $product->product_name }}
+                            </a>
+                        @else
+                            <div class="font-medium text-gray-800 dark:text-gray-100">{{ $product->product_name }}</div>
+                        @endif
                         @if ($product->is_on_sale)
                             <span
                                 class="ml-0 inline-block rounded bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 px-2 py-0.5 text-xs font-semibold align-middle">

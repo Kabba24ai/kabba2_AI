@@ -46,7 +46,7 @@
                         {{-- Site Logo --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Upload Site Logo
+                                Upload Site Logo (Navbar & favicon)
                             </label>
                             <div class="flex items-center space-x-4">
                                 @if (!empty($siteLogo))
@@ -67,7 +67,7 @@
                         {{-- Site Name --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Site Name
+                                Site Name (opportunities page title, footer, etc.)
                             </label>
                             {!! html()->text('site_name', old('site_name', $settings['site_name'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'Example: Rent n King',
@@ -76,7 +76,7 @@
                         {{-- Phone --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Phone Number
+                                High Demand Alert Phone Number
                             </label>
                             {!! html()->text('site_phone', old('site_phone', old('site_phone', $settings['site_phone'] ?? '')))->class([
                                     'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
@@ -94,7 +94,7 @@
                         {{-- Email --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Email Address
+                                Email Address (Opportunities page contact email)
                             </label>
                             {!! html()->email('site_email', old('site_email', $settings['site_email'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'example@email.com',
@@ -207,7 +207,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Terms &amp; Conditions Text 1
+                                Terms &amp; Conditions Line 1
                             </label>
                             {!! html()->text(
                                     'terms_condition_text_1',
@@ -216,7 +216,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Terms &amp; Conditions Text 2
+                                Terms &amp; Conditions Line 2
                             </label>
                             {!! html()->text(
                                     'terms_condition_text_2',
@@ -225,12 +225,24 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Terms &amp; Conditions Text 3
+                                Terms &amp; Conditions Line 3
                             </label>
                             {!! html()->text(
                                     'terms_condition_text_3',
                                     old('Terms & Conditions Text 3', $settings['terms_condition_text_3']),
                                 )->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none') !!}
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <a href="{{ asset('storage/admin/images/samples/terms-layout-preview.png') }}" target="_blank"
+                                class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium underline">
+                                See Layout
+                            </a>
+                            <a href="{{ asset('storage/admin/images/samples/terms-layout-preview.png') }}" target="_blank">
+                                <img src="{{ asset('storage/admin/images/samples/terms-layout-preview.png') }}"
+                                    onerror="this.style.display='none'"
+                                    class="h-16 w-24 object-cover border border-gray-200 rounded shadow-sm object-scale-down"
+                                    alt="Terms Layout Preview">
+                            </a>
                         </div>
                     </div>
                 </div>

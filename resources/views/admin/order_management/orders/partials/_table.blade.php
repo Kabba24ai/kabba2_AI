@@ -10,7 +10,7 @@
                 <th class="py-4 px-6 text-left">Billing Address</th>
                 <th class="py-4 px-6 text-left">Phone</th>
                 <th class="py-4 px-6 text-right">Amount</th>
-                <th class="py-4 px-6 text-left">Payment Type</th>
+                <th class="py-4 px-6 text-center">Payment Type</th>
                 <th class="py-4 px-6 text-center">Payment</th>
                 {{-- <th class="py-4 px-6 text-center">Delivery</th>
                 <th class="py-4 px-6 text-center">Return</th> --}}
@@ -52,7 +52,7 @@
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
                     </td>
                     <td class="py-4 px-6 text-center">
-                        {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}
+                        {{ $order?->last_payment_type?->label() ?? '-' }}
                     </td>
 
                     <td class="py-4 px-6 text-center">

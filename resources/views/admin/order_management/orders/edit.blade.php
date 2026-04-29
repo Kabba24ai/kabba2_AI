@@ -128,7 +128,7 @@
 
                 {{-- links under the pill/buttons (like screenshot) --}}
                 <div class="flex items-center gap-6 text-sm text-blue-600">
-                    <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}" 
+                    <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}"
                         class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
                         @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
                         <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
@@ -566,11 +566,11 @@
                                             @php
                                                 $case = collect(
                                                     \App\Enums\Products\ProductCustomStaticLabel::cases(),
-                                                )->firstWhere('name', $rentalKey)?->value;
+                                                )->firstWhere('name', $rentalKey);
                                                 $quantity = $case ? $orderProduct->quantity : 1;
                                             @endphp
 
-                                            {{ $case ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
+                                            {{ $case?->label() ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
                                             <span class="text-xs text-gray-400">
                                                 (x{{ $quantity }})
                                             </span>
@@ -1140,7 +1140,7 @@
                 </button>
 
                 <div class="p-6 max-h-60 overflow-y-auto" id="noteDiv">
-                    <x-admin.order-management.orders.order-notes-list :notes="$order->notes" />
+                    <x-admin.order-management.orders.order-notes-list :notes="$order->unified_notes" />
                 </div>
             </div>
         </div>
@@ -1959,7 +1959,7 @@
                                                 <td class="py-2 px-2">
                                                     Fuel (
                                                     {{ $product->equipment?->power_source_type
-                                                        ? ucfirst($product->equipment->power_source_type->value)
+                                                        ? $product->equipment->power_source_type->label()
                                                         : 'Select Power Source' }})
 
 
@@ -2293,7 +2293,7 @@
                             </select>
                             <div class="flex items-center justify-between gap-3 mt-2">
                                 <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                                <a href="#" 
+                                <a href="#"
                                     class="text-blue-600 hover:underline text-sm font-semibold"
                                     id="equipment-page-link"></a>
                             </div>
@@ -4325,7 +4325,7 @@
                     title = 'Media';
                 }
 
-                    
+
                 // Video
                 if (m.url.match(/\.(mp4|mov|webm)$/)) {
                     html += `
@@ -4333,7 +4333,7 @@
                             <video class="w-full h-48 object-cover" muted>
                                 <source src="${m.url}" type="video/mp4">
                             </video>
-                            <a href="${m.url}" 
+                            <a href="${m.url}"
                                 class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
                                 <!-- Play Icon -->
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -4354,7 +4354,7 @@
                         <img src="${m.url}" class="w-full h-48 object-cover" />
 
                         <!-- Overlay -->
-                        <a href="${m.url}" 
+                        <a href="${m.url}"
                             class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/>

@@ -23,6 +23,15 @@ use App\Models\Stores\Store;
     public function __invoke(Request $request,$unique_id)
     {
 
+     $loguser = auth()->user()->fresh();
+
+    //  If NOT master_admin → redirect
+    if (!in_array('master_admin', $loguser->role_short_names)) {
+        return redirect()
+            ->route('admin.hrm.users.index')
+            ->with('error', 'You are not authorized to access this page.');
+    }
+
          $states = State::get();
 
         // Fetch the user data based on unique_id or any other identifier
@@ -34,6 +43,7 @@ use App\Models\Stores\Store;
 $stores = Store::active()
                 ->orderByAdmin()
                 ->pluck('store_name', 'id');
+
 
         return view('admin.hrm.users.edit', [
             'states' => $states,

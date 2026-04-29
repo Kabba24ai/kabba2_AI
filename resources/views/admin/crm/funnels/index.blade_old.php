@@ -32,10 +32,10 @@
                             <div
                                 class="flex items-center justify-between mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Cash on Delivery Order Message
+                                    Pay on Delivery Order Message
                                 </span>
                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Text Message sent after cod order placed
+                                    Text Message sent after POD order placed
                                 </span>
                             </div>
                             <div class="grid grid-cols-1 grid-flow-col md:grid-cols-2 gap-6">
@@ -44,7 +44,7 @@
                                         <label for="cod_order_message"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
                                             <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
-                                            COD Order Message
+                                            POD Order Message
                                         </label>
                                         <label for="cod_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">

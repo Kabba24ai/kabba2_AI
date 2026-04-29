@@ -43,7 +43,7 @@ enum OrderHistoryAction : string
             self::LicenseUploaded => 'License Uploaded',
             self::DeliveryMediaUploaded => 'Delivery Video Uploaded',
             self::ReturnMediaUploaded => 'Return Video Uploaded',
-            self::CodSmsNotification => 'COD SMS Notification Sent',
+            self::CodSmsNotification => 'POD SMS Notification Sent',
             self::BillingAddressUpdated => 'Billing Address Updated',
             self::DeliveryAddressUpdated => 'Delivery Address Updated',
             self::NoteCreated => 'Note Created',

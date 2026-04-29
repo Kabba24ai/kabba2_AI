@@ -21,6 +21,7 @@
                         @endphp
 
                         <!-- Deliveries - Truck -->
+                        <a href="{{ route('admin.order-management.schedules.index', ['schedule_type[]' => 'Delivery', 'transport_mode[]' => 'Truck']) }}" class="block">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 group-hover:scale-110 transition-transform duration-200">
@@ -62,6 +63,7 @@
                              @endif
                             </div>
                         </div>
+                        </a>
 
                         @php
                             $dueStore       = $scheduleStats['deliveries_store']['due_today'] ?? 0;
@@ -78,6 +80,7 @@
 
 
                         <!-- Deliveries - In Store -->
+                        <a href="{{ route('admin.order-management.schedules.index', ['schedule_type[]' => 'Delivery', 'transport_mode[]' => 'Store']) }}" class="block">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-green-500 to-green-600 group-hover:scale-110 transition-transform duration-200">
@@ -122,6 +125,7 @@
 
                             </div>
                         </div>
+                        </a>
 
 
                         @php
@@ -139,6 +143,7 @@
 
 
                         <!-- Returns - Truck -->
+                        <a href="{{ route('admin.order-management.schedules.index', ['schedule_type[]' => 'Return', 'transport_mode[]' => 'Truck']) }}" class="block">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 group-hover:scale-110 transition-transform duration-200">
@@ -182,6 +187,7 @@
 
                             </div>
                         </div>
+                        </a>
 
                         @php
                             $dueReturnStore       = $scheduleStats['returns_store']['due_today'] ?? 0;
@@ -198,6 +204,7 @@
 
 
                         <!-- Returns - In Store -->
+                        <a href="{{ route('admin.order-management.schedules.index', ['schedule_type[]' => 'Return', 'transport_mode[]' => 'Store']) }}" class="block">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 group-hover:scale-110 transition-transform duration-200">
@@ -228,7 +235,7 @@
                                         <span class="text-white font-semibold text-xs tracking-wide">ALL DONE!</span>
                                     </div>
                                 </div>
-                                
+
                                 {{-- OTHERWISE → SHOW PROGRESS --}}
                                 @else
 
@@ -243,6 +250,7 @@
                                  @endif
                             </div>
                         </div>
+                        </a>
                     </div>
                 </div>
 
@@ -375,7 +383,7 @@
                         </div>
 
                         <!-- Service Due -->
-                        <a href="{{ route('admin.maintenance-management.equipment-service.index') }}" 
+                        <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
                            class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all block">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 group-hover:scale-110 transition-transform duration-200">
@@ -394,7 +402,7 @@
                         </a>
 
                         <!-- Service Overdue -->
-                        <a href="{{ route('admin.maintenance-management.equipment-service.index') }}" 
+                        <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
                            class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all block">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 group-hover:scale-110 transition-transform duration-200">

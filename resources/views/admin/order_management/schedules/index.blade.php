@@ -208,8 +208,14 @@
                         <input type="checkbox" name="rescheduled_only" value="Reschedule" id="rescheduled_only"
                             class="text-red-600 focus:ring-red-500 rounded border-gray-300" @checked(request('rescheduled_only') == 'Reschedule')>
                         <span class="font-medium">Rescheduled Pending : {{ $rescheduleOrder }}</span>
-
                     </label>
+                </div>
+                <!-- Quick Filter Buttons -->
+                <div class="flex gap-2">
+                    <button type="button" class="schedule-filter-btn px-3 py-2 rounded bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200 border border-blue-200" data-schedule-type="Delivery" data-transport-mode="Truck">Deliveries - Truck</button>
+                    <button type="button" class="schedule-filter-btn px-3 py-2 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 border border-green-200" data-schedule-type="Delivery" data-transport-mode="Store">Deliveries - In Store</button>
+                    <button type="button" class="schedule-filter-btn px-3 py-2 rounded bg-purple-100 text-purple-700 text-xs font-semibold hover:bg-purple-200 border border-purple-200" data-schedule-type="Return" data-transport-mode="Truck">Returns - Truck</button>
+                    <button type="button" class="schedule-filter-btn px-3 py-2 rounded bg-indigo-100 text-indigo-700 text-xs font-semibold hover:bg-indigo-200 border border-indigo-200" data-schedule-type="Return" data-transport-mode="Store">Returns - In Store</button>
                 </div>
             </div>
         </div>
@@ -325,6 +331,37 @@
 @endsection
 
 @push('js')
+<script>
+// Ensure filter checkboxes are always overridden by URL params after all DOMContentLoaded scripts
+window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const url = new URL(window.location.href);
+        const scheduleTypes = url.searchParams.getAll('schedule_type[]');
+        const transportModes = url.searchParams.getAll('transport_mode[]');
+
+        // Always override: uncheck all, then check those in URL
+        // Schedule Type
+        document.querySelectorAll('input[name="schedule_type[]"]').forEach(cb => {
+            cb.checked = false;
+        });
+        if (scheduleTypes.length) {
+            document.querySelectorAll('input[name="schedule_type[]"]').forEach(cb => {
+                cb.checked = scheduleTypes.includes(cb.value);
+            });
+        }
+
+        // Transport Mode
+        document.querySelectorAll('input[name="transport_mode[]"]').forEach(cb => {
+            cb.checked = false;
+        });
+        if (transportModes.length) {
+            document.querySelectorAll('input[name="transport_mode[]"]').forEach(cb => {
+                cb.checked = transportModes.includes(cb.value);
+            });
+        }
+    }, 0); // Run after all other DOMContentLoaded handlers
+});
+</script>
 <script>
     function escapeScheduleHtml(value) {
         return String(value ?? '')
@@ -598,6 +635,7 @@
                 });
             });
         });
+
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -788,6 +826,26 @@
                     }
                 });
             });
+
+            // Schedule filter buttons logic
+        document.querySelectorAll('.schedule-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const scheduleType = this.getAttribute('data-schedule-type');
+                const transportMode = this.getAttribute('data-transport-mode');
+
+                // Uncheck all schedule_type checkboxes, then check the right one
+                document.querySelectorAll('input[name="schedule_type[]"]').forEach(cb => {
+                    cb.checked = (cb.value === scheduleType);
+                });
+                // Uncheck all transport_mode checkboxes, then check the right one
+                document.querySelectorAll('input[name="transport_mode[]"]').forEach(cb => {
+                    cb.checked = (cb.value === transportMode);
+                });
+
+                // Trigger AJAX filter
+                if (typeof fetchSchedules === 'function') fetchSchedules(pageParam, perPageParam);
+            });
+        });
 
             const modal = document.getElementById('equipmentAssignModal');
             const equipmentAssignForm = document.getElementById('equipmentAssignForm');

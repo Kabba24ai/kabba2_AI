@@ -306,6 +306,8 @@
             let openAmount = openElem.textContent.replace(/[^0-9.-]+/g, "");
             openAmount = parseFloat(openAmount) || 0;
 
+            amountInput.dataset.max = openAmount; 
+
             if (openAmount > 0) {
 
                 const formatted = openAmount.toFixed(2);
@@ -325,6 +327,24 @@
             }
         }
 
+          const paymentForm = document.getElementById('recordpayment');
+
+            paymentForm.addEventListener('input', function (e) {
+
+                if (e.target.name === 'amount') {
+
+                    const input = e.target;
+                    const max = parseFloat(input.dataset.max || 0);
+                    let value = parseFloat(input.value || 0);
+
+                    if (value > max) {
+                        input.value = max.toFixed(2);
+
+                        notyf.error("Amount cannot exceed remaining balance");
+                    }
+                }
+            });
+
           function setupModal(openBtnId, modalWrapperId, closeBtnId, cancelBtnId) {
             const modalWrapper = document.getElementById(modalWrapperId);
             const openBtn = document.getElementById(openBtnId);
@@ -338,8 +358,8 @@
                 modalWrapper.style.display = 'flex';
 
 
-    // Auto-fill with open amount
-    fillPaymentWithOpenAmount(modalWrapper);
+                // Auto-fill with open amount
+                fillPaymentWithOpenAmount(modalWrapper);
             });
 
             // Close
@@ -365,12 +385,8 @@
 
            setupModal('openTemplatesModal', 'templatesModalWrapper', 'closeModalBtn', 'canceltempBtn');
 
-
-        
     });
 </script>
-
-
 
    @if ($paymentSetting['payment_test_mode'] ?? false)
    <script src="https://jstest.authorize.net/v1/Accept.js"></script>
@@ -380,6 +396,7 @@
 
    <script>
        document.addEventListener('DOMContentLoaded', function() {
+        
            // console.log(" DOM fully loaded");
 
            const form = document.getElementById('recordpayment');

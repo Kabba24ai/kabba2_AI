@@ -139,6 +139,8 @@
         const closeBtn = document.getElementById("closeDiscountModalBtn");
         const cancelBtn = document.getElementById("cancelDiscountBtn");
 
+         const TAX_RATE = window.SALES_TAX_RATE;
+
         // ---- Modal Open/Close ----
         openBtn.addEventListener("click", () => {
             discountModal.style.display = "flex";
@@ -255,7 +257,10 @@
 
                 const amount = parseFloat(rawAmount.replace(/[^0-9.]/g, "")) || 0;
                 const qty = 1;
-                const total = amount; // adjust if needed
+
+                const taxRate = window.SALES_TAX_RATE;
+                const taxPrice = amount * taxRate;
+                const total = amount + taxPrice;
 
                 const editingId = discountForm.dataset.editingId;
 
@@ -290,7 +295,7 @@
                                         </td>
                                         <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
                                         <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${amount.toFixed(2)}</td>
-                                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">$0.00</td>
+                                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${taxPrice.toFixed(2)}</td>
                                         <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap text-green-600">- $${total.toFixed(2)}</td>
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <div class="flex items-center justify-center gap-3">
@@ -315,7 +320,7 @@
                         name: reason,
                         qty: qty,
                         unit: rawAmount,
-                        tax: 0,
+                        tax: taxPrice,
                         total: total,
                         responsible_id: responsibleId,
                         reference: reference,
@@ -339,7 +344,7 @@
                                         </td>
                                         <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
                                         <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${amount.toFixed(2)}</td>
-                                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">$0.00</td>
+                                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${taxPrice.toFixed(2)}</td>
                                         <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap text-green-600">- $${total.toFixed(2)}</td>
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <div class="flex items-center justify-center gap-3">

@@ -21,7 +21,7 @@
                         @endphp
 
                         <!-- Deliveries - Truck -->
-                        <a href="{{ route('admin.order-management.schedules.index', ['schedule_type[]' => 'Delivery', 'transport_mode[]' => 'Truck']) }}" class="block">
+                        <a href="{{ route('admin.order-management.schedules.index', ['urlScheduleType' => 'Delivery', 'urlTransportMode' => 'Truck']) }}" class="block">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 group-hover:scale-110 transition-transform duration-200">
@@ -80,7 +80,7 @@
 
 
                         <!-- Deliveries - In Store -->
-                        <a href="{{ route('admin.order-management.schedules.index', ['schedule_type[]' => 'Delivery', 'transport_mode[]' => 'Store']) }}" class="block">
+                        <a href="{{ route('admin.order-management.schedules.index', ['urlScheduleType' => 'Delivery', 'urlTransportMode' => 'Store']) }}" class="block">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-green-500 to-green-600 group-hover:scale-110 transition-transform duration-200">
@@ -143,7 +143,7 @@
 
 
                         <!-- Returns - Truck -->
-                        <a href="{{ route('admin.order-management.schedules.index', ['schedule_type[]' => 'Return', 'transport_mode[]' => 'Truck']) }}" class="block">
+                        <a href="{{ route('admin.order-management.schedules.index', ['urlScheduleType' => 'Return', 'urlTransportMode' => 'Truck']) }}" class="block">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 group-hover:scale-110 transition-transform duration-200">
@@ -204,7 +204,7 @@
 
 
                         <!-- Returns - In Store -->
-                        <a href="{{ route('admin.order-management.schedules.index', ['schedule_type[]' => 'Return', 'transport_mode[]' => 'Store']) }}" class="block">
+                        <a href="{{ route('admin.order-management.schedules.index', ['urlScheduleType' => 'Return', 'urlTransportMode' => 'Store']) }}" class="block">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-2.5 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 group-hover:scale-110 transition-transform duration-200">

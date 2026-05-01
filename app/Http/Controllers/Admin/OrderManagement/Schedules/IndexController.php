@@ -35,6 +35,8 @@ class IndexController extends Controller
                 $query->where(function ($q)  {
                     $q->where('delivery_status', 'Pending')->orWhere('pickup_status', 'Pending');
                 });
+                $query->where('delivery_status', '!=', 'Reschedule')
+                      ->where('pickup_status', '!=', 'Reschedule');
             }
 
             if ($request->filled('order_number')) {

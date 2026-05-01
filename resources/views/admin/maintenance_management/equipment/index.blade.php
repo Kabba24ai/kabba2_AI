@@ -198,7 +198,8 @@
 
                 e.preventDefault();
 
-                currentStatus = card.dataset.status || null;
+                const clickedStatus = card.dataset.status || null;
+                currentStatus = clickedStatus === (currentStatus || null) ? null : clickedStatus;
 
                 if (currentStatus) {
                     localStorage.setItem(STATUS_KEY, currentStatus);
@@ -226,6 +227,9 @@
             // Clear filters functionality using global clearFilters
             document.getElementById('clear-filters').addEventListener('click', function() {
                 window.clearFilters(fieldMap, screenKey);
+                currentStatus = null;
+                localStorage.removeItem(STATUS_KEY);
+                setActiveStatCard();
                 fetchEquipments(); // Fetch orders after clearing filters
             });
 

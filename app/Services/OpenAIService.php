@@ -36,7 +36,7 @@ class OpenAIService
         return $this->request('/chat/completions', $payload, 'chat_completion');
     }
 
-    protected function request(string $endpoint, array $payload, string $requestType): array
+    public function request(string $endpoint, array $payload, string $requestType): array
     {
         $apiKey = $this->apiKey();
         $baseUrl = rtrim($this->baseUrl(), '/');

@@ -20,6 +20,7 @@ use App\Models\ProductManagement\ProductCategory;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
 use App\Models\Orders\OrderProduct;
 use App\Models\Stores\Store;
+use App\Models\MaintenanceManagement\EquipmentSpecification;
 
 class Equipment extends Model
 {
@@ -196,6 +197,12 @@ class Equipment extends Model
     {
         return $this->belongsTo(PartsList::class, 'parts_list_id', 'id');
     }
+
+    public function specifications()
+    {
+        return $this->hasMany(EquipmentSpecification::class, 'equipment_id');
+    }
+
 
     public function customerAdminTemplates()
     {

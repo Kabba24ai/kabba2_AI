@@ -10,12 +10,13 @@ use App\Models\Stores\Store;
 use App\Models\MaintenanceManagement\ServiceMaster\ServiceTemplate;
 use App\Models\MaintenanceManagement\PartsList;
 use Illuminate\Support\Str;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\Specification\GenerateController as SpecFormatter;
 
 class EditController extends Controller
 {
     public function __invoke($unique_id)
     {
-        $equipment = Equipment::with(['serviceTemplate', 'documentImages.media', 'partsList'])
+        $equipment = Equipment::with(['serviceTemplate', 'documentImages.media', 'partsList', 'productCategory', 'specifications.approvedByUser'])
             ->where('unique_id', $unique_id)
             ->firstOrFail();
         $categories = ProductCategory::getHierarchy();
@@ -90,6 +91,23 @@ class EditController extends Controller
             ->values()
             ->toArray();
 
-        return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates', 'partsLists', 'selectedPartsListId', 'similarEquipmentOptions', 'defaultSimilarEquipmentIds'));
+        return view('admin.maintenance_management.equipment.edit', compact(
+            'equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates',
+            'partsLists', 'selectedPartsListId', 'similarEquipmentOptions', 'defaultSimilarEquipmentIds'
+        ) + [
+            'existingSpecs' => $equipment->specifications->map(fn ($s) => SpecFormatter::formatSpec($s))->values()->toJson(),
+            'specGenerateUrl' => route('admin.maintenance-management.equipment.specification.generate', $equipment->unique_id),
+            'specApproveBaseUrl' => Str::beforeLast(route('admin.maintenance-management.equipment.specification.generate', $equipment->unique_id), '/generate'),
+            'equipmentLookupPayload' => json_encode([
+                'brand'          => $equipment->brand ?? '',
+                'model'          => $equipment->model ?? '',
+                'model_year'     => $equipment->model_year,
+                'category'       => optional($equipment->productCategory)->title ?? '',
+                'equipment_name' => $equipment->equipment_name ?? '',
+                'equipment_id'   => $equipment->equipment_id ?? '',
+                'serial_number'  => $equipment->serial_number ?? null,
+                'vin'            => $equipment->vehicle_identification_number ?? null,
+            ], JSON_PRETTY_PRINT),
+        ]);
     }
 }

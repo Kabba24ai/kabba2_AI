@@ -9,6 +9,7 @@ use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
 use App\Models\MaintenanceManagement\ServiceMaster\ServiceTemplate;
 use App\Models\MaintenanceManagement\PartsList;
+use Illuminate\Support\Str;
 
 class EditController extends Controller
 {
@@ -34,6 +35,61 @@ class EditController extends Controller
         $selectedPartsListId = $equipment->parts_list_id;
         $partListUniqueId = $equipment->partsList?->unique_id;
 
-        return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates', 'partsLists', 'selectedPartsListId'));
+        $similarEquipmentCandidates = Equipment::query()
+            ->where('id', '!=', $equipment->id)
+            ->where('product_category_id', $equipment->product_category_id)
+            ->orderBy('equipment_name')
+            ->get(['id', 'equipment_name', 'equipment_id']);
+
+        $similarEquipmentOptions = $similarEquipmentCandidates
+            ->mapWithKeys(function ($item) {
+                $label = $item->equipment_name;
+                if (!empty($item->equipment_id)) {
+                    $label .= ' (' . $item->equipment_id . ')';
+                }
+
+                return [$item->id => $label];
+            })
+            ->toArray();
+
+        $normalizedCurrentName = Str::of((string) $equipment->equipment_name)
+            ->lower()
+            ->replaceMatches('/[^a-z0-9\s]/', ' ')
+            ->squish()
+            ->value();
+
+        $currentKeywords = collect(explode(' ', $normalizedCurrentName))
+            ->filter(fn ($word) => strlen($word) >= 3)
+            ->values();
+
+        $defaultSimilarEquipmentIds = $similarEquipmentCandidates
+            ->filter(function ($item) use ($normalizedCurrentName, $currentKeywords) {
+                $normalizedCandidateName = Str::of((string) $item->equipment_name)
+                    ->lower()
+                    ->replaceMatches('/[^a-z0-9\s]/', ' ')
+                    ->squish()
+                    ->value();
+
+                if ($normalizedCandidateName === '' || $normalizedCurrentName === '') {
+                    return false;
+                }
+
+                if (str_contains($normalizedCandidateName, $normalizedCurrentName) || str_contains($normalizedCurrentName, $normalizedCandidateName)) {
+                    return true;
+                }
+
+                $candidateKeywords = collect(explode(' ', $normalizedCandidateName))
+                    ->filter(fn ($word) => strlen($word) >= 3);
+
+                $overlapCount = $currentKeywords->intersect($candidateKeywords)->count();
+
+                return $overlapCount >= 2 || ($currentKeywords->count() === 1 && $overlapCount === 1);
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (string) $id)
+            ->values()
+            ->toArray();
+
+        return view('admin.maintenance_management.equipment.edit', compact('equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates', 'partsLists', 'selectedPartsListId', 'similarEquipmentOptions', 'defaultSimilarEquipmentIds'));
     }
 }

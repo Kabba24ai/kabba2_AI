@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="h-screen bg-gray-50 flex flex-col overflow-hidden">
-        <div class="flex-1 overflow-auto">
+        <div class="flex-1">
             {{-- Header --}}
             <div class="bg-white border-b border-gray-200 px-6 py-4">
                 <div class="max-w-5xl flex items-center justify-between">
@@ -64,11 +64,152 @@
                         </svg>
                     </button>
                 </div>
+                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <div class="border-b border-gray-200 px-6 pt-5">
+                        <nav class="-mb-px flex flex-wrap gap-6" aria-label="Equipment tabs">
+                            <button type="button" data-tab-btn="overview"
+                                class="tab-btn inline-flex items-center border-b-2 border-blue-600 px-1 pb-3 text-sm font-semibold text-blue-600 transition-colors">
+                                Overview
+                            </button>
+                            <button type="button" data-tab-btn="specification"
+                                class="tab-btn inline-flex items-center border-b-2 border-transparent px-1 pb-3 text-sm font-semibold text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700">
+                                Specification
+                            </button>
+                            <button type="button" data-tab-btn="key-comparison"
+                                class="tab-btn inline-flex items-center border-b-2 border-transparent px-1 pb-3 text-sm font-semibold text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700">
+                                Key Comparison
+                            </button>
+                        </nav>
+                    </div>
 
-                @include('admin.maintenance_management.equipment.partials._form')
+                    <div class="p-6 max-h-[calc(100vh-270px)] overflow-y-auto">
+                        <div data-tab-panel="overview">
+                            @include('admin.maintenance_management.equipment.partials._form')
+                        </div>
 
+                        <div data-tab-panel="specification" class="hidden">
+                            <div class="max-w-4xl space-y-6">
+                                <div>
+                                    <h2 class="text-lg font-semibold text-gray-900">Specification</h2>
+                                    <p class="mt-1 text-sm text-gray-600">Use the saved equipment data as context, then
+                                        refine or generate a specification with AI.</p>
+                                </div>
+
+                                <div class="rounded-xl border border-gray-200 bg-gray-50 p-5">
+                                    <label for="equipment_specification_ai"
+                                        class="mb-2 block text-sm font-medium text-gray-700">
+                                        Specification Notes
+                                    </label>
+                                    <textarea id="equipment_specification_ai" rows="14"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Use the existing equipment details to draft a complete specification sheet."></textarea>
+
+                                    <div class="mt-4 flex justify-end">
+                                        <button type="button"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            <span>AI Generate</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div data-tab-panel="key-comparison" class="hidden">
+                            <div class="max-w-4xl space-y-6">
+                                <div>
+                                    <h2 class="text-lg font-semibold text-gray-900">Key Comparison</h2>
+                                    <p class="mt-1 text-sm text-gray-600">Build a comparison using the current equipment
+                                        data and other relevant products.</p>
+                                </div>
+
+                                <div class="rounded-xl border border-gray-200 bg-gray-50 p-5 space-y-4">
+                                    <div>
+                                        <label for="equipment_key_comparison_notes"
+                                            class="mb-2 block text-sm font-medium text-gray-700">
+                                            Comparison Notes
+                                        </label>
+                                        <textarea id="equipment_key_comparison_notes" name="equipment_key_comparison_notes" rows="12"
+                                            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Describe what should be compared for this equipment.">{{ old('equipment_key_comparison_notes') }}</textarea>
+                                    </div>
+
+                                    <div>
+                                        <label for="similar_equipment_ids"
+                                            class="mb-2 block text-sm font-medium text-gray-700">
+                                            Similar Products (from Equipment Name)
+                                        </label>
+                                        @php
+                                            $selectedSimilarEquipmentIds = array_map('strval', old('similar_equipment_ids', $defaultSimilarEquipmentIds ?? []));
+                                        @endphp
+                                        <select id="similar_equipment_ids" name="similar_equipment_ids[]" multiple
+                                            class="choices-select w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900">
+                                            @forelse($similarEquipmentOptions as $id => $label)
+                                                <option value="{{ $id }}"
+                                                    @selected(in_array((string) $id, $selectedSimilarEquipmentIds, true))>
+                                                    {{ $label }}
+                                                </option>
+                                            @empty
+                                                <option value="" disabled>No similar equipment found in this category</option>
+                                            @endforelse
+                                        </select>
+                                    </div>
+
+                                    <div class="flex justify-end">
+                                        <button type="button"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            <span>AI Generate</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 {{ html()->form()->close() }}
             </div>
         </div>
     </div>
 @endsection
+
+@push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = Array.from(document.querySelectorAll('[data-tab-btn]'));
+            const panels = Array.from(document.querySelectorAll('[data-tab-panel]'));
+
+            if (!buttons.length || !panels.length) {
+                return;
+            }
+
+            function setActive(tabName) {
+                panels.forEach((panel) => {
+                    panel.classList.toggle('hidden', panel.getAttribute('data-tab-panel') !== tabName);
+                });
+
+                buttons.forEach((button) => {
+                    const isActive = button.getAttribute('data-tab-btn') === tabName;
+
+                    button.classList.toggle('border-blue-600', isActive);
+                    button.classList.toggle('text-blue-600', isActive);
+                    button.classList.toggle('border-transparent', !isActive);
+                    button.classList.toggle('text-gray-500', !isActive);
+                });
+            }
+
+            buttons.forEach((button) => {
+                button.addEventListener('click', () => setActive(button.getAttribute('data-tab-btn')));
+            });
+
+            setActive('overview');
+        });
+    </script>
+@endpush

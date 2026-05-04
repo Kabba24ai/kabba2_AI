@@ -29,9 +29,9 @@ class StoreController extends Controller
         //$validatedData['is_global'] = isset($validatedData['is_global']) ? 'Yes' : 'No';
 
         $store = Store::create($validatedData);
-        // If is_primary is set to true/yes in the request
-        if (isset($validatedData['is_primary']) && $validatedData['is_primary']) {
-            // Remove primary flag from all other stores
+        // Only demote other stores when this new store is explicitly set as primary.
+        // Using strict === 'Yes' avoids the PHP truthy-string trap where 'No' also evaluates to true.
+        if (($validatedData['is_primary'] ?? null) === 'Yes') {
             Store::where('id', '!=', $store->id)
                 ->update(['is_primary' => 'No']);
         }

@@ -3,7 +3,9 @@
 namespace App\Models\Orders;
 
 use App\Enums\Orders\OrderMediaType;
+use App\Enums\Equipments\EquipmentCurrentStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
 // Enums
@@ -19,6 +21,8 @@ use stdClass;
 
 class Order extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'unique_id',
         'reference_order_number',
@@ -53,6 +57,7 @@ class Order extends Model
         'signature_image', // Base64 encoded image of signature
 
         'receipt_status',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -192,7 +197,30 @@ class Order extends Model
             $model->order_time = $currentDateTime->format('H:i:s');
         });
 
+        // On soft-delete: move all assigned equipment to Maintenance hold
         static::deleting(function ($model) {
+            // Record who deleted this order
+            if (!$model->isForceDeleting()) {
+                $model->deleted_by = auth()->id();
+                $model->saveQuietly();
+            }
+
+            $model->products()->with('equipment')->get()->each(function ($product) {
+                $equipment = $product->equipment;
+                if (!$equipment) {
+                    return;
+                }
+                $equipment->current_status          = EquipmentCurrentStatus::Maintenance->value;
+                $equipment->current_status_updated_by = auth()->id();
+                $equipment->current_status_changed_at = now();
+                $equipment->current_order_id          = null;
+                $equipment->current_order_product_id  = null;
+                $equipment->saveQuietly();
+            });
+        });
+
+        // On force-delete: clean up order media files
+        static::forceDeleting(function ($model) {
             $model->media->each(function ($child) {
                 $child->delete(); // Triggers deleting event on OrderMedia
             });

@@ -71,7 +71,7 @@ class StoreController extends Controller
                 'store_id'   => $storeId,
                 'day_name'   => ucfirst($day),
                 'is_closed'  => $isClosed,
-
+'is_lunch_required' => $data["{$day}_lunch"] ?? false,
                 'start_time' => $isClosed ? null : $this->convertTo24Hour($data["{$day}_start"] ?? null),
                 'end_time'   => $isClosed ? null : $this->convertTo24Hour($data["{$day}_end"] ?? null),
             ]);

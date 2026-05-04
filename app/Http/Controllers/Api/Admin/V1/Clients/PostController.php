@@ -6,13 +6,13 @@ use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
 // Request
+use App\Http\Requests\Api\Admin\V1\Clients\PostRequest;
 
 // Model
 use App\Models\Clients\Client;
 
 // Resource
 use App\Http\Resources\Api\Admin\V1\Clients\ListResource;
-use Illuminate\Support\Facades\Request;
 
 class PostController extends BaseController
 {
@@ -21,19 +21,10 @@ class PostController extends BaseController
      *
      * @group Admin App
      */
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(PostRequest $request): JsonResponse
     {
-        $code = $request->input('code');
-
-        if (!$code) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'Code is required.',
-                ],
-                JsonResponse::HTTP_BAD_REQUEST,
-            );
-        }
+        $validatedData = $request->validated();
+        $code = $validatedData['code'] ?? null;
 
         if (strlen($code) > 10) {
             return response()->json(
@@ -45,15 +36,6 @@ class PostController extends BaseController
             );
         }
 
-        if (!Client::where('code', $code)->exists()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'Invalid Code.',
-                ],
-                JsonResponse::HTTP_BAD_REQUEST,
-            );
-        }
 
         $client = Client::where('code', $code)->first();
 

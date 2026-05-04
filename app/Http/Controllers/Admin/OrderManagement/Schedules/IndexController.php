@@ -20,7 +20,7 @@ class IndexController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Contracts\View\View
      */
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, $urlScheduleType = null, $urlTransportMode = null)
     {
         if ($request->ajax()) {
             // Fetch real product-wise order data
@@ -35,6 +35,8 @@ class IndexController extends Controller
                 $query->where(function ($q)  {
                     $q->where('delivery_status', 'Pending')->orWhere('pickup_status', 'Pending');
                 });
+                $query->where('delivery_status', '!=', 'Reschedule')
+                      ->where('pickup_status', '!=', 'Reschedule');
             }
 
             if ($request->filled('order_number')) {
@@ -239,6 +241,6 @@ class IndexController extends Controller
 
         // dd($all);
 
-        return view('admin.order_management.schedules.index', ['categories' => $categories, 'stores' => $stores, 'employees' => $employees, 'rescheduleOrder' => $rescheduleOrder]);
+        return view('admin.order_management.schedules.index', ['categories' => $categories, 'stores' => $stores, 'employees' => $employees, 'rescheduleOrder' => $rescheduleOrder, 'urlScheduleType' => $urlScheduleType, 'urlTransportMode' => $urlTransportMode]);
     }
 }

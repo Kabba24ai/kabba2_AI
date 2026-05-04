@@ -14,13 +14,17 @@ class UpdateRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        // Sanitize all input
         $cleaned = PurifyHelper::purify($this->all(), []);
 
+        // Days of the week
         $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
+        // Convert checkboxes ("on" or missing) into real booleans
         foreach ($days as $day) {
-            // Convert checkbox into real boolean
             $cleaned["{$day}_closed"] = $this->boolean("{$day}_closed");
+
+            $cleaned["{$day}_lunch"] = $this->boolean("{$day}_lunch");
         }
 
           if (!empty($cleaned['lunch_start_time'])) {
@@ -85,6 +89,7 @@ class UpdateRequest extends FormRequest
 
             $rules["{$day}_closed"] = ['required', 'boolean'];
 
+            $rules["{$day}_lunch"] = ['nullable', 'boolean'];
             // Allow 12-hour or 24-hour format
             $rules["{$day}_start"] = [
                 'nullable',

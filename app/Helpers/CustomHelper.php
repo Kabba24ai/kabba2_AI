@@ -340,13 +340,7 @@ class CustomHelper
                     $customer = Customer::findOrFail($record->customer_id);
                     $currentBalance = $customer->available_credit_balance ?? 0;
 
-                    // Log::info('UPDATE START', [
-                    //     'record_id' => $record->id,
-                    //     'type' => $record->type,
-                    //     'amount' => $record->amount,
-                    //     'sales_tax_before' => $record->sales_tax,
-                    //     'current_balance' => $currentBalance,
-                    // ]);
+                 
 
                     $newBalance = $currentBalance;
 
@@ -423,13 +417,6 @@ class CustomHelper
                     $record->balance = $newBalance;
 
 
-                    // Log::info('UPDATE RESULT', [
-                    //     'record_id' => $record->id,
-                    //     'type' => $record->type,
-                    //     'amount_with_tax' => $amountWithTax ?? null,
-                    //     'sales_tax_after' => $record->sales_tax,
-                    //     'new_balance' => $newBalance,
-                    // ]);
 
 
                     $record->save();
@@ -449,18 +436,12 @@ class CustomHelper
             }
         }
     }
+
     public static function reverseTransactionEffect(CustomerAccount $record): void
     {
         $customer = Customer::findOrFail($record->customer_id);
         $currentBalance = $customer->available_credit_balance ?? 0;
 
-        // Log::info('REVERSE START', [
-        //     'record_id' => $record->id,
-        //     'type' => $record->type,
-        //     'amount' => $record->amount,
-        //     'sales_tax' => $record->sales_tax,
-        //     'current_balance' => $currentBalance,
-        // ]);
 
         $adjustedBalance = $currentBalance;
 
@@ -518,7 +499,6 @@ class CustomHelper
         $customer->save();
     }
 
-    
     public static function fixTheRunningBalance(int $customerId): void
     {
         DB::transaction(function () use ($customerId) {
@@ -531,20 +511,87 @@ class CustomHelper
             // This is your correct final balance
             $currentBalance = $creditLimit - $availableCredit;
 
+
+            $isCreditAccount = ($customer->credit_limit > 0) && ($customer->is_credit_account == 1);
+
+            //   Log::info('BALANCE MODE', [
+            //         'isCreditAccount' => $isCreditAccount,
+            //     ]);
+
+            // =========================
+            // NO CREDIT ACCOUNT
+            // =========================
+            if (!$isCreditAccount) {
+
+                //       Log::info('current logic', [
+                //     'this is my new logic'
+                // ]);
+
+                $accounts = CustomerAccount::where('customer_id', $customerId)
+                    ->orderBy('id') // oldest → newest
+                    ->get();
+
+                $runningBalance = 0;
+
+                foreach ($accounts as $account) {
+
+                    $amount = (float) $account->amount;
+                    $taxRate = (float) ($account->sales_tax ?? 0);
+
+                    $totalWithTax = $amount;
+
+                    if ($taxRate > 0 &&
+                        !(
+                            $account->type === 'payment' ||
+                            ($account->type === 'charge' && $account->sales_tax_type === 'reverse')
+                        )
+                    ) {
+                        $totalWithTax += ($amount * $taxRate);
+                    }
+
+                    // FORWARD CALCULATION
+                    switch ($account->type) {
+                        case 'charge':
+                        case 'order':
+                            $runningBalance += $totalWithTax;
+                            break;
+
+                        case 'payment':
+                        case 'refund':
+                        case 'discount':
+                            $runningBalance -= $totalWithTax;
+                            break;
+                    }
+
+                    $account->balance = $runningBalance;
+                    $account->save();
+                }
+
+                $customer->available_credit_balance = $runningBalance;
+                $customer->save();
+
+                return; // 
+            }
+
+            // =========================
+            //  CREDIT ACCOUNT (YOUR CURRENT LOGIC)
+            // =========================
+
+            // Log::info('current logic', [
+            //     'this is my old logic'
+            // ]);
+
             // Get accounts newest → oldest
             $accounts = CustomerAccount::where('customer_id', $customerId)
                 ->orderByDesc('id')
-                // ->orderBy('id')
                 ->get();
 
             if ($accounts->isEmpty()) {
                 return;
             }
-
             
             $runningBalance = $currentBalance;
 
-            
             foreach ($accounts as $account) {
 
                 // Set this row balance first
@@ -566,15 +613,6 @@ class CustomHelper
                     $totalWithTax += ($amount * $taxRate);
                 }
 
-                // Log::info('RUN STEP', [
-                //     'account_id' => $account->id,
-                //     'type' => $account->type,
-                //     'amount' => $amount,
-                //     'tax_rate' => $taxRate,
-                //     'total_with_tax' => $totalWithTax,
-                //     'balance_before' => $runningBalance,
-                // ]);
-
                 // Reverse calculation
                 switch ($account->type) {
                     case 'charge':
@@ -589,11 +627,6 @@ class CustomHelper
                         break;
                 }
 
-                // Log::info('RUN RESULT', [
-                //     'account_id' => $account->id,
-                //     'type' => $account->type,
-                //     'balance_after' => $runningBalance,
-                // ]);
 
             }
 
@@ -603,136 +636,7 @@ class CustomHelper
         });
     }
 
-
-
-    // public static function fixTheRunningBalance(int $customerId): void
-    // {
-    //     DB::transaction(function () use ($customerId) {
-
-    //         $customer = Customer::lockForUpdate()->findOrFail($customerId);
-
-    //         $creditLimit = (float) ($customer->credit_limit ?? 0);
-    //         $availableCredit = (float) self::getAvailableCredit($customer);
-
-    //         // Final expected balance
-    //         $currentBalance = $creditLimit - $availableCredit;
-
-    //         Log::info('===== FIX RUN START =====', [
-    //             'customer_id' => $customerId,
-    //             'credit_limit' => $creditLimit,
-    //             'available_credit' => $availableCredit,
-    //             'current_balance_start' => $currentBalance,
-    //         ]);
-
-    //         // Get accounts newest → oldest
-    //         $accounts = CustomerAccount::where('customer_id', $customerId)
-    //             ->orderByDesc('id')
-    //             ->get();
-
-    //         if ($accounts->isEmpty()) {
-    //             Log::info('No accounts found');
-    //             return;
-    //         }
-
-    //         Log::info('ACCOUNTS FETCHED', [
-    //             'count' => $accounts->count(),
-    //             'ids' => $accounts->pluck('id'),
-    //         ]);
-
-    //         $runningBalance = $currentBalance;
-
-    //         $step = 0;
-
-    //         foreach ($accounts as $account) {
-
-    //             $step++;
-
-    //             $amount = (float) $account->amount;
-    //             $taxRate = (float) ($account->sales_tax ?? 0);
-
-    //             // 🔍 TAX BREAKDOWN
-    //             $taxAmount = 0;
-    //             $taxApplied = false;
-
-    //             if ($taxRate > 0 &&
-    //                 !(
-    //                     $account->type === 'payment' ||
-    //                     ($account->type === 'charge' && $account->sales_tax_type === 'reverse')
-    //                 )
-    //             ) {
-    //                 $taxAmount = $amount * $taxRate;
-    //                 $taxApplied = true;
-    //             }
-
-    //             $totalWithTax = $amount + $taxAmount;
-
-    //             // 🔍 OPERATION DECISION
-    //             $operation = '';
-    //             $formula = '';
-    //             $newBalance = $runningBalance;
-
-    //             switch ($account->type) {
-    //                 case 'charge':
-    //                 case 'order':
-    //                     $operation = '-';
-    //                     $formula = "{$runningBalance} - {$totalWithTax}";
-    //                     $newBalance = $runningBalance - $totalWithTax;
-    //                     break;
-
-    //                 case 'payment':
-    //                 case 'refund':
-    //                 case 'discount':
-    //                     $operation = '+';
-    //                     $formula = "{$runningBalance} + {$totalWithTax}";
-    //                     $newBalance = $runningBalance + $totalWithTax;
-    //                     break;
-    //             }
-
-    //             // 🔥 FULL DEBUG LOG
-    //             Log::info('RUN DEBUG STEP', [
-    //                 'step' => $step,
-    //                 'account_id' => $account->id,
-    //                 'type' => $account->type,
-
-    //                 // DB values
-    //                 'db_amount' => $account->amount,
-    //                 'db_tax_rate' => $account->sales_tax,
-    //                 'sales_tax_type' => $account->sales_tax_type,
-
-    //                 // calculation
-    //                 'base_amount' => $amount,
-    //                 'tax_applied' => $taxApplied,
-    //                 'tax_amount' => $taxAmount,
-    //                 'total_with_tax' => $totalWithTax,
-
-    //                 // balance flow
-    //                 'balance_before' => $runningBalance,
-    //                 'operation' => $operation,
-    //                 'formula' => $formula,
-    //                 'balance_after' => $newBalance,
-    //             ]);
-
-    //             // ✅ APPLY CALCULATION
-    //             $runningBalance = $newBalance;
-
-    //             // ✅ SAVE CORRECT BALANCE (AFTER CALCULATION)
-    //             $account->balance = $runningBalance;
-    //             $account->save();
-    //         }
-
-    //         Log::info('===== FIX RUN END =====', [
-    //             'final_running_balance' => $runningBalance,
-    //             'expected_current_balance' => $currentBalance,
-    //             'difference' => $runningBalance - $currentBalance,
-    //         ]);
-
-    //         // Update customer balance
-    //         $customer->available_credit_balance = $currentBalance;
-    //         $customer->save();
-    //     });
-    // }
-
-  /**
+    /**
      * Get customer account status + alert metadata
      */
     public static function getCustomerAccountStatus(Customer $customer): array

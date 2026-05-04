@@ -20,14 +20,25 @@ class TimeEntryListController extends Controller
 
         [$startDate, $endDate] = PayPeriodHelper::getPeriodDates($periodNumber);
 
+        $today = Carbon::today();
+
+        if ($endDate->gt($today)) {
+            $endDate = $today;
+        }
+
         $entries = TimeEntry::with('breaks')
             ->where('employee_id', $user->id)
-            ->whereBetween('clock_in', [$startDate, $endDate])
+            // ->whereBetween('clock_in', [$startDate, $endDate])
+            ->whereBetween('clock_in', [
+            $startDate->copy()->startOfDay(),
+            $endDate->copy()->endOfDay(),
+            ])
             ->whereNotNull('clock_in')
             ->orderBy('clock_in')
             ->get();
 
-        $data = app(TimeEntryReportService::class)->build($entries);
+        // $data = app(TimeEntryReportService::class)->build($entries);
+        $data = app(TimeEntryReportService::class)->build($entries, $startDate, $endDate);
 
 
         return response()->json([

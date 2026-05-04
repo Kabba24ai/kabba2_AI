@@ -39,7 +39,7 @@ class TimeEntryBulkUpdateController extends BaseController
 
                 $payIncrement = (int) TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 5);
 
-                $roundedDateTime = TimeTrackerHelper::roundDown($newDateTime, $payIncrement);
+                $roundedDateTime = TimeTrackerHelper::roundNearest($newDateTime, $payIncrement);
 
                 /*
                 |--------------------------------------------------------------------------
@@ -89,14 +89,14 @@ class TimeEntryBulkUpdateController extends BaseController
 
                     if (in_array($type, ['lunch_out','unpaid_out'])) {
 
-                        $break->start_time = $newDateTime;
+                        $break->start_time = $roundedDateTime;
                         $break->created_at = $newDateTime;
 
                     }
 
                     if (in_array($type, ['lunch_in','unpaid_in'])) {
 
-                        $break->end_time = $newDateTime;
+                        $break->end_time = $roundedDateTime;
                         $break->updated_at = $newDateTime;
 
                     }

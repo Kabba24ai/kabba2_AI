@@ -85,16 +85,24 @@
             </p>
         </div>
 
+        
+       @php
+                    $siteLogo = \App\Helpers\ConfigurationHelper::getBrandingLogo();
+                    $sitename = \App\Helpers\ConfigurationHelper::getSettings('Website Management Branding','site_name');
+                    $primaryStore = \App\Models\Stores\Store::primary()->first();
+                    @endphp
+
+
         <!-- Invoice Card -->
         <div class="bg-white w-full max-w-3xl shadow-md border border-gray-300  rounded-md p-6" id="printable-area">
             <!-- Top Section -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
          <div class="flex items-center space-x-3">
             <div class="w-15 h-15  flex items-center justify-center rounded-lg text-white">
-               <img class="dark:hidden w-20" src="{{ asset('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" alt="Logo" />
+               <img class="dark:hidden w-20" src="{{ $siteLogo }}" alt="Logo" />
             </div>
             <div>
-               <h3 class="font-semibold text-2xl">Rent 'n King</h3>
+               <h3 class="font-semibold text-2xl">{{ $sitename ?: "Rent 'n King" }}</h3>
                <p class="text-sm text-black-500">Professional Rentals & Sales</p>
             </div>
          </div>
@@ -107,9 +115,14 @@
          <!-- Left Column -->
          <div class="text-black-600 space-y-1">
             <p class="font-medium text-black-700 text-lg">From:</p>
-            <p>Rent 'n King .</p>
-            <p> 10296 Highway 46</p>
-            <p>Bon Aqua, TN 37025</p>
+          {{ $sitename ?: "Rent 'n King" }} <br>
+
+                                               @if($primaryStore)
+                                                    {{ $primaryStore->address }}, <br>
+                                                    {{ $primaryStore->city }},
+                                                    {{ optional($primaryStore->state)->name }},
+                                                    {{ $primaryStore->zip_code }}. <br>
+                                                @endif
             @php
             $invoicePhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
             $invoiceEmail = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_email');

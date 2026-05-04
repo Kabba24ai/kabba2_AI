@@ -23,6 +23,8 @@ class StoreRequest extends FormRequest
         // Convert checkboxes ("on" or missing) into real booleans
         foreach ($days as $day) {
             $cleaned["{$day}_closed"] = $this->boolean("{$day}_closed");
+
+            $cleaned["{$day}_lunch"] = $this->boolean("{$day}_lunch");
         }
 
          if (!empty($cleaned['lunch_start_time'])) {
@@ -80,6 +82,8 @@ class StoreRequest extends FormRequest
 
             // Closed input REQUIRED + boolean
             $rules["{$day}_closed"] = ['required', 'boolean'];
+
+            $rules["{$day}_lunch"] = ['nullable', 'boolean'];
 
             // Time fields optional
             $rules["{$day}_start"] = ['nullable', 'string'];

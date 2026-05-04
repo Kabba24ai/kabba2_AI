@@ -64,11 +64,19 @@ class AutoLunchReminderJob implements ShouldQueue
         foreach ($employees as $employee) {
             try {
 
+            Log::info('[AUTO LUNCH REMINDER] Employee start', [
+    'employee_id' => $employee->id,
+    'name' => $employee->full_name,
+]);
+
                 $entry = $employee->activeTimeEntry;
 
-                if (!$entry || $entry->clock_out) {
-                    continue;
-                }
+              if (!$entry || $entry->clock_out) {
+    Log::info('[AUTO LUNCH REMINDER] Skipped - no active entry or already clocked out', [
+        'employee_id' => $employee->id,
+    ]);
+    continue;
+}
 
                 //  Skip if lunch already taken
                 $hasLunchBreak = $entry->breaks
@@ -76,25 +84,50 @@ class AutoLunchReminderJob implements ShouldQueue
                     ->isNotEmpty();
 
                 if ($hasLunchBreak) {
-                    continue;
-                }
+    Log::info('[AUTO LUNCH REMINDER] Skipped - lunch already exists', [
+        'employee_id' => $employee->id
+    ]);
+    continue;
+}
 
                 //  Skip if already sent
                 if ($entry->lunch_reminder_sent === true) {
                     continue;
                 }
 
-                $store = $employee->store;
-                if (!$store) continue;
+               $store = $employee->store;
+                    if (!$store) {
+                        Log::warning('[AUTO LUNCH REMINDER] Skipped - no store', [
+                            'employee_id' => $employee->id
+                        ]);
+                        continue;
+                    }
 
-                $dayName = $now->format('l');
+                    $dayName = $now->format('l');
 
-                $storeHours = $store->hoursOfOperation
-                    ->firstWhere('day_name', $dayName);
+                    $storeHours = $store->hoursOfOperation
+                        ->firstWhere('day_name', $dayName);
 
-                if (!$storeHours || $storeHours->is_closed) {
-                    continue;
-                }
+                    Log::info('[AUTO LUNCH REMINDER] Store hours check', [
+                        'employee_id' => $employee->id,
+                        'day' => $dayName,
+                        'storeHours_exists' => !!$storeHours,
+                        'is_closed' => $storeHours->is_closed ?? null,
+                        'is_lunch_required' => $storeHours->is_lunch_required ?? null,
+                    ]);
+
+                    // ❗ NEW CONDITION
+                    if (
+                        !$storeHours ||
+                        $storeHours->is_closed ||
+                        (int) $storeHours->is_lunch_required !== 1
+                    ) {
+                        Log::info('[AUTO LUNCH REMINDER] Skipped - lunch not required', [
+                            'employee_id' => $employee->id,
+                            'is_lunch_required' => $storeHours->is_lunch_required ?? null
+                        ]);
+                        continue;
+                    }
 
                 //  Store end time
                 $storeEnd = Carbon::parse(

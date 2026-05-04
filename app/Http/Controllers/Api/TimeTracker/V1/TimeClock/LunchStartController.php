@@ -8,6 +8,7 @@ use App\Http\Resources\Api\TimeTracker\V1\TimeClock\TimeEntryResource;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use App\Models\Iam\Personnel\TimeEntryBreak;
+use App\Helpers\TimeTrackerHelper;
 
 class LunchStartController extends BaseController
 {
@@ -20,10 +21,20 @@ class LunchStartController extends BaseController
             return response()->json(['message' => 'Invalid state'], 422);
         }
 
+        $now = Carbon::now();
+        $payIncrement = (int) TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 5);
+
+        $rounded = TimeTrackerHelper::roundNearest($now, $payIncrement);
+
         $entry->breaks()->create([
             'type' => 'lunch',
-            'start_time' => Carbon::now(),
+            'start_time' => $rounded,
         ]);
+
+        // $entry->breaks()->create([
+        //     'type' => 'lunch',
+        //     'start_time' => Carbon::now(),
+        // ]);
 
         return response()->json(['success' => true]);
     }

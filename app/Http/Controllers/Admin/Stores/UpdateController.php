@@ -76,6 +76,7 @@ class UpdateController extends Controller
                 // Update existing record
                 $record->update([
                     'is_closed'  => $isClosed,
+                    'is_lunch_required' => $data["{$day}_lunch"] ?? false,
                     'start_time' => $isClosed ? null : $this->convertTo24Hour($start),
                     'end_time'   => $isClosed ? null : $this->convertTo24Hour($end),
                 ]);

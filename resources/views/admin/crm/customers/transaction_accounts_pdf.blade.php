@@ -73,14 +73,27 @@
 
 <body>
 
+       @php
+                    $siteLogo = \App\Helpers\ConfigurationHelper::getBrandingLogo();
+                    $sitename = \App\Helpers\ConfigurationHelper::getSettings('Website Management Branding','site_name');
+                    $primaryStore = \App\Models\Stores\Store::primary()->first();
+                    @endphp
+
     <div class="header">
         {{-- Optional Logo --}}
-        <img src="{{ public_path('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" class="logo" alt="Logo">
-        <div class="company-name">Rent 'n King</div>
+        <img src="{{ public_path(parse_url($siteLogo, PHP_URL_PATH)) }}" class="logo" alt="Logo">
+        <div class="company-name">{{ $sitename ?: "Rent 'n King" }}</div>
         <div class="contact-info">
-            Phone: (615) 815-6734 &nbsp; | &nbsp;
-            Email: support@rentnking.com &nbsp; | &nbsp;
-            Address: 123 Main St, Dickson, TN
+            @php
+                                        $invoicePhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
+                                        $invoiceEmail = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_email');
+                                    @endphp
+
+                                  
+
+            Phone: {{ $invoicePhone }}
+            Email:  {{ $invoiceEmail }}
+            Address: {{ $primaryStore->address }}, {{ $primaryStore->city }},{{ optional($primaryStore->state)->name }},{{ $primaryStore->zip_code }}.
         </div>
     </div>
 

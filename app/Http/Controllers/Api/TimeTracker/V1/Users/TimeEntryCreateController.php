@@ -44,7 +44,7 @@ class TimeEntryCreateController extends BaseController
                 'base_date' => $baseDate,
                 'app_timezone' => config('app.timezone'),
                 'server_now' => now()->toDateTimeString(),
-            ]);
+            ]); 
 
             /*
             |------------------------------------------------------------
@@ -66,7 +66,7 @@ class TimeEntryCreateController extends BaseController
             */
             $payIncrement = (int) TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 5);
 
-            $roundedDateTime = TimeTrackerHelper::roundDown($newDateTime, $payIncrement);
+            $roundedDateTime = TimeTrackerHelper::roundNearest($newDateTime, $payIncrement);
 
             Log::info('CREATE DEBUG - ROUNDED', [
                 'before_round' => $newDateTime->toDateTimeString(),
@@ -87,19 +87,14 @@ class TimeEntryCreateController extends BaseController
                     'type' => $type,
                 ]);
 
-                // $break = TimeEntryBreak::create([
-                //     'time_entry_id' => $entryId,
-                //     'type' => $type === 'lunch_out' ? 'lunch' : 'other',
-                //     'start_time' => $roundedDateTime,
-                //     'created_at' => $roundedDateTime,
-                // ]);
+              
 
                 $break = new TimeEntryBreak();
 
                 $break->time_entry_id = $entryId;
                 $break->type = $type === 'lunch_out' ? 'lunch' : 'other';
                 $break->start_time = $roundedDateTime;
-                $break->created_at = $roundedDateTime;
+                $break->created_at = $newDateTime;
 
                 //  disable auto timestamp override
                 $break->timestamps = false;
@@ -134,7 +129,7 @@ class TimeEntryCreateController extends BaseController
                 ]);
 
                 $break->end_time   = $roundedDateTime;
-                $break->updated_at = $roundedDateTime;
+                $break->updated_at = $newDateTime;
 
 
                 $break->timestamps = false;

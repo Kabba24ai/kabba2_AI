@@ -60,7 +60,16 @@ class ExportEmployeeTimeEntriesController extends BaseController
             // =========================
             // BUILD REPORT (SINGLE SOURCE OF TRUTH)
             // =========================
-            $report = app(TimeEntryReportService::class)->build($entries);
+
+            $today = Carbon::today();
+
+            if ($endDate->gt($today)) {
+                $endDate = $today;
+            }
+
+            // $report = app(TimeEntryReportService::class)->build($entries);
+            
+            $report = app(TimeEntryReportService::class)->build($entries, $startDate, $endDate);
 
             // =========================
             // DEBUG JSON (OPTIONAL)

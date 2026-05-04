@@ -35,7 +35,7 @@ class TimeEntryUpdateController extends BaseController
             $payIncrement = (int) TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 5);
 
             // rounded version (same rule you use in clock-in/out)
-            $roundedDateTime = TimeTrackerHelper::roundDown($newDateTime, $payIncrement);
+            $roundedDateTime = TimeTrackerHelper::roundNearest($newDateTime, $payIncrement);
 
 
             

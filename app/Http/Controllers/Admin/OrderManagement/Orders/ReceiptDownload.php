@@ -8,17 +8,13 @@ use App\Models\Iam\Personnel\User;
 use App\Models\Customers\Customer;
 use App\Models\Customers\Receipt;
 use App\Services\ReceiptService;
-
-
-
 use App\Models\Orders\Order;
 use Barryvdh\DomPDF\Facade\Pdf;
-
 use App\Helpers\CustomHelper;
-
 use App\Models\Customers\Invoice;
-
 use App\Helpers\ConfigurationHelper;
+use App\Models\Configurations\Setting;
+
 
 class ReceiptDownload extends Controller
 {
@@ -61,8 +57,8 @@ class ReceiptDownload extends Controller
             'receipt'  => $receipt,
         ]);
 
-        // return $pdf->stream("receipt-{$receipt->unique_id}.pdf");
+        return $pdf->stream("receipt-{$receipt->unique_id}.pdf");
 
-        return $pdf->download("receipt-{$receipt->unique_id}.pdf");
+        // return $pdf->download("receipt-{$receipt->unique_id}.pdf");
     }
 }

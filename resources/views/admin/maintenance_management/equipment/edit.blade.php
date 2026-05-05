@@ -506,6 +506,11 @@
             const criteriaModalWeight = document.getElementById('kc-modal-weight');
             const criteriaModalWeightLabel = document.getElementById('kc-modal-weight-label');
 
+            const CRITERIA_LIST_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.index', $equipment->unique_id));
+            const CRITERIA_STORE_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.store', $equipment->unique_id));
+            const CRITERIA_BASE_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.index', $equipment->unique_id));
+            const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
             let editingCriteriaIndex = null;
             let criteriaLibrary = [];
 
@@ -529,6 +534,7 @@
             function readCriteriaLibraryFromRows() {
                 criteriaLibrary = Array.from(document.querySelectorAll('.kc-criteria-row')).map((row) => {
                     return {
+                        id: null,
                         key: row.dataset.key || 'criteria',
                         name: row.querySelector('.kc-criteria-label')?.textContent?.trim() || 'Criteria',
                         unit: row.querySelector('.kc-criteria-unit')?.textContent?.trim() || '',
@@ -578,12 +584,40 @@
                     const weight = Number(item.defaultWeight ?? 50);
 
                     return `
-                        <button type="button" data-criteria-index="${index}" class="w-full rounded-xl border border-gray-200 px-4 py-3 text-left hover:bg-gray-50 transition-colors">
-                            <p class="text-sm font-semibold text-gray-800">${safeName}</p>
-                            <p class="mt-0.5 text-xs text-gray-500">Unit: ${safeUnit} | Default Weight: ${weight}</p>
-                        </button>
+                        <div class="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-3 hover:bg-gray-50 transition-colors">
+                            <button type="button" data-criteria-index="${index}" class="flex-1 text-left">
+                                <p class="text-sm font-semibold text-gray-800">${safeName}</p>
+                                <p class="mt-0.5 text-xs text-gray-500">Unit: ${safeUnit} | Default Weight: ${weight}</p>
+                            </button>
+                            ${item.id ? `<button type="button" data-delete-index="${index}" class="rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50">Delete</button>` : ''}
+                        </div>
                     `;
                 }).join('');
+            }
+
+            async function loadCriteriaFromServer() {
+                try {
+                    const res = await fetch(CRITERIA_LIST_URL, {
+                        headers: { 'Accept': 'application/json' },
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok || !data.success) {
+                        return false;
+                    }
+
+                    criteriaLibrary = (data.items || []).map(item => ({
+                        id: item.id,
+                        key: item.key,
+                        name: item.name,
+                        unit: item.unit || '',
+                        defaultWeight: Number(item.default_weight ?? 50),
+                    }));
+
+                    return true;
+                } catch (error) {
+                    return false;
+                }
             }
 
             function resetCriteriaForm() {
@@ -596,8 +630,11 @@
                 criteriaModalForm?.classList.add('hidden');
             }
 
-            function openCriteriaModal() {
-                readCriteriaLibraryFromRows();
+            async function openCriteriaModal() {
+                const loaded = await loadCriteriaFromServer();
+                if (!loaded) {
+                    readCriteriaLibraryFromRows();
+                }
                 renderModalCriteriaList();
                 resetCriteriaForm();
                 criteriaModal?.classList.remove('hidden');
@@ -631,7 +668,29 @@
                 }
             });
 
-            criteriaModalList?.addEventListener('click', function (event) {
+            criteriaModalList?.addEventListener('click', async function (event) {
+                const deleteBtn = event.target.closest('[data-delete-index]');
+                if (deleteBtn) {
+                    const idx = Number(deleteBtn.dataset.deleteIndex);
+                    const item = criteriaLibrary[idx];
+                    if (!item?.id) return;
+
+                    const res = await fetch(`${CRITERIA_BASE_URL}/${item.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': CSRF,
+                            'Accept': 'application/json',
+                        },
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        criteriaLibrary.splice(idx, 1);
+                        renderModalCriteriaList();
+                    }
+                    return;
+                }
+
                 const btn = event.target.closest('[data-criteria-index]');
                 if (!btn) return;
 
@@ -648,7 +707,7 @@
                 criteriaModalForm?.classList.remove('hidden');
             });
 
-            criteriaModalSave?.addEventListener('click', () => {
+            criteriaModalSave?.addEventListener('click', async () => {
                 const name = (criteriaModalName?.value || '').trim();
                 const unit = (criteriaModalUnit?.value || '').trim();
                 const defaultWeight = Number(criteriaModalWeight?.value || 50);
@@ -659,16 +718,56 @@
                 }
 
                 const payload = {
-                    key: criteriaKeyFromName(name),
                     name,
                     unit,
-                    defaultWeight,
+                    default_weight: defaultWeight,
                 };
 
                 if (editingCriteriaIndex === null) {
-                    criteriaLibrary.push(payload);
+                    const res = await fetch(CRITERIA_STORE_URL, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': CSRF,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.success && data.item) {
+                        criteriaLibrary.push({
+                            id: data.item.id,
+                            key: data.item.key,
+                            name: data.item.name,
+                            unit: data.item.unit || '',
+                            defaultWeight: Number(data.item.default_weight ?? 50),
+                        });
+                    }
                 } else {
-                    criteriaLibrary[editingCriteriaIndex] = payload;
+                    const item = criteriaLibrary[editingCriteriaIndex];
+                    if (!item?.id) return;
+
+                    const res = await fetch(`${CRITERIA_BASE_URL}/${item.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'X-CSRF-TOKEN': CSRF,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.success && data.item) {
+                        criteriaLibrary[editingCriteriaIndex] = {
+                            id: data.item.id,
+                            key: data.item.key,
+                            name: data.item.name,
+                            unit: data.item.unit || '',
+                            defaultWeight: Number(data.item.default_weight ?? 50),
+                        };
+                    }
                 }
 
                 renderModalCriteriaList();

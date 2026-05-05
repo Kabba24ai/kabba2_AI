@@ -185,8 +185,8 @@ class Order extends Model
         static::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'ORD');
 
-            // Get latest order ID
-            $latestOrder = self::latest('id')->first();
+            // Get latest order ID including soft deleted
+            $latestOrder = self::withTrashed()->latest('id')->first();
             $nextId = $latestOrder ? $latestOrder->id + 1 : 1;
 
             // Format: ORD-0001

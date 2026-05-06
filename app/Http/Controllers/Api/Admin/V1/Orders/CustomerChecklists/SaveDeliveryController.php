@@ -31,6 +31,7 @@ class SaveDeliveryController extends BaseController
         $uniqueId = $validated['equipment_unique_id'];
 
         $orderProduct = OrderProduct::with(['checklistQuestions.answers'])
+            ->whereHas('order')
             ->where('unique_id', $validated['order_product_unique_id'])
             ->first();
 

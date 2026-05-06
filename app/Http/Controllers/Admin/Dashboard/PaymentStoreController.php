@@ -30,20 +30,22 @@ class PaymentStoreController extends Controller
      */
     public function __invoke(PaymentStoreRequest $request)
     {
-        
+
         //    dd($request->all());
 
          $validated = $request->validated();
 
         //  dd($validated);
    $order = Order::where('unique_id', $validated['order_id'])->firstOrFail();
-   $orderProduct = OrderProduct::where('unique_id', $validated['order_product_id'])->firstOrFail();
-           
+   $orderProduct = OrderProduct::whereHas('order')
+       ->where('unique_id', $validated['order_product_id'])
+       ->firstOrFail();
+
 
         Log::debug('OrderExtraCharges validated data:', $validated);
 
         DB::beginTransaction();
-       
+
 
         try {
             Log::debug('Creating new OrderExtraCharges record...');
@@ -56,19 +58,19 @@ class PaymentStoreController extends Controller
             $record->type = $validated['type'];
             $record->payment_type = $validated['payment_type'];
             $record->notes = $validated['notes'] ?? null;
-            
-       
-        
+
+
+
             $record->payment_number_id = $validated['cheque_number'] ?? null;
-        
+
 
                 $user = User::findOrFail($validated['responsible_person']);
               Log::debug('Responsible person found:', $user->toArray());
                 $record->responsible_person_id = $user->id ?? '';
                 $record->responsible_person_name = $user->full_name ?? '';
 
-        
-    
+
+
             $record->save();
 
 // Mark damage as paid if this is a damage charge
@@ -122,7 +124,7 @@ if (
 
             Log::debug('OrderExtraCharges saved:', $record->toArray());
 
-      
+
                     $customer = Customer::findOrFail($validated['customer_id']);
                     Log::debug('Customer loaded:', $customer->toArray());
 
@@ -258,7 +260,7 @@ if (
                 flash('Payment recorded successfully.')->success();
 
             DB::commit();
-            
+
             return redirect()->back();
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -268,8 +270,8 @@ if (
             ]);
             report($e);
 
-         
-          
+
+
             Log::info($e);
 
             return redirect()->back()->withInput()->withErrors([

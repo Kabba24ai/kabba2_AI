@@ -23,7 +23,10 @@ class DeleteController extends Controller
         $objRecord = Store::where('unique_id', $unique_id)->firstOrFail();
         $primaryFlag = $objRecord->is_primary === 'Yes';
 
-        if(OrderProduct::where('delivery_store_id', $objRecord->id)->exists() || OrderProduct::where('pickup_store_id', $objRecord->id)->exists()){
+        if (
+            OrderProduct::whereHas('order')->where('delivery_store_id', $objRecord->id)->exists()
+            || OrderProduct::whereHas('order')->where('pickup_store_id', $objRecord->id)->exists()
+        ) {
             flash('Cannot delete store. It is associated with existing orders.')->error();
             return redirect()->route('admin.stores.index');
         }

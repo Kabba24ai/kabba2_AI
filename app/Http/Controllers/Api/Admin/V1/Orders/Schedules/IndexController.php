@@ -37,6 +37,7 @@ class IndexController extends BaseController
         $orders = OrderProduct::query()
             ->with('order', 'order.customer', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'deliveryMedia', 'pickupMedia', 'equipment','deliveryStore','pickupStore')
             ->where('product_data->product_type', 'Rental')
+            ->whereHas('order')
             ->whereNotNull('delivery_date')
             ->where(function ($q) {
                 $q->where(function ($subQ) {

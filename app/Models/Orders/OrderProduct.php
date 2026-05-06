@@ -136,6 +136,11 @@ class OrderProduct extends Model
         return $this->hasMany(OrderProductChecklistQuestion::class);
     }
 
+    public function scopeWithActiveOrder($query)
+    {
+        return $query->whereHas('order');
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -235,7 +240,7 @@ class OrderProduct extends Model
         )->latest();
     }
 
-    
+
 
 
     /**

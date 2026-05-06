@@ -26,7 +26,9 @@ class UpdateProductScheduleController extends Controller
         // Validate order product exists
         $validatedData = $request->validated();
 
-        $orderProduct = OrderProduct::where('unique_id', $orderProductUniqueId)->first();
+        $orderProduct = OrderProduct::whereHas('order')
+            ->where('unique_id', $orderProductUniqueId)
+            ->first();
         if (!$orderProduct) {
             return response()->json(['message' => 'Order product not found.'], 404);
         }

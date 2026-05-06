@@ -23,7 +23,9 @@ class AssignEquipmentController extends Controller
     {
         $validated = $request->validated();
 
-        $orderProduct = OrderProduct::where('unique_id', $validated['order_product_unique_id'])->first();
+        $orderProduct = OrderProduct::whereHas('order')
+            ->where('unique_id', $validated['order_product_unique_id'])
+            ->first();
         $equipment = Equipment::where('unique_id', $validated['equipment_unique_id'])->first();
         $user = User::where('unique_id', $validated['user_unique_id'])->first();
 

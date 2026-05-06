@@ -218,6 +218,7 @@ class IndexController extends Controller
         ) {
             $query = OrderProduct::query()
                 ->where('product_data->product_type', 'Rental')
+                ->whereHas('order')
                 ->whereNotNull($type . '_date')
                 ->where($type . '_transport_mode', $transport)
                 ->when($status === 'Completed',

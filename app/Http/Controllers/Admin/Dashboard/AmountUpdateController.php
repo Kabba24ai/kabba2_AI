@@ -39,7 +39,9 @@ class AmountUpdateController extends Controller
         'type'   => 'required|string', // damage / fuel
     ]);
 
-    $orderProduct = OrderProduct::where('unique_id', $unique_id)->firstOrFail();
+    $orderProduct = OrderProduct::whereHas('order')
+        ->where('unique_id', $unique_id)
+        ->firstOrFail();
 
         if ($request->type == 'damage') {
 
@@ -72,9 +74,9 @@ class AmountUpdateController extends Controller
                     'note'             => $request->note,
                 ]);
             });
-        } 
+        }
 
-        
+
     // FUEL
     if ($request->type == 'fuel') {
 

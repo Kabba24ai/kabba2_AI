@@ -152,12 +152,13 @@ class Equipment extends Model
 
     public function orderProducts()
     {
-        return $this->hasMany(OrderProduct::class, 'equipment_id');
+        return $this->hasMany(OrderProduct::class, 'equipment_id')->withActiveOrder();
     }
 
     public function overdueOrderProducts()
     {
         return $this->hasMany(OrderProduct::class, 'equipment_id')
+            ->withActiveOrder()
             ->whereNotNull('pickup_date')
             ->whereRaw(
                 "TIMESTAMP(pickup_date, COALESCE(NULLIF(pickup_time, ''), '09:00:00')) < ?",
@@ -171,6 +172,7 @@ class Equipment extends Model
     public function lastOrderProduct()
     {
         return $this->hasOne(OrderProduct::class, 'equipment_id')
+            ->withActiveOrder()
             ->ofMany(['id' => 'max'], function ($query) {
                 $query->where(function ($pending) {
                     $pending->where('delivery_status', 'Pending')

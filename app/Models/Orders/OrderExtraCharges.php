@@ -4,12 +4,14 @@ namespace App\Models\Orders;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use App\Helpers\ModelHelper;
 
 class OrderExtraCharges extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'order_extra_charges';
 

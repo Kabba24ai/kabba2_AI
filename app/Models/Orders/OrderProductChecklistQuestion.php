@@ -3,6 +3,7 @@
 namespace App\Models\Orders;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 // Helpers
 use App\Helpers\ModelHelper;
@@ -13,6 +14,8 @@ use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminCategory;
 
 class OrderProductChecklistQuestion extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'unique_id',
         'order_id',

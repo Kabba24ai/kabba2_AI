@@ -17,6 +17,7 @@ use App\Helpers\ModelHelper;
 // Models
 use App\Models\Customers\Customer;
 use App\Models\Customers\Invoice;
+use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 use stdClass;
 
 class Order extends Model
@@ -217,12 +218,34 @@ class Order extends Model
                 $equipment->current_order_product_id  = null;
                 $equipment->saveQuietly();
             });
+
+            if (!$model->isForceDeleting()) {
+                $model->addresses()->delete();
+                $model->payments()->delete();
+                $model->history()->delete();
+                $model->notes()->delete();
+                $model->media()->delete();
+                $model->extraCharges()->delete();
+                $model->softAssignments()->delete();
+                $model->products()->delete();
+            }
+        });
+
+        static::restoring(function ($model) {
+            $model->addresses()->withTrashed()->restore();
+            $model->payments()->withTrashed()->restore();
+            $model->history()->withTrashed()->restore();
+            $model->notes()->withTrashed()->restore();
+            $model->media()->withTrashed()->restore();
+            $model->extraCharges()->withTrashed()->restore();
+            $model->softAssignments()->withTrashed()->restore();
+            $model->products()->withTrashed()->restore();
         });
 
         // On force-delete: clean up order media files
         static::forceDeleting(function ($model) {
-            $model->media->each(function ($child) {
-                $child->delete(); // Triggers deleting event on OrderMedia
+            $model->media()->withTrashed()->get()->each(function ($child) {
+                $child->forceDelete(); // Triggers deleting event on OrderMedia
             });
         });
     }
@@ -275,6 +298,11 @@ class Order extends Model
     public function extraCharges()
     {
         return $this->hasMany(OrderExtraCharges::class, 'order_id', 'id')->latest();
+    }
+
+    public function softAssignments()
+    {
+        return $this->hasMany(EquipmentSoftAssign::class, 'order_id', 'id');
     }
 
     /**

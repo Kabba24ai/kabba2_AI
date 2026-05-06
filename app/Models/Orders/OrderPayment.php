@@ -4,6 +4,7 @@ namespace App\Models\Orders;
 
 use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 // enums
 use App\Enums\Orders\OrderPaymentMethod;
@@ -11,6 +12,8 @@ use App\Enums\Orders\OrderPaymentStatus;
 
 class OrderPayment extends Model
 {
+    use SoftDeletes;
+
     // Allow mass assignment for these fields
     protected $fillable = [
         'parent_order_payment_id',

@@ -3,9 +3,12 @@
 namespace App\Models\Orders;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OrderAddress extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'order_id',
         'type', // Billing*, Shipping

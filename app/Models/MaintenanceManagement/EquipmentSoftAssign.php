@@ -5,9 +5,12 @@ namespace App\Models\MaintenanceManagement;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EquipmentSoftAssign extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'equipment_soft_assigns';
 
     protected $fillable = [

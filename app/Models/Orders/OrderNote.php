@@ -5,9 +5,12 @@ namespace App\Models\Orders;
 use App\Helpers\ModelHelper;
 use App\Models\Iam\Personnel\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OrderNote extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'unique_id',
         'order_id',
@@ -67,5 +70,5 @@ class OrderNote extends Model
 {
     return $query->where('note_type', 'dashboard');
 }
-    
+
 }

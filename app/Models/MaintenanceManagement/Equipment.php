@@ -86,6 +86,12 @@ class Equipment extends Model
         'key_starting_mechanism',
         'equipment_value',
         'coi_submitted',
+        'similar_equipment_ids',
+        'critical_matching_criteria',
+        'allow_upgrades',
+        'allow_downgrades',
+        'downgrade_requires_approval',
+        'equipment_key_comparison_notes',
     ];
 
     protected $casts = [
@@ -94,6 +100,11 @@ class Equipment extends Model
         'key_starting_mechanism' => EquipmentKeyStartingMechanism::class,
         'volts' => 'array',
         'amps'  => 'array',
+        'similar_equipment_ids' => 'array',
+        'critical_matching_criteria' => 'array',
+        'allow_upgrades' => 'boolean',
+        'allow_downgrades' => 'boolean',
+        'downgrade_requires_approval' => 'boolean',
     ];
     protected $appends = ['status_label', 'category_name', 'last_inspection'];
 

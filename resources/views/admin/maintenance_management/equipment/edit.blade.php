@@ -196,7 +196,11 @@
 
                                         <div id="kc-eq-list" class="max-h-64 overflow-y-auto divide-y divide-gray-100 rounded-lg border border-gray-200">
                                             @php
-                                                $selectedSimilarEquipmentIds = array_map('strval', old('similar_equipment_ids', $defaultSimilarEquipmentIds ?? []));
+                                                $selectedSimilarEquipmentIds = array_map(
+                                                    'strval',
+                                                    old('similar_equipment_ids', $equipment->similar_equipment_ids ?? ($defaultSimilarEquipmentIds ?? []))
+                                                );
+                                                $criteriaState = old('critical_matching_criteria', $equipment->critical_matching_criteria ?? []);
                                             @endphp
                                             @forelse($similarEquipmentOptions as $eqId => $eqLabel)
                                                 <label class="kc-eq-item flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors" data-label="{{ strtolower($eqLabel) }}">
@@ -232,28 +236,37 @@
 
                                     <div id="kc-criteria-rows" class="divide-y divide-gray-100">
                                         @forelse($criteriaRows as $row)
+                                            @php
+                                                $rowState = $criteriaState[$row->criteria_key] ?? [];
+                                                $rowEnabled = filter_var($rowState['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                                                $rowThreshold = $rowState['threshold'] ?? '';
+                                                $rowWeight = isset($rowState['weight']) ? (int) $rowState['weight'] : (int) $row->default_weight;
+                                            @endphp
                                             <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="{{ $row->criteria_key }}">
+                                                <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[{{ $row->criteria_key }}][enabled]" value="{{ $rowEnabled ? '1' : '0' }}">
+                                                <input type="hidden" class="kc-hidden-threshold" name="critical_matching_criteria[{{ $row->criteria_key }}][threshold]" value="{{ $rowThreshold }}">
+                                                <input type="hidden" class="kc-hidden-weight" name="critical_matching_criteria[{{ $row->criteria_key }}][weight]" value="{{ $rowWeight }}">
                                                 {{-- enable toggle --}}
-                                                <button type="button" role="switch" aria-checked="false"
-                                                    class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 focus:outline-none">
-                                                    <span class="inline-block h-4 w-4 translate-x-0 rounded-full bg-white shadow transition-transform duration-200"></span>
+                                                <button type="button" role="switch" aria-checked="{{ $rowEnabled ? 'true' : 'false' }}"
+                                                    class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none {{ $rowEnabled ? 'bg-teal-400' : 'bg-gray-200' }}">
+                                                    <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 {{ $rowEnabled ? 'translate-x-4' : 'translate-x-0' }}"></span>
                                                 </button>
 
                                                 {{-- label --}}
                                                 <span class="kc-criteria-label w-36 text-sm text-gray-700">{{ $row->name }}</span>
 
                                                 {{-- threshold --}}
-                                                <input type="number" min="0" placeholder="0"
+                                                <input type="number" min="0" placeholder="0" value="{{ $rowThreshold }}"
                                                     class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40"
-                                                    disabled>
+                                                    {{ $rowEnabled ? '' : 'disabled' }}>
                                                 <span class="kc-criteria-unit w-8 text-xs text-gray-500">{{ $row->unit }}</span>
 
                                                 {{-- weight label + slider --}}
                                                 <span class="text-xs font-medium text-gray-500">Weight</span>
-                                                <input type="range" min="0" max="100" value="{{ $row->default_weight }}"
+                                                <input type="range" min="0" max="100" value="{{ $rowWeight }}"
                                                     class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
-                                                    disabled>
-                                                <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">{{ $row->default_weight }}</span>
+                                                    {{ $rowEnabled ? '' : 'disabled' }}>
+                                                <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">{{ $rowWeight }}</span>
                                             </div>
                                         @empty
                                             <div class="px-5 py-6 text-center text-sm text-gray-400">No active criteria found for this category.</div>
@@ -348,16 +361,32 @@
                                         </div>
                                         <div class="divide-y divide-gray-100 px-5">
                                             @foreach([
-                                                ['id' => 'kc-rule-upgrades',   'label' => 'Allow Upgrades',              'default' => true],
-                                                ['id' => 'kc-rule-downgrades', 'label' => 'Allow Downgrades',            'default' => false],
-                                                ['id' => 'kc-rule-approval',   'label' => 'Downgrade Requires Approval', 'default' => true],
+                                                [
+                                                    'id' => 'kc-rule-upgrades',
+                                                    'label' => 'Allow Upgrades',
+                                                    'name' => 'allow_upgrades',
+                                                    'value' => filter_var(old('allow_upgrades', $equipment->allow_upgrades ?? true), FILTER_VALIDATE_BOOLEAN),
+                                                ],
+                                                [
+                                                    'id' => 'kc-rule-downgrades',
+                                                    'label' => 'Allow Downgrades',
+                                                    'name' => 'allow_downgrades',
+                                                    'value' => filter_var(old('allow_downgrades', $equipment->allow_downgrades ?? false), FILTER_VALIDATE_BOOLEAN),
+                                                ],
+                                                [
+                                                    'id' => 'kc-rule-approval',
+                                                    'label' => 'Downgrade Requires Approval',
+                                                    'name' => 'downgrade_requires_approval',
+                                                    'value' => filter_var(old('downgrade_requires_approval', $equipment->downgrade_requires_approval ?? true), FILTER_VALIDATE_BOOLEAN),
+                                                ],
                                             ] as $rule)
                                                 <div class="flex items-center justify-between py-3">
                                                     <span class="text-sm text-gray-700">{{ $rule['label'] }}</span>
+                                                    <input type="hidden" class="kc-rule-hidden-input" name="{{ $rule['name'] }}" value="{{ $rule['value'] ? '1' : '0' }}">
                                                     <button type="button" id="{{ $rule['id'] }}" role="switch"
-                                                        aria-checked="{{ $rule['default'] ? 'true' : 'false' }}"
-                                                        class="kc-rule-toggle relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none {{ $rule['default'] ? 'bg-teal-400' : 'bg-gray-200' }}">
-                                                        <span class="inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform duration-200 {{ $rule['default'] ? 'translate-x-5' : 'translate-x-0' }}"></span>
+                                                        aria-checked="{{ $rule['value'] ? 'true' : 'false' }}"
+                                                        class="kc-rule-toggle relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none {{ $rule['value'] ? 'bg-teal-400' : 'bg-gray-200' }}">
+                                                        <span class="inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform duration-200 {{ $rule['value'] ? 'translate-x-5' : 'translate-x-0' }}"></span>
                                                     </button>
                                                 </div>
                                             @endforeach
@@ -376,7 +405,7 @@
                                             <p class="mb-2 text-xs font-semibold text-gray-500">Notes</p>
                                             <textarea id="kc-substitution-notes" name="equipment_key_comparison_notes" rows="5"
                                                 placeholder="e.g. Can replace any 19ft scissor lift but not suitable for indoor slab work"
-                                                class="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ old('equipment_key_comparison_notes') }}</textarea>
+                                                class="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ old('equipment_key_comparison_notes', $equipment->equipment_key_comparison_notes) }}</textarea>
                                             <p class="mt-2 text-xs text-gray-400">Used by Kabba AI for intelligent scheduling decisions</p>
                                         </div>
                                     </div>
@@ -459,6 +488,15 @@
                 const threshold = row.querySelector('.kc-threshold-input');
                 const slider = row.querySelector('.kc-weight-slider');
                 const weightVal = row.querySelector('.kc-weight-value');
+                const hiddenEnabled = row.querySelector('.kc-hidden-enabled');
+                const hiddenThreshold = row.querySelector('.kc-hidden-threshold');
+                const hiddenWeight = row.querySelector('.kc-hidden-weight');
+
+                function syncHiddenValues(enabled) {
+                    if (hiddenEnabled) hiddenEnabled.value = enabled ? '1' : '0';
+                    if (hiddenThreshold && threshold) hiddenThreshold.value = threshold.value;
+                    if (hiddenWeight && slider) hiddenWeight.value = slider.value;
+                }
 
                 function setRowEnabled(enabled) {
                     toggle?.setAttribute('aria-checked', enabled ? 'true' : 'false');
@@ -471,6 +509,7 @@
                     }
                     if (threshold) threshold.disabled = !enabled;
                     if (slider) slider.disabled = !enabled;
+                    syncHiddenValues(enabled);
                 }
 
                 toggle?.addEventListener('click', function () {
@@ -480,7 +519,20 @@
 
                 slider?.addEventListener('input', function () {
                     if (weightVal) weightVal.textContent = this.value;
+                    const isEnabled = toggle?.getAttribute('aria-checked') === 'true';
+                    syncHiddenValues(isEnabled);
                 });
+
+                threshold?.addEventListener('input', function () {
+                    const isEnabled = toggle?.getAttribute('aria-checked') === 'true';
+                    syncHiddenValues(isEnabled);
+                });
+
+                const initialEnabled = (hiddenEnabled?.value === '1') || toggle?.getAttribute('aria-checked') === 'true';
+                if (slider && weightVal) {
+                    weightVal.textContent = slider.value;
+                }
+                setRowEnabled(initialEnabled);
             }
 
             document.querySelectorAll('.kc-criteria-row').forEach(wireCriteriaRow);
@@ -542,27 +594,44 @@
             function renderCriteriaRowsFromLibrary() {
                 if (!criteriaRowsWrap) return;
 
+                const currentStateByKey = {};
+                criteriaRowsWrap.querySelectorAll('.kc-criteria-row').forEach((row) => {
+                    const key = row.dataset.key;
+                    if (!key) return;
+                    currentStateByKey[key] = {
+                        enabled: row.querySelector('.kc-hidden-enabled')?.value === '1',
+                        threshold: row.querySelector('.kc-hidden-threshold')?.value ?? '',
+                        weight: row.querySelector('.kc-hidden-weight')?.value ?? row.querySelector('.kc-weight-slider')?.value ?? '50',
+                    };
+                });
+
                 criteriaRowsWrap.innerHTML = criteriaLibrary.map((item) => {
                     const key = item.key || criteriaKeyFromName(item.name);
                     const safeName = escapeHtml(item.name || 'Criteria');
                     const safeUnit = escapeHtml(item.unit || '');
-                    const weight = Number(item.defaultWeight ?? 50);
+                    const state = currentStateByKey[key] || {};
+                    const enabled = Boolean(state.enabled);
+                    const threshold = String(state.threshold ?? '');
+                    const weight = Number(state.weight ?? item.defaultWeight ?? 50);
 
                     return `
                         <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="${key}">
-                            <button type="button" role="switch" aria-checked="false"
-                                class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 focus:outline-none">
-                                <span class="inline-block h-4 w-4 translate-x-0 rounded-full bg-white shadow transition-transform duration-200"></span>
+                            <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[${key}][enabled]" value="${enabled ? '1' : '0'}">
+                            <input type="hidden" class="kc-hidden-threshold" name="critical_matching_criteria[${key}][threshold]" value="${escapeHtml(threshold)}">
+                            <input type="hidden" class="kc-hidden-weight" name="critical_matching_criteria[${key}][weight]" value="${weight}">
+                            <button type="button" role="switch" aria-checked="${enabled ? 'true' : 'false'}"
+                                class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent ${enabled ? 'bg-teal-400' : 'bg-gray-200'} transition-colors duration-200 focus:outline-none">
+                                <span class="inline-block h-4 w-4 ${enabled ? 'translate-x-4' : 'translate-x-0'} rounded-full bg-white shadow transition-transform duration-200"></span>
                             </button>
                             <span class="kc-criteria-label w-36 text-sm text-gray-700">${safeName}</span>
-                            <input type="number" min="0" placeholder="0"
+                            <input type="number" min="0" placeholder="0" value="${escapeHtml(threshold)}"
                                 class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40"
-                                disabled>
+                                ${enabled ? '' : 'disabled'}>
                             <span class="kc-criteria-unit w-8 text-xs text-gray-500">${safeUnit}</span>
                             <span class="text-xs font-medium text-gray-500">Weight</span>
                             <input type="range" min="0" max="100" value="${weight}"
                                 class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
-                                disabled>
+                                ${enabled ? '' : 'disabled'}>
                             <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">${weight}</span>
                         </div>
                     `;
@@ -781,6 +850,10 @@
                     if (thumb) {
                         thumb.classList.toggle('translate-x-5', on);
                         thumb.classList.toggle('translate-x-0', !on);
+                    }
+                    const hiddenInput = this.parentElement?.querySelector('.kc-rule-hidden-input');
+                    if (hiddenInput) {
+                        hiddenInput.value = on ? '1' : '0';
                     }
                 });
             });

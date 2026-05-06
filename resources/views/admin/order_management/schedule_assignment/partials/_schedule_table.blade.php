@@ -48,16 +48,16 @@
                 </td>
 
                 <td class="whitespace-nowrap px-4 py-3 text-center">
-                    {!! $orderProduct->order->view_link !!}
+                    {!! $orderProduct->order?->view_link ?? '-' !!}
                 </td>
                 <td class="whitespace-nowrap px-4 py-3 text-left">
 
                     <div class="font-medium">
-                        {{ $orderProduct->order->customer_name }}
+                        {{ $orderProduct->order?->customer_name ?? '-' }}
                     </div>
 
                     @php
-                        $customer = $orderProduct->order->customer;
+                        $customer = $orderProduct->order?->customer;
                     @endphp
 
                     @if ($customer && $customer->company_name)
@@ -81,8 +81,8 @@
                 </td>
 
                 <td class="whitespace-nowrap px-4 py-3 truncate min-w-xs max-w-xs">
-                    {{ $orderProduct->order->shippingAddress->full_address }}</td>
-                <td class="whitespace-nowrap px-4 py-3 text-left ">{{ $orderProduct->order->shippingAddress->phone }}
+                    {{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-left ">{{ $orderProduct->order?->shippingAddress?->phone ?? '-' }}
                 </td>
                 <td class="whitespace-nowrap px-4 py-3 text-center">
                     @if ($orderProduct?->checklistQuestions->isNotEmpty())
@@ -90,7 +90,7 @@
                             data-order-product-unique-id="{{ $orderProduct->unique_id }}"
                             data-product-name="{{ $orderProduct->product_name }}"
                             data-order-id="{{ $orderProduct?->order?->order_number }}"
-                            data-order-unique-id="{{ $orderProduct?->order->unique_id }}"
+                            data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
                             data-customer-name="{{ $orderProduct?->order?->customer_name }}">
                             {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
                         </button>
@@ -99,9 +99,9 @@
                             data-order-product-unique-id="{{ $orderProduct->unique_id }}"
                             data-product-name="{{ $orderProduct->product_name }}"
                             data-order-id="{{ $orderProduct?->order?->order_number }}"
-                            data-order-unique-id="{{ $orderProduct?->order->unique_id }}"
+                            data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
                             data-customer-name="{{ $orderProduct?->order?->customer_name }}">
-                            {{ $orderProduct->softAssignment?->equipment->equipment_name ?: 'Assign' }}
+                            {{ $orderProduct->softAssignment?->equipment?->equipment_name ?: 'Assign' }}
                         </button>
                     @endif
                 </td>
@@ -114,7 +114,7 @@
                     @else
                         <span
                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
-                            {{ $orderProduct->softAssignment?->equipment->equipment_id ?? '-' }}
+                            {{ $orderProduct->softAssignment?->equipment?->equipment_id ?? '-' }}
                         </span>
                     @endif
                 </td>

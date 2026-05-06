@@ -46,42 +46,46 @@
                 @csrf
                 @method('PUT')
 
-                {{-- Main actions --}}
-                <div class="mb-6 flex justify-end gap-3">
-                    <button type="submit" name="action" value="save"
-                        class="inline-flex items-center px-6 py-2 rounded-md border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 text-sm font-semibold shadow-sm transition">
-                        Save
-                    </button>
+                {{-- Tabs + Actions Bar --}}
+                <div class="mb-4 flex items-center justify-between gap-4">
+                    {{-- Tabs on the left --}}
+                    <nav class="inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1" aria-label="Equipment tabs">
+                        <button type="button" data-tab-btn="overview"
+                            class="tab-btn inline-flex items-center rounded-lg bg-white px-4 py-1.5 text-sm font-semibold text-gray-900 shadow-sm transition-all">
+                            General
+                        </button>
+                        <button type="button" data-tab-btn="specification"
+                            class="tab-btn inline-flex items-center rounded-lg px-4 py-1.5 text-sm font-semibold text-gray-500 transition-all hover:text-gray-700">
+                            Specifications
+                        </button>
+                        <button type="button" data-tab-btn="key-comparison"
+                            class="tab-btn inline-flex items-center rounded-lg px-4 py-1.5 text-sm font-semibold text-gray-500 transition-all hover:text-gray-700">
+                            Key Comparisons
+                        </button>
+                    </nav>
 
-                    <button type="submit" name="action" value="save_exit"
-                        class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold shadow transition">
-                        Save &amp; Exit
-                        <svg class="w-4 h-4 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9">
-                            </path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-                    <div class="border-b border-gray-200 px-6 pt-5">
-                        <nav class="-mb-px flex flex-wrap gap-6" aria-label="Equipment tabs">
-                            <button type="button" data-tab-btn="overview"
-                                class="tab-btn inline-flex items-center border-b-2 border-blue-600 px-1 pb-3 text-sm font-semibold text-blue-600 transition-colors">
-                                Overview
-                            </button>
-                            <button type="button" data-tab-btn="specification"
-                                class="tab-btn inline-flex items-center border-b-2 border-transparent px-1 pb-3 text-sm font-semibold text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700">
-                                Specification
-                            </button>
-                            <button type="button" data-tab-btn="key-comparison"
-                                class="tab-btn inline-flex items-center border-b-2 border-transparent px-1 pb-3 text-sm font-semibold text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700">
-                                Key Comparison
-                            </button>
-                        </nav>
+                    {{-- Action buttons on the right --}}
+                    <div class="flex items-center gap-3">
+                        <button type="submit" name="action" value="save"
+                            class="inline-flex items-center px-6 py-2 rounded-md border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 text-sm font-semibold shadow-sm transition">
+                            Save
+                        </button>
+
+                        <button type="submit" name="action" value="save_exit"
+                            class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold shadow transition">
+                            Save &amp; Exit
+                            <svg class="w-4 h-4 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9">
+                                </path>
+                            </svg>
+                        </button>
                     </div>
+                </div>
 
+                {{-- Content Card --}}
+                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
                     <div class="p-6 max-h-[calc(100vh-270px)] overflow-y-auto">
                         <div data-tab-panel="overview">
                             @include('admin.maintenance_management.equipment.partials._form')
@@ -227,18 +231,8 @@
                                     </div>
 
                                     <div id="kc-criteria-rows" class="divide-y divide-gray-100">
-                                        @php
-                                            $criteriaRows = [
-                                                ['key' => 'engine_horsepower',        'label' => 'Engine HP',          'unit' => 'HP'],
-                                                ['key' => 'operating_weight',         'label' => 'Operating Weight',   'unit' => 'lbs'],
-                                                ['key' => 'tipping_load',             'label' => 'Tipping Load',       'unit' => 'lbs'],
-                                                ['key' => 'rated_operating_capacity', 'label' => 'Lifting Capacity',   'unit' => 'lbs'],
-                                                ['key' => 'travel_speed',             'label' => 'Travel Speed',       'unit' => 'mph'],
-                                            ];
-                                        @endphp
-
-                                        @foreach($criteriaRows as $row)
-                                            <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="{{ $row['key'] }}">
+                                        @forelse($criteriaRows as $row)
+                                            <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="{{ $row->criteria_key }}">
                                                 {{-- enable toggle --}}
                                                 <button type="button" role="switch" aria-checked="false"
                                                     class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 focus:outline-none">
@@ -246,22 +240,24 @@
                                                 </button>
 
                                                 {{-- label --}}
-                                                <span class="kc-criteria-label w-36 text-sm text-gray-700">{{ $row['label'] }}</span>
+                                                <span class="kc-criteria-label w-36 text-sm text-gray-700">{{ $row->name }}</span>
 
                                                 {{-- threshold --}}
                                                 <input type="number" min="0" placeholder="0"
                                                     class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40"
                                                     disabled>
-                                                <span class="kc-criteria-unit w-8 text-xs text-gray-500">{{ $row['unit'] }}</span>
+                                                <span class="kc-criteria-unit w-8 text-xs text-gray-500">{{ $row->unit }}</span>
 
                                                 {{-- weight label + slider --}}
                                                 <span class="text-xs font-medium text-gray-500">Weight</span>
-                                                <input type="range" min="0" max="100" value="50"
+                                                <input type="range" min="0" max="100" value="{{ $row->default_weight }}"
                                                     class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
                                                     disabled>
-                                                <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">50</span>
+                                                <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">{{ $row->default_weight }}</span>
                                             </div>
-                                        @endforeach
+                                        @empty
+                                            <div class="px-5 py-6 text-center text-sm text-gray-400">No active criteria found for this category.</div>
+                                        @endforelse
                                     </div>
                                 </div>
 
@@ -409,9 +405,9 @@
             tabPanels.forEach(p => p.classList.toggle('hidden', p.getAttribute('data-tab-panel') !== tabName));
             tabButtons.forEach(btn => {
                 const on = btn.getAttribute('data-tab-btn') === tabName;
-                btn.classList.toggle('border-blue-600', on);
-                btn.classList.toggle('text-blue-600', on);
-                btn.classList.toggle('border-transparent', !on);
+                btn.classList.toggle('bg-white', on);
+                btn.classList.toggle('text-gray-900', on);
+                btn.classList.toggle('shadow-sm', on);
                 btn.classList.toggle('text-gray-500', !on);
             });
         }

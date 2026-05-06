@@ -11,6 +11,7 @@ use App\Models\MaintenanceManagement\ServiceMaster\ServiceTemplate;
 use App\Models\MaintenanceManagement\PartsList;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\Specification\GenerateController as SpecFormatter;
+use App\Models\MaintenanceManagement\EquipmentCriticalMatchingCriterion;
 
 class EditController extends Controller
 {
@@ -91,9 +92,14 @@ class EditController extends Controller
             ->values()
             ->toArray();
 
+        $criteriaRows = EquipmentCriticalMatchingCriterion::where('product_category_id', $equipment->product_category_id)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
         return view('admin.maintenance_management.equipment.edit', compact(
             'equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates',
-            'partsLists', 'selectedPartsListId', 'similarEquipmentOptions', 'defaultSimilarEquipmentIds'
+            'partsLists', 'selectedPartsListId', 'similarEquipmentOptions', 'defaultSimilarEquipmentIds', 'criteriaRows'
         ) + [
             'existingSpecs' => $equipment->specifications->map(fn ($s) => SpecFormatter::formatSpec($s))->values()->toJson(),
             'specGenerateUrl' => route('admin.maintenance-management.equipment.specification.generate', $equipment->unique_id),

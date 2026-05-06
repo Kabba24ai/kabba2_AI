@@ -163,9 +163,28 @@
                                         <h3 class="text-sm font-semibold text-gray-900">Substitution Class</h3>
                                     </div>
                                     <div class="px-5 py-4 space-y-2">
-                                        <p class="text-xs font-semibold text-blue-600">Primary Category</p>
-                                        <div class="inline-flex items-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700">
-                                            {{ optional($equipment->productCategory)->title ?? 'Uncategorised' }}
+                                        <div class="grid gap-4 md:grid-cols-4">
+                                            <div>
+                                                <p class="text-xs font-semibold text-blue-600">Primary Category</p>
+                                                <div class="mt-1 inline-flex items-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700">
+                                                    {{ optional($equipment->productCategory)->title ?? 'Uncategorised' }}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <p class="text-xs font-semibold text-gray-600">Equipment Name</p>
+                                                <p class="mt-2 text-sm font-medium text-gray-900">{{ $equipment->equipment_name ?: '-' }}</p>
+                                            </div>
+
+                                            <div>
+                                                <p class="text-xs font-semibold text-gray-600">Brand</p>
+                                                <p class="mt-2 text-sm font-medium text-gray-900">{{ $equipment->brand ?: '-' }}</p>
+                                            </div>
+
+                                            <div>
+                                                <p class="text-xs font-semibold text-gray-600">Model</p>
+                                                <p class="mt-2 text-sm font-medium text-gray-900">{{ $equipment->model ?: '-' }}</p>
+                                            </div>
                                         </div>
                                         <p class="text-xs text-gray-500">All substitution equipment is shown from this category</p>
                                     </div>

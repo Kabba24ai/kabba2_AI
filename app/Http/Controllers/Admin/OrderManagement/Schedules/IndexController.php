@@ -27,6 +27,7 @@ class IndexController extends Controller
             $query = OrderProduct::query()
                 ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes')
                 ->where('product_data->product_type', 'Rental')
+                ->whereHas('order')
                 ->whereNotNull('delivery_date');
 
 

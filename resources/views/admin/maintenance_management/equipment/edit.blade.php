@@ -188,6 +188,34 @@
                                     </div>
                                 </div>
 
+                                {{-- ── Product Assignment (Layout First) ───────────────── --}}
+                                @php
+                                    $productAssignmentOptions = $productAssignmentOptions ?? [];
+                                    $selectedAssignedProductId = (string) old('assigned_product_id', $equipment->assigned_product_id ?? '');
+                                @endphp
+                                <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+                                    <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+                                        <div>
+                                            <h3 class="text-sm font-semibold text-gray-900">Direct Assignment To Product(s)</h3>
+                                            <p class="mt-0.5 text-xs text-gray-500">Choose one product from the same category for this equipment</p>
+                                        </div>
+                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">1 Product Assignment</span>
+                                    </div>
+
+                                    <div class="px-5 py-4">
+                                        <label for="assigned_product_id" class="mb-1 block text-xs font-semibold text-gray-600">Assigned Product</label>
+                                        <select name="assigned_product_id" id="assigned_product_id"
+                                            class="choices-select w-full md:w-80 px-2 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white border-gray-300">
+                                            <option value="">Select Product</option>
+                                            @foreach($productAssignmentOptions as $product)
+                                                <option value="{{ $product['id'] }}" {{ (string) $product['id'] === $selectedAssignedProductId ? 'selected' : '' }}>
+                                                    {{ $product['label'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+
                                 {{-- ── Comparable Equipment ─────────────────────────────── --}}
                                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                                     <div class="border-b border-gray-100 px-5 py-4">

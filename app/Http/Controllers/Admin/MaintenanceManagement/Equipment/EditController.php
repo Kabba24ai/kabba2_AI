@@ -12,6 +12,7 @@ use App\Models\MaintenanceManagement\PartsList;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\Specification\GenerateController as SpecFormatter;
 use App\Models\MaintenanceManagement\EquipmentCriticalMatchingCriterion;
+use App\Models\ProductManagement\Product;
 
 class EditController extends Controller
 {
@@ -97,9 +98,29 @@ class EditController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        $productAssignmentOptions = Product::query()
+            ->whereHas('categories', function ($query) use ($equipment) {
+                $query->where('product_categories.id', $equipment->product_category_id);
+            })
+            ->orderBy('product_name', 'asc')
+            ->get(['id', 'product_name', 'unique_id'])
+            ->map(function ($product) {
+                $label = (string) $product->product_name;
+                if (!empty($product->unique_id)) {
+                    $label .= ' (' . $product->unique_id . ')';
+                }
+
+                return [
+                    'id' => (int) $product->id,
+                    'label' => $label,
+                ];
+            })
+            ->values()
+            ->toArray();
+
         return view('admin.maintenance_management.equipment.edit', compact(
             'equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates',
-            'partsLists', 'selectedPartsListId', 'similarEquipmentOptions', 'defaultSimilarEquipmentIds', 'criteriaRows'
+            'partsLists', 'selectedPartsListId', 'similarEquipmentOptions', 'defaultSimilarEquipmentIds', 'criteriaRows', 'productAssignmentOptions'
         ) + [
             'existingSpecs' => $equipment->specifications->map(fn ($s) => SpecFormatter::formatSpec($s))->values()->toJson(),
             'specGenerateUrl' => route('admin.maintenance-management.equipment.specification.generate', $equipment->unique_id),

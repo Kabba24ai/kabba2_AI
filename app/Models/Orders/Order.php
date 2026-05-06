@@ -206,17 +206,22 @@ class Order extends Model
                 $model->saveQuietly();
             }
 
-            $model->products()->with('equipment')->get()->each(function ($product) {
+            $model->products()->with('equipment')->get()->each(function ($product) use ($model) {
                 $equipment = $product->equipment;
-                if (!$equipment) {
-                    return;
+                if ($equipment) {
+                    $equipment->current_status          = EquipmentCurrentStatus::Maintenance->value;
+                    $equipment->current_status_updated_by = auth()->id();
+                    $equipment->current_status_changed_at = now();
+                    $equipment->current_order_id          = null;
+                    $equipment->current_order_product_id  = null;
+                    $equipment->saveQuietly();
                 }
-                $equipment->current_status          = EquipmentCurrentStatus::Maintenance->value;
-                $equipment->current_status_updated_by = auth()->id();
-                $equipment->current_status_changed_at = now();
-                $equipment->current_order_id          = null;
-                $equipment->current_order_product_id  = null;
-                $equipment->saveQuietly();
+
+                if (!$model->isForceDeleting()) {
+                    // Use individual delete() so OrderProduct's deleting hook fires
+                    // (cascades soft-delete to softAssignment, orderMedia, checklist questions/answers)
+                    $product->delete();
+                }
             });
 
             if (!$model->isForceDeleting()) {
@@ -227,7 +232,6 @@ class Order extends Model
                 $model->media()->delete();
                 $model->extraCharges()->delete();
                 $model->softAssignments()->delete();
-                $model->products()->delete();
             }
         });
 
@@ -239,7 +243,11 @@ class Order extends Model
             $model->media()->withTrashed()->restore();
             $model->extraCharges()->withTrashed()->restore();
             $model->softAssignments()->withTrashed()->restore();
-            $model->products()->withTrashed()->restore();
+            // Use individual restore() so OrderProduct's restoring hook fires
+            // (cascades restore to softAssignment, orderMedia, checklist questions/answers)
+            $model->products()->withTrashed()->get()->each(function ($product) {
+                $product->restore();
+            });
         });
 
         // On force-delete: clean up order media files

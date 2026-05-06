@@ -771,15 +771,18 @@
 
                             @if($isBadDebt)
                                 <div class="flex items-start gap-3 mt-2">
-                                    <x-heroicon-o-currency-dollar class="w-5 h-5 mt-0.5 text-red-600" />
+                                     <x-heroicon-o-currency-dollar 
+            class="w-5 h-5 mt-0.5 text-red-600 shrink-0" 
+        />
+
                                     <div>
-                                        <p class="font-semibold">Outstanding balance detected</p>
+                                        <p class="font-semibold">Your account has an outstanding balance</p>
                                         <p class="text-sm mt-1">
-                                            You have pending dues. Please clear your previous balance before placing a new order.
+                                            We noticed there is a pending balance on your account. Please clear the outstanding amount before placing a new order.
                                         </p>
                                          <p class="text-sm mt-2 text-red-600">
-                If you believe this is incorrect, please contact your administrator or support team.
-            </p>
+                                            If you believe this message was shown in error, please contact your administrator or support team for assistance.
+                                        </p>
                                     </div>
                                 </div>
                             @endif

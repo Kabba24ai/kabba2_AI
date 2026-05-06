@@ -3,8 +3,8 @@
 @section('title', 'Update Equipment')
 
 @section('content')
-    <div class="h-screen bg-gray-50 flex flex-col overflow-hidden">
-        <div class="flex-1">
+    <div class="min-h-screen bg-gray-50">
+        <div>
             {{-- Header --}}
             <div class="bg-white border-b border-gray-200 px-6 py-4">
                 <div class="max-w-5xl flex items-center justify-between">
@@ -84,15 +84,13 @@
                     </div>
                 </div>
 
-                {{-- Content Card --}}
-                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-                    <div class="p-6 max-h-[calc(100vh-270px)] overflow-y-auto">
-                        <div data-tab-panel="overview">
-                            @include('admin.maintenance_management.equipment.partials._form')
-                        </div>
+                {{-- Tab Panels --}}
+                <div data-tab-panel="overview">
+                    @include('admin.maintenance_management.equipment.partials._form')
+                </div>
 
-                        <div data-tab-panel="specification" class="hidden">
-                            <div class="space-y-6">
+                <div data-tab-panel="specification" class="hidden">
+                    <div class="space-y-6">
 
                                 {{-- Section A: AI Lookup Input --}}
                                 <div class="rounded-xl border border-blue-100 bg-blue-50 p-5">
@@ -151,8 +149,8 @@
                             </div>
                         </div>
 
-                        <div data-tab-panel="key-comparison" class="hidden">
-                            <div class="space-y-5">
+                <div data-tab-panel="key-comparison" class="hidden">
+                    <div class="space-y-5">
 
                                 {{-- ── Substitution Class ─────────────────────────────────── --}}
                                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -429,9 +427,8 @@
                                         </div>
                                     </div>
 
-                                </div>
-
                             </div>
+
                         </div>
                     </div>
                 </div>

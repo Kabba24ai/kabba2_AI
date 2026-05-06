@@ -3,26 +3,16 @@
 namespace App\Modules\SchedulingAssistant\Services;
 
 use App\Modules\SchedulingAssistant\DTOs\AIAdvisorResultData;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
+use App\Services\OpenAIService;
 use Throwable;
 
 class OpenAISchedulingAdvisorService
 {
+    public function __construct(private OpenAIService $openAI) {}
+
     public function advise(array $context): AIAdvisorResultData
     {
-        $apiKey = (string) config('services.openai.api_key');
-        $baseUrl = rtrim((string) config('services.openai.base_url', 'https://api.openai.com/v1'), '/');
         $model = (string) config('services.openai.model', 'gpt-4.1-mini');
-        $timeout = (int) config('services.openai.timeout', 45);
-
-        if ($apiKey === '') {
-            return new AIAdvisorResultData(
-                success: false,
-                recommendation: null,
-                error: 'Missing OPENAI_API_KEY configuration.'
-            );
-        }
 
         $schema = $this->responseSchema();
         $requestPayload = [
@@ -65,30 +55,7 @@ class OpenAISchedulingAdvisorService
         }
 
         try {
-            $clientRequestId = (string) Str::uuid();
-
-            $response = Http::timeout($timeout)
-                ->acceptJson()
-                ->withToken($apiKey)
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                    'X-Client-Request-Id' => $clientRequestId,
-                ])
-                ->post($baseUrl . '/responses', $requestPayload);
-
-            $requestId = $response->header('x-request-id');
-
-            if (!$response->successful()) {
-                return new AIAdvisorResultData(
-                    success: false,
-                    recommendation: null,
-                    rawResponse: $response->json(),
-                    requestId: $requestId,
-                    error: 'OpenAI API request failed with status ' . $response->status() . '.'
-                );
-            }
-
-            $json = $response->json();
+            $json = $this->openAI->request('/responses', $requestPayload, 'scheduling_advisor');
 
             $outputText = $this->extractOutputText($json);
 
@@ -97,7 +64,6 @@ class OpenAISchedulingAdvisorService
                     success: false,
                     recommendation: null,
                     rawResponse: $json,
-                    requestId: $requestId,
                     error: 'No structured output text was returned by the AI advisor.'
                 );
             }
@@ -109,7 +75,6 @@ class OpenAISchedulingAdvisorService
                     success: false,
                     recommendation: null,
                     rawResponse: $json,
-                    requestId: $requestId,
                     error: 'Structured output could not be decoded as JSON.'
                 );
             }
@@ -118,7 +83,6 @@ class OpenAISchedulingAdvisorService
                 success: true,
                 recommendation: $decoded,
                 rawResponse: $json,
-                requestId: $requestId,
                 error: null
             );
         } catch (Throwable $e) {

@@ -2,6 +2,7 @@
 namespace App\Models\Orders;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 // Helpers
 use App\Helpers\ModelHelper;
@@ -16,6 +17,8 @@ use App\Models\Iam\Personnel\User;
 
 class OrderHistory extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'order_histories';
 
     protected $fillable = [

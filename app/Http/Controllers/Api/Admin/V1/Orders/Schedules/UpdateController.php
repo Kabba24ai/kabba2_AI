@@ -27,7 +27,10 @@ class UpdateController extends Controller
         $validated = $request->validated();
         try {
             $user = auth('api_user')->user();
-            $schedule = OrderProduct::with('order')->where('unique_id', $validated['order_product_unique_id'])->firstOrFail();
+            $schedule = OrderProduct::with('order')
+                ->whereHas('order')
+                ->where('unique_id', $validated['order_product_unique_id'])
+                ->firstOrFail();
 
             if ($validated['schedule_type'] === 'Delivery') {
                 $field = 'delivery_status';

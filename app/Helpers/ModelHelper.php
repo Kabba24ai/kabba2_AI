@@ -9,9 +9,17 @@ class ModelHelper
 
     public static function generateUniqueID($model, $prefix, $slot = 2, $slot_length = 4)
     {
+        $usesSoftDeletes = in_array(
+            \Illuminate\Database\Eloquent\SoftDeletes::class,
+            class_uses_recursive($model)
+        );
+
         while (true) {
             $uniqueId = self::generateUniqueIDString($prefix, $slot, $slot_length);
-            if (!$model->where('unique_id', $uniqueId)->exists()) {
+            $query = $usesSoftDeletes
+                ? $model->withTrashed()->where('unique_id', $uniqueId)
+                : $model->where('unique_id', $uniqueId);
+            if (!$query->exists()) {
                 break;
             }
         }

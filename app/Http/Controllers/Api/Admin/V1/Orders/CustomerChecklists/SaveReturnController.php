@@ -27,6 +27,7 @@ class SaveReturnController extends BaseController
         $validated = $request->validated();
 
         $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'returnSignatureMedia', 'equipment'])
+            ->whereHas('order')
             ->where('unique_id', $validated['order_product_unique_id'])
             ->first();
 

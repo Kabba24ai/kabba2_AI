@@ -21,17 +21,36 @@ class DeleteController extends Controller
     public function __invoke($unique_id, Request $request)
     {
         $objRecord = Store::where('unique_id', $unique_id)->firstOrFail();
-        $primaryFlag = $objRecord->is_primary == 'Yes' ? true : false;
+        $primaryFlag = $objRecord->is_primary === 'Yes';
 
-        if(OrderProduct::where('delivery_store_id', $objRecord->id)->exists() || OrderProduct::where('pickup_store_id', $objRecord->id)->exists()){
+        if (
+            OrderProduct::whereHas('order')->where('delivery_store_id', $objRecord->id)->exists()
+            || OrderProduct::whereHas('order')->where('pickup_store_id', $objRecord->id)->exists()
+        ) {
             flash('Cannot delete store. It is associated with existing orders.')->error();
+            return redirect()->route('admin.stores.index');
+        }
+
+        // Prevent deletion of the last remaining store.
+        if (Store::where('id', '!=', $objRecord->id)->count() === 0) {
+            flash('Cannot delete the only remaining store.')->error();
+            return redirect()->route('admin.stores.index');
+        }
+
+        // Prevent deleting the primary store unless another store exists to take over.
+        if ($primaryFlag && Store::where('id', '!=', $objRecord->id)->count() === 0) {
+            flash('Cannot delete the primary store when no other stores exist.')->error();
             return redirect()->route('admin.stores.index');
         }
 
         $objRecord->delete();
 
-        if($primaryFlag){
-            Store::where('is_primary', 'No')->first()?->update(['is_primary' => 'Yes']);
+        // If the deleted store was primary, promote the first remaining store.
+        if ($primaryFlag) {
+            $next = Store::where('is_primary', 'No')->first();
+            if ($next) {
+                $next->update(['is_primary' => 'Yes']);
+            }
         }
 
         flash('Store deleted successfully.')->success();

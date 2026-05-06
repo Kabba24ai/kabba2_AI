@@ -29,7 +29,7 @@ class UpdateController extends Controller
         }
 
         // Handle primary store logic
-        if (isset($validatedData['is_primary']) && $validatedData['is_primary'] === 'Yes') {
+        if ($validatedData['is_primary'] === 'Yes') {
             Store::where('id', '!=', $store->id)->update(['is_primary' => 'No']);
         }
 

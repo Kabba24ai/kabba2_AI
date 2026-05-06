@@ -3,6 +3,7 @@ namespace App\Models\Orders;
 
 use App\Enums\Orders\OrderMediaType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 // Helpers
 use App\Helpers\ModelHelper;
@@ -17,6 +18,8 @@ use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 
 class OrderProduct extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'unique_id',
         'order_id',
@@ -136,12 +139,48 @@ class OrderProduct extends Model
         return $this->hasMany(OrderProductChecklistQuestion::class);
     }
 
+    public function orderMedia()
+    {
+        return $this->hasMany(OrderMedia::class, 'order_product_id');
+    }
+
+    public function scopeWithActiveOrder($query)
+    {
+        return $query->whereHas('order');
+    }
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'ORD-SCH');
+        });
+
+        static::deleting(function ($model) {
+            if ($model->isForceDeleting()) {
+                return;
+            }
+
+            $model->softAssignment()->delete();
+            $model->orderMedia()->delete();
+
+            $model->checklistQuestions()->get()->each(function ($question) {
+                $question->answers()->delete();
+            });
+
+            $model->checklistQuestions()->delete();
+        });
+
+        static::restoring(function ($model) {
+            $model->softAssignment()->withTrashed()->restore();
+            $model->orderMedia()->withTrashed()->restore();
+
+            $model->checklistQuestions()->withTrashed()->get()->each(function ($question) {
+                $question->answers()->withTrashed()->restore();
+            });
+
+            $model->checklistQuestions()->withTrashed()->restore();
         });
     }
 
@@ -235,7 +274,7 @@ class OrderProduct extends Model
         )->latest();
     }
 
-    
+
 
 
     /**

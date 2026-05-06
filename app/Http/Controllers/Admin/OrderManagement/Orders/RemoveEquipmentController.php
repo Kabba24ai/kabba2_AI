@@ -20,6 +20,7 @@ class RemoveEquipmentController extends Controller
         ]);
 
         $orderProduct = OrderProduct::with(['equipment', 'softAssignment', 'checklistQuestions'])
+            ->whereHas('order')
             ->where('unique_id', $validated['order_product_unique_id'])
             ->first();
 

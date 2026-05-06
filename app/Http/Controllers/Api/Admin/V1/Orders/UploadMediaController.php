@@ -62,8 +62,10 @@ class UploadMediaController extends Controller
                             ->where('type', $typeEnum->value)
                             ->where('side', $request->input('side'))
                             ->get()
-                            ->each
-                            ->delete();
+                            ->each(function ($media) {
+                                // Use forceDelete so OrderMedia cleanup removes old stored file.
+                                $media->forceDelete();
+                            });
                     }
 
                     $mediaPath = match ($typeEnum) {

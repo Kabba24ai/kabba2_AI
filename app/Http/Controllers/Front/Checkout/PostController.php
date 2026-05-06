@@ -17,7 +17,6 @@ use App\Services\AuthorizeNetService;
 use App\Events\Front\Checkout\OrderPlacedEvent;
 use App\Events\Front\Checkout\OrderPlacedEmailEvent;
 
-
 // Helpers
 use App\Helpers\CartHelper;
 use App\Helpers\CustomHelper;
@@ -28,13 +27,12 @@ use App\Helpers\ModelHelper;
 // Request
 use App\Http\Requests\Front\Checkout\PostRequest;
 use App\Jobs\CreateReceiptJob;
+
 // Models
 use App\Models\Customers\Customer;
-use App\Models\Customers\Receipt;
 
 use App\Models\Customers\CustomerAddress;
 use App\Models\Customers\CustomerAccount;
-use App\Models\ProductManagement\Product;
 use App\Models\Configurations\Setting;
 use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;

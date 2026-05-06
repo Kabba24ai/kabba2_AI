@@ -26,8 +26,12 @@ class RemoveMediaController extends Controller
         try {
             $orderMedia = OrderMedia::where('unique_id', $validated['order_media_unique_id'])->first();
 
-            // Delete the media record
-            $orderMedia->delete();
+            if (!$orderMedia) {
+                return response()->json(['error' => 'Order media not found.'], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            // Use forceDelete so OrderMedia's deleting hook can remove stored file.
+            $orderMedia->forceDelete();
 
             return response()->json(['message' => trans('messages.api.admin.v1.orders.media_remove_success')]);
 

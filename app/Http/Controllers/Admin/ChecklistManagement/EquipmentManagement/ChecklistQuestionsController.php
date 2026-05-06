@@ -43,7 +43,7 @@ class ChecklistQuestionsController extends Controller
                     'message' => 'Equipment not found'
                 ], 404);
             }
-           
+
             // CASE 1: Fresh template OR existing with no order_product_id
             if (!$order_product_id || $order_product_id === '-') {
                 $existingTemplate = EquipmentRentalReadyTemplate::where('equipment_id', $equipment_id)
@@ -62,7 +62,9 @@ class ChecklistQuestionsController extends Controller
             $orderProduct = OrderProduct::with([
                 'equipmentRentalReadyTemplate.checklistQuestions',
                 'equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.answers',
-            ])->find($order_product_id);
+            ])
+                ->whereHas('order')
+                ->find($order_product_id);
 
             if (!$orderProduct) {
                 return response()->json([

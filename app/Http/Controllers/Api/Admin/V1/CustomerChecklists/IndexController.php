@@ -38,8 +38,8 @@ class IndexController extends BaseController
                 ->where('unique_id', $orderProductUniqueId)
                 ->first();
 
-            $questions = optional($orderProduct->checklistQuestions) ?? collect();
-            $equipment = $orderProduct->equipment ?? null;
+            $questions = optional($orderProduct)->checklistQuestions ?? collect();
+            $equipment = optional($orderProduct)->equipment ?? null;
         }
 
         if ($type == "delivery" && $equipmentUniqueId) {

@@ -183,7 +183,7 @@
                 </td>
 
                 <td class="whitespace-nowrap px-4 py-3 text-center">
-                    {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order->last_payment_status) !!}
+                    {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
                 </td>
                 <td class="whitespace-nowrap px-4 py-3">
                     <div class="flex gap-2 items-center justify-center">
@@ -196,7 +196,7 @@
                             <x-heroicon-o-sparkles class="w-4 h-4" />
                         </button>
 
-                        <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
+                        <a href="{{ $orderProduct->order?->unique_id ? route('admin.order-management.orders.edit', $orderProduct->order->unique_id) : '#' }}"
                             class="text-sky-600 hover:text-sky-800" title="View" >
                             <x-heroicon-o-eye class="w-4 h-4" />
                         </a>

@@ -16,11 +16,10 @@ class UpdateWorkScheduleController extends BaseController
     public function __invoke(UpdateWorkScheduleRequest $request): JsonResponse
 {
     try {
-
+   
         $data = $request->validated();
 
        
-
         // Normalize time
         $startTime = !empty($data['start_time'])
             ? Carbon::parse($data['start_time'])->format('H:i:s')
@@ -29,8 +28,8 @@ class UpdateWorkScheduleController extends BaseController
         $endTime = !empty($data['end_time'])
             ? Carbon::parse($data['end_time'])->format('H:i:s')
             : null;
-
-       
+    
+           
 
         $record = WorkSchedule::updateOrCreate(
             [
@@ -47,6 +46,7 @@ class UpdateWorkScheduleController extends BaseController
             ]
         );
 
+        
 
         return response()->json([
             'success' => true,

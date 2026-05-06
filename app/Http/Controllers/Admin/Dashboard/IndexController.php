@@ -203,35 +203,93 @@ class IndexController extends Controller
         $serviceStatusCounts = $this->getServiceStatusCounts();
         $pendingCount = $serviceStatusCounts['pendingCount'];
         $overdueCount = $serviceStatusCounts['overdueCount'];
-        // dd($salesData);
+
+        $data = [
+            'deliveries_truck' => [
+                'due_today' => $this->getScheduleCount('delivery', 'Truck', 'Due', true),
+                'completed_today' => $this->getScheduleCount('delivery', 'Truck', 'Completed', true),
+            ],
+            'deliveries_store' => [
+                'due_today' => $this->getScheduleCount('delivery', 'Store', 'Due', true),
+                'completed_today' => $this->getScheduleCount('delivery', 'Store', 'Completed', true),
+            ],
+            'returns_truck' => [
+                'due_today' => $this->getScheduleCount('pickup', 'Truck', 'Due', true),
+                'completed_today' => $this->getScheduleCount('pickup', 'Truck', 'Completed', true),
+            ],
+            'returns_store' => [
+                'due_today' => $this->getScheduleCount('pickup', 'Store', 'Due', true),
+                'completed_today' => $this->getScheduleCount('pickup', 'Store', 'Completed', true),
+            ],
+        ];
+
 
         return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount'));
 
     }
 
+    private function getScheduleCount(
+        string $type,
+        string $transport,
+        string $status,
+        bool $todayOnly = false
+    ) {
 
-        private function getScheduleCount(
-            string $type,
-            string $transport,
-            string $status,
-            bool $todayOnly = false
-        ) {
-            $query = OrderProduct::query()
-                ->where('product_data->product_type', 'Rental')
-                ->whereHas('order')
-                ->whereNotNull($type . '_date')
-                ->where($type . '_transport_mode', $transport)
-                ->when($status === 'Completed',
-                    fn ($q) => $q->where($type . '_status', 'Completed'),
-                    fn ($q) => $q->whereIn($type . '_status', ['Pending', 'Reschedule'])
-                )
-                ->when($todayOnly,
-                    fn ($q) => $q->whereDate($type . '_date', Carbon::today())
-                );
+        $query = OrderProduct::query()
+            ->where('product_data->product_type', 'Rental')
+            ->whereNotNull($type . '_date')
+            ->where($type . '_transport_mode', $transport);
 
+        /*
+        |--------------------------------------------------------------------------
+        | DELIVERY
+        |--------------------------------------------------------------------------
+        */
+        if ($type === 'delivery') {
 
-            return $query->count();
+            if ($status === 'Completed') {
+
+                $query->where('delivery_status', 'Completed');
+
+            } else {
+
+                // MATCH LIST PAGE
+                $query->where('delivery_status', 'Pending');
+            }
+
+            // MATCH LIST PAGE
+            if ($todayOnly) {
+                $query->whereDate('delivery_date', '<=', Carbon::today());
+            }
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | RETURN
+        |--------------------------------------------------------------------------
+        */
+        if ($type === 'pickup') {
+
+            if ($status === 'Completed') {
+
+                $query->where('pickup_status', 'Completed');
+
+            } else {
+
+                // MATCH LIST PAGE
+                $query->where('pickup_status', 'Pending')
+                    ->where('delivery_status', 'Completed');
+            }
+
+            // MATCH LIST PAGE
+            if ($todayOnly) {
+                $query->whereDate('pickup_date', '<=', Carbon::today());
+            }
+        }
+
+        
+        return $query->count();
+    }
 
 
         private function getMaintenanceChartData()

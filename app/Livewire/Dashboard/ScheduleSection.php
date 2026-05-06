@@ -99,27 +99,91 @@ class ScheduleSection extends Component
 
 
 
-      private function getScheduleCount(
-            string $type,       
-            string $transport,  
-            string $status,     
-            bool $todayOnly = false
-        ) {
-            $query = OrderProduct::query()
-                ->where('product_data->product_type', 'Rental')
-                ->whereNotNull($type . '_date')
-                ->where($type . '_transport_mode', $transport)
-                ->when($status === 'Completed',
-                    fn ($q) => $q->where($type . '_status', 'Completed'),
-                    fn ($q) => $q->whereIn($type . '_status', ['Pending', 'Reschedule'])
-                )
-                ->when($todayOnly,
-                    fn ($q) => $q->whereDate($type . '_date', Carbon::today())
-                );
+    //   private function getScheduleCount(
+    //         string $type,       
+    //         string $transport,  
+    //         string $status,     
+    //         bool $todayOnly = false
+    //     ) {
+    //         $query = OrderProduct::query()
+    //             ->where('product_data->product_type', 'Rental')
+    //             ->whereNotNull($type . '_date')
+    //             ->where($type . '_transport_mode', $transport)
+    //             ->when($status === 'Completed',
+    //                 fn ($q) => $q->where($type . '_status', 'Completed'),
+    //                 fn ($q) => $q->whereIn($type . '_status', ['Pending', 'Reschedule'])
+    //             )
+    //             ->when($todayOnly,
+    //                 fn ($q) => $q->whereDate($type . '_date', Carbon::today())
+    //             );
 
 
-            return $query->count();
+    //         return $query->count();
+    //     }
+
+    
+    private function getScheduleCount(
+        string $type,
+        string $transport,
+        string $status,
+        bool $todayOnly = false
+    ) {
+
+        $query = OrderProduct::query()
+            ->where('product_data->product_type', 'Rental')
+            ->whereNotNull($type . '_date')
+            ->where($type . '_transport_mode', $transport);
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELIVERY
+        |--------------------------------------------------------------------------
+        */
+        if ($type === 'delivery') {
+
+            if ($status === 'Completed') {
+
+                $query->where('delivery_status', 'Completed');
+
+            } else {
+
+                // MATCH LIST PAGE
+                $query->where('delivery_status', 'Pending');
+            }
+
+            // MATCH LIST PAGE
+            if ($todayOnly) {
+                $query->whereDate('delivery_date', '<=', Carbon::today());
+            }
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | RETURN
+        |--------------------------------------------------------------------------
+        */
+        if ($type === 'pickup') {
+
+            if ($status === 'Completed') {
+
+                $query->where('pickup_status', 'Completed');
+
+            } else {
+
+                // MATCH LIST PAGE
+                $query->where('pickup_status', 'Pending')
+                    ->where('delivery_status', 'Completed');
+            }
+
+            // MATCH LIST PAGE
+            if ($todayOnly) {
+                $query->whereDate('pickup_date', '<=', Carbon::today());
+            }
+        }
+
+        // return $query->distinct('order_id')->count('order_id');
+          return $query->count();
+    }
 
     private function getServiceStatusCounts()
     {

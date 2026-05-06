@@ -682,6 +682,16 @@
                     } else {
                         input.checked = false;
                     }
+
+                     storeLocationInputs.forEach(input => {
+        input.checked = true;
+    });
+
+     // AUTO SELECT TODAY
+    if (dateFilterInput) {
+        dateFilterInput.value = 'today';
+    }
+
                 });
             }
 
@@ -693,6 +703,7 @@
                     }else {
                         input.checked = false;
                     }
+                    
                 });
             }
             fetchSchedules(pageParam, perPageParam); // initial fetch after loading saved filters
@@ -853,6 +864,15 @@
                     document.querySelectorAll('input[name="transport_mode[]"]').forEach(cb => {
                         cb.checked = (cb.value === transportMode);
                     });
+
+                      // CHECK ALL STORES
+                            document.querySelectorAll('input[name="store_location[]"]').forEach(cb => {
+                                cb.checked = true;
+                            });
+                            // AUTO SELECT TODAY
+                    if (dateFilterInput) {
+                        dateFilterInput.value = 'today';
+                    }
 
                     // Trigger AJAX filter
                     if (typeof fetchSchedules === 'function') fetchSchedules(pageParam,

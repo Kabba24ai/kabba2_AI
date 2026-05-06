@@ -218,6 +218,9 @@
                                                     old('similar_equipment_ids', $equipment->similar_equipment_ids ?? ($defaultSimilarEquipmentIds ?? []))
                                                 );
                                                 $criteriaState = old('critical_matching_criteria', $equipment->critical_matching_criteria ?? []);
+                                                $criteriaRows = $criteriaRows->sortByDesc(function ($row) use ($criteriaState) {
+                                                    return filter_var(($criteriaState[$row->criteria_key]['enabled'] ?? true), FILTER_VALIDATE_BOOLEAN);
+                                                })->values();
                                             @endphp
                                             @forelse($similarEquipmentOptions as $eqId => $eqLabel)
                                                 <label class="kc-eq-item flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors" data-label="{{ strtolower($eqLabel) }}">
@@ -255,9 +258,11 @@
                                         @forelse($criteriaRows as $row)
                                             @php
                                                 $rowState = $criteriaState[$row->criteria_key] ?? [];
-                                                $rowEnabled = filter_var($rowState['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                                                $rowEnabled = filter_var($rowState['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN);
                                                 $rowThreshold = $rowState['threshold'] ?? '';
                                                 $rowWeight = isset($rowState['weight']) ? (int) $rowState['weight'] : (int) $row->default_weight;
+                                                $rowUpgradeExceeds = filter_var($rowState['upgrade_exceeds_value'] ?? $row->upgrade_exceeds_value ?? true, FILTER_VALIDATE_BOOLEAN);
+                                                $rowCautionIfChange = filter_var($rowState['caution_if_change_value'] ?? $row->caution_if_change_value ?? true, FILTER_VALIDATE_BOOLEAN);
                                             @endphp
                                             <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="{{ $row->criteria_key }}">
                                                 <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[{{ $row->criteria_key }}][enabled]" value="{{ $rowEnabled ? '1' : '0' }}">
@@ -284,6 +289,24 @@
                                                     class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
                                                     {{ $rowEnabled ? '' : 'disabled' }}>
                                                 <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">{{ $rowWeight }}</span>
+
+                                                {{-- per-criteria flags --}}
+                                                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pl-[52px] pt-1">
+                                                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                                                        <input type="hidden" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_exceeds_value]" value="0">
+                                                        <input type="checkbox" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_exceeds_value]" value="1"
+                                                            class="h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
+                                                            {{ $rowUpgradeExceeds ? 'checked' : '' }}>
+                                                        <span class="text-xs text-gray-600">Upgrade {Exceeds / Less Than} Value</span>
+                                                    </label>
+                                                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                                                        <input type="hidden" name="critical_matching_criteria[{{ $row->criteria_key }}][caution_if_change_value]" value="0">
+                                                        <input type="checkbox" name="critical_matching_criteria[{{ $row->criteria_key }}][caution_if_change_value]" value="1"
+                                                            class="h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
+                                                            {{ $rowCautionIfChange ? 'checked' : '' }}>
+                                                        <span class="text-xs text-gray-600">Caution If Change {Exceeds / Less Than} Value</span>
+                                                    </label>
+                                                </div>
                                             </div>
                                         @empty
                                             <div class="px-5 py-6 text-center text-sm text-gray-400">No active criteria found for this category.</div>
@@ -339,6 +362,19 @@
                                                         <p id="kc-modal-weight-label" class="text-xs font-semibold text-gray-600">Default Weight: 50</p>
                                                         <input type="range" id="kc-modal-weight" min="0" max="100" value="50"
                                                             class="mt-2 h-2 w-full accent-teal-400">
+                                                    </div>
+
+                                                    <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+                                                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                                                            <input type="checkbox" id="kc-modal-upgrade-exceeds" checked
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400">
+                                                            <span class="text-xs text-gray-600">Upgrade {Exceeds / Less Than} Value</span>
+                                                        </label>
+                                                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                                                            <input type="checkbox" id="kc-modal-caution-if-change" checked
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400">
+                                                            <span class="text-xs text-gray-600">Caution If Change {Exceeds / Less Than} Value</span>
+                                                        </label>
                                                     </div>
 
                                                     <div class="mt-3 flex items-center justify-end gap-2">
@@ -569,6 +605,8 @@
             const criteriaModalUnit = document.getElementById('kc-modal-unit');
             const criteriaModalWeight = document.getElementById('kc-modal-weight');
             const criteriaModalWeightLabel = document.getElementById('kc-modal-weight-label');
+            const criteriaModalUpgradeExceeds = document.getElementById('kc-modal-upgrade-exceeds');
+            const criteriaModalCautionIfChange = document.getElementById('kc-modal-caution-if-change');
 
             const CRITERIA_LIST_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.index', $equipment->unique_id));
             const CRITERIA_STORE_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.store', $equipment->unique_id));
@@ -603,6 +641,8 @@
                         name: row.querySelector('.kc-criteria-label')?.textContent?.trim() || 'Criteria',
                         unit: row.querySelector('.kc-criteria-unit')?.textContent?.trim() || '',
                         defaultWeight: Number(row.querySelector('.kc-weight-slider')?.value || 50),
+                        upgradeExceedsValue: row.querySelector('input[type="checkbox"][name*="[upgrade_exceeds_value]"]')?.checked ?? true,
+                        cautionIfChangeValue: row.querySelector('input[type="checkbox"][name*="[caution_if_change_value]"]')?.checked ?? true,
                     };
                 });
             }
@@ -618,6 +658,8 @@
                         enabled: row.querySelector('.kc-hidden-enabled')?.value === '1',
                         threshold: row.querySelector('.kc-hidden-threshold')?.value ?? '',
                         weight: row.querySelector('.kc-hidden-weight')?.value ?? row.querySelector('.kc-weight-slider')?.value ?? '50',
+                        upgradeExceeds: row.querySelector('input[type="checkbox"][name*="[upgrade_exceeds_value]"]')?.checked ?? true,
+                        cautionIfChange: row.querySelector('input[type="checkbox"][name*="[caution_if_change_value]"]')?.checked ?? true,
                     };
                 });
 
@@ -626,9 +668,11 @@
                     const safeName = escapeHtml(item.name || 'Criteria');
                     const safeUnit = escapeHtml(item.unit || '');
                     const state = currentStateByKey[key] || {};
-                    const enabled = Boolean(state.enabled);
+                    const enabled = key in currentStateByKey ? Boolean(state.enabled) : true;
                     const threshold = String(state.threshold ?? '');
                     const weight = Number(state.weight ?? item.defaultWeight ?? 50);
+                    const upgradeExceeds = key in currentStateByKey ? Boolean(state.upgradeExceeds) : (item.upgradeExceedsValue !== false);
+                    const cautionIfChange = key in currentStateByKey ? Boolean(state.cautionIfChange) : (item.cautionIfChangeValue !== false);
 
                     return `
                         <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="${key}">
@@ -649,6 +693,22 @@
                                 class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
                                 ${enabled ? '' : 'disabled'}>
                             <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">${weight}</span>
+                            <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pl-[52px] pt-1">
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="hidden" name="critical_matching_criteria[${key}][upgrade_exceeds_value]" value="0">
+                                    <input type="checkbox" name="critical_matching_criteria[${key}][upgrade_exceeds_value]" value="1"
+                                        class="h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
+                                        ${upgradeExceeds ? 'checked' : ''}>
+                                    <span class="text-xs text-gray-600">Upgrade {Exceeds / Less Than} Value</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="hidden" name="critical_matching_criteria[${key}][caution_if_change_value]" value="0">
+                                    <input type="checkbox" name="critical_matching_criteria[${key}][caution_if_change_value]" value="1"
+                                        class="h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
+                                        ${cautionIfChange ? 'checked' : ''}>
+                                    <span class="text-xs text-gray-600">Caution If Change {Exceeds / Less Than} Value</span>
+                                </label>
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -693,6 +753,8 @@
                         name: item.name,
                         unit: item.unit || '',
                         defaultWeight: Number(item.default_weight ?? 50),
+                        upgradeExceedsValue: item.upgrade_exceeds_value !== false,
+                        cautionIfChangeValue: item.caution_if_change_value !== false,
                     }));
 
                     return true;
@@ -707,6 +769,8 @@
                 if (criteriaModalUnit) criteriaModalUnit.value = '';
                 if (criteriaModalWeight) criteriaModalWeight.value = '50';
                 if (criteriaModalWeightLabel) criteriaModalWeightLabel.textContent = 'Default Weight: 50';
+                if (criteriaModalUpgradeExceeds) criteriaModalUpgradeExceeds.checked = true;
+                if (criteriaModalCautionIfChange) criteriaModalCautionIfChange.checked = true;
                 if (criteriaModalSave) criteriaModalSave.textContent = 'Add';
                 criteriaModalForm?.classList.add('hidden');
             }
@@ -784,6 +848,8 @@
                 if (criteriaModalUnit) criteriaModalUnit.value = item.unit || '';
                 if (criteriaModalWeight) criteriaModalWeight.value = String(item.defaultWeight ?? 50);
                 if (criteriaModalWeightLabel) criteriaModalWeightLabel.textContent = `Default Weight: ${item.defaultWeight ?? 50}`;
+                if (criteriaModalUpgradeExceeds) criteriaModalUpgradeExceeds.checked = item.upgradeExceedsValue !== false;
+                if (criteriaModalCautionIfChange) criteriaModalCautionIfChange.checked = item.cautionIfChangeValue !== false;
                 if (criteriaModalSave) criteriaModalSave.textContent = 'Save';
                 criteriaModalForm?.classList.remove('hidden');
             });
@@ -802,6 +868,8 @@
                     name,
                     unit,
                     default_weight: defaultWeight,
+                    upgrade_exceeds_value: criteriaModalUpgradeExceeds?.checked ?? true,
+                    caution_if_change_value: criteriaModalCautionIfChange?.checked ?? true,
                 };
 
                 if (editingCriteriaIndex === null) {
@@ -823,6 +891,8 @@
                             name: data.item.name,
                             unit: data.item.unit || '',
                             defaultWeight: Number(data.item.default_weight ?? 50),
+                            upgradeExceedsValue: data.item.upgrade_exceeds_value !== false,
+                            cautionIfChangeValue: data.item.caution_if_change_value !== false,
                         });
                     }
                 } else {
@@ -847,6 +917,8 @@
                             name: data.item.name,
                             unit: data.item.unit || '',
                             defaultWeight: Number(data.item.default_weight ?? 50),
+                            upgradeExceedsValue: data.item.upgrade_exceeds_value !== false,
+                            cautionIfChangeValue: data.item.caution_if_change_value !== false,
                         };
                     }
                 }

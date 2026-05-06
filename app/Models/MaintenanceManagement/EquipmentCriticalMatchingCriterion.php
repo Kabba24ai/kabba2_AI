@@ -15,12 +15,16 @@ class EquipmentCriticalMatchingCriterion extends Model
         'name',
         'unit',
         'default_weight',
+        'upgrade_exceeds_value',
+        'caution_if_change_value',
         'sort_order',
         'is_active',
     ];
 
     protected $casts = [
         'default_weight' => 'integer',
+        'upgrade_exceeds_value' => 'boolean',
+        'caution_if_change_value' => 'boolean',
         'sort_order' => 'integer',
         'is_active' => 'boolean',
     ];

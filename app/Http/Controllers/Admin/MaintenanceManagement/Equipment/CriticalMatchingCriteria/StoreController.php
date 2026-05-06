@@ -19,6 +19,8 @@ class StoreController extends Controller
             'name' => ['required', 'string', 'max:150'],
             'unit' => ['nullable', 'string', 'max:30'],
             'default_weight' => ['nullable', 'integer', 'between:0,100'],
+            'upgrade_exceeds_value' => ['nullable', 'boolean'],
+            'caution_if_change_value' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -40,6 +42,8 @@ class StoreController extends Controller
             'name' => $validated['name'],
             'unit' => $validated['unit'] ?? null,
             'default_weight' => $validated['default_weight'] ?? 50,
+            'upgrade_exceeds_value' => filter_var($validated['upgrade_exceeds_value'] ?? true, FILTER_VALIDATE_BOOLEAN),
+            'caution_if_change_value' => filter_var($validated['caution_if_change_value'] ?? true, FILTER_VALIDATE_BOOLEAN),
             'sort_order' => $validated['sort_order'] ?? 0,
             'is_active' => $validated['is_active'] ?? true,
         ]);
@@ -52,6 +56,8 @@ class StoreController extends Controller
                 'name' => $criterion->name,
                 'unit' => $criterion->unit,
                 'default_weight' => (int) $criterion->default_weight,
+                'upgrade_exceeds_value' => (bool) $criterion->upgrade_exceeds_value,
+                'caution_if_change_value' => (bool) $criterion->caution_if_change_value,
                 'sort_order' => (int) $criterion->sort_order,
                 'is_active' => (bool) $criterion->is_active,
             ],

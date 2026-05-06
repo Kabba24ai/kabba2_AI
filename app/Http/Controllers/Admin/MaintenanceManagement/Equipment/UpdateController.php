@@ -36,7 +36,6 @@ class UpdateController extends Controller
         $data['allow_upgrades'] = filter_var($data['allow_upgrades'] ?? true, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
         $data['allow_downgrades'] = filter_var($data['allow_downgrades'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
         $data['downgrade_requires_approval'] = filter_var($data['downgrade_requires_approval'] ?? true, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
-
         $data['similar_equipment_ids'] = array_values(array_map('intval', (array) ($data['similar_equipment_ids'] ?? [])));
 
         $criteriaInput = (array) ($data['critical_matching_criteria'] ?? []);
@@ -56,9 +55,11 @@ class UpdateController extends Controller
             $weight = max(0, min(100, (int) $weightRaw));
 
             $normalizedCriteria[(string) $key] = [
-                'enabled' => filter_var($item['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'enabled' => filter_var($item['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'threshold' => $threshold,
                 'weight' => $weight,
+                'upgrade_exceeds_value' => filter_var($item['upgrade_exceeds_value'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'caution_if_change_value' => filter_var($item['caution_if_change_value'] ?? true, FILTER_VALIDATE_BOOLEAN),
             ];
         }
 

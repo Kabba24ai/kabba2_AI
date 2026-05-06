@@ -29,6 +29,8 @@ class IndexController extends Controller
                     'name' => $item->name,
                     'unit' => $item->unit,
                     'default_weight' => (int) $item->default_weight,
+                    'upgrade_exceeds_value' => (bool) $item->upgrade_exceeds_value,
+                    'caution_if_change_value' => (bool) $item->caution_if_change_value,
                     'sort_order' => (int) $item->sort_order,
                     'is_active' => (bool) $item->is_active,
                 ];

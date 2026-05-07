@@ -2,7 +2,7 @@
 
 namespace App\Modules\SchedulingAssistant\Services;
 
-use App\Models\ProductManagement\ProductEquipmentAssignment;
+use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
 use App\Modules\SchedulingAssistant\DTOs\AssistantResultData;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -48,23 +48,63 @@ class AIContextBuilderService
 
     protected function loadEquipmentAssignmentsForOrderProduct(OrderProduct $orderProduct): array
     {
-        $assignment = ProductEquipmentAssignment::query()
-            ->where('product_id', $orderProduct->product_id)
-            ->where('is_active', true)
-            ->with(['paths.items'])
-            ->first();
+        $productId = (int) ($orderProduct->product_id ?? 0);
 
-        if (!$assignment) {
+        if ($productId <= 0) {
             return [];
         }
 
+        $primary = Equipment::query()
+            ->where('assigned_product_id', $productId)
+            ->orderBy('id')
+            ->get(['id', 'allow_upgrades', 'allow_downgrades', 'downgrade_requires_approval', 'critical_matching_criteria']);
+
+        $primaryIds = $primary
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $alternatives = collect();
+
+        if (!empty($primaryIds)) {
+            $alternatives = Equipment::query()
+                ->where('assigned_product_id', '!=', $productId)
+                ->where(function ($query) {
+                    $query->where('allow_upgrades', true)
+                        ->orWhere('allow_downgrades', true);
+                })
+                ->where(function ($query) use ($primaryIds) {
+                    foreach ($primaryIds as $primaryEquipmentId) {
+                        $query->orWhereJsonContains('similar_equipment_ids', $primaryEquipmentId);
+                    }
+                })
+                ->orderBy('id')
+                ->get(['id', 'allow_upgrades', 'allow_downgrades', 'downgrade_requires_approval', 'critical_matching_criteria']);
+        }
+
         return [
-            'primary_equipment_pool' => $assignment->primary_equipment_pool,
-            'upgrade_path_primary' => $assignment->upgrade_path_primary,
-            'upgrade_path_alternate_1' => $assignment->upgrade_path_alternate_1,
-            'upgrade_path_alternate_2' => $assignment->upgrade_path_alternate_2,
-            'downgrade_path_option_1' => $assignment->downgrade_path_option_1,
-            'assignment_notes' => $assignment->assignment_notes,
+            'source' => 'equipment_model',
+            'primary_equipment_pool' => $primary->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
+            'upgrade_candidates' => $alternatives
+                ->filter(fn ($equipment) => (bool) ($equipment->allow_upgrades ?? false))
+                ->map(fn ($equipment) => [
+                    'equipment_id' => (int) $equipment->id,
+                    'allow_upgrades' => (bool) ($equipment->allow_upgrades ?? false),
+                    'critical_matching_criteria' => (array) ($equipment->critical_matching_criteria ?? []),
+                ])
+                ->values()
+                ->all(),
+            'downgrade_candidates' => $alternatives
+                ->filter(fn ($equipment) => (bool) ($equipment->allow_downgrades ?? false))
+                ->map(fn ($equipment) => [
+                    'equipment_id' => (int) $equipment->id,
+                    'allow_downgrades' => (bool) ($equipment->allow_downgrades ?? false),
+                    'downgrade_requires_approval' => (bool) ($equipment->downgrade_requires_approval ?? false),
+                    'critical_matching_criteria' => (array) ($equipment->critical_matching_criteria ?? []),
+                ])
+                ->values()
+                ->all(),
         ];
     }
 }

@@ -10,28 +10,52 @@ class CandidateEquipmentService
 {
     public function getCandidatesForOrderProduct(OrderProduct $orderProduct): Collection
     {
-        $productName = $orderProduct->product_name ?? null;
-        $categoryId = $orderProduct->category_id
-            ?? $orderProduct->product_category_id
-            ?? optional($orderProduct->product)->product_category_id;
+        $productId = (int) ($orderProduct->product_id ?? 0);
 
-        return Equipment::query()
-            ->where(function ($query) use ($productName, $categoryId) {
-                if ($categoryId) {
-                    $query->orWhere('product_category_id', $categoryId);
-                }
+        if ($productId <= 0) {
+            return collect();
+        }
 
-                if ($productName) {
-                    $productName = explode(' ', $productName);
-                    $query->orWhere(function ($subQuery) use ($productName) {
-                        foreach ($productName as $word) {
-                            $subQuery->where('equipment_name', 'like', '%' . $word . '%')
-                                ->orWhere('equipment_id', 'like', '%' . $word . '%');
-                        }
-                    });
+        $primaryCandidates = Equipment::query()
+            ->where('assigned_product_id', $productId)
+            ->orderBy('id')
+            ->get()
+            ->each(function (Equipment $equipment) {
+                $equipment->setAttribute('assignment_relationship_type', 'primary');
+            });
+
+        $primaryIds = $primaryCandidates
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        if (empty($primaryIds)) {
+            return $primaryCandidates;
+        }
+
+        $relatedCandidates = Equipment::query()
+            ->where('assigned_product_id', '!=', $productId)
+            ->where(function ($query) {
+                $query->where('allow_upgrades', true)
+                    ->orWhere('allow_downgrades', true);
+            })
+            ->whereNotNull('critical_matching_criteria')
+            ->where(function ($query) use ($primaryIds) {
+                foreach ($primaryIds as $primaryEquipmentId) {
+                    $query->orWhereJsonContains('similar_equipment_ids', $primaryEquipmentId);
                 }
             })
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->each(function (Equipment $equipment) {
+                $relationshipType = $equipment->allow_upgrades ? 'upgrade' : 'downgrade';
+                $equipment->setAttribute('assignment_relationship_type', $relationshipType);
+            });
+
+        return $primaryCandidates
+            ->concat($relatedCandidates)
+            ->unique('id')
+            ->values();
     }
 }

@@ -136,6 +136,7 @@ class UpdateRequest extends FormRequest
             'allow_downgrades' => 'nullable|boolean',
             'downgrade_requires_approval' => 'nullable|boolean',
             'equipment_key_comparison_notes' => 'nullable|string',
+            'assigned_product_id' => 'nullable|integer|exists:products,id',
         ];
     }
 

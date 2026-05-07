@@ -92,6 +92,7 @@ class Equipment extends Model
         'allow_downgrades',
         'downgrade_requires_approval',
         'equipment_key_comparison_notes',
+        'assigned_product_id',
     ];
 
     protected $casts = [

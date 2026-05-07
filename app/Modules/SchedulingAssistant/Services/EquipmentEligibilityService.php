@@ -82,10 +82,18 @@ class EquipmentEligibilityService
         $score = max(0, min(100, $score));
         $eligibility = $this->mapScoreToEligibility($score, $flags);
 
+        $relationshipType = (string) ($equipment->getAttribute('assignment_relationship_type') ?? 'unknown');
+
         return new AssignmentCandidateData(
             equipmentId: (int) $equipment->id,
             equipmentName: $this->resolveEquipmentName($equipment),
             equipmentCode: $this->resolveEquipmentCode($equipment),
+            relationshipType: $relationshipType,
+            assignedProductId: $equipment->assigned_product_id !== null ? (int) $equipment->assigned_product_id : null,
+            allowUpgrades: (bool) ($equipment->allow_upgrades ?? false),
+            allowDowngrades: (bool) ($equipment->allow_downgrades ?? false),
+            downgradeRequiresApproval: (bool) ($equipment->downgrade_requires_approval ?? false),
+            criticalMatchingCriteria: (array) ($equipment->critical_matching_criteria ?? []),
             eligibilityStatus: $eligibility,
             score: $score,
             reasons: array_values(array_unique($reasons)),

@@ -188,6 +188,34 @@
                                     </div>
                                 </div>
 
+                                {{-- ── Product Assignment (Layout First) ───────────────── --}}
+                                @php
+                                    $productAssignmentOptions = $productAssignmentOptions ?? [];
+                                    $selectedAssignedProductId = (string) old('assigned_product_id', $equipment->assigned_product_id ?? '');
+                                @endphp
+                                <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+                                    <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+                                        <div>
+                                            <h3 class="text-sm font-semibold text-gray-900">Direct Assignment To Product(s)</h3>
+                                            <p class="mt-0.5 text-xs text-gray-500">Choose one product from the same category for this equipment</p>
+                                        </div>
+                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">1 Product Assignment</span>
+                                    </div>
+
+                                    <div class="px-5 py-4">
+                                        <label for="assigned_product_id" class="mb-1 block text-xs font-semibold text-gray-600">Assigned Product</label>
+                                        <select name="assigned_product_id" id="assigned_product_id"
+                                            class="choices-select w-full md:w-80 px-2 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white border-gray-300">
+                                            <option value="">Select Product</option>
+                                            @foreach($productAssignmentOptions as $product)
+                                                <option value="{{ $product['id'] }}" {{ (string) $product['id'] === $selectedAssignedProductId ? 'selected' : '' }}>
+                                                    {{ $product['label'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+
                                 {{-- ── Comparable Equipment ─────────────────────────────── --}}
                                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                                     <div class="border-b border-gray-100 px-5 py-4">
@@ -211,7 +239,15 @@
                                                 class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 whitespace-nowrap">0 selected</span>
                                         </div>
 
-                                        <div id="kc-eq-list" class="max-h-64 overflow-y-auto divide-y divide-gray-100 rounded-lg border border-gray-200">
+                                        {{-- column headers --}}
+                                        <div class="rounded-lg border border-gray-200 overflow-hidden">
+                                        <div class="flex items-center gap-3 px-4 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200" style="padding-right: calc(1rem + 17px);">
+                                            <span class="w-4 shrink-0"></span>
+                                            <span class="flex-1">Equipment Name</span>
+                                            <span class="w-28 shrink-0">Brand</span>
+                                            <span class="w-28 shrink-0">Model</span>
+                                        </div>
+                                        <div id="kc-eq-list" class="max-h-64 overflow-y-scroll divide-y divide-gray-100">
                                             @php
                                                 $selectedSimilarEquipmentIds = array_map(
                                                     'strval',
@@ -222,12 +258,27 @@
                                                     return filter_var(($criteriaState[$row->criteria_key]['enabled'] ?? true), FILTER_VALIDATE_BOOLEAN);
                                                 })->values();
                                             @endphp
-                                            @forelse($similarEquipmentOptions as $eqId => $eqLabel)
+                                            @forelse($similarEquipmentOptions as $eqId => $eqOption)
+                                                @php
+                                                    $eqLabel = is_array($eqOption) ? ($eqOption['label'] ?? '') : $eqOption;
+                                                    $eqBrand = is_array($eqOption) ? ($eqOption['brand'] ?? null) : null;
+                                                    $eqModel = is_array($eqOption) ? ($eqOption['model'] ?? null) : null;
+                                                @endphp
                                                 <label class="kc-eq-item flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors" data-label="{{ strtolower($eqLabel) }}">
                                                     <input type="checkbox" name="similar_equipment_ids[]" value="{{ $eqId }}"
                                                         class="kc-eq-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                                         @if(in_array((string)$eqId, $selectedSimilarEquipmentIds)) checked @endif>
                                                     <span class="flex-1 truncate text-sm text-gray-800">{{ $eqLabel }}</span>
+                                                    @if($eqBrand)
+                                                        <span class="w-28 shrink-0 truncate text-xs text-gray-500">{{ $eqBrand }}</span>
+                                                    @else
+                                                        <span class="w-28 shrink-0"></span>
+                                                    @endif
+                                                    @if($eqModel)
+                                                        <span class="w-28 shrink-0 truncate text-xs text-gray-500">{{ $eqModel }}</span>
+                                                    @else
+                                                        <span class="w-28 shrink-0"></span>
+                                                    @endif
                                                 </label>
                                             @empty
                                                 <div class="px-4 py-6 text-center text-sm text-gray-500">
@@ -235,6 +286,7 @@
                                                 </div>
                                             @endforelse
                                         </div>
+                                        </div>{{-- end wrapper --}}
                                     </div>
                                 </div>
 

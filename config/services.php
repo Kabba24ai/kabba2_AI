@@ -48,4 +48,15 @@ return [
         'timeout' => env('OPENAI_TIMEOUT', 45),
     ],
 
+    'kabba_client_api' => [
+        // 'url' => 'https://api.kabba.local/api/admin/v1/clients/client/application-code',
+        // 'get_url' => 'https://api.kabba.local/api/admin/v1/clients/get/application-code',
+
+        'url' => 'https://api.rentnking.com/api/admin/v1/clients/client/application-code',
+        'get_url' => 'https://api.rentnking.com/api/admin/v1/clients/get/application-code',
+
+
+    ],
+
+
 ];

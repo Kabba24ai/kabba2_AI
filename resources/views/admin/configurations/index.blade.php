@@ -23,7 +23,7 @@
 
             <div>
                 {{-- Tabs --}}
-                @include('admin.partials.formErrors')
+                {{-- @include('admin.partials.formErrors') --}}
                 @include('flash::message')
                 @include('admin.configurations.partials._modules')
             </div>

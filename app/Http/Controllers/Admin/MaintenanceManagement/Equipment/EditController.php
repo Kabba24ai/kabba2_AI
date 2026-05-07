@@ -42,7 +42,7 @@ class EditController extends Controller
             ->where('id', '!=', $equipment->id)
             ->where('product_category_id', $equipment->product_category_id)
             ->orderBy('equipment_name')
-            ->get(['id', 'equipment_name', 'equipment_id']);
+            ->get(['id', 'equipment_name', 'equipment_id', 'brand', 'model']);
 
         $similarEquipmentOptions = $similarEquipmentCandidates
             ->mapWithKeys(function ($item) {
@@ -51,7 +51,11 @@ class EditController extends Controller
                     $label .= ' (' . $item->equipment_id . ')';
                 }
 
-                return [$item->id => $label];
+                return [$item->id => [
+                    'label' => $label,
+                    'brand' => $item->brand ?? null,
+                    'model' => $item->model ?? null,
+                ]];
             })
             ->toArray();
 
@@ -103,16 +107,11 @@ class EditController extends Controller
                 $query->where('product_categories.id', $equipment->product_category_id);
             })
             ->orderBy('product_name', 'asc')
-            ->get(['id', 'product_name', 'unique_id'])
+            ->get(['id', 'product_name'])
             ->map(function ($product) {
-                $label = (string) $product->product_name;
-                if (!empty($product->unique_id)) {
-                    $label .= ' (' . $product->unique_id . ')';
-                }
-
                 return [
                     'id' => (int) $product->id,
-                    'label' => $label,
+                    'label' => (string) $product->product_name,
                 ];
             })
             ->values()

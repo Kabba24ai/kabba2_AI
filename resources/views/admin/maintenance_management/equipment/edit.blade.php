@@ -239,7 +239,15 @@
                                                 class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 whitespace-nowrap">0 selected</span>
                                         </div>
 
-                                        <div id="kc-eq-list" class="max-h-64 overflow-y-auto divide-y divide-gray-100 rounded-lg border border-gray-200">
+                                        {{-- column headers --}}
+                                        <div class="rounded-lg border border-gray-200 overflow-hidden">
+                                        <div class="flex items-center gap-3 px-4 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200" style="padding-right: calc(1rem + 17px);">
+                                            <span class="w-4 shrink-0"></span>
+                                            <span class="flex-1">Equipment Name</span>
+                                            <span class="w-28 shrink-0">Brand</span>
+                                            <span class="w-28 shrink-0">Model</span>
+                                        </div>
+                                        <div id="kc-eq-list" class="max-h-64 overflow-y-scroll divide-y divide-gray-100">
                                             @php
                                                 $selectedSimilarEquipmentIds = array_map(
                                                     'strval',
@@ -250,12 +258,27 @@
                                                     return filter_var(($criteriaState[$row->criteria_key]['enabled'] ?? true), FILTER_VALIDATE_BOOLEAN);
                                                 })->values();
                                             @endphp
-                                            @forelse($similarEquipmentOptions as $eqId => $eqLabel)
+                                            @forelse($similarEquipmentOptions as $eqId => $eqOption)
+                                                @php
+                                                    $eqLabel = is_array($eqOption) ? ($eqOption['label'] ?? '') : $eqOption;
+                                                    $eqBrand = is_array($eqOption) ? ($eqOption['brand'] ?? null) : null;
+                                                    $eqModel = is_array($eqOption) ? ($eqOption['model'] ?? null) : null;
+                                                @endphp
                                                 <label class="kc-eq-item flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors" data-label="{{ strtolower($eqLabel) }}">
                                                     <input type="checkbox" name="similar_equipment_ids[]" value="{{ $eqId }}"
                                                         class="kc-eq-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                                         @if(in_array((string)$eqId, $selectedSimilarEquipmentIds)) checked @endif>
                                                     <span class="flex-1 truncate text-sm text-gray-800">{{ $eqLabel }}</span>
+                                                    @if($eqBrand)
+                                                        <span class="w-28 shrink-0 truncate text-xs text-gray-500">{{ $eqBrand }}</span>
+                                                    @else
+                                                        <span class="w-28 shrink-0"></span>
+                                                    @endif
+                                                    @if($eqModel)
+                                                        <span class="w-28 shrink-0 truncate text-xs text-gray-500">{{ $eqModel }}</span>
+                                                    @else
+                                                        <span class="w-28 shrink-0"></span>
+                                                    @endif
                                                 </label>
                                             @empty
                                                 <div class="px-4 py-6 text-center text-sm text-gray-500">
@@ -263,6 +286,7 @@
                                                 </div>
                                             @endforelse
                                         </div>
+                                        </div>{{-- end wrapper --}}
                                     </div>
                                 </div>
 

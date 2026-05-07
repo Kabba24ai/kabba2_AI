@@ -507,9 +507,9 @@ $defaultAddresses = [
 
                     {!! html()->select("addresses[$index][Country]", [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old("addresses.$index.Country", $addresse->country ?? 'USA')
                     ) // default to USA if old or user value is not set
                     ->class('pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm Country')

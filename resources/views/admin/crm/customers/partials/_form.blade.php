@@ -268,9 +268,9 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1 ">Country </label>
                         {!! html()->select('addresses[0][Country]', [
                         'USA' => 'USA',
-                        'Canada' => 'Canada',
-                        'UK' => 'UK',
-                        'India' => 'India',
+                        // 'Canada' => 'Canada',
+                        // 'UK' => 'UK',
+                        // 'India' => 'India',
                         ], old('country', 'USA')) // default to USA if old or user value is not set
                         ->id('country')
                         ->class('w-full px-3 py-3 border rounded-md text-sm border-gray-300')
@@ -368,9 +368,9 @@
 
                     {!! html()->select('addresses[1][Country]', [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old('country', 'USA')) // default to USA if old or user value is not set
                     ->id('country')
                     ->class('w-full px-3 py-3 border rounded-md text-sm border-gray-300')

@@ -249,7 +249,7 @@
         <div class="space-y-6">
             <!-- Street Address -->
             <div class="mb-4">
-                <label for="street" class="text-xs text-gray-500 font-medium required">Street Address </label>
+                <label for="street" class="text-xs text-gray-500 font-medium ">Street Address </label>
 
                 {!! html()->text('street', old('street', $user->street_address ?? ''))
                 ->id('street')
@@ -257,7 +257,7 @@
                 ->attributes([
                 'placeholder' => '123 Main Street',
                 'autocomplete' => 'off',
-                ])->required()
+                ])
                 !!}
 
             </div>
@@ -265,18 +265,18 @@
             <!-- Grid for City, State, Zip Code, Country -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label for="city" class="text-xs text-gray-500 font-medium required">City </label>
+                    <label for="city" class="text-xs text-gray-500 font-medium ">City </label>
                     {!! html()->text('city', old('city', $user->city ?? ''))
                     ->id('city')
                     ->class('w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
                     ->attributes([
                     'placeholder' => 'New York',
                     'autocomplete' => 'off',
-                    ])->required()
+                    ])
                     !!}
                 </div>
                 <div>
-                    <label for="state" class="text-xs text-gray-500 font-medium required">State </label>
+                    <label for="state" class="text-xs text-gray-500 font-medium ">State </label>
 
                     <!-- {!! html()
                              ->select('state',
@@ -301,7 +301,6 @@
                     'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                     'border-red-500' => $errors->has('state'),
                     ])
-                    ->required()
                     !!}
 
                 </div>
@@ -321,20 +320,19 @@
 
                 </div>
                 <div>
-                    <label for="country" class="text-xs text-gray-500 font-medium required">Country </label>
+                    <label for="country" class="text-xs text-gray-500 font-medium ">Country </label>
 
                     {!! html()->select('country', [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old('country', $user->country ?? 'USA')) // default to USA if old or user value is not set
                     ->id('country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                     ->attributes([
                     'autocomplete' => 'off',
                     ])
-                    ->required()
                     !!}
 
 
@@ -736,9 +734,9 @@
 
                     {!! html()->select('emergency_country', [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old('emergency_country', $user->emergencyContactOne->country ?? 'USA')) // default to USA if old or user value is not set
                     ->id('emergency_country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
@@ -884,9 +882,9 @@
 
                     {!! html()->select('emergency2_country', [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old('emergency2_country', $user->emergencyContactTwo->country ?? 'USA')) // default to USA if old or user value is not set
                     ->id('emergency2_country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')

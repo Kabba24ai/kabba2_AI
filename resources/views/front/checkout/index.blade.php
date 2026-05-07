@@ -575,7 +575,8 @@
                         <div class="space-y-4">
 
                             <!-- Credit/Debit -->
-                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'Card') == 'Card' ? 'border-blue-500' : '' }}"
+                            <div id="cardPaymentOption"
+                                class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'Card') == 'Card' ? 'border-blue-500' : '' }}"
                                 data-value="Card">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="Card"
@@ -686,7 +687,9 @@
                                     <span>Pay on Delivery (POD)</span>
                                 </label>
                                 <p id="codNote"
-                                    class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2">
+                                    class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2"
+                                    data-default-message="POD Orders are not reserved / locked in until paid. If you want to lock in your order, please pay using a credit card or call sales."
+                                    data-hide-cc-message="POD Orders are not reserved / locked in until paid. Please call sales to lock in your order.">
                                     POD Orders are not reserved / locked in until paid. If you want to lock in your order,
                                     please pay using a credit card or call sales.
                                 </p>
@@ -1144,8 +1147,10 @@
 
             const paymentOptions = document.querySelectorAll('.payment-option');
             const radioButtons = document.querySelectorAll('input[name="payment"]');
+            const cardPaymentOption = document.getElementById('cardPaymentOption');
             const cardSection = document.getElementById('cardSection');
             const codNote = document.getElementById('codNote');
+            let hideCcPaymentOption = false;
 
             function updateHighlight() {
                 paymentOptions.forEach(opt => {
@@ -1153,17 +1158,56 @@
                     opt.classList.add('border-gray-200');
                 });
                 const checkedRadio = document.querySelector('input[name="payment"]:checked');
+                if (!checkedRadio) {
+                    cardSection.style.display = 'none';
+                    codNote.style.display = 'none';
+                    return;
+                }
                 const selected = checkedRadio.value;
 
-                document.querySelector(`.payment-option[data-value="${selected}"]`).classList.add(
-                    'border-blue-500');
+                const selectedOption = document.querySelector(`.payment-option[data-value="${selected}"]`);
+                if (selectedOption) {
+                    selectedOption.classList.add('border-blue-500');
+                }
                 // Show/hide card input section
-                cardSection.style.display = selected === 'Card' ? 'block' : 'none';
+                cardSection.style.display = !hideCcPaymentOption && selected === 'Card' ? 'block' : 'none';
                 codNote.style.display = selected === 'COD' ? 'block' : 'none';
 
             }
+
+            function applyPaymentRestrictions(shouldHideCcPaymentOption) {
+                hideCcPaymentOption = shouldHideCcPaymentOption;
+
+                if (cardPaymentOption) {
+                    cardPaymentOption.classList.toggle('hidden', hideCcPaymentOption);
+                }
+
+                codNote.textContent = hideCcPaymentOption ? codNote.dataset.hideCcMessage : codNote.dataset
+                    .defaultMessage;
+
+                const checkedRadio = document.querySelector('input[name="payment"]:checked');
+                if (hideCcPaymentOption && checkedRadio?.value === 'Card') {
+                    const fallbackOption = document.querySelector('input[name="payment"][value="COD"]') ||
+                        document.querySelector('input[name="payment"][value="Account"]');
+
+                    if (fallbackOption) {
+                        fallbackOption.checked = true;
+                    }
+                }
+
+                updateHighlight();
+            }
+
             radioButtons.forEach(r => r.addEventListener('change', updateHighlight));
             updateHighlight();
+
+            document.addEventListener('cart:summary-updated', function(event) {
+                applyPaymentRestrictions(Boolean(event.detail?.hideCcPaymentOption));
+            });
+
+            if (typeof window.loadCartSidebarPreview === 'function') {
+                window.loadCartSidebarPreview();
+            }
 
             // Card info live update
             const billingFirstNameInput = document.getElementById('billingFirstName');

@@ -99,12 +99,15 @@ class CartHelper
         $specialTaxTotal = 0;
         $addedFeesTotal = 0;
         $grandTotal = 0;
+        $hideCcPaymentOption = false;
 
         foreach ($cartData as $validated) {
             $product = $cartProducts->get($validated['product_unique_id'] ?? null);
             if (!$product) {
                 continue;
             }
+
+            $hideCcPaymentOption = $hideCcPaymentOption || (bool) $product->hide_cc_payment_option;
 
             $hasParentInCart = isset($childProductIdsWithParentInCart[$product->id]);
 
@@ -135,6 +138,7 @@ class CartHelper
         return [
             'cart_id' => $cartId,
             'tax_exempt' => $taxExempt,
+            'hide_cc_payment_option' => $hideCcPaymentOption,
             'order_notes' => $orderNotes,
             'payment_method' => $paymentMethod,
             'cart_items' => $items,

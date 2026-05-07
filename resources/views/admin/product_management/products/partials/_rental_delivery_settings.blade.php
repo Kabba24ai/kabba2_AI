@@ -987,24 +987,36 @@
 
         <!-- High Demand Alert -->
         <div class="grid grid-cols-1  gap-4">
-            <div class="flex items-center gap-2 mt-1 relative">
-                {!! html()->checkbox('has_high_demand_alert') !!}
-                <label for="has_high_demand_alert" class="text-gray-700 dark:text-gray-300">
-                    High Demand Alert
-                </label>
-                <!-- Tooltip trigger -->
-                <div class="relative group">
-                    <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
-                        <x-heroicon-o-information-circle class="w-5 h-5" />
-                    </span>
+            <div class="flex flex-wrap items-center gap-8 mt-1">
+                <div class="flex items-center gap-2 relative">
+                    {!! html()->checkbox('has_high_demand_alert') !!}
+                    <label for="has_high_demand_alert" class="text-gray-700 dark:text-gray-300">
+                        High Demand Alert
+                    </label>
+                    <!-- Tooltip trigger -->
+                    <div class="relative group">
+                        <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                        </span>
 
-                    <!-- Tooltip -->
-                    <div class="tooltip-panel max-w-sm">
-                        <p>
-                            Display a checkout alert to inform customers that this product is in high demand or has limited availability.
-                        </p>
+                        <!-- Tooltip -->
+                        <div class="tooltip-panel max-w-sm">
+                            <p>
+                                Display a checkout alert to inform customers that this product is in high demand or has limited availability.
+                            </p>
+                        </div>
                     </div>
                 </div>
+
+                <label for="hide_cc_payment_option" class="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        id="hide_cc_payment_option"
+                        name="hide_cc_payment_option"
+                        value="1"
+                        @checked(old('hide_cc_payment_option', $objProduct->hide_cc_payment_option ?? false))>
+                    <span class="text-gray-700 dark:text-gray-300">Hide CC Payment Option</span>
+                </label>
             </div>
 
             <div class="flex flex-wrap items-center gap-8">
@@ -1070,7 +1082,7 @@
         @include('admin.product_management.products.partials._terms_checklist')
 
         <div class="mt-auto flex justify-end pt-25">
-            <a href="{{ route('admin.configurations.index') }}" 
+            <a href="{{ route('admin.configurations.index') }}"
                 class="text-sm text-blue-500 hover:underline font-medium">
                 Update Settings
             </a>

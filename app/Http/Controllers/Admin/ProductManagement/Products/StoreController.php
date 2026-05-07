@@ -44,6 +44,7 @@ class StoreController extends Controller
                 'is_tax_free_item' => $validated['is_tax_free_item'] ?? false,
                 'apply_special_tax' => $validated['apply_special_tax'] ?? false,
                 'apply_added_fees' => $validated['apply_added_fees'] ?? false,
+                'hide_cc_payment_option' => $validated['hide_cc_payment_option'] ?? false,
             ];
 
             // Add fields based on product_type
@@ -89,6 +90,7 @@ class StoreController extends Controller
                     // is_default_funnel field
                     'is_default_funnel' => false, // Rentals cannot be default funnel
                     'has_high_demand_alert' => false,
+                    'hide_cc_payment_option' => $validated['hide_cc_payment_option'] ?? false,
                 ]);
             } elseif ($validated['product_type'] === 'Rental') {
                 $productData = array_merge($productData, [

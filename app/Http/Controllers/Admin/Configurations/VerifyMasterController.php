@@ -22,12 +22,36 @@ class VerifyMasterController extends Controller
 
             if ($decryptedMaster === $validated['password']) {
                 // Fetch the actual value of the targeted field to return it
+                // $fieldSetting = Setting::where('setting_name', $validated['field_name'])->first();
+                // if ($fieldSetting->is_encrypted === 0) {
+                //     $fieldValue = $fieldSetting ? $fieldSetting->setting_value : null;
+                // } else {
+                //     $fieldValue = $fieldSetting ? $fieldSetting->getDecryptedSettingValue() : null;
+                // }
+
+
                 $fieldSetting = Setting::where('setting_name', $validated['field_name'])->first();
-                if ($fieldSetting->is_encrypted === 0) {
-                    $fieldValue = $fieldSetting ? $fieldSetting->setting_value : null;
-                } else {
-                    $fieldValue = $fieldSetting ? $fieldSetting->getDecryptedSettingValue() : null;
-                }
+
+if (!$fieldSetting) {
+
+    session(['master_verified' => true]);
+
+    return response()->json([
+        'success' => true,
+        'field_value' => '',
+        'message' => 'Master password verified. Field unlocked.',
+    ]);
+}
+
+if ($fieldSetting->is_encrypted === 0) {
+
+    $fieldValue = $fieldSetting->setting_value;
+
+} else {
+
+    $fieldValue = $fieldSetting->getDecryptedSettingValue();
+}
+
                 session(['master_verified' => true]);
                 return response()->json([
                     'success' => true,

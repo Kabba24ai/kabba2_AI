@@ -485,9 +485,9 @@
                                 "addresses[$index][Country]",
                                 [
                                     'USA' => 'USA',
-                                    'Canada' => 'Canada',
-                                    'UK' => 'UK',
-                                    'India' => 'India',
+                                    // 'Canada' => 'Canada',
+                                    // 'UK' => 'UK',
+                                    // 'India' => 'India',
                                 ],
                                 // default to USA if old or user value is not set
                                 old("addresses.$index.Country", $addresse->country ?? 'USA'),

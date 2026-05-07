@@ -791,24 +791,57 @@
                     @endif
 
                     <!-- Buttons -->
-                    <div class="flex justify-between items-center mt-8">
-                        <a href="javascript:history.back()"
-                            class="text-sm text-blue-600 hover:underline flex items-center gap-1">
-                            <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 19l-7-7 7-7"></path>
-                            </svg>
-                            Back
-                        </a>
+                    <div class="mt-8 flex flex-col gap-3">
+                        {{-- Tax Exempt above checkout --}}
                         @if((!$isSuspended && !$isBadDebt) || $isImpersonating)
-                            <button type="submit" id="checkoutBtn"
-                                class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition flex items-center gap-2">
-                                <span id="checkoutBtnText">Checkout</span>
-                                <span id="checkoutBtnLoader" class="hidden">
-                                    <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
-                                </span>
-                            </button>
-                         @endif
+                        <div class="flex justify-end">
+                            <div class="flex items-center gap-2">
+                                <input type="hidden" name="tax_exempt" value="0" />
+                                <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
+                                    class="accent-blue-500 h-4 w-4 align-middle"
+                                    {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
+                                <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
+                            </div>
+                        </div>
+                        @endif
+                        {{-- Back | Employee Code + Checkout --}}
+                        <div class="flex justify-between items-center">
+                            <a href="javascript:history.back()"
+                                class="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                                <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                Back
+                            </a>
+                            @if((!$isSuspended && !$isBadDebt) || $isImpersonating)
+                            <div class="flex items-center gap-2">
+                                <div>
+                                    <label for="employee_code" class="sr-only">Employee Code</label>
+                                    {{ html()->text('employee_code', old('employee_code'))->class([
+                                            'w-36 rounded-lg border border-gray-300 px-3 py-2.5 shadow-sm text-sm',
+                                            'input-error' => $errors->has('employee_code'),
+                                        ])->attributes([
+                                            'maxlength' => 20,
+                                            'data-parsley-maxlength' => 20,
+                                            'placeholder' => 'Employee Code',
+                                            'autocomplete' => 'off',
+                                            'id' => 'employee_code',
+                                        ]) }}
+                                    @error('employee_code')
+                                        <p class="mt-1 text-red-600 text-xs">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <button type="submit" id="checkoutBtn"
+                                    class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition flex items-center gap-2">
+                                    <span id="checkoutBtnText">Checkout</span>
+                                    <span id="checkoutBtnLoader" class="hidden">
+                                        <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
+                                    </span>
+                                </button>
+                            </div>
+                            @endif
+                        </div>
                     </div>
                     {{ html()->form()->close() }}
                 </div>
@@ -839,34 +872,7 @@
                         </div>
                     </div>
 
-                    <!-- Employee Code & Tax Exempt - Static Section -->
-                    <div class="flex flex-wrap items-center gap-3 mt-6">
-                        <div class="w-full sm:w-auto">
-                            <label for="employee_code" class="sr-only">Employee Code</label>
-                            {{ html()->text('employee_code', old('employee_code'))->class([
-                                    'w-full sm:w-44 rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm',
-                                    'input-error' => $errors->has('employee_code'),
-                                ])->attributes([
-                                    'maxlength' => 20,
-                                    'data-parsley-maxlength' => 20,
-                                    'placeholder' => 'Employee Code',
-                                    'autocomplete' => 'off',
-                                    'id' => 'employee_code',
-                                ]) }}
 
-                            @error('employee_code')
-                                <p class="mt-1 text-red-600 dark:text-red-400 text-xs">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <input type="hidden" name="tax_exempt" value="0" />
-                            <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
-                                class="accent-blue-500 h-4 w-4 align-middle"
-                                {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
-                            <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

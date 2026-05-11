@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.store'));
     const UPDATE_BASE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    let isLoadingCriteria = false;
 
     function esc(value) {
         return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -148,6 +149,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderCriteria() {
+        if (isLoadingCriteria) {
+            criteriaListEl.innerHTML = `
+                <div class="space-y-3 animate-pulse">
+                    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="h-4 w-52 rounded bg-gray-200"></div>
+                        <div class="mt-2 h-3 w-40 rounded bg-gray-100"></div>
+                        <div class="mt-3 h-2 w-full rounded-full bg-gray-100"></div>
+                        <div class="mt-3 h-3 w-64 rounded bg-gray-100"></div>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="h-4 w-56 rounded bg-gray-200"></div>
+                        <div class="mt-2 h-3 w-44 rounded bg-gray-100"></div>
+                        <div class="mt-3 h-2 w-full rounded-full bg-gray-100"></div>
+                        <div class="mt-3 h-3 w-60 rounded bg-gray-100"></div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
         if (!criteria.length) {
             criteriaListEl.innerHTML = '<div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">No criteria found for this category.</div>';
             return;
@@ -190,17 +211,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = new URL(LIST_URL, window.location.origin);
         url.searchParams.set('category_id', String(categoryId));
 
-        const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
-        const data = await res.json();
+        isLoadingCriteria = true;
+        renderCriteria();
 
-        if (!res.ok || !data.success) {
+        try {
+            const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                criteria = [];
+                renderCriteria();
+                return;
+            }
+
+            criteria = data.items || [];
+            renderCriteria();
+        } catch (error) {
             criteria = [];
             renderCriteria();
-            return;
+        } finally {
+            isLoadingCriteria = false;
+            renderCriteria();
         }
-
-        criteria = data.items || [];
-        renderCriteria();
     }
 
     function resetForm() {

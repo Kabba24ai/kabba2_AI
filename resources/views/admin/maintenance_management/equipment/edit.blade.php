@@ -240,14 +240,7 @@
                                         <p class="mt-0.5 text-xs text-gray-500">Select equipment from the same category that can serve as substitutes</p>
                                     </div>
                                     <div class="px-5 py-4 space-y-3">
-                                        <div class="flex items-center gap-2">
-                                            <div class="relative flex-1">
-                                                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"/>
-                                                </svg>
-                                                <input id="kc-eq-search" type="text" placeholder="Search equipment…"
-                                                    class="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                            </div>
+                                        <div class="flex items-center justify-end gap-2">
                                             <button type="button" id="kc-eq-select-all"
                                                 class="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap">
                                                 Select All
@@ -256,15 +249,25 @@
                                                 class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 whitespace-nowrap">0 selected</span>
                                         </div>
 
-                                        {{-- column headers --}}
+                                        {{-- table --}}
                                         <div class="rounded-lg border border-gray-200 overflow-hidden">
-                                        <div class="flex items-center gap-3 px-4 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200" style="padding-right: calc(1rem + 17px);">
-                                            <span class="w-4 shrink-0"></span>
-                                            <span class="flex-1">Equipment Name</span>
-                                            <span class="w-28 shrink-0">Brand</span>
-                                            <span class="w-28 shrink-0">Model</span>
-                                        </div>
-                                        <div id="kc-eq-list" class="divide-y divide-gray-100">
+                                            <div class="overflow-x-auto">
+                                                <table class="w-full table-fixed">
+                                                    <colgroup>
+                                                        <col class="w-12">
+                                                        <col>
+                                                        <col class="w-40">
+                                                        <col class="w-40">
+                                                    </colgroup>
+                                                    <thead class="bg-gray-50">
+                                                        <tr class="border-b border-gray-200 text-xs font-semibold text-gray-500">
+                                                            <th scope="col" class="px-4 py-2 text-left"></th>
+                                                            <th scope="col" class="px-2 py-2 text-left">Equipment Name</th>
+                                                            <th scope="col" class="px-2 py-2 text-left">Brand</th>
+                                                            <th scope="col" class="px-2 py-2 text-left">Model</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="kc-eq-list" class="divide-y divide-gray-100 bg-white">
                                             @php
                                                 $selectedSimilarEquipmentIds = array_map(
                                                     'strval',
@@ -281,28 +284,26 @@
                                                     $eqBrand = is_array($eqOption) ? ($eqOption['brand'] ?? null) : null;
                                                     $eqModel = is_array($eqOption) ? ($eqOption['model'] ?? null) : null;
                                                 @endphp
-                                                <label class="kc-eq-item flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors" data-label="{{ strtolower($eqLabel) }}">
-                                                    <input type="checkbox" name="similar_equipment_ids[]" value="{{ $eqId }}"
-                                                        class="kc-eq-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                        @if(in_array((string)$eqId, $selectedSimilarEquipmentIds)) checked @endif>
-                                                    <span class="flex-1 truncate text-sm text-gray-800">{{ $eqLabel }}</span>
-                                                    @if($eqBrand)
-                                                        <span class="w-28 shrink-0 truncate text-xs text-gray-500">{{ $eqBrand }}</span>
-                                                    @else
-                                                        <span class="w-28 shrink-0"></span>
-                                                    @endif
-                                                    @if($eqModel)
-                                                        <span class="w-28 shrink-0 truncate text-xs text-gray-500">{{ $eqModel }}</span>
-                                                    @else
-                                                        <span class="w-28 shrink-0"></span>
-                                                    @endif
-                                                </label>
+                                                <tr class="kc-eq-item hover:bg-gray-50 transition-colors" data-label="{{ strtolower($eqLabel) }}">
+                                                    <td class="px-4 py-3 align-middle">
+                                                        <input type="checkbox" name="similar_equipment_ids[]" value="{{ $eqId }}"
+                                                            class="kc-eq-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                            @if(in_array((string)$eqId, $selectedSimilarEquipmentIds)) checked @endif>
+                                                    </td>
+                                                    <td class="px-2 py-3 align-middle text-sm text-gray-800">{{ $eqLabel }}</td>
+                                                    <td class="px-2 py-3 align-middle text-xs text-gray-500">{{ $eqBrand ?: '' }}</td>
+                                                    <td class="px-2 py-3 align-middle text-xs text-gray-500">{{ $eqModel ?: '' }}</td>
+                                                </tr>
                                             @empty
-                                                <div class="px-4 py-6 text-center text-sm text-gray-500">
-                                                    No equipment found in this category.
-                                                </div>
+                                                <tr>
+                                                    <td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500">
+                                                        No equipment found in this category.
+                                                    </td>
+                                                </tr>
                                             @endforelse
-                                        </div>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>{{-- end wrapper --}}
                                     </div>
                                 </div>
@@ -567,8 +568,7 @@
 
         /* ──────────────── KEY COMPARISON ──────────────── */
         (function () {
-            // ── Comparable Equipment search + select all ────────────
-            const eqSearch = document.getElementById('kc-eq-search');
+            // ── Comparable Equipment select all ─────────────────────
             const selectAllBtn = document.getElementById('kc-eq-select-all');
             const countBadge = document.getElementById('kc-eq-count');
             const eqList = document.getElementById('kc-eq-list');
@@ -581,19 +581,10 @@
 
             eqList?.addEventListener('change', updateCount);
 
-            eqSearch?.addEventListener('input', function () {
-                const q = this.value.toLowerCase();
-                eqList?.querySelectorAll('.kc-eq-item').forEach(item => {
-                    const match = !q || (item.dataset.label ?? '').includes(q);
-                    item.style.display = match ? '' : 'none';
-                });
-            });
-
             let allSelected = false;
             selectAllBtn?.addEventListener('click', function () {
                 allSelected = !allSelected;
                 eqList?.querySelectorAll('.kc-eq-item').forEach(item => {
-                    if (item.style.display === 'none') return;
                     const cb = item.querySelector('.kc-eq-checkbox');
                     if (cb) cb.checked = allSelected;
                 });

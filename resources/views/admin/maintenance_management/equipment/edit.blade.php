@@ -236,18 +236,20 @@
                                 {{-- ── Comparable Equipment ─────────────────────────────── --}}
                                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                                     <div class="border-b border-gray-100 px-5 py-4">
-                                        <h3 class="text-sm font-semibold text-gray-900">Comparable Equipment</h3>
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <h3 class="text-sm font-semibold text-gray-900">Comparable Equipment</h3>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" id="kc-eq-select-all"
+                                                    class="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap">
+                                                    Select All
+                                                </button>
+                                                <span id="kc-eq-count"
+                                                    class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 whitespace-nowrap">0 selected</span>
+                                            </div>
+                                        </div>
                                         <p class="mt-0.5 text-xs text-gray-500">Select equipment from the same category that can serve as substitutes</p>
                                     </div>
                                     <div class="px-5 py-4 space-y-3">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <button type="button" id="kc-eq-select-all"
-                                                class="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap">
-                                                Select All
-                                            </button>
-                                            <span id="kc-eq-count"
-                                                class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 whitespace-nowrap">0 selected</span>
-                                        </div>
 
                                         {{-- table --}}
                                         <div class="rounded-lg border border-gray-200 overflow-hidden">
@@ -328,20 +330,20 @@
                                         @forelse($criteriaRows as $row)
                                             @php
                                                 $rowState = $criteriaState[$row->criteria_key] ?? [];
-                                                $rowEnabled = filter_var($rowState['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN);
+                                                $rowEnabled = true;
                                                 $rowThreshold = $rowState['threshold'] ?? '';
                                                 $rowWeight = isset($rowState['weight']) ? (int) $rowState['weight'] : (int) $row->default_weight;
                                                 $rowUpgradeExceeds = filter_var($rowState['upgrade_exceeds_value'] ?? $row->upgrade_exceeds_value ?? true, FILTER_VALIDATE_BOOLEAN);
                                                 $rowCautionIfChange = filter_var($rowState['caution_if_change_value'] ?? $row->caution_if_change_value ?? true, FILTER_VALIDATE_BOOLEAN);
                                             @endphp
                                             <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="{{ $row->criteria_key }}">
-                                                <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[{{ $row->criteria_key }}][enabled]" value="{{ $rowEnabled ? '1' : '0' }}">
+                                                <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[{{ $row->criteria_key }}][enabled]" value="1">
                                                 <input type="hidden" class="kc-hidden-threshold" name="critical_matching_criteria[{{ $row->criteria_key }}][threshold]" value="{{ $rowThreshold }}">
                                                 <input type="hidden" class="kc-hidden-weight" name="critical_matching_criteria[{{ $row->criteria_key }}][weight]" value="{{ $rowWeight }}">
                                                 {{-- enable toggle --}}
-                                                <button type="button" role="switch" aria-checked="{{ $rowEnabled ? 'true' : 'false' }}"
-                                                    class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none {{ $rowEnabled ? 'bg-teal-400' : 'bg-gray-200' }}">
-                                                    <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 {{ $rowEnabled ? 'translate-x-4' : 'translate-x-0' }}"></span>
+                                                <button type="button" role="switch" aria-checked="true" style="display:none;"
+                                                    class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none bg-teal-400">
+                                                    <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 translate-x-4"></span>
                                                 </button>
 
                                                 {{-- label --}}
@@ -349,19 +351,17 @@
 
                                                 {{-- threshold --}}
                                                 <input type="number" min="0" placeholder="0" value="{{ $rowThreshold }}"
-                                                    class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40"
-                                                    {{ $rowEnabled ? '' : 'disabled' }}>
+                                                    class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40">
                                                 <span class="kc-criteria-unit w-8 text-xs text-gray-500">{{ $row->unit }}</span>
 
                                                 {{-- weight label + slider --}}
                                                 <span class="text-xs font-medium text-gray-500">Weight</span>
                                                 <input type="range" min="0" max="100" value="{{ $rowWeight }}"
-                                                    class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
-                                                    {{ $rowEnabled ? '' : 'disabled' }}>
+                                                    class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40">
                                                 <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">{{ $rowWeight }}</span>
 
                                                 {{-- per-criteria flags --}}
-                                                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pl-[52px] pt-1">
+                                                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pt-1">
                                                     <label class="flex items-center gap-2 cursor-pointer select-none">
                                                         <input type="hidden" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_exceeds_value]" value="0">
                                                         <input type="checkbox" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_exceeds_value]" value="1"
@@ -528,7 +528,7 @@
                                             <p class="mb-2 text-xs font-semibold text-gray-500">Notes</p>
                                             <textarea id="kc-substitution-notes" name="equipment_key_comparison_notes" rows="5"
                                                 placeholder="e.g. Can replace any 19ft scissor lift but not suitable for indoor slab work"
-                                                class="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ old('equipment_key_comparison_notes', $equipment->equipment_key_comparison_notes) }}</textarea>
+                                                class="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ old('equipment_key_comparison_notes', $equipment->equipment_key_comparison_notes) }}</textarea>
                                             <p class="mt-2 text-xs text-gray-400">Used by Kabba AI for intelligent scheduling decisions</p>
                                         </div>
                                     </div>
@@ -604,8 +604,8 @@
                 const hiddenThreshold = row.querySelector('.kc-hidden-threshold');
                 const hiddenWeight = row.querySelector('.kc-hidden-weight');
 
-                function syncHiddenValues(enabled) {
-                    if (hiddenEnabled) hiddenEnabled.value = enabled ? '1' : '0';
+                function syncHiddenValues() {
+                    if (hiddenEnabled) hiddenEnabled.value = '1';
                     if (hiddenThreshold && threshold) hiddenThreshold.value = threshold.value;
                     if (hiddenWeight && slider) hiddenWeight.value = slider.value;
                 }
@@ -621,7 +621,7 @@
                     }
                     if (threshold) threshold.disabled = !enabled;
                     if (slider) slider.disabled = !enabled;
-                    syncHiddenValues(enabled);
+                    syncHiddenValues();
                 }
 
                 toggle?.addEventListener('click', function () {
@@ -631,20 +631,17 @@
 
                 slider?.addEventListener('input', function () {
                     if (weightVal) weightVal.textContent = this.value;
-                    const isEnabled = toggle?.getAttribute('aria-checked') === 'true';
-                    syncHiddenValues(isEnabled);
+                    syncHiddenValues();
                 });
 
                 threshold?.addEventListener('input', function () {
-                    const isEnabled = toggle?.getAttribute('aria-checked') === 'true';
-                    syncHiddenValues(isEnabled);
+                    syncHiddenValues();
                 });
 
-                const initialEnabled = (hiddenEnabled?.value === '1') || toggle?.getAttribute('aria-checked') === 'true';
                 if (slider && weightVal) {
                     weightVal.textContent = slider.value;
                 }
-                setRowEnabled(initialEnabled);
+                setRowEnabled(true);
             }
 
             document.querySelectorAll('.kc-criteria-row').forEach(wireCriteriaRow);
@@ -715,7 +712,7 @@
                     const key = row.dataset.key;
                     if (!key) return;
                     currentStateByKey[key] = {
-                        enabled: row.querySelector('.kc-hidden-enabled')?.value === '1',
+                        enabled: true,
                         threshold: row.querySelector('.kc-hidden-threshold')?.value ?? '',
                         weight: row.querySelector('.kc-hidden-weight')?.value ?? row.querySelector('.kc-weight-slider')?.value ?? '50',
                         upgradeExceeds: row.querySelector('input[type="checkbox"][name*="[upgrade_exceeds_value]"]')?.checked ?? true,
@@ -728,7 +725,7 @@
                     const safeName = escapeHtml(item.name || 'Criteria');
                     const safeUnit = escapeHtml(item.unit || '');
                     const state = currentStateByKey[key] || {};
-                    const enabled = key in currentStateByKey ? Boolean(state.enabled) : true;
+                    const enabled = true;
                     const threshold = String(state.threshold ?? '');
                     const weight = Number(state.weight ?? item.defaultWeight ?? 50);
                     const upgradeExceeds = key in currentStateByKey ? Boolean(state.upgradeExceeds) : (item.upgradeExceedsValue !== false);
@@ -736,24 +733,22 @@
 
                     return `
                         <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="${key}">
-                            <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[${key}][enabled]" value="${enabled ? '1' : '0'}">
+                            <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[${key}][enabled]" value="1">
                             <input type="hidden" class="kc-hidden-threshold" name="critical_matching_criteria[${key}][threshold]" value="${escapeHtml(threshold)}">
                             <input type="hidden" class="kc-hidden-weight" name="critical_matching_criteria[${key}][weight]" value="${weight}">
-                            <button type="button" role="switch" aria-checked="${enabled ? 'true' : 'false'}"
-                                class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent ${enabled ? 'bg-teal-400' : 'bg-gray-200'} transition-colors duration-200 focus:outline-none">
-                                <span class="inline-block h-4 w-4 ${enabled ? 'translate-x-4' : 'translate-x-0'} rounded-full bg-white shadow transition-transform duration-200"></span>
+                            <button type="button" role="switch" aria-checked="true" style="display:none;"
+                                class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-teal-400 transition-colors duration-200 focus:outline-none">
+                                <span class="inline-block h-4 w-4 translate-x-4 rounded-full bg-white shadow transition-transform duration-200"></span>
                             </button>
                             <span class="kc-criteria-label w-36 text-sm text-gray-700">${safeName}</span>
                             <input type="number" min="0" placeholder="0" value="${escapeHtml(threshold)}"
-                                class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40"
-                                ${enabled ? '' : 'disabled'}>
+                                class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40">
                             <span class="kc-criteria-unit w-8 text-xs text-gray-500">${safeUnit}</span>
                             <span class="text-xs font-medium text-gray-500">Weight</span>
                             <input type="range" min="0" max="100" value="${weight}"
-                                class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
-                                ${enabled ? '' : 'disabled'}>
+                                class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40">
                             <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">${weight}</span>
-                            <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pl-[52px] pt-1">
+                            <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pt-1">
                                 <label class="flex items-center gap-2 cursor-pointer select-none">
                                     <input type="hidden" name="critical_matching_criteria[${key}][upgrade_exceeds_value]" value="0">
                                     <input type="checkbox" name="critical_matching_criteria[${key}][upgrade_exceeds_value]" value="1"

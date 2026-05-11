@@ -654,7 +654,16 @@
 
             // Clear filters functionality using global clearFilters
             document.getElementById('clear-filters').addEventListener('click', function() {
-                window.clearFilters(fieldMap, screenKey);
+                // Create a filtered fieldMap that excludes equipment_status checkboxes
+                const fieldMapForClear = {
+                    'search': searchInput,
+                    'category': categorySelect,
+                    'store': storeSelect,
+                    'past_seven_days': pastSevenDays,
+                    'overdue': overdue,
+                    'assignment_filter': assignmentFilter,
+                };
+                window.clearFilters(fieldMapForClear, screenKey);
                 fetchEquipments();
                 fetchSchedules();
             });

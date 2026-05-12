@@ -9,16 +9,19 @@ use App\Http\Controllers\Controller;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use App\Services\TwilioService;
+use App\Services\AuthorizeNetService;
 
 // Resources
 use App\Http\Resources\Api\Admin\V1\Equipment\ListResource;
 use App\Jobs\SalesFunnelAfterEventJob;
+use App\Models\Customers\CustomerCard;
 use App\Models\Customers\SalesFunnel;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
 use App\Models\Orders\OrderProductFunnelLog;
 use App\Services\MailService;
 use App\Services\OpenAIService;
+use Illuminate\Http\Request;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
@@ -26,6 +29,7 @@ use Symfony\Component\Mime\Address;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Str;
+use Throwable;
 
 class IndexController extends Controller
 {
@@ -663,6 +667,56 @@ class IndexController extends Controller
         ];
         $results = $twilio->sendBulkSms($numbers, $message, $options);
         return response()->json($results);
+    }
+
+    public function paymentProfileCardInfo(Request $request, ?string $paymentProfileId = null)
+    {
+        $paymentProfileId = $paymentProfileId ?: $request->query('payment_profile_id');
+
+        if (empty($paymentProfileId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'payment_profile_id is required.',
+                'example' => url('/test/payment-profile-card-info/1365271088'),
+            ], 422);
+        }
+
+        $customerCard = CustomerCard::query()
+            ->with('customer:id,authorize_profile_id')
+            ->where('payment_profile_id', $paymentProfileId)
+            ->first();
+
+        $customerProfileId = $request->query('customer_profile_id') ?: $customerCard?->customer?->authorize_profile_id;
+
+        if (empty($customerProfileId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer profile ID could not be resolved. Pass customer_profile_id as query string.',
+                'payment_profile_id' => $paymentProfileId,
+                'example' => url('/test/payment-profile-card-info/' . $paymentProfileId) . '?customer_profile_id=525188434',
+            ], 422);
+        }
+
+        try {
+            $cardInfo = (new AuthorizeNetService())->getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to fetch card details from Authorize.Net.',
+                'error' => $exception->getMessage(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'payment_profile_id' => $paymentProfileId,
+            'customer_profile_id' => $customerProfileId,
+            'customer_card_unique_id' => $customerCard?->unique_id,
+            'card_number' => $cardInfo['card_number'] ?? null,
+            'card_type' => $cardInfo['card_type'] ?? null,
+        ]);
     }
 
     public function testOpenAi(OpenAIService $openAIService)

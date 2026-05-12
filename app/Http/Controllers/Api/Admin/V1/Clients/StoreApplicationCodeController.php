@@ -20,11 +20,11 @@ class StoreApplicationCodeController extends BaseController
         StoreApplicationCodeRequest $request
     ): JsonResponse {
 
-        Log::info('Client Application Code API Hit', [
-            'payload' => $request->all(),
-            'host' => $request->getHost(),
-            'ip' => $request->ip(),
-        ]);
+        // Log::info('Client Application Code API Hit', [
+        //     'payload' => $request->all(),
+        //     'host' => $request->getHost(),
+        //     'ip' => $request->ip(),
+        // ]);
 
         try {
 
@@ -35,11 +35,11 @@ class StoreApplicationCodeController extends BaseController
                 $request
             );
 
-            Log::info('Client Saved Successfully', [
-                'client_id' => $client->id,
-                'client_code' => $client->code,
-                'admin_url' => $client->admin_url,
-            ]);
+            // Log::info('Client Saved Successfully', [
+            //     'client_id' => $client->id,
+            //     'client_code' => $client->code,
+            //     'admin_url' => $client->admin_url,
+            // ]);
 
             return response()->json([
                 'success' => true,

@@ -719,6 +719,157 @@ class IndexController extends Controller
         ]);
     }
 
+    public function backfillCustomerCardInfo(Request $request)
+    {
+        @set_time_limit(0);
+
+        $limit = max((int) $request->query('limit', 0), 0);
+        $dryRun = $request->boolean('dry_run', false);
+
+        $totalNullCardNumber = CustomerCard::query()
+            ->whereNull('card_number')
+            ->count();
+
+        $eligibleNullCardNumber = CustomerCard::query()
+            ->whereNull('card_number')
+            ->whereNotNull('payment_profile_id')
+            ->count();
+
+        $missingPaymentProfileId = CustomerCard::query()
+            ->whereNull('card_number')
+            ->whereNull('payment_profile_id')
+            ->count();
+
+        $processed = 0;
+        $updated = 0;
+        $skipped = 0;
+        $failed = 0;
+        $samples = [];
+        $failures = [];
+        $authorizeNetService = new AuthorizeNetService();
+        $remaining = $limit > 0 ? $limit : null;
+
+        CustomerCard::query()
+            ->with('customer:id,authorize_profile_id')
+            ->whereNull('card_number')
+            ->whereNotNull('payment_profile_id')
+            ->orderBy('id')
+            ->chunkById(25, function ($cards) use (
+                &$processed,
+                &$updated,
+                &$skipped,
+                &$failed,
+                &$samples,
+                &$failures,
+                &$remaining,
+                $dryRun,
+                $authorizeNetService
+            ) {
+                foreach ($cards as $card) {
+                    if ($remaining !== null && $remaining <= 0) {
+                        return false;
+                    }
+
+                    $processed++;
+
+                    if ($remaining !== null) {
+                        $remaining--;
+                    }
+
+                    $customerProfileId = $card->customer?->authorize_profile_id;
+
+                    if (empty($customerProfileId)) {
+                        $skipped++;
+
+                        if (count($failures) < 25) {
+                            $failures[] = [
+                                'customer_card_id' => $card->id,
+                                'payment_profile_id' => $card->payment_profile_id,
+                                'reason' => 'Missing customer authorize_profile_id.',
+                            ];
+                        }
+
+                        continue;
+                    }
+
+                    try {
+                        $cardInfo = $authorizeNetService->getCardInfoFromPaymentProfile($customerProfileId, $card->payment_profile_id);
+                    } catch (Throwable $exception) {
+                        report($exception);
+
+                        $failed++;
+
+                        if (count($failures) < 25) {
+                            $failures[] = [
+                                'customer_card_id' => $card->id,
+                                'payment_profile_id' => $card->payment_profile_id,
+                                'customer_profile_id' => $customerProfileId,
+                                'reason' => $exception->getMessage(),
+                            ];
+                        }
+
+                        continue;
+                    }
+
+                    $cardNumber = $cardInfo['card_number'] ?? null;
+                    $cardType = $cardInfo['card_type'] ?? null;
+
+                    if (empty($cardNumber) && empty($cardType)) {
+                        $skipped++;
+
+                        if (count($failures) < 25) {
+                            $failures[] = [
+                                'customer_card_id' => $card->id,
+                                'payment_profile_id' => $card->payment_profile_id,
+                                'customer_profile_id' => $customerProfileId,
+                                'reason' => 'Authorize.Net returned empty card details.',
+                            ];
+                        }
+
+                        continue;
+                    }
+
+                    if (!$dryRun) {
+                        $card->forceFill([
+                            'card_number' => $cardNumber ?: $card->card_number,
+                            'card_type' => $cardType ?: $card->card_type,
+                        ])->save();
+                    }
+
+                    $updated++;
+
+                    if (count($samples) < 25) {
+                        $samples[] = [
+                            'customer_card_id' => $card->id,
+                            'unique_id' => $card->unique_id,
+                            'payment_profile_id' => $card->payment_profile_id,
+                            'customer_profile_id' => $customerProfileId,
+                            'card_number' => $cardNumber,
+                            'card_type' => $cardType,
+                        ];
+                    }
+                }
+
+                return $remaining === null || $remaining > 0;
+            });
+
+        return response()->json([
+            'success' => true,
+            'dry_run' => $dryRun,
+            'limit' => $limit ?: null,
+            'total_null_card_number_before' => $totalNullCardNumber,
+            'eligible_null_card_number_before' => $eligibleNullCardNumber,
+            'missing_payment_profile_id_before' => $missingPaymentProfileId,
+            'processed' => $processed,
+            $dryRun ? 'would_update' : 'updated' => $updated,
+            'skipped' => $skipped,
+            'failed' => $failed,
+            'total_null_card_number_after' => CustomerCard::query()->whereNull('card_number')->count(),
+            'samples' => $samples,
+            'failures' => $failures,
+        ]);
+    }
+
     public function testOpenAi(OpenAIService $openAIService)
     {
         try {

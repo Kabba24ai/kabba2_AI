@@ -40,15 +40,15 @@ class IndexController extends Controller
 
             $currentAdminUrl = rtrim(url('/'), '/') . '/';
 
-            Log::info('Fetching Application Code Started', [
+            // Log::info('Fetching Application Code Started', [
 
-                'url' => config(
-                    'services.kabba_client_api.get_url'
-                ),
+            //     'url' => config(
+            //         'services.kabba_client_api.get_url'
+            //     ),
 
-                'current_admin_url' => $currentAdminUrl,
+            //     'current_admin_url' => $currentAdminUrl,
 
-            ]);
+            // ]);
 
             $response = Http::withoutVerifying()
                 ->timeout(20)
@@ -59,13 +59,13 @@ class IndexController extends Controller
                     ]
                 );
 
-            Log::info('Application Code API Response', [
+            // Log::info('Application Code API Response', [
 
-                'status' => $response->status(),
+            //     'status' => $response->status(),
 
-                'response' => $response->json(),
+            //     'response' => $response->json(),
 
-            ]);
+            // ]);
 
             if ($response->successful()) {
 
@@ -73,21 +73,21 @@ class IndexController extends Controller
                     'application_code'
                 );
 
-                Log::info('Application Code Loaded', [
+                // Log::info('Application Code Loaded', [
 
-                    'application_code' => $currentApplicationCode,
+                //     'application_code' => $currentApplicationCode,
 
-                ]);
+                // ]);
 
             } else {
 
-                Log::warning('Application Code API Failed', [
+                // Log::warning('Application Code API Failed', [
 
-                    'status' => $response->status(),
+                //     'status' => $response->status(),
 
-                    'response' => $response->body(),
+                //     'response' => $response->body(),
 
-                ]);
+                // ]);
             }
 
         } catch (\Exception $e) {

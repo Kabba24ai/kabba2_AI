@@ -721,6 +721,14 @@ class CustomHelper
 
 public static function updateInvoiceSummary(Invoice $invoice): void
 {
+
+//  \Log::info('Invoice Summary Update Started', [
+
+//         'invoice_id' => $invoice->id,
+
+//         'invoice_number' => $invoice->invoice_number,
+
+//     ]);
     $subtotal = 0;
     $totalTax = 0;
     $totalDiscount = 0;
@@ -728,27 +736,71 @@ public static function updateInvoiceSummary(Invoice $invoice): void
 
     $invoice->loadMissing('items');
 
+    //  \Log::info('Invoice Items Loaded', [
+
+    //     'invoice_id' => $invoice->id,
+
+    //     'items_count' => $invoice->items->count(),
+
+    // ]);
+
+
     foreach ($invoice->items as $item) {
 
         $price = (float) ($item->unit ?? 0);
         $tax   = (float) ($item->tax ?? 0);
+    // \Log::info('Processing Invoice Item', [
+
+    //         'item_id' => $item->id,
+
+    //         'type' => $item->type,
+
+    //         'price' => $price,
+
+    //         'tax' => $tax,
+
+    //     ]);
 
         // charge + order
         if (in_array($item->type, ['charge', 'order'])) {
             $subtotal += $price;
             $totalTax += $tax;
+
+            //   \Log::info('Charge/Order Applied', [
+
+            //     'subtotal' => $subtotal,
+
+            //     'total_tax' => $totalTax,
+
+            // ]);
         }
 
         // discount
         if ($item->type === 'discount') {
             $totalDiscount += abs($price);
              $totalTax -= abs($tax);
+
+            //  \Log::info('Discount Applied', [
+
+            //     'discount_total' => $totalDiscount,
+
+            //     'total_tax' => $totalTax,
+
+            // ]);
         }
 
         // refund
         if ($item->type === 'refund') {
             $totalRefund += abs($price);
             $totalTax -= abs($tax);
+
+            //   \Log::info('Refund Applied', [
+
+            //     'refund_total' => $totalRefund,
+
+            //     'total_tax' => $totalTax,
+
+            // ]);
         }
     }
 
@@ -757,11 +809,110 @@ public static function updateInvoiceSummary(Invoice $invoice): void
 
     $finalTotal = $subtotal + $totalTax - $totalDiscount - $totalRefund;
     $finalTotal = max(0, $finalTotal);
+
+    //     \Log::info('Invoice Totals Calculated', [
+
+    //     'subtotal' => $subtotal,
+
+    //     'sales_tax' => $totalTax,
+
+    //     'discount' => $totalDiscount,
+
+    //     'refund' => $totalRefund,
+
+    //     'final_total' => $finalTotal,
+
+    // ]);
+
     $invoice->subtotal  = round($subtotal, 2);
     $invoice->sales_tax = round($totalTax, 2);
     $invoice->total     = round($finalTotal, 2);
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recalculate Payments
+    |--------------------------------------------------------------------------
+    */
+
+    $paidAmount = CustomerAccount::where(
+        'invoice_id',
+        $invoice->id
+    )
+    ->where('type', 'payment')
+    ->sum('amount');
+
+    $paidAmount = abs((float) $paidAmount);
+
+    $openAmount = max(
+        $finalTotal - $paidAmount,
+        0
+    );
+//  \Log::info('Payment Summary Calculated', [
+
+//         'invoice_id' => $invoice->id,
+
+//         'paid_amount' => $paidAmount,
+
+//         'open_amount' => $openAmount,
+
+//     ]);
+    /*
+    |--------------------------------------------------------------------------
+    | Invoice Status
+    |--------------------------------------------------------------------------
+    */
+
+    if ($openAmount <= 0) {
+
+        $invoiceStatus = 'paid';
+
+    } elseif ($paidAmount > 0) {
+
+        $invoiceStatus = 'partial_paid';
+
+    } else {
+
+        $invoiceStatus = 'pending';
+    }
+//  \Log::info('Invoice Status Determined', [
+
+//         'invoice_status' => $invoiceStatus,
+
+//     ]);
+    $invoice->paid_amount = round(
+        $paidAmount,
+        2
+    );
+
+    $invoice->open_amount = round(
+        $openAmount,
+        2
+    );
+
+    $invoice->invoice_status = $invoiceStatus;
+
+
+
     $invoice->save();
+
+    //   \Log::info('Invoice Summary Updated Successfully', [
+
+    //     'invoice_id' => $invoice->id,
+
+    //     'subtotal' => $invoice->subtotal,
+
+    //     'sales_tax' => $invoice->sales_tax,
+
+    //     'total' => $invoice->total,
+
+    //     'paid_amount' => $invoice->paid_amount,
+
+    //     'open_amount' => $invoice->open_amount,
+
+    //     'invoice_status' => $invoice->invoice_status,
+
+    // ]);
 }
 
 }

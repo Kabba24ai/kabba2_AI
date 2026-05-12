@@ -32,6 +32,8 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\TransactionDetailsControll
 
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdatePoidController;
 
+use App\Http\Controllers\Admin\OrderManagement\Orders\RepairDeletedOrdersController;
+
 
 Route::prefix('orders')
     ->name('orders.')
@@ -84,6 +86,7 @@ Route::prefix('orders')
 
         Route::post('/update-po', UpdatePoidController::class)->name('update-po-id');
 
+        Route::get('repair-deleted-orders', RepairDeletedOrdersController::class)->name('repair-deleted-orders');
 
 
     });

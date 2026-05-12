@@ -40,9 +40,6 @@
                 <tbody class="text-gray-700">
                     @forelse($customers as $customer)
 
-                   
-
-
                         <tr class="border-t hover:bg-gray-50">
                             <td class="px-4 py-2 whitespace-nowrap">
                                 <div class="flex items-center">
@@ -57,9 +54,11 @@
 
                                         @php
                                             $days = $customer->days_since_last_payment;
-
+                                            $forceRed = $customer->is_credit_account == 0 && $customer->available_credit_balance > 0;
                                             if ($days === null) {
                                                 $iconColor = 'text-gray-400';
+                                            } elseif ($forceRed)  {
+                                                 $iconColor = 'text-red-500';
                                             } elseif ($days <= 30) {
                                                 $iconColor = 'text-green-500';
                                             } elseif ($days <= 45) {
@@ -69,12 +68,14 @@
                                             } else {
                                                 $iconColor = 'text-black';
                                             }
+
+                                             
                                         @endphp
+                                            
+                                                  <x-heroicon-o-currency-dollar class="w-5 h-5 mr-2  {{ $iconColor }}" />
 
-                                                  <x-heroicon-o-currency-dollar class="w-5 h-5 mr-2 {{ $iconColor }}" />
 
-
-                                    <div class="text-sm font-medium text-gray-900">{{ $customer->full_name }}</div>
+                                    <div class="text-sm font-medium text-gray-900" > {{ $customer->full_name }}</div>
                                 </div>
                             </td>
                             <td class="px-4 py-2 whitespace-nowrap">
@@ -243,7 +244,6 @@
                             </td> --}}
 
 
-
                             <td class="px-4 py-4 whitespace-nowrap">
                                 @php
                                     $days = $customer->days_since_last_payment;
@@ -252,6 +252,16 @@
                                 @if ($days === null)
 
                                     <span class="text-xs text-gray-500">No payment</span>
+
+                                @elseif ($forceRed)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                            <path d="M12 9v4"/>
+                                            <path d="M12 17h.01"/>
+                                        </svg>
+                                        <span class="ml-1">{{ (int) $days }} days</span>
+                                    </span>
 
                                 @elseif ($days <= 30)
 

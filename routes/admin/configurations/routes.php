@@ -26,6 +26,9 @@ use App\Http\Controllers\Admin\Configurations\NotificationSettings\HrmUsersContr
 use App\Http\Controllers\Admin\Configurations\NotificationSettings\SaveController as SaveNotificationSettingsController;
 use App\Http\Controllers\Admin\Configurations\NotificationSettings\SaveManualController as SaveManualNotificationController;
 
+use App\Http\Controllers\Admin\Configurations\ApplicationCodeSettings\SaveController as SaveApplicationCodeController;
+
+
 use App\Http\Controllers\Admin\Configurations\NotificationSettings\DeleteController as DeleteNotificationSettingsController;
 
 
@@ -46,7 +49,8 @@ Route::prefix('configurations')
     Route::post('/invoice-settings', SaveInvoiceSettingsController::class)->name('save-invoice-settings');
     Route::post('/price-settings', SavePriceSettingsController::class)->name('save-price-settings');
     Route::post('/profile-settings', SaveProfileSettingsController::class)->name('save-profile-settings');
-
+Route::post('/application-code-settings', SaveApplicationCodeController::class)
+    ->name('save-application-code-settings');
 
     Route::post('/verify-master', VerifyMasterController::class)->name('verify-master');
     Route::post('/settings/reset', SettingsResetController::class)->name('reset-settings');

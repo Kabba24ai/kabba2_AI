@@ -16,7 +16,7 @@ enum EquipmentKeyStartingMechanism: string
             self::NONE => 'None',
             self::ONE_KEY => '1 Key',
             self::TWO_KEYS => '2 Keys',
-            self::KEY_PAD => 'Key Pad (Code Provided)',
+            self::KEY_PAD => 'Key Pad',
             self::PULL_CORD => 'Pull Cord',
         };
     }

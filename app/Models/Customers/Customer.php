@@ -52,6 +52,12 @@ class Customer extends Authenticatable
         'password_reset_token',
         'password_reset_token_expiry',
 
+
+        'license_front_media_id',
+        'license_back_media_id',
+        'license_expiry_date',
+
+
     ];
 
     protected $appends = [
@@ -120,6 +126,16 @@ class Customer extends Authenticatable
     public function media()
     {
         return $this->belongsTo(Media::class, 'tax_document_media_id', 'id');
+    }
+
+    public function licenseFront()
+    {
+        return $this->belongsTo(Media::class, 'license_front_media_id');
+    }
+
+    public function licenseBack()
+    {
+        return $this->belongsTo(Media::class, 'license_back_media_id');
     }
 
     public function orders()

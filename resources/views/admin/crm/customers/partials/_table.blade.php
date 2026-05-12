@@ -31,7 +31,7 @@
                     {{ $customer->company_name }}
 
                     <a
-                        @if (!empty($customer->company_website)) href="{{ $customer->company_website ?? 'javascript:void(0)' }}" target="_blank" @endif>
+                        @if (!empty($customer->company_website)) href="{{ $customer->company_website ?? 'javascript:void(0)' }}" @endif>
                         @if (!empty($customer->company_website))
                         <div class="text-sm text-gray-500 flex items-center gap-1">
                             <x-heroicon-o-globe-alt class="w-4 h-4 text-gray-400" />
@@ -59,20 +59,25 @@
                 </td>
               
                 @php
-                $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
-            @endphp
+                    $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
+                        $isSuspended = $customer->status === 'Archived' || $customer->status === 'Suspended';
 
-
-
+                @endphp
 
 
                 <td class="py-4 px-6 inline-flex whitespace-nowrap">
                   
-                                    <!-- Status Badge -->
-                    <span class="items-center gap-2 px-2 py-1 text-xs font-medium rounded-full  px-2 py-0.5 text-xs font-medium
+                    @if($isSuspended)
+                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-600 flex items-center">
+                            Suspended
+                        </span>
+                    @else
+                    <!-- Status Badge -->
+                    <span class="items-center gap-2 px-2 py-1 text-xs font-medium rounded-full flex items-center  px-2 py-0.5 text-xs font-medium
                         {{ $account['badge']['bg'] }} {{ $account['badge']['text'] }}">
                         {{ $account['badge']['label'] }}
                     </span>
+                    @endif
 
                     @if ($customer->tax_status === 'Exempt')
                     <span class="items-center gap-2 px-2 py-1"> <x-heroicon-o-shield-check
@@ -84,7 +89,7 @@
 
 
                           <!-- Payment Alert Icon -->
-                    <!-- @if ($account['alert']['show'])
+                <!-- @if ($account['alert']['show'])
                     <span class="items-center gap-2  py-1">
                         <x-heroicon-o-currency-dollar
                             title="No payment for {{ $account['alert']['days'] }} days"
@@ -116,9 +121,6 @@
 
                     </a>
 
-
-
-
                     <form action="{{ route('admin.crm.customers.delete', $customer->unique_id) }}"
                         method="POST"
                         class="inline delete-customer-form"
@@ -145,8 +147,6 @@
                 </td>
             </tr>
             @endforelse
-
-
         </tbody>
     </table>
 </div>

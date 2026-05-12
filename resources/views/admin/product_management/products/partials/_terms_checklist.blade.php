@@ -57,7 +57,7 @@
     </div>
 
     <div class="mt-auto flex justify-end">
-        <a href="{{ route('admin.terms-and-conditions.index') }}" target="_blank" class="text-sm text-blue-500 hover:underline font-medium">
+        <a href="{{ route('admin.terms-and-conditions.index') }}"  class="text-sm text-blue-500 hover:underline font-medium">
             Update Terms Settings
         </a>
     </div>

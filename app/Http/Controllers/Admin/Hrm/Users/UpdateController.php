@@ -56,6 +56,8 @@ class UpdateController extends Controller
                 'limit_start_time' => $validated['limit_start'] ?? false,
 
                 'limit_end_time' => $validated['limit_end'] ?? false,
+                               'lunch_override' => $validated['lunch_override'] ?? false,
+
 
                 'auto_clockout_penalty' => $validated['auto_clockout_penalty'] ?? null,
 

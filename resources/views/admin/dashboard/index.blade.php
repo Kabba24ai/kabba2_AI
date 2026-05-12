@@ -43,7 +43,8 @@
 <script>
 function goToEquipment(type) {
     const url = `{{ route('admin.checklist-management.equipment-management.index') }}?type=${type}`;
-    window.open(url, '_blank');
+    // window.open(url);
+        window.location.href = url;
 }
 </script>
 
@@ -171,7 +172,10 @@ const salesDataFromServer = @json($salesData);
                 item.querySelector("[data-order-btn]").onclick = () => {
                     if (alert.orderLink) {
                         // window.location.href = alert.orderLink;
-                        window.open(alert.orderLink, "_blank");
+                        // window.open(alert.orderLink, "_blank");
+
+                                window.location.href = alert.orderLink;
+
 
                     }
                 };
@@ -367,7 +371,10 @@ if (isFuel) {
                 item.querySelector("[data-order-btn]").onclick = () => {
                     if (alert.orderLink) {
                         // window.location.href = alert.orderLink;
-                        window.open(alert.orderLink, "_blank");
+
+                        // window.open(alert.orderLink, "_blank");
+
+                        window.location.href = alert.orderLink;
 
                     }
                 };

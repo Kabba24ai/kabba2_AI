@@ -86,8 +86,8 @@
                         // Rental items (always x1)
                         foreach ($item['product_rental_items_prices'] ?? [] as $rentalKey => $optPrice) {
                             $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $rentalKey);
-                            $name = $case?->value ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
-                            $quantity = $case?->value ? $item['quantity'] : 1;
+                            $name = $case?->label() ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
+                            $quantity = $case ? $item['quantity'] : 1;
                             // Always x1 for rental items
                             $optionNames[] = $name .' '. App\Helpers\CustomHelper::formatCurrency($optPrice)."(x{$quantity})";
                             $optionsTotal += $optPrice * $quantity;
@@ -128,7 +128,7 @@
                             Remove
                         </a>
                         <span class="text-gray-300">|</span>
-                        <a href="{{ route('front.products.details', ['slug' => $item['product_slug'], 'productVariant' => $item['product_variant']]) }}" class="text-blue-500 hover:text-blue-700 font-medium">
+                        <a href="{{ route('front.products.index', ['slug' => $item['product_slug'], 'productVariant' => $item['product_variant']]) }}" class="text-blue-500 hover:text-blue-700 font-medium">
                             Update
                         </a>
                     </div>

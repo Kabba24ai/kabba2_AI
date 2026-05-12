@@ -23,14 +23,20 @@ class CreateOrderListener implements ShouldQueue
         $employee = $event->employee;
         $orderActionType = $event->orderActionType;
 
+        $employeeName = $employee?->full_name ?? 'System';
+        $customerName = $customer?->full_name ?? 'Customer';
+        $methodLabel = is_object($payment->payment_method) && method_exists($payment->payment_method, 'label')
+            ? $payment->payment_method->label()
+            : ucfirst((string) $payment->payment_method);
+
         $message = match($orderActionType) {
-            'reorder' => "Reorder by {$employee->full_name}",
-            'website_login' => "Website Login by {$employee->full_name}",
-            'master_passcode' => "Master Passcode by {$employee->full_name}",
-            'new_account' => "New Account by {$employee->full_name}",
+            'reorder' => "Reorder by {$employeeName}",
+            'website_login' => "Website Login by {$employeeName}",
+            'master_passcode' => "Admin code by {$employeeName}",
+            'new_account' => "New Account by {$employeeName}",
             'customer_account_login' => "by Customer with Account login",
             'customer_no_account' => "by Customer with no account",
-            default => "by {$customer->full_name}",
+            default => "by {$customerName}",
         };
 
         $order->history()->create([
@@ -65,9 +71,6 @@ class CreateOrderListener implements ShouldQueue
             };
         } else {
             $action = OrderHistoryAction::PaymentInitiated;
-            $methodLabel = is_object($payment->payment_method) && method_exists($payment->payment_method, 'label')
-                ? $payment->payment_method->label()
-                : ucfirst($payment->payment_method);
             $description = "Payment initiated via {$methodLabel}";
         }
 
@@ -87,7 +90,7 @@ class CreateOrderListener implements ShouldQueue
                 'action_by' => ($employee) ? OrderHistoryActionBy::User : OrderHistoryActionBy::Customer,
                 'action_date' => now(),
                 'action' => OrderHistoryAction::PaymentFailed,
-                'description' => "Payment failed via {$payment->payment_method->label()}",
+                'description' => "Payment failed via {$methodLabel}",
             ]);
         }
     }

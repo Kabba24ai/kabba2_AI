@@ -41,6 +41,10 @@ class StoreController extends Controller
                 'track_insurance_size_setting' => $validated['track_insurance_size_setting'] ?? null,
                 'prepaid_cleaning_rate_setting' => $validated['prepaid_cleaning_rate_setting'] ?? null,
                 'prepaid_fuel_rate_setting' => $validated['prepaid_fuel_rate_setting'] ?? null,
+                'is_tax_free_item' => $validated['is_tax_free_item'] ?? false,
+                'apply_special_tax' => $validated['apply_special_tax'] ?? false,
+                'apply_added_fees' => $validated['apply_added_fees'] ?? false,
+                'hide_cc_payment_option' => $validated['hide_cc_payment_option'] ?? false,
             ];
 
             // Add fields based on product_type
@@ -78,10 +82,15 @@ class StoreController extends Controller
                     'sale_price_weekend' => null,
                     'sale_price_weekly' => null,
                     'sale_price_monthly' => null,
+                    'related_product_price_daily' => null,
+                    'related_product_price_weekend' => null,
+                    'related_product_price_weekly' => null,
+                    'related_product_price_monthly' => null,
 
                     // is_default_funnel field
                     'is_default_funnel' => false, // Rentals cannot be default funnel
                     'has_high_demand_alert' => false,
+                    'hide_cc_payment_option' => $validated['hide_cc_payment_option'] ?? false,
                 ]);
             } elseif ($validated['product_type'] === 'Rental') {
                 $productData = array_merge($productData, [
@@ -118,6 +127,11 @@ class StoreController extends Controller
                     'sale_price_weekend' => $validated['sale_price_weekend'] ?? null,
                     'sale_price_weekly' => $validated['sale_price_weekly'] ?? null,
                     'sale_price_monthly' => $validated['sale_price_monthly'] ?? null,
+
+                    'related_product_price_daily' => $validated['related_product_price_daily'] ?? null,
+                    'related_product_price_weekend' => $validated['related_product_price_weekend'] ?? null,
+                    'related_product_price_weekly' => $validated['related_product_price_weekly'] ?? null,
+                    'related_product_price_monthly' => $validated['related_product_price_monthly'] ?? null,
 
                     // Clear Retail fields
                     'retail_price' => null,
@@ -190,13 +204,81 @@ class StoreController extends Controller
                 $product->relatedProducts()->sync([]);
             }
 
+            // Determine action before transaction commit
+            $action = $request->input('action', 'save');
+            $newProduct = null;
+
+            // Save as new: duplicate the just-created product and all related data
+            if ($action === 'save_new') {
+                $product->load([
+                    'categories',
+                    'options',
+                    'funnels',
+                    'terms',
+                    'relatedProducts',
+                    'media',
+                    'mediaChildren.media',
+                ]);
+
+                $newProduct = $product->replicate();
+                $newProduct->product_name = $this->generateUniqueCopyName($product->product_name);
+                $newProduct->save();
+
+                $newProduct->categories()->sync($product->categories->pluck('id')->toArray());
+                $newProduct->options()->sync($product->options->pluck('id')->toArray());
+                $newProduct->funnels()->sync($product->funnels->pluck('id')->toArray());
+                $newProduct->terms()->sync($product->terms->pluck('id')->toArray());
+
+                $relatedSyncData = [];
+                foreach ($product->relatedProducts as $relatedProduct) {
+                    $relatedSyncData[$relatedProduct->id] = [
+                        'sort_order' => $relatedProduct->pivot->sort_order ?? 0,
+                    ];
+                }
+                $newProduct->relatedProducts()->sync($relatedSyncData);
+
+                if ($product->media) {
+                    $mediaData = MediaHelper::copyExistingMediaOnDisk(
+                        $product->media,
+                        'Public Asset',
+                        'products',
+                        $newProduct
+                    );
+
+                    if (!empty($mediaData['mediaObj'])) {
+                        $newProduct->media_id = $mediaData['mediaObj']->id;
+                        $newProduct->save();
+                    }
+                }
+
+                foreach ($product->mediaChildren as $child) {
+                    if (!$child->media) {
+                        continue;
+                    }
+
+                    $mediaData = MediaHelper::copyExistingMediaOnDisk(
+                        $child->media,
+                        'Public Asset',
+                        'products',
+                        $newProduct
+                    );
+
+                    if (!empty($mediaData['mediaObj'])) {
+                        ProductMediaChild::create([
+                            'product_id' => $newProduct->id,
+                            'sort_order' => $child->sort_order,
+                            'media_id' => $mediaData['mediaObj']->id,
+                        ]);
+                    }
+                }
+            }
+
             DB::commit();
 
             // Determine redirect target
-            $action = $request->input('action', 'save');
             $redirectUrl = match ($action) {
                 'save'      => route('admin.product-management.products.edit', ['unique_id' => $product->unique_id]),
-                'save_new'  => route('admin.product-management.products.create'),
+                'save_new'  => route('admin.product-management.products.edit', ['unique_id' => $newProduct?->unique_id ?? $product->unique_id]),
                 default     => route('admin.product-management.products.index'),
             };
 
@@ -232,5 +314,21 @@ class StoreController extends Controller
             //     ->withInput()
             //     ->withErrors(['error' => 'An error occurred while saving the product.']);
         }
+    }
+
+    private function generateUniqueCopyName(string $baseName): string
+    {
+        $firstCandidate = $baseName . ' (Copy)';
+        if (!Product::where('product_name', $firstCandidate)->exists()) {
+            return $firstCandidate;
+        }
+
+        $counter = 2;
+        do {
+            $candidate = $baseName . ' (Copy ' . $counter . ')';
+            $counter++;
+        } while (Product::where('product_name', $candidate)->exists());
+
+        return $candidate;
     }
 }

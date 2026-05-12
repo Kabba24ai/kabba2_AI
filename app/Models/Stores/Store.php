@@ -24,6 +24,7 @@ class Store extends Model
         'latitude',
         'longitude',
         'details',
+        'lunch_start_time',
         'is_primary', // Yes, No*
         'status', // Active* , Inactive, Archive
         'created_by',

@@ -27,13 +27,41 @@ class ClockInController extends BaseController
 
         //  Actual clock-in time
         $actualClockIn = Carbon::now();
+        $finalClockIn = $actualClockIn; 
+
+        // GLOBAL + USER logic
+        $globalLimitStart = TimeTrackerHelper::getTimeTrackerSetting('limit_start_time_to_shift', false);
+        $userLimitStart = (bool) $user->limit_start_time;
+        $shouldLimitStart = $globalLimitStart || $userLimitStart;
+
+
+        // Check: user has store + limit_start_time enabled
+         if ($user->store && $shouldLimitStart) {
+
+            $dayName = $actualClockIn->format('l');
+
+            $storeHours = $user->store->hoursOfOperation()
+                ->where('day_name', $dayName)
+                ->first();
+
+            if ($storeHours && !$storeHours->is_closed) {
+
+                $storeStartTime = Carbon::parse(
+                    $actualClockIn->format('Y-m-d') . ' ' . $storeHours->start_time
+                );
+
+                if ($actualClockIn->lt($storeStartTime)) {
+                    $finalClockIn = $storeStartTime;
+                }
+            }
+        }
 
         // Get pay increment setting
-        $payIncrement = TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 30);
+        $payIncrement = TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 5);
 
         //  Round clock-in UP
-        $roundedClockIn = TimeTrackerHelper::roundDown(
-            Carbon::parse($actualClockIn),
+        $roundedClockIn = TimeTrackerHelper::roundNearest(
+            Carbon::parse($finalClockIn),
             (int) $payIncrement
         );
 
@@ -44,7 +72,7 @@ class ClockInController extends BaseController
             $notes = sprintf(
                 '%s clocked in at %s, rounded to %s',
                 $user->first_name . ' ' . $user->last_name,
-                $actualClockIn->format('H:i'),
+                $finalClockIn->format('H:i'),
                 $roundedClockIn->format('H:i')
             );
         }

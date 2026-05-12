@@ -25,7 +25,7 @@
                                     <!-- Right Side: Actions -->
                                     <div class="flex gap-4 text-sm justify-end sm:justify-start">
                                           @if ($customer->media)
-                                        <a href="{{ isset($customer->media) ? $customer->media->getUrl() : 'javascript:void(0)' }}" @if(isset($customer->media)) target="_blank" @endif class="text-blue-600">View</a>
+                                        <a href="{{ isset($customer->media) ? $customer->media->getUrl() : 'javascript:void(0)' }}" @if(isset($customer->media))  @endif class="text-blue-600">View</a>
                                         <a href="javascript:void(0)" id="opentaxdocModal" class="text-green-600">Replace</a>
                                           @else
                                         <a href="javascript:void(0)" id="opentaxdocModal" class="text-green-600">Add New</a>

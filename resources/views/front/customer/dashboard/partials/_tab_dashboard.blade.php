@@ -204,9 +204,11 @@
                                 <thead class="bg-gray-50 text-gray-500 text-xs border-b border-gray-200">
                                     <tr>
                                         <th class="px-4 py-3 font-medium uppercase">Order ID</th>
+                                        <th class="px-4 py-3 font-medium uppercase">PO#</th>
+
                                         <th class="px-4 py-3 font-medium uppercase">Product Name</th>
                                         <th class="px-4 py-3 font-medium uppercase">Amount</th>
-                                        <th class="px-4 py-3 font-medium uppercase">Payment Methods</th>
+                                        <th class="px-4 py-3 font-medium uppercase">Payment Method</th>
                                         <th class="px-4 py-3 font-medium uppercase">Status</th>
                                         <th class="px-4 py-3 font-medium uppercase">Created</th>
                                         <th class="px-4 py-3 font-medium uppercase">Action</th>
@@ -227,14 +229,15 @@
 
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-4 py-3 font-medium text-gray-900">
-                                        
-                                        
+
+
                                               <a href="{{ route('front.customer.dashboard.order.view', $order->unique_id) }}" class="text-brand-500 underline font-bold">{{$order->order_number}}</a>
                                         </td>
+                                        <td class="px-4 py-3">{{ $product->po_id }}</td>
 
                                         <td class="px-4 py-3">{{ $product->product_name ?? 'N/A' }}</td>
                                         <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total ) }}</td>
-                                        <td class="px-4 py-3"> {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}</td>
+                                        <td class="px-4 py-3"> {{ $order?->last_payment_type?->label() ?? '-' }}</td>
                                         <td class="px-4 py-3">
                                             <!-- <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span> -->
 
@@ -254,7 +257,7 @@
                                              </a>
 
                                              <!-- Download -->
-                               
+
                                         </td>
                                     </tr>
 

@@ -51,6 +51,11 @@ class Product extends Model
         'rental_track_insurance_weekly', // Weekly track insurance fee
         'rental_track_insurance_monthly', // Monthly track insurance fee
 
+        'rental_tire_insurance_daily', // Daily tire insurance fee
+        'rental_tire_insurance_weekend', // Weekend tire insurance fee
+        'rental_tire_insurance_weekly', // Weekly tire insurance fee
+        'rental_tire_insurance_monthly', // Monthly tire insurance fee
+
         'rental_prepaid_cleaning', // Prepaid cleaning fee
         'rental_prepaid_fuel', // Prepaid fuel fee
 
@@ -58,6 +63,11 @@ class Product extends Model
         'sale_price_weekend', // Sale price for the weekend
         'sale_price_weekly', // Sale price for a week
         'sale_price_monthly', // Sale price for a month
+
+        'related_product_price_daily', // Related product add-on price for daily rental
+        'related_product_price_weekend', // Related product add-on price for weekend rental
+        'related_product_price_weekly', // Related product add-on price for weekly rental
+        'related_product_price_monthly', // Related product add-on price for monthly rental
 
         'standard_delivery_fee',
         'extended_delivery_fee',
@@ -70,9 +80,15 @@ class Product extends Model
 
         'is_default_funnel', // Boolean: is this the default sales funnel
         'has_high_demand_alert', // Boolean: does this product have a high demand alert
+        'hide_cc_payment_option', // Boolean: hide credit card payment option at checkout
+
+        'is_tax_free_item', // Boolean: is this product tax-free
+        'apply_special_tax', // Boolean: apply special tax rate
+        'apply_added_fees', // Boolean: apply additional fees
 
         'truck_fee_size_setting', // Size setting for truck fee
         'track_insurance_size_setting', // Size setting for track insurance
+        'tire_insurance_size_setting', // Size setting for tire insurance
         'prepaid_cleaning_rate_setting', // Rate setting for prepaid cleaning
         'prepaid_fuel_rate_setting', // Rate setting for prepaid fuel
 
@@ -86,6 +102,10 @@ class Product extends Model
     protected $casts = [
         'is_default_funnel' => 'boolean',
         'has_high_demand_alert' => 'boolean',
+        'hide_cc_payment_option' => 'boolean',
+        'is_tax_free_item' => 'boolean',
+        'apply_special_tax' => 'boolean',
+        'apply_added_fees' => 'boolean',
     ];
 
     public function sluggable(): array
@@ -252,6 +272,16 @@ class Product extends Model
         return $this->$rentField;
     }
 
+    public function getRelatedPrice($type)
+    {
+        // $type = daily, weekend, weekly, monthly
+        $relatedField = 'related_product_price_' . $type;
+        if (empty($this->$relatedField)) {
+            return false;
+        }
+        return $this->$relatedField;
+    }
+
     public function isRentalOnSale($period)
     {
         $saleField = 'sale_price_' . $period;
@@ -336,7 +366,7 @@ class Product extends Model
 
     public function hasOptions()
     {
-        $optionFields = ['rental_prepaid_fuel', 'rental_prepaid_cleaning', 'rental_damage_waiver_daily', 'rental_damage_waiver_weekend', 'rental_damage_waiver_weekly', 'rental_damage_waiver_monthly', 'rental_track_insurance_daily', 'rental_track_insurance_weekend', 'rental_track_insurance_weekly', 'rental_track_insurance_monthly'];
+        $optionFields = ['rental_prepaid_fuel', 'rental_prepaid_cleaning', 'rental_damage_waiver_daily', 'rental_damage_waiver_weekend', 'rental_damage_waiver_weekly', 'rental_damage_waiver_monthly', 'rental_track_insurance_daily', 'rental_track_insurance_weekend', 'rental_track_insurance_weekly', 'rental_track_insurance_monthly', 'rental_tire_insurance_daily', 'rental_tire_insurance_weekend', 'rental_tire_insurance_weekly', 'rental_tire_insurance_monthly'];
 
         $hasSettingOption = collect($optionFields)->contains(function ($field) {
             return $this->{$field} !== null;

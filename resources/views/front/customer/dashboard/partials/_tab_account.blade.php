@@ -507,9 +507,9 @@ $defaultAddresses = [
 
                     {!! html()->select("addresses[$index][Country]", [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old("addresses.$index.Country", $addresse->country ?? 'USA')
                     ) // default to USA if old or user value is not set
                     ->class('pl-2 pr-2 py-2 w-full border border-gray-300 rounded-md text-sm Country')
@@ -813,7 +813,7 @@ $defaultAddresses = [
 
                             <!-- Buttons: View & Close -->
                             <div class="flex justify-center sm:justify-start gap-2">
-                                <a id="viewFileLink" href="#" target="_blank"
+                                <a id="viewFileLink" href="#" 
                                     class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
                                 <button type="button" onclick="clearFile()" class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
                             </div>

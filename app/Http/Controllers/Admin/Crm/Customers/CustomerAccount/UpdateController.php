@@ -21,11 +21,21 @@ class UpdateController extends Controller
     public function __invoke(UpdateRequest $request, $id): RedirectResponse
         {
             $validated = $request->validated();
+            
 
             DB::beginTransaction();
 
             try {
               $transaction = CustomerAccount::findOrFail($id);
+
+              $oldData = $transaction->only([
+                    'amount',
+                    'payment_type',
+                    'payment_number_id',
+                    'responsible_person_id',
+                    'sales_tax',
+                    'notes'
+                ]);
 
             // Undo effect
 
@@ -71,7 +81,101 @@ class UpdateController extends Controller
                 $transaction->sales_tax = 0.0;
             }
 
+
+            // Prepare new snapshot BEFORE save
+            $newData = [
+                'amount' => $validated['amount'] ?? $transaction->amount,
+                'payment_type' => $validated['payment_type'] ?? $transaction->payment_type,
+                'payment_number_id' => $validated['cheque_number'] ?? $transaction->payment_number_id,
+                'responsible_person_id' => $transaction->responsible_person_id,
+                'sales_tax' => $transaction->sales_tax,
+                'notes' => $validated['notes'] ?? $transaction->notes,
+            ];
+
+            // Detect changes first
+            $changes = [];
+
+            foreach ($newData as $key => $value) {
+
+                $old = $oldData[$key] ?? null;
+
+                //  handle enum properly
+                if ($old instanceof \BackedEnum) {
+                    $old = $old->value;
+                }
+
+                if ($value instanceof \BackedEnum) {
+                    $value = $value->value;
+                }
+
+                if ((string)$old !== (string)$value) {
+                    $changes[$key] = [
+                        'old' => $old,
+                        'new' => $value
+                    ];
+                }
+            }
+
+
+            $changeNotes = [];
+
+            foreach ($changes as $field => $vals) {
+                $label = ucfirst(str_replace('_', ' ', $field));
+
+                $changeNotes[] = "{$label}: From {$vals['old']} to {$vals['new']}";
+            }
+
+            $userName = auth()->user()?->full_name ?? 'System';
+            $now = now()->format('M d, Y h:i A');
+            $noteText = "{$userName} updated on {$now}: " . implode(', ', $changeNotes);
+
+            // Append log BEFORE save
+            if (!empty($changes)) {
+
+                $logEntry = [
+                    'id' => uniqid('log_'), // unique log id
+                    'action' => 'transaction_updated',
+
+                    'performed_by' => [
+                       'id' => auth()->id() ?? null,
+                        'name' => auth()->user()?->full_name ?? 'system'
+                    ],
+
+                    'performed_at' => now()->toDateTimeString(),
+
+                    'changes' => $changes,
+                     'note' => $noteText,
+                ];
+
+                $logs = $transaction->customer_action_log ?? [];
+                $logs[] = $logEntry;
+
+                $transaction->customer_action_log = $logs;
+            }
+
+
+            if (empty($changes)) {
+                $now = now()->format('M d, Y h:i A');
+                $logEntry = [
+                    'id' => uniqid('log_'),
+                    'action' => 'update_attempted_no_change',
+                    'note' => "{$userName} attempted update on {$now} (no changes)",
+                    'performed_by' => [
+                        'id' => auth()->id() ?? null,
+                        'name' => auth()->user()?->full_name ?? 'system'
+                    ],
+                    'performed_at' => now()->toDateTimeString(),
+                ];
+
+                $logs = $transaction->customer_action_log ?? [];
+                $logs[] = $logEntry;
+
+                $transaction->customer_action_log = $logs;
+            }
+
+            //  ONE SAVE ONLY
             $transaction->save();
+
 
             // Re-apply updated effect
 
@@ -98,7 +202,8 @@ class UpdateController extends Controller
                 } elseif ($invoiceItem->type === 'refund') {
                     $invoiceItem->tax = $invoiceItem->unit * $salesTaxRate;
                 } else {
-                    $invoiceItem->tax = 0;
+                    // $invoiceItem->tax = 0;
+                          $invoiceItem->tax = $invoiceItem->unit * $salesTaxRate;
                 }
 
                 $invoiceItem->total = $invoiceItem->unit + $invoiceItem->tax;
@@ -113,9 +218,7 @@ class UpdateController extends Controller
                  
             }
 
-
             CustomHelper::fixTheRunningBalance($transaction->customer_id);
-
 
                 flash('Transaction successfully updated.')->success();
                 // session()->flash('active_tab', 'credit');
@@ -128,10 +231,5 @@ class UpdateController extends Controller
                 return redirect()->back()->withErrors(['error' => 'Update failed. Please try again.']);
             }
         }
-
-
-
-
-        
 
 }

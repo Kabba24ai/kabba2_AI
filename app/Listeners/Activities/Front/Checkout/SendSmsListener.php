@@ -76,7 +76,7 @@ class SendSmsListener implements ShouldQueue
                     'action_by' => OrderHistoryActionBy::System,
                     'action_date' => now(),
                     'action' => OrderHistoryAction::CodSmsNotification,
-                    'description' => "COD SMS notification sent to customer.",
+                    'description' => "POD SMS notification sent to customer.",
                 ]);
             } else {
                 Log::error('SendCodSms error', [

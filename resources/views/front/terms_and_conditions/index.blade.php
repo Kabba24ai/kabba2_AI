@@ -29,10 +29,17 @@
     <section class="lg:pb-[50px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-8 md:px-[.7rem]">
             <div class="max-w-[800px] border p-6 mx-auto mt-10 text-center">
-                <h2 class="text-[24px] font-bold">Rent ‘n King Rental Agreement</h2>
-                <a href="{{ route('front.home.index') }}"
-                    class="text-blue-500 hover:text-black transition-all duration-500 ease-in-out">www.RentnKing.com</a>
-                <p>Development 360, Inc</p>
+                @if (!empty($brandingSettings['terms_condition_text_1']))
+                    <h2 class="text-[24px] font-bold">{{ $brandingSettings['terms_condition_text_1'] }}</h2>
+                @endif
+                @if (!empty($brandingSettings['terms_condition_text_2']))
+                    <a href="{{ route('front.home.index') }}" class="text-blue-500 hover:text-black transition-all duration-500 ease-in-out">
+                        {{ $brandingSettings['terms_condition_text_2'] }}
+                    </a>
+                @endif
+                @if (!empty($brandingSettings['terms_condition_text_3']))
+                    <p>{{ $brandingSettings['terms_condition_text_3'] }}</p>
+                @endif
             </div>
             <h3 class="text-center  mb-6">Order ID {{ $order->order_number }}</h3>
             @if ($order->terms_status->isPending())

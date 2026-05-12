@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\BaseController;
 use App\Models\Iam\Personnel\User;
 use App\Models\Iam\Personnel\TimeEntry;
 use App\Helpers\PayPeriodHelper;
+use App\Helpers\TimeTrackerHelper;
+
 use App\Services\TimeEntryReportService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -58,7 +60,16 @@ class ExportEmployeeTimeEntriesController extends BaseController
             // =========================
             // BUILD REPORT (SINGLE SOURCE OF TRUTH)
             // =========================
-            $report = app(TimeEntryReportService::class)->build($entries);
+
+            $today = Carbon::today();
+
+            if ($endDate->gt($today)) {
+                $endDate = $today;
+            }
+
+            // $report = app(TimeEntryReportService::class)->build($entries);
+            
+            $report = app(TimeEntryReportService::class)->build($entries, $startDate, $endDate);
 
             // =========================
             // DEBUG JSON (OPTIONAL)
@@ -110,9 +121,12 @@ class ExportEmployeeTimeEntriesController extends BaseController
                         '',
                         '',
                         '',
-                        round($entry['worked_seconds'] / 3600, 2),
-                        round($entry['unpaid_seconds'] / 3600, 2),
-                        round($entry['paid_seconds'] / 3600, 2),
+                        TimeTrackerHelper::formatSecondsToTime($entry['worked_seconds']),
+                        TimeTrackerHelper::formatSecondsToTime($entry['unpaid_seconds']),
+                        TimeTrackerHelper::formatSecondsToTime($entry['paid_seconds']),
+                        // round($entry['worked_seconds'] / 3600, 2),
+                        // round($entry['unpaid_seconds'] / 3600, 2),
+                        // round($entry['paid_seconds'] / 3600, 2),
                     ]);
 
                     // BREAK ROWS
@@ -129,7 +143,8 @@ class ExportEmployeeTimeEntriesController extends BaseController
                             Carbon::parse($break['end']['actual'])->format('g:i A')
                                 . ' (' . Carbon::parse($break['end']['adjusted'])->format('g:i A') . ')',
                             '',
-                            round($break['seconds'] / 3600, 2),
+                            // round($break['seconds'] / 3600, 2),
+                            TimeTrackerHelper::formatSecondsToTime($break['seconds']),
                             '',
                         ]);
                     }
@@ -163,9 +178,12 @@ class ExportEmployeeTimeEntriesController extends BaseController
                     '',
                     '',
                     '',
-                    $day['totals']['worked_hours'],
-                    $day['totals']['unpaid_hours'],
-                    $day['totals']['paid_hours'],
+                    TimeTrackerHelper::formatSecondsToTime($day['totals']['worked_hours'] * 3600),
+                    TimeTrackerHelper::formatSecondsToTime($day['totals']['unpaid_hours'] * 3600),
+                    TimeTrackerHelper::formatSecondsToTime($day['totals']['paid_hours'] * 3600),
+                    // $day['totals']['worked_hours'],
+                    // $day['totals']['unpaid_hours'],
+                    // $day['totals']['paid_hours'],
                 ]);
             }
 

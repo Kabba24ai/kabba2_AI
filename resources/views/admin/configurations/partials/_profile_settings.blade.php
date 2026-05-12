@@ -5,7 +5,7 @@
         <h3 class="text-lg font-bold text-gray-900">Profile Settings</h3>
     </div>
     @php
-         $logo  = \App\Helpers\ConfigurationHelper::getProfileLogo();
+         $logo  = \App\Helpers\ConfigurationHelper::getBrandingLogo();
         
     @endphp
 

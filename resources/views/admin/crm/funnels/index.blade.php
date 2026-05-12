@@ -54,7 +54,7 @@
                                 <button type="button" @click="setTab('orders')"
                                     :class="tab === 'orders' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-gray-500'"
                                     class="py-2 text-sm font-semibold">
-                                    COD Orders
+                                    POD Orders
                                 </button>
 
                                 {{-- <button type="button" @click="setTab('card')"
@@ -74,7 +74,7 @@
                             <div
                                 class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Cash on Delivery Order Message - Text Message sent after COD order placed
+                                    Pay on Delivery Order Message - Text Message sent after POD order placed
                                 </span>
                             </div>
                             <div class="grid grid-cols-1 grid-flow-col md:grid-cols-2 gap-6">
@@ -83,7 +83,7 @@
                                         <label for="truck_delivery_cod_order_message"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
                                             <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
-                                            Truck Delivery COD Order Message
+                                            Truck Delivery POD Order Message
                                         </label>
                                         <label for="truck_delivery_cod_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -120,7 +120,7 @@
                                         <label for="store_delivery_cod_order_message"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
                                             <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
-                                            Store Delivery COD Order Message
+                                            Store Delivery POD Order Message
                                         </label>
                                         <label for="store_delivery_cod_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -156,7 +156,7 @@
                             <div
                                 class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Cash on Delivery Order Message - Sent at 7:00 AM the day of scheduled delivery
+                                    Pay on Delivery Order Message - Sent at 7:00 AM the day of scheduled delivery
                                 </span>
                             </div>
                             <div class="grid grid-cols-1 grid-flow-col md:grid-cols-2 gap-6">
@@ -165,7 +165,7 @@
                                         <label for="truck_delivery_same_day_cod_order_message"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
                                             <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
-                                            Truck Delivery COD Order Message
+                                            Truck Delivery POD Order Message
                                         </label>
                                         <label for="truck_delivery_same_day_cod_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -202,7 +202,7 @@
                                         <label for="store_delivery_same_day_cod_order_message"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
                                             <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
-                                            Store Delivery COD Order Message
+                                            Store Delivery POD Order Message
                                         </label>
                                         <label for="store_delivery_same_day_cod_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">

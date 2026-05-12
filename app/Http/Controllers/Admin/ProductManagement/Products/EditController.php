@@ -32,6 +32,8 @@ class EditController extends Controller
         $terms->prepend('Select a term...', '');
         $productOptions = ProductOption::orderBy('name')->get();
         $productSettings = ConfigurationHelper::getSettings('Product Settings');
+        $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');
+        $priceRateMultiplierSettings = ConfigurationHelper::getSettings('Price Rate Multiplier Settings');
 
         return view('admin.product_management.products.edit', [
             'objProduct' => $objProduct,
@@ -40,6 +42,8 @@ class EditController extends Controller
             'terms' => $terms,
             'productOptions' => $productOptions,
             'productSettings' => $productSettings,
+            'allocatedHoursSettings' => $allocatedHoursSettings,
+            'priceRateMultiplierSettings' => $priceRateMultiplierSettings,
         ]);
     }
 }

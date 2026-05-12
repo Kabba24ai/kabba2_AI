@@ -293,8 +293,57 @@
                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
             </div>
+
+           
+
         </div>
     </div>
+
+     {{-- Store Lunch Start Time --}}
+            <div class="hidden">
+                
+                <span for="lunch_start_time" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                   Store Lunch Start Time
+                </span>
+
+                @php
+                    $lunchStart = old(
+                        'lunch_start_time',
+                        isset($store->lunch_start_time)
+                            ? \Carbon\Carbon::parse($store->lunch_start_time)->format('g:i A')
+                            : ''
+                    );
+                @endphp
+
+                <div class="relative w-full md:w-48">
+                    <input
+                        type="text"
+                        name="lunch_start_time"
+                        id="lunch_start_time"
+                        value="{{ $lunchStart }}"
+                        class="timepicker w-full border rounded-md px-3 py-2 text-sm shadow-sm pr-10 focus:outline-none focus:ring-2 bg-white text-gray-700 border-gray-300"
+                        data-format="HH:mm"
+                        autocomplete="off"
+                        placeholder="Select time"
+                    />
+
+                    <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
+                        <x-heroicon-o-clock class="w-4 h-4 text-gray-800" />
+                    </span>
+                </div>  
+                @error('lunch_start_time')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+
+                {{-- Note --}}
+                <p class="mt-2 text-xs text-gray-500">
+                  <strong> Note:-</strong> <span class="text-gray-500" >  All employees scheduled in this store will automatically start their lunch at this time.
+                    Lunch duration is controlled from Time Tracker Settings. Employees will be automatically clocked out for lunch and clocked back in after the duration ends.
+                    </span>
+                </p>
+
+              
+            </div>
 
     <div class="p-6 bg-white rounded-lg shadow border">
         <h3 class="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -306,6 +355,27 @@
         @endphp
 
         <div class="space-y-4">
+
+            <div class="flex items-center gap-4 font-semibold text-sm text-gray-600 border-b pb-2">
+
+                <div class="w-20 text-center">Day</div>
+
+                <div class="w-24 text-center">Status</div>
+
+                <div class="w-32 text-center">Start Time</div>
+
+                <div class="w-10 text-center"> </div>
+
+                <div class="w-32 text-center">End Time</div>
+
+                <div class="w-24 text-blue-600 text-center">Total Hours</div>
+
+                <div class="w-28 text-center">Lunch Required</div>
+
+                
+
+            </div>
+
             @foreach ($days as $day)
 
             @php
@@ -355,6 +425,24 @@
                     </span>
                 </div>
 
+              
+                <!-- Total Hours -->
+                <div class="w-24 text-center text-sm text-blue-600 font-semibold">
+                    <span id="total-{{ $day }}">—</span>
+                </div>
+
+           @php
+$lunch = old(strtolower($day).'_lunch', $record->is_lunch_required ?? false);
+@endphp
+
+<label class="flex items-center space-x-2 w-28">
+    <input type="checkbox"
+        name="{{ strtolower($day) }}_lunch"
+        class="w-4 h-4"
+        {{ $lunch ? 'checked' : '' }}>
+    <span class="text-sm">Lunch</span>
+</label>
+
             </div>
             @endforeach
         </div>
@@ -370,21 +458,29 @@
             </button>
         </div>
 
-        <!-- Preview -->
-        <div class="mt-6">
-            <h4 class="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">
-                Preview (as displayed on website):
-            </h4>
+       <div class="mt-6">
+    <h4 class="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">
+        Preview (as displayed on website):
+    </h4>
 
-            <div class="p-4 bg-gray-50 rounded-md border text-sm leading-6">
-                @foreach ($days as $day)
-                <div id="preview-{{ $day }}" class="flex justify-between mb-1">
-                    <span>{{ $day }}</span>
-                    <span class="value">—</span>
-                </div>
-                @endforeach
-            </div>
+    <div class="p-4 bg-gray-50 rounded-md border text-sm">
+
+        <!-- Header -->
+        <div class="flex font-semibold text-gray-600 border-b pb-2 mb-2">
+            <div class="w-32">Day</div>
+            <div class="w-48">Hours</div>
         </div>
+
+        <!-- Rows -->
+        @foreach ($days as $day)
+        <div id="preview-{{ $day }}" class="flex items-center mb-1">
+            <div class="w-32 text-gray-800">{{ $day }}</div>
+            <div class="w-48 value text-gray-700">—</div>
+        </div>
+        @endforeach
+
+    </div>
+</div>
     </div>
 
 
@@ -436,15 +532,43 @@
                 const start = document.querySelector(`[name="${day.toLowerCase()}_start"]`).value;
                 const end = document.querySelector(`[name="${day.toLowerCase()}_end"]`).value;
 
+             
                 let display = 'Closed';
+                let total = '—';
 
                 if (!closed && start && end) {
                     display = formatTime(start) + ' – ' + formatTime(end);
+                      total = calculateHours(start, end);
                 }
 
                 document.querySelector(`#preview-${day} .value`).textContent = display;
+
+                // total column
+        const totalEl = document.getElementById(`total-${day}`);
+        if (totalEl) {
+            totalEl.textContent = total;
+        }
             });
         }
+
+
+        function calculateHours(start, end) {
+    if (!start || !end) return '—';
+
+    const startDate = flatpickr.parseDate(start, "h:i K");
+    const endDate = flatpickr.parseDate(end, "h:i K");
+
+    if (!startDate || !endDate) return '—';
+
+    let diff = (endDate - startDate) / 1000 / 60; // minutes
+
+    if (diff < 0) return '—';
+
+    const hours = Math.floor(diff / 60);
+    const minutes = diff % 60;
+
+    return `${hours}h ${minutes}m`;
+}
 
         function formatTime(time) {
 
@@ -468,10 +592,34 @@
             const closed = document.querySelector(`[name="${day.toLowerCase()}_closed"]`);
             const start = document.querySelector(`[name="${day.toLowerCase()}_start"]`);
             const end = document.querySelector(`[name="${day.toLowerCase()}_end"]`);
+            const lunch = document.querySelector(`[name="${day.toLowerCase()}_lunch"]`);
+
+            //  INITIAL STATE FIX
+            if (closed.checked) {
+                start.disabled = true;
+                end.disabled = true;
+                if (lunch) {
+                    lunch.disabled = true;
+                    lunch.checked = false;
+                }
+            }
 
             closed.addEventListener('change', () => {
                 start.disabled = closed.checked;
                 end.disabled = closed.checked;
+
+                //  ADD THIS
+                    const lunch = document.querySelector(`[name="${day.toLowerCase()}_lunch"]`);
+                    if (lunch) {
+                        lunch.disabled = closed.checked;
+
+                        // optional: uncheck when closed
+                        if (closed.checked) {
+                            lunch.checked = false;
+                        }
+                    }
+
+
                 updatePreview();
             });
 
@@ -491,16 +639,27 @@
             const closed = document.querySelector(`[name="${from.toLowerCase()}_closed"]`).checked;
             const start = document.querySelector(`[name="${from.toLowerCase()}_start"]`).value;
             const end = document.querySelector(`[name="${from.toLowerCase()}_end"]`).value;
+            const lunch = document.querySelector(`[name="${from.toLowerCase()}_lunch"]`).checked;
 
             toDays.forEach(day => {
                 if (day === from) return;
 
-                document.querySelector(`[name="${day.toLowerCase()}_closed"]`).checked = closed;
-                document.querySelector(`[name="${day.toLowerCase()}_start"]`).value = start;
-                document.querySelector(`[name="${day.toLowerCase()}_end"]`).value = end;
+                const closedEl = document.querySelector(`[name="${day.toLowerCase()}_closed"]`);
+                const startEl = document.querySelector(`[name="${day.toLowerCase()}_start"]`);
+                const endEl = document.querySelector(`[name="${day.toLowerCase()}_end"]`);
+                const lunchEl = document.querySelector(`[name="${day.toLowerCase()}_lunch"]`);
 
-                document.querySelector(`[name="${day.toLowerCase()}_start"]`).disabled = closed;
-                document.querySelector(`[name="${day.toLowerCase()}_end"]`).disabled = closed;
+                closedEl.checked = closed;
+                startEl.value = start;
+                endEl.value = end;
+
+                startEl.disabled = closed;
+                endEl.disabled = closed;
+
+                if (lunchEl) {
+                    lunchEl.checked = closed ? false : lunch;
+                    lunchEl.disabled = closed;
+                }
             });
 
             updatePreview();

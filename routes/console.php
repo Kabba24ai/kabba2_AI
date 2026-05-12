@@ -51,6 +51,27 @@ Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())
     ->onOneServer()
     ->name('auto-clock-out-employees');
 
+Schedule::job(new \App\Jobs\AutoLunchReminderJob())
+    ->everyFiveMinutes()
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('auto-lunch-reminder');
+
+// Schedule::job(new \App\Jobs\UpdateCustomerStatusJob())
+//     ->daily()
+//     ->timezone('America/Chicago')
+//     ->withoutOverlapping()
+//     ->onOneServer()
+//     ->name('update-customer-status-job');
+
+Schedule::job(new \App\Jobs\AutoLunchBreakJob())
+    ->cron('*/10 * * * *') // every 10 minutes
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('auto-lunch-break');
+
 Schedule::job(new \App\Jobs\SalesFunnelAfterEventJob())
     ->everyFifteenMinutes()
     ->timezone('America/Chicago')
@@ -64,6 +85,13 @@ Schedule::job(new \App\Jobs\SalesFunnelBeforeEventJob())
     ->withoutOverlapping()
     ->onOneServer()
     ->name('sales-funnel-before-event-job');
+
+Schedule::job(new \App\Jobs\SendMeetingReminderJob())
+    ->everyThirtyMinutes()
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('send-meeting-reminder-job');
 
 
 

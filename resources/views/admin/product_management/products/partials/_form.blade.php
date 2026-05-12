@@ -1,5 +1,5 @@
 <!-- Basic Info -->
-<div class="grid grid-cols-1 lg:grid-cols-7 grid-flow-row-dense gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-8 grid-flow-row-dense gap-6">
     <div class="col-span-1">
         <label for="product_name" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">
             Product Name
@@ -25,6 +25,22 @@
                 <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
             @enderror
         </div>
+    </div>
+
+    <div class="col-span-1">
+        <label for="sku" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">SKU</label>
+        {!! html()->text('sku')->attributes([
+                'placeholder' => 'Enter SKU',
+                'autocomplete' => 'off',
+                'id' => 'sku',
+            ])->class([
+                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                'border-red-500' => $errors->has('sku'),
+                'border-gray-300' => !$errors->has('sku'),
+            ]) !!}
+        @error('sku')
+            <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
+        @enderror
     </div>
 
 
@@ -76,7 +92,7 @@
             'product_type',
             isset($objProduct) && $objProduct->product_type == 'Rental' ? 'daily' : 'retail',
         );
-        $seoUrl = $seoSlug ? route('front.products.details', ['slug' => $seoSlug, 'productVariant' => $seoType]) : '#';
+        $seoUrl = $seoSlug ? route('front.products.index', ['slug' => $seoSlug, 'productVariant' => $seoType]) : '#';
     @endphp
     <!-- Slug Input -->
     <div class="col-span-3 overflow-hidden">
@@ -87,7 +103,7 @@
         {{-- View Mode --}}
         <div id="permalinkView" class="flex items-center">
             <span class="text-gray-500 dark:text-gray-400 text-sm break-words">
-                <a href="{{ $seoUrl }}" target="_blank" class="underline text-blue-600 permalink break-all">
+                <a href="{{ $seoUrl }}" class="underline text-blue-600 permalink break-all">
                     {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
                 </a>
             </span>
@@ -132,7 +148,6 @@
         @enderror
     </div>
 </div>
-
 
 {{-- Short Description --}}
 <div class="mb-8">
@@ -222,10 +237,10 @@
         @enderror
 
         <!-- Main Image Previews -->
-        <div class="grid grid-cols-4 gap-2 mt-4" id="mainImagePreview">
+        <div class="flex flex-wrap gap-3 mt-4" id="mainImagePreview">
             @foreach ($mediaChildren as $image)
-                <div class="relative group" data-key="{{ $image->id }}">
-                    <a href="{{ $image->media->getUrl() }}" target="_blank">
+                <div class="relative group w-full sm:w-[260px]" data-key="{{ $image->id }}">
+                    <a href="{{ $image->media->getUrl() }}" >
                         <img src="{{ $image->media->getUrl() }}" class="w-full aspect-square object-cover rounded-md border" />
                     </a>
 
@@ -267,7 +282,7 @@
 
         <!-- Hover Image Preview -->
         @if (!empty($hoverImage))
-            <div class="relative mt-4" id="hoverImagePreview">
+            <div class="relative mt-4 w-full sm:w-[260px]" id="hoverImagePreview">
                 <img src="{{ $hoverImage }}" alt="Hover Image" class="w-full aspect-square object-cover rounded-md border"
                     id="hoverImageTag" />
                 <button type="button"
@@ -278,7 +293,7 @@
                 <input type="hidden" name="existing_hover_image" value="{{ $hoverImageId }}">
             </div>
         @else
-            <div class="relative mt-4" id="hoverImagePreview" style="display: none;">
+            <div class="relative mt-4 w-full sm:w-[260px]" id="hoverImagePreview" style="display: none;">
                 <img id="hoverImageTag" class="w-full aspect-square object-cover rounded-md border" />
                 <button type="button"
                     class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 hover:opacity-100"
@@ -374,23 +389,6 @@
         @enderror
     </div>
 
-    {{-- SKU --}}
-    <div class="md:col-span-2">
-        <label for="sku" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">SKU</label>
-        {!! html()->text('sku')->attributes([
-                'placeholder' => 'Enter SKU',
-                'autocomplete' => 'off',
-                'id' => 'sku',
-            ])->class([
-                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                'border-red-500' => $errors->has('sku'),
-                'border-gray-300' => !$errors->has('sku'),
-            ]) !!}
-        @error('sku')
-            <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
-        @enderror
-    </div>
-
     {{-- Barcode --}}
     <div class="md:col-span-2">
         <label for="barcode" class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Barcode</label>
@@ -407,6 +405,7 @@
             <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
         @enderror
     </div>
+
 </div>
 
 <div x-data x-show="$store.productForm.selectedType === 'Rental'" x-cloak>
@@ -508,7 +507,7 @@
         <p class="text-blue-600 font-semibold truncate">
             {{ old('seo_title', $objProduct->seo_title ?? 'Sample Category Title') }}</p>
         <p class="text-green-700 text-xs truncate">
-            <a href="{{ $seoUrl }}" target="_blank" rel="noopener" class="permalink">
+            <a href="{{ $seoUrl }}" rel="noopener" class="permalink">
                 {{ $seoUrl !== '#' ? $seoUrl : 'Product link will be generated after saving.' }}
             </a>
         </p>
@@ -640,7 +639,7 @@
 
             // Keep an immutable template for the route
             const URL_TEMPLATE =
-                "{{ route('front.products.details', ['slug' => ':slug', 'productVariant' => ':variant']) }}";
+                "{{ route('front.products.index', ['slug' => ':slug', 'productVariant' => ':variant']) }}";
 
             // Build URL from current slug + product type
             function computePermalink(slug, selectedType) {
@@ -767,7 +766,7 @@
                         const reader = new FileReader();
                         reader.onload = function (e) {
                             const wrapper = document.createElement("div");
-                            wrapper.className = "relative group";
+                            wrapper.className = "relative group w-full sm:w-[260px]";
                             wrapper.dataset.key = `new-${file.name}-${file.size}-${file.lastModified}`;
 
                             const anchor = document.createElement("a");

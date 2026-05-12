@@ -26,7 +26,9 @@ class UpdateProductScheduleController extends Controller
         // Validate order product exists
         $validatedData = $request->validated();
 
-        $orderProduct = OrderProduct::where('unique_id', $orderProductUniqueId)->first();
+        $orderProduct = OrderProduct::whereHas('order')
+            ->where('unique_id', $orderProductUniqueId)
+            ->first();
         if (!$orderProduct) {
             return response()->json(['message' => 'Order product not found.'], 404);
         }
@@ -195,6 +197,11 @@ class UpdateProductScheduleController extends Controller
                 }
 
             }
+        }
+
+        // Optionally update allocated_hours if provided
+        if (array_key_exists('allocated_hours', $validatedData) && $validatedData['allocated_hours'] !== null) {
+            $orderProduct->allocated_hours = $validatedData['allocated_hours'];
         }
 
         $orderProduct->save();

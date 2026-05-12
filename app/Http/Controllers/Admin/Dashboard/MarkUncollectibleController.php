@@ -21,7 +21,8 @@ class MarkUncollectibleController extends Controller
             'type' => 'required|in:damage,fuel',
         ]);
 
-        $orderProduct = OrderProduct::where('id', $orderProductUniqueId)
+        $orderProduct = OrderProduct::whereHas('order')
+            ->where('id', $orderProductUniqueId)
             ->firstOrFail();
 
         DB::transaction(function () use ($request, $orderProduct) {
@@ -41,7 +42,7 @@ class MarkUncollectibleController extends Controller
             $orderProduct->save();
 
             //  Create OrderExtraCharges record (audit)
-            
+
 $virtualCharge = new OrderExtraCharges([
     'customer_id' => $order->customer_id,
     'order_id' => $order->id,

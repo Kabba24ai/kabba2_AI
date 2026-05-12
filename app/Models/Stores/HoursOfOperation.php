@@ -18,6 +18,7 @@ class HoursOfOperation extends Model
         'is_closed',
         'start_time',
         'end_time',
+          'is_lunch_required',
     ];
 
     public static function boot()

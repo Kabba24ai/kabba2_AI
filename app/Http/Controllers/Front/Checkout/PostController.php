@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use DB;
 
 // Enums
+use App\Enums\Orders\OrderMediaType;
 use App\Enums\Orders\OrderTermsStatus;
 
 // Services
@@ -15,7 +16,6 @@ use App\Services\AuthorizeNetService;
 // Events
 use App\Events\Front\Checkout\OrderPlacedEvent;
 use App\Events\Front\Checkout\OrderPlacedEmailEvent;
-
 
 // Helpers
 use App\Helpers\CartHelper;
@@ -27,13 +27,12 @@ use App\Helpers\ModelHelper;
 // Request
 use App\Http\Requests\Front\Checkout\PostRequest;
 use App\Jobs\CreateReceiptJob;
+
 // Models
 use App\Models\Customers\Customer;
-use App\Models\Customers\Receipt;
 
 use App\Models\Customers\CustomerAddress;
 use App\Models\Customers\CustomerAccount;
-use App\Models\ProductManagement\Product;
 use App\Models\Configurations\Setting;
 use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
@@ -60,6 +59,13 @@ class PostController extends Controller
 
         Log::info('cart summary generated at ' . now());
 
+        if (($cartSummary['hide_cc_payment_option'] ?? false) && ($validated['payment'] ?? null) === 'Card') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Credit card payment is unavailable for one or more items in your cart. Please choose another payment method or call sales.',
+            ], 422);
+        }
+
         if ($employeeCode) {
             // Validate employee code if provided
             $employee = User::where('employee_code', $employeeCode)->active()->first();
@@ -79,6 +85,21 @@ class PostController extends Controller
             DB::beginTransaction();
             if (auth()->guard('customer')->check()) {
                 $customer = auth()->guard('customer')->user();
+
+                    // Get account status
+                    $account = CustomHelper::getCustomerAccountStatus($customer);
+
+                    $isBadDebt = ($account['badge']['label'] ?? '') === 'Bad Debt';
+
+                    $isImpersonating = session()->has('impersonated_by_admin');
+
+                    if ($customer && $isBadDebt && !$isImpersonating) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Your account has an outstanding balance. Please clear dues before proceeding.',
+                        ]);
+                    }
+
             } else {
                 // 1. Find or create customer
                 $customer = Customer::firstOrCreate(
@@ -205,6 +226,7 @@ class PostController extends Controller
                 'cart_data' => $cart,
                 'is_tax_exempt' => $cartSummary['tax_exempt'] ? 'Yes' : 'No',
                 'platform' => 'Web',
+                'auto_inject' => $validated['auto_inject'] ?? false,
             ]);
 
             if (!empty($validated['orderNotes'])) {
@@ -251,7 +273,7 @@ class PostController extends Controller
                 ],
             ]);
 
-            $primaryStoreId = Store::primary()->value('id');
+            $primaryStoreId = Store::primary()->value('id') ?? Store::orderBy('id', 'asc')->first()?->id ?? null;
 
             $dateFormat = config('app.date.db_date_format');
             $timeFormat = config('app.date.db_time_format');
@@ -298,6 +320,36 @@ class PostController extends Controller
             if (!empty($orderProductRows)) {
                 $order->products()->insert($orderProductRows);
             }
+
+            if($validated['auto_inject'] ?? false){
+                $licenseMediaRows = [];
+
+                if (!empty($customer->license_front_media_id)) {
+                    $licenseMediaRows[] = [
+                        'type' => OrderMediaType::LICENSE->value,
+                        'side' => 'front',
+                        'media_id' => $customer->license_front_media_id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                if (!empty($customer->license_back_media_id)) {
+                    $licenseMediaRows[] = [
+                        'type' => OrderMediaType::LICENSE->value,
+                        'side' => 'back',
+                        'media_id' => $customer->license_back_media_id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                if (!empty($licenseMediaRows)) {
+                    $order->media()->createMany($licenseMediaRows);
+                }
+
+            }
+
 
             // Eager load products and their terms for terms generation
             $order->load(['products.product.terms']);
@@ -477,7 +529,7 @@ class PostController extends Controller
                 // Reorder performed while impersonating
                 $orderActionType = 'reorder';
             } elseif (session()->has('master_passcode')) {
-                // Master passcode flow
+                // admin code flow
                 $orderActionType = 'master_passcode';
             } elseif (!empty($validated['employee_code']) && auth()->guard('customer')->check()) {
                 // Customer is logged in (with an employee code)

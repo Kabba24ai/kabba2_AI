@@ -99,7 +99,7 @@
                     <option value="">All Payment Types</option>
                     @foreach (\App\Enums\Orders\OrderPaymentMethod::cases() as $method)
                         <option value="{{ $method->value }}" @selected(request('payment_method') === $method->value)>
-                            {{ $method->value }}
+                            {{ $method->label() }}
                         </option>
                     @endforeach
                 </select>
@@ -327,7 +327,7 @@
             FilterFreezer.loadFilters(screenKey, fieldMap);
 
             fetchOrders(pageParam, perPageParam); // initial fetch after loading saved filters
-            function fetchOrders(page = 1, perPage = 10) {
+            function fetchOrders(page = 1, perPage = 30) {
                 const customerName = customerNameInput.value;
                 const customerCompany = customerCompanyNameInput.value;
                 const customerPhone = customerPhoneInput.value;

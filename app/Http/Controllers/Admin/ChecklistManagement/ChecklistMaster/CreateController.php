@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProductManagement\ProductCategory;
+use App\Models\MaintenanceManagement\Equipment;
+
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistTemplate;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
 
@@ -25,10 +27,10 @@ class CreateController extends Controller
         ])->orderBy('template_name', 'asc')->where('active_template', 1)->get();
 
 
-        // dd($checklisttemplate);
+         $equipments = Equipment::orderBy('equipment_name', 'asc')->get();
 
-
+       
         // Return the view with the settings data
-        return view('admin.checklist_management.checklist_master.create',compact('equipmentCategories','checklisttemplate' , 'customeradmintemplate'));
+        return view('admin.checklist_management.checklist_master.create',compact('equipmentCategories','checklisttemplate' , 'customeradmintemplate','equipments'));
     }
 }

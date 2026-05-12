@@ -17,14 +17,25 @@ class ChildController extends Controller
     {
         $category = ProductCategory::published()->with('media')->where('slug',$childCategorySlug)->firstOrFail();
 
-        $products = Product::published()->with('categories','media', 'mediaChildren.media')->whereHas('categories', function ($q) use ($category) {
-            $q->where('product_categories.id', $category->id);
-        })->get();
+        // Fetch categoryChildren (products and subcategories with sort order)
+
+        $items = $category->categoryChildren->map(function ($child) {
+            if ($child->product && $child->product->status === 'Published') {
+                $child->product->item_type = 'product';
+                $child->product->sort_order = $child->sort_order;
+                return $child->product;
+            } elseif ($child->subCategory && $child->subCategory->status === 'Published') {
+                $child->subCategory->item_type = 'subcategory';
+                $child->subCategory->sort_order = $child->sort_order;
+                return $child->subCategory;
+            }
+            return null;
+        })->filter()->sortBy('sort_order')->values();
 
         return view('front.categories.index', [
             'title' => $category->title,
-            'category'=> $category,
-            'products' => $products
+            'category' => $category,
+            'items' => $items,
         ]);
     }
 }

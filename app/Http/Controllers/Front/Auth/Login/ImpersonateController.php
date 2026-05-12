@@ -12,6 +12,7 @@ use App\Helpers\SignedUrlHelper;
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ImpersonateController extends Controller
@@ -35,7 +36,7 @@ class ImpersonateController extends Controller
             // decrypt everything dynamically (route + query)
             $params = SignedUrlHelper::decodeParams(
                 $requestData,
-                ['customer_unique_id', 'admin_unique_id', 'order_unique_id', 'order_type', 'cart_data', 'order_number']
+                ['customer_unique_id', 'admin_unique_id', 'order_unique_id', 'order_type', 'cart_ref', 'order_number']
             );
         } catch (DecryptException $e) {
             abort(403, 'Invalid or tampered parameters.');
@@ -47,7 +48,12 @@ class ImpersonateController extends Controller
         $orderUniqueId    = $params['order_unique_id'] ?? null;
         $orderNumber     = $params['order_number'] ?? null;
         $orderType       = $params['order_type'] ?? null;
-        $cartData       = $params['cart_data'] ?? null;
+        $cartRef        = $params['cart_ref'] ?? null;
+        $cartData       = null;
+
+        if ($cartRef) {
+            $cartData = Cache::pull('reorder_cart_data:' . $cartRef, []);
+        }
 
 
         $admin = User::find($adminUniqueId);

@@ -70,6 +70,12 @@ class UpdateRequest extends ApiBaseFormRequest
             'rental_track_insurance_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_track_insurance_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
+            // Tire insurance
+            'rental_tire_insurance_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_tire_insurance_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_tire_insurance_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'rental_tire_insurance_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+
             // Prepaid options
             'rental_prepaid_cleaning' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_prepaid_fuel' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
@@ -79,6 +85,12 @@ class UpdateRequest extends ApiBaseFormRequest
             'sale_price_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'sale_price_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'sale_price_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+
+            // Related product prices
+            'related_product_price_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'related_product_price_weekend' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'related_product_price_weekly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'related_product_price_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             // Delivery
             'standard_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
@@ -115,11 +127,17 @@ class UpdateRequest extends ApiBaseFormRequest
 
             'truck_fee_size_setting' => ['nullable', 'string', 'max:255'],
             'track_insurance_size_setting' => ['nullable', 'string', 'max:255'],
+            'tire_insurance_size_setting' => ['nullable', 'string', 'max:255'],
             'prepaid_cleaning_rate_setting' => ['nullable', 'string', 'max:255'],
             'prepaid_fuel_rate_setting' => ['nullable', 'string', 'max:255'],
 
             'is_default_funnel' => ['nullable', 'boolean'],
             'has_high_demand_alert' => ['nullable', 'boolean'],
+            'hide_cc_payment_option' => ['nullable', 'boolean'],
+
+            'is_tax_free_item' => ['nullable', 'boolean'],
+            'apply_special_tax' => ['nullable', 'boolean'],
+            'apply_added_fees' => ['nullable', 'boolean'],
 
             'funnels' => ['nullable', 'array'],
             'funnels.*' => ['exists:sales_funnels,id'],

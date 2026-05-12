@@ -19,8 +19,17 @@ class UpdateController extends Controller
 
         $store = Store::where('unique_id', $unique_id)->firstOrFail();
 
+        // Prevent direct demotion of the current primary store.
+        if ($store->is_primary === 'Yes' && ($validatedData['is_primary'] ?? null) === 'No') {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors([
+                    'is_primary' => 'You must assign another store as primary before this one can be changed to an alternative.'
+                ]);
+        }
+
         // Handle primary store logic
-        if (isset($validatedData['is_primary']) && $validatedData['is_primary'] === 'Yes') {
+        if ($validatedData['is_primary'] === 'Yes') {
             Store::where('id', '!=', $store->id)->update(['is_primary' => 'No']);
         }
 
@@ -67,6 +76,7 @@ class UpdateController extends Controller
                 // Update existing record
                 $record->update([
                     'is_closed'  => $isClosed,
+                    'is_lunch_required' => $data["{$day}_lunch"] ?? false,
                     'start_time' => $isClosed ? null : $this->convertTo24Hour($start),
                     'end_time'   => $isClosed ? null : $this->convertTo24Hour($end),
                 ]);

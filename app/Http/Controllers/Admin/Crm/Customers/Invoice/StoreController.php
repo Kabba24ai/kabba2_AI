@@ -72,7 +72,8 @@ class StoreController extends Controller
                 if ($type === 'order') {
 
                         //  Find matching OrderProduct
-                        $orderProduct = OrderProduct::where('unique_id', $item['id'])
+                        $orderProduct = OrderProduct::whereHas('order')
+                            ->where('unique_id', $item['id'])
                             ->first();
 
                         if ($orderProduct) {
@@ -98,7 +99,7 @@ class StoreController extends Controller
                                 }
                             }
                         }
-                    
+
 
                 } elseif (!empty($accountId)) {
 
@@ -110,7 +111,7 @@ class StoreController extends Controller
                         $record->invoice_id = $invoice->id;
                         $record->invoice_item_id = $invoiceItem->id;
                         $record->save();
-                        
+
                         // CustomHelper::updateCreditBalance($record);
                          $shouldMarkAsAccount = true;
                     }
@@ -129,7 +130,7 @@ class StoreController extends Controller
 
                     $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
                     $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
-                
+
                     $salesTax = 0;
                     $salesTaxType = null;
 
@@ -140,13 +141,13 @@ class StoreController extends Controller
 
                     } elseif ($type === 'discount') {
 
-                    
-                        $salesTax = 0; // discount has no tax
+
+                        $salesTax = $salesTaxRate; // discount has no tax
                         $salesTaxType = null;
 
                     } elseif ($type === 'refund') {
 
-                    
+
                         $salesTax = $salesTaxRate; // refund reduces tax
                         $salesTaxType = null;
                     }
@@ -204,12 +205,11 @@ class StoreController extends Controller
                 $accountInvoiceRecord->notes = $invoice->invoice_notes;
                 $accountInvoiceRecord->amount = $invoice->total ?? 0;
                 $accountInvoiceRecord->sales_tax = $invoice->sales_tax ?? 0;
-                $accountInvoiceRecord->reason = 'Account Invoice #' . $invoice->invoice_number;
+                $accountInvoiceRecord->reason = 'Invoice #' . $invoice->invoice_number;
                 $accountInvoiceRecord->type = 'account_invoice';
                 $accountInvoiceRecord->invoice_id = $invoice->id;
                 $accountInvoiceRecord->date = now();
                 $accountInvoiceRecord->save();
-
 
             }
 
@@ -218,7 +218,7 @@ class StoreController extends Controller
             flash('Invoice created successfully.')->success();
 
             // session()->flash('active_tab', 'invoices');
-            
+
             session(['active_tab' => 'invoices']);
 
 

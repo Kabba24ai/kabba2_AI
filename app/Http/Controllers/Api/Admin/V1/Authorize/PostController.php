@@ -63,9 +63,14 @@ class PostController extends BaseController
                 'address' => trim($validated['street_address']),
                 'city' => $validated['city'] ?? null,
                 'state' => $validated['state'] ?? null,
-                'zip' => $validated['zip_code'] ?? null,
+                'zip_code' => $validated['zip_code'] ?? null,
+                'country' => "US",
                 'phone' => $validated['phone_number'] ?? null,
                 'description' => 'Authrise onboarding ' . $submission->unique_id,
+                'billing_address' => [
+                    'zip_code' => $validated['zip_code'] ?? null,
+                    'country' => "US",
+                ],
             ];
 
             $cardData = [
@@ -107,6 +112,18 @@ class PostController extends BaseController
                 ],
             ])->save();
 
+            if (!$isChargeSuccessful) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $chargeResponse['message'] ?? 'Payment could not be completed.',
+                    'data' => [
+                        'reference' => $submission->unique_id,
+                        'customer_profile_id' => $submission->customer_profile_id,
+                        'payment_profile_id' => $submission->payment_profile_id,
+                    ],
+                ], 422);
+            }
+
             $twilio = new TwilioService();
 
             $phoneNumbers = [
@@ -117,7 +134,17 @@ class PostController extends BaseController
             ];
 
             foreach ($phoneNumbers as $to) {
-                $twilio->sendSms($to, 'Hello, A New Customer has just signed up for a Kabba account', [], [
+                $adminMessage = sprintf(
+                    "New Customer Signup: %s %s | Email: %s | Phone: %s | Business: %s | Ref: %s",
+                    $validated['first_name'],
+                    $validated['last_name'],
+                    $validated['email'],
+                    $validated['phone_number'] ?? 'N/A',
+                    $validated['business_name'] ?? 'N/A',
+                    $submission->unique_id
+                );
+
+                $twilio->sendSms($to, $adminMessage, [], [
                     'sms_type' => SmsType::NEW_CUSTOMER_SIGNUP_NOTIFICATION,
                 ]);
             }

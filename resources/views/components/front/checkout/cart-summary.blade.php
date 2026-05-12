@@ -84,8 +84,8 @@
                                 $optionsTotal += $optPrice ?? 0;
 
                                 $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $rentalKey);
-                                $name = $case?->value ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
-                                $quantity = $case?->value ? $item['quantity'] : 1;;
+                                $name = $case?->label() ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
+                                $quantity = $case ? $item['quantity'] : 1;
                                 $optionRows[] = [
                                     'name' =>
                                         $name . ' ' . App\Helpers\CustomHelper::formatCurrency($optPrice) . " (x{$quantity})",
@@ -143,6 +143,18 @@
                     <span>Tax</span>
                     <span class="font-bold">{{ App\Helpers\CustomHelper::formatCurrency($cart['tax_total'] ?? 0) }}</span>
                 </li>
+                @if (!empty($cart['special_tax_total']) && $cart['special_tax_total'] > 0)
+                    <li class="flex justify-between mb-1">
+                        <span>{{ $cart['special_taxes_description'] }}</span>
+                        <span class="font-bold">{{ App\Helpers\CustomHelper::formatCurrency($cart['special_tax_total'] ?? 0) }}</span>
+                    </li>
+                @endif
+                @if (!empty($cart['added_fees_total']) && $cart['added_fees_total'] > 0)
+                    <li class="flex justify-between mb-1">
+                        <span>{{ $cart['added_fees_description'] }}</span>
+                        <span class="font-bold">{{ App\Helpers\CustomHelper::formatCurrency($cart['added_fees_total'] ?? 0) }}</span>
+                    </li>
+                @endif
                 <li class="flex justify-between mb-1">
                     <span class="font-bold">Total</span>
                     <span class="font-bold">{{ App\Helpers\CustomHelper::formatCurrency($cart['grand_total'] ?? 0) }}</span>

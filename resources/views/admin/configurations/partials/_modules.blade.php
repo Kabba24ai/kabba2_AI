@@ -90,6 +90,16 @@
                 Price Settings
             </button>
 
+            <button
+                class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'application-code' ?
+                    ' text-brand-500 border-brand-500 dark:border-brand-400 dark:text-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'application-code'"
+                id="tab-application-code">
+                Application Code
+            </button>
+
             {{-- <button
                 class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                 x-bind:class="activeTab === 'profile-settings' ?
@@ -203,6 +213,21 @@
             </x-admin.configurations.config-form>
         </div>
 
+        <div x-show="activeTab === 'application-code'">
+            <x-admin.configurations.config-form
+                id="config-application-code-form"
+                :action="route('admin.configurations.save-application-code-settings')"
+                saveLabel="Save">
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    @include('admin.configurations.partials._application_code_settings')
+
+                </div>
+
+            </x-admin.configurations.config-form>
+        </div>
+
         {{-- <div x-show="activeTab === 'profile-settings'">
             <x-admin.configurations.config-form id="config-profile-form" :action="route('admin.configurations.save-profile-settings')" saveLabel="Save">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -258,7 +283,7 @@
                 </div>
 
                 <div class="px-5 pb-4">
-                    <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Master Passcode.</p>
+                    <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Admin Code.</p>
 
                     <div class="relative">
                         <input id="verify-password" type="password" autocomplete="current-password"
@@ -406,7 +431,20 @@
                     // enable the targeted input and focus it
                     const field = document.getElementById(targetFieldId);
                     if (field) {
-                        field.value = data.field_value || '';
+
+
+                        // field.value = data.field_value || '';
+
+                        const opener = document.querySelector(
+                            `[data-field-id="${targetFieldId}"]`
+                        );
+
+                        const noFill = opener?.dataset?.noFill === 'true';
+
+                        if (!noFill) {
+                            field.value = data.field_value || '';
+                        }
+
                         field.removeAttribute('disabled');
                         field.focus();
                         // optional little highlight

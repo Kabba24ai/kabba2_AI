@@ -13,22 +13,75 @@
 
 
 <div class="bg-white p-6 rounded-xl shadow mt-6 mb-0">
+       <div class="flex justify-between items-center mb-1">
+    
+                <div>
+                    
+                </div>
+
+                @php
+                    $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
+
+                    $isBadDebt = $account['status'] === 'Bad Debt';
+                    $isSuspended = $customer->status === 'Suspended' || $customer->status === 'Archived';
+                @endphp
+
+                <div class="flex items-center gap-2">
+
+                    {{-- STATUS BADGE --}}
+                    @if($isSuspended && $isBadDebt)
+                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-red-100 text-red-800">
+                            Suspended (Bad Debt)
+                        </span>
+
+                    @elseif($isSuspended)
+                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-red-100 text-red-800">
+                            Suspended
+                        </span>
+
+                    @elseif(!$isSuspended && $isBadDebt)
+                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800">
+                            Active (Bad Debt)
+                        </span>
+                        
+                    @else
+                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
+                            Active
+                        </span>
+                    @endif
+
+                </div>
+
+        </div>
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- Title and Description -->
         <div>
             <h2 class="text-2xl font-bold text-gray-900">Customer Account Management</h2>
             <p class="text-sm text-gray-500">Manage customer account information and administrative settings</p>
         </div>
+        
 
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+
+         
+
             <span class="text-sm text-gray-700 mr-2 sm:mr-0 sm:mb-1 mb-1">Admin Actions:</span>
             <div class="flex flex-wrap items-center gap-2">
                 @if ($customer->status != 'Archived')
                     <button onclick="confirmAndSuspend({{ $customer->id }})" type="button"
                         class="bg-red-600 text-white px-6 py-3 rounded-lg text-md static-view">Suspend Account</button>
                 @elseif($customer->status != 'Active')
-                    <button onclick="confirmAndActive({{ $customer->id }})" type="button"
+                
+                
+                 @php
+                    $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
+                
+                     
+
+                @endphp
+
+                    <button onclick="confirmAndActive({{ $customer->id }}, '{{ $account['status'] }}')" type="button"
                         class="bg-green-600 text-white px-6 py-3 rounded-lg text-md static-view">Activate
                         Account</button>
                 @endif
@@ -299,8 +352,6 @@
                     </label>
                 @endif
             </div>
-
-
             <div class="space-y-4">
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -434,9 +485,9 @@
                                 "addresses[$index][Country]",
                                 [
                                     'USA' => 'USA',
-                                    'Canada' => 'Canada',
-                                    'UK' => 'UK',
-                                    'India' => 'India',
+                                    // 'Canada' => 'Canada',
+                                    // 'UK' => 'UK',
+                                    // 'India' => 'India',
                                 ],
                                 // default to USA if old or user value is not set
                                 old("addresses.$index.Country", $addresse->country ?? 'USA'),
@@ -559,164 +610,350 @@
     </div>
 </div>
 
-
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-0">
-    <!-- Account Status -->
-    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-        <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-6 items-stretch">
+   <!-- LEFT SIDE (Account + Credit) -->
+   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Account Status -->
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 overflow-auto">
+         <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
             <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" stroke-width="2"
-                viewBox="0 0 24 24">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+               viewBox="0 0 24 24">
+               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
             Account Status
-        </h3>
-        <div class="space-y-2 text-sm">
+         </h3>
+         <div class="space-y-2 text-sm">
             <div class="flex justify-between items-center">
-                <span class="text-xs text-gray-500 font-medium">Account Status:</span>
-
-                @php
-                    $approved = $customer->is_credit_account == 1;
-                    $hasCreditLimit = !empty($customer->credit_limit);
-                @endphp
-
-                @if ($approved && $hasCreditLimit)
-                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Good
-                        Standing</span>
-                @elseif ($approved && !$hasCreditLimit)
-                    <span
-                        class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
-                @else
-                    N/A
-                @endif
-
+               <span class="text-xs text-gray-500 font-medium">Account Status:</span>
+               @php
+               $approved = $customer->is_credit_account == 1;
+               $hasCreditLimit = !empty($customer->credit_limit);
+               @endphp
+               @if ($approved && $hasCreditLimit)
+               <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Good
+               Standing</span>
+               @elseif ($approved && !$hasCreditLimit)
+               <span
+                  class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">Pending</span>
+               @else
+               N/A
+               @endif
             </div>
             <div class="flex justify-between items-center">
-                <span class="text-xs text-gray-500 font-medium">Account Approved:</span>
-                <div class="static-view">
-                    @if ($customer->is_credit_account == 1)
-                        <span class="text-green-600 font-medium flex items-center gap-1 text-xs">
-                            <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
-                            Approved
-                        </span>
-                    @else
-                        <span class="text-red-600 font-medium flex items-center gap-1 text-xs">
-                            <x-heroicon-o-x-circle class="w-4 h-4 text-red-600" />
-                            Not Approved
-                        </span>
-                    @endif
-                </div>
-
-                {!! html()->select(
-                        'is_credit_account',
-                        [
-                            '0' => 'Not Approved',
-                            '1' => 'Approved',
-                        ],
-                        old('is_credit_account', $customer->is_credit_account ?? ''),
-                    )->id('is_credit_account')->class([
-                        'edit-view border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 ',
-                    ]) !!}
-
-
+               <span class="text-xs text-gray-500 font-medium">Account Approved:</span>
+               <div class="static-view">
+                  @if ($customer->is_credit_account == 1)
+                  <span class="text-green-600 font-medium flex items-center gap-1 text-xs">
+                     <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
+                     Approved
+                  </span>
+                  @else
+                  <span class="text-red-600 font-medium flex items-center gap-1 text-xs">
+                     <x-heroicon-o-x-circle class="w-4 h-4 text-red-600" />
+                     Not Approved
+                  </span>
+                  @endif
+               </div>
+               {!! html()->select(
+               'is_credit_account',
+               [
+               '0' => 'Not Approved',
+               '1' => 'Approved',
+               ],
+               old('is_credit_account', $customer->is_credit_account ?? ''),
+               )->id('is_credit_account')->class([
+               'edit-view border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 ',
+               ]) !!}
             </div>
             <div class="flex justify-between">
-                <span class="text-xs text-gray-500 font-medium">Customer Since:</span>
-                <span
-                    class="text-xs">{{ App\Helpers\CustomHelper::formatDate($customer->created_at) ?? 'N/A' }}</span>
+               <span class="text-xs text-gray-500 font-medium">Customer Since:</span>
+               <span
+                  class="text-xs">{{ App\Helpers\CustomHelper::formatDate($customer->created_at) ?? 'N/A' }}</span>
             </div>
             <div class="flex justify-between">
-                <span class="text-xs text-gray-500 font-medium">Customer ID:</span>
-                <span class="text-xs">{{ $customer->unique_id }}</span>
+               <span class="text-xs text-gray-500 font-medium">Customer ID:</span>
+               <span class="text-xs">{{ $customer->unique_id }}</span>
             </div>
-        </div>
-    </div>
-
-    <!-- Credit Information -->
-    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-        <div class="flex gap-2 items-start mb-4">
+         </div>
+      </div>
+      <!-- Credit Information -->
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 overflow-auto">
+         <div class="flex gap-2 items-start mb-4">
             <h3 class="text-base font-semibold flex items-center gap-1">
-                <x-heroicon-o-credit-card class="w-5 h-5 text-gray-900" />
-                Credit Information
+               <x-heroicon-o-credit-card class="w-5 h-5 text-gray-900" />
+               Credit Information
             </h3>
             <!-- <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Admin View</span> -->
-        </div>
-        <div class="space-y-2 text-sm">
+         </div>
+         <div class="space-y-2 text-sm">
             <div class="flex justify-between items-center">
-
-
-                <span class="text-xs text-gray-500 font-medium">Credit Limit:</span>
-                <span class="text-right static-view">
-                    <span class="text-gray-900 font-semibold">
-
-                        {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
-
-                    </span>
-                    <a href="#"  onclick="OpenCustomerEditModal()"
-                        class="ml-1 text-blue-500 text-xs inline-flex items-center" ><x-heroicon-o-pencil-square
-                            class="w-4 h-4 mr-1" /></a>
-                </span>
-
-
-
-
-                @php
-                    $creditOptions = collect(range(1000, 20000, 1000))->mapWithKeys(function ($value) {
-                        return [$value => number_format($value)];
-                    });
-                @endphp
-
-                {!! html()->select('credit_limit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))->id('credit_limit')->class([
-                        'border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 edit-view',
-                    ])->placeholder('Select Credit Limit') !!}
-
-            </div>
-
-            <div class="flex justify-between items-center">
-                <span class="text-xs text-gray-500 font-medium">Current Balance:</span>
-
-                <span class="font-medium ">
-
-
-                    {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}
-
-
-                    <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
-
-
-
-
+               <span class="text-xs text-gray-500 font-medium">Credit Limit:</span>
+               <span class="text-right static-view">
+                  <span class="text-gray-900 font-semibold">
+                  {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
+                  </span>
+                  <a href="#"  onclick="OpenCustomerEditModal()"
+                     class="ml-1 text-blue-500 text-xs inline-flex items-center" >
+                     <x-heroicon-o-pencil-square
+                        class="w-4 h-4 mr-1" />
+                  </a>
+               </span>
+               @php
+               $creditOptions = collect(range(1000, 20000, 1000))->mapWithKeys(function ($value) {
+               return [$value => number_format($value)];
+               });
+               @endphp
+               {!! html()->select('credit_limit', $creditOptions->toArray(), old('credit_limit', $customer->credit_limit ?? ''))->id('credit_limit')->class([
+               'border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring focus:border-blue-500 border-gray-300 edit-view',
+               ])->placeholder('Select Credit Limit') !!}
             </div>
             <div class="flex justify-between items-center">
-                <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
-                <span class="text-green-600 font-medium ">
-
-                    {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
-
+               <span class="text-xs text-gray-500 font-medium">Current Balance:</span>
+               <span class="font-medium ">
+               {{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}
+               <a href="#" class="text-xs font-normal text-green-500 ml-1">Adjust</a></span>
+            </div>
+            <div class="flex justify-between items-center">
+               <span class="text-xs text-gray-500 font-medium">Available Credit:</span>
+               <span class="text-green-600 font-medium ">
+               {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
             </div>
             <div class="static-view">
+               @php
+               $climit = $customer->credit_limit ?? 0;
+               $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
+               $per = $climit > 0 ? (($climit - $available) / $climit) * 100 : 0;
+               @endphp
+               <div class="flex justify-between text-xs text-gray-500 mb-1">
+                  <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>
+                  <div class="text-right text-xs text-gray-500 mt-0.5">{{ round($per) }}%</div>
+               </div>
+               <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                  <div class="bg-blue-500 h-2 rounded-full" style="width:{{ round($per) }}%; max-width: 100%;">
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+   <!-- RIGHT SIDE (License Section) -->
+   <div class="h-full">
+      <div class="bg-white p-5 rounded-xl shadow border border-gray-200 h-full flex flex-col">
+         <!-- Header -->
+         <h3 class="text-base font-semibold mb-4 flex items-center gap-1">
+            <x-heroicon-o-identification class="w-5 h-5 text-gray-900" />
+            License Upload
+         </h3>
+         <!-- Upload Grid -->
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+            <!-- FRONT -->
+            <div class="flex flex-col">
+               <label class="text-xs text-gray-500 font-medium mb-1">Front License</label>
 
 
-                @php
-                    $climit = $customer->credit_limit ?? 0;
-                    $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
+                 <div class="static-view">
 
-                    $per = $climit > 0 ? (($climit - $available) / $climit) * 100 : 0;
-                @endphp
-                <div class="flex justify-between text-xs text-gray-500 mb-1">
-                    <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>
-                    <div class="text-right text-xs text-gray-500 mt-0.5">{{ round($per) }}%</div>
+                    @if($customer->licenseFront)
+
+                    <div class="border border-gray-200 rounded-lg p-3 text-sm bg-white w-full">
+
+                        <div class="flex items-center justify-between gap-3">
+
+                            <!-- LEFT -->
+                            <div class="flex items-center gap-2 min-w-0">
+
+                                <x-heroicon-o-document-text class="w-5 h-5 text-blue-600 flex-shrink-0" />
+
+                                <div class="min-w-0">
+                                    <div class="font-medium text-gray-800 truncate">
+                                        {{ str($customer->licenseFront->original_file_name ?? 'License Front')->limit(20) }}
+                                    </div>
+                   
+                                </div>
+                            </div>
+
+                            <!-- RIGHT ACTIONS -->
+                            <div class="flex gap-3 text-xs">
+
+                                <!-- VIEW -->
+                                <a href="{{ $customer->licenseFront->getUrl() ?? '#' }}"
+                                
+                                class="text-blue-600 hover:underline">
+                                View
+                                </a>
+
+                                <!-- DELETE -->
+                                <button type="button"
+                                    onclick="deleteLicense('front')"
+                                    class="text-red-600 hover:underline">
+                                    Delete
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    @else
+                        <span class="text-gray-400 text-xs">No file uploaded</span>
+                    @endif
+
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                    <div class="bg-blue-500 h-2 rounded-full" style="width:{{ round($per) }}%; max-width: 100%;">
+
+                  <!-- EDIT VIEW -->
+                <div class="edit-view hidden">
+
+                    <div class="border-2 border-dashed border-gray-300 p-4 text-center rounded relative">
+                        <!-- Upload UI -->
+                        <div id="front_uploadUI" class="flex flex-col items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4"></path>
+                            </svg>
+                            <p class="text-gray-600 text-sm">Click to upload</p>
+                            <label class="mt-2 cursor-pointer">
+                            <input type="file" id="license_front" name="license_front" class="hidden" accept="image/*">
+                            <span class="bg-blue-600 text-white px-3 py-1 rounded text-sm">Choose File</span>
+                            </label>
+                        </div>
+                        <!-- Preview -->
+                        <div id="front_previewWrapper" class="hidden relative">
+                            {{-- <img id="preview_front" class="w-full h-32 object-cover rounded-md" /> --}}
+                            <img id="preview_front"
+     src="{{ $customer->licenseFront ? $customer->licenseFront->getUrl() : '' }}"
+     class="w-full h-32 object-cover rounded-md" />
+                            <!-- REMOVE BUTTON -->
+                            <button type="button"
+                                onclick="removeImage('license_front','preview_front','front_uploadUI','front_previewWrapper')"
+                                class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                            ✕
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- BACK -->
+            <div class="flex flex-col">
+               <label class="text-xs text-gray-500 font-medium mb-1">Back License</label>
+               <!-- STATIC VIEW -->
+                <div class="static-view">
+
+                    @if($customer->licenseBack)
+
+                    <div class="border border-gray-200 rounded-lg p-3 text-sm bg-white w-full">
+
+                        <div class="flex items-center justify-between gap-3">
+
+                            <div class="flex items-center gap-2 min-w-0">
+
+                                <x-heroicon-o-document-text class="w-5 h-5 text-blue-600 flex-shrink-0" />
+
+                                <div class="min-w-0">
+                                    <div class="font-medium text-gray-800 truncate">
+                                        {{ str($customer->licenseBack->original_file_name ?? 'License Back')->limit(20) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3 text-xs">
+
+                                <a href="{{ $customer->licenseBack->getUrl() ?? '#' }}"
+                               
+                                class="text-blue-600 hover:underline">
+                                View
+                                </a>
+
+                                <button type="button"
+                                 onclick="deleteLicense('back')"
+                                    class="text-red-600 hover:underline">
+                                    Delete
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    @else
+                        <span class="text-gray-400 text-xs">No file uploaded</span>
+                    @endif
+
+                </div>
+
+                <!-- EDIT VIEW -->
+                <div class="edit-view hidden">
+                    <div class="border-2 border-dashed border-gray-300 p-4 text-center rounded relative">
+                        <div id="back_uploadUI" class="flex flex-col items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4"></path>
+                            </svg>
+                            <p class="text-gray-600 text-sm">Click to upload</p>
+                            <label class="mt-2 cursor-pointer">
+                            <input type="file" id="license_back" name="license_back" class="hidden" accept="image/*">
+                            <span class="bg-blue-600 text-white px-3 py-1 rounded text-sm">Choose File</span>
+                            </label>
+                        </div>
+                        <div id="back_previewWrapper" class="hidden relative">
+                            {{-- <img id="preview_back" class="w-full h-32 object-cover rounded-md" /> --}}
+                            <img id="preview_back"
+     src="{{ $customer->licenseBack ? $customer->licenseBack->getUrl() : '' }}"
+     class="w-full h-32 object-cover rounded-md" />
+                            <button type="button"
+                                onclick="removeImage('license_back','preview_back','back_uploadUI','back_previewWrapper')"
+                                class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                            ✕
+                            </button>
+                        </div>
                     </div>
                 </div>
+            </div>
+            <!-- EXPIRY -->
+            <div class="flex flex-col md:col-span-2">
+               <label class="text-xs text-gray-500 font-medium mb-1">
+                    Expiration Date 
+                    <span class="text-red-500 text-xs">
+                        * Expiration Date  Required to activate License Auto Injection
+                    </span>
+                </label>
+
+                <!-- STATIC VIEW -->
+                <div class="static-view">
+                    <span class="text-sm text-gray-700">
+                        {{ $customer->license_expiry_date 
+                            ? \App\Helpers\CustomHelper::formatDate($customer->license_expiry_date) 
+                            : 'N/A' }}
+                    </span>
+                </div>
+
+                <!-- EDIT VIEW -->
+                <div class="edit-view hidden">
+
+                    {{-- <input type="text" name="license_expiry_date"
+                        class="w-50 border rounded-md px-3 py-3 text-sm datepicker"
+                        value="{{ \App\Helpers\CustomHelper::formatDate($customer->license_expiry_date ?? null) }}"
+                        placeholder="MM-DD-YYYY" /> --}}
 
 
+                        <input type="text" 
+    name="license_expiry_date"
+    class="w-50 border rounded-md px-3 py-3 text-sm datepicker"
+    value="{{ \App\Helpers\CustomHelper::formatDate($customer->license_expiry_date ?? null) }}"
+    placeholder="MM-DD-YYYY"
+    data-min-date="{{ now()->format('Y-m-d') }}" />
+
+
+                </div>
 
             </div>
-        </div>
-    </div>
-
+         </div>
+      </div>
+   </div>
 </div>
 
 <div class="bg-white p-4 rounded-xl shadow border border-gray-200 mt-6 mb-0">
@@ -879,7 +1116,7 @@
 
                             <!-- Buttons: View & Close -->
                             <div class="flex justify-center sm:justify-start gap-2">
-                                <a id="viewFileLink" href="#" target="_blank"
+                                <a id="viewFileLink" href="#" 
                                     class="bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
                                 <button type="button" onclick="clearFile()"
                                     class="px-3 py-1 text-sm rounded bg-red-600 text-white">✕</button>
@@ -1119,7 +1356,7 @@
                     "{{ route('admin.crm.customers.tax-document.delete', ['unique_id' => $customer->unique_id]) }}";
 
                 fetch(deleteUrl, {
-                        method: 'POST', // ✅ still POST — we send a fake DELETE method inside
+                        method: 'POST', // 
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': csrfToken,
@@ -1127,7 +1364,7 @@
                         },
                         body: JSON.stringify({
                             _method: 'DELETE'
-                        }) // ✅ Laravel interprets this as DELETE
+                        }) // 
                     })
                     .then(async res => {
                         const contentType = res.headers.get("content-type");
@@ -1170,7 +1407,14 @@
             }
         }
 
-        function confirmAndActive(id) {
+        function confirmAndActive(id , accountbadge) {
+            // console.log('accountbadge',accountbadge);
+
+    //  Block if Bad Debt
+    // if (accountbadge == 'Bad Debt') {
+    //     notyf.error("This account is in Bad Debt. It cannot be activated.");
+    //     return;
+    // }
             if (confirm("Are you sure you want to activate this customer?")) {
                 document.getElementById(`cstatus`).value = "Active";
                 document.getElementById(`suspend-customer-form-${id}`).submit();
@@ -1825,4 +2069,114 @@
             });
         });
     </script>
+
+    <script>
+        function setupImageUpload(inputId, previewId, uploadUIId, previewWrapperId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const uploadUI = document.getElementById(uploadUIId);
+        const previewWrapper = document.getElementById(previewWrapperId);
+
+        if (!input) return;
+
+        input.addEventListener('change', function () {
+            const file = this.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    uploadUI.classList.add('hidden');
+                    previewWrapper.classList.remove('hidden');
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    function removeImage(inputId, previewId, uploadUIId, previewWrapperId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const uploadUI = document.getElementById(uploadUIId);
+        const previewWrapper = document.getElementById(previewWrapperId);
+
+        input.value = '';
+        preview.src = '';
+        previewWrapper.classList.add('hidden');
+        uploadUI.classList.remove('hidden');
+    }
+
+    // INIT
+    setupImageUpload('license_front', 'preview_front', 'front_uploadUI', 'front_previewWrapper');
+    setupImageUpload('license_back', 'preview_back', 'back_uploadUI', 'back_previewWrapper');
+    </script>
+
+
+<script>
+function deleteLicense(type) {
+
+    window.showConfirm(
+        'Are you sure you want to delete this license?',
+        'Delete License'
+    ).then((result) => {
+
+        if (!result.isConfirmed) return;
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        const url = "{{ route('admin.crm.customers.license.delete', ['unique_id' => $customer->unique_id, 'type' => 'TYPE_PLACEHOLDER']) }}"
+            .replace('TYPE_PLACEHOLDER', type);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ _method: 'DELETE' })
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if (data.success) {
+                notyf.success('License deleted');
+                location.reload();
+            } else {
+                notyf.error(data.message || 'Delete failed');
+            }
+        })
+        .catch(() => {
+            notyf.error('Error deleting license');
+        });
+
+    });
+}
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    function initPreview(previewId, uploadUIId, previewWrapperId) {
+        const preview = document.getElementById(previewId);
+        const uploadUI = document.getElementById(uploadUIId);
+        const previewWrapper = document.getElementById(previewWrapperId);
+
+        if (preview && preview.src && preview.src !== window.location.href) {
+            uploadUI.classList.add('hidden');
+            previewWrapper.classList.remove('hidden');
+        }
+    }
+
+    // FRONT
+    initPreview('preview_front', 'front_uploadUI', 'front_previewWrapper');
+
+    // BACK
+    initPreview('preview_back', 'back_uploadUI', 'back_previewWrapper');
+
+});
+</script>
 @endpush

@@ -117,7 +117,7 @@
             <!-- Row 3 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div>
-                    <label for="password" class="text-xs text-gray-500 font-medium">Password</label>
+                    <label for="password" class="text-xs text-gray-500 font-medium">Password </label>
                     <div class="relative">
                         {!! html()->password('password')
                         ->id('password')->value(isset($user) ? '' : '12345678')
@@ -191,10 +191,10 @@
                                     ->id('social_security')
                                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                                     ->attributes([
-                                        'maxlength' => 10, // 8 digits + 2 dashes
-                                        'data-parsley-pattern' => '^\d{3}-\d{2}-\d{3}$',
-                                        'data-parsley-error-message' => 'Please enter in format xxx-xx-xxx',
-                                        'placeholder' => 'xxx-xx-xxx',
+                                        'maxlength' => 11, // 8 digits + 2 dashes
+                                        'data-parsley-pattern' => '^\d{3}-\d{2}-\d{4}$',
+                                        'data-parsley-error-message' => 'Please enter in format xxx-xx-xxxx',
+                                        'placeholder' => 'xxx-xx-xxxx',
                                         'autocomplete' => 'off',
                                     ])
                                 !!}
@@ -212,11 +212,11 @@
                                 ->id('social_security')
                                 ->class('pl-2 pr-10 py-2 w-full border rounded-md text-sm border-gray-300 bg-gray-100 cursor-not-allowed')
                                 ->attributes([
-                                    'disabled' => true,
-                                    'maxlength' => 10,
-                                    'data-parsley-pattern' => '^\d{3}-\d{2}-\d{3}$',
-                                    'data-parsley-error-message' => 'Please enter in format xxx-xx-xxx',
-                                    'placeholder' => 'xxx-xx-xxx',
+                                    'disabled' => true, 
+                                    'maxlength' => 11,
+                                    'data-parsley-pattern' => '^\d{3}-\d{2}-\d{4}$',
+                                    'data-parsley-error-message' => 'Please enter in format xxx-xx-xxxx',
+                                    'placeholder' => 'xxx-xx-xxxx',
                                     'autocomplete' => 'off',
                                 ])
                             !!}
@@ -249,7 +249,7 @@
         <div class="space-y-6">
             <!-- Street Address -->
             <div class="mb-4">
-                <label for="street" class="text-xs text-gray-500 font-medium required">Street Address </label>
+                <label for="street" class="text-xs text-gray-500 font-medium ">Street Address </label>
 
                 {!! html()->text('street', old('street', $user->street_address ?? ''))
                 ->id('street')
@@ -257,7 +257,7 @@
                 ->attributes([
                 'placeholder' => '123 Main Street',
                 'autocomplete' => 'off',
-                ])->required()
+                ])
                 !!}
 
             </div>
@@ -265,18 +265,18 @@
             <!-- Grid for City, State, Zip Code, Country -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label for="city" class="text-xs text-gray-500 font-medium required">City </label>
+                    <label for="city" class="text-xs text-gray-500 font-medium ">City </label>
                     {!! html()->text('city', old('city', $user->city ?? ''))
                     ->id('city')
                     ->class('w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300')
                     ->attributes([
                     'placeholder' => 'New York',
                     'autocomplete' => 'off',
-                    ])->required()
+                    ])
                     !!}
                 </div>
                 <div>
-                    <label for="state" class="text-xs text-gray-500 font-medium required">State </label>
+                    <label for="state" class="text-xs text-gray-500 font-medium ">State </label>
 
                     <!-- {!! html()
                              ->select('state',
@@ -301,7 +301,6 @@
                     'w-full pl-2 pr-2 py-2 w-full border rounded-md text-sm border-gray-300',
                     'border-red-500' => $errors->has('state'),
                     ])
-                    ->required()
                     !!}
 
                 </div>
@@ -321,20 +320,19 @@
 
                 </div>
                 <div>
-                    <label for="country" class="text-xs text-gray-500 font-medium required">Country </label>
+                    <label for="country" class="text-xs text-gray-500 font-medium ">Country </label>
 
                     {!! html()->select('country', [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old('country', $user->country ?? 'USA')) // default to USA if old or user value is not set
                     ->id('country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
                     ->attributes([
                     'autocomplete' => 'off',
                     ])
-                    ->required()
                     !!}
 
 
@@ -466,7 +464,7 @@
                 ])->attributes(['id' => 'limit_start']) !!}
 
                 <label for="limit_start" class="flex items-center text-xs text-gray-500 font-medium cursor-pointer">
-                    Limit to Shift Start Time
+                    Allow Override at Shift Start
                     <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400 ml-1" />
                 </label>
             </div>
@@ -478,19 +476,19 @@
                 ])->attributes(['id' => 'limit_end']) !!}
 
                 <label for="limit_end" class="flex items-center text-xs text-gray-500 font-medium cursor-pointer">
-                    Limit to Shift End Time
+                    Allow Override at Shift End
                     <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400 ml-1" />
                 </label>
             </div>
 
-            <div class="flex flex-col">
+            {{-- <div class="flex flex-col">
                 <label class="block text-xs font-medium text-gray-500 mb-1">
                     Auto Clock-Out Penalty
                 </label>
 
                 <select name="auto_clockout_penalty"
                     class="border rounded px-3 py-2 text-xs w-full focus:ring-blue-500 focus:border-blue-500">
-                    
+
                     <option value="">Select penalty time</option>
                     <option value="15" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 15 ? 'selected' : '' }}>15 Minutes</option>
                     <option value="30" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 30 ? 'selected' : '' }}>30 Minutes</option>
@@ -500,6 +498,19 @@
                     <option value="120" {{ old('auto_clockout_penalty', $user->auto_clockout_penalty ?? '') == 120 ? 'selected' : '' }}>120 Minutes</option>
 
                 </select>
+            </div> --}}
+
+            <div class="flex items-center gap-2">
+
+                {!! html()->checkbox('lunch_override',(bool) old('lunch_override', $user->lunch_override ?? false))->class([
+                'mt-1 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500'
+                ])->attributes(['id' => 'lunch_override']) !!}
+
+                <label for="lunch_override" class="flex items-center text-xs text-gray-500 font-medium cursor-pointer">
+                    Allow Lunch Override
+                    <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400 ml-1" />
+                </label>
+
             </div>
 
 
@@ -519,7 +530,7 @@
                     value="{{ old('shift_start_time', $user->shift_start_time ?? '') }}"
                     class="time-picker border rounded px-3 py-3 text-xs w-full"
                     placeholder="Select time"
-                    
+
                     readonly
                 >
             </div>
@@ -536,7 +547,7 @@
                     value="{{ old('shift_end_time', $user->shift_end_time ?? '') }}"
                     class="time-picker border rounded px-3 py-3 text-xs w-full"
                     placeholder="Select time"
-                    
+
                     readonly
                 >
             </div>
@@ -723,9 +734,9 @@
 
                     {!! html()->select('emergency_country', [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old('emergency_country', $user->emergencyContactOne->country ?? 'USA')) // default to USA if old or user value is not set
                     ->id('emergency_country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
@@ -863,7 +874,7 @@
                 </div>
                 <div>
                     <label for="emergency2_country" class="text-xs text-gray-500 font-medium">Country</label>
-                    
+
                     <!-- {!! html()->text('emergency2_country', old('emergency2_country', $user->emergencyContactTwo->country ?? ''))
                     ->id('emergency2_country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
@@ -871,9 +882,9 @@
 
                     {!! html()->select('emergency2_country', [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old('emergency2_country', $user->emergencyContactTwo->country ?? 'USA')) // default to USA if old or user value is not set
                     ->id('emergency2_country')
                     ->class('w-full pl-2 pr-2 py-2 border rounded-md text-sm border-gray-300')
@@ -972,7 +983,7 @@
             </div>
 
             <div class="px-5 pb-4">
-                <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Master Passcode.</p>
+                <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Admin Code.</p>
 
                 <div class="relative">
                     <input id="verify-password" type="password" autocomplete="current-password"
@@ -1112,7 +1123,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     input.addEventListener("input", function (e) {
         let value = e.target.value.replace(/\D/g, ""); // remove non-digits
-        value = value.substring(0, 8); // max 8 digits
+        value = value.substring(0, 9); // max 8 digits
 
         let formatted = "";
 
@@ -1123,7 +1134,7 @@ document.addEventListener("DOMContentLoaded", function () {
             formatted += "-" + value.substring(3, 5);
         }
         if (value.length >= 6) {
-            formatted += "-" + value.substring(5, 8);
+            formatted += "-" + value.substring(5, 9);
         }
 
         e.target.value = formatted;
@@ -1218,9 +1229,9 @@ document.addEventListener('DOMContentLoaded', function () {
             modal.classList.add('hidden');
         }
 
-   
 
-   
+
+
 
     // Submit verification
     verifyBtn.addEventListener('click', async function () {

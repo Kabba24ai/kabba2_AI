@@ -16,6 +16,8 @@ class UpdateUserVacationController extends BaseController
     {
         $data = $request->validated();
 
+        // dd($data);
+
         // If vacation disabled → clear policies
         if (! $data['vacation_eligible']) {
             $data['vacation_allotment_hour_id'] = null;

@@ -12,6 +12,13 @@
 </head>
 
 <body style=" font-family: Arial, sans-serif; color:#111;">
+
+       @php
+                    $siteLogo = \App\Helpers\ConfigurationHelper::getBrandingLogo();
+                    $sitename = \App\Helpers\ConfigurationHelper::getSettings('Website Management Branding','site_name');
+                    $primaryStore = \App\Models\Stores\Store::primary()->first();
+                    @endphp
+
     <table role="presentation" style="width:100%; border-collapse:collapse;">
 
         <tr>
@@ -31,10 +38,10 @@
                                         <table role="presentation" style="border-collapse:collapse;">
                                             <tr>
                                                 <td>
-                                                    <img src="{{ public_path('storage/admin/images/logo/rent-n-king-logo-outro.png') }}" width="48" height="48" alt="Logo" style="display:block; margin:auto;">
+                                                    <img src="{{ public_path(parse_url($siteLogo, PHP_URL_PATH)) }}" width="48" height="48" alt="Logo" style="display:block; margin:auto;">
                                                 </td>
                                                 <td style="padding-left:12px; vertical-align:middle;">
-                                                    <h3 style="font-weight:600; font-size:20px; margin:0; color:#111;">Rent 'n King</h3>
+                                                    <h3 style="font-weight:600; font-size:20px; margin:0; color:#111;">{{ $sitename ?: "Rent 'n King" }}</h3>
                                                     <p style="margin:0; font-size:13px; color:#111;">Professional Rentals & Sales</p>
                                                 </td>
                                             </tr>
@@ -60,9 +67,14 @@
                                     <td style="width:60%; vertical-align:top;  font-size:14px;">
                                         <h3 style="font-weight:600; font-size:16px; margin:0 0 6px; color:#000;">From:</h3>
                                         <p style="margin:0; color:#000; line-height:1.3;">
-                                            Rent 'n King .<br>
-                                            10296 Highway 46<br>
-                                            Bon Aqua, TN 37025<br>
+                                             {{ $sitename ?: "Rent 'n King" }} <br>
+
+                                               @if($primaryStore)
+                                                    {{ $primaryStore->address }}, <br>
+                                                    {{ $primaryStore->city }},
+                                                    {{ optional($primaryStore->state)->name }},
+                                                    {{ $primaryStore->zip_code }}. <br>
+                                                @endif
                                           @php
                                                 $invoicePhone = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_phone');
                                                 $invoiceEmail = \App\Helpers\ConfigurationHelper::getSettings(null, 'invoice_email');

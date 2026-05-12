@@ -1,6 +1,6 @@
 <footer class=" bg-neutral-800 text-white py-8 border-t no-print">
     <div class="container md:px-0">
-        <div class="mx-auto px-4 lg:px-8 lg:flex lg:items-center flex flex-wrap gap-8 justify-between">
+        <div class="mx-auto px-4 lg:px-8 lg:flex lg:items-start flex flex-wrap gap-8 justify-between">
             <div class="lg:flex gap-4 w-5/5 md:w-2/5 lg:w-1/5 items-center">
                 <div class=" mt-4 lg:mt-0 leading-[1.6]">
                     <h3 class="font-bold text-white text-base mb-2 ">Quick Links</h3>
@@ -65,7 +65,7 @@
 
                             @foreach ($socialIcons as $settingKey => $iconClass)
                                 @if (!empty($settings[$settingKey]))
-                                    <a href="{{ $settings[$settingKey] }}" target="_blank"
+                                    <a href="{{ $settings[$settingKey] }}"
                                         class="w-10 h-10 flex items-center justify-center text-neutral-200/60 border border-neutral-200/40 rounded-md hover:text-white hover:border-white transition">
                                         <i class="{{ $iconClass }} text-lg"></i>
                                     </a>
@@ -80,8 +80,29 @@
 
         </div>
     </div>
-    <h2 class="text-sm text-center mt-4 text-neutral-200/60">© {{ date('Y') }}
-        <a href="http://Kabba.ai" target="_blank" rel="noopener noreferrer">Kabba.ai </a> . All rights
-        reserved.</h2>
+    <div class="container mt-4 text-sm text-neutral-200/60 grid grid-cols-3 items-center">
+
+        <!-- Center text -->
+        <div class="text-left mt-4">
+            © {{ date('Y') }}
+            <a href="javascript:void(0)" rel="noopener noreferrer">
+                {{ $brandingSettings['all_rights_reserved'] ?? $brandingSettings['site_name'] }}
+            </a>. All rights reserved.
+        </div>
+
+        <!-- Empty column (left spacer) -->
+        <div></div>
+
+        <!-- Right text -->
+        <div class="text-right mt-4 text-white font-bold">
+                <span>Powered by :</span>
+                <a href="javascript:void(0)"
+
+                rel="noopener noreferrer"
+                class="text-white font-bold hover:text-yellow-400">
+                    {{ $brandingSettings['powered_by'] ?? 'kabba.ai' }}
+                </a>
+        </div>
+
     </div>
 </footer>

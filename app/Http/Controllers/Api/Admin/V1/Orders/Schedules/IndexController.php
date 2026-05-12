@@ -37,6 +37,7 @@ class IndexController extends BaseController
         $orders = OrderProduct::query()
             ->with('order', 'order.customer', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'deliveryMedia', 'pickupMedia', 'equipment','deliveryStore','pickupStore')
             ->where('product_data->product_type', 'Rental')
+            ->whereHas('order')
             ->whereNotNull('delivery_date')
             ->where(function ($q) {
                 $q->where(function ($subQ) {
@@ -78,7 +79,9 @@ class IndexController extends BaseController
                 function ($query) use ($dateFilter, $scheduleType) {
                     if ($scheduleType === "Delivery") {
                         if ($dateFilter === "Today") {
-                            $query->whereDate('delivery_date', now()->toDateString());
+                            $query->whereDate('delivery_date', "<=", today());
+                        } elseif ($dateFilter === "Tomorrow") {
+                            $query->whereDate('delivery_date', now()->addDay()->toDateString());
                         } elseif ($dateFilter === "This Week") {
                             $query->whereBetween('delivery_date', [now()->startOfWeek(), now()->endOfWeek()]);
                         } elseif ($dateFilter === "This Month") {
@@ -86,7 +89,9 @@ class IndexController extends BaseController
                         }
                     } elseif ($scheduleType === "Return") {
                         if ($dateFilter === "Today") {
-                            $query->whereDate('pickup_date', now()->toDateString());
+                            $query->whereDate('pickup_date', "<=", today());
+                        } elseif ($dateFilter === "Tomorrow") {
+                            $query->whereDate('pickup_date', now()->addDay()->toDateString());
                         } elseif ($dateFilter === "This Week") {
                             $query->whereBetween('pickup_date', [now()->startOfWeek(), now()->endOfWeek()]);
                         } elseif ($dateFilter === "This Month") {
@@ -98,7 +103,7 @@ class IndexController extends BaseController
             ->when(
                 $scheduleType === "Return",
                 fn($query) => $query->orderBy('pickup_date', 'asc'),
-                fn($query) => $query->orderBy('delivery_date', 'asc')
+                fn($query) => $query->orderBy('delivery_date', $dateFilter === 'Today' ? 'desc' : 'asc')
             )
             ->paginate($perPage);
 

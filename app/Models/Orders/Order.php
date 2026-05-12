@@ -3,7 +3,9 @@
 namespace App\Models\Orders;
 
 use App\Enums\Orders\OrderMediaType;
+use App\Enums\Equipments\EquipmentCurrentStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
 // Enums
@@ -15,10 +17,13 @@ use App\Helpers\ModelHelper;
 // Models
 use App\Models\Customers\Customer;
 use App\Models\Customers\Invoice;
-
+use App\Models\MaintenanceManagement\EquipmentSoftAssign;
+use stdClass;
 
 class Order extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'unique_id',
         'reference_order_number',
@@ -38,6 +43,8 @@ class Order extends Model
         'coupon_code',
         'discount_amount',
         'grand_total',
+        'auto_inject',
+        'auto_inject_by',
         'order_note',
         'cart_data', // JSON data of cart items
         'platform', // Web*, Android, iOS
@@ -50,11 +57,13 @@ class Order extends Model
         'last_terms_sms_sent_at',
         'signature_image', // Base64 encoded image of signature
 
-        'receipt_status'
+        'receipt_status',
+        'deleted_by',
     ];
 
     protected $casts = [
         'cart_data' => 'array',
+        'auto_inject' => 'boolean',
         'terms_collection' => 'array',
         'terms_status' => OrderTermsStatus::class,
     ];
@@ -109,17 +118,17 @@ class Order extends Model
 
     public function lastRefundPayment()
     {
-        return $this->hasOne(OrderPayment::class, 'order_id') ->ofMany(
-            ['id' => 'max'],              // aggregate: take the row with max(id)
-            fn ($query) => $query->refund() // constraint: only refund rows
+        return $this->hasOne(OrderPayment::class, 'order_id')->ofMany(
+            ['id' => 'max'], // aggregate: take the row with max(id)
+            fn($query) => $query->refund(), // constraint: only refund rows
         );
     }
 
     public function lastPaidPayment()
     {
-         return $this->hasOne(OrderPayment::class, 'order_id') ->ofMany(
-            ['id' => 'max'],              // aggregate: take the row with max(id)
-            fn ($query) => $query->paid() // constraint: only paid rows
+        return $this->hasOne(OrderPayment::class, 'order_id')->ofMany(
+            ['id' => 'max'], // aggregate: take the row with max(id)
+            fn($query) => $query->paid(), // constraint: only paid rows
         );
     }
 
@@ -140,7 +149,13 @@ class Order extends Model
 
     public function licenseMedia()
     {
-        return $this->hasMany(OrderMedia::class, 'order_id')->where('type', OrderMediaType::LICENSE);
+        return $this->hasMany(OrderMedia::class, 'order_id')->where('type', OrderMediaType::LICENSE)->orderByRaw("
+                CASE
+                    WHEN side = 'front' THEN 1
+                    WHEN side = 'back' THEN 2
+                    ELSE 3
+                END
+            ");
     }
 
     public function deliveryMedia()
@@ -171,8 +186,8 @@ class Order extends Model
         static::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'ORD');
 
-            // Get latest order ID
-            $latestOrder = self::latest('id')->first();
+            // Get latest order ID including soft deleted
+            $latestOrder = self::withTrashed()->latest('id')->first();
             $nextId = $latestOrder ? $latestOrder->id + 1 : 1;
 
             // Format: ORD-0001
@@ -183,9 +198,62 @@ class Order extends Model
             $model->order_time = $currentDateTime->format('H:i:s');
         });
 
+        // On soft-delete: move all assigned equipment to Maintenance hold
         static::deleting(function ($model) {
-            $model->media->each(function ($child) {
-                $child->delete(); // Triggers deleting event on OrderMedia
+            // Record who deleted this order
+            if (!$model->isForceDeleting()) {
+                $model->deleted_by = auth()->id();
+                $model->saveQuietly();
+            }
+
+            $model->products()->with('equipment')->get()->each(function ($product) use ($model) {
+                $equipment = $product->equipment;
+                if ($equipment) {
+                    $equipment->current_status          = EquipmentCurrentStatus::Maintenance->value;
+                    $equipment->current_status_updated_by = auth()->id();
+                    $equipment->current_status_changed_at = now();
+                    $equipment->current_order_id          = null;
+                    $equipment->current_order_product_id  = null;
+                    $equipment->saveQuietly();
+                }
+
+                if (!$model->isForceDeleting()) {
+                    // Use individual delete() so OrderProduct's deleting hook fires
+                    // (cascades soft-delete to softAssignment, orderMedia, checklist questions/answers)
+                    $product->delete();
+                }
+            });
+
+            if (!$model->isForceDeleting()) {
+                $model->addresses()->delete();
+                $model->payments()->delete();
+                $model->history()->delete();
+                $model->notes()->delete();
+                $model->media()->delete();
+                $model->extraCharges()->delete();
+                $model->softAssignments()->delete();
+            }
+        });
+
+        static::restoring(function ($model) {
+            $model->addresses()->withTrashed()->restore();
+            $model->payments()->withTrashed()->restore();
+            $model->history()->withTrashed()->restore();
+            $model->notes()->withTrashed()->restore();
+            $model->media()->withTrashed()->restore();
+            $model->extraCharges()->withTrashed()->restore();
+            $model->softAssignments()->withTrashed()->restore();
+            // Use individual restore() so OrderProduct's restoring hook fires
+            // (cascades restore to softAssignment, orderMedia, checklist questions/answers)
+            $model->products()->withTrashed()->get()->each(function ($product) {
+                $product->restore();
+            });
+        });
+
+        // On force-delete: clean up order media files
+        static::forceDeleting(function ($model) {
+            $model->media()->withTrashed()->get()->each(function ($child) {
+                $child->forceDelete(); // Triggers deleting event on OrderMedia
             });
         });
     }
@@ -232,18 +300,90 @@ class Order extends Model
 
     public function latestReceipt()
     {
-        return $this->hasOne(\App\Models\Customers\Receipt::class)
-            ->latestOfMany(); // Laravel helper
+        return $this->hasOne(\App\Models\Customers\Receipt::class)->latestOfMany(); // Laravel helper
     }
 
     public function extraCharges()
-{
-    return $this->hasMany(
-        OrderExtraCharges::class,
-        'order_id',
-        'id'
-    )->latest();
-}
+    {
+        return $this->hasMany(OrderExtraCharges::class, 'order_id', 'id')->latest();
+    }
 
+    public function softAssignments()
+    {
+        return $this->hasMany(EquipmentSoftAssign::class, 'order_id', 'id');
+    }
 
+    /**
+     * Build a single feed for all order-related notes shown in admin order edit.
+     */
+    public function getUnifiedNotesAttribute()
+    {
+        $orderNotes = $this->notes()
+            ->with(['createdBy', 'updatedBy'])
+            ->get()
+            ->map(function ($note) {
+                $note->source_label = 'Order Note';
+                $note->is_editable = class_basename((string) $note->created_by_type) === 'User';
+                return $note;
+            });
+
+        $paymentNotes = $this->payments()
+            ->with('createdBy')
+            ->whereNotNull('payment_note')
+            ->where('payment_note', '!=', '')
+            ->get()
+            ->map(function ($payment) {
+                $row = new stdClass();
+                $row->id = 'payment-' . $payment->id;
+                $row->note = $payment->payment_note;
+                $row->created_at = $payment->created_at;
+                $row->updated_at = $payment->updated_at;
+                $row->createdBy = $payment->createdBy;
+                $row->updatedBy = null;
+                $row->created_by_type_name = $payment->createdBy ? class_basename($payment->createdBy) : null;
+                $row->updated_by_type_name = null;
+                $row->source_label = 'Payment Note';
+                $row->context_label = $payment->payment_method?->label();
+                $row->is_editable = false;
+                return $row;
+            });
+
+        $orderProducts = $this->products()
+            ->with(['deliveryEmployee', 'pickupEmployee'])
+            ->get();
+
+        $deliveryNotes = $orderProducts->filter(fn($product) => filled($product->delivery_notes))->map(function ($product) {
+            $row = new stdClass();
+            $row->id = 'delivery-' . $product->id;
+            $row->note = $product->delivery_notes;
+            $row->created_at = $product->updated_at ?? $product->created_at;
+            $row->updated_at = $product->updated_at;
+            $row->createdBy = $product->deliveryEmployee;
+            $row->updatedBy = null;
+            $row->created_by_type_name = $product->deliveryEmployee ? class_basename($product->deliveryEmployee) : null;
+            $row->updated_by_type_name = null;
+            $row->source_label = 'Delivery Note';
+            $row->context_label = $product->product_name;
+            $row->is_editable = false;
+            return $row;
+        });
+
+        $pickupNotes = $orderProducts->filter(fn($product) => filled($product->pickup_notes))->map(function ($product) {
+            $row = new stdClass();
+            $row->id = 'pickup-' . $product->id;
+            $row->note = $product->pickup_notes;
+            $row->created_at = $product->updated_at ?? $product->created_at;
+            $row->updated_at = $product->updated_at;
+            $row->createdBy = $product->pickupEmployee;
+            $row->updatedBy = null;
+            $row->created_by_type_name = $product->pickupEmployee ? class_basename($product->pickupEmployee) : null;
+            $row->updated_by_type_name = null;
+            $row->source_label = 'Pickup Note';
+            $row->context_label = $product->product_name;
+            $row->is_editable = false;
+            return $row;
+        });
+
+        return $orderNotes->concat($paymentNotes)->concat($deliveryNotes)->concat($pickupNotes)->sortByDesc(fn($note) => optional(data_get($note, 'created_at'))->timestamp ?? 0)->values();
+    }
 }

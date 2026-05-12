@@ -21,6 +21,7 @@ class SettingSeeder extends Seeder
         $this->addEmailSettings();
         $this->addAllocatedHoursSettings();
         $this->addProductSettings();
+        $this->addPriceRateMultiplierSettings();
         $this->addContactUsSettings();
         $this->addSocialMediaSettings();
         $this->addAdminSettings();
@@ -43,56 +44,56 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'text',
                 'setting_name' => 'truck_delivery_cod_order_message',
-                'setting_title' => 'Truck Delivery COD Order Message',
-                'default_value' => "Thanks for placing a COD order! COD reservations are not guaranteed, and inventory may rent out until payment is made. We’re unable to load or send a delivery truck until payment is received. To secure your equipment, please complete payment. Questions? Call or text (615) 815-6734.",
+                'setting_title' => 'Truck Delivery POD Order Message',
+                'default_value' => "Thanks for placing a POD order! POD reservations are not guaranteed, and inventory may rent out until payment is made. We’re unable to load or send a delivery truck until payment is received. To secure your equipment, please complete payment. Questions? Call or text (615) 815-6734.",
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'checkbox',
                 'setting_name' => 'truck_delivery_cod_message_enabled',
-                'setting_title' => 'Enable Truck Delivery COD Message',
+                'setting_title' => 'Enable Truck Delivery POD Message',
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'store_delivery_cod_order_message',
-                'setting_title' => 'Store Delivery COD Order Message',
-                'default_value' => "Thank you for your COD order! Please note that COD is a soft reservation only, and equipment isn’t held until payment is made. For in-store pickup, we cannot release the machine until the order is paid. To lock in your rental, please call to complete payment. Call or text (615) 815-6734.",
+                'setting_title' => 'Store Delivery POD Order Message',
+                'default_value' => "Thank you for your POD order! Please note that POD is a soft reservation only, and equipment isn’t held until payment is made. For in-store pickup, we cannot release the machine until the order is paid. To lock in your rental, please call to complete payment. Call or text (615) 815-6734.",
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'checkbox',
                 'setting_name' => 'store_delivery_cod_message_enabled',
-                'setting_title' => 'Enable Store Delivery COD Message',
+                'setting_title' => 'Enable Store Delivery POD Message',
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'truck_delivery_same_day_cod_order_message',
-                'setting_title' => 'Truck Delivery COD Order Message',
-                'default_value' => "Good morning! Your rental is set for delivery today. Because this is a COD order, payment must be made before we can load the unit. Please call us at (615) 815-6734 to make your payment so we can get your equipment on the way.",
+                'setting_title' => 'Truck Delivery POD Order Message',
+                'default_value' => "Good morning! Your rental is set for delivery today. Because this is a POD order, payment must be made before we can load the unit. Please call us at (615) 815-6734 to make your payment so we can get your equipment on the way.",
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'checkbox',
                 'setting_name' => 'truck_delivery_same_day_cod_message_enabled',
-                'setting_title' => 'Enable Truck Delivery COD Message',
+                'setting_title' => 'Enable Truck Delivery POD Message',
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'store_delivery_same_day_cod_order_message',
-                'setting_title' => 'Store Delivery COD Order Message',
-                'default_value' => "Before heading in, please call us at (615) 815-6734 so we can check availability for your COD order. COD doesn’t guarantee the equipment, though it’s usually still available. A quick call ensures everything is ready when you arrive.",
+                'setting_title' => 'Store Delivery POD Order Message',
+                'default_value' => "Before heading in, please call us at (615) 815-6734 so we can check availability for your POD order. POD doesn’t guarantee the equipment, though it’s usually still available. A quick call ensures everything is ready when you arrive.",
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'checkbox',
                 'setting_name' => 'store_delivery_same_day_cod_message_enabled',
-                'setting_title' => 'Enable Store Delivery COD Message',
+                'setting_title' => 'Enable Store Delivery POD Message',
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
@@ -305,6 +306,39 @@ class SettingSeeder extends Seeder
         ];
     }
 
+    private function addPriceRateMultiplierSettings()
+    {
+        $sortOrder = 0;
+
+        $this->settings['Price Rate Multiplier Settings'] = [
+            [
+                'value_type' => 'number',
+                'setting_name' => 'weekend_multiplier',
+                'setting_title' => 'Weekend Rate Multiplier',
+                'placeholder' => '1.5',
+                'default_value' => null,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'weekly_multiplier',
+                'setting_title' => 'Weekly Rate Multiplier',
+                'placeholder' => '4.0',
+                'default_value' => null,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'monthly_multiplier',
+                'setting_title' => 'Monthly Rate Multiplier',
+                'placeholder' => '16.0',
+                'default_value' => null,
+                'sort_order' => $sortOrder++,
+            ],
+        ];
+
+    }
+
     private function addProductSettings()
     {
         $sortOrder = 0;
@@ -316,6 +350,38 @@ class SettingSeeder extends Seeder
                 'setting_title' => 'Sales Tax',
                 'placeholder' => '8.25',
                 'default_value' => 0.0975,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'special_taxes',
+                'setting_title' => 'Special Taxes',
+                'placeholder' => '0.00',
+                'default_value' => 0,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'special_taxes_description',
+                'setting_title' => 'Special Taxes Description',
+                'placeholder' => 'Enter description',
+                'default_value' => '',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'added_fees',
+                'setting_title' => 'Added Fees',
+                'placeholder' => '0.00',
+                'default_value' => 0,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'added_fees_description',
+                'setting_title' => 'Added Fees Description',
+                'placeholder' => 'Enter description',
+                'default_value' => '',
                 'sort_order' => $sortOrder++,
             ],
             [
@@ -700,6 +766,199 @@ class SettingSeeder extends Seeder
                 'sort_order' => $sortOrder++,
             ],
 
+            //--- Tire Insurance ---
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_daily_tire_insurance_fee',
+                'setting_title' => 'Small Daily Tire Insurance Fee',
+                'default_value' => 9,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_daily_tire_insurance_fee',
+                'setting_title' => 'Medium Daily Tire Insurance Fee',
+                'default_value' => 18,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_daily_tire_insurance_fee',
+                'setting_title' => 'Large Daily Tire Insurance Fee',
+                'default_value' => 24,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_daily_tire_insurance_fee',
+                'setting_title' => 'X-Large Daily Tire Insurance Fee',
+                'default_value' => 29,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_daily_tire_insurance_fee',
+                'setting_title' => '2X-Large Daily Tire Insurance Fee',
+                'default_value' => 34,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_daily_tire_insurance_fee',
+                'setting_title' => 'Commercial Daily Tire Insurance Fee',
+                'default_value' => 67,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_weekend_tire_insurance_fee',
+                'setting_title' => 'Small Weekend Tire Insurance Fee',
+                'default_value' => 12,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_weekend_tire_insurance_fee',
+                'setting_title' => 'Medium Weekend Tire Insurance Fee',
+                'default_value' => 24,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_weekend_tire_insurance_fee',
+                'setting_title' => 'Large Weekend Tire Insurance Fee',
+                'default_value' => 36,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_weekend_tire_insurance_fee',
+                'setting_title' => 'X-Large Weekend Tire Insurance Fee',
+                'default_value' => 39,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_weekend_tire_insurance_fee',
+                'setting_title' => '2X-Large Weekend Tire Insurance Fee',
+                'default_value' => 47,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_weekend_tire_insurance_fee',
+                'setting_title' => 'Commercial Weekend Tire Insurance Fee',
+                'default_value' => 97,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_weekly_tire_insurance_fee',
+                'setting_title' => 'Small Weekly Tire Insurance Fee',
+                'default_value' => 19,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_weekly_tire_insurance_fee',
+                'setting_title' => 'Medium Weekly Tire Insurance Fee',
+                'default_value' => 36,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_weekly_tire_insurance_fee',
+                'setting_title' => 'Large Weekly Tire Insurance Fee',
+                'default_value' => 48,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_weekly_tire_insurance_fee',
+                'setting_title' => 'X-Large Weekly Tire Insurance Fee',
+                'default_value' => 57,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_weekly_tire_insurance_fee',
+                'setting_title' => '2X-Large Weekly Tire Insurance Fee',
+                'default_value' => 67,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_weekly_tire_insurance_fee',
+                'setting_title' => 'Commercial Weekly Tire Insurance Fee',
+                'default_value' => 134,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'small_monthly_tire_insurance_fee',
+                'setting_title' => 'Small Monthly Tire Insurance Fee',
+                'default_value' => 27,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'medium_monthly_tire_insurance_fee',
+                'setting_title' => 'Medium Monthly Tire Insurance Fee',
+                'default_value' => 54,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'large_monthly_tire_insurance_fee',
+                'setting_title' => 'Large Monthly Tire Insurance Fee',
+                'default_value' => 72,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'x_large_monthly_tire_insurance_fee',
+                'setting_title' => 'X-Large Monthly Tire Insurance Fee',
+                'default_value' => 57,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => '2x_large_monthly_tire_insurance_fee',
+                'setting_title' => '2X-Large Monthly Tire Insurance Fee',
+                'default_value' => 97,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'commercial_monthly_tire_insurance_fee',
+                'setting_title' => 'Commercial Monthly Tire Insurance Fee',
+                'default_value' => 197,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'textarea',
+                'setting_name' => 'tire_insurance_info',
+                'setting_title' => 'Tire Insurance Message',
+                'placeholder' => 'Enter message for tire insurance popup...',
+                'default_value' => '<p>By removing Tire Insurance, you accept <strong>full financial responsibility</strong> for any tire damage during your rental (e.g., service call, labor, travel, and parts).</p><p><br>If a tire fails due to a defective component, it is covered automatically; however, this is uncommon.</p><p><br><em>*Covers 1 Tire service per rental period</em></p>',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'tire_insurance_decline_label',
+                'setting_title' => 'Decline Button Label',
+                'placeholder' => 'Enter decline button text',
+                'default_value' => "I'll Take The Risk",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'tire_insurance_approve_label',
+                'setting_title' => 'Accept Button Label',
+                'placeholder' => 'Enter accept button text',
+                'default_value' => "Yes, Add Tire Insurance",
+                'sort_order' => $sortOrder++,
+            ],
 
 
             // --- Prepaid Fuel ---
@@ -980,9 +1239,9 @@ class SettingSeeder extends Seeder
             [
                 'value_type' => 'password',
                 'setting_name' => 'master_passcode',
-                'setting_title' => 'Master Passcode',
+                'setting_title' => 'Admin code',
                 'default_value' => 12345678,
-                'placeholder' => 'Enter master passcode',
+                'placeholder' => 'Enter admin code',
                 'is_secure_field' => 1,
                 'is_encrypted' => 1,
                 'is_required' => 1,
@@ -1329,7 +1588,7 @@ class SettingSeeder extends Seeder
                     $setting_item->save();
                 }
 
-                if ($updateExisting && !$setting_item->wasRecentlyCreated) {
+                if ($updateExisting) {
                     $setting_item->fill([
                         'setting_title' => $setting['setting_title'],
                         'value_type' => $setting['value_type'],

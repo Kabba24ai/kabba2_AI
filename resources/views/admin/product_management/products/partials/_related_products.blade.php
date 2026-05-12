@@ -22,7 +22,11 @@
         Related products
     </h3>
 
-    <!-- Search Input + Suggestions -->
+    <!-- Parent Warning Banner -->
+    <div id="rp-parent-warning" class="hidden mb-4 px-4 py-3 bg-yellow-50 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-700 rounded text-sm">
+        <span class="font-medium">⚠️ Parent Product Excluded</span>
+        <p class="mt-1">Some products are excluded because they are already parents of this product.</p>
+    </div>
     <div class="relative">
         <label for="rp-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Search products
@@ -72,9 +76,11 @@
             const searchInput = document.getElementById('rp-search');
             const suggestionsEl = document.getElementById('rp-suggestions');
             const selectedEl = document.getElementById('rp-selected');
+            const warningEl = document.getElementById('rp-parent-warning');
             const hiddenInput = document.getElementById('rp-value');
             let controller = null;
             let debounceTimer = null;
+            let hasParentProducts = false;
 
             // update hidden input value
             const valuesContainer = document.getElementById('rp-values');
@@ -148,12 +154,16 @@
                     );
                     const data = await res.json();
                     const matches = data.products || [];
-                    return matches.filter(p =>
+                    const filtered = matches.filter(p =>
                         !selectedProducts.some(sp => sp.id === p.id)
                     );
+                    return {
+                        products: filtered,
+                        warning: data.parent_warning
+                    };
                 } catch (err) {
                     if (err.name !== 'AbortError') console.error(err);
-                    return [];
+                    return { products: [], warning: null };
                 }
             };
 
@@ -168,33 +178,56 @@
                 }
 
                 debounceTimer = setTimeout(async () => {
-                    const list = await fetchSuggestions(term);
+                    const result = await fetchSuggestions(term);
                     suggestionsEl.innerHTML = '';
 
-                    if (!list.length) {
-                        suggestionsEl.innerHTML = `
-                            <li class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-                                No products available
-                            </li>
-                        `;
+                    // Show parent warning if applicable
+                    if (result.warning) {
+                        const warningLi = document.createElement('li');
+                        warningLi.className = 'px-3 py-2 text-sm bg-yellow-50 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-200 border-b border-yellow-200 dark:border-yellow-700';
+                        warningLi.innerHTML = `⚠️ ${result.warning}`;
+                        suggestionsEl.appendChild(warningLi);
+                    }
+
+                    if (!result.products.length) {
+                        const noResultsLi = document.createElement('li');
+                        noResultsLi.className = 'px-3 py-2 text-sm text-gray-500 dark:text-gray-400';
+                        noResultsLi.textContent = 'No products available';
+                        suggestionsEl.appendChild(noResultsLi);
                         suggestionsEl.classList.remove('hidden');
                         return;
                     }
 
                     const frag = document.createDocumentFragment();
-                    list.forEach(prod => {
+                    result.products.forEach(prod => {
                         const li = document.createElement('li');
-                        li.className =
-                            'flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer';
-                        li.dataset.id = prod.id;
-                        li.dataset.name = prod.product_name;
-                        li.dataset.img = prod.image_url;
-                        li.innerHTML = `
+                        const isParent = prod.is_parent;
+
+                        if (isParent) {
+                            // Disabled parent product
+                            li.className = 'flex items-center px-3 py-2 bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed';
+                            li.innerHTML = `
+              <img src="${prod.image_url}" alt="" class="w-8 h-8 object-cover rounded mr-2 opacity-40" />
+              <span class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                ${prod.product_name}
+              </span>
+              <span class="ml-2 text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-200 px-2 py-1 rounded whitespace-nowrap">
+                Already a parent
+              </span>
+            `;
+                        } else {
+                            // Selectable product
+                            li.className = 'flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer';
+                            li.dataset.id = prod.id;
+                            li.dataset.name = prod.product_name;
+                            li.dataset.img = prod.image_url;
+                            li.innerHTML = `
               <img src="${prod.image_url}" alt="" class="w-8 h-8 object-cover rounded mr-2" />
               <span class="text-sm text-gray-800 dark:text-gray-200 truncate">
                 ${prod.product_name}
               </span>
             `;
+                        }
                         frag.appendChild(li);
                     });
 
@@ -257,8 +290,29 @@
             searchInput.addEventListener('input', renderSuggestions);
             searchInput.addEventListener('focus', renderSuggestions);
 
+            // Check for parent products on page load
+            const checkParentProducts = async () => {
+                try {
+                    const url = '{{ route('admin.product-management.products.search', [':search', $objProduct->unique_id ?? 0]) }}';
+                    const res = await fetch(
+                        url.replace(':search', encodeURIComponent('')), // Empty search to check for parent exclusions
+                        {
+                            signal: controller ? controller.signal : undefined
+                        }
+                    );
+                    const data = await res.json();
+                    hasParentProducts = !!data.parent_warning;
+                    if (hasParentProducts && warningEl) {
+                        warningEl.classList.remove('hidden');
+                    }
+                } catch (err) {
+                    console.error('Error checking parent products:', err);
+                }
+            };
+
             // initial render
             renderSelected();
+            checkParentProducts();
         });
     </script>
 @endpush

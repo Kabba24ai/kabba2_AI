@@ -153,7 +153,7 @@
                      
                          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                              <a href="{{ route('front.customer.dashboard.invoice.view', $invoice->unique_id) }}"
-                                 target="_blank" class="text-blue-600 inline-flex items-center">
+                                 class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
                              </a>
 

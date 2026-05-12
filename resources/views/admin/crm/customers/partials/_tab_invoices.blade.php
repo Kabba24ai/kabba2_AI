@@ -14,9 +14,9 @@
                 + Create From Account 
             </a>
 
-             <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}"  class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
+             {{-- <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}"  class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
                  + Create Invoice
-             </a>
+             </a> --}}
              <div class="text-left sm:text-right">
                  <p class="text-sm text-gray-600">Current Balance</p>
                  <p class="text-lg font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->available_credit_balance) }}</p>
@@ -116,9 +116,9 @@
                      <th class="py-4 px-6 w-32">Created</th>
                      <th class="py-4 px-6 w-32">Due Date</th>
                      <th class="py-4 px-6 w-32 text-right">Amount</th>
-                          {{-- <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
+                          <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
                                <th class="py-4 px-6 w-32 text-right">Open Amount</th>
-                     <th class="py-4 px-6 w-32 text-right">Payment Status</th> --}}
+                     <th class="py-4 px-6 w-32 text-right">Payment Status</th>
                      <th class="py-4 px-6 w-32 text-right">Mail Date</th>
 
                      <th class="py-4 px-6 w-32 text-right">Email Status</th>
@@ -129,7 +129,7 @@
 
              <tbody id="invoiceTable" class="divide-y divide-gray-200">
                  @forelse($customer->invoices as $invoice)
-                 <tr class="invoice-row" data-status="{{ $invoice->invoice_status }}" data-invoice-id="{{ $invoice->id }}">
+                 <tr class="invoice-row" data-status="{{ $invoice->invoice_status }}" data-invoice-id="{{ $invoice->open_amount }}">
                      <td class="py-4 px-6 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
                      <td class="py-4 px-6 whitespace-nowrap  truncate min-w-3xs max-w-3xs">
                          <div class="text-sm">
@@ -148,13 +148,13 @@
                      <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
                        {{-- Paid Amount --}}
-                    {{-- <td class="py-4 px-6 text-right text-green-600 font-semibold">
+                    <td class="py-4 px-6 text-right text-green-600 font-semibold">
                         ${{ number_format($invoice->paid_amount ?? 0, 2) }}
-                    </td> --}}
+                    </td>
 
                   {{-- Open Amount --}}
 
-                        {{-- <td class="py-4 px-6 text-right text-red-600 font-semibold"
+                        <td class="py-4 px-6 text-right text-red-600 font-semibold"
                             data-open-amount="{{
                                 $invoice->invoice_status === 'paid'
                                     ? 0
@@ -198,7 +198,7 @@
                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
                             {{ $statusLabel }}
                         </span>
-                    </td> --}}
+                    </td>
 
                    <td class="py-4 px-6 text-right">
 
@@ -243,14 +243,14 @@
                      <td class="py-4 px-6 whitespace-nowrap">
                          <div class="flex gap-2 items-center justify-end">
 
-                            {{-- @if($invoice->invoice_status !== 'paid')
-                                <button  class="text-green-600 inline-flex items-center i_openPaymentModal" data-invoice-id="{{ $invoice->id }}" >
+                            @if($invoice->invoice_status !== 'paid')
+                                <button  class="text-green-600 inline-flex items-center i_openPaymentModal" data-invoice-id="{{ $invoice->id }}"  data-remaing-amount="{{ $invoice->id }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
                                         <line x1="12" x2="12" y1="2" y2="22"></line>
                                         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                                     </svg>
                                 </button>
-                            @endif --}}
+                            @endif
 
                              <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}"  class="text-blue-600 inline-flex items-center">
                                  <x-heroicon-o-eye class="w-4 h-4 mr-1" />
@@ -426,14 +426,11 @@
                <div class=" px-6 overflow-y-auto">
                    <!-- <form> -->
 
-
                    {{ html()->form('POST', route('admin.crm.customers.invoice.paymentstore'))->id('InvoicePaymentForm')->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,
                             'class' => 'space-y-8',
                         ])->open() }}
-
-
 
                    {!! html()->text('customer_id', $customer->id ?? '')->class('hidden')->attributes([
                    'id' => 'customer_id',
@@ -616,7 +613,6 @@
        </div>
    </div>
 
-
 {{-- invoice payment   --}}
 
 @push('js')
@@ -755,7 +751,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
 
-
             // At the start of modal open (before filling data)
             if (amountInput2) amountInput2.readOnly = false;
             if (paymentTypeSelect2) paymentTypeSelect2.disabled = false;
@@ -779,11 +774,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-
             if (form) form.reset(); // clear all normal inputs
-
-
-
 
             // Reset custom digit inputs properly
             const digitInputs = modalWrapper.querySelectorAll("input[data-digit-input='true']");
@@ -829,7 +820,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
                 
 
-               openBtns.forEach(btn => {
+                openBtns.forEach(btn => {
                     btn.addEventListener('click', function () {
 
                         const invoiceId = this.dataset.invoiceId;
@@ -838,6 +829,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         const openAmount = parseFloat(
                             row.querySelector('[data-open-amount]')?.dataset.openAmount || 0
                         );
+
+                        const amountInputtext = modalWrapper.querySelector('input[name="amount"]');
+
+                        if (amountInputtext) {
+                            amountInputtext.dataset.max = openAmount;   
+                        }
 
                         // Reset modal first
                         resetForm(modalWrapper);
@@ -890,6 +887,23 @@ document.addEventListener('DOMContentLoaded', function () {
            setupModal('.i_openPaymentModal', 'i_InvoicePaymentModal', 'close_i_ModalBtn', 'cancelInvoicePaymentBtn');
 
 
+          const paymentForm = document.getElementById('InvoicePaymentForm');
+
+            paymentForm.addEventListener('input', function (e) {
+
+                if (e.target.name === 'amount') {
+
+                    const input = e.target;
+                    const max = parseFloat(input.dataset.max || 0);
+                    let value = parseFloat(input.value || 0);
+
+                    if (value > max) {
+                        input.value = max.toFixed(2);
+
+                        notyf.error("Amount cannot exceed remaining balance");
+                    }
+                }
+            });
 
     });
 </script>

@@ -95,9 +95,9 @@
                 <td class="px-4 py-4">
                     <div class="inline-flex items-center gap-1">
                         @if ($eq->status_label == 'Rented' && $eq?->orderProduct?->checklistQuestions->isNotEmpty())
-                            <a href="{{ route('admin.crm.customers.view', $eq->order->customer->unique_id) }}"
-                                target="_blank" class="text-blue-600 hover:underline">
-                                {{ $eq->order->customer_name ?? '-' }}
+                            <a href="{{ $eq->order?->customer ? route('admin.crm.customers.view', $eq->order->customer->unique_id) : '#' }}"
+                                 class="text-blue-600 hover:underline">
+                                {{ $eq->order?->customer_name ?? '-' }}
                             </a>
                         @else
                             @if ($eq->store?->store_name)
@@ -177,8 +177,8 @@
                                             <span
                                                 class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
                                         @endif
-                                        <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $overdueOrder?->order?->unique_id]) ?? '#' }}"
-                                            class="underline @if($overdueOrder?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" target="_blank">
+                                        <a href="{{ $overdueOrder?->order?->unique_id ? route('admin.order-management.orders.edit', ['unique_id' => $overdueOrder->order->unique_id]) : '#' }}"
+                                            class="underline @if($overdueOrder?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" >
                                             {{ $overdueOrder?->order?->order_number }}
                                         </a>
                                     </div>
@@ -191,8 +191,8 @@
                                             <span
                                                 class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
                                         @endif
-                                        <a href="{{ route('admin.order-management.orders.edit', ['unique_id' => $activeOrderProduct?->order?->unique_id]) ?? '#' }}"
-                                            class="underline @if($activeOrderProduct?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" target="_blank">
+                                        <a href="{{ $activeOrderProduct?->order?->unique_id ? route('admin.order-management.orders.edit', ['unique_id' => $activeOrderProduct->order->unique_id]) : '#' }}"
+                                            class="underline @if($activeOrderProduct?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" >
                                             {{ $activeOrderProduct?->order?->order_number }}
                                         </a>
                                     </div>
@@ -207,13 +207,13 @@
                                                 in_array($assignment->orderProduct?->delivery_status, ['Pending'], true)
                                                 || in_array($assignment->orderProduct?->pickup_status, ['Pending'], true)
                                             )
-                                                <button type="button" class="text-xs underline px-2 equipment-assign-btn @if($assignment->order->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif"
+                                                <button type="button" class="text-xs underline px-2 equipment-assign-btn @if($assignment->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif"
                                                     data-order-product-unique-id="{{ $assignment->orderProduct->unique_id }}"
                                                     data-product-name="{{ $assignment->orderProduct->product_name }}"
-                                                    data-order-unique-id="{{ $assignment->orderProduct?->order->unique_id }}"
+                                                    data-order-unique-id="{{ $assignment->orderProduct?->order?->unique_id }}"
                                                     data-order-id="{{ $assignment->orderProduct?->order?->order_number }}"
                                                     data-customer-name="{{ $assignment->orderProduct?->order?->customer_name }}">
-                                                    {{ $assignment->order->order_number }}
+                                                    {{ $assignment->order?->order_number ?? '-' }}
                                                 </button>
                                             @endif
                                         </div>

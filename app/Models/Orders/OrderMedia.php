@@ -3,6 +3,7 @@
 namespace App\Models\Orders;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 // Enums
 use App\Enums\Orders\OrderMediaType;
@@ -16,6 +17,8 @@ use App\Models\Iam\Personnel\User;
 
 class OrderMedia extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'unique_id',
         'type', // e.g., license, delivery, pickup
@@ -67,6 +70,10 @@ class OrderMedia extends Model
         });
 
         static::deleting(function ($model) {
+            if (!$model->isForceDeleting()) {
+                return;
+            }
+
             // Handle any cleanup or related deletions if necessary
             // For example, delete associated media if needed
             if ($model->media) {

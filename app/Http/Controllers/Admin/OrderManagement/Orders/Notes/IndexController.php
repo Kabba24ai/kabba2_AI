@@ -10,8 +10,8 @@ class IndexController extends Controller
 {
     public function __invoke($orderUniqueId)
     {
-        $order = Order::with(['notes'])->where('unique_id', $orderUniqueId)->firstOrFail();
-        $notes = $order->notes;
+        $order = Order::where('unique_id', $orderUniqueId)->firstOrFail();
+        $notes = $order->unified_notes;
         $html = view('components.admin.order-management.orders.order-notes-list', ['notes' => $notes])->render();
         return response()->json([
             'success' => true,

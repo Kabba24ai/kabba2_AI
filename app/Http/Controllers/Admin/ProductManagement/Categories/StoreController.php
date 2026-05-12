@@ -13,6 +13,7 @@ use App\Http\Requests\Admin\ProductManagement\Categories\StoreRequest;
 
 // Models
 use App\Models\ProductManagement\ProductCategory;
+use App\Models\ProductManagement\ProductCategoryChild;
 
 class StoreController extends Controller
 {
@@ -46,18 +47,38 @@ class StoreController extends Controller
             $objProductCategory->save();
         }
 
-        // Sync products
+        // Persist ordered product/subcategory rows in product_category_children
         if (isset($validatedData['products']) && is_array($validatedData['products'])) {
-            // Prepare sync data with sort order
-            $syncData = [];
-            foreach ($validatedData['products'] as $index => $productId) {
-                $syncData[$productId] = ['sort_order' => $index + 1];
-            }
-            $objProductCategory->products()->sync($syncData);
-        } else {
-            $objProductCategory->products()->sync([]);
-        }
+            $rowsToInsert = [];
+            $now = now();
 
+            foreach ($validatedData['products'] as $index => $row) {
+                $productId = !empty($row['product_id']) ? (int) $row['product_id'] : null;
+                $subcategoryId = !empty($row['sub_category_id']) ? (int) $row['sub_category_id'] : null;
+                $sortOrder = (int) ($row['sort_order'] ?? ($index + 1));
+
+                if (is_null($productId) && is_null($subcategoryId)) {
+                    continue;
+                }
+
+                $rowsToInsert[] = [
+                    'product_category_id' => $objProductCategory->id,
+                    'product_id' => $productId,
+                    'sub_category_id' => $subcategoryId,
+                    'sort_order' => $sortOrder,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            ProductCategoryChild::where('product_category_id', $objProductCategory->id)->delete();
+
+            if (!empty($rowsToInsert)) {
+                ProductCategoryChild::insert($rowsToInsert);
+            }
+        } else {
+            ProductCategoryChild::where('product_category_id', $objProductCategory->id)->delete();
+        }
 
         flash('Product Category created successfully.')->success();
 

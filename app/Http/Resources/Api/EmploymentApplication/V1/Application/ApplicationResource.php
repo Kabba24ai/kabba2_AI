@@ -47,11 +47,30 @@ class ApplicationResource extends JsonResource
 
             'store_id' => $this->store_id,
 
+            'positions' => collect(
+                data_get($this->job_preferences, 'positions', [])
+            )->map(function ($id) {
+                $position = \App\Models\Stores\EmploymentPosition::find($id);
+
+                return $position
+                    ? [
+                        'id' => (string) $position->id,
+                        'title' => $position->title,
+                    ]
+                    : null;
+            })->filter()->values(),
+
             'status' => match ((int) $this->status) {
                 0 => 'pending',
                 1 => 'reviewed',
                 2 => 'accepted',
                 3 => 'rejected',
+                4 => 'archive',
+
+                5 => 'call_first_interview',
+                6 => 'call_second_interview',
+                7 => 'extend_offer',
+
                 default => 'pending',
             },
 

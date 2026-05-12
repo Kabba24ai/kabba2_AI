@@ -28,6 +28,12 @@ window.loadCartSidebarPreview = (function() {
             if (cartSummaryDiv) {
             cartSummaryDiv.innerHTML = '<p class="text-center py-6 text-gray-600">No Items in Cart.</p>';
             }
+            document.dispatchEvent(new CustomEvent('cart:summary-updated', {
+                detail: {
+                    hideCcPaymentOption: false,
+                    cart: []
+                }
+            }));
             window.updateCartCount(); // Update cart count to 0
             return;
         }
@@ -81,6 +87,13 @@ window.loadCartSidebarPreview = (function() {
             if (cartSummaryDiv && data?.summary) {
                 cartSummaryDiv.innerHTML = data.summary;
             }
+
+            document.dispatchEvent(new CustomEvent('cart:summary-updated', {
+                detail: {
+                    hideCcPaymentOption: Boolean(data?.hide_cc_payment_option),
+                    cart
+                }
+            }));
         })
         .catch(error => {
             notyf.error('Failed to load cart data. Please try again later.');

@@ -128,14 +128,14 @@
 
                 {{-- links under the pill/buttons (like screenshot) --}}
                 <div class="flex items-center gap-6 text-sm text-blue-600">
-                    <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}" target="_blank"
+                    <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}"
                         class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
                         @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
                         <x-heroicon-o-user class="w-4 h-4 mr-1" /> Customer Details
                     </a>
 
                     <form action="{{ route('admin.crm.customers.impersonate-login', $order->customer?->unique_id) }}"
-                        method="POST" target="_blank" class="inline-flex items-center">
+                        method="POST" class="inline-flex items-center">
                         @csrf
                         <button type="submit" class="inline-flex items-center hover:underline">
                             <x-heroicon-o-link class="w-4 h-4 mr-1" /> Website Login
@@ -294,7 +294,7 @@
                         <div class="grid grid-cols-3" id="billing_map_link">
                             <span></span>
                             <a href="https://maps.google.com/?q={{ urlencode($order->billingAddress->full_address) }}"
-                                target="_blank" class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
+                                 class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
                                 maps</a>
                         </div>
                     @endif
@@ -363,7 +363,7 @@
                         <div class="grid grid-cols-3" id="shipping_map_link">
                             <span></span>
                             <a href="https://maps.google.com/?q={{ urlencode($order->shippingAddress->full_address) }}"
-                                target="_blank" class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
+                                 class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
                                 maps</a>
                         </div>
                     @endif
@@ -450,7 +450,7 @@
                                                 </span>
                                             @else
                                                 <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}"
-                                                    target="_blank" class="text-xs text-green-600 hover:underline">
+                                                     class="text-xs text-green-600 hover:underline">
                                                     {{ $orderProduct->equipment->equipment_name ?? '—' }} ||
                                                     ({{ $orderProduct->equipment->equipment_id ?? '—' }})
                                                 </a>
@@ -478,7 +478,7 @@
                                                     </span>
                                                 @else
                                                     <a href="{{ route('admin.maintenance-management.equipment.edit', $softUnique) }}"
-                                                        target="_blank" class="text-xs text-blue-600 hover:underline">
+                                                       class="text-xs text-blue-600 hover:underline">
                                                         {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }} ||
                                                         ({{ $orderProduct?->softAssignment?->equipment->equipment_id ?? '—' }})
                                                     </a>
@@ -566,11 +566,11 @@
                                             @php
                                                 $case = collect(
                                                     \App\Enums\Products\ProductCustomStaticLabel::cases(),
-                                                )->firstWhere('name', $rentalKey)?->value;
+                                                )->firstWhere('name', $rentalKey);
                                                 $quantity = $case ? $orderProduct->quantity : 1;
                                             @endphp
 
-                                            {{ $case ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
+                                            {{ $case?->label() ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey))) }}
                                             <span class="text-xs text-gray-400">
                                                 (x{{ $quantity }})
                                             </span>
@@ -989,7 +989,7 @@
                                         <div class="flex justify-center mb-1 gap-1">
                                             @if ($order->terms_status->isPending())
                                                 <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                                    target="_blank" title="View Terms">
+                                                     title="View Terms">
                                                     <span
                                                         class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
                                                         <x-heroicon-o-x-mark class="w-4 h-4" />
@@ -1010,7 +1010,7 @@
                                                 </button>
                                             @else
                                                 <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                                    target="_blank" title="View Terms">
+                                                     title="View Terms">
                                                     <span
                                                         class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
                                                         <x-heroicon-o-check class="w-4 h-4" />
@@ -1040,6 +1040,7 @@
                                                     {!! $order->licenseMedia->map(fn($m) => [
                                                         'url'  => optional($m->media)->url,
                                                         'type' => $m->type, // "image" or "video"
+                                                        'side' => $m->side
                                                     ])->toJson() !!}
                                                 </script>
                                             @else
@@ -1139,7 +1140,7 @@
                 </button>
 
                 <div class="p-6 max-h-60 overflow-y-auto" id="noteDiv">
-                    <x-admin.order-management.orders.order-notes-list :notes="$order->notes" />
+                    <x-admin.order-management.orders.order-notes-list :notes="$order->unified_notes" />
                 </div>
             </div>
         </div>
@@ -1760,6 +1761,7 @@
                             <div class="bg-white border border-gray-200 rounded-md overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
                                     <thead class="bg-gray-100 text-gray-600">
+
                                         <tr class="text-left text-gray-600 border-b">
                                             <th class="py-2 px-2">Checklist Item</th>
                                             <th class="py-2 px-2">Delivered</th>
@@ -1929,7 +1931,9 @@
                                             $finalFuelTotal = max(0, $fuelBaseTotal + $fuelAdjustmentTotal);
                                         @endphp
 
-                                        @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0)
+                                        {{-- @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0) --}}
+                                        @if (!is_null($product->fuel_initial_reading))
+
                                             @php
                                                 $arrFuelDelivery = [
                                                     ['id' => 10, 'name' => 'Prepaid'],
@@ -1955,7 +1959,7 @@
                                                 <td class="py-2 px-2">
                                                     Fuel (
                                                     {{ $product->equipment?->power_source_type
-                                                        ? ucfirst($product->equipment->power_source_type->value)
+                                                        ? $product->equipment->power_source_type->label()
                                                         : 'Select Power Source' }})
 
 
@@ -2289,7 +2293,7 @@
                             </select>
                             <div class="flex items-center justify-between gap-3 mt-2">
                                 <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                                <a href="#" target="_blank"
+                                <a href="#"
                                     class="text-blue-600 hover:underline text-sm font-semibold"
                                     id="equipment-page-link"></a>
                             </div>
@@ -2313,6 +2317,101 @@
                 </button>
             </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Change Return Date Modal -->
+    @php
+        $hoursSettings = $allocatedHoursSettings ?? [];
+        $dailyHours   = floatval($hoursSettings['daily_hours']   ?? 8);
+        $weekendHours = round(floatval($hoursSettings['weekend_hours'] ?? 14) / 2.5, 1);
+        $weeklyHours  = floatval($hoursSettings['weekly_hours']  ?? 40);
+        $monthlyHours = floatval($hoursSettings['monthly_hours'] ?? 160);
+    @endphp
+    <div id="changeReturnDateModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center px-4">
+        <div class="bg-white rounded-xl w-full max-w-md shadow-xl flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center px-6 py-4 border-b">
+                <h2 class="text-base font-semibold text-gray-900">Change Return Date</h2>
+                <button type="button" id="closeChangeReturnDateModal"
+                    class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <!-- Body -->
+            <div class="px-6 py-4 space-y-3">
+                <!-- Option 1 -->
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" name="returnDateOption" id="returnDateOnly" value="date_only"
+                        class="w-4 h-4 accent-blue-600">
+                    <span class="text-sm font-medium text-gray-800">Change Return Date only</span>
+                </label>
+                <!-- Option 2 -->
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" name="returnDateOption" id="returnDateAndHours" value="date_and_hours"
+                        class="w-4 h-4 accent-blue-600" checked>
+                    <span class="text-sm font-medium text-gray-800">Change Return Date &amp; update Equipment hours</span>
+                </label>
+
+                <!-- Hours options -->
+                <div id="returnHoursOptions" class="ml-7 space-y-2 pt-1">
+                    @foreach ([
+                        ['id' => 'hoursTypeDaily',   'value' => 'daily',   'label' => 'Daily',        'hours' => $dailyHours],
+                        ['id' => 'hoursTypeWeekend', 'value' => 'weekend', 'label' => 'Weekend Spcl', 'hours' => $weekendHours],
+                        ['id' => 'hoursTypeWeekly',  'value' => 'weekly',  'label' => 'Weekly',       'hours' => $weeklyHours],
+                        ['id' => 'hoursTypeMonthly', 'value' => 'monthly', 'label' => 'Monthly',      'hours' => $monthlyHours],
+                    ] as $hoursOption)
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer flex-1">
+                            <input type="radio" name="hoursType" id="{{ $hoursOption['id'] }}"
+                                value="{{ $hoursOption['value'] }}"
+                                data-hours="{{ $hoursOption['hours'] }}"
+                                class="hours-type-radio w-4 h-4 accent-blue-600"
+                                @if($hoursOption['value'] === 'daily') checked @endif>
+                            <span class="text-sm text-gray-700">{{ $hoursOption['label'] }} <span class="text-gray-500">{!! '{' . $hoursOption['hours'] . ' Hours}' !!}</span></span>
+                        </label>
+                        <div class="flex items-center gap-1 hours-qty-row" data-type="{{ $hoursOption['value'] }}">
+                            <button type="button"
+                                class="hours-qty-minus w-6 h-6 rounded-full bg-yellow-400 text-white font-bold text-sm flex items-center justify-center leading-none"
+                                data-type="{{ $hoursOption['value'] }}">−</button>
+                            <span class="hours-qty-display text-sm font-medium w-5 text-center"
+                                data-type="{{ $hoursOption['value'] }}">1</span>
+                            <button type="button"
+                                class="hours-qty-plus w-6 h-6 rounded-full bg-yellow-400 text-white font-bold text-sm flex items-center justify-center leading-none"
+                                data-type="{{ $hoursOption['value'] }}">+</button>
+                            <span class="text-xs text-gray-400 ml-0.5">Qty</span>
+                        </div>
+                    </div>
+                    @endforeach
+                    <!-- Custom -->
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer flex-1">
+                            <input type="radio" name="hoursType" id="hoursTypeCustom" value="custom"
+                                data-hours="0"
+                                class="hours-type-radio w-4 h-4 accent-blue-600">
+                            <span class="text-sm text-gray-700">Custom</span>
+                        </label>
+                        <input type="number" id="customHoursInput" min="0" step="0.5"
+                            class="border rounded px-2 py-1 text-sm w-20 text-right hidden"
+                            placeholder="Hours">
+                    </div>
+                    <!-- Total -->
+                    <div class="pt-2 border-t text-sm font-semibold text-gray-800 text-right">
+                        Current Allocated Hours: <span id="returnCurrentAllocatedHours">0</span> |
+                        Total Hours Added: <span id="returnTotalHoursAdded">{{ $dailyHours }}</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-xl">
+                <button type="button" id="cancelChangeReturnDate"
+                    class="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="button" id="saveChangeReturnDate"
+                    class="px-5 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition">
+                    Save
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2880,7 +2979,16 @@
                 // Return listeners
                 if (returnDate) {
                     returnDate.addEventListener('change', function() {
-                        updateScheduleField('return', 'pickup_date', returnDate.value);
+                        const orderProducts = @json($order->products);
+                        const orderProduct = orderProducts.find(op => op.unique_id === orderProductId);
+                        const currentAllocatedHours = parseFloat(orderProduct?.allocated_hours) || 0;
+
+                        window.openChangeReturnDateModal(
+                            orderProductId,
+                            returnDate.value,
+                            updateScheduleField,
+                            currentAllocatedHours
+                        );
                     });
                 }
                 if (returnTime) {
@@ -4193,37 +4301,73 @@
             let html = '';
             mediaData.forEach(m => {
                 if (!m.url) return;
+                let base = type ? type.toLowerCase() : '';
+                let side = m.side ? m.side.toLowerCase() : '';
+
+                let title = '';
+
+                // License case
+                if (base.includes('license')) {
+                    if (side === 'front') {
+                        title = 'Front Side of License';
+                    } else if (side === 'back') {
+                        title = 'Back Side of License';
+                    } else {
+                        title = 'License';
+                    }
+                }
+                // Other types
+                else if (base) {
+                    title = base.charAt(0).toUpperCase() + base.slice(1);
+                }
+                // Fallback
+                else {
+                    title = 'Media';
+                }
+
 
                 // Video
                 if (m.url.match(/\.(mp4|mov|webm)$/)) {
                     html += `
-                <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
-                    <video class="w-full h-48 object-cover" muted>
-                        <source src="${m.url}" type="video/mp4">
-                    </video>
-                    <a href="${m.url}" target="_blank"
-                        class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
-                        <!-- Play Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2 6.5l6 3.5-6 3.5v-7z"/>
-                        </svg>
-                    </a>
-                </div>
-            `;
-                }
+                        <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
+                            <video class="w-full h-48 object-cover" muted>
+                                <source src="${m.url}" type="video/mp4">
+                            </video>
+                            <a href="${m.url}"
+                                class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
+                                <!-- Play Icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2 6.5l6 3.5-6 3.5v-7z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    `;
+                    }
 
                 // Image
                 else if (m.url.match(/\.(jpeg|jpg|png|gif|webp)$/)) {
                     html += `
-                <div class="relative group bg-black rounded-lg overflow-hidden shadow-md">
-                    <img src="${m.url}" class="w-full h-48 object-cover" />
-                    <a href="${m.url}" target="_blank"
-                        class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition">
-                        <!-- Zoom Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/>
-                        </svg>
-                    </a>
+              <div class="group bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden border border-gray-200">
+
+                    <!-- Image -->
+                    <div class="relative">
+                        <img src="${m.url}" class="w-full h-48 object-cover" />
+
+                        <!-- Overlay -->
+                        <a href="${m.url}"
+                            class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/>
+                            </svg>
+                        </a>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="px-3 py-2">
+                        <p class="text-sm font-medium text-gray-800 truncate">
+                            ${title}
+                        </p>
+                    </div>
                 </div>
             `;
                 }
@@ -4313,6 +4457,151 @@
             });
 
         });
+
+        // ── Change Return Date Modal ──────────────────────────────────────────
+        (function () {
+            const modal           = document.getElementById('changeReturnDateModal');
+            const optionDateOnly  = document.getElementById('returnDateOnly');
+            const optionDateHours = document.getElementById('returnDateAndHours');
+            const hoursSection    = document.getElementById('returnHoursOptions');
+            const currentAllocatedDisplay = document.getElementById('returnCurrentAllocatedHours');
+            const totalDisplay    = document.getElementById('returnTotalHoursAdded');
+            const customInput     = document.getElementById('customHoursInput');
+            const saveBtn         = document.getElementById('saveChangeReturnDate');
+            const cancelBtns      = [
+                document.getElementById('closeChangeReturnDateModal'),
+                document.getElementById('cancelChangeReturnDate'),
+            ];
+
+            let _orderProductId   = null;
+            let _newDateValue     = null;
+            let _updateFn         = null;
+
+            // qty state per type
+            const qty = { daily: 1, weekend: 1, weekly: 1, monthly: 1 };
+
+            function getSelectedHoursType() {
+                return document.querySelector('input[name="hoursType"]:checked')?.value ?? 'daily';
+            }
+
+            function getBaseHours(type) {
+                const radio = document.querySelector(`input[name="hoursType"][value="${type}"]`);
+                return radio ? parseFloat(radio.dataset.hours) : 0;
+            }
+
+            function recalcTotal() {
+                const type = getSelectedHoursType();
+                let total;
+                if (type === 'custom') {
+                    total = parseFloat(customInput.value) || 0;
+                } else {
+                    total = getBaseHours(type) * (qty[type] ?? 1);
+                }
+                totalDisplay.textContent = total;
+                return total;
+            }
+
+            function updateQtyDisplay(type) {
+                document.querySelectorAll(`.hours-qty-display[data-type="${type}"]`).forEach(el => {
+                    el.textContent = qty[type];
+                });
+            }
+
+            // Toggle hours section visibility
+            function syncHoursSection() {
+                if (optionDateHours.checked) {
+                    hoursSection.classList.remove('hidden');
+                } else {
+                    hoursSection.classList.add('hidden');
+                }
+            }
+
+            optionDateOnly.addEventListener('change', syncHoursSection);
+            optionDateHours.addEventListener('change', syncHoursSection);
+
+            // Hours type radios
+            document.querySelectorAll('.hours-type-radio').forEach(radio => {
+                radio.addEventListener('change', function () {
+                    customInput.classList.toggle('hidden', this.value !== 'custom');
+                    recalcTotal();
+                });
+            });
+
+            // Qty buttons
+            document.querySelectorAll('.hours-qty-minus, .hours-qty-plus').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const type  = this.dataset.type;
+                    const delta = this.classList.contains('hours-qty-plus') ? 1 : -1;
+                    qty[type]   = Math.max(1, (qty[type] ?? 1) + delta);
+                    // Select the corresponding radio
+                    const radio = document.querySelector(`input[name="hoursType"][value="${type}"]`);
+                    if (radio) { radio.checked = true; customInput.classList.add('hidden'); }
+                    updateQtyDisplay(type);
+                    recalcTotal();
+                });
+            });
+
+            // Custom hours input
+            customInput.addEventListener('input', recalcTotal);
+
+            // Close handlers
+            cancelBtns.forEach(btn => btn?.addEventListener('click', closeModal));
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal();
+            });
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                _orderProductId = null;
+                _newDateValue   = null;
+                _updateFn       = null;
+            }
+
+            // Save
+            saveBtn.addEventListener('click', function () {
+                if (!_updateFn || !_orderProductId) return;
+
+                // Capture values before closeModal() nulls them
+                const fn        = _updateFn;
+                const dateValue = _newDateValue;
+                const updateHours = optionDateHours.checked;
+                const totalHours  = updateHours ? recalcTotal() : 0;
+
+                closeModal();
+
+                // Always save the date
+                const datePromise = fn('return', 'pickup_date', dateValue);
+
+                if (updateHours) {
+                    Promise.resolve(datePromise).then(() => {
+                        fn('return', 'allocated_hours', totalHours);
+                    });
+                }
+            });
+
+            // Public opener
+            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0) {
+                _orderProductId = orderProductId;
+                _newDateValue   = newDate;
+                _updateFn       = updateScheduleField;
+
+                if (currentAllocatedDisplay) {
+                    currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;
+                }
+
+                // Reset qty
+                Object.keys(qty).forEach(k => { qty[k] = 1; updateQtyDisplay(k); });
+                // Default: daily checked, hours section visible
+                document.getElementById('hoursTypeDaily').checked = true;
+                customInput.classList.add('hidden');
+                customInput.value = '';
+                optionDateHours.checked = true;
+                syncHoursSection();
+                recalcTotal();
+
+                modal.classList.remove('hidden');
+            };
+        })();
 
     </script>
 

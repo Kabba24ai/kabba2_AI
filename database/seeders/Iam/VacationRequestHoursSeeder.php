@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders\Iam;
 
 use Illuminate\Database\Seeder;
@@ -8,8 +9,9 @@ class VacationRequestHoursSeeder extends Seeder
 {
     public function run(): void
     {
-        
-      $hours = [
+        $updateExisting = config('app.seeders.existing_settings_update');
+
+        $hours = [
             ['name' => '1 Hour', 'hours' => 1],
             ['name' => '2 Hours', 'hours' => 2],
             ['name' => '3 Hours', 'hours' => 3],
@@ -30,12 +32,20 @@ class VacationRequestHoursSeeder extends Seeder
             ['name' => '10 Days', 'hours' => 80],
         ];
 
-
         foreach ($hours as $hour) {
-            VacationRequestHour::updateOrCreate(
-                ['hours' => $hour['hours']],
+
+            // Create if not exists
+            $item = VacationRequestHour::firstOrCreate(
+                ['hours' => $hour['hours']], // unique key
                 $hour
             );
+
+            // Update only if allowed
+            if ($updateExisting && !$item->wasRecentlyCreated) {
+                $item->update([
+                    'name' => $hour['name'],
+                ]);
+            }
         }
     }
 }

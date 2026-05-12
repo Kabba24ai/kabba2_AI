@@ -50,6 +50,10 @@ class ViewUpdateRequest extends FormRequest
             'website_protocol' => ['nullable'],
             'website_extension' => ['nullable'],
 
+            'license_front' => ['nullable', 'file'],
+            'license_back' => ['nullable', 'file'],
+            'license_expiry_date' => ['nullable'],
+
         ];
     }
 

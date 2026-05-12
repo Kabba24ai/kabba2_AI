@@ -21,6 +21,8 @@ class UploadMediaRequest extends ApiBaseFormRequest
             'media' => 'required|array',
             'media.*' => 'file', // Each file validation (image or video)
             'side' => 'nullable|string|in:front,back', // New field for license side
+            'license_expiry_date' => 'nullable|date|date_format:Y-m-d', // Optional date field for license
+            'auto_inject_by' => 'nullable|integer|exists:users,id', // Optional field to specify who is uploading the media
         ];
     }
 
@@ -83,6 +85,16 @@ class UploadMediaRequest extends ApiBaseFormRequest
                 'description' => 'A file to upload (image or video).',
                 'example' => 'file.jpg',
                 'type' => 'file',
+            ],
+            'license_date' => [
+                'description' => 'The date associated with the license, required if type is license.',
+                'example' => '2024-01-01',
+                'type' => 'string (date)',
+            ],
+            'auto_inject_by' => [
+                'description' => 'Optional user ID to attribute the upload to, if different from the authenticated user.',
+                'example' => 1,
+                'type' => 'integer',
             ],
         ];
     }

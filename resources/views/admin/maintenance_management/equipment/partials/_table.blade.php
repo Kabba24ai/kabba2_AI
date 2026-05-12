@@ -36,8 +36,10 @@
                                 {{ $item->equipment_id }}
                             </span>
                         </td>
-                        <td class="py-3 px-3 inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <td class="py-3 px-3 inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer" onclick="window.location='{{ route('admin.checklist-management.equipment-management.show', $item->unique_id) }}'" >
+                           
                             {!! \App\Helpers\CustomHelper::statusBadge($item->current_status->label()) !!}
+                            
                         </td>
                          <td class="py-4 px-6">
                             @if ($item->status_label == 'Rented')

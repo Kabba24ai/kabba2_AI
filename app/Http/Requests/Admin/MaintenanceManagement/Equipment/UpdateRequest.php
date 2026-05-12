@@ -121,6 +121,22 @@ class UpdateRequest extends FormRequest
 
             'parts_lists' => 'nullable|array',
             'parts_list_id' => 'nullable|exists:parts_lists,id',
+
+            'similar_equipment_ids' => 'nullable|array',
+            'similar_equipment_ids.*' => 'integer|exists:equipment,id',
+
+            'critical_matching_criteria' => 'nullable|array',
+            'critical_matching_criteria.*.enabled' => 'nullable|boolean',
+            'critical_matching_criteria.*.threshold' => 'nullable|numeric|min:0',
+            'critical_matching_criteria.*.weight' => 'nullable|integer|min:0|max:100',
+            'critical_matching_criteria.*.upgrade_exceeds_value' => 'nullable|boolean',
+            'critical_matching_criteria.*.caution_if_change_value' => 'nullable|boolean',
+
+            'allow_upgrades' => 'nullable|boolean',
+            'allow_downgrades' => 'nullable|boolean',
+            'downgrade_requires_approval' => 'nullable|boolean',
+            'equipment_key_comparison_notes' => 'nullable|string',
+            'assigned_product_id' => 'nullable|integer|exists:products,id',
         ];
     }
 

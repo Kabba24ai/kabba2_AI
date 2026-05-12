@@ -14,14 +14,27 @@ class UpdateRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        // Sanitize all input
         $cleaned = PurifyHelper::purify($this->all(), []);
 
+        // Days of the week
         $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
+        // Convert checkboxes ("on" or missing) into real booleans
         foreach ($days as $day) {
-            // Convert checkbox into real boolean
             $cleaned["{$day}_closed"] = $this->boolean("{$day}_closed");
+
+            $cleaned["{$day}_lunch"] = $this->boolean("{$day}_lunch");
         }
+
+          if (!empty($cleaned['lunch_start_time'])) {
+            try {
+                $cleaned['lunch_start_time'] = \Carbon\Carbon::parse($cleaned['lunch_start_time'])
+                    ->format('H:i:s'); //  13:00:00
+            } catch (\Exception $e) {
+                $cleaned['lunch_start_time'] = null;
+            }
+          }
 
         $this->merge($cleaned);
     }
@@ -48,6 +61,25 @@ class UpdateRequest extends FormRequest
             'latitude' => ['required', 'string'],
             'longitude' => ['required', 'string'],
             'details' => ['nullable', 'string', 'max:255'],
+                        // 'lunch_start_time' => ['nullable'],
+            'lunch_start_time' => [
+                    'nullable',
+                    function ($attribute, $value, $fail) {
+
+                        try {
+                            $time = \Carbon\Carbon::parse($value);
+                            $minutes = $time->minute;
+
+                            if ($minutes % 5 !== 0) {
+                                $fail('Lunch start time must be in 5-minute intervals (00, 05, 10...).');
+                            }
+
+                        } catch (\Exception $e) {
+                            $fail('Invalid time format.');
+                        }
+                    }
+                ],
+
         ];
 
         // Days with time validation
@@ -57,6 +89,7 @@ class UpdateRequest extends FormRequest
 
             $rules["{$day}_closed"] = ['required', 'boolean'];
 
+            $rules["{$day}_lunch"] = ['nullable', 'boolean'];
             // Allow 12-hour or 24-hour format
             $rules["{$day}_start"] = [
                 'nullable',

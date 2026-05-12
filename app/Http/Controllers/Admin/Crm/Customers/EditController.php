@@ -22,7 +22,7 @@ class EditController extends Controller
      */
     public function __invoke(string $unique_id): View
     {
-       
+
         $customer = Customer::with('orders','addresses', 'billingAddress', 'shippingAddress','media')
         ->where('unique_id', $unique_id)
         ->firstOrFail();
@@ -47,14 +47,14 @@ class EditController extends Controller
                 }
             }
         }
-        
-        $admins = User::get();
+
+        $admins = User::active()->get();
 
         $states = State::get();
 
         $customeraddresses = CustomerAddress::with('state')->where('customer_id',$customer->id)->get()  ;
 
-        
+
     $addressListJson = $customeraddresses->map(function ($address) {
         return [
             'address_id' => $address->id ,

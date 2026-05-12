@@ -35,8 +35,8 @@ class IndexController extends Controller
 
         $equipmentQuery = clone $query;
 
-        // status filter (ignore when store filter is active)
-        $equipmentQuery->when($request->status && !$request->filled('location_store'), function ($q, $status) {
+        // Apply selected status card filter to table results.
+        $equipmentQuery->when($request->status, function ($q, $status) {
             $q->where('current_status', $status);
         });
 

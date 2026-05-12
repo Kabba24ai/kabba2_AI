@@ -34,11 +34,12 @@ class IndexController extends BaseController
 
         if ($type == "return" && $orderProductUniqueId) {
             $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'checklistQuestions.deliverySelectedAnswer', 'checklistQuestions.returnSelectedAnswer','equipment'])
+                ->whereHas('order')
                 ->where('unique_id', $orderProductUniqueId)
                 ->first();
 
-            $questions = optional($orderProduct->checklistQuestions) ?? collect();
-            $equipment = $orderProduct->equipment ?? null;
+            $questions = optional($orderProduct)->checklistQuestions ?? collect();
+            $equipment = optional($orderProduct)->equipment ?? null;
         }
 
         if ($type == "delivery" && $equipmentUniqueId) {

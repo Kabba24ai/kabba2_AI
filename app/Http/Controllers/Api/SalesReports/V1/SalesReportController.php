@@ -133,10 +133,10 @@ class SalesReportController extends Controller
     {
         $limit = $request->input('limit', 10);
         $filters = $request->all();
+        $includePrevious = $request->input('include_previous', false);
         
-        // Calculate date range based on filters
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -147,7 +147,6 @@ class SalesReportController extends Controller
                 $endDate->format('Y-m-d')
             ]);
 
-        // Apply filters
         $this->applyFiltersToQuery($query, $filters);
 
         $topProducts = $query->select(
@@ -164,6 +163,41 @@ class SalesReportController extends Controller
             ->orderBy('total_sales', 'desc')
             ->limit($limit)
             ->get();
+
+        // Fetch previous period sales for the same product IDs
+        if ($includePrevious && $topProducts->isNotEmpty()) {
+            [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
+            $productIds = $topProducts->pluck('id')->toArray();
+
+            $prevQuery = DB::table('order_products')
+                ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+                ->join('products', 'order_products.product_id', '=', 'products.id')
+                ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
+                ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                    $prevStart->format('Y-m-d'),
+                    $prevEnd->format('Y-m-d')
+                ])
+                ->whereIn('order_products.product_id', $productIds);
+
+            $this->applyFiltersToQuery($prevQuery, $filters);
+
+            $prevSales = $prevQuery->select(
+                    'order_products.product_id as id',
+                    DB::raw('SUM(CASE 
+                        WHEN order_payments.refund_amount > 0 
+                        THEN -(order_products.total - order_products.tax) 
+                        ELSE (order_products.total - order_products.tax) 
+                    END) as total_sales')
+                )
+                ->groupBy('order_products.product_id')
+                ->get()
+                ->keyBy('id');
+
+            $topProducts = $topProducts->map(function ($product) use ($prevSales) {
+                $product->previous_total_sales = (float)($prevSales[$product->id]->total_sales ?? 0);
+                return $product;
+            });
+        }
 
         // Calculate total sales for the same filters
         $totalSalesQuery = DB::table('order_products')
@@ -198,10 +232,10 @@ class SalesReportController extends Controller
     {
         $limit = $request->input('limit', 5);
         $filters = $request->all();
+        $includePrevious = $request->input('include_previous', false);
         
-        // Calculate date range based on filters
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -214,7 +248,6 @@ class SalesReportController extends Controller
                 $endDate->format('Y-m-d')
             ]);
 
-        // Apply filters (exclude category filter for top categories)
         $filtersWithoutCategory = $filters;
         unset($filtersWithoutCategory['category']);
         $this->applyFiltersToQuery($query, $filtersWithoutCategory);
@@ -233,6 +266,43 @@ class SalesReportController extends Controller
             ->orderBy('total_sales', 'desc')
             ->limit($limit)
             ->get();
+
+        // Fetch previous period sales for the same category IDs
+        if ($includePrevious && $topCategories->isNotEmpty()) {
+            [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
+            $categoryIds = $topCategories->pluck('id')->toArray();
+
+            $prevQuery = DB::table('order_products')
+                ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
+                ->join('products', 'order_products.product_id', '=', 'products.id')
+                ->join('product_category_children', 'products.id', '=', 'product_category_children.product_id')
+                ->join('product_categories', 'product_category_children.product_category_id', '=', 'product_categories.id')
+                ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
+                ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
+                    $prevStart->format('Y-m-d'),
+                    $prevEnd->format('Y-m-d')
+                ])
+                ->whereIn('product_categories.id', $categoryIds);
+
+            $this->applyFiltersToQuery($prevQuery, $filtersWithoutCategory);
+
+            $prevSales = $prevQuery->select(
+                    'product_categories.id',
+                    DB::raw('SUM(CASE 
+                        WHEN order_payments.refund_amount > 0 
+                        THEN -(order_products.total - order_products.tax) 
+                        ELSE (order_products.total - order_products.tax) 
+                    END) as total_sales')
+                )
+                ->groupBy('product_categories.id')
+                ->get()
+                ->keyBy('id');
+
+            $topCategories = $topCategories->map(function ($category) use ($prevSales) {
+                $category->previous_total_sales = (float)($prevSales[$category->id]->total_sales ?? 0);
+                return $category;
+            });
+        }
 
         // Calculate total sales for the same filters
         $totalSalesQuery = DB::table('order_products')
@@ -335,41 +405,47 @@ class SalesReportController extends Controller
         )->get();
 
         $totalGrossSales = 0;
-        $totalDiscounts = 0;
-        $totalRefunds = 0;
-        $totalNetSales = 0;
-        $itemsSold = 0;
-        $orderIds = collect();
+        $totalDiscounts  = 0;
+        $totalRefunds    = 0;
+        $totalTax        = 0;
+        $itemsSold       = 0;
+        $orderIds        = collect();
 
         foreach ($data as $item) {
-            $amount = $item->total - $item->tax; // Exclude tax
-            $quantity = $item->quantity ?? 1;
+            $lineTotal = (float)($item->total ?? 0);
+            $lineTax   = (float)($item->tax ?? 0);
+            $quantity  = $item->quantity ?? 1;
+
+            // Gross Sales = face value of ALL sales (before any deductions)
+            $totalGrossSales += $lineTotal;
 
             if ($item->refund_amount > 0) {
-                // Refunded order
-                $totalRefunds += $amount;
+                // Refunded: track the full line amount as a return
+                $totalRefunds += $lineTotal;
             } else {
-                // Paid order
-                $totalGrossSales += $item->total; // Gross includes tax
-                $totalNetSales += $amount;
+                $totalTax += $lineTax;
                 $itemsSold += $quantity;
                 $orderIds->push($item->order_id);
             }
         }
 
-        $transactionCount = $orderIds->unique()->count();
-        $averageSaleValue = $transactionCount > 0 ? $totalNetSales / $transactionCount : 0;
+        // Net Sales = Gross Sales − Returns − Discounts − Allowances (tax is NOT a deduction here)
+        $totalNetSales = $totalGrossSales - $totalRefunds - $totalDiscounts;
+
+        $transactionCount    = $orderIds->unique()->count();
+        $averageSaleValue    = $transactionCount > 0 ? $totalNetSales / $transactionCount : 0;
         $averageItemsPerSale = $transactionCount > 0 ? $itemsSold / $transactionCount : 0;
 
         return response()->json([
-            'totalGrossSales' => (float)$totalGrossSales,
-            'totalDiscounts' => (float)$totalDiscounts,
-            'totalRefunds' => (float)$totalRefunds,
-            'totalNetSales' => (float)($totalNetSales - $totalRefunds),
-            'transactionCount' => $transactionCount,
-            'itemsSold' => (int)$itemsSold,
-            'averageSaleValue' => (float)$averageSaleValue,
-            'averageItemsPerSale' => (float)$averageItemsPerSale
+            'totalGrossSales'    => (float)$totalGrossSales,
+            'totalDiscounts'     => (float)$totalDiscounts,
+            'totalRefunds'       => (float)$totalRefunds,
+            'totalNetSales'      => (float)$totalNetSales,
+            'totalTax'           => (float)$totalTax,
+            'transactionCount'   => $transactionCount,
+            'itemsSold'          => (int)$itemsSold,
+            'averageSaleValue'   => (float)$averageSaleValue,
+            'averageItemsPerSale' => (float)$averageItemsPerSale,
         ]);
     }
 
@@ -656,63 +732,87 @@ class SalesReportController extends Controller
             'order_products.quantity',
             'products.product_name',
             'products.product_type',
-            'order_payments.refund_amount'
+            'order_payments.refund_amount',
+            DB::raw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_variant')) as product_variant")
         )->get();
+
+        // Rental usage multipliers by variant (normalized to equivalent daily rental days)
+        $rentalMultipliers = [
+            'daily'   => 1,
+            'weekend' => 2.5,
+            'weekly'  => 7,
+            'monthly' => 28,
+        ];
 
         $productMap = [];
 
         foreach ($data as $item) {
-            $productId = (string)$item->product_id;
-            $amount = $item->total - $item->tax;
-            $quantity = $item->quantity ?? 1;
-            $isRefund = $item->refund_amount > 0;
+            $productId    = (string)$item->product_id;
+            $lineTotal    = (float)($item->total ?? 0);
+            $lineTax      = (float)($item->tax ?? 0);
+            $quantity     = $item->quantity ?? 1;
+            $isRefund     = $item->refund_amount > 0;
+            $isRental     = strtolower($item->product_type ?? '') === 'rental';
+            $variant      = strtolower($item->product_variant ?? 'daily');
+            $multiplier   = $rentalMultipliers[$variant] ?? 1;
+            $usageQty     = $isRental ? $quantity * $multiplier : 0;
 
             if (!isset($productMap[$productId])) {
                 $productMap[$productId] = [
-                    'productId' => $productId,
-                    'productName' => $item->product_name ?? 'Unknown',
-                    'sku' => strtoupper(substr($productId, 0, 8)),
-                    'quantitySold' => 0,
-                    'grossSales' => 0,
-                    'discountAmount' => 0,
-                    'netSales' => 0,
-                    'refundQuantity' => 0,
-                    'refundAmount' => 0,
-                    'taxCollected' => 0,
-                    'itemType' => strtolower($item->product_type ?? 'retail') === 'rental' ? 'rental' : 'retail',
-                    'salesCount' => 0
+                    'productId'              => $productId,
+                    'productName'            => $item->product_name ?? 'Unknown',
+                    'sku'                    => strtoupper(substr($productId, 0, 8)),
+                    'quantitySold'           => 0,
+                    'grossSales'             => 0,
+                    'discountAmount'         => 0,
+                    'refundQuantity'         => 0,
+                    'refundAmount'           => 0,
+                    'taxCollected'           => 0,
+                    'itemType'               => $isRental ? 'rental' : 'retail',
+                    'salesCount'             => 0,
+                    'rentalUsageQuantity'    => 0,
+                    'refundRentalUsageQty'   => 0,
                 ];
             }
 
+            // Gross Sales = face value of ALL sales (before any deductions)
+            $productMap[$productId]['grossSales'] += $lineTotal;
+
             if ($isRefund) {
-                $productMap[$productId]['refundQuantity'] += $quantity;
-                $productMap[$productId]['refundAmount'] += $amount;
+                $productMap[$productId]['refundQuantity']       += $quantity;
+                $productMap[$productId]['refundAmount']         += ($lineTotal - $lineTax);
+                $productMap[$productId]['refundRentalUsageQty'] += $usageQty;
             } else {
-                $productMap[$productId]['quantitySold'] += $quantity;
-                $productMap[$productId]['grossSales'] += $item->total;
-                $productMap[$productId]['netSales'] += $amount;
-                $productMap[$productId]['taxCollected'] += ($item->tax ?? 0);
+                $productMap[$productId]['quantitySold']        += $quantity;
+                $productMap[$productId]['taxCollected']        += $lineTax;
                 $productMap[$productId]['salesCount']++;
+                $productMap[$productId]['rentalUsageQuantity'] += $usageQty;
             }
         }
 
         $result = [];
         foreach ($productMap as $product) {
             $salesCount = $product['salesCount'];
+
+            // Net Sales = Gross Sales − Returns − Discounts − Allowances
+            $netSales = $product['grossSales'] - $product['refundAmount'] - $product['discountAmount'];
+
             $result[] = [
-                'productId' => $product['productId'],
-                'productName' => $product['productName'],
-                'sku' => $product['sku'],
-                'quantitySold' => (int)$product['quantitySold'],
-                'grossSales' => (float)$product['grossSales'],
-                'discountAmount' => (float)$product['discountAmount'],
-                'netSales' => (float)$product['netSales'],
-                'averageSellingPrice' => $salesCount > 0 ? (float)($product['netSales'] / $salesCount) : 0,
-                'refundQuantity' => (int)$product['refundQuantity'],
-                'refundAmount' => (float)$product['refundAmount'],
-                'netQuantitySold' => (int)($product['quantitySold'] - $product['refundQuantity']),
-                'taxCollected' => (float)$product['taxCollected'],
-                'itemType' => $product['itemType']
+                'productId'              => $product['productId'],
+                'productName'            => $product['productName'],
+                'sku'                    => $product['sku'],
+                'quantitySold'           => (int)$product['quantitySold'],
+                'grossSales'             => (float)$product['grossSales'],
+                'discountAmount'         => (float)$product['discountAmount'],
+                'netSales'               => (float)$netSales,
+                'averageSellingPrice'    => $salesCount > 0 ? (float)($netSales / $salesCount) : 0,
+                'refundQuantity'         => (int)$product['refundQuantity'],
+                'refundAmount'           => (float)$product['refundAmount'],
+                'netQuantitySold'        => (int)($product['quantitySold'] - $product['refundQuantity']),
+                'taxCollected'           => (float)$product['taxCollected'],
+                'itemType'               => $product['itemType'],
+                'rentalUsageQuantity'    => (float)$product['rentalUsageQuantity'],
+                'netRentalUsageQuantity' => (float)($product['rentalUsageQuantity'] - $product['refundRentalUsageQty']),
             ];
         }
 
@@ -769,30 +869,30 @@ class SalesReportController extends Controller
             $query->where('products.product_type', $itemType);
         }
 
-        // Apply waiver filters
+        // Apply waiver filters — rental_damage_waiver in product_data.product_rental_items
         if (!empty($filters['waiverOnly']) && $filters['waiverOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%waiver%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NOT NULL");
         } elseif (!empty($filters['excludeWaiver']) && $filters['excludeWaiver'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%waiver%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply insurance filters
+        // Apply insurance filters — rental_track_insurance in product_data.product_rental_items
         if (!empty($filters['insuranceOnly']) && $filters['insuranceOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%insurance%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NOT NULL");
         } elseif (!empty($filters['excludeInsurance']) && $filters['excludeInsurance'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%insurance%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply shipping filter
+        // Apply shipping filter — orders with no shipping have terms_collection length of 0
         if (!empty($filters['excludeShipping']) && $filters['excludeShipping'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%shipping%');
+            $query->whereRaw("JSON_LENGTH((SELECT terms_collection FROM orders WHERE id = order_products.order_id)) = 0");
         }
 
-        // Apply delivery filters
+        // Apply delivery filters — product_data.service_method
         if (!empty($filters['deliveryOnly']) && $filters['deliveryOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%delivery%');
+            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'Delivery'");
         } elseif (!empty($filters['excludeDelivery']) && $filters['excludeDelivery'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%delivery%');
+            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'In Store Pickup'");
         }
 
         return $query->get();
@@ -821,14 +921,17 @@ class SalesReportController extends Controller
         }
 
         $result = [];
-        for ($i = 60; $i >= 1; $i--) {
+        // i=59 down to i=0: 60 data points where i=0 is today
+        // current period  → i=0  to i=29 (today back 29 days = 30 days total)
+        // previous period → i=30 to i=59 (30 days before the current window)
+        for ($i = 59; $i >= 0; $i--) {
             $date = Carbon::parse($today)->subDays($i);
             $dateStr = $date->format('Y-m-d');
             
             $result[] = [
                 'date' => $dateStr,
                 'sales' => $salesByDate[$dateStr] ?? 0,
-                'period' => $i <= 30 ? 'current' : 'previous'
+                'period' => $i <= 29 ? 'current' : 'previous'
             ];
         }
 
@@ -1080,24 +1183,70 @@ class SalesReportController extends Controller
     /**
      * Get date range for filters
      */
-    private function getDateRangeForFilters($dateRange)
+    private function getDateRangeForFilters($dateRange, $filters = [])
     {
+        if ($dateRange === 'custom' && !empty($filters['startDate']) && !empty($filters['endDate'])) {
+            return [Carbon::parse($filters['startDate'])->startOfDay(), Carbon::parse($filters['endDate'])->endOfDay()];
+        }
+
         switch ($dateRange) {
+            case 'today':
+                return [Carbon::today(), Carbon::now()];
+            case 'yesterday':
+                return [Carbon::yesterday(), Carbon::yesterday()->endOfDay()];
+            case 'this_week':
+                return [Carbon::now()->startOfWeek(), Carbon::now()];
+            case 'last_week':
+                return [Carbon::now()->subWeek()->startOfWeek(), Carbon::now()->subWeek()->endOfWeek()];
             case 'this_year':
                 return [Carbon::now()->startOfYear(), Carbon::now()];
-                
             case 'last_year':
                 return [Carbon::now()->subYear()->startOfYear(), Carbon::now()->subYear()->endOfYear()];
-                
             case 'this_month':
                 return [Carbon::now()->startOfMonth(), Carbon::now()];
-                
             case 'last_month':
                 return [Carbon::now()->subMonth()->startOfMonth(), Carbon::now()->subMonth()->endOfMonth()];
-                
             case 'rolling_30':
             default:
                 return [Carbon::now()->subDays(30), Carbon::now()];
+        }
+    }
+
+    /**
+     * Get the previous period date range (same duration, shifted back)
+     */
+    private function getPreviousPeriodDates($dateRange, $filters = [])
+    {
+        if ($dateRange === 'custom' && !empty($filters['startDate']) && !empty($filters['endDate'])) {
+            $start = Carbon::parse($filters['startDate'])->startOfDay();
+            $end = Carbon::parse($filters['endDate'])->endOfDay();
+            $days = $start->diffInDays($end);
+            $prevEnd = $start->copy()->subDay()->endOfDay();
+            $prevStart = $prevEnd->copy()->subDays($days)->startOfDay();
+            return [$prevStart, $prevEnd];
+        }
+
+        switch ($dateRange) {
+            case 'today':
+                return [Carbon::yesterday(), Carbon::yesterday()->endOfDay()];
+            case 'yesterday':
+                $d = Carbon::today()->subDays(2);
+                return [$d->copy()->startOfDay(), $d->copy()->endOfDay()];
+            case 'this_week':
+                return [Carbon::now()->subWeek()->startOfWeek(), Carbon::now()->subWeek()->endOfWeek()];
+            case 'last_week':
+                return [Carbon::now()->subWeeks(2)->startOfWeek(), Carbon::now()->subWeeks(2)->endOfWeek()];
+            case 'this_month':
+                return [Carbon::now()->subMonth()->startOfMonth(), Carbon::now()->subMonth()->endOfMonth()];
+            case 'last_month':
+                return [Carbon::now()->subMonths(2)->startOfMonth(), Carbon::now()->subMonths(2)->endOfMonth()];
+            case 'this_year':
+                return [Carbon::now()->subYear()->startOfYear(), Carbon::now()->subYear()->endOfYear()];
+            case 'last_year':
+                return [Carbon::now()->subYears(2)->startOfYear(), Carbon::now()->subYears(2)->endOfYear()];
+            case 'rolling_30':
+            default:
+                return [Carbon::now()->subDays(60), Carbon::now()->subDays(31)];
         }
     }
 
@@ -1135,30 +1284,30 @@ class SalesReportController extends Controller
             $query->where('products.product_type', $itemType);
         }
 
-        // Apply waiver filters
+        // Apply waiver filters — rental_damage_waiver in product_data.product_rental_items
         if (!empty($filters['waiverOnly']) && $filters['waiverOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%waiver%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NOT NULL");
         } elseif (!empty($filters['excludeWaiver']) && $filters['excludeWaiver'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%waiver%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply insurance filters
+        // Apply insurance filters — rental_track_insurance in product_data.product_rental_items
         if (!empty($filters['insuranceOnly']) && $filters['insuranceOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%insurance%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NOT NULL");
         } elseif (!empty($filters['excludeInsurance']) && $filters['excludeInsurance'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%insurance%');
+            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NULL");
         }
 
-        // Apply shipping filter
+        // Apply shipping filter — orders with no shipping have terms_collection length of 0
         if (!empty($filters['excludeShipping']) && $filters['excludeShipping'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%shipping%');
+            $query->whereRaw("JSON_LENGTH((SELECT terms_collection FROM orders WHERE id = order_products.order_id)) = 0");
         }
 
-        // Apply delivery filters
+        // Apply delivery filters — product_data.service_method
         if (!empty($filters['deliveryOnly']) && $filters['deliveryOnly'] === 'true') {
-            $query->where('products.product_name', 'LIKE', '%delivery%');
+            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'Delivery'");
         } elseif (!empty($filters['excludeDelivery']) && $filters['excludeDelivery'] === 'true') {
-            $query->where('products.product_name', 'NOT LIKE', '%delivery%');
+            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'In Store Pickup'");
         }
     }
 }

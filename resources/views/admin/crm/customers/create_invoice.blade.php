@@ -431,10 +431,10 @@ $lockInvoiceActions = $isEdit &&
 
                 </div>
 
-                 {{-- @if ($isEdit) --}}
+                 @if ($isEdit)
 
 
-                    {{-- @if(isset($invoice) && $invoice->id)
+                    @if(isset($invoice) && $invoice->id)
 
                         @php
                             $statusColors = [
@@ -453,35 +453,31 @@ $lockInvoiceActions = $isEdit &&
                             </span>
                         </div>
 
-                    @endif --}}
+                    @endif
 
                         {{--  Only show Payment button if NOT fully paid --}}
-                    {{-- @if(isset($invoice) && $invoice->invoice_status !== 'paid') --}}
+                    @if(isset($invoice) && $invoice->invoice_status !== 'paid')
 
-
-                        {{-- <div class="flex flex-wrap justify-center gap-2 pt-5">
+                        <div class="flex flex-wrap justify-center gap-2 pt-5">
                             
                             <a href="javascript:void(0)" id="openTemplatesModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-md flex items-center">
                                 
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
                                         <line x1="12" x2="12" y1="2" y2="22"></line>
                                         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                                    </svg>
+                                </svg>
 
                                 Payment
                             </a>
 
-                        </div> --}}
-                    {{-- @endif --}}
+                        </div>
+                    @endif
 
-                 {{-- @endif --}}
-
-
+                 @endif
 
             </div>
 
             <div class="bg-white rounded-lg shadow p-6">
-
 
                 <h3 class="text-lg font-semibold mb-4">Invoice Summary</h3>
                 <div class="flex justify-between py-1 text-sm">
@@ -519,21 +515,21 @@ $lockInvoiceActions = $isEdit &&
 
                 <!-- Paid & Open Amount (Only Edit Mode) -->
                 @if($isEdit)
-                {{-- <hr class="my-2 border-gray-200"> --}}
+                <hr class="my-2 border-gray-200">
 
-                {{-- <div class="flex justify-between py-1 text-sm">
+                <div class="flex justify-between py-1 text-sm">
                     <span class="text-gray-700">Paid Amount:</span>
                     <span class="text-green-600 font-medium" id="invoice-paid">
                         ${{ number_format($invoice->paid_amount ?? 0, 2) }}
                     </span>
-                </div> --}}
+                </div>
 
-                {{-- <div class="flex justify-between py-1 text-sm">
+                <div class="flex justify-between py-1 text-sm">
                     <span class="text-gray-700">Open Amount:</span>
                     <span class="text-red-600 font-medium" id="invoice-open">
                         ${{ number_format($invoice->open_amount ?? 0, 2) }}
                     </span>
-                </div> --}}
+                </div>
                 @endif
 
             </div>
@@ -545,7 +541,8 @@ $lockInvoiceActions = $isEdit &&
                     </div>
 
                     <div class="flex flex-wrap gap-3">
-                        <button onclick="closeWindow()" type="button" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
+                        <button     onclick="window.location.href='{{ route('admin.crm.customers.invoice.index', $customer->unique_id) }}'"  
+ type="button" name="action" value="close" class="inline-flex items-center px-6 py-2 rounded-md text-gray-700 bg-white text-sm font-medium shadow transition"> Cancel
                         </button>
 
                         <button type="submit" name="action" value="save_new" disabled="" class="inline-flex items-center px-6 py-2 rounded-md text-white bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium shadow transition">
@@ -1140,6 +1137,7 @@ $lockInvoiceActions = $isEdit &&
 
                 if (type === "discount") {
                     totalDiscount += Math.abs(price);
+                    totalTax -= Math.abs(tax);
                 }
 
                 if (type === "refund") {

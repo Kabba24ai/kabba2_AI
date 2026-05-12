@@ -10,6 +10,7 @@ use App\Models\Iam\Personnel\WorkSchedule;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 
+
 class GetWorkScheduleController extends BaseController
 {
     public function __invoke(Request $request): JsonResponse
@@ -17,13 +18,23 @@ class GetWorkScheduleController extends BaseController
         $weekStart = $request->week_start;
         $employeeIds = $request->employee_ids ?? [];
 
-        $start = Carbon::parse($weekStart);
-        $end = (clone $start)->addDays(6);
+        $days = (int) ($request->days ?? 7);
 
-        $schedules = WorkSchedule::whereIn('user_id', $employeeIds)
+        $start = Carbon::parse($weekStart)->toDateString();
+
+        // FIXED
+        $end = Carbon::parse($weekStart)
+            ->addDays($days - 1)
+            ->toDateString();
+
+        $schedules = WorkSchedule::with('store')
+            ->whereIn('user_id', $employeeIds)
             ->whereBetween('date', [$start, $end])
             ->get()
-            ->groupBy(['user_id', 'date']);
+            ->groupBy('user_id')
+            ->map(function ($userSchedules) {
+                return $userSchedules->groupBy('date');
+            });
 
         return response()->json([
             'success' => true,

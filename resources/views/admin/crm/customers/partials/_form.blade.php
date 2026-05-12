@@ -268,9 +268,9 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1 ">Country </label>
                         {!! html()->select('addresses[0][Country]', [
                         'USA' => 'USA',
-                        'Canada' => 'Canada',
-                        'UK' => 'UK',
-                        'India' => 'India',
+                        // 'Canada' => 'Canada',
+                        // 'UK' => 'UK',
+                        // 'India' => 'India',
                         ], old('country', 'USA')) // default to USA if old or user value is not set
                         ->id('country')
                         ->class('w-full px-3 py-3 border rounded-md text-sm border-gray-300')
@@ -368,9 +368,9 @@
 
                     {!! html()->select('addresses[1][Country]', [
                     'USA' => 'USA',
-                    'Canada' => 'Canada',
-                    'UK' => 'UK',
-                    'India' => 'India',
+                    // 'Canada' => 'Canada',
+                    // 'UK' => 'UK',
+                    // 'India' => 'India',
                     ], old('country', 'USA')) // default to USA if old or user value is not set
                     ->id('country')
                     ->class('w-full px-3 py-3 border rounded-md text-sm border-gray-300')
@@ -709,7 +709,7 @@
                         <div id="uploadedDate">Uploaded</div>
                     </div>
                     <div class="w-1/6 flex gap-x-2">
-                        <button type="button" id="viewFileBtn" class="text-blue-600 hover:text-blue-800" title="View" target="_blank">
+                        <button type="button" id="viewFileBtn" class="text-blue-600 hover:text-blue-800" title="View" >
                             <x-heroicon-o-eye class="w-5 h-5" />
                         </button>
                         <button type="button" id="deleteFileBtn" class="text-red-600 hover:text-red-800" title="Delete">

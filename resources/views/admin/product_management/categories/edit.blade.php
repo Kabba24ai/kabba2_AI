@@ -26,8 +26,6 @@
         <div class="w-full 2xl:w-2/3 ">
             <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
                 <div class="px-6 py-6">
-
-
                     {{ html()->modelForm($objProductCategory, 'PUT')->attributes([
                             'autocomplete' => 'off',
                             'data-parsley-validate' => true,

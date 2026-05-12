@@ -22,10 +22,19 @@ class EditController extends Controller
             ->where('unique_id', $uniqueid)
             ->firstOrFail();
 
+        $assignedUserIds = collect()
+            ->merge($order->products->pluck('delivery_by'))
+            ->merge($order->products->pluck('pickup_by'))
+            ->merge($order->extraCharges->pluck('responsible_person_id'))
+            ->filter()
+            ->unique()
+            ->values();
+
         $stores = Store::orderBy('store_name')->get();
-        $employees = User::orderBy('first_name')->get();
+        $employees = User::activeOrIds($assignedUserIds)->orderBy('first_name')->get();
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+        $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');
 
         // Get categories with equipments for assignment modal
         $categories = ProductCategory::with(['equipments' => function ($query) {
@@ -35,8 +44,8 @@ class EditController extends Controller
         //  define payments from relationship
         $payments = $order->extraCharges->sortByDesc('type');
 
-        // dd($order);
+        // dd($order->licenseMedia);
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories'));
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings'));
     }
 }

@@ -41,6 +41,7 @@
                 'admin.product-management.products.*',
                 'admin.product-management.categories.*',
                 'admin.product-management.options.*',
+                'admin.product-management.equipment-assignments.*',
                 ]);
 
                 $ordersActive = Route::is([
@@ -220,6 +221,14 @@
                                     </a>
                                 </li>
 
+                                <li>
+                                    <a href="{{ route('admin.product-management.equipment-assignments.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.product-management.equipment-assignments.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-wrench-screwdriver class="h-5 w-5" /> Equipment Assignments
+                                    </a>
+                                </li>
+
 
 
                             </ul>
@@ -341,6 +350,23 @@
                                         Sales Tax
                                     </a>
                                 </li>
+                                <li>
+                                    @php
+                                        $salesReportUrl = config('app.domains.sales_report');
+                                        // Use hash router for SSO (works without server config)
+                                        if (auth()->check()) {
+                                            $token = \App\Helpers\SsoHelper::generateToken(auth()->user()->email);
+                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/auth/sso?token=' . urlencode($token);
+                                        } else {
+                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/auth/sso';
+                                        }
+                                    @endphp
+                                    <a href="{{ $ssoUrl }}" target="_blank"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                        <x-heroicon-o-chart-bar class="w-6 h-6" />
+                                        Sales Report
+                                    </a>
+                                </li>
 
                             </ul>
                         </div>
@@ -351,12 +377,14 @@
                     @php
 
                     $maintenanceActive = Route::is([
-                    'admin.maintenance-management.equipment.*',
-                    'admin.maintenance-management.equipment-service.*',
-                    'admin.maintenance-management.service-master.*',
-                    'admin.maintenance-management.parts.*',
-                    'admin.maintenance-management.suppliers.*',
-                    ]);
+                        'admin.maintenance-management.equipment.*',
+                        'admin.maintenance-management.equipment-worksheet*',
+                        'admin.maintenance-management.equipment-service.*',
+                        'admin.maintenance-management.service-master.*',
+                        'admin.maintenance-management.parts.*',
+                        'admin.maintenance-management.suppliers.*',
+                        'admin.maintenance-management.key-comparisons.*',
+                        ]);
 
                     // Checklist Management
                     $checklistManagementActive = Route::is(['admin.checklist-management.*']);
@@ -405,9 +433,26 @@
                                 <li>
                                     <a href="{{ route('admin.maintenance-management.equipment.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.maintenance-management.equipment.*') && !Route::is('admin.maintenance-management.equipment-service.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        {{ Route::is('admin.maintenance-management.equipment.*') && !Route::is('admin.maintenance-management.equipment-service.*') && !Route::is('admin.maintenance-management.equipment-worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment Mgt.
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('admin.maintenance-management.equipment-worksheet.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.equipment-worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+
+                                        <x-heroicon-o-table-cells class="h-5 w-5" /> Equipment Worksheet
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('admin.maintenance-management.key-comparisons.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.key-comparisons.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-adjustments-horizontal class="h-5 w-5" /> Key Comparisons
                                     </a>
                                 </li>
 
@@ -442,6 +487,7 @@
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Suppliers
                                     </a>
                                 </li>
+
                             </ul>
                         </div>
                     </li>
@@ -517,6 +563,22 @@
                         </a>
 
                     </li>
+
+                    @php
+                        $kabbaAiAllowedHosts = ['admin.rentnking.com', 'admin.kabba.local', 'admin.kabba.ai'];
+                        $showKabbaAiCustomersMenu = in_array(request()->getHost(), $kabbaAiAllowedHosts, true);
+                    @endphp
+                    @if ($showKabbaAiCustomersMenu)
+                    <li x-data="{ open: 'false' }">
+                        <a href="{{ route('admin.crm.kabba-ai-customers.index') }}"
+                            class="menu-item group flex items-center gap-3 {{ Route::is('admin.crm.kabba-ai-customers.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-users class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+                                Kabba AI (Customers)
+                            </span>
+                        </a>
+                    </li>
+                    @endif
 
 
 

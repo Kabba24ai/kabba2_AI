@@ -48,16 +48,16 @@
                 </td>
 
                 <td class="whitespace-nowrap px-4 py-3 text-center">
-                    {!! $orderProduct->order->view_link !!}
+                    {!! $orderProduct->order?->view_link ?? '-' !!}
                 </td>
                 <td class="whitespace-nowrap px-4 py-3 text-left">
 
                     <div class="font-medium">
-                        {{ $orderProduct->order->customer_name }}
+                        {{ $orderProduct->order?->customer_name ?? '-' }}
                     </div>
 
                     @php
-                        $customer = $orderProduct->order->customer;
+                        $customer = $orderProduct->order?->customer;
                     @endphp
 
                     @if ($customer && $customer->company_name)
@@ -65,7 +65,7 @@
 
                             @if (!empty($customer->company_website))
                                 <!-- With website: underline + clickable -->
-                                <a href="{{ $customer->company_website }}" target="_blank" class="underline ">
+                                <a href="{{ $customer->company_website }}"  class="underline ">
                                     {{ $customer->company_name }}
                                 </a>
                             @else
@@ -81,8 +81,8 @@
                 </td>
 
                 <td class="whitespace-nowrap px-4 py-3 truncate min-w-xs max-w-xs">
-                    {{ $orderProduct->order->shippingAddress->full_address }}</td>
-                <td class="whitespace-nowrap px-4 py-3 text-left ">{{ $orderProduct->order->shippingAddress->phone }}
+                    {{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-left ">{{ $orderProduct->order?->shippingAddress?->phone ?? '-' }}
                 </td>
                 <td class="whitespace-nowrap px-4 py-3 text-center">
                     @if ($orderProduct?->checklistQuestions->isNotEmpty())
@@ -90,7 +90,7 @@
                             data-order-product-unique-id="{{ $orderProduct->unique_id }}"
                             data-product-name="{{ $orderProduct->product_name }}"
                             data-order-id="{{ $orderProduct?->order?->order_number }}"
-                            data-order-unique-id="{{ $orderProduct?->order->unique_id }}"
+                            data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
                             data-customer-name="{{ $orderProduct?->order?->customer_name }}">
                             {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
                         </button>
@@ -99,9 +99,9 @@
                             data-order-product-unique-id="{{ $orderProduct->unique_id }}"
                             data-product-name="{{ $orderProduct->product_name }}"
                             data-order-id="{{ $orderProduct?->order?->order_number }}"
-                            data-order-unique-id="{{ $orderProduct?->order->unique_id }}"
+                            data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
                             data-customer-name="{{ $orderProduct?->order?->customer_name }}">
-                            {{ $orderProduct->softAssignment?->equipment->equipment_name ?: 'Assign' }}
+                            {{ $orderProduct->softAssignment?->equipment?->equipment_name ?: 'Assign' }}
                         </button>
                     @endif
                 </td>
@@ -114,7 +114,7 @@
                     @else
                         <span
                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
-                            {{ $orderProduct->softAssignment?->equipment->equipment_id ?? '-' }}
+                            {{ $orderProduct->softAssignment?->equipment?->equipment_id ?? '-' }}
                         </span>
                     @endif
                 </td>
@@ -123,7 +123,7 @@
                     <div class="inline-flex items-center gap-1">
                         @if ($orderProduct?->checklistQuestions->isNotEmpty())
                             <a href="{{ route('admin.crm.customers.view', $orderProduct?->order?->customer->unique_id) }}"
-                                target="_blank" class="text-blue-600 hover:underline">
+                                 class="text-blue-600 hover:underline">
                                 {{ $orderProduct?->order->customer_name ?? '-' }}
                             </a>
                         @else
@@ -183,12 +183,21 @@
                 </td>
 
                 <td class="whitespace-nowrap px-4 py-3 text-center">
-                    {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order->last_payment_status) !!}
+                    {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
                 </td>
                 <td class="whitespace-nowrap px-4 py-3">
                     <div class="flex gap-2 items-center justify-center">
-                        <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order->unique_id) }}"
-                            class="text-sky-600 hover:text-sky-800" title="View" target="_blank">
+                        <button
+                            type="button"
+                            class="text-sky-600 hover:text-sky-800"
+                            onclick="openAIScheduleAdvisorModal({{ $orderProduct->id }})"
+                            title="AI Schedule Advisor"
+                        >
+                            <x-heroicon-o-sparkles class="w-4 h-4" />
+                        </button>
+
+                        <a href="{{ $orderProduct->order?->unique_id ? route('admin.order-management.orders.edit', $orderProduct->order->unique_id) : '#' }}"
+                            class="text-sky-600 hover:text-sky-800" title="View" >
                             <x-heroicon-o-eye class="w-4 h-4" />
                         </a>
                     </div>

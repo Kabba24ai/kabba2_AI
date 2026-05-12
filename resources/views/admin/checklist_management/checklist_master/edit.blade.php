@@ -35,7 +35,7 @@
 
 <!-- Step Header (Hidden initially and shown on step 2+) -->
 <div id="stepHeader" class="mb-6 hidden-step-header mx-auto px-4 py-4 border-b border-gray-200">
-    <div class="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-4 text-sm text-gray-700">
+    <div class="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-4 text-sm text-gray-700 items-center">
 
         <!-- Step 1 -->
         <div class="flex items-center gap-3 flex-1 min-w-[240px]" id="step-1-redirect">
@@ -81,6 +81,19 @@
                 <p class="text-xs text-gray-500">Save and return to Equipment Mgt.</p>
             </div>
         </div>
+
+        <!-- Arrow -->
+        <div class="hidden md:block text-gray-300 self-center">➝</div>
+
+
+        <!-- NEW STEP 5 -->
+        <div class="flex items-center gap-3 flex-1 min-w-[200px]" id="step-5-redirect">
+            <div id="stepIcon5" class="step-circle">5</div>
+            <div>
+                <p class="font-semibold">Assign Equipment</p>
+                <p class="text-xs text-gray-500">Link to equipment</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -90,7 +103,7 @@
 <section class="">
 
     <!-- Step 1 -->
-    <div id="step1" class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
+    <div id="step1" class="max-w-7xl  mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
         <div>
             <!-- Header Icon and Title -->
             <div class="flex flex-col items-center text-center space-y-1 mb-8">
@@ -499,8 +512,8 @@
         <input type="hidden" name="equipment_category_id" id="hiddenCategoryId" value="{{ $checklistmaster->equipment_category_id }}">
         <input type="hidden" name="rental_ready_template_id" id="hiddenRentalTemplateId" value="{{ $checklistmaster->rental_ready_template_id }}">
         <input type="hidden" name="customer_admin_template_id" id="hiddenCustomerTemplateId" value="{{ $checklistmaster->customer_admin_template_id }}">
-
-
+        <input type="hidden" name="equipment_ids" id="selectedEquipmentIds"  value="">
+        <input type="hidden" name="assign_equipment" id="assignEquipmentFlag" value="">
 
 
         <div class="flex flex-col items-center text-center max-w-4xl w-full">
@@ -558,22 +571,169 @@
                     Your checklist system is now ready to be assigned to equipment items through the Equipment Management screen.
                 </p>
             </div>
+            <!-- Action Buttons -->
+            <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
+                    <!-- Button -->
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-md text-sm flex items-center gap-2 shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Save & Return to Equipment Mgt.
+                    </button>
 
-            <!-- Button -->
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-md text-sm flex items-center gap-2 shadow">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save w-4 h-4">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-                Save & Return to Equipment Mgt.
-            </button>
+                    <!--  SECONDARY ACTION: Go to Step 5 -->
+                        <button type="button" onclick="goToStep(5)"
+                            class="bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 font-medium px-5 py-2 rounded-md text-sm flex items-center gap-2">
 
-        </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-4 h-4">
+                                <path d="M5 12h14"></path>
+                                <path d="m12 5 7 7-7 7"></path>
+                            </svg>
+
+                            Save & Go to Assign Equipment
+                        </button>
+             </div>      
+          </div>
 
         {{ html()->form()->close() }}
     </div>
 
+    <!-- Step 5 -->
+    <div id="step5" class="hidden max-w-7xl mx-auto bg-white p-6 rounded-lg shadow space-y-6 mt-6">
+
+        <!-- Step Title -->
+        <div class="bg-purple-50 border border-purple-200 text-purple-800 text-sm p-4 rounded-md mb-6">
+            <strong class="block font-medium">Step 5: Assign Equipment</strong>
+            <p class="mt-1">Select equipment to assign this checklist master system. You can assign multiple equipment items.</p>
+        </div>
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-md font-semibold text-gray-800">Select Equipment</h3>
+        </div>
+
+        <!-- Filters -->
+        <div class="grid md:grid-cols-2 gap-4 mb-6">
+            
+            <!-- Search -->
+            <div>
+                <label class="text-sm font-medium text-gray-700 mb-1 block">Search Equipment</label>
+                <input type="text" id="equipmentSearch"
+                    placeholder="Search equipment..."
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md">
+            </div>
+
+            <!-- Category -->
+            <div>
+                <label class="text-sm font-medium text-gray-700 mb-1 block">Equipment Category</label>
+                {!! html()->select(
+                    'equipment_filter_category',
+                    ['' => 'All Categories'] + $equipmentCategories,
+                    old('equipment_filter_category')
+                )->id('equipmentFilterCategory')
+                ->class('w-full border px-3 py-2 rounded-md text-sm') !!}
+            </div>
+        </div>
+
+        <!-- Select All + Count -->
+        <div class="flex items-center justify-between mb-4">
+    
+            <div class="flex gap-3">
+            <!-- Left: Count -->
+                        <p class="text-sm text-gray-500">
+                            Selected: <span id="selectedEquipmentCount">0</span>
+                        </p>
+
+                        <div class="flex items-center gap-3">
+
+                            <label class="flex items-center gap-2 text-sm text-gray-600">
+                                <input type="checkbox" id="filterSelectedOnly">
+                                View Selected Only
+                            </label>
+
+                        </div>
+            </div>
+            <!-- Right: Note -->
+            <p class="text-xs text-gray-400 text-right max-w-md">
+               * Greyed-out products already have a checklist assigned.
+            </p>
+
+        </div>
+
+        <!-- Equipment List -->
+       <div class="border border-gray-200 rounded-lg max-h-[400px] overflow-y-auto bg-white p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <!-- Example item (repeat in loop later) -->
+                @foreach($equipments ?? [] as $equipment)
+                    <label class="equipment-item flex items-center justify-between gap-3 p-4 border rounded-lg  transition-all  @if($equipment->checklist_master_id && $equipment->checklist_master_id != $checklistmaster->id)
+        bg-gray-100 opacity-60 cursor-not-allowed
+    @else
+        hover:bg-gray-50 cursor-pointer
+    @endif "
+                        data-category="{{ $equipment->product_category_id }}"
+                        data-name="{{ strtolower($equipment->equipment_name) }}">
+
+                        <!-- LEFT -->
+                        <div class="flex items-center gap-3">
+
+                            <!-- Checkbox -->
+                            <input type="checkbox" name="equipment_ids[]" value="{{ $equipment->id }}"
+                                class="w-5 h-5 text-green-600 border-gray-300 rounded"  {{-- checked if current checklist --}}
+            {{ $equipment->checklist_master_id == $checklistmaster->id ? 'checked' : '' }}
+
+            {{-- disable ONLY if assigned to OTHER --}}
+            {{ $equipment->checklist_master_id && $equipment->checklist_master_id != $checklistmaster->id ? 'disabled' : '' }} >
+
+                            <!-- Icon -->
+                            <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center">
+                                <x-heroicon-o-wrench class="w-4 h-4 text-gray-600" />
+                            </div>
+
+                            <!-- Info -->
+                            <div>
+                                <p class="text-sm font-semibold text-gray-900 leading-tight">
+                                    {{ $equipment->equipment_name }}
+                                </p>
+                                <p class="text-xs text-gray-500">
+                                    {{ $equipment->category_name ?? 'No Category' }}
+                                </p>
+                            </div>
+                        </div>
+
+                    </label>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-between items-center mt-6 border-t border-gray-200 pt-4">
+
+            {{-- <button type="button" onclick="goToStep(4)"
+                class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                ← Previous Step
+            </button> --}}
+
+            <button type="button" onclick="goToStep(4)" class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md text-sm transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left w-4 h-4">
+                    <path d="m12 19-7-7 7-7"></path>
+                    <path d="M19 12H5"></path>
+                </svg>Previous Step
+            </button>
+
+            <div class="text-center text-sm text-gray-500">
+                Step 5 of 5
+            </div>
+
+            <button type="button" onclick="submitWithEquipment()"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2">
+                Finish & Assign Equipment
+            </button>
+        </div>
+
+
+    </div>
 
 </section>
 
@@ -622,6 +782,17 @@
 
 
 <script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+   let isAssign = {{ isset($ActiveAssign) && $ActiveAssign ? 'true' : 'false' }};
+
+    if (isAssign) {
+        goToStep(5);
+    }
+
+});
+
     function toggleContinue() {
         const input = document.getElementById('systemName');
         const btn = document.getElementById('continueBtn');
@@ -687,12 +858,12 @@
     }
 
     // Keep track of which steps are unlocked
-    let unlockedSteps = [1, 2, 3, 4]; // for Edit
+    let unlockedSteps = [1, 2, 3, 4 ,5]; // for Edit
     // Step 1 is always unlocked
 
 
     function goToStep(step) {
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 5; i++) {
             const content = document.getElementById('step' + i);
             if (content) content.classList.add('hidden');
             const icon = document.getElementById('stepIcon' + i);
@@ -728,13 +899,16 @@
                     break;
                 case 2:
 
-                    subtitle.textContent = "Step 2 of 4: Assign Rental Ready Template";
+                    subtitle.textContent = "Step 2 of 5: Assign Rental Ready Template";
                     break;
                 case 3:
-                    subtitle.textContent = "Step 3 of 4: Assign Customer Template";
+                    subtitle.textContent = "Step 3 of 5: Assign Customer Template";
                     break;
                 case 4:
-                    subtitle.textContent = "Step 4 of 4: Complete & Save";
+                    subtitle.textContent = "Step 4 of 5: Complete & Save";
+                    break;
+                case 5:
+                    subtitle.textContent = "Step 5 of 5: Assign Equipment";
                     break;
             }
         }
@@ -935,5 +1109,114 @@
     });
 </script>
 
+
+
+<!-- JS Filter -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const equipmentSearch = document.getElementById('equipmentSearch');
+    const equipmentCategory = document.getElementById('equipmentFilterCategory');
+    const equipmentItems = document.querySelectorAll('#step5 .equipment-item');
+
+    function filterEquipment() {
+        let search = equipmentSearch.value.toLowerCase();
+        let selectedCategory = equipmentCategory.value;
+
+        equipmentItems.forEach(function(item) {
+            let name = item.dataset.name;
+            let category = item.dataset.category;
+
+            let matchSearch = name.includes(search);
+            let matchCategory = selectedCategory === "" || category == selectedCategory;
+
+            if (matchSearch && matchCategory) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    equipmentSearch.addEventListener('input', filterEquipment);
+    equipmentCategory.addEventListener('change', filterEquipment);
+
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const selectedOnlyCheckbox = document.getElementById('filterSelectedOnly');
+    const equipmentItems = document.querySelectorAll('#step5 .equipment-item');
+
+    selectedOnlyCheckbox.addEventListener('change', function () {
+
+        let selectedOnly = this.checked;
+
+        equipmentItems.forEach(function(item) {
+
+            let checkbox = item.querySelector('input[name="equipment_ids[]"]');
+
+            if (selectedOnly) {
+                // show only checked
+                if (checkbox.checked) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            } else {
+                // reset (show all again)
+                item.style.display = 'flex';
+            }
+
+        });
+
+    });
+
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const checkboxes = document.querySelectorAll('#step5 input[name="equipment_ids[]"]');
+    const countSpan = document.getElementById('selectedEquipmentCount');
+
+    function updateCount() {
+        let count = document.querySelectorAll('#step5 input[name="equipment_ids[]"]:checked').length;
+        countSpan.textContent = count;
+    }
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateCount);
+    });
+updateCount();
+});
+</script>
+
+<script>
+function submitWithEquipment() {
+
+    // Get all checked equipment
+    let checked = document.querySelectorAll('#step5 input[name="equipment_ids[]"]:checked');
+
+    let ids = [];
+
+    checked.forEach(cb => {
+        ids.push(cb.value);
+    });
+
+    // Set hidden field (comma separated OR JSON)
+    document.getElementById('selectedEquipmentIds').value = ids.join(',');
+
+
+    //  SET FLAG (THIS IS MISSING)
+    document.getElementById('assignEquipmentFlag').value = 1;
+
+    // Submit Step 4 form
+    document.getElementById('checklistmasterForm').submit();
+}
+</script>
 
 @endpush

@@ -80,13 +80,6 @@
                         <label for="overage_rate" class="block text-sm font-medium text-gray-700 mb-1">
                             Overage Rate
                         </label>
-                        <div>
-                            {!! html()->checkbox('is_tracked', true)->id('is_tracked')->checked(old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? true : false) : true))->class('mr-2') !!}
-
-                            <label for="is_tracked" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Tracked
-                            </label>
-                        </div>
                     </div>
                     <div class="relative">
                         <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
@@ -102,9 +95,6 @@
                                 'maxlength' => 8,
                                 'placeholder' => '0.00',
                                 'autocomplete' => 'off',
-                                old('is_tracked', isset($equipment) ? ($equipment->is_tracked === 'Yes' ? false : true) : false)
-                                    ? 'readonly'
-                                    : null,
                             ]) !!}
                     </div>
                     @error('overage_rate')
@@ -241,7 +231,7 @@
                         'none' => 'None',
                         '1_key' => '1 Key',
                         '2_keys' => '2 Keys',
-                        'key_pad' => 'Key Pad (Code Provided)',
+                        'key_pad' => 'Key Pad',
                         'pull_cord' => 'Pull Cord',
                     ], old('key_starting_mechanism', $equipment->key_starting_mechanism?->value ?? ''))->class([
                         'w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',
@@ -853,7 +843,7 @@
                     </label>
                     @if (isset($equipment) && $equipment->checklist_master_id)
                         <a href="{{ route('admin.checklist-management.checklist-master.edit', $equipment->checklistMaster->unique_id) }}"
-                            target="_blank" rel="noopener"
+                             rel="noopener"
                             class="inline-flex items-center text-gray-500 hover:text-blue-600"
                             title="View Checklist Master">
                             <x-heroicon-o-eye class="h-4 w-4" />
@@ -888,7 +878,7 @@
                         Schedule</label>
                     @if (isset($equipment) && $equipment->equipment_service_id && $equipment->serviceTemplate)
                         <a href="{{ route('admin.maintenance-management.service-master.index', ['tab' => 'templates']) }}"
-                            target="_blank" rel="noopener"
+                             rel="noopener"
                             class="inline-flex items-center text-gray-500 hover:text-blue-600"
                             title="View Service Template">
                             <x-heroicon-o-eye class="h-4 w-4" />
@@ -953,7 +943,7 @@
                 </label>
                 @if (isset($equipment) && $equipment->parts_list_id)
                     <a href="{{ route('admin.maintenance-management.parts.parts-list.view', $equipment->partsList->unique_id) }}"
-                        target="_blank" rel="noopener"
+                         rel="noopener"
                         class="inline-flex items-center text-gray-500 hover:text-blue-600" title="View Parts List">
                         <x-heroicon-o-eye class="h-4 w-4" />
                     </a>
@@ -1063,7 +1053,7 @@
                         </div>
                         <div class="mt-2 flex items-center gap-2">
                             @if ($media)
-                                <a href="{{ $media->getUrl() }}" target="_blank" rel="noopener"
+                                <a href="{{ $media->getUrl() }}"  rel="noopener"
                                     class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50">
                                     View
                                 </a>
@@ -1481,21 +1471,6 @@
 
             // Initial toggle based on existing values
             toggleFields();
-
-            const isTracked = document.getElementById('is_tracked');
-            const overageRate = document.querySelector('input[name="overage_rate"]');
-
-            function toggleOverageRate() {
-                if (isTracked.checked) {
-                    overageRate.removeAttribute('readonly');
-                    overageRate.setAttribute('required', 'required');
-                } else {
-                    overageRate.setAttribute('readonly', 'readonly');
-                    overageRate.removeAttribute('required');
-                    overageRate.value = '';
-                }
-            }
-            isTracked.addEventListener('change', toggleOverageRate);
         });
     </script>
 

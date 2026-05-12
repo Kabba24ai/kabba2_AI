@@ -1,5 +1,5 @@
 {{-- Title & Parent Category --}}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
     <div>
         <label for="title"
             class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300 required">Title</label>
@@ -57,6 +57,22 @@
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
+
+    <div>
+        <label for="schedule_assignment_category_id"
+            class="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Schedule Assignment (Attachment)</label>
+        {{ html()->select(
+                'schedule_assignment_category_id',
+                $categories->prepend('Select Category', '')->toArray(),
+                isset($objProductCategory) ? $objProductCategory->schedule_assignment_category_id : null,
+            )->class([
+                'w-full choices-select rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-brand-400 dark:bg-gray-900 dark:text-white',
+                'border-red-500' => $errors->has('schedule_assignment_category_id'),
+            ]) }}
+        @error('schedule_assignment_category_id')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
 </div>
 
 {{-- Permalink --}}
@@ -82,7 +98,7 @@
         {{-- View Mode --}}
         <div id="permalinkView" class="flex items-center">
             <span class="text-gray-500 dark:text-gray-400 text-sm break-words">
-                <a href="{{ $categoryUrl }}" target="_blank" class="underline text-blue-600 permalink break-all">
+                <a href="{{ $categoryUrl }}" class="underline text-blue-600 permalink break-all">
                     {{ $categoryUrl !== '#' ? $categoryUrl : 'Product link will be generated after saving.' }}
                 </a>
             </span>
@@ -261,7 +277,7 @@
                         $categoryUrl = route('front.categories.index', ['slug' => $objProductCategory->slug]);
                     }
                 @endphp
-                <a href="{{ $categoryUrl }}" class="text-blue-600 hover:underline break-all" target="_blank">
+                <a href="{{ $categoryUrl }}" class="text-blue-600 hover:underline break-all" >
                     {{ $categoryUrl }}
                 </a>
             </p>

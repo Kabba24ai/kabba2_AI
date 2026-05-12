@@ -20,13 +20,14 @@ class IndexController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Contracts\View\View
      */
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, $urlScheduleType = null, $urlTransportMode = null)
     {
         if ($request->ajax()) {
             // Fetch real product-wise order data
             $query = OrderProduct::query()
                 ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes')
                 ->where('product_data->product_type', 'Rental')
+                ->whereHas('order')
                 ->whereNotNull('delivery_date');
 
 
@@ -35,6 +36,8 @@ class IndexController extends Controller
                 $query->where(function ($q)  {
                     $q->where('delivery_status', 'Pending')->orWhere('pickup_status', 'Pending');
                 });
+                $query->where('delivery_status', '!=', 'Reschedule')
+                      ->where('pickup_status', '!=', 'Reschedule');
             }
 
             if ($request->filled('order_number')) {
@@ -85,6 +88,7 @@ class IndexController extends Controller
             $scheduleTypes = [];
             $transportModes = [];
             $orderByField = 'delivery_date'; // Default order by field
+            $orderBy = 'asc'; // Default order direction
 
             // Get filters, clean them
             if ($request->filled('schedule_type')) {
@@ -117,7 +121,8 @@ class IndexController extends Controller
             if ($request->filled('date_filter')) {
                 $dateFilter = $request->date_filter;
                 if ($dateFilter === 'today') {
-                    $query->whereDate($orderByField, today());
+                    $query->whereDate($orderByField, "<=", today());
+                    $orderBy = 'desc';
                 } elseif ($dateFilter === 'week') {
                     $query->whereBetween($orderByField, [now()->startOfWeek(), now()->endOfWeek()]);
                 } elseif ($dateFilter === 'month') {
@@ -196,7 +201,7 @@ class IndexController extends Controller
 
             $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
-            $orderProducts = $query->orderBy($orderByField, 'asc')->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
+            $orderProducts = $query->orderBy($orderByField, $orderBy)->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
 
             if ($request->filled('unassigned_equipment')) {
                 $html = view('admin.order_management.schedule_assignment.partials._schedule_table', [
@@ -218,7 +223,7 @@ class IndexController extends Controller
         $categories = ProductCategory::getHierarchy();
         $stores = Store::orderBy('store_name')->get();
 
-        $users = User::orderBy('first_name', 'asc')
+        $users = User::active()->orderBy('first_name', 'asc')
             ->get()
             ->map(function ($user) {
                 return [
@@ -237,6 +242,6 @@ class IndexController extends Controller
 
         // dd($all);
 
-        return view('admin.order_management.schedules.index', ['categories' => $categories, 'stores' => $stores, 'employees' => $employees, 'rescheduleOrder' => $rescheduleOrder]);
+        return view('admin.order_management.schedules.index', ['categories' => $categories, 'stores' => $stores, 'employees' => $employees, 'rescheduleOrder' => $rescheduleOrder, 'urlScheduleType' => $urlScheduleType, 'urlTransportMode' => $urlTransportMode]);
     }
 }

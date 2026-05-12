@@ -23,7 +23,7 @@ class OtherEndController extends BaseController
         //  Get default lunch duration (minutes)
         $lunchMinutes = TimeTrackerHelper::getTimeTrackerSetting(
             'default_lunch_duration_minutes',
-            30 // fallback
+            30 
         );
 
          //  Calculate end time

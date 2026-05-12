@@ -6,6 +6,7 @@ namespace App\Helpers;
 use App\Enums\Products\ProductCustomStaticLabel;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductOptionItem;
+use App\Models\ProductManagement\ProductRelatedProductChild;
 use App\Models\Stores\Store;
 
 class CartHelper
@@ -51,23 +52,84 @@ class CartHelper
             $cartData = [$cartData];
         }
 
+        $cartUniqueIds = collect($cartData)
+            ->pluck('product_unique_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $cartProducts = Product::published()
+            ->whereIn('unique_id', $cartUniqueIds)
+            ->get()
+            ->keyBy('unique_id');
+
+        $cartProductIds = $cartProducts->pluck('id')->values()->all();
+
+        $relatedProductPairs = ProductRelatedProductChild::query()
+            ->whereIn('related_product_id', $cartProductIds)
+            ->whereIn('product_id', $cartProductIds)
+            ->get(['product_id', 'related_product_id']);
+
+        $childProductIdsWithParentInCart = $relatedProductPairs
+            ->pluck('related_product_id')
+            ->flip()
+            ->all();
+
+        $parentProductIdByChildId = $relatedProductPairs
+            ->mapWithKeys(function ($pair) {
+                return [$pair->related_product_id => $pair->product_id];
+            })
+            ->all();
+
+        $cartInputByProductId = [];
+        foreach ($cartData as $validated) {
+            $inputProduct = $cartProducts->get($validated['product_unique_id'] ?? null);
+            if (!$inputProduct) {
+                continue;
+            }
+            if (!isset($cartInputByProductId[$inputProduct->id])) {
+                $cartInputByProductId[$inputProduct->id] = $validated;
+            }
+        }
+
         $items = [];
         $subTotal = 0;
         $taxTotal = 0;
+        $specialTaxTotal = 0;
+        $addedFeesTotal = 0;
         $grandTotal = 0;
-
+        $hideCcPaymentOption = false;
 
         foreach ($cartData as $validated) {
-            $product = Product::published()->where('unique_id', $validated['product_unique_id'])->first();
+            $product = $cartProducts->get($validated['product_unique_id'] ?? null);
             if (!$product) {
                 continue;
             }
 
-            $item = self::buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings);
+            $hideCcPaymentOption = $hideCcPaymentOption || (bool) $product->hide_cc_payment_option;
+
+            $hasParentInCart = isset($childProductIdsWithParentInCart[$product->id]);
+
+            if ($hasParentInCart) {
+                $parentProductId = $parentProductIdByChildId[$product->id] ?? null;
+                $parentCartInput = $parentProductId ? ($cartInputByProductId[$parentProductId] ?? null) : null;
+                if ($parentCartInput) {
+                    foreach (['quantity', 'service_method', 'distance_type', 'service_option', 'delivery_store_id', 'delivery_date'] as $field) {
+                        if (array_key_exists($field, $parentCartInput)) {
+                            $validated[$field] = $parentCartInput[$field];
+                        }
+                    }
+                }
+            }
+
+            $item = self::buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings, $hasParentInCart);
             $items[] = $item;
             $subTotal += $item['sub_total'];
             $taxTotal += $taxExempt ? 0 : $item['tax'];
-            $grandTotal += $taxExempt ? $item['sub_total'] : $item['total'];
+            $specialTaxTotal += $item['special_tax'];
+            $addedFeesTotal += $item['added_fees'];
+            $grandTotal += $item['sub_total'] + ($taxExempt ? 0 : $item['tax']) + $item['special_tax'] + $item['added_fees'];
         }
 
         $grandTotalAfterDiscount = $grandTotal - $discount;
@@ -76,18 +138,23 @@ class CartHelper
         return [
             'cart_id' => $cartId,
             'tax_exempt' => $taxExempt,
+            'hide_cc_payment_option' => $hideCcPaymentOption,
             'order_notes' => $orderNotes,
             'payment_method' => $paymentMethod,
             'cart_items' => $items,
             'sub_total' => round($subTotal, 2),
             'tax_total' => round($taxTotal, 2),
+            'special_taxes_description' => $productSettings['special_taxes_description'] ?? 'Special Taxes',
+            'special_tax_total' => round($specialTaxTotal, 2),
+            'added_fees_description' => $productSettings['added_fees_description'] ?? 'Added Fees',
+            'added_fees_total' => round($addedFeesTotal, 2),
             'coupon_code' => $couponCode,
             'discount' => $discount,
             'grand_total' => round($grandTotalAfterDiscount, 2),
         ];
     }
 
-    private static function buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings)
+    private static function buildCartItem($product, $validated, $taxRate, $productSettings, $taxExempt, $allocatedHoursSettings, $hasParentInCart = false)
     {
         $quantity = $validated['quantity'];
         $variant = $validated['product_variant'] ?? null;
@@ -118,6 +185,13 @@ class CartHelper
         // --- Get product base price ---
         $price = $product->product_type === 'Rental' ? $product->getRentalPrice($variant, $isSale) : $product->getRetailPrice($isSale);
 
+        if ($hasParentInCart && $product->product_type === 'Rental' && !empty($variant)) {
+            $relatedPrice = $product->getRelatedPrice(strtolower($variant));
+            if ($relatedPrice !== false && $relatedPrice !== null) {
+                $price = floatval($relatedPrice);
+            }
+        }
+
         // daily, weekend, weekly, monthly
         $allocatedHours = $product->product_type === 'Rental' ? floatval($allocatedHoursSettings[$variant.'_hours'] ?? 0) : 0.00;
 
@@ -125,15 +199,17 @@ class CartHelper
         [$selectedRentalItemsWithPrices, $rentalItemsTotal] = self::resolveRentalItems($product, $validated, $variant, $quantity);
 
         // --- Calculate delivery/service option price ---
-        $serviceOptionPrice = self::resolveServiceOptionPrice($product, $validated);
+        $serviceOptionPrice = self::resolveServiceOptionPrice($product, $validated, $hasParentInCart);
 
         // --- Calculate options/add-ons from product_option_items ---
         [$resolvedOptions, $optionsTotal] = self::resolveProductOptions($product, $validated, $variant, $quantity);
 
 
         $itemSubTotal = $price * $quantity + $optionsTotal + $serviceOptionPrice + $rentalItemsTotal;
-        $itemTax = $taxExempt ? 0 : $itemSubTotal * $taxRate;
-        $itemTotal = $itemSubTotal + $itemTax;
+        $itemTax = ($taxExempt || $product->is_tax_free_item) ? 0 : $itemSubTotal * $taxRate;
+        $itemSpecialTax = $product->apply_special_tax ? $itemSubTotal * (floatval($productSettings['special_taxes'] ?? 0) / 100) : 0;
+        $itemAddedFees = $product->apply_added_fees ? floatval($productSettings['added_fees'] ?? 0) * $quantity : 0;
+        $itemTotal = $itemSubTotal + $itemTax + $itemSpecialTax + $itemAddedFees;
 
         $addDays = 1; // Default to 1 day per item
         $deliveryTime = null;
@@ -229,6 +305,8 @@ class CartHelper
             'product_rental_items_prices' => $selectedRentalItemsWithPrices,
             'sub_total' => round($itemSubTotal, 2),
             'tax' => round($itemTax, 2),
+            'special_tax' => round($itemSpecialTax, 2),
+            'added_fees' => round($itemAddedFees, 2),
             'total' => round($itemTotal, 2),
         ];
     }
@@ -256,8 +334,12 @@ class CartHelper
         return [$selectedRentalItemsWithPrices, $rentalItemsTotal];
     }
 
-    private static function resolveServiceOptionPrice($product, $validated)
+    private static function resolveServiceOptionPrice($product, $validated, $hasParentInCart = false)
     {
+        if ($hasParentInCart) {
+            return 0;
+        }
+
         $serviceOptionPrice = 0;
         if (($validated['service_method'] ?? null) === 'Delivery' && !empty($validated['distance_type']) && !empty($validated['service_option'])) {
             $distanceType = $validated['distance_type'];

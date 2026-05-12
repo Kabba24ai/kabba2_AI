@@ -20,6 +20,7 @@ use App\Models\ProductManagement\ProductCategory;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
 use App\Models\Orders\OrderProduct;
 use App\Models\Stores\Store;
+use App\Models\MaintenanceManagement\EquipmentSpecification;
 
 class Equipment extends Model
 {
@@ -85,6 +86,13 @@ class Equipment extends Model
         'key_starting_mechanism',
         'equipment_value',
         'coi_submitted',
+        'similar_equipment_ids',
+        'critical_matching_criteria',
+        'allow_upgrades',
+        'allow_downgrades',
+        'downgrade_requires_approval',
+        'equipment_key_comparison_notes',
+        'assigned_product_id',
     ];
 
     protected $casts = [
@@ -93,6 +101,11 @@ class Equipment extends Model
         'key_starting_mechanism' => EquipmentKeyStartingMechanism::class,
         'volts' => 'array',
         'amps'  => 'array',
+        'similar_equipment_ids' => 'array',
+        'critical_matching_criteria' => 'array',
+        'allow_upgrades' => 'boolean',
+        'allow_downgrades' => 'boolean',
+        'downgrade_requires_approval' => 'boolean',
     ];
     protected $appends = ['status_label', 'category_name', 'last_inspection'];
 
@@ -140,12 +153,13 @@ class Equipment extends Model
 
     public function orderProducts()
     {
-        return $this->hasMany(OrderProduct::class, 'equipment_id');
+        return $this->hasMany(OrderProduct::class, 'equipment_id')->withActiveOrder();
     }
 
     public function overdueOrderProducts()
     {
         return $this->hasMany(OrderProduct::class, 'equipment_id')
+            ->withActiveOrder()
             ->whereNotNull('pickup_date')
             ->whereRaw(
                 "TIMESTAMP(pickup_date, COALESCE(NULLIF(pickup_time, ''), '09:00:00')) < ?",
@@ -159,11 +173,13 @@ class Equipment extends Model
     public function lastOrderProduct()
     {
         return $this->hasOne(OrderProduct::class, 'equipment_id')
-            ->where(function ($query) {
-                $query->where('delivery_status', 'Pending')
-                    ->orWhere('pickup_status', 'Pending');
-            })
-            ->latestOfMany('id');
+            ->withActiveOrder()
+            ->ofMany(['id' => 'max'], function ($query) {
+                $query->where(function ($pending) {
+                    $pending->where('delivery_status', 'Pending')
+                        ->orWhere('pickup_status', 'Pending');
+                });
+            });
     }
 
 
@@ -195,6 +211,12 @@ class Equipment extends Model
     {
         return $this->belongsTo(PartsList::class, 'parts_list_id', 'id');
     }
+
+    public function specifications()
+    {
+        return $this->hasMany(EquipmentSpecification::class, 'equipment_id');
+    }
+
 
     public function customerAdminTemplates()
     {

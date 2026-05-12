@@ -553,7 +553,7 @@ $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
             <div class=" px-6 overflow-y-auto">
                 <div class="w-[92vw] max-w-md bg-white">
                     <div class="flex items-start gap-2 mb-2">
-                        <p class="text-sm text-gray-600">Enter your Master Password to edit the Master Passcode.</p>
+                        <p class="text-sm text-gray-600">Enter your Master Password to edit the Admin Code.</p>
                     </div>
 
                     <div class="relative mt-3">

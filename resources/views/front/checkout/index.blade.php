@@ -3,6 +3,17 @@
 @section('title', $title)
 
 @push('css')
+    <style>
+        .license-file-preview {
+            transition: opacity 280ms ease, filter 280ms ease, transform 280ms ease;
+        }
+
+        .license-file-preview.is-inactive {
+            opacity: 0.45;
+            filter: grayscale(100%);
+            transform: scale(0.99);
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -63,13 +74,21 @@
                             // $addresses =
                             //     auth('customer')->user()->addresses()->where('type', 'Billing')->get() ?? collect();
                             // $primaryAddress = $addresses->firstWhere('is_primary', true);
+                            $customer = auth('customer')->user();
 
-                            $primaryAddress = auth('customer')->user()->billingAddress;
-                            $companyName = auth('customer')->user()->company_name ?? null;
-                            $companyWebsite = auth('customer')->user()->company_website ?? null;
-                            $firstName = auth('customer')->user()->first_name ?? null;
-                            $lastName = auth('customer')->user()->last_name ?? null;
-                            $phone = auth('customer')->user()->phone ?? null;
+                            $primaryAddress = $customer->billingAddress;
+                            $companyName = $customer->company_name ?? null;
+                            $companyWebsite = $customer->company_website ?? null;
+                            $firstName = $customer->first_name ?? null;
+                            $lastName = $customer->last_name ?? null;
+                            $email = $customer->email ?? null;
+                            $phone = $customer->phone ?? null;
+                            $licenseExpiryDate = $customer->license_expiry_date;
+                            $isValidLicense = !empty($licenseExpiryDate) && \Carbon\Carbon::parse($licenseExpiryDate)->endOfDay()->gte(now());
+
+                            $customerLicenseFrontUrl = $isValidLicense ? optional($customer->licenseFront)->url : null;
+                            $customerLicenseBackUrl  = $isValidLicense ? optional($customer->licenseBack)->url : null;
+                            $hasCustomerLicenseOnFile = !empty($customerLicenseFrontUrl) || !empty($customerLicenseBackUrl);
                         @endphp
                         <div>
                             {{-- <label for="selAddress" class="block text-sm font-medium text-gray-800 mt-3">
@@ -102,12 +121,45 @@
                                     {{ $primaryAddress ? 'Phone: ' . $primaryAddress->phone : '' }}
                                 </p>
                                 <p class="mt-2 text-sm" id="addressEmail">
-                                    {{ $primaryAddress ? 'Email: ' . $primaryAddress->email : '' }}
+                                    {{ $primaryAddress ? 'Email: ' . ($primaryAddress->email ?? $email) : '' }}
                                 </p>
                                 <span class="text-green-600 font-medium text-xs absolute top-2 right-3" id="addressDefault">
                                     {{ $primaryAddress && $primaryAddress->is_primary ? 'Default' : '' }}
                                 </span>
                             </div>
+
+                            @if ($hasCustomerLicenseOnFile)
+                                <div id="licenseOnFileSection" class="mt-4 license-file-preview">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div
+                                            class="aspect-[16/10] rounded-md border-2 border-gray-400 overflow-hidden bg-white flex items-center justify-center">
+                                            @if (!empty($customerLicenseFrontUrl))
+                                                <img src="{{ $customerLicenseFrontUrl }}" alt="License front"
+                                                    class="h-full w-full object-cover object-center" />
+                                            @else
+                                                <span class="text-xs text-gray-500">Front image not available</span>
+                                            @endif
+                                        </div>
+                                        <div
+                                            class="aspect-[16/10] rounded-md border-2 border-gray-400 overflow-hidden bg-white flex items-center justify-center">
+                                            @if (!empty($customerLicenseBackUrl))
+                                                <img src="{{ $customerLicenseBackUrl }}" alt="License back"
+                                                    class="h-full w-full object-cover object-center" />
+                                            @else
+                                                <span class="text-xs text-gray-500">Back image not available</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3 flex items-center gap-2">
+                                        <input type="hidden" name="auto_inject" value="0">
+                                        <input id="auto_inject" name="auto_inject" type="checkbox" value="1"
+                                            class="accent-blue-500 h-4 w-4"
+                                            {{ old('auto_inject', '1') == '1' ? 'checked' : '' }}>
+                                        <label for="auto_inject" class="text-sm text-grey-600">Use License On File</label>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     @else
                         @php
@@ -497,13 +549,34 @@
                         @enderror
                     </div>
 
+                    @php
+                    $customer = auth('customer')->user();
+                @endphp
+                    @php
+                        $account = $customer
+                            ? \App\Helpers\CustomHelper::getCustomerAccountStatus($customer)
+                            : null;
+
+                        $isSuspended = $customer && in_array($customer->status, ['Archived', 'Suspended']);
+
+                        $isBadDebt = $customer && ($account['badge']['label'] ?? '') === 'Bad Debt';
+
+                        $isImpersonating = session('impersonated_by_admin') && auth('customer')->check();
+
+                        $canCheckout = $customer && ((!$isSuspended && !$isBadDebt) || $isImpersonating);
+                    @endphp
+
+
+
+                    @if((!$isSuspended && !$isBadDebt) || $isImpersonating)
                     <!-- Payment Method -->
                     <div class="mx-auto" id="paymentForm">
                         <h4 class="text-lg font-semibold mb-3">Payment method</h4>
                         <div class="space-y-4">
 
                             <!-- Credit/Debit -->
-                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'Card') == 'Card' ? 'border-blue-500' : '' }}"
+                            <div id="cardPaymentOption"
+                                class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'Card') == 'Card' ? 'border-blue-500' : '' }}"
                                 data-value="Card">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="Card"
@@ -605,17 +678,19 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Cash On Delivery -->
+                            <!-- Pay On Delivery -->
                             <div class="border-2 rounded-lg p-4 payment-option {{ old('payment') == 'COD' ? 'border-blue-500' : '' }}"
                                 data-value="COD">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="COD"
                                         {{ old('payment') == 'COD' ? 'checked' : '' }} />
-                                    <span>Cash on Delivery (COD)</span>
+                                    <span>Pay on Delivery (POD)</span>
                                 </label>
                                 <p id="codNote"
-                                    class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2">
-                                    COD Orders are not reserved / locked in until paid. If you want to lock in your order,
+                                    class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2"
+                                    data-default-message="POD Orders are not reserved / locked in until paid. If you want to lock in your order, please pay using a credit card or call sales."
+                                    data-hide-cc-message="POD Orders are not reserved / locked in until paid. Please call sales to lock in your order.">
+                                    POD Orders are not reserved / locked in until paid. If you want to lock in your order,
                                     please pay using a credit card or call sales.
                                 </p>
                             </div>
@@ -691,24 +766,81 @@
                             @endif
                         </div>
                     </div>
+                    @endif
+
+                     @if($isSuspended || $isBadDebt)
+                        <div class="mb-4 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700">
+
+
+                            @if($isBadDebt)
+                                <div class="flex items-start gap-3 mt-2">
+                                     <x-heroicon-o-currency-dollar
+            class="w-5 h-5 mt-0.5 text-red-600 shrink-0"
+        />
+
+                                    <div>
+                                        <p class="font-semibold">Your account has an outstanding balance</p>
+                                        <p class="text-sm mt-1">
+                                            We noticed there is a pending balance on your account. Please clear the outstanding amount before placing a new order.
+                                        </p>
+                                         <p class="text-sm mt-2 text-red-600">
+                                            If you believe this message was shown in error, please contact your administrator or support team for assistance.
+                                        </p>
+                                    </div>
+                                </div>
+                            @endif
+
+                        </div>
+                    @endif
 
                     <!-- Buttons -->
-                    <div class="flex justify-between items-center mt-8">
-                        <a href="javascript:history.back()"
-                            class="text-sm text-blue-600 hover:underline flex items-center gap-1">
-                            <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 19l-7-7 7-7"></path>
-                            </svg>
-                            Back
-                        </a>
-                        <button type="submit" id="checkoutBtn"
-                            class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition flex items-center gap-2">
-                            <span id="checkoutBtnText">Checkout</span>
-                            <span id="checkoutBtnLoader" class="hidden">
-                                <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
-                            </span>
-                        </button>
+                    <div class="mt-8 flex flex-col gap-3">
+                        {{-- Back | Employee Code + Checkout --}}
+                        <div class="flex justify-between items-start">
+                            <a href="javascript:history.back()"
+                                class="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-3">
+                                <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                Back
+                            </a>
+                            @if((!$isSuspended && !$isBadDebt) || $isImpersonating)
+                            <div class="flex items-start gap-4">
+                                <div>
+                                    <label for="employee_code" class="sr-only">Employee Code</label>
+                                    {{ html()->text('employee_code', old('employee_code'))->class([
+                                            'w-36 rounded-lg border border-gray-300 px-3 py-2.5 shadow-sm text-sm',
+                                            'input-error' => $errors->has('employee_code'),
+                                        ])->attributes([
+                                            'maxlength' => 20,
+                                            'data-parsley-maxlength' => 20,
+                                            'placeholder' => 'Employee Code',
+                                            'autocomplete' => 'off',
+                                            'id' => 'employee_code',
+                                        ]) }}
+                                    @error('employee_code')
+                                        <p class="mt-1 text-red-600 text-xs">{{ $message }}</p>
+                                    @enderror
+                                    {{-- Tax Exempt below employee code --}}
+                                    <div class="flex items-center justify-center gap-2 mt-1">
+                                        <input type="hidden" name="tax_exempt" value="0" />
+                                        <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
+                                            class="accent-blue-500 h-4 w-4 align-middle"
+                                            {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
+                                        <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
+                                    </div>
+                                </div>
+                                <button type="submit" id="checkoutBtn"
+                                    class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition flex items-center gap-2">
+                                    <span id="checkoutBtnText">Checkout</span>
+                                    <span id="checkoutBtnLoader" class="hidden">
+                                        <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin text-yellow-600" />
+                                    </span>
+                                </button>
+                            </div>
+                            @endif
+                        </div>
                     </div>
                     {{ html()->form()->close() }}
                 </div>
@@ -739,34 +871,7 @@
                         </div>
                     </div>
 
-                    <!-- Employee Code & Tax Exempt - Static Section -->
-                    <div class="flex flex-wrap items-center gap-3 mt-6">
-                        <div class="w-full sm:w-auto">
-                            <label for="employee_code" class="sr-only">Employee Code</label>
-                            {{ html()->text('employee_code', old('employee_code'))->class([
-                                    'w-full sm:w-44 rounded-lg border border-gray-300 px-4 py-2 shadow-sm text-sm',
-                                    'input-error' => $errors->has('employee_code'),
-                                ])->attributes([
-                                    'maxlength' => 20,
-                                    'data-parsley-maxlength' => 20,
-                                    'placeholder' => 'Employee Code',
-                                    'autocomplete' => 'off',
-                                    'id' => 'employee_code',
-                                ]) }}
 
-                            @error('employee_code')
-                                <p class="mt-1 text-red-600 dark:text-red-400 text-xs">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <input type="hidden" name="tax_exempt" value="0" />
-                            <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
-                                class="accent-blue-500 h-4 w-4 align-middle"
-                                {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
-                            <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -835,6 +940,18 @@
             const checkoutBtn = document.getElementById('checkoutBtn');
             const checkoutBtnText = document.getElementById('checkoutBtnText');
             const checkoutBtnLoader = document.getElementById('checkoutBtnLoader');
+            const autoInjectCheckbox = document.getElementById('auto_inject');
+            const licenseOnFileSection = document.getElementById('licenseOnFileSection');
+
+            function syncLicenseOnFilePreviewState() {
+                if (!autoInjectCheckbox || !licenseOnFileSection) return;
+                licenseOnFileSection.classList.toggle('is-inactive', !autoInjectCheckbox.checked);
+            }
+
+            if (autoInjectCheckbox && licenseOnFileSection) {
+                autoInjectCheckbox.addEventListener('change', syncLicenseOnFilePreviewState);
+                syncLicenseOnFilePreviewState();
+            }
 
             function disableCheckoutButton() {
                 if (!checkoutBtn) return;
@@ -1030,8 +1147,10 @@
 
             const paymentOptions = document.querySelectorAll('.payment-option');
             const radioButtons = document.querySelectorAll('input[name="payment"]');
+            const cardPaymentOption = document.getElementById('cardPaymentOption');
             const cardSection = document.getElementById('cardSection');
             const codNote = document.getElementById('codNote');
+            let hideCcPaymentOption = false;
 
             function updateHighlight() {
                 paymentOptions.forEach(opt => {
@@ -1039,17 +1158,56 @@
                     opt.classList.add('border-gray-200');
                 });
                 const checkedRadio = document.querySelector('input[name="payment"]:checked');
+                if (!checkedRadio) {
+                    cardSection.style.display = 'none';
+                    codNote.style.display = 'none';
+                    return;
+                }
                 const selected = checkedRadio.value;
 
-                document.querySelector(`.payment-option[data-value="${selected}"]`).classList.add(
-                    'border-blue-500');
+                const selectedOption = document.querySelector(`.payment-option[data-value="${selected}"]`);
+                if (selectedOption) {
+                    selectedOption.classList.add('border-blue-500');
+                }
                 // Show/hide card input section
-                cardSection.style.display = selected === 'Card' ? 'block' : 'none';
+                cardSection.style.display = !hideCcPaymentOption && selected === 'Card' ? 'block' : 'none';
                 codNote.style.display = selected === 'COD' ? 'block' : 'none';
 
             }
+
+            function applyPaymentRestrictions(shouldHideCcPaymentOption) {
+                hideCcPaymentOption = shouldHideCcPaymentOption;
+
+                if (cardPaymentOption) {
+                    cardPaymentOption.classList.toggle('hidden', hideCcPaymentOption);
+                }
+
+                codNote.textContent = hideCcPaymentOption ? codNote.dataset.hideCcMessage : codNote.dataset
+                    .defaultMessage;
+
+                const checkedRadio = document.querySelector('input[name="payment"]:checked');
+                if (hideCcPaymentOption && checkedRadio?.value === 'Card') {
+                    const fallbackOption = document.querySelector('input[name="payment"][value="COD"]') ||
+                        document.querySelector('input[name="payment"][value="Account"]');
+
+                    if (fallbackOption) {
+                        fallbackOption.checked = true;
+                    }
+                }
+
+                updateHighlight();
+            }
+
             radioButtons.forEach(r => r.addEventListener('change', updateHighlight));
             updateHighlight();
+
+            document.addEventListener('cart:summary-updated', function(event) {
+                applyPaymentRestrictions(Boolean(event.detail?.hideCcPaymentOption));
+            });
+
+            if (typeof window.loadCartSidebarPreview === 'function') {
+                window.loadCartSidebarPreview();
+            }
 
             // Card info live update
             const billingFirstNameInput = document.getElementById('billingFirstName');

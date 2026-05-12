@@ -3,6 +3,8 @@
 namespace App\Helpers;
 
 // Models
+
+use App\Models\Configurations\Setting;
 use App\Models\ProductManagement\ProductCategory;
 
 class CommonFrontDataHelper
@@ -11,11 +13,13 @@ class CommonFrontDataHelper
     {
         $categoryTree = self::categoryTree();
         $contactUsSettings = self::contactUsSettings();
+        $brandingSettings = self::brandingSettings();
 
-        $logo = \App\Helpers\ConfigurationHelper::getProfileLogo();
+        $logo = \App\Helpers\ConfigurationHelper::getBrandingLogo();
         $data = [
             'frontCategoryTree' => $categoryTree,
             'contactUsSettings' => $contactUsSettings,
+            'brandingSettings' => $brandingSettings,
             'logo'=> $logo,
         ];
 
@@ -25,6 +29,11 @@ class CommonFrontDataHelper
     public static function contactUsSettings()
     {
         return ConfigurationHelper::getSettings('Contact Us Settings');
+    }
+
+    public static function brandingSettings()
+    {
+        return ConfigurationHelper::getSettings('Website Management Branding');
     }
 
     public static function categoryTree()

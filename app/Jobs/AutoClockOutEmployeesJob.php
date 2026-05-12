@@ -42,6 +42,11 @@ class AutoClockOutEmployeesJob implements ShouldQueue
             'You were automatically clocked out.'
         );
 
+        $globalLimitEnd = TimeTrackerHelper::getTimeTrackerSetting(
+            'limit_end_time_to_shift',
+            false
+        );
+
 
         $twilio = new TwilioService();
         $now = Carbon::now();
@@ -51,7 +56,6 @@ class AutoClockOutEmployeesJob implements ShouldQueue
 
         // 2. Fetch employees with active time entry
         $employees = User::active()
-            ->whereNotNull('shift_end_time')
             ->whereHas('activeTimeEntry')
             ->with('activeTimeEntry')
             ->get();
@@ -63,9 +67,24 @@ class AutoClockOutEmployeesJob implements ShouldQueue
         
         foreach ($employees as $employee) {
 
+            // Log::info('[AUTO CLOCK OUT] Processing employee', [
+            //     'employee_id' => $employee->id,
+            //     'name' => $employee->full_name,
+            // ]);
+
+            if ($employee->limit_end_time != 1) {
+                // Log::info('[AUTO CLOCK OUT] Skipped - limit_end_time disabled', [
+                //     'employee_id' => $employee->id,
+                // ]);
+                continue;
+            }
+
             $entry = $employee->activeTimeEntry;
 
             if (!$entry) {
+                // Log::warning('[AUTO CLOCK OUT] Skipped - no active time entry', [
+                //     'employee_id' => $employee->id,
+                // ]);
                 continue;
             }
 
@@ -98,30 +117,16 @@ class AutoClockOutEmployeesJob implements ShouldQueue
                 $clockIn->format('Y-m-d') . ' ' . $storeHours->end_time
             );
 
-            //  Apply penalty if enabled
-            if ($employee->limit_end_time == 1 && $employee->auto_clockout_penalty) {
+            $userLimitEnd = (bool) $employee->limit_end_time;
+            $shouldLimitEnd = $globalLimitEnd || $userLimitEnd;
 
-                $penaltyMinutes = (int) $employee->auto_clockout_penalty;
 
-                $finalClockOutTime = $storeEndTime->copy()
-                    ->subMinutes($penaltyMinutes);
-
-                // Log::info('[AUTO CLOCK OUT] Using store end - penalty', [
-                //     'employee_id' => $employee->id,
-                //     'store_end' => $storeEndTime->toDateTimeString(),
-                //     'penalty' => $penaltyMinutes,
-                //     'final' => $finalClockOutTime->toDateTimeString(),
-                // ]);
-
-            } else {
-
-                //  Otherwise use store end time
+            if ($shouldLimitEnd) {
+                // Use store end time
                 $finalClockOutTime = $storeEndTime;
-
-                // Log::info('[AUTO CLOCK OUT] Using store end time (no penalty)', [
-                //     'employee_id' => $employee->id,
-                //     'final' => $finalClockOutTime->toDateTimeString(),
-                // ]);
+            } else {
+                // Use current time
+                $finalClockOutTime = $now;
             }
 
             // Auto clock trigger time
@@ -129,8 +134,25 @@ class AutoClockOutEmployeesJob implements ShouldQueue
                 ->addMinutes($autoLimitMinutes);
 
             if ($now->lt($autoClockOutAt)) {
+                //  Log::info('[AUTO CLOCK OUT] Skipped - not reached auto clock out time', [
+                //     'employee_id' => $employee->id,
+                //     'auto_clock_out_at' => $autoClockOutAt->toDateTimeString(),
+                // ]);
                 continue;
             }
+
+            //  APPLY ROUNDING
+            $payIncrement = TimeTrackerHelper::getTimeTrackerSetting('pay_increments', 5);
+
+           $finalClockOutTime = TimeTrackerHelper::roundNearest(
+                $finalClockOutTime,
+                (int) $payIncrement
+            );
+
+            // Log::info('[AUTO CLOCK OUT] After rounding', [
+            //     'employee_id' => $employee->id,
+            //     'final_clock_out' => $finalClockOutTime->toDateTimeString(),
+            // ]);
 
             //  Save auto clock out
             $entry->clock_out = $finalClockOutTime;
@@ -138,120 +160,55 @@ class AutoClockOutEmployeesJob implements ShouldQueue
             $entry->updated_at = $finalClockOutTime;
             $entry->save();
 
-            // Log::info('[AUTO CLOCK OUT] Employee auto clocked out', [
+            // Log::info('[AUTO CLOCK OUT] SUCCESS - Employee auto clocked out', [
             //     'employee_id' => $employee->id,
+            //     'clock_in' => $entry->clock_in,
             //     'clock_out' => $finalClockOutTime->toDateTimeString(),
             // ]);
+
+            //  SEND SMS AFTER AUTO CLOCK OUT
+
+            $phoneNumber = $employee->mobile_phone ?? $employee->phone_number;
+
+            if ($phoneNumber) {
+                try {
+                    $message = str_replace(
+                        ['{name}', '{time}'],
+                        [
+                            $employee->full_name,
+                            $finalClockOutTime->format('h:i A')
+                        ],
+                        $messageTemplate
+                    );
+
+                    $response = $twilio->sendSms($phoneNumber, $message);
+
+                    if ($response['success']) {
+                        Log::info('[AUTO CLOCK OUT] SMS sent', [
+                            'employee_id' => $employee->id,
+                            'phone' => $phoneNumber,
+                            'sid' => $response['sid'] ?? null,
+                        ]);
+                    } else {
+                        Log::error('[AUTO CLOCK OUT] SMS failed', [
+                            'employee_id' => $employee->id,
+                            'phone' => $phoneNumber,
+                            'error' => $response['message'],
+                        ]);
+                    }
+
+                } catch (\Throwable $e) {
+                    Log::error('[AUTO CLOCK OUT] SMS failed', [
+                        'employee_id' => $employee->id,
+                        'phone' => $phoneNumber,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
         }
 
+        // Log::info('[AUTO CLOCK OUT] Job completed');
 
-        // foreach ($employees as $employee) {
-
-        //     $entry = $employee->activeTimeEntry;
-
-        //     if (!$entry || !$employee->shift_end_time) {
-        //         continue;
-        //     }
-
-        //     $clockIn = Carbon::parse($entry->clock_in);
-
-        //     // Build shift end using SAME DATE as clock in
-        //     $shiftEnd = $clockIn->copy()
-        //         ->setTimeFromTimeString($employee->shift_end_time);
-
-        //     $autoClockOutTimeSetting = TimeTrackerHelper::getTimeTrackerSetting(
-        //             'auto_clock_out_time',
-        //         null
-        //     );
-
-        //     if (!empty($autoClockOutTimeSetting)) {
-
-        //             // Use configured time
-        //             $finalClockOutTime = $clockIn->copy()
-        //                 ->setTimeFromTimeString($autoClockOutTimeSetting);
-
-        //             // Log::info('[AUTO CLOCK OUT] Using fixed auto clock-out time', [
-        //             //     'employee_id' => $employee->id,
-        //             //     'configured_time' => $autoClockOutTimeSetting,
-        //             //     'final_time' => $finalClockOutTime->toDateTimeString(),
-        //             // ]);
-
-        //         } else {
-
-        //             // Fallback to shift end
-        //             $finalClockOutTime = $shiftEnd;
-
-        //             // Log::info('[AUTO CLOCK OUT] Using shift end time (fallback)', [
-        //             //     'employee_id' => $employee->id,
-        //             //     'shift_end' => $shiftEnd->toDateTimeString(),
-        //             // ]);
-        //         }
-
-        //     // Add allowed minutes
-        //     $autoClockOutAt = $shiftEnd->copy()->addMinutes($autoLimitMinutes);
-
-        //     Log::info('[AUTO CLOCK OUT] Timing check', [
-        //         'employee_id' => $employee->id,
-        //         'clock_in' => $clockIn->toDateTimeString(),
-        //         'shift_end' => $shiftEnd->toDateTimeString(),
-        //         'auto_clock_out_at' => $autoClockOutAt->toDateTimeString(),
-        //         'now' => $now->toDateTimeString(),
-        //     ]);
-
-        //     if ($now->lt($autoClockOutAt)) {
-        //         continue;
-        //     }
-
-        //     // Auto clock out
-        //     $entry->clock_out = $finalClockOutTime;
-        //     $entry->status = 'completed';
-        //     $entry->updated_at = $finalClockOutTime;
-        //     $entry->save();
-
-
-        //     Log::info('[AUTO CLOCK OUT] Employee auto clocked out', [
-        //         'employee_id' => $employee->id,
-        //         'clock_out' => $finalClockOutTime->toDateTimeString(),
-
-        //         'entry clock_out'=> $entry->clock_out,
-
-        //         'entry updated_at'=> $entry->updated_at,
-        //     ]);
-
-        //     //  SEND SMS
-
-        //     // $phoneNumber = $employee->mobile_phone ?? $employee->phone_number;
-
-        //     // if (!$phoneNumber) {
-        //     //     Log::warning('[AUTO CLOCK OUT] No phone number found', [
-        //     //         'employee_id' => $employee->id,
-        //     //     ]);
-        //     //     continue;
-        //     // }
-
-        //     // try {
-        //     //     $smsResponse = $twilio->sendSms(
-        //     //         $phoneNumber,
-        //     //         $messageTemplate
-        //     //     );
-
-        //     //     Log::info('[AUTO CLOCK OUT] SMS sent', [
-        //     //         'employee_id' => $employee->id,
-        //     //         'phone' => $phoneNumber,
-        //     //         'twilio_sid' => $smsResponse['sid'] ?? null,
-        //     //     ]);
-
-        //     // } catch (\Throwable $e) {
-        //     //     Log::error('[AUTO CLOCK OUT] SMS failed', [
-        //     //         'employee_id' => $employee->id,
-        //     //         'phone' => $phoneNumber,
-        //     //         'error' => $e->getMessage(),
-        //     //     ]);
-        //     // }
-
-
-        // }
-
-        // Log::info('[AUTO CLOCK OUT] Job finished');
     }
 }

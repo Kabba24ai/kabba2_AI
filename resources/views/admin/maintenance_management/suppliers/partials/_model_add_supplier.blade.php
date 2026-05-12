@@ -221,9 +221,9 @@
                             {!! html()->select('supplierCountry', [
 
                             'USA' => 'USA',
-                            'Canada' => 'Canada',
-                            'UK' => 'UK',
-                            'India' => 'India',
+                            // 'Canada' => 'Canada',
+                            // 'UK' => 'UK',
+                            // 'India' => 'India',
                             ], old('supplierCountry'))
                             ->class('w-full px-3 py-3 border bg-white rounded-md text-sm focus:ring-green-500 focus:border-green-500')
                             ->id('supplierCountry') !!}

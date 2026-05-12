@@ -84,8 +84,8 @@
 
             <div class="w-full sm:w-35">
                 <div class="relative bg-white">
-                    <input type="text" id="order_number" placeholder="Order ID"
-                        name="order_number" value="{{ request('order_number') }}"
+                    <input type="text" id="order_number" placeholder="Order ID" name="order_number"
+                        value="{{ request('order_number') }}"
                         class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
                     <x-heroicon-o-magnifying-glass
                         class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
@@ -113,7 +113,7 @@
                     class= " border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-38 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Payment Types</option>
                     <option value="Card" @selected(request('payment_method') == 'Card')>Card</option>
-                    <option value="COD" @selected(request('payment_method') == 'COD')>COD</option>
+                    <option value="COD" @selected(request('payment_method') == 'COD')>POD</option>
                     <option value="Account" @selected(request('payment_method') == 'Account')>Account</option>
                 </select>
             </div>
@@ -178,12 +178,14 @@
 
                     <label class="flex items-center gap-1 ml-2">
                         <input type="checkbox" name="transport_mode[]" value="Truck"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" @checked(is_array($transportMode) ? in_array('Truck', $transportMode) : true)>
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
+                            @checked(is_array($transportMode) ? in_array('Truck', $transportMode) : true)>
                         Truck
                     </label>
                     <label class="flex items-center gap-1">
                         <input type="checkbox" name="transport_mode[]" value="Store"
-                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300" @checked(is_array($transportMode) ? in_array('Store', $transportMode) : true)>
+                            class="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
+                            @checked(is_array($transportMode) ? in_array('Store', $transportMode) : true)>
                         In Store
                     </label>
                 </div>
@@ -208,8 +210,22 @@
                         <input type="checkbox" name="rescheduled_only" value="Reschedule" id="rescheduled_only"
                             class="text-red-600 focus:ring-red-500 rounded border-gray-300" @checked(request('rescheduled_only') == 'Reschedule')>
                         <span class="font-medium">Rescheduled Pending : {{ $rescheduleOrder }}</span>
-
                     </label>
+                </div>
+                <!-- Quick Filter Buttons -->
+                <div class="flex gap-2">
+                    <button type="button"
+                        class="schedule-filter-btn px-3 py-2 rounded bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200 border border-blue-200"
+                        data-schedule-type="Delivery" data-transport-mode="Truck">Deliveries - Truck</button>
+                    <button type="button"
+                        class="schedule-filter-btn px-3 py-2 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 border border-green-200"
+                        data-schedule-type="Delivery" data-transport-mode="Store">Deliveries - In Store</button>
+                    <button type="button"
+                        class="schedule-filter-btn px-3 py-2 rounded bg-purple-100 text-purple-700 text-xs font-semibold hover:bg-purple-200 border border-purple-200"
+                        data-schedule-type="Return" data-transport-mode="Truck">Returns - Truck</button>
+                    <button type="button"
+                        class="schedule-filter-btn px-3 py-2 rounded bg-indigo-100 text-indigo-700 text-xs font-semibold hover:bg-indigo-200 border border-indigo-200"
+                        data-schedule-type="Return" data-transport-mode="Store">Returns - In Store</button>
                 </div>
             </div>
         </div>
@@ -245,7 +261,7 @@
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Order ID:</span>
-                        <a id="assign-order-id" href="#" target="_blank" class="text-sm text-blue-900 font-semibold">-</a>
+                        <a id="assign-order-id" href="#" class="text-sm text-blue-900 font-semibold">-</a>
                     </div>
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Customer:</span>
@@ -286,7 +302,7 @@
                     </select>
                     <div class="flex items-center justify-between gap-3 mt-2">
                         <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                        <a href="#" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"
+                        <a href="#" class="text-blue-600 hover:underline text-sm font-semibold"
                             id="equipment-page-link"></a>
                     </div>
                 </div>
@@ -307,9 +323,197 @@
             </form>
         </div>
     </div>
+
+    <div id="scheduleAssistantModal" class="fixed inset-0 z-9999 hidden">
+        <div class="absolute inset-0 bg-black/50" onclick="closeScheduleAssistantModal()"></div>
+
+        <div
+            class="absolute left-1/2 top-1/2 w-full max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl">
+            <div class="flex items-center justify-between border-b px-6 py-4">
+                <h2 id="scheduleAssistantModalTitle" class="text-lg font-semibold">Scheduling Assistant</h2>
+                <button type="button" class="text-gray-500 hover:text-gray-700"
+                    onclick="closeScheduleAssistantModal()">✕</button>
+            </div>
+
+            <div id="scheduleAssistantContent" class="max-h-[70vh] overflow-y-auto p-6">
+                <p class="text-sm text-gray-500">Loading...</p>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('js')
+    <script>
+        function escapeScheduleHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function showScheduleAssistantModal(title = 'Scheduling Assistant') {
+            const modal = document.getElementById('scheduleAssistantModal');
+            const content = document.getElementById('scheduleAssistantContent');
+            const modalTitle = document.getElementById('scheduleAssistantModalTitle');
+
+            modal.classList.remove('hidden');
+            modalTitle.textContent = title;
+            content.innerHTML = '<p class="text-sm text-gray-500">Loading...</p>';
+
+            return content;
+        }
+
+        async function fetchScheduleAssistantJson(url, fallbackMessage) {
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            });
+
+            const result = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                throw new Error(result?.message || fallbackMessage);
+            }
+
+            return result;
+        }
+
+        function openAIScheduleAdvisorModal(orderProductId) {
+            const content = showScheduleAssistantModal('AI Schedule Advisor');
+
+            const url =
+                '{{ route('admin.order-management.schedules.ai.show', ['orderProductId' => '__ORDER_PRODUCT_ID__']) }}'
+                .replace('__ORDER_PRODUCT_ID__', orderProductId);
+
+            fetchScheduleAssistantJson(url, 'Failed to load AI schedule advisor.')
+                .then(result => {
+                    if (!result.success) {
+                        content.innerHTML = `
+                        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                            ${escapeScheduleHtml(result.message || result.error || 'Failed to load AI schedule advisor.')}
+                        </div>
+                    `;
+                        return;
+                    }
+
+                    const assistant = result.data?.assistant || {};
+                    const ai = result.data?.ai || {};
+                    const recommendation = ai.recommendation || {};
+
+                    const issuesHtml = (assistant.issues || []).map(issue => `
+                    <div class="mb-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+                        <div class="font-medium text-yellow-800">${escapeScheduleHtml(issue.code)}</div>
+                        <div class="text-sm text-yellow-700">${escapeScheduleHtml(issue.message)}</div>
+                    </div>
+                `).join('');
+
+                    const reasoningHtml = (recommendation.reasoning || []).map(reason => `
+                    <li>${escapeScheduleHtml(reason)}</li>
+                `).join('');
+
+                    const actionsHtml = (recommendation.actions_required || []).map(action => `
+                    <span class="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">${escapeScheduleHtml(action)}</span>
+                `).join('');
+
+                    const warningsHtml = (recommendation.warnings || []).map(warning => `
+                    <li>${escapeScheduleHtml(warning)}</li>
+                `).join('');
+
+                    const alternativesHtml = (recommendation.alternatives || []).map(option => `
+                    <div class="rounded-xl border p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <h3 class="text-base font-semibold">${escapeScheduleHtml(option.equipment_name || 'No equipment selected')}</h3>
+                                <p class="text-sm text-gray-500">#${escapeScheduleHtml(option.equipment_id ?? '-')}</p>
+                            </div>
+                            <span class="text-xs uppercase tracking-wide text-gray-500">${escapeScheduleHtml(option.relationship_type)}</span>
+                        </div>
+                        <p class="mt-3 text-sm text-gray-700">${escapeScheduleHtml(option.summary)}</p>
+                        ${(option.actions_required || []).length ? `
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    ${option.actions_required.map(action => `
+                                    <span class="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700">${escapeScheduleHtml(action)}</span>
+                                `).join('')}
+                                </div>
+                            ` : ''}
+                    </div>
+                `).join('');
+
+                    content.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="rounded-lg bg-gray-50 p-4">
+                                <div class="text-xs uppercase tracking-wide text-gray-500">Delivery</div>
+                                <div class="font-medium">${escapeScheduleHtml(assistant.order_window?.delivery || '-')}</div>
+                            </div>
+                            <div class="rounded-lg bg-gray-50 p-4">
+                                <div class="text-xs uppercase tracking-wide text-gray-500">Pickup</div>
+                                <div class="font-medium">${escapeScheduleHtml(assistant.order_window?.pickup || '-')}</div>
+                            </div>
+                        </div>
+
+                        ${issuesHtml ? `<div><h3 class="mb-3 text-lg font-semibold">Operational Issues</h3>${issuesHtml}</div>` : ''}
+
+                        <div class="rounded-xl border border-sky-200 bg-sky-50 p-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <div class="text-xs uppercase tracking-wide text-sky-700">Decision</div>
+                                    <h3 class="mt-1 text-lg font-semibold text-sky-900">${escapeScheduleHtml(recommendation.decision || 'No decision')}</h3>
+                                    <p class="mt-1 text-sm text-sky-800">${escapeScheduleHtml(recommendation.recommended_equipment_name || 'No equipment recommended')}</p>
+                                </div>
+                                <div class="text-right text-sm text-sky-800">
+                                    <div>Equipment ID: ${escapeScheduleHtml(recommendation.recommended_equipment_id ?? '-')}</div>
+                                    <div>Relationship: ${escapeScheduleHtml(recommendation.relationship_type || 'unknown')}</div>
+                                </div>
+                            </div>
+
+                            ${actionsHtml ? `<div class="mt-4 flex flex-wrap gap-2">${actionsHtml}</div>` : ''}
+                        </div>
+
+                        <div>
+                            <h3 class="mb-3 text-lg font-semibold">AI Reasoning</h3>
+                            ${reasoningHtml ? `<ul class="list-disc space-y-2 pl-5 text-sm text-gray-700">${reasoningHtml}</ul>` : '<p class="text-sm text-gray-500">No reasoning returned.</p>'}
+                        </div>
+
+                        ${warningsHtml ? `
+                                <div>
+                                    <h3 class="mb-3 text-lg font-semibold text-amber-800">Warnings</h3>
+                                    <ul class="list-disc space-y-2 pl-5 text-sm text-amber-700">${warningsHtml}</ul>
+                                </div>
+                            ` : ''}
+
+                        <div>
+                            <h3 class="mb-3 text-lg font-semibold">Alternatives</h3>
+                            <div class="space-y-4">
+                                ${alternativesHtml || '<p class="text-sm text-gray-500">No alternatives returned.</p>'}
+                            </div>
+                        </div>
+
+                        ${ai.error ? `
+                                <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                                    ${escapeScheduleHtml(ai.error)}
+                                </div>
+                            ` : ''}
+                    </div>
+                `;
+                })
+                .catch(error => {
+                    content.innerHTML = `
+                    <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        ${escapeScheduleHtml(error.message || 'Something went wrong while loading AI schedule advisor data.')}
+                    </div>
+                `;
+                });
+        }
+
+        function closeScheduleAssistantModal() {
+            document.getElementById('scheduleAssistantModal').classList.add('hidden');
+        }
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.__scheduleTooltipInitialized) return;
@@ -432,9 +636,15 @@
             let loadingIndicator = document.querySelector('#schedule-loading');
             let wrapper = document.querySelector('#schedule-table-wrapper');
             let timeout = null;
-            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
+            let urlScheduleType = '{{ $urlScheduleType }}';
+            let urlTransportMode = '{{ $urlTransportMode }}';
+
+            const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location
+                    .search)
                 .get('per_page') || null;
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
+
+
 
             const screenKey = "schedules_filters";
 
@@ -459,10 +669,45 @@
                 fetchSchedules();
             });
 
+
+
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
+
+            if (urlScheduleType) {
+                scheduleTypeInputs.forEach(input => {
+                    const mode = input.value;
+                    if (urlScheduleType.includes(mode)) {
+                        input.checked = true;
+                    } else {
+                        input.checked = false;
+                    }
+
+                     storeLocationInputs.forEach(input => {
+        input.checked = true;
+    });
+
+     // AUTO SELECT TODAY
+    if (dateFilterInput) {
+        dateFilterInput.value = 'today';
+    }
+
+                });
+            }
+
+            if (urlTransportMode) {
+                transportModeInputs.forEach(input => {
+                    const mode = input.value;
+                    if (urlTransportMode.split(',').includes(mode)) {
+                        input.checked = true;
+                    }else {
+                        input.checked = false;
+                    }
+                    
+                });
+            }
             fetchSchedules(pageParam, perPageParam); // initial fetch after loading saved filters
-            function fetchSchedules(page = 1, perPage = 10) {
+            function fetchSchedules(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
 
                 if (customerNameInput && (customerNameInput.value.length >= 3 || customerNameInput.value.length ===
@@ -472,7 +717,8 @@
                         .length === 0)) params.append('customer_company_name', customerCompanyNameInput.value);
                 if (customerPhoneInput && (customerPhoneInput.value.length >= 3 || customerPhoneInput.value
                         .length === 0)) params.append('customer_phone', customerPhoneInput.value);
-                if (orderNumberInput && (orderNumberInput.value.length >= 1 || orderNumberInput.value.length === 0)) params.append('order_number', orderNumberInput.value);
+                if (orderNumberInput && (orderNumberInput.value.length >= 1 || orderNumberInput.value.length === 0))
+                    params.append('order_number', orderNumberInput.value);
                 if (categoryInput && categoryInput.value) params.append('category', categoryInput.value);
                 if (paymentStatusInput && paymentStatusInput.value) params.append('payment_status',
                     paymentStatusInput.value);
@@ -604,6 +850,36 @@
                 });
             });
 
+            // Schedule filter buttons logic
+            document.querySelectorAll('.schedule-filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const scheduleType = this.getAttribute('data-schedule-type');
+                    const transportMode = this.getAttribute('data-transport-mode');
+
+                    // Uncheck all schedule_type checkboxes, then check the right one
+                    document.querySelectorAll('input[name="schedule_type[]"]').forEach(cb => {
+                        cb.checked = (cb.value === scheduleType);
+                    });
+                    // Uncheck all transport_mode checkboxes, then check the right one
+                    document.querySelectorAll('input[name="transport_mode[]"]').forEach(cb => {
+                        cb.checked = (cb.value === transportMode);
+                    });
+
+                      // CHECK ALL STORES
+                            document.querySelectorAll('input[name="store_location[]"]').forEach(cb => {
+                                cb.checked = true;
+                            });
+                            // AUTO SELECT TODAY
+                    if (dateFilterInput) {
+                        dateFilterInput.value = 'today';
+                    }
+
+                    // Trigger AJAX filter
+                    if (typeof fetchSchedules === 'function') fetchSchedules(pageParam,
+                        perPageParam);
+                });
+            });
+
             const modal = document.getElementById('equipmentAssignModal');
             const equipmentAssignForm = document.getElementById('equipmentAssignForm');
             const categorySelect = document.getElementById('category_select');
@@ -627,13 +903,15 @@
                 const orderUniqueId = btn.dataset.orderUniqueId || '';
                 const productName = btn.dataset.productName || '';
                 const customerName = btn.dataset.customerName || '';
-                let orderDetailUrl = "{{ route('admin.order-management.orders.edit', ['unique_id' => 'ORDER_ID_PLACEHOLDER']) }}";
+                let orderDetailUrl =
+                    "{{ route('admin.order-management.orders.edit', ['unique_id' => 'ORDER_ID_PLACEHOLDER']) }}";
 
                 document.getElementById('order-product-unique-id').value = orderProductUniqueId || '';
 
                 if (orderIdLabel) {
                     orderIdLabel.textContent = orderId ? `#${orderId.replace(/^#/, '')}` : '-';
-                    orderIdLabel.href = orderUniqueId ? orderDetailUrl.replace('ORDER_ID_PLACEHOLDER', orderUniqueId) : '';
+                    orderIdLabel.href = orderUniqueId ? orderDetailUrl.replace('ORDER_ID_PLACEHOLDER',
+                        orderUniqueId) : '';
                 }
 
                 if (customerNameLabel) {

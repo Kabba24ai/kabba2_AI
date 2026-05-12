@@ -13,6 +13,10 @@ class BulkDeleteController extends Controller
 {
     /**
      * Handle bulk deletion of orders.
+     *
+     * Each order is soft-deleted individually so that the Order model's
+     * deleting boot hook fires and moves assigned equipment to Maintenance hold.
+     * A mass delete() call would bypass model events.
      */
     public function __invoke(BulkDeleteRequest $request)
     {
@@ -23,7 +27,9 @@ class BulkDeleteController extends Controller
         }
 
         DB::transaction(function () use ($uniqueIds) {
-            Order::whereIn('unique_id', $uniqueIds)->delete();
+            Order::whereIn('unique_id', $uniqueIds)
+                ->get()
+                ->each(fn($order) => $order->delete());
         });
 
         return response()->json([

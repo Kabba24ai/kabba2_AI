@@ -18,7 +18,7 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <p class="text-xs text-gray-500 mt-1">8 Hrs Allocated</p>
+                        <p class="text-[10px] leading-tight text-gray-500 mt-1">{{ $allocatedHoursSettings['daily_hours'] ?? 8 }} Hrs Allocated</p>
                 <div id="rental-daily-errors"></div>
             </div>
 
@@ -38,7 +38,10 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <p class="text-xs text-gray-500 mt-1">14 Hrs Allocated</p>
+                <p class="text-[10px] leading-tight text-gray-500 mt-1">
+                    {{ $allocatedHoursSettings['weekend_hours'] ?? 14 }} Hrs Allocated -
+                    {{ $priceRateMultiplierSettings['weekend_multiplier'] ?? '1.5' }} Daily Rate
+                </p>
                 <div id="rental-weekend-errors"></div>
             </div>
 
@@ -57,7 +60,10 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <p class="text-xs text-gray-500 mt-1">40 Hrs Allocated</p>
+                <p class="text-[10px] leading-tight text-gray-500 mt-1">
+                    {{ $allocatedHoursSettings['weekly_hours'] ?? 40 }} Hrs Allocated -
+                    {{ $priceRateMultiplierSettings['weekly_multiplier'] ?? '4.0' }} Daily Rate
+                </p>
                 <div id="rental-weekly-errors"></div>
             </div>
 
@@ -76,7 +82,10 @@
                                 'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
                         ]) !!}
                 </div>
-                <p class="text-xs text-gray-500 mt-1">160 Hrs Allocated</p>
+                <p class="text-[10px] leading-tight text-gray-500 mt-1">
+                    {{ $allocatedHoursSettings['monthly_hours'] ?? 160 }} Hrs Allocated -
+                    {{ $priceRateMultiplierSettings['monthly_multiplier'] ?? '16.0' }} Daily Rate
+                </p>
                 <div id="rental-monthly-errors"></div>
             </div>
         </div>
@@ -84,11 +93,12 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Damage Waiver</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Daily -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_daily')->attributes([
@@ -132,10 +142,8 @@
                 <div id="rental-damage-waiver-daily-errors"></div>
             </div>
 
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Weekend -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_weekend')->attributes([
@@ -151,10 +159,8 @@
                 <div id="rental-damage-waiver-weekend-errors"></div>
             </div>
 
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Weekly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_weekly')->attributes([
@@ -170,10 +176,8 @@
                 <div id="rental-damage-waiver-weekly-errors"></div>
             </div>
 
-            <!-- Damage Waiver -->
+            <!-- Damage Waiver Monthly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">Damage
-                    Waiver</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_damage_waiver_monthly')->attributes([
@@ -193,11 +197,11 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Track Insurance</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_daily')->attributes([
@@ -214,9 +218,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_weekend')->attributes([
@@ -233,9 +234,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_weekly')->attributes([
@@ -252,9 +250,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap">
-                    Track Insurance
-                </label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_track_insurance_monthly')->attributes([
@@ -341,11 +336,152 @@
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
 
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tire Insurance</label>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_tire_insurance_daily', $product->rental_tire_insurance_daily ?? null)->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-tire-insurance-daily-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="rental-tire-insurance-daily-errors"></div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_tire_insurance_weekend', $product->rental_tire_insurance_weekend ?? null)->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-tire-insurance-weekend-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="rental-tire-insurance-weekend-errors"></div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_tire_insurance_weekly', $product->rental_tire_insurance_weekly ?? null)->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-tire-insurance-weekly-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="rental-tire-insurance-weekly-errors"></div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('rental_tire_insurance_monthly', $product->rental_tire_insurance_monthly ?? null)->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#rental-tire-insurance-monthly-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="rental-tire-insurance-monthly-errors"></div>
+            </div>
+        </div>
+
+        {{-- Tire Insurance Sizes --}}
+        <div class="mt-3">
+            <div class="flex items-center flex-wrap gap-6">
+                <label for="tire_insurance_small"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'Small',
+                            'Small',
+                        )->id('tire_insurance_small')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    Small
+                </label>
+
+                <label for="tire_insurance_medium"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'Medium',
+                            'Medium',
+                        )->id('tire_insurance_medium')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    Medium
+                </label>
+
+                <label for="tire_insurance_large"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'Large',
+                            'Large',
+                        )->id('tire_insurance_large')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    Large
+                </label>
+
+                <label for="tire_insurance_xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'X-Large',
+                            'X-Large',
+                        )->id('tire_insurance_xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    X-Large
+                </label>
+
+                <label for="tire_insurance_2xlarge"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == '2X-Large',
+                            '2X-Large',
+                        )->id('tire_insurance_2xlarge')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    2X-Large
+                </label>
+
+                <label for="tire_insurance_commercial"
+                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'tire_insurance_size_setting',
+                            old('tire_insurance_size_setting', $objProduct->tire_insurance_size_setting ?? null) == 'Commercial',
+                            'Commercial',
+                        )->id('tire_insurance_commercial')->class('mr-2')->attribute('data-parsley-errors-container', '#tire-insurance-sizes-errors') !!}
+                    Commercial
+                </label>
+            </div>
+
+            <div id="tire-insurance-sizes-errors"></div>
+        </div>
+
+        <!-- Spacer -->
+        <div class="h-3 md:h-4"></div>
+
         <!-- Sale Prices -->
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sale Price</label>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 ">
             <!-- Daily -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_daily')->attributes([
@@ -366,7 +502,6 @@
 
             <!-- Weekend Spcl. -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_weekend')->attributes([
@@ -387,7 +522,6 @@
 
             <!-- Weekly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_weekly')->attributes([
@@ -408,7 +542,6 @@
 
             <!-- Monthly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price</label>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('sale_price_monthly')->attributes([
@@ -430,7 +563,101 @@
 
         <!-- Spacer -->
         <div class="h-3 md:h-4"></div>
-        @include('admin.product_management.products.partials._terms_checklist')
+
+        <!-- Related Products Price -->
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <span>Related Products Price</span>
+                <span class="relative group" aria-label="Related Products Price info">
+                    <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                        <x-heroicon-o-information-circle class="w-5 h-5" />
+                    </span>
+                    <span class="tooltip-panel max-w-sm">
+                        This is an alternate pricing rule. It is triggered only when the product is added to the cart via a Related Products component. Products added through standard product displays will use the default product price.
+                    </span>
+                </span>
+            </label>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 ">
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('related_product_price_daily')->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#related-product-price-daily-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="related-product-price-daily-errors"></div>
+                @error('related_product_price_daily')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('related_product_price_weekend')->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#related-product-price-weekend-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="related-product-price-weekend-errors"></div>
+                @error('related_product_price_weekend')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('related_product_price_weekly')->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#related-product-price-weekly-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="related-product-price-weekly-errors"></div>
+                @error('related_product_price_weekly')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                    {!! html()->text('related_product_price_monthly')->attributes([
+                            'placeholder' => '0',
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'data-parsley-errors-container' => '#related-product-price-monthly-errors',
+                            'class' =>
+                                'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                        ]) !!}
+                </div>
+                <div id="related-product-price-monthly-errors"></div>
+                @error('related_product_price_monthly')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Spacer -->
+        <div class="h-3 md:h-4"></div>
     </div>
 
     <!-- Additional Prices -->
@@ -760,29 +987,102 @@
 
         <!-- High Demand Alert -->
         <div class="grid grid-cols-1  gap-4">
-            <div class="flex items-center gap-2 mt-1 relative">
-                {!! html()->checkbox('has_high_demand_alert') !!}
-                <label for="has_high_demand_alert" class="text-gray-700 dark:text-gray-300">
-                    High Demand Alert
-                </label>
-                <!-- Tooltip trigger -->
-                <div class="relative group">
-                    <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
-                        <x-heroicon-o-information-circle class="w-5 h-5" />
-                    </span>
+            <div class="flex flex-wrap items-center gap-8 mt-1">
+                <div class="flex items-center gap-2 relative">
+                    {!! html()->checkbox('has_high_demand_alert') !!}
+                    <label for="has_high_demand_alert" class="text-gray-700 dark:text-gray-300">
+                        High Demand Alert
+                    </label>
+                    <!-- Tooltip trigger -->
+                    <div class="relative group">
+                        <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                        </span>
 
-                    <!-- Tooltip -->
-                    <div class="tooltip-panel max-w-sm">
-                        <a href="http://youtube.com" target="_blank" rel="noopener noreferrer">
-                            Link will be provided soon.
-                        </a>
+                        <!-- Tooltip -->
+                        <div class="tooltip-panel max-w-sm">
+                            <p>
+                                Display a checkout alert to inform customers that this product is in high demand or has limited availability.
+                            </p>
+                        </div>
                     </div>
                 </div>
+
+                <label for="hide_cc_payment_option" class="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        id="hide_cc_payment_option"
+                        name="hide_cc_payment_option"
+                        value="1"
+                        @checked(old('hide_cc_payment_option', $objProduct->hide_cc_payment_option ?? false))>
+                    <span class="text-gray-700 dark:text-gray-300">Hide CC Payment Option</span>
+                </label>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-8">
+                <label for="is_tax_free_item" class="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        id="is_tax_free_item"
+                        name="is_tax_free_item"
+                        value="1"
+                        @checked(old('is_tax_free_item', $objProduct->is_tax_free_item ?? false))>
+                    <span class="text-gray-700 dark:text-gray-300">Tax Free Item</span>
+                    <span class="relative group" aria-label="Tax Free Item info">
+                        <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                        </span>
+                        <span class="tooltip-panel max-w-sm">
+                            Sales tax is applied to all products by default. Enable this option to override standard tax behavior for this product.
+                        </span>
+                    </span>
+                </label>
+
+                <label for="apply_special_tax" class="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        id="apply_special_tax"
+                        name="apply_special_tax"
+                        value="1"
+                        @checked(old('apply_special_tax', $objProduct->apply_special_tax ?? false))>
+                    <span class="text-gray-700 dark:text-gray-300">Apply Special Tax</span>
+                    <span class="relative group" aria-label="Apply Special Tax info">
+                        <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                        </span>
+                        <span class="tooltip-panel max-w-sm">
+                            Apply Special Tax to the base product only. Optional add-ons such as Prepaid Fuel,
+                            Prepaid Cleaning, Damage Waiver Protection, and Track Coverage are not taxed.
+                        </span>
+                    </span>
+                </label>
+
+                <label for="apply_added_fees" class="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        id="apply_added_fees"
+                        name="apply_added_fees"
+                        value="1"
+                        @checked(old('apply_added_fees', $objProduct->apply_added_fees ?? false))>
+                    <span class="text-gray-700 dark:text-gray-300">Apply Added Fees</span>
+                    <span class="relative group" aria-label="Apply Added Fees info">
+                        <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
+                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                        </span>
+                        <span class="tooltip-panel tooltip-panel--right max-w-sm">
+                            Apply one-time fees to the order for special situations (e.g., environmental or disposal
+                            fees). These fees increase based on the number of products in the order.
+                        </span>
+                    </span>
+                </label>
             </div>
         </div>
 
+        <div class="h-3 md:h-4"></div>
+        @include('admin.product_management.products.partials._terms_checklist')
+
         <div class="mt-auto flex justify-end pt-25">
-            <a href="{{ route('admin.configurations.index') }}" target="_blank"
+            <a href="{{ route('admin.configurations.index') }}"
                 class="text-sm text-blue-500 hover:underline font-medium">
                 Update Settings
             </a>
@@ -794,6 +1094,9 @@
     <script>
         const damageWaiverPercentage = "{{ $productSettings['damage_waiver_percentage'] }}"
         const overageRatePercentage = "{{ $productSettings['overage_rate_percentage'] }}";
+        const weekendRateMultiplier = "{{ $priceRateMultiplierSettings['weekend_multiplier'] ?? '' }}";
+        const weeklyRateMultiplier = "{{ $priceRateMultiplierSettings['weekly_multiplier'] ?? '' }}";
+        const monthlyRateMultiplier = "{{ $priceRateMultiplierSettings['monthly_multiplier'] ?? '' }}";
 
         // Auto-fill delivery fees based on selected size
         const sizeFeeMap = {
@@ -864,6 +1167,46 @@
             }
         };
 
+        // Auto-fill tire insurance based on selected size
+        const sizeTireInsuranceFeeMap = {
+            Small: {
+                daily: "{{ $productSettings['small_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['small_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['small_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['small_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            Medium: {
+                daily: "{{ $productSettings['medium_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['medium_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['medium_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['medium_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            Large: {
+                daily: "{{ $productSettings['large_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['large_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['large_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['large_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            "X-Large": {
+                daily: "{{ $productSettings['x_large_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['x_large_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['x_large_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['x_large_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            "2X-Large": {
+                daily: "{{ $productSettings['2x_large_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['2x_large_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['2x_large_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['2x_large_monthly_tire_insurance_fee'] ?? '' }}"
+            },
+            Commercial: {
+                daily: "{{ $productSettings['commercial_daily_tire_insurance_fee'] ?? '' }}",
+                weekend: "{{ $productSettings['commercial_weekend_tire_insurance_fee'] ?? '' }}",
+                weekly: "{{ $productSettings['commercial_weekly_tire_insurance_fee'] ?? '' }}",
+                monthly: "{{ $productSettings['commercial_monthly_tire_insurance_fee'] ?? '' }}"
+            }
+        };
+
         // console.log(sizeFeeMap,sizeTrackInsuranceFeeMap);
         document.addEventListener("DOMContentLoaded", function() {
             // const hourTracking = document.querySelector('input[name="hour_tracking"]');
@@ -924,10 +1267,35 @@
                 }
             }
 
+            function calculatePriceByMultiplier(dailyPrice, multiplier) {
+                const parsedDailyPrice = parseFloat(dailyPrice);
+                const parsedMultiplier = parseFloat(multiplier);
+
+                if (isNaN(parsedDailyPrice) || parsedDailyPrice <= 0 || isNaN(parsedMultiplier) || parsedMultiplier <=
+                    0) {
+                    return "";
+                }
+
+                return (parsedDailyPrice * parsedMultiplier).toFixed(2);
+            }
+
+            function updateCalculatedRentalPricesFromDaily() {
+                const dailyPrice = dailyPriceInput.value;
+
+                weekendPriceInput.value = calculatePriceByMultiplier(dailyPrice, weekendRateMultiplier);
+                weeklyPriceInput.value = calculatePriceByMultiplier(dailyPrice, weeklyRateMultiplier);
+                monthlyPriceInput.value = calculatePriceByMultiplier(dailyPrice, monthlyRateMultiplier);
+
+                updateDamageWaiver(weekendPriceInput, damageWaiverWeekendInput);
+                updateDamageWaiver(weeklyPriceInput, damageWaiverWeeklyInput);
+                updateDamageWaiver(monthlyPriceInput, damageWaiverMonthlyInput);
+            }
+
             dailyPriceInput.addEventListener("input", () => {
                 // if (hourTracking.checked) {
                 //     updateOverageRate(dailyPriceInput, hourRateInput);
                 // }
+                updateCalculatedRentalPricesFromDaily();
                 updateDamageWaiver(dailyPriceInput, damageWaiverDailyInput);
             });
 
@@ -1088,6 +1456,51 @@
             }
 
             enforceTrackInsuranceSingleSizeSelection();
+
+            const rentalTireInsuranceInputs = [
+                document.querySelector('input[name="rental_tire_insurance_daily"]'),
+                document.querySelector('input[name="rental_tire_insurance_weekend"]'),
+                document.querySelector('input[name="rental_tire_insurance_weekly"]'),
+                document.querySelector('input[name="rental_tire_insurance_monthly"]')
+            ];
+            // Make tire insurance size checkboxes behave like single-select (no radios)
+            const sizeTireInsuranceCheckboxes = Array.from(document.querySelectorAll(
+                'input[name="tire_insurance_size_setting"]'));
+
+            sizeTireInsuranceCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function(e) {
+                    // Auto-fill tire insurance fees if a size is selected
+                    if (cb.checked) {
+                        const fees = sizeTireInsuranceFeeMap[cb.value];
+                        if (fees) {
+                            if (rentalTireInsuranceInputs[0]) rentalTireInsuranceInputs[0].value = fees.daily;
+                            if (rentalTireInsuranceInputs[1]) rentalTireInsuranceInputs[1].value = fees.weekend;
+                            if (rentalTireInsuranceInputs[2]) rentalTireInsuranceInputs[2].value = fees.weekly;
+                            if (rentalTireInsuranceInputs[3]) rentalTireInsuranceInputs[3].value = fees.monthly;
+                        }
+                    } else {
+                        // If unchecked, clear tire insurance fees
+                        rentalTireInsuranceInputs.forEach(input => { if (input) input.value = ''; });
+                    }
+                    enforceTireInsuranceSingleSizeSelection(e.target);
+                });
+            });
+
+            function enforceTireInsuranceSingleSizeSelection(changed) {
+                if (!sizeTireInsuranceCheckboxes.length) return;
+                if (changed && changed.checked) {
+                    sizeTireInsuranceCheckboxes.forEach(cb => {
+                        if (cb !== changed) cb.checked = false;
+                    });
+                } else {
+                    const checked = sizeTireInsuranceCheckboxes.filter(cb => cb.checked);
+                    if (checked.length > 1) {
+                        checked.slice(1).forEach(cb => (cb.checked = false));
+                    }
+                }
+            }
+
+            enforceTireInsuranceSingleSizeSelection();
 
             const prepaidCleaningRates = document.getElementById('prepaid_cleaning_rate_setting');
             const prepaidFuelRates = document.getElementById('prepaid_fuel_rate_setting');

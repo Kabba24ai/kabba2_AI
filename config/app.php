@@ -144,6 +144,7 @@ return [
         'project_manager' => env('PROJECTMANAGER_DOMAIN', 'http://projectmanager.kabba.ai'),
         'opportunities' => env('OPPORTUNITIES_DOMAIN', 'http://opportunities.kabba.ai'),
         'timetrackerpro' => env('TIMETRACKERPRO_DOMAIN', 'http://timetrackerpro.kabba.ai'),
+        'sales_report' => env('SALES_REPORT_DOMAIN', 'http://salesreport.kabba.ai'),
     ],
 
     /*

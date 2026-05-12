@@ -31,7 +31,8 @@
 
        <!-- Right: Status + Button -->
        <div class="flex flex-col items-start md:items-end gap-2 text-left md:text-right w-auto">
-           @if ($approved && $hasCreditLimit)
+
+           {{-- @if ($approved && $hasCreditLimit)
                <!-- Status Badge -->
                <span
                    class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 w-auto">
@@ -44,7 +45,30 @@
                    Pending
                </span>
            @else
-           @endif
+           @endif --}}
+
+
+
+                @php
+                    $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
+
+                        $isSuspended = $customer->status === 'Archived' || $customer->status === 'Suspended';
+
+                @endphp
+
+
+
+                @if($isSuspended)
+                        <span  class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 w-auto">
+                            Suspended
+                        </span>
+                    @else
+                    <!-- Status Badge -->
+                    <span  class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full  w-auto
+                        {{ $account['badge']['bg'] }} {{ $account['badge']['text'] }}">
+                        {{ $account['badge']['label'] }}
+                    </span>
+                    @endif
 
            <!-- Visit Website Button -->
            <a href="#"
@@ -74,7 +98,7 @@
                        <th class="px-4 py-3 font-medium uppercase">PO#</th>
                        <th class="px-4 py-3 font-medium uppercase">Product Name</th>
                        <th class="px-4 py-3 font-medium uppercase">Amount</th>
-                       <th class="px-4 py-3 font-medium uppercase">Payment Methods</th>
+                       <th class="px-4 py-3 font-medium uppercase">Payment Method</th>
                        <th class="px-4 py-3 font-medium uppercase">Status</th>
                        <th class="px-4 py-3 font-medium uppercase">Created</th>
                        <th class="px-4 py-3 font-medium uppercase">Action</th>
@@ -90,7 +114,7 @@
                                <td class="px-4 py-3"> {{ \App\Helpers\CustomHelper::formatCurrency($product->total) }}
                                </td>
                                <td class="px-4 py-3">
-                                   {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}
+                                   {{ $order?->last_payment_type?->label() ?? '-' }}
                                </td>
                                <td class="px-4 py-3">
                                    {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
@@ -100,7 +124,7 @@
                                <td class="px-4 py-3 items-center whitespace-nowrap text-blue-600 flex">
                                    <!-- View -->
 
-                                 
+
 
                                  <a href="{{ route('front.customer.dashboard.order.view', $order->unique_id) }}"
                                      class="text-blue-600 inline-flex items-center">

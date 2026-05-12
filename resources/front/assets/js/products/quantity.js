@@ -1,5 +1,9 @@
 export function changeQty(delta) {
     const input = document.getElementById("qty");
+    if (!input || input.disabled) {
+        return;
+    }
+
     let current = parseInt(input.value) || 1;
     let newValue = current + delta;
     // Weekend Special: force max 1 and show message

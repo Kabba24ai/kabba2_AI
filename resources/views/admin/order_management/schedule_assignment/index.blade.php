@@ -189,6 +189,13 @@
 
     </div>
 
+    {{-- Equipment name group bar --}}
+    <div id="equipment-group-bar" class="hidden bg-white rounded-lg border border-gray-200 shadow-sm px-3 py-2 mb-2">
+        <div class="flex gap-2 overflow-x-auto flex-nowrap pb-0.5">
+            {{-- pills rendered by JS --}}
+        </div>
+    </div>
+
     <div class="flex flex-col gap-5 h-[calc(90vh-180px)] min-h-0"> {{-- adjust 180px as needed --}}
         {{-- Equipment table --}}
         <div id="equipment-table-wrapper"
@@ -236,7 +243,7 @@
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Order ID:</span>
-                        <a id="assign-order-id" href="#" target="_blank" class="text-sm text-blue-900 font-semibold">-</a>
+                        <a id="assign-order-id" href="#"  class="text-sm text-blue-900 font-semibold">-</a>
                     </div>
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Customer:</span>
@@ -277,7 +284,7 @@
                     </select>
                     <div class="flex items-center justify-between gap-3 mt-2">
                         <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                        <a href="#" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"
+                        <a href="#" class="text-blue-600 hover:underline text-sm font-semibold"
                             id="equipment-page-link"></a>
                     </div>
                 </div>
@@ -298,9 +305,215 @@
             </form>
         </div>
     </div>
+
+    <div id="scheduleAssistantModal" class="fixed inset-0 z-9999 hidden">
+        <div class="absolute inset-0 bg-black/50" onclick="closeScheduleAssistantModal()"></div>
+
+        <div class="absolute left-1/2 top-1/2 w-full max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl">
+            <div class="flex items-center justify-between border-b px-6 py-4">
+                <h2 id="scheduleAssistantModalTitle" class="text-lg font-semibold">Scheduling Assistant</h2>
+                <button type="button" class="text-gray-500 hover:text-gray-700" onclick="closeScheduleAssistantModal()">✕</button>
+            </div>
+
+            <div id="scheduleAssistantContent" class="max-h-[70vh] overflow-y-auto p-6">
+                <p class="text-sm text-gray-500">Loading...</p>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('js')
+<script>
+    function escapeScheduleHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function showScheduleAssistantModal(title = 'Scheduling Assistant') {
+        const modal = document.getElementById('scheduleAssistantModal');
+        const content = document.getElementById('scheduleAssistantContent');
+        const modalTitle = document.getElementById('scheduleAssistantModalTitle');
+
+        modal.classList.remove('hidden');
+        modalTitle.textContent = title;
+        content.innerHTML = '<p class="text-sm text-gray-500">Loading...</p>';
+
+        return content;
+    }
+
+    async function fetchScheduleAssistantJson(url, fallbackMessage) {
+        const response = await fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            }
+        });
+
+        const result = await response.json().catch(() => null);
+
+        if (!response.ok) {
+            throw new Error(result?.message || fallbackMessage);
+        }
+
+        return result;
+    }
+
+    function openAIScheduleAdvisorModal(orderProductId) {
+        const content = showScheduleAssistantModal('AI Schedule Advisor');
+
+        const url = '{{ route("admin.order-management.schedules.ai.show", ["orderProductId" => "__ORDER_PRODUCT_ID__"]) }}'
+            .replace('__ORDER_PRODUCT_ID__', orderProductId);
+
+        fetchScheduleAssistantJson(url, 'Failed to load AI schedule advisor.')
+            .then(result => {
+                if (!result.success) {
+                    content.innerHTML = `
+                        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                            ${escapeScheduleHtml(result.message || result.error || 'Failed to load AI schedule advisor.')}
+                        </div>
+                    `;
+                    return;
+                }
+
+                const assistant = result.data?.assistant || {};
+                const ai = result.data?.ai || {};
+                const recommendation = ai.recommendation || {};
+
+                // --- Date formatting logic ---
+                function formatDateTime(dt) {
+                    if (!dt) return '-';
+                    // Try to parse and format as per app config (from window or fallback)
+                    const configFormat = (window.APP_DATE_TIME_FORMAT || 'm/d/Y - h:i A');
+                    // Try to parse as ISO or Y-m-d H:i:s
+                    const d = new Date(dt);
+                    if (isNaN(d.getTime())) return escapeScheduleHtml(dt);
+                    // Format using config (simple, not locale-aware)
+                    const pad = n => n.toString().padStart(2, '0');
+                    let formatted = configFormat
+                        .replace('Y', d.getFullYear())
+                        .replace('m', pad(d.getMonth() + 1))
+                        .replace('d', pad(d.getDate()))
+                        .replace('H', pad(d.getHours()))
+                        .replace('h', pad((d.getHours() % 12) || 12))
+                        .replace('i', pad(d.getMinutes()))
+                        .replace('A', d.getHours() < 12 ? 'AM' : 'PM');
+                    return formatted;
+                }
+
+                const issuesHtml = (assistant.issues || []).map(issue => `
+                    <div class="mb-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+                        <div class="font-medium text-yellow-800">${escapeScheduleHtml(issue.code)}</div>
+                        <div class="text-sm text-yellow-700">${escapeScheduleHtml(issue.message)}</div>
+                    </div>
+                `).join('');
+
+                const reasoningHtml = (recommendation.reasoning || []).map(reason => `
+                    <li>${escapeScheduleHtml(reason)}</li>
+                `).join('');
+
+                const actionsHtml = (recommendation.actions_required || []).map(action => `
+                    <span class="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">${escapeScheduleHtml(action)}</span>
+                `).join('');
+
+                const warningsHtml = (recommendation.warnings || []).map(warning => `
+                    <li>${escapeScheduleHtml(warning)}</li>
+                `).join('');
+
+                const alternativesHtml = (recommendation.alternatives || []).map(option => `
+                    <div class="rounded-xl border p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <h3 class="text-base font-semibold">${escapeScheduleHtml(option.equipment_name || 'No equipment selected')}</h3>
+                                <p class="text-sm text-gray-500">#${escapeScheduleHtml(option.equipment_id ?? '-')}</p>
+                            </div>
+                            <span class="text-xs uppercase tracking-wide text-gray-500">${escapeScheduleHtml(option.relationship_type)}</span>
+                        </div>
+                        <p class="mt-3 text-sm text-gray-700">${escapeScheduleHtml(option.summary)}</p>
+                        ${(option.actions_required || []).length ? `
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                ${option.actions_required.map(action => `
+                                    <span class="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700">${escapeScheduleHtml(action)}</span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+
+                content.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="rounded-lg bg-gray-50 p-4">
+                                <div class="text-xs uppercase tracking-wide text-gray-500">Delivery</div>
+                                <div class="font-medium">${formatDateTime(assistant.order_window?.delivery)}</div>
+                            </div>
+                            <div class="rounded-lg bg-gray-50 p-4">
+                                <div class="text-xs uppercase tracking-wide text-gray-500">Pickup</div>
+                                <div class="font-medium">${formatDateTime(assistant.order_window?.pickup)}</div>
+                            </div>
+                        </div>
+
+                        ${issuesHtml ? `<div><h3 class="mb-3 text-lg font-semibold">Operational Issues</h3>${issuesHtml}</div>` : ''}
+
+                        <div class="rounded-xl border border-sky-200 bg-sky-50 p-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <div class="text-xs uppercase tracking-wide text-sky-700">Decision</div>
+                                    <h3 class="mt-1 text-lg font-semibold text-sky-900">${escapeScheduleHtml(recommendation.decision || 'No decision')}</h3>
+                                    <p class="mt-1 text-sm text-sky-800">${escapeScheduleHtml(recommendation.recommended_equipment_name || 'No equipment recommended')}</p>
+                                </div>
+                                <div class="text-right text-sm text-sky-800">
+                                    <div>Equipment ID: ${escapeScheduleHtml(recommendation.recommended_equipment_id ?? '-')}</div>
+                                    <div>Relationship: ${escapeScheduleHtml(recommendation.relationship_type || 'unknown')}</div>
+                                </div>
+                            </div>
+
+                            ${actionsHtml ? `<div class="mt-4 flex flex-wrap gap-2">${actionsHtml}</div>` : ''}
+                        </div>
+
+                        <div>
+                            <h3 class="mb-3 text-lg font-semibold">AI Reasoning</h3>
+                            ${reasoningHtml ? `<ul class="list-disc space-y-2 pl-5 text-sm text-gray-700">${reasoningHtml}</ul>` : '<p class="text-sm text-gray-500">No reasoning returned.</p>'}
+                        </div>
+
+                        ${warningsHtml ? `
+                            <div>
+                                <h3 class="mb-3 text-lg font-semibold text-amber-800">Warnings</h3>
+                                <ul class="list-disc space-y-2 pl-5 text-sm text-amber-700">${warningsHtml}</ul>
+                            </div>
+                        ` : ''}
+
+                        <div>
+                            <h3 class="mb-3 text-lg font-semibold">Alternatives</h3>
+                            <div class="space-y-4">
+                                ${alternativesHtml || '<p class="text-sm text-gray-500">No alternatives returned.</p>'}
+                            </div>
+                        </div>
+
+                        ${ai.error ? `
+                            <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                                ${escapeScheduleHtml(ai.error)}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            })
+            .catch(error => {
+                content.innerHTML = `
+                    <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        ${escapeScheduleHtml(error.message || 'Something went wrong while loading AI schedule advisor data.')}
+                    </div>
+                `;
+            });
+    }
+
+    function closeScheduleAssistantModal() {
+        document.getElementById('scheduleAssistantModal').classList.add('hidden');
+    }
+</script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.__scheduleTooltipInitialized) return;
@@ -441,13 +654,22 @@
 
             // Clear filters functionality using global clearFilters
             document.getElementById('clear-filters').addEventListener('click', function() {
-                window.clearFilters(fieldMap, screenKey);
+                // Create a filtered fieldMap that excludes equipment_status checkboxes
+                const fieldMapForClear = {
+                    'search': searchInput,
+                    'category': categorySelect,
+                    'store': storeSelect,
+                    'past_seven_days': pastSevenDays,
+                    'overdue': overdue,
+                    'assignment_filter': assignmentFilter,
+                };
+                window.clearFilters(fieldMapForClear, screenKey);
                 fetchEquipments();
                 fetchSchedules();
             });
 
             fetchEquipments(pageParam, perPageParam); // initial fetch after loading saved filters
-            function fetchEquipments(page = 1, perPage = 10) {
+            function fetchEquipments(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
                 if (searchInput.value.length >= 3 || searchInput.value === '') params.append('search', searchInput
                     .value);
@@ -478,6 +700,7 @@
                     .then(response => response.json())
                     .then(data => {
                         equipmentTableWrapper.innerHTML = data.html;
+                        renderGroupBar(data.groups || []);
                     })
                     .catch(err => {
                         equipmentTableWrapper.innerHTML =
@@ -857,7 +1080,37 @@
 
             fetchEquipment(); // initial fetch without loading all equipments
 
-            //  Fetch equipment options with cat
+            const groupBar = document.getElementById('equipment-group-bar');
+            const groupBarInner = groupBar?.querySelector('div');
+
+            function renderGroupBar(groups) {
+                if (!groupBar || !groupBarInner) return;
+
+                if (!groups || groups.length === 0) {
+                    groupBar.classList.add('hidden');
+                    groupBarInner.innerHTML = '';
+                    return;
+                }
+
+                const circle = (count, bg, text, title) =>
+                    count > 0
+                        ? `<span title="${title}" style="width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0;" class="${bg} ${text}">${count}</span>`
+                        : '';
+
+                groupBarInner.innerHTML = groups.map(g => `
+                    <div class="flex-shrink-0 inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700 whitespace-nowrap shadow-sm">
+                        <span>${g.name}</span>
+                        ${circle(g.available,   'bg-green-100',  'text-green-700',  'Available')}
+                        ${circle(g.rented,      'bg-blue-100',   'text-blue-700',   'Rented')}
+                        ${circle(g.maintenance, 'bg-yellow-100', 'text-yellow-700', 'Maint. Hold')}
+                        ${circle(g.damaged,     'bg-red-100',    'text-red-700',    'Damaged')}
+                        <span title="Total" style="width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0;" class="bg-gray-200 text-gray-600">${g.total}</span>
+                    </div>`).join('');
+
+                groupBar.classList.remove('hidden');
+            }
+
+
             function fetchEquipment(loadAll = true) {
                 apiFetch('{{ route('admin.maintenance-management.equipment.fetch-with-categories') }}')
                     .then(data => {

@@ -12,7 +12,7 @@ class ShowController extends BaseController
     public function __invoke(): JsonResponse
     {
         // Get all profile settings
-        $settings = ConfigurationHelper::getSettings('Profile Settings');
+        $settings = ConfigurationHelper::getSettings('Website Management Branding');
 
         return response()->json([
             'success' => true,

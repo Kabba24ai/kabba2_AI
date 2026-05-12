@@ -27,10 +27,28 @@
      <!-- Right: Status + Button -->
      <div class="flex flex-col items-start md:items-end gap-2 text-left md:text-right w-auto">
          <!-- Status Badge -->
-         <span
-             class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 w-auto">
-             Good Standing
-         </span>
+
+            @php
+                    $account = \App\Helpers\CustomHelper::getCustomerAccountStatus($customer);
+                
+                        $isSuspended = $customer->status === 'Archived' || $customer->status === 'Suspended';
+
+                @endphp
+
+         
+
+         @if($isSuspended)
+                        <span  class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 w-auto">
+                            Suspended
+                        </span>
+                    @else
+                    <!-- Status Badge -->
+                    <span  class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full  w-auto
+                        {{ $account['badge']['bg'] }} {{ $account['badge']['text'] }}">
+                        {{ $account['badge']['label'] }}
+                    </span>
+                    @endif
+         
 
          <!-- Visit Website Button -->
          <a  href="{{ route('admin.crm.customers.login', ['unique_id' => $customer->unique_id]) }}"
@@ -155,7 +173,7 @@
                      <th class="py-4 px-6 w-32">PO#</th>
                      <th class="py-4 px-6">Product Name</th>
                      <th class="py-4 px-6 w-32">Amount</th>
-                     <th class="py-4 px-6 w-32 text-right">Payment Methods</th>
+                     <th class="py-4 px-6 w-32 text-right">Payment Method</th>
                      <th class="py-4 px-6 w-32 text-right">Status</th>
                      <th class="py-4 px-6 w-32 text-right">Created</th>
                      <th class="py-4 px-6 w-24 text-right">Action</th>
@@ -168,7 +186,9 @@
                              data-status="{{ strtolower(str_replace(' ', '-', $order->payments->first()->status->value ?? 'n/a')) }}">
                              {{-- Order Number --}}
                              <td class="py-4 px-6 font-medium text-gray-900">
-                                 {{ $order->order_number }}
+                               
+                                    {!! $order->view_link !!}
+                  
                              </td>
 
                              <td class="py-4 px-6 font-medium text-gray-900">
@@ -188,7 +208,7 @@
 
                              {{-- Payment Method --}}
                              <td class="py-4 px-6 text-right">
-                                 {{ $order?->last_payment_type?->value === 'Cheque' ? 'Check' : $order?->last_payment_type?->value }}
+                                 {{ $order?->last_payment_type?->label() ?? '-' }}
                              </td>
 
                              {{-- Order Status --}}

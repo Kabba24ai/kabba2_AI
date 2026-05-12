@@ -13,6 +13,7 @@ class EmployeeResource extends JsonResource
             'id' => $this->id,
             'user_id' => $this->id,
             'unique_id' => $this->unique_id,
+            'employee_code' => $this->employee_code,
             'first_name' => $this->first_name ?? '',
             'last_name' => $this->last_name ?? '',
             'email' => $this->email ?? '',
@@ -74,6 +75,11 @@ class EmployeeResource extends JsonResource
             ),
             'vacation_eligible' => $this->vacation_eligible ?? 0,
            
+            'bonus_vacation_hours' => $this->bonus_vacation_hours ?? null,
+            'bonus_vacation_hours_start_date' => $this->bonus_vacation_hours_start_date ?? null,
+            'bonus_vacation_hours_end_date' => $this->bonus_vacation_hours_end_date ?? null,
+
+
             'created_at' => $this->created_at,
         ];
     }

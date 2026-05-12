@@ -39,7 +39,7 @@
                <p class="text-sm  text-gray-500">Available Credit</p>
                <p class="text-xl font-semibold text-gray-900">
                    {{ \App\Helpers\CustomHelper::formatCurrency(\App\Helpers\CustomHelper::getAvailableCredit($customer)) }}
-                   <!-- {{ \App\Helpers\CustomHelper::formatCurrency(($customer->credit_limit ?? 0) - ($customer->total_account_order_amount ?? 0) ) }} -->
+                   
 
                </p>
            </div>
@@ -288,7 +288,7 @@
                     'amount' => 'text-indigo-600', 
                     'sign' => '',
                     'icon' => 'file-text',
-                     'label' => 'Account Invoice',
+                     'label' => 'Invoice',
                 ],
                    ];
                    @endphp
@@ -376,7 +376,7 @@
 
                            <div class="text-xs text-gray-500 mt-1">
                                  @if ($transaction->invoice)
-                                    Invoice #{{ $transaction->invoice->invoice_number }}
+                                     #{{ $transaction->invoice->invoice_number }}
                                 @elseif ($transaction->type !== 'payment')
                                     {{ $transaction->responsible_person_name }}
                                 @endif
@@ -387,15 +387,15 @@
                            <div class="max-w-xs truncate text-gray-700">
 
                                  <span>
-                                @if ($transaction->order_id)
-                                    {!! $transaction->order->view_link !!}
+                                  @if ($transaction->order_id && $transaction->order)
+                                        {!! $transaction->order->view_link !!}
 
-                                @elseif($transaction->type === 'payment' && $transaction->payment_type?->label() === 'Check' && $transaction->payment_number_id)
-                                    {{ $transaction->payment_number_id }}
+                                    @elseif($transaction->type === 'payment' && $transaction->payment_type?->label() === 'Check' && $transaction->payment_number_id)
+                                        {{ $transaction->payment_number_id }}
 
-                                @else
-                                    -
-                                @endif
+                                    @else
+                                        -
+                                    @endif
                                 </span>
 
                            </div>
@@ -406,9 +406,9 @@
                            <div class="max-w-xs truncate text-gray-700">
 
                                @if ($transaction->type === 'payment')
-                               {{ $transaction->payment_type?->label() ?? 'N/A' }}
+                               {{ $transaction->payment_type?->label() ?? '' }}
                                @else
-                               {{ $transaction->reason ?? 'N/A' }}
+                               {{ $transaction->reason ?? '' }}
                                @endif
 
                            </div>
@@ -416,7 +416,7 @@
                        </td>
                        <!-- Amount Without Tax -->
 
-                       <td class="py-4 px-6 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}"> {{ $transaction->notes ?? 'N/A' }} </td>
+                       <td class="py-4 px-6 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}"> {{ $transaction->notes ?? '' }} </td>
 
 
                        <td class="py-4 px-6 text-right">
@@ -485,7 +485,7 @@
                         {{-- view icon  --}}
                             @if ($transaction->invoice_id && $transaction->type === 'payment')
                                 <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice->unique_id) }}"   title="View" >
-                                                                <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
+                                        <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />    
                                 </a>
                             @else
 
@@ -495,7 +495,7 @@
                                     <a href="{{ route('admin.crm.customers.invoice.show', $transaction->invoice?->unique_id) }}"  title="View" >
                                         <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                                     </a>
-                                            
+
                                     @else
 
                                         <button class="openTransactionViewModalBtn" title="View" data-transaction='@json($transaction)' data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}">
@@ -517,8 +517,8 @@
                                     {{-- <x-heroicon-o-pencil class="w-4 h-4" /> --}}
 
                                     <svg class="w-4 h-4 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
-</svg>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
+                                    </svg>
 
                                     </a>
                                
@@ -544,10 +544,10 @@
 
                                         title="Edit">
                                         {{-- <x-heroicon-o-pencil class="w-4 h-4" /> --}}
-                                        
+
                                              <svg class="w-4 h-4 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
-</svg>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
+                                            </svg>
                                         
                                     </button>
 
@@ -580,7 +580,7 @@
 
                                </a>
 
-                               @if($transaction->invoice_id && in_array($transaction->type, ['account_invoice']))
+                                @if($transaction->invoice_id && in_array($transaction->type, ['account_invoice']))
                                
                                     <!-- Transaction delete button -->
                                     <form action="{{ route('admin.crm.customers.invoice.delete-invoice', $transaction->invoice->unique_id) }}"
@@ -1193,13 +1193,15 @@
 
                        {!! html()->select('reason', [
                        '' => 'Select charge reason',
-                       'Cleaning Charge' => 'Cleaning Charge',
-                       'Damages' => 'Damages',
-                       'Fuel Charge' => 'Fuel Charge',
-                       'Missing Items' => 'Missing Items',
-                       'New Rental' => 'New Rental',
-                       'Product Purchase' => 'Product Purchase',
-                       'Rental Extension' => 'Rental Extension',
+                            'Cleaning Charge' => 'Cleaning Charge',
+                            'Damages' => 'Damages',
+                            'Fuel Charge' => 'Fuel Charge',
+                            'Labor' => 'Labor' ,
+                            'Missing Items' => 'Missing Items',
+                            'Miscellaneous' => 'Miscellaneous',
+                            'New Rental' => 'New Rental',
+                            'Product Purchase' => 'Product Purchase',
+                            'Rental Extension' => 'Rental Extension',
                        ], old('reason'))
                        ->class('w-full border border-gray-300 rounded-md px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500')
                        ->required() !!}

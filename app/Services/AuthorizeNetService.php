@@ -1063,7 +1063,9 @@ class AuthorizeNetService
 
     public function getCardInfoFromPaymentProfile($customerProfileId, $paymentProfileId): array
     {
+        $cardNumber = null;
         $cardType = null;
+
         try {
             $request = new AnetAPI\GetCustomerPaymentProfileRequest();
             $request->setMerchantAuthentication($this->merchantAuthentication);
@@ -1074,15 +1076,21 @@ class AuthorizeNetService
             $response = $this->executeWithApiResponseTimed($controller);
 
             if ($response && $response->getMessages()->getResultCode() === 'Ok') {
-                $card = $response->getPaymentProfile()->getPayment()->getCreditCard();
+                $paymentProfile = method_exists($response, 'getPaymentProfile') ? $response->getPaymentProfile() : null;
+                $payment = $paymentProfile && method_exists($paymentProfile, 'getPayment') ? $paymentProfile->getPayment() : null;
+                $card = $payment && method_exists($payment, 'getCreditCard') ? $payment->getCreditCard() : null;
+
                 if ($card) {
-                    $cardType = $card->getCardType();
+                    $cardNumber = method_exists($card, 'getCardNumber') ? $card->getCardNumber() : null;
+                    $cardType = method_exists($card, 'getCardType') ? $card->getCardType() : null;
                 }
             }
-        } catch (\Exception $e) {
-            // Optionally log error
+        } catch (\Throwable $e) {
+            report($e);
         }
+
         return [
+            'card_number' => $cardNumber,
             'card_type' => $cardType,
         ];
     }

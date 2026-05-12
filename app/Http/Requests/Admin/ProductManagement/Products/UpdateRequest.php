@@ -133,6 +133,7 @@ class UpdateRequest extends ApiBaseFormRequest
 
             'is_default_funnel' => ['nullable', 'boolean'],
             'has_high_demand_alert' => ['nullable', 'boolean'],
+            'hide_cc_payment_option' => ['nullable', 'boolean'],
 
             'is_tax_free_item' => ['nullable', 'boolean'],
             'apply_special_tax' => ['nullable', 'boolean'],

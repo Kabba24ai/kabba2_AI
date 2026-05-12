@@ -383,6 +383,7 @@
                         'admin.maintenance-management.service-master.*',
                         'admin.maintenance-management.parts.*',
                         'admin.maintenance-management.suppliers.*',
+                        'admin.maintenance-management.key-comparisons.*',
                         ]);
 
                     // Checklist Management
@@ -448,6 +449,14 @@
                                 </li>
 
                                 <li>
+                                    <a href="{{ route('admin.maintenance-management.key-comparisons.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.key-comparisons.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-adjustments-horizontal class="h-5 w-5" /> Key Comparisons
+                                    </a>
+                                </li>
+
+                                <li>
                                     <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.maintenance-management.equipment-service.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
@@ -478,6 +487,7 @@
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Suppliers
                                     </a>
                                 </li>
+
                             </ul>
                         </div>
                     </li>

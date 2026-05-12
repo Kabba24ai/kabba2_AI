@@ -24,6 +24,7 @@ class IndexController extends Controller
             'summary' => view('components.front.checkout.cart-summary', [
                 'cart' => $cartSummary,
             ])->render(),
+            'hide_cc_payment_option' => $cartSummary['hide_cc_payment_option'] ?? false,
         ]);
     }
 }

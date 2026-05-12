@@ -511,6 +511,47 @@
             pathListKeys.forEach((listKey) => syncPathVisibility(listKey));
         }
 
+        function clearPrimaryEquipmentSelection() {
+            equipmentCheckboxes.forEach((checkbox) => {
+                checkbox.checked = false;
+            });
+            syncSelectedCount();
+        }
+
+        function clearPathEquipmentSelection(listKey) {
+            pathCheckboxes.forEach((checkbox) => {
+                if (checkbox.dataset.listKey === listKey) {
+                    checkbox.checked = false;
+                }
+            });
+            syncPathSelectedCount(listKey);
+        }
+
+        function clearCategorySelections(syncPathCategories = true) {
+            clearPrimaryEquipmentSelection();
+
+            if (syncPathCategories) {
+                pathListKeys.forEach((listKey) => clearPathEquipmentSelection(listKey));
+            }
+        }
+
+        function syncCategoryFilters(categoryId, syncPathCategories = true, clearSelections = false) {
+            equipmentCategorySelect.value = categoryId;
+
+            if (syncPathCategories) {
+                pathCategorySelects.forEach((selectElement) => {
+                    selectElement.value = categoryId;
+                });
+            }
+
+            if (clearSelections) {
+                clearCategorySelections(syncPathCategories);
+            }
+
+            syncVisibleState();
+            syncAllPathVisibility();
+        }
+
         function enforceUniqueEquipmentSelection() {
             const selectedByList = {};
             const selectedGlobal = new Set();
@@ -590,27 +631,31 @@
             }
         }
 
-        function syncCategoryFromProduct() {
+        function syncCategoryFromProduct(syncPathCategories = false, clearSelections = false) {
             const selectedOption = productSelect.options[productSelect.selectedIndex];
             const categoryIds = getProductCategoryIds(selectedOption);
+            const currentCategoryId = productCategorySelect.value;
             const nextCategoryId = categoryIds[0] ? String(categoryIds[0]) : '';
+            const shouldClearSelections = clearSelections && nextCategoryId !== currentCategoryId;
 
             if (nextCategoryId !== productCategorySelect.value) {
                 productCategorySelect.value = nextCategoryId;
             }
 
-            equipmentCategorySelect.value = nextCategoryId;
             syncProductsForCategory(true);
-            syncVisibleState();
+            syncCategoryFilters(nextCategoryId, syncPathCategories, shouldClearSelections);
         }
 
         productCategorySelect.addEventListener('change', function() {
-            equipmentCategorySelect.value = productCategorySelect.value;
             syncProductsForCategory(false);
-            syncVisibleState();
+            syncCategoryFilters(productCategorySelect.value, true, true);
+            enforceUniqueEquipmentSelection();
         });
 
-        productSelect.addEventListener('change', syncCategoryFromProduct);
+        productSelect.addEventListener('change', function() {
+            syncCategoryFromProduct(true, true);
+            enforceUniqueEquipmentSelection();
+        });
 
         equipmentCategorySelect.addEventListener('change', function() {
             if (equipmentCategorySelect.value !== productCategorySelect.value) {
@@ -618,7 +663,8 @@
                 syncProductsForCategory(false);
             }
 
-            syncVisibleState();
+            syncCategoryFilters(equipmentCategorySelect.value, true, true);
+            enforceUniqueEquipmentSelection();
         });
 
         equipmentCheckboxes.forEach((checkbox) => {
@@ -647,7 +693,9 @@
 
         pathCategorySelects.forEach((selectElement) => {
             selectElement.addEventListener('change', function() {
+                clearPathEquipmentSelection(selectElement.dataset.listKey);
                 syncPathVisibility(selectElement.dataset.listKey);
+                enforceUniqueEquipmentSelection();
             });
         });
 

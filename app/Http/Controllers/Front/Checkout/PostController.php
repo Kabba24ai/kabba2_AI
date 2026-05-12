@@ -59,6 +59,13 @@ class PostController extends Controller
 
         Log::info('cart summary generated at ' . now());
 
+        if (($cartSummary['hide_cc_payment_option'] ?? false) && ($validated['payment'] ?? null) === 'Card') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Credit card payment is unavailable for one or more items in your cart. Please choose another payment method or call sales.',
+            ], 422);
+        }
+
         if ($employeeCode) {
             // Validate employee code if provided
             $employee = User::where('employee_code', $employeeCode)->active()->first();

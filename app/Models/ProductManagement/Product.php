@@ -80,6 +80,7 @@ class Product extends Model
 
         'is_default_funnel', // Boolean: is this the default sales funnel
         'has_high_demand_alert', // Boolean: does this product have a high demand alert
+        'hide_cc_payment_option', // Boolean: hide credit card payment option at checkout
 
         'is_tax_free_item', // Boolean: is this product tax-free
         'apply_special_tax', // Boolean: apply special tax rate
@@ -101,6 +102,7 @@ class Product extends Model
     protected $casts = [
         'is_default_funnel' => 'boolean',
         'has_high_demand_alert' => 'boolean',
+        'hide_cc_payment_option' => 'boolean',
         'is_tax_free_item' => 'boolean',
         'apply_special_tax' => 'boolean',
         'apply_added_fees' => 'boolean',

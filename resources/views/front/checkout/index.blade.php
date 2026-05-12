@@ -575,7 +575,8 @@
                         <div class="space-y-4">
 
                             <!-- Credit/Debit -->
-                            <div class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'Card') == 'Card' ? 'border-blue-500' : '' }}"
+                            <div id="cardPaymentOption"
+                                class="border-2 rounded-lg p-4 payment-option {{ old('payment', 'Card') == 'Card' ? 'border-blue-500' : '' }}"
                                 data-value="Card">
                                 <label class="inline-flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="payment" value="Card"
@@ -686,7 +687,9 @@
                                     <span>Pay on Delivery (POD)</span>
                                 </label>
                                 <p id="codNote"
-                                    class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2">
+                                    class="{{ old('payment') == 'COD' ? 'block' : 'hidden' }} text-sm text-red-600 mt-2"
+                                    data-default-message="POD Orders are not reserved / locked in until paid. If you want to lock in your order, please pay using a credit card or call sales."
+                                    data-hide-cc-message="POD Orders are not reserved / locked in until paid. Please call sales to lock in your order.">
                                     POD Orders are not reserved / locked in until paid. If you want to lock in your order,
                                     please pay using a credit card or call sales.
                                 </p>
@@ -771,8 +774,8 @@
 
                             @if($isBadDebt)
                                 <div class="flex items-start gap-3 mt-2">
-                                     <x-heroicon-o-currency-dollar 
-            class="w-5 h-5 mt-0.5 text-red-600 shrink-0" 
+                                     <x-heroicon-o-currency-dollar
+            class="w-5 h-5 mt-0.5 text-red-600 shrink-0"
         />
 
                                     <div>
@@ -792,22 +795,10 @@
 
                     <!-- Buttons -->
                     <div class="mt-8 flex flex-col gap-3">
-                        {{-- Tax Exempt above checkout --}}
-                        @if((!$isSuspended && !$isBadDebt) || $isImpersonating)
-                        <div class="flex justify-end">
-                            <div class="flex items-center gap-2">
-                                <input type="hidden" name="tax_exempt" value="0" />
-                                <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
-                                    class="accent-blue-500 h-4 w-4 align-middle"
-                                    {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
-                                <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
-                            </div>
-                        </div>
-                        @endif
                         {{-- Back | Employee Code + Checkout --}}
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-start">
                             <a href="javascript:history.back()"
-                                class="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                                class="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-3">
                                 <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 19l-7-7 7-7"></path>
@@ -815,7 +806,7 @@
                                 Back
                             </a>
                             @if((!$isSuspended && !$isBadDebt) || $isImpersonating)
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-start gap-4">
                                 <div>
                                     <label for="employee_code" class="sr-only">Employee Code</label>
                                     {{ html()->text('employee_code', old('employee_code'))->class([
@@ -831,6 +822,14 @@
                                     @error('employee_code')
                                         <p class="mt-1 text-red-600 text-xs">{{ $message }}</p>
                                     @enderror
+                                    {{-- Tax Exempt below employee code --}}
+                                    <div class="flex items-center justify-center gap-2 mt-1">
+                                        <input type="hidden" name="tax_exempt" value="0" />
+                                        <input id="taxExempt" name="tax_exempt" type="checkbox" value="1"
+                                            class="accent-blue-500 h-4 w-4 align-middle"
+                                            {{ old('tax_exempt', session('tax_exempt', false)) ? 'checked' : '' }} />
+                                        <label for="taxExempt" class="text-sm align-middle">Tax Exempt</label>
+                                    </div>
                                 </div>
                                 <button type="submit" id="checkoutBtn"
                                     class="bg-yellow-400 hover:bg-yellow-300 text-black text-base font-medium rounded px-8 py-3 transition flex items-center gap-2">
@@ -1148,8 +1147,10 @@
 
             const paymentOptions = document.querySelectorAll('.payment-option');
             const radioButtons = document.querySelectorAll('input[name="payment"]');
+            const cardPaymentOption = document.getElementById('cardPaymentOption');
             const cardSection = document.getElementById('cardSection');
             const codNote = document.getElementById('codNote');
+            let hideCcPaymentOption = false;
 
             function updateHighlight() {
                 paymentOptions.forEach(opt => {
@@ -1157,17 +1158,56 @@
                     opt.classList.add('border-gray-200');
                 });
                 const checkedRadio = document.querySelector('input[name="payment"]:checked');
+                if (!checkedRadio) {
+                    cardSection.style.display = 'none';
+                    codNote.style.display = 'none';
+                    return;
+                }
                 const selected = checkedRadio.value;
 
-                document.querySelector(`.payment-option[data-value="${selected}"]`).classList.add(
-                    'border-blue-500');
+                const selectedOption = document.querySelector(`.payment-option[data-value="${selected}"]`);
+                if (selectedOption) {
+                    selectedOption.classList.add('border-blue-500');
+                }
                 // Show/hide card input section
-                cardSection.style.display = selected === 'Card' ? 'block' : 'none';
+                cardSection.style.display = !hideCcPaymentOption && selected === 'Card' ? 'block' : 'none';
                 codNote.style.display = selected === 'COD' ? 'block' : 'none';
 
             }
+
+            function applyPaymentRestrictions(shouldHideCcPaymentOption) {
+                hideCcPaymentOption = shouldHideCcPaymentOption;
+
+                if (cardPaymentOption) {
+                    cardPaymentOption.classList.toggle('hidden', hideCcPaymentOption);
+                }
+
+                codNote.textContent = hideCcPaymentOption ? codNote.dataset.hideCcMessage : codNote.dataset
+                    .defaultMessage;
+
+                const checkedRadio = document.querySelector('input[name="payment"]:checked');
+                if (hideCcPaymentOption && checkedRadio?.value === 'Card') {
+                    const fallbackOption = document.querySelector('input[name="payment"][value="COD"]') ||
+                        document.querySelector('input[name="payment"][value="Account"]');
+
+                    if (fallbackOption) {
+                        fallbackOption.checked = true;
+                    }
+                }
+
+                updateHighlight();
+            }
+
             radioButtons.forEach(r => r.addEventListener('change', updateHighlight));
             updateHighlight();
+
+            document.addEventListener('cart:summary-updated', function(event) {
+                applyPaymentRestrictions(Boolean(event.detail?.hideCcPaymentOption));
+            });
+
+            if (typeof window.loadCartSidebarPreview === 'function') {
+                window.loadCartSidebarPreview();
+            }
 
             // Card info live update
             const billingFirstNameInput = document.getElementById('billingFirstName');

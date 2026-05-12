@@ -22,15 +22,15 @@ class GetApplicationCodeController extends BaseController
         |--------------------------------------------------------------------------
         */
 
-        Log::info('Get Application Code API Hit', [
+        // Log::info('Get Application Code API Hit', [
 
-            'query' => $request->all(),
+        //     'query' => $request->all(),
 
-            'host' => $request->getHost(),
+        //     'host' => $request->getHost(),
 
-            'ip' => $request->ip(),
+        //     'ip' => $request->ip(),
 
-        ]);
+        // ]);
 
         /*
         |--------------------------------------------------------------------------
@@ -39,13 +39,13 @@ class GetApplicationCodeController extends BaseController
         */
 
        $currentAdminUrl = rtrim(
-    $request->query('current_admin_url'),
-    '/'
-) . '/';
+            $request->query('current_admin_url'),
+            '/'
+        ) . '/';
 
         if (!$currentAdminUrl) {
 
-            Log::warning('Missing current_admin_url');
+            // Log::warning('Missing current_admin_url');
 
             return response()->json([
                 'success' => false,
@@ -59,11 +59,11 @@ class GetApplicationCodeController extends BaseController
         |--------------------------------------------------------------------------
         */
 
-        Log::info('Searching Client By Admin URL', [
+        // Log::info('Searching Client By Admin URL', [
 
-            'admin_url' => $currentAdminUrl,
+        //     'admin_url' => $currentAdminUrl,
 
-        ]);
+        // ]);
 
         $client = Client::where(
             'admin_url',
@@ -78,11 +78,11 @@ class GetApplicationCodeController extends BaseController
 
         if (!$client) {
 
-            Log::warning('Client Not Found', [
+            // Log::warning('Client Not Found', [
 
-                'admin_url' => $currentAdminUrl,
+            //     'admin_url' => $currentAdminUrl,
 
-            ]);
+            // ]);
 
             return response()->json([
                 'success' => false,
@@ -96,13 +96,13 @@ class GetApplicationCodeController extends BaseController
         |--------------------------------------------------------------------------
         */
 
-        Log::info('Application Code Found', [
+        // Log::info('Application Code Found', [
 
-            'client_id' => $client->id,
+        //     'client_id' => $client->id,
 
-            'application_code' => $client->code,
+        //     'application_code' => $client->code,
 
-        ]);
+        // ]);
 
         return response()->json([
             'success' => true,

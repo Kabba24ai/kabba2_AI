@@ -90,64 +90,81 @@
                 </div>
 
                 <div data-tab-panel="specification" class="hidden">
-                    <div class="space-y-6">
 
-                                {{-- Section A: AI Lookup Input --}}
-                                <div class="rounded-xl border border-blue-100 bg-blue-50 p-5">
-                                    <div class="mb-3 flex items-center gap-2">
-                                        <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                {{-- Top bar: last update + Update Data button --}}
+                                <div class="mb-4 flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                                        <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Last AI update: <span id="spec-last-update">{{ $equipment->specifications->max('updated_at') ? \Carbon\Carbon::parse($equipment->specifications->max('updated_at'))->format('M j, Y, g:i A') : '—' }}</span></span>
+                                    </div>
+                                    <button type="button" id="btn-spec-update"
+                                        class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 transition-colors disabled:opacity-60">
+                                        <svg id="spec-spinner" class="hidden h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                        </svg>
+                                        <svg id="spec-bolt" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                         </svg>
-                                        <span class="text-sm font-semibold text-blue-800">AI Lookup Input — what will be sent to ChatGPT</span>
+                                        <span id="spec-btn-label">Update Data</span>
+                                    </button>
+                                </div>
+
+                                {{-- Display Cards --}}
+                                <div class="space-y-5">
+                                    <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                                        <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
+                                            <div class="flex items-center gap-2">
+                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500">
+                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.05 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.955a1 1 0 00.95.69h4.159c.969 0 1.371 1.24.588 1.81l-3.365 2.445a1 1 0 00-.364 1.118l1.286 3.955c.3.921-.755 1.688-1.54 1.118l-3.365-2.445a1 1 0 00-1.176 0L7.95 18.018c-.784.57-1.838-.197-1.539-1.118l1.286-3.955a1 1 0 00-.364-1.118L3.968 9.382c-.783-.57-.38-1.81.588-1.81h4.159a1 1 0 00.95-.69l1.286-3.955z" />
+                                                    </svg>
+                                                </span>
+                                                <div>
+                                                    <h3 class="text-sm font-semibold text-gray-900">Key Comparison Data</h3>
+                                                    <p class="text-xs text-gray-500">Critical specifications used for equipment matching</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="spec-key-comparison-list" class="divide-y divide-gray-200">
+                                            <div class="px-5 py-3 text-sm text-gray-500">No key comparison values available yet.</div>
+                                        </div>
                                     </div>
-                                    <pre id="spec-lookup-payload" class="rounded-lg bg-white border border-blue-200 px-4 py-3 text-xs text-gray-700 font-mono overflow-x-auto whitespace-pre-wrap">{{ $equipmentLookupPayload }}</pre>
-                                    <div class="mt-4 flex items-center justify-between gap-3">
-                                        <span id="spec-status-msg" class="text-xs text-gray-500"></span>
-                                        <button type="button" id="btn-spec-generate"
-                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-60">
-                                            <svg id="spec-spinner" class="hidden h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                                            </svg>
-                                            <svg id="spec-bolt" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                            </svg>
-                                            <span id="spec-btn-label">AI Generate Specifications</span>
-                                        </button>
+
+                                    <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                                        <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
+                                            <div class="flex items-center gap-2">
+                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-cyan-100 text-cyan-600">
+                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7L12 3 4 7m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                                    </svg>
+                                                </span>
+                                                <div>
+                                                    <h3 class="text-sm font-semibold text-gray-900">Equipment Specifications</h3>
+                                                    <p class="text-xs text-gray-500">Detailed technical data for this equipment</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-1 divide-y divide-gray-200 md:grid-cols-2 md:divide-x md:divide-y-0">
+                                            <div id="spec-equipment-col-left" class="divide-y divide-gray-200">
+                                                <div class="px-5 py-3 text-sm text-gray-500">No specification values available yet.</div>
+                                            </div>
+                                            <div id="spec-equipment-col-right" class="divide-y divide-gray-200"></div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {{-- Section B + C: Results table --}}
-                                <div id="spec-results-wrap" class="{{ count(json_decode($existingSpecs, true) ?? []) === 0 ? 'hidden' : '' }}">
-                                    <div class="mb-3 flex items-center gap-2">
-                                        <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6" />
-                                        </svg>
-                                        <span class="text-sm font-semibold text-gray-700">AI Retrieved Specifications</span>
-                                        <span class="text-xs text-gray-400 ml-2">Approved values become Kabba-owned data</span>
-                                    </div>
-                                    <div class="rounded-xl border border-gray-200 overflow-hidden">
-                                        <table class="min-w-full divide-y divide-gray-200 text-sm">
-                                            <thead class="bg-gray-50">
-                                                <tr>
-                                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-48">Specification</th>
-                                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Value</th>
-                                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">Unit</th>
-                                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Confidence</th>
-                                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Source</th>
-                                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Status</th>
-                                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-48">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="spec-table-body" class="divide-y divide-gray-100 bg-white">
-                                                {{-- Rows injected by JS --}}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                                {{-- Bottom disclaimer --}}
+                                <p class="mt-3 flex items-center gap-1.5 text-xs text-gray-400">
+                                    <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Specification data is sourced via AI and may require verification
+                                </p>
 
-                            </div>
-                        </div>
+                </div>
 
                 <div data-tab-panel="key-comparison" class="hidden">
                     <div class="space-y-5">
@@ -219,35 +236,40 @@
                                 {{-- ── Comparable Equipment ─────────────────────────────── --}}
                                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                                     <div class="border-b border-gray-100 px-5 py-4">
-                                        <h3 class="text-sm font-semibold text-gray-900">Comparable Equipment</h3>
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <h3 class="text-sm font-semibold text-gray-900">Comparable Equipment</h3>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" id="kc-eq-select-all"
+                                                    class="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap">
+                                                    Select All
+                                                </button>
+                                                <span id="kc-eq-count"
+                                                    class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 whitespace-nowrap">0 selected</span>
+                                            </div>
+                                        </div>
                                         <p class="mt-0.5 text-xs text-gray-500">Select equipment from the same category that can serve as substitutes</p>
                                     </div>
                                     <div class="px-5 py-4 space-y-3">
-                                        <div class="flex items-center gap-2">
-                                            <div class="relative flex-1">
-                                                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"/>
-                                                </svg>
-                                                <input id="kc-eq-search" type="text" placeholder="Search equipment…"
-                                                    class="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                            </div>
-                                            <button type="button" id="kc-eq-select-all"
-                                                class="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap">
-                                                Select All
-                                            </button>
-                                            <span id="kc-eq-count"
-                                                class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 whitespace-nowrap">0 selected</span>
-                                        </div>
 
-                                        {{-- column headers --}}
+                                        {{-- table --}}
                                         <div class="rounded-lg border border-gray-200 overflow-hidden">
-                                        <div class="flex items-center gap-3 px-4 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200" style="padding-right: calc(1rem + 17px);">
-                                            <span class="w-4 shrink-0"></span>
-                                            <span class="flex-1">Equipment Name</span>
-                                            <span class="w-28 shrink-0">Brand</span>
-                                            <span class="w-28 shrink-0">Model</span>
-                                        </div>
-                                        <div id="kc-eq-list" class="max-h-64 overflow-y-scroll divide-y divide-gray-100">
+                                            <div class="overflow-x-auto">
+                                                <table class="w-full table-fixed">
+                                                    <colgroup>
+                                                        <col class="w-12">
+                                                        <col>
+                                                        <col class="w-40">
+                                                        <col class="w-40">
+                                                    </colgroup>
+                                                    <thead class="bg-gray-50">
+                                                        <tr class="border-b border-gray-200 text-xs font-semibold text-gray-500">
+                                                            <th scope="col" class="px-4 py-2 text-left"></th>
+                                                            <th scope="col" class="px-2 py-2 text-left">Equipment Name</th>
+                                                            <th scope="col" class="px-2 py-2 text-left">Brand</th>
+                                                            <th scope="col" class="px-2 py-2 text-left">Model</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="kc-eq-list" class="divide-y divide-gray-100 bg-white">
                                             @php
                                                 $selectedSimilarEquipmentIds = array_map(
                                                     'strval',
@@ -264,28 +286,26 @@
                                                     $eqBrand = is_array($eqOption) ? ($eqOption['brand'] ?? null) : null;
                                                     $eqModel = is_array($eqOption) ? ($eqOption['model'] ?? null) : null;
                                                 @endphp
-                                                <label class="kc-eq-item flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors" data-label="{{ strtolower($eqLabel) }}">
-                                                    <input type="checkbox" name="similar_equipment_ids[]" value="{{ $eqId }}"
-                                                        class="kc-eq-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                        @if(in_array((string)$eqId, $selectedSimilarEquipmentIds)) checked @endif>
-                                                    <span class="flex-1 truncate text-sm text-gray-800">{{ $eqLabel }}</span>
-                                                    @if($eqBrand)
-                                                        <span class="w-28 shrink-0 truncate text-xs text-gray-500">{{ $eqBrand }}</span>
-                                                    @else
-                                                        <span class="w-28 shrink-0"></span>
-                                                    @endif
-                                                    @if($eqModel)
-                                                        <span class="w-28 shrink-0 truncate text-xs text-gray-500">{{ $eqModel }}</span>
-                                                    @else
-                                                        <span class="w-28 shrink-0"></span>
-                                                    @endif
-                                                </label>
+                                                <tr class="kc-eq-item hover:bg-gray-50 transition-colors" data-label="{{ strtolower($eqLabel) }}">
+                                                    <td class="px-4 py-3 align-middle">
+                                                        <input type="checkbox" name="similar_equipment_ids[]" value="{{ $eqId }}"
+                                                            class="kc-eq-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                            @if(in_array((string)$eqId, $selectedSimilarEquipmentIds)) checked @endif>
+                                                    </td>
+                                                    <td class="px-2 py-3 align-middle text-sm text-gray-800">{{ $eqLabel }}</td>
+                                                    <td class="px-2 py-3 align-middle text-xs text-gray-500">{{ $eqBrand ?: '' }}</td>
+                                                    <td class="px-2 py-3 align-middle text-xs text-gray-500">{{ $eqModel ?: '' }}</td>
+                                                </tr>
                                             @empty
-                                                <div class="px-4 py-6 text-center text-sm text-gray-500">
-                                                    No equipment found in this category.
-                                                </div>
+                                                <tr>
+                                                    <td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500">
+                                                        No equipment found in this category.
+                                                    </td>
+                                                </tr>
                                             @endforelse
-                                        </div>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>{{-- end wrapper --}}
                                     </div>
                                 </div>
@@ -310,20 +330,20 @@
                                         @forelse($criteriaRows as $row)
                                             @php
                                                 $rowState = $criteriaState[$row->criteria_key] ?? [];
-                                                $rowEnabled = filter_var($rowState['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN);
+                                                $rowEnabled = true;
                                                 $rowThreshold = $rowState['threshold'] ?? '';
                                                 $rowWeight = isset($rowState['weight']) ? (int) $rowState['weight'] : (int) $row->default_weight;
                                                 $rowUpgradeExceeds = filter_var($rowState['upgrade_exceeds_value'] ?? $row->upgrade_exceeds_value ?? true, FILTER_VALIDATE_BOOLEAN);
                                                 $rowCautionIfChange = filter_var($rowState['caution_if_change_value'] ?? $row->caution_if_change_value ?? true, FILTER_VALIDATE_BOOLEAN);
                                             @endphp
                                             <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="{{ $row->criteria_key }}">
-                                                <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[{{ $row->criteria_key }}][enabled]" value="{{ $rowEnabled ? '1' : '0' }}">
+                                                <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[{{ $row->criteria_key }}][enabled]" value="1">
                                                 <input type="hidden" class="kc-hidden-threshold" name="critical_matching_criteria[{{ $row->criteria_key }}][threshold]" value="{{ $rowThreshold }}">
                                                 <input type="hidden" class="kc-hidden-weight" name="critical_matching_criteria[{{ $row->criteria_key }}][weight]" value="{{ $rowWeight }}">
                                                 {{-- enable toggle --}}
-                                                <button type="button" role="switch" aria-checked="{{ $rowEnabled ? 'true' : 'false' }}"
-                                                    class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none {{ $rowEnabled ? 'bg-teal-400' : 'bg-gray-200' }}">
-                                                    <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 {{ $rowEnabled ? 'translate-x-4' : 'translate-x-0' }}"></span>
+                                                <button type="button" role="switch" aria-checked="true" style="display:none;"
+                                                    class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none bg-teal-400">
+                                                    <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 translate-x-4"></span>
                                                 </button>
 
                                                 {{-- label --}}
@@ -331,19 +351,17 @@
 
                                                 {{-- threshold --}}
                                                 <input type="number" min="0" placeholder="0" value="{{ $rowThreshold }}"
-                                                    class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40"
-                                                    {{ $rowEnabled ? '' : 'disabled' }}>
+                                                    class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40">
                                                 <span class="kc-criteria-unit w-8 text-xs text-gray-500">{{ $row->unit }}</span>
 
                                                 {{-- weight label + slider --}}
                                                 <span class="text-xs font-medium text-gray-500">Weight</span>
                                                 <input type="range" min="0" max="100" value="{{ $rowWeight }}"
-                                                    class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
-                                                    {{ $rowEnabled ? '' : 'disabled' }}>
+                                                    class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40">
                                                 <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">{{ $rowWeight }}</span>
 
                                                 {{-- per-criteria flags --}}
-                                                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pl-[52px] pt-1">
+                                                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pt-1">
                                                     <label class="flex items-center gap-2 cursor-pointer select-none">
                                                         <input type="hidden" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_exceeds_value]" value="0">
                                                         <input type="checkbox" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_exceeds_value]" value="1"
@@ -510,7 +528,7 @@
                                             <p class="mb-2 text-xs font-semibold text-gray-500">Notes</p>
                                             <textarea id="kc-substitution-notes" name="equipment_key_comparison_notes" rows="5"
                                                 placeholder="e.g. Can replace any 19ft scissor lift but not suitable for indoor slab work"
-                                                class="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ old('equipment_key_comparison_notes', $equipment->equipment_key_comparison_notes) }}</textarea>
+                                                class="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ old('equipment_key_comparison_notes', $equipment->equipment_key_comparison_notes) }}</textarea>
                                             <p class="mt-2 text-xs text-gray-400">Used by Kabba AI for intelligent scheduling decisions</p>
                                         </div>
                                     </div>
@@ -550,8 +568,7 @@
 
         /* ──────────────── KEY COMPARISON ──────────────── */
         (function () {
-            // ── Comparable Equipment search + select all ────────────
-            const eqSearch = document.getElementById('kc-eq-search');
+            // ── Comparable Equipment select all ─────────────────────
             const selectAllBtn = document.getElementById('kc-eq-select-all');
             const countBadge = document.getElementById('kc-eq-count');
             const eqList = document.getElementById('kc-eq-list');
@@ -564,19 +581,10 @@
 
             eqList?.addEventListener('change', updateCount);
 
-            eqSearch?.addEventListener('input', function () {
-                const q = this.value.toLowerCase();
-                eqList?.querySelectorAll('.kc-eq-item').forEach(item => {
-                    const match = !q || (item.dataset.label ?? '').includes(q);
-                    item.style.display = match ? '' : 'none';
-                });
-            });
-
             let allSelected = false;
             selectAllBtn?.addEventListener('click', function () {
                 allSelected = !allSelected;
                 eqList?.querySelectorAll('.kc-eq-item').forEach(item => {
-                    if (item.style.display === 'none') return;
                     const cb = item.querySelector('.kc-eq-checkbox');
                     if (cb) cb.checked = allSelected;
                 });
@@ -596,8 +604,8 @@
                 const hiddenThreshold = row.querySelector('.kc-hidden-threshold');
                 const hiddenWeight = row.querySelector('.kc-hidden-weight');
 
-                function syncHiddenValues(enabled) {
-                    if (hiddenEnabled) hiddenEnabled.value = enabled ? '1' : '0';
+                function syncHiddenValues() {
+                    if (hiddenEnabled) hiddenEnabled.value = '1';
                     if (hiddenThreshold && threshold) hiddenThreshold.value = threshold.value;
                     if (hiddenWeight && slider) hiddenWeight.value = slider.value;
                 }
@@ -613,7 +621,7 @@
                     }
                     if (threshold) threshold.disabled = !enabled;
                     if (slider) slider.disabled = !enabled;
-                    syncHiddenValues(enabled);
+                    syncHiddenValues();
                 }
 
                 toggle?.addEventListener('click', function () {
@@ -623,20 +631,17 @@
 
                 slider?.addEventListener('input', function () {
                     if (weightVal) weightVal.textContent = this.value;
-                    const isEnabled = toggle?.getAttribute('aria-checked') === 'true';
-                    syncHiddenValues(isEnabled);
+                    syncHiddenValues();
                 });
 
                 threshold?.addEventListener('input', function () {
-                    const isEnabled = toggle?.getAttribute('aria-checked') === 'true';
-                    syncHiddenValues(isEnabled);
+                    syncHiddenValues();
                 });
 
-                const initialEnabled = (hiddenEnabled?.value === '1') || toggle?.getAttribute('aria-checked') === 'true';
                 if (slider && weightVal) {
                     weightVal.textContent = slider.value;
                 }
-                setRowEnabled(initialEnabled);
+                setRowEnabled(true);
             }
 
             document.querySelectorAll('.kc-criteria-row').forEach(wireCriteriaRow);
@@ -707,7 +712,7 @@
                     const key = row.dataset.key;
                     if (!key) return;
                     currentStateByKey[key] = {
-                        enabled: row.querySelector('.kc-hidden-enabled')?.value === '1',
+                        enabled: true,
                         threshold: row.querySelector('.kc-hidden-threshold')?.value ?? '',
                         weight: row.querySelector('.kc-hidden-weight')?.value ?? row.querySelector('.kc-weight-slider')?.value ?? '50',
                         upgradeExceeds: row.querySelector('input[type="checkbox"][name*="[upgrade_exceeds_value]"]')?.checked ?? true,
@@ -720,7 +725,7 @@
                     const safeName = escapeHtml(item.name || 'Criteria');
                     const safeUnit = escapeHtml(item.unit || '');
                     const state = currentStateByKey[key] || {};
-                    const enabled = key in currentStateByKey ? Boolean(state.enabled) : true;
+                    const enabled = true;
                     const threshold = String(state.threshold ?? '');
                     const weight = Number(state.weight ?? item.defaultWeight ?? 50);
                     const upgradeExceeds = key in currentStateByKey ? Boolean(state.upgradeExceeds) : (item.upgradeExceedsValue !== false);
@@ -728,24 +733,22 @@
 
                     return `
                         <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="${key}">
-                            <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[${key}][enabled]" value="${enabled ? '1' : '0'}">
+                            <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[${key}][enabled]" value="1">
                             <input type="hidden" class="kc-hidden-threshold" name="critical_matching_criteria[${key}][threshold]" value="${escapeHtml(threshold)}">
                             <input type="hidden" class="kc-hidden-weight" name="critical_matching_criteria[${key}][weight]" value="${weight}">
-                            <button type="button" role="switch" aria-checked="${enabled ? 'true' : 'false'}"
-                                class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent ${enabled ? 'bg-teal-400' : 'bg-gray-200'} transition-colors duration-200 focus:outline-none">
-                                <span class="inline-block h-4 w-4 ${enabled ? 'translate-x-4' : 'translate-x-0'} rounded-full bg-white shadow transition-transform duration-200"></span>
+                            <button type="button" role="switch" aria-checked="true" style="display:none;"
+                                class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-teal-400 transition-colors duration-200 focus:outline-none">
+                                <span class="inline-block h-4 w-4 translate-x-4 rounded-full bg-white shadow transition-transform duration-200"></span>
                             </button>
                             <span class="kc-criteria-label w-36 text-sm text-gray-700">${safeName}</span>
                             <input type="number" min="0" placeholder="0" value="${escapeHtml(threshold)}"
-                                class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40"
-                                ${enabled ? '' : 'disabled'}>
+                                class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40">
                             <span class="kc-criteria-unit w-8 text-xs text-gray-500">${safeUnit}</span>
                             <span class="text-xs font-medium text-gray-500">Weight</span>
                             <input type="range" min="0" max="100" value="${weight}"
-                                class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
-                                ${enabled ? '' : 'disabled'}>
+                                class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40">
                             <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">${weight}</span>
-                            <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pl-[52px] pt-1">
+                            <div class="flex flex-wrap items-center gap-x-5 gap-y-1 w-full pt-1">
                                 <label class="flex items-center gap-2 cursor-pointer select-none">
                                     <input type="hidden" name="critical_matching_criteria[${key}][upgrade_exceeds_value]" value="0">
                                     <input type="checkbox" name="critical_matching_criteria[${key}][upgrade_exceeds_value]" value="1"
@@ -1004,16 +1007,16 @@
         const APPROVE_BASE_URL = @json($specApproveBaseUrl);
         const CSRF             = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
-        let specState = @json(json_decode($existingSpecs)); // array of spec objects
+        let specState = @json(json_decode($existingSpecs) ?? []); // array of spec objects
 
-        const tbody       = document.getElementById('spec-table-body');
-        const resultsWrap = document.getElementById('spec-results-wrap');
-        const genBtn      = document.getElementById('btn-spec-generate');
+        const genBtn      = document.getElementById('btn-spec-update');
         const btnLabel    = document.getElementById('spec-btn-label');
         const spinner     = document.getElementById('spec-spinner');
         const bolt        = document.getElementById('spec-bolt');
-        const statusMsg   = document.getElementById('spec-status-msg');
-        const lookupPayloadEl = document.getElementById('spec-lookup-payload');
+        const lastUpdateEl = document.getElementById('spec-last-update');
+        const keyComparisonPreview = document.getElementById('spec-key-comparison-list');
+        const equipmentSpecsColLeft = document.getElementById('spec-equipment-col-left');
+        const equipmentSpecsColRight = document.getElementById('spec-equipment-col-right');
 
         function valueOf(selector) {
             const el = document.querySelector(selector);
@@ -1039,244 +1042,129 @@
             };
         }
 
-        function refreshLookupPayloadPreview() {
-            if (!lookupPayloadEl) return;
-            lookupPayloadEl.textContent = JSON.stringify(buildLookupPayload(), null, 2);
-        }
-
-        /* ---- helpers ---- */
-        function confidenceColor(score) {
-            if (score === null || score === undefined) return 'text-gray-400';
-            if (score >= 0.85) return 'text-green-600';
-            if (score >= 0.6)  return 'text-yellow-600';
-            return 'text-red-500';
-        }
-
-        function confidenceLabel(score) {
-            if (score === null || score === undefined) return '—';
-            return Math.round(score * 100) + '%';
-        }
-
         function escHtml(str) {
             if (!str) return '';
             return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
 
-        /* ---- render all rows ---- */
-        function renderSpecs(specs) {
-            tbody.innerHTML = '';
-            specs.forEach(spec => renderRow(spec));
-            resultsWrap.classList.toggle('hidden', specs.length === 0);
+        function fmtSpecValue(value, unit = '') {
+            const cleanedValue = String(value ?? '').trim();
+            const cleanedUnit = String(unit ?? '').trim();
+            if (!cleanedValue) return '<span class="text-gray-400">-</span>';
+            if (!cleanedUnit) return `<span class="font-semibold text-gray-800">${escHtml(cleanedValue)}</span>`;
+            return `<span class="font-semibold text-gray-800">${escHtml(cleanedValue)}</span> <span class="ml-1 text-xs text-gray-400">${escHtml(cleanedUnit)}</span>`;
         }
 
-        /* ---- render single row (or replace) ---- */
-        function renderRow(spec) {
-            const existing = document.getElementById('spec-row-' + spec.id);
-            const row = buildRow(spec);
-            if (existing) {
-                existing.replaceWith(row);
-            } else {
-                tbody.appendChild(row);
+        function renderKeyComparisonPreview() {
+            if (!keyComparisonPreview) return;
+
+            const rows = Array.from(document.querySelectorAll('.kc-criteria-row')).map((row) => {
+                const label = row.querySelector('.kc-criteria-label')?.textContent?.trim() || '';
+                const threshold = row.querySelector('.kc-hidden-threshold')?.value ?? row.querySelector('.kc-threshold-input')?.value ?? '';
+                const unit = row.querySelector('.kc-criteria-unit')?.textContent?.trim() || '';
+                const enabled = row.querySelector('.kc-hidden-enabled')?.value === '1';
+                return { label, threshold, unit, enabled };
+            }).filter((item) => item.enabled && String(item.threshold ?? '').trim() !== '');
+
+            if (rows.length === 0) {
+                keyComparisonPreview.innerHTML = '<div class="px-5 py-3 text-sm text-gray-500">No key comparison values available yet.</div>';
+                return;
             }
+
+            keyComparisonPreview.innerHTML = rows.map((item) => {
+                return `
+                    <div class="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                        <span class="text-gray-700">${escHtml(item.label)}</span>
+                        <span>${fmtSpecValue(item.threshold, item.unit)}</span>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function buildRow(spec) {
-            const tr = document.createElement('tr');
-            tr.id = 'spec-row-' + spec.id;
-            tr.className = spec.is_approved ? 'bg-green-50' : '';
+        function renderEquipmentSpecsPreview(specs) {
+            if (!equipmentSpecsColLeft || !equipmentSpecsColRight) return;
 
-            const approvedBadge = spec.is_approved
-                ? `<span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-                       <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd"/></svg>
-                       Approved</span>`
-                : `<span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">Pending</span>`;
+            const cleanedSpecs = (specs || []).filter((spec) => String(spec?.value ?? '').trim() !== '');
+            if (cleanedSpecs.length === 0) {
+                equipmentSpecsColLeft.innerHTML = '<div class="px-5 py-3 text-sm text-gray-500">No specification values available yet.</div>';
+                equipmentSpecsColRight.innerHTML = '';
+                return;
+            }
 
-            const overrideBadge = spec.is_manual_override
-                ? `<span class="ml-1 inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">Manual</span>`
-                : '';
+            const midpoint = Math.ceil(cleanedSpecs.length / 2);
+            const leftRows = cleanedSpecs.slice(0, midpoint);
+            const rightRows = cleanedSpecs.slice(midpoint);
 
-            const sourceCell = spec.source_url
-                ? `<a href="${escHtml(spec.source_url)}" target="_blank" rel="noopener" class="text-blue-600 hover:underline truncate block max-w-xs text-xs">${escHtml(spec.source_url.replace(/^https?:\/\//, ''))}</a>`
-                : '<span class="text-gray-400 text-xs">—</span>';
+            const renderRows = (items) => {
+                return items.map((spec) => {
+                    return `
+                        <div class="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                            <span class="text-gray-600">${escHtml(spec.spec_label || '-')}</span>
+                            <span class="text-right">${fmtSpecValue(spec.value, spec.unit)}</span>
+                        </div>
+                    `;
+                }).join('');
+            };
 
-            const approvedMeta = spec.is_approved && spec.approved_by_name
-                ? `<div class="text-xs text-gray-400 mt-0.5">by ${escHtml(spec.approved_by_name)} · ${escHtml(spec.approved_at ?? '')}</div>`
-                : '';
-
-            // action buttons – hide Approve if already approved
-            const approveBtn = spec.is_approved
-                ? ''
-                : `<button type="button" data-action="approve" data-id="${spec.id}"
-                       class="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition-colors">
-                       <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                       Approve
-                   </button>`;
-
-            tr.innerHTML = `
-                <td class="px-4 py-3 font-medium text-gray-800 align-top">${escHtml(spec.spec_label)}</td>
-                <td class="px-4 py-3 align-top">
-                    <span class="spec-display-value">${escHtml(spec.value ?? '—')}</span>
-                    <div class="spec-edit-row hidden mt-1 flex gap-2">
-                        <input type="text" class="spec-value-input rounded-md border border-gray-300 px-2 py-1 text-xs w-32 focus:ring-2 focus:ring-blue-500" value="${escHtml(spec.value ?? '')}" placeholder="value">
-                        <input type="text" class="spec-unit-input rounded-md border border-gray-300 px-2 py-1 text-xs w-20 focus:ring-2 focus:ring-blue-500" value="${escHtml(spec.unit ?? '')}" placeholder="unit">
-                        <input type="text" class="spec-source-input rounded-md border border-gray-300 px-2 py-1 text-xs w-48 focus:ring-2 focus:ring-blue-500" value="${escHtml(spec.source_url ?? '')}" placeholder="source URL">
-                        <button type="button" data-action="save" data-id="${spec.id}" class="rounded-md bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">Save</button>
-                        <button type="button" data-action="cancel-edit" data-id="${spec.id}" class="rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50">Cancel</button>
-                    </div>
-                </td>
-                <td class="px-4 py-3 text-gray-600 align-top">
-                    <span class="spec-display-unit">${escHtml(spec.unit ?? '—')}</span>
-                </td>
-                <td class="px-4 py-3 align-top">
-                    <span class="${confidenceColor(spec.confidence_score)} font-semibold text-xs">${confidenceLabel(spec.confidence_score)}</span>
-                    ${spec.last_verified_at ? `<div class="text-xs text-gray-400">${escHtml(spec.last_verified_at)}</div>` : ''}
-                </td>
-                <td class="px-4 py-3 align-top">${sourceCell}</td>
-                <td class="px-4 py-3 align-top">
-                    ${approvedBadge}${overrideBadge}
-                    ${approvedMeta}
-                </td>
-                <td class="px-4 py-3 align-top text-right">
-                    <div class="inline-flex items-center gap-1.5 flex-wrap justify-end">
-                        ${approveBtn}
-                        <button type="button" data-action="edit" data-id="${spec.id}"
-                            class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
-                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            Edit
-                        </button>
-                        <button type="button" data-action="retry" data-id="${spec.id}" data-key="${escHtml(spec.spec_key)}"
-                            class="inline-flex items-center gap-1 rounded-md border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-50 transition-colors">
-                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            Try Again
-                        </button>
-                    </div>
-                </td>`;
-
-            return tr;
+            equipmentSpecsColLeft.innerHTML = renderRows(leftRows);
+            equipmentSpecsColRight.innerHTML = rightRows.length ? renderRows(rightRows) : '';
         }
 
         /* ---- generate all ---- */
-        async function generateSpecs(forceKey = null) {
-            genBtn.disabled = true;
-            spinner.classList.remove('hidden');
-            bolt.classList.add('hidden');
-            btnLabel.textContent = 'Generating…';
-            statusMsg.textContent = '';
-            statusMsg.classList.remove('text-red-500');
+        async function generateSpecs() {
+            if (genBtn) genBtn.disabled = true;
+            spinner?.classList.remove('hidden');
+            bolt?.classList.add('hidden');
+            if (btnLabel) btnLabel.textContent = 'Updating…';
 
-            const url = forceKey ? GENERATE_URL + '?force_key=' + encodeURIComponent(forceKey) : GENERATE_URL;
             const lookupPayload = buildLookupPayload();
-            refreshLookupPayloadPreview();
 
             try {
-                const res  = await fetch(url, {
+                const res  = await fetch(GENERATE_URL, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'Content-Type': 'application/json' },
                     body: JSON.stringify({ lookup_payload: lookupPayload }),
                 });
                 const data = await res.json();
 
-                if (!res.ok || !data.success) {
-                    statusMsg.textContent = data.message ?? 'Generation failed.';
-                    statusMsg.classList.add('text-red-500');
-                    return;
-                }
+                if (!res.ok || !data.success) return;
 
                 specState = data.specs;
-                renderSpecs(specState);
-                statusMsg.textContent = '✓ Specifications updated.';
-                statusMsg.classList.remove('text-red-500');
+                renderEquipmentSpecsPreview(specState);
+                if (lastUpdateEl) {
+                    const now = new Date();
+                    lastUpdateEl.textContent = now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+                }
 
             } catch (err) {
-                statusMsg.textContent = 'Network error: ' + err.message;
-                statusMsg.classList.add('text-red-500');
+                // silent fail — data unchanged
             } finally {
-                genBtn.disabled = false;
-                spinner.classList.add('hidden');
-                bolt.classList.remove('hidden');
-                btnLabel.textContent = 'AI Generate Specifications';
+                if (genBtn) genBtn.disabled = false;
+                spinner?.classList.add('hidden');
+                bolt?.classList.remove('hidden');
+                if (btnLabel) btnLabel.textContent = 'Update Data';
             }
         }
 
-        /* ---- approve ---- */
-        async function approveSpec(id) {
-            const btn = tbody.querySelector(`[data-action="approve"][data-id="${id}"]`);
-            if (btn) btn.disabled = true;
+        genBtn?.addEventListener('click', () => generateSpecs());
 
-            try {
-                const res  = await fetch(`${APPROVE_BASE_URL}/${id}/approve`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-                });
-                const data = await res.json();
-                if (data.success) renderRow(data.spec);
-            } catch (err) {
-                if (btn) btn.disabled = false;
+        renderKeyComparisonPreview();
+        renderEquipmentSpecsPreview(specState || []);
+
+        document.addEventListener('input', (event) => {
+            if (event.target.closest('.kc-threshold-input')) {
+                renderKeyComparisonPreview();
             }
-        }
-
-        /* ---- save edit ---- */
-        async function saveSpec(id, row) {
-            const value  = row.querySelector('.spec-value-input').value;
-            const unit   = row.querySelector('.spec-unit-input').value;
-            const source = row.querySelector('.spec-source-input').value;
-
-            try {
-                const res  = await fetch(`${APPROVE_BASE_URL}/${id}`, {
-                    method: 'PUT',
-                    headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ value, unit, source_url: source }),
-                });
-                const data = await res.json();
-                if (data.success) renderRow(data.spec);
-            } catch (err) {}
-        }
-
-        /* ---- event delegation on tbody ---- */
-        tbody.addEventListener('click', async (e) => {
-            const btn = e.target.closest('[data-action]');
-            if (!btn) return;
-
-            const action = btn.dataset.action;
-            const id     = parseInt(btn.dataset.id);
-            const row    = document.getElementById('spec-row-' + id);
-
-            if (action === 'approve') await approveSpec(id);
-            if (action === 'retry')   await generateSpecs(btn.dataset.key);
-
-            if (action === 'edit') {
-                row.querySelector('.spec-display-value').classList.add('hidden');
-                row.querySelector('.spec-display-unit').classList.add('hidden');
-                row.querySelector('.spec-edit-row').classList.remove('hidden');
-            }
-
-            if (action === 'cancel-edit') {
-                row.querySelector('.spec-display-value').classList.remove('hidden');
-                row.querySelector('.spec-display-unit').classList.remove('hidden');
-                row.querySelector('.spec-edit-row').classList.add('hidden');
-            }
-
-            if (action === 'save') await saveSpec(id, row);
         });
 
-        genBtn.addEventListener('click', () => generateSpecs());
-
-        ['input', 'change'].forEach((eventName) => {
-            ['[name="brand"]', '[name="model"]', '[name="model_year"]', '[name="product_category_id"]', '[name="equipment_name"]', '[name="equipment_id"]', '[name="serial_number"]', '[name="vehicle_identification_number"]']
-                .forEach((selector) => {
-                    const el = document.querySelector(selector);
-                    if (el) {
-                        el.addEventListener(eventName, refreshLookupPayloadPreview);
-                    }
-                });
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('.kc-criteria-toggle') || event.target.closest('#kc-modal-done')) {
+                requestAnimationFrame(renderKeyComparisonPreview);
+            }
         });
-
-        refreshLookupPayloadPreview();
 
         /* ---- initial render from server-side data ---- */
-        if (specState && specState.length > 0) {
-            renderSpecs(specState);
-        }
+        renderEquipmentSpecsPreview(specState || []);
     });
 </script>
 @endpush

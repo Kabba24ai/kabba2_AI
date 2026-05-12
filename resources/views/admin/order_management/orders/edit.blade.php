@@ -774,7 +774,7 @@
                                                     data-format="{{ config('app.date.js_date_format') }}"
                                                     placeholder="Select date"
                                                     value="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date) : '' }}"
-                                                    data-min-date="{{ now()->format(config('app.date.db_date_format')) }}"
+                                                    {{-- data-min-date="{{ now()->format(config('app.date.db_date_format')) }}" --}}
                                                     class="datepicker pickup_date border rounded px-3 py-3 text-xs w-full" />
                                             </div>
                                             <!-- Time -->
@@ -2874,7 +2874,23 @@
 
                 // Delivery listeners
                 if (deliveryDate) {
+                    deliveryDate.setAttribute('data-previous-value', deliveryDate.value || '');
+
+                    deliveryDate.addEventListener('focus', function() {
+                        this.setAttribute('data-previous-value', this.value || '');
+                    });
+
                     deliveryDate.addEventListener('change', function() {
+                        var returnDateValue = returnDate ? returnDate.value : null;
+                        var previousDeliveryDateValue = this.getAttribute('data-previous-value') || '';
+                        if (returnDateValue && new Date(deliveryDate.value) > new Date(returnDateValue)) {
+                            notyf.error('Delivery date cannot be after return date.');
+                            this.value = previousDeliveryDateValue || '';
+                            return;
+                        }
+
+                        this.setAttribute('data-previous-value', this.value || '');
+
                         updateScheduleField('delivery', 'delivery_date', deliveryDate.value);
                     });
                 }
@@ -2978,7 +2994,23 @@
 
                 // Return listeners
                 if (returnDate) {
+                    returnDate.setAttribute('data-previous-value', returnDate.value || '');
+
+                    returnDate.addEventListener('focus', function() {
+                        this.setAttribute('data-previous-value', this.value || '');
+                    });
+
                     returnDate.addEventListener('change', function() {
+                        var deliveryDateValue = deliveryDate ? deliveryDate.value : null;
+                        var previousReturnDateValue = this.getAttribute('data-previous-value') || '';
+                        if (deliveryDateValue && new Date(returnDate.value) < new Date(deliveryDateValue)) {
+                            notyf.error('Return date cannot be before delivery date.');
+                            this.value = previousReturnDateValue || '';
+                            return;
+                        }
+
+                        this.setAttribute('data-previous-value', this.value || '');
+
                         const orderProducts = @json($order->products);
                         const orderProduct = orderProducts.find(op => op.unique_id === orderProductId);
                         const currentAllocatedHours = parseFloat(orderProduct?.allocated_hours) || 0;

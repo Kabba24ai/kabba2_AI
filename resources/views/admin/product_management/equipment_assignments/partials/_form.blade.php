@@ -511,6 +511,19 @@
             pathListKeys.forEach((listKey) => syncPathVisibility(listKey));
         }
 
+        function syncCategoryFilters(categoryId, syncPathCategories = true) {
+            equipmentCategorySelect.value = categoryId;
+
+            if (syncPathCategories) {
+                pathCategorySelects.forEach((selectElement) => {
+                    selectElement.value = categoryId;
+                });
+            }
+
+            syncVisibleState();
+            syncAllPathVisibility();
+        }
+
         function enforceUniqueEquipmentSelection() {
             const selectedByList = {};
             const selectedGlobal = new Set();
@@ -590,7 +603,7 @@
             }
         }
 
-        function syncCategoryFromProduct() {
+        function syncCategoryFromProduct(syncPathCategories = false) {
             const selectedOption = productSelect.options[productSelect.selectedIndex];
             const categoryIds = getProductCategoryIds(selectedOption);
             const nextCategoryId = categoryIds[0] ? String(categoryIds[0]) : '';
@@ -599,18 +612,18 @@
                 productCategorySelect.value = nextCategoryId;
             }
 
-            equipmentCategorySelect.value = nextCategoryId;
             syncProductsForCategory(true);
-            syncVisibleState();
+            syncCategoryFilters(nextCategoryId, syncPathCategories);
         }
 
         productCategorySelect.addEventListener('change', function() {
-            equipmentCategorySelect.value = productCategorySelect.value;
             syncProductsForCategory(false);
-            syncVisibleState();
+            syncCategoryFilters(productCategorySelect.value);
         });
 
-        productSelect.addEventListener('change', syncCategoryFromProduct);
+        productSelect.addEventListener('change', function() {
+            syncCategoryFromProduct(true);
+        });
 
         equipmentCategorySelect.addEventListener('change', function() {
             if (equipmentCategorySelect.value !== productCategorySelect.value) {
@@ -618,7 +631,7 @@
                 syncProductsForCategory(false);
             }
 
-            syncVisibleState();
+            syncCategoryFilters(equipmentCategorySelect.value);
         });
 
         equipmentCheckboxes.forEach((checkbox) => {

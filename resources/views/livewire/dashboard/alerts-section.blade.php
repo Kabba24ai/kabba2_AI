@@ -1,1 +1,1 @@
-<div wire:poll.5s="refreshAlerts"></div>
+<div wire:poll.30s="refreshAlerts"></div>

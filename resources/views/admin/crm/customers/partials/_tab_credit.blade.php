@@ -234,71 +234,71 @@
                <tbody id=" ">
 
                    @php
-                   $typeStyles = [
-                   'charge' => [
-                   'bg' => 'bg-red-100',
-                   'text' => 'text-red-800',
-                   'amount' => 'text-red-600',
-                   'sign' => '+',
-                   'icon' => 'plus',
-                   ],
-                   'payment' => [
-                   'bg' => 'bg-green-100',
-                   'text' => 'text-green-800',
-                   'amount' => 'text-green-600',
-                   'sign' => '-',
-                   'icon' => 'credit-card',
-                   ],
-                   'order' => [
-                   'bg' => 'bg-red-100',
-                   'text' => 'text-red-800',
-                   'amount' => 'text-red-600',
-                   'sign' => '+',
-                   'icon' => 'cart',
-                   ],
-                   'discount' => [
-                   'bg' => 'bg-purple-100',
-                   'text' => 'text-purple-800',
-                   'amount' => 'text-green-600',
-                   'sign' => '-',
-                   'icon' => 'award',
-                   ],
-                   'credit' => [
-                   'bg' => 'bg-yellow-100',
-                   'text' => 'text-yellow-800',
-                   'amount' => 'text-green-600',
-                   'sign' => '-',
-                   'icon' => 'arrow-down-left',
-                   ],
-                   'debit' => [
-                   'bg' => 'bg-orange-100',
-                   'text' => 'text-orange-800',
-                   'amount' => 'text-red-600',
-                   'sign' => '+',
-                   'icon' => 'arrow-up-right',
-                   ],
-                   'refund' => [
-                   'bg' => 'bg-blue-100',
-                   'text' => 'text-blue-800',
-                   'amount' => 'text-green-600',
-                   'sign' => '-',
-                   'icon' => 'trending-up',
-                   ],
-                   'account_invoice' => [
-                    'bg' => 'bg-indigo-100',
-                    'text' => 'text-indigo-800',
-                    'amount' => 'text-indigo-600', 
-                    'sign' => '',
-                    'icon' => 'file-text',
-                     'label' => 'Invoice',
-                ],
-                   ];
+                        $typeStyles = [
+                                    'charge' => [
+                                    'bg' => 'bg-red-100',
+                                    'text' => 'text-red-800',
+                                    'amount' => 'text-red-600',
+                                    'sign' => '+',
+                                    'icon' => 'plus',
+                                    ],
+                                    'payment' => [
+                                    'bg' => 'bg-green-100',
+                                    'text' => 'text-green-800',
+                                    'amount' => 'text-green-600',
+                                    'sign' => '-',
+                                    'icon' => 'credit-card',
+                                    ],
+                                    'order' => [
+                                    'bg' => 'bg-red-100',
+                                    'text' => 'text-red-800',
+                                    'amount' => 'text-red-600',
+                                    'sign' => '+',
+                                    'icon' => 'cart',
+                                    ],
+                                    'discount' => [
+                                    'bg' => 'bg-purple-100',
+                                    'text' => 'text-purple-800',
+                                    'amount' => 'text-green-600',
+                                    'sign' => '-',
+                                    'icon' => 'award',
+                                    ],
+                                    'credit' => [
+                                    'bg' => 'bg-yellow-100',
+                                    'text' => 'text-yellow-800',
+                                    'amount' => 'text-green-600',
+                                    'sign' => '-',
+                                    'icon' => 'arrow-down-left',
+                                    ],
+                                    'debit' => [
+                                    'bg' => 'bg-orange-100',
+                                    'text' => 'text-orange-800',
+                                    'amount' => 'text-red-600',
+                                    'sign' => '+',
+                                    'icon' => 'arrow-up-right',
+                                    ],
+                                    'refund' => [
+                                    'bg' => 'bg-blue-100',
+                                    'text' => 'text-blue-800',
+                                    'amount' => 'text-green-600',
+                                    'sign' => '-',
+                                    'icon' => 'trending-up',
+                                    ],
+                                    'account_invoice' => [
+                                        'bg' => 'bg-indigo-100',
+                                        'text' => 'text-indigo-800',
+                                        'amount' => 'text-indigo-600', 
+                                        'sign' => '',
+                                        'icon' => 'file-text',
+                                        'label' => 'Invoice',
+                                    ],
+                        ];
                    @endphp
 
                    @foreach ($customer->accounts as $transaction)
-                   @php
-                   $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
-                   @endphp
+                        @php
+                        $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
+                        @endphp
 
                    <tr data-status="{{ $transaction->type }}" class="border-b status-row">
                        <td class="py-4 px-6"> {{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }} </td>
@@ -459,14 +459,14 @@
                        {{-- Total Amount with Tax if Applicable --}}
                        <td class="py-4 px-6 text-right whitespace-nowrap {{ $style['amount'] }}">
                            @php
-                           $totalWithTax = $transaction->amount;
+                                $totalWithTax = $transaction->amount;
 
-                           if($transaction->type === 'account_invoice')
-                                                     $totalWithTax = $transaction->amount;
-                           elseif ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
-                           // Only add tax if it's NOT already included
-                           $totalWithTax += ($transaction->amount * $transaction->sales_tax);
-                           }
+                                if($transaction->type === 'account_invoice')
+                                                            $totalWithTax = $transaction->amount;
+                                elseif ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+                                // Only add tax if it's NOT already included
+                                $totalWithTax += ($transaction->amount * $transaction->sales_tax);
+                                }
                            @endphp
 
                            {{ $style['sign'] }}
@@ -597,9 +597,21 @@
                                             <x-heroicon-o-trash class="w-4 h-4" />
                                         </button>
                                     </form>
-                                @elseif (
+                                {{-- @elseif (
                                     $transaction->type !== 'order' &&
                                     !($transaction->invoice_id && $transaction->type === 'payment')
+                                ) --}}
+
+
+                                @elseif (
+                                    $transaction->type !== 'order' &&
+                                    !(
+                                        $transaction->invoice_id &&
+                                        (
+                                            $transaction->type === 'payment' ||
+                                            $transaction->invoice?->invoice_status === 'paid'
+                                        )
+                                    )
                                 )
 
                                  <!-- Transaction delete button -->

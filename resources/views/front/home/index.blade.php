@@ -1,28 +1,16 @@
 @extends('front.layouts.app')
 
 @push('meta')
-<meta name="description" content="Rental equipment delivered to your doorstep or job site.
-
-A new kind of equipment rental company in Dickson &amp; Hickman county to service the busy schedules of the construction industry, contractors and serious DIY homeowners.
-
-When time is money… we put the money in your pocket!">
+<meta name="description" content="Welcome to our website. We provide quality services and solutions to meet your needs. Contact us for more information.">
 <link rel="canonical" href="/">
 <meta property="og:site_name" content="{{ $brandingSettings['site_name'] }}">
 <meta property="og:title" content="{{ $brandingSettings['site_name'] }}">
-<meta property="og:description" content="Rental equipment delivered to your doorstep or job site.
-
-A new kind of equipment rental company in Dickson &amp; Hickman county to service the busy schedules of the construction industry, contractors and serious DIY homeowners.
-
-When time is money… we put the money in your pocket!">
+<meta property="og:description" content="Welcome to our website. We provide quality services and solutions to meet your needs. Contact us for more information.">
 <meta property="og:url" content="/">
 <meta property="og:type" content="article">
 
 <meta name="twitter:title" content="{{ $brandingSettings['site_name'] }}">
-<meta name="twitter:description" content="Rental equipment delivered to your doorstep or job site.
-
-A new kind of equipment rental company in Dickson &amp; Hickman county to service the busy schedules of the construction industry, contractors and serious DIY homeowners.
-
-When time is money… we put the money in your pocket!">
+<meta name="twitter:description" content="Welcome to our website. We provide quality services and solutions to meet your needs. Contact us for more information.">
 
 @endpush
 

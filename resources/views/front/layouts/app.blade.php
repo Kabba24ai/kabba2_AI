@@ -12,7 +12,7 @@
     <!-- Favicon icon-->
     <link rel="shortcut icon" href="{{ $logo }}">
 
-    <title>@yield('title', config('app.name'))</title>
+    <title>@yield('title', config('app.name')) - {{ config('app.name') }}</title>
     @stack('meta')
 
 

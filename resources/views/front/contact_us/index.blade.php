@@ -3,20 +3,16 @@
 @section('title', $title)
 
 @push('meta')
-<meta name="description" content="Rental equipment delivered to your doorstep or job site.
-
-A new kind of equipment rental company in Dickson &amp; Hickman county to service the busy schedules of the construction industry, contractors and serious DIY homeowners.
-
-When time is money… we put the money in your pocket!">
+<meta name="description" content="Welcome to our website. We provide quality services and solutions to meet your needs. Contact us for more information.">
 <link rel="canonical" href="/contact">
 <meta property="og:site_name" content="{{ $brandingSettings['site_name'] }}">
 <meta property="og:title" content="Contact">
-<meta property="og:description" content="">
+<meta property="og:description" content="Welcome to our website. We provide quality services and solutions to meet your needs. Contact us for more information.">
 <meta property="og:url" content="/contact">
 <meta property="og:type" content="article">
 
 <meta name="twitter:title" content="Contact">
-<meta name="twitter:description" content="">
+<meta name="twitter:description" content="Welcome to our website. We provide quality services and solutions to meet your needs. Contact us for more information.">
 
 @endpush
 

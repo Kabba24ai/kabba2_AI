@@ -30,7 +30,7 @@ class IndexController extends Controller
 
             // dd($branding);
         return view('front.home.index', [
-            'title' => 'Equipment Rentals Hickman / Dickson County',
+            'title' => 'Home',
             'category_tree'=> $category_tree,
             'cart_data' => $cartData,
             'branding' => $branding

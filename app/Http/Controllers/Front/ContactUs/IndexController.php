@@ -21,7 +21,7 @@ class IndexController extends Controller
             ->toArray();
 
         return view('front.contact_us.index',[
-            'title'=> 'Contact - Equipment Rentals Hickman / Dickson County',
+            'title'=> 'Contact',
             'stores' => $stores,
             'contact_settings' => $contact_settings,
 

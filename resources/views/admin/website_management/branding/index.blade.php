@@ -120,8 +120,61 @@
                                 ]) !!}
                         </div>
                     </div>
+
+                    <div class="mt-6 border border-gray-200 rounded-md p-4 bg-gray-50">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium text-sm text-gray-700">Search Engine Optimize</span>
+                            <a href="#" onclick="document.getElementById('home-seo-fields').classList.toggle('hidden'); return false;"
+                                class="text-sm text-blue-600 hover:underline">Edit SEO meta</a>
+                        </div>
+
+                        <div class="text-sm text-gray-800">
+                            <p class="text-blue-600 font-semibold truncate">
+                                {{ old('home_seo_title', $settings['home_seo_title'] ?? '') }}
+                            </p>
+                            <p class="text-green-700 text-xs truncate">
+                                <a href="{{ route('front.home.index') }}" class="text-blue-600 hover:underline break-all" target="_blank">
+                                    {{ route('front.home.index') }}
+                                </a>
+                            </p>
+                            <p class="text-gray-700 mt-1">
+                                {{ old('home_seo_description', $settings['home_seo_description'] ?? '') }}
+                            </p>
+                        </div>
+
+                        <div id="home-seo-fields" class="mt-4 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    SEO Title
+                                </label>
+                                {!! html()->text('home_seo_title', old('home_seo_title', $settings['home_seo_title'] ?? ''))
+                                ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
+                                ->attributes([
+                                'placeholder' => 'SEO Title',
+                                'maxlength' => 60,
+                                'data-parsley-maxlength' => 60,
+                                ]) !!}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    SEO Description
+                                </label>
+                                {!! html()->textarea('home_seo_description', old('home_seo_description', $settings['home_seo_description'] ?? ''))
+                                ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
+                                ->attributes([
+                                'rows' => 3,
+                                'placeholder' => 'SEO Description',
+                                'maxlength' => 160,
+                                'data-parsley-maxlength' => 160,
+                                ]) !!}
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+
+                <div class="border border-gray-200 rounded-md p-4 bg-gray-50">
                     <div class="flex items-center space-x-2 mb-6">
                         <x-heroicon-o-paint-brush class="h-5 w-5 text-blue-600" />
                         <h3 class="text-lg font-bold text-gray-900">Home Page Settings</h3>
@@ -199,6 +252,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
                     <div class="flex items-center space-x-2 mb-6">
                         <x-heroicon-o-document-text class="h-5 w-5 text-blue-600" />

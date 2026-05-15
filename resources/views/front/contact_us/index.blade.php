@@ -47,7 +47,6 @@
 
             {{-- Location cards --}}
             <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-8 pb-[60px]">
-
                 @foreach ($stores as $store)
                     <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col">
                         <div class="px-8 pt-8">
@@ -155,10 +154,7 @@
                         </div>
                     </div>
                 @endforeach
-
-
             </div>
-
         </div>
     </section>
 @endsection

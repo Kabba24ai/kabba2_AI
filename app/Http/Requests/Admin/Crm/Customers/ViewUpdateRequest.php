@@ -54,6 +54,9 @@ class ViewUpdateRequest extends FormRequest
             'license_back' => ['nullable', 'file'],
             'license_expiry_date' => ['nullable'],
 
+            'funnels' => ['nullable', 'array'],
+            'funnels.*' => ['exists:sales_funnels,id'],
+            
         ];
     }
 

@@ -39,7 +39,7 @@ Route::prefix('customer-account')
     Route::delete('/{id}/delete', DeleteController::class)->name('transactiondelete');
 
 
-    Route::get('/fix-running-balances', FixRunningBalancesController::class)
-    ->name('fixrunningbalances');
+    // Route::get('/fix-running-balances', FixRunningBalancesController::class)
+    // ->name('fixrunningbalances');
 
 });

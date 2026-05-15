@@ -87,4 +87,14 @@ class SalesFunnel extends Model
         return $this->hasMany(SalesFunnelSteps::class, 'sales_funnel_id')->orderBy('sort_order');
     }
 
+    public function customers()
+    {
+        return $this->belongsToMany(
+            Customer::class,
+            'customer_sales_funnels',
+            'sales_funnel_id',
+            'customer_id'
+        )->withTimestamps();
+    }
+
 }

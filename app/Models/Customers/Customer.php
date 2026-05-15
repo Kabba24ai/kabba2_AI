@@ -329,4 +329,14 @@ class Customer extends Authenticatable
     {
         return $this->hasOne(Invoice::class)->latestOfMany('invoice_date');
     }
+
+    public function funnels()
+    {
+        return $this->belongsToMany(
+            SalesFunnel::class,
+            'customer_sales_funnels',
+            'customer_id',
+            'sales_funnel_id'
+        )->withTimestamps();
+    }
 }

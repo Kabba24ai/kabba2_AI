@@ -42,7 +42,7 @@
                         </div>
                     </div>
                 </div>
-      
+
     </div>
 
 {{-- FORM SECTION --}}
@@ -79,6 +79,58 @@
                'rows' => 3,
                'placeholder' => 'Example: We might be on the phone with others ...'
                ]) !!}
+            </div>
+
+            {{-- SEO Meta Section --}}
+            <div class="border border-gray-200 rounded-md p-4 bg-gray-50">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-medium text-sm text-gray-700">Search Engine Optimize</span>
+                    <a href="#" onclick="document.getElementById('contact-seo-fields').classList.toggle('hidden'); return false;"
+                        class="text-sm text-blue-600 hover:underline">Edit SEO meta</a>
+                </div>
+
+                <div class="text-sm text-gray-800">
+                    <p class="text-blue-600 font-semibold truncate">
+                        {{ old('contact_seo_title', $settings['contact_seo_title'] ?? 'Contact Us') }}
+                    </p>
+                    <p class="text-green-700 text-xs truncate">
+                        <a href="{{ route('front.contact-us.index') }}" class="text-blue-600 hover:underline break-all" target="_blank">
+                            {{ route('front.contact-us.index') }}
+                        </a>
+                    </p>
+                    <p class="text-gray-700 mt-1">
+                        {{ old('contact_seo_description', $settings['contact_seo_description'] ?? 'Get in touch with our team for support, questions, and service information.') }}
+                    </p>
+                </div>
+
+                <div id="contact-seo-fields" class="mt-4 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            SEO Title
+                        </label>
+                        {!! html()->text('contact_seo_title', old('contact_seo_title', $settings['contact_seo_title'] ?? ''))
+                        ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
+                        ->attributes([
+                        'placeholder' => 'SEO Title',
+                        'maxlength' => 60,
+                        'data-parsley-maxlength' => 60,
+                        ]) !!}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            SEO Description
+                        </label>
+                        {!! html()->textarea('contact_seo_description', old('contact_seo_description', $settings['contact_seo_description'] ?? ''))
+                        ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
+                        ->attributes([
+                        'rows' => 3,
+                        'placeholder' => 'SEO Description',
+                        'maxlength' => 160,
+                        'data-parsley-maxlength' => 160,
+                        ]) !!}
+                    </div>
+                </div>
             </div>
          </div>
          {{-- Save Button --}}

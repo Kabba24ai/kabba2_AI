@@ -23,17 +23,14 @@ class IndexController extends Controller
 
         session()->forget('order.cart_data');
 
+        $branding = Setting::where('setting_type', 'Website Management Branding')->pluck('setting_value', 'setting_name')->toArray();
 
-          $branding = Setting::where('setting_type', 'Website Management Branding')
-            ->pluck('setting_value', 'setting_name')
-            ->toArray();
-
-            // dd($branding);
+        // dd($branding);
         return view('front.home.index', [
             'title' => 'Home',
-            'category_tree'=> $category_tree,
+            'category_tree' => $category_tree,
             'cart_data' => $cartData,
-            'branding' => $branding
+            'branding' => $branding,
         ])->with('success', 'Something went wrong. Please try again.');
     }
 }

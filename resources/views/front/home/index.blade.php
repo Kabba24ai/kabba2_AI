@@ -3,6 +3,16 @@
 @section('title', $title)
 
 @push('meta')
+    @if (!empty($branding['home_seo_title']))
+        <meta name="title" content="{{ $branding['home_seo_title'] }}">
+        <meta property="og:title" content="{{ $branding['home_seo_title'] }}">
+        <meta name="twitter:title" content="{{ $branding['home_seo_title'] }}">
+    @endif
+    @if (!empty($branding['home_seo_description']))
+         <meta name="description" content="{{ $branding['home_seo_description'] }}">
+        <meta property="og:description" content="{{ $branding['home_seo_description'] }}">
+        <meta name="twitter:description" content="{{ $branding['home_seo_description'] }}">
+    @endif
 @endpush
 
 @section('content')

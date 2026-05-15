@@ -2,7 +2,6 @@
 
 @push('meta')
 <meta name="description" content="Welcome to our website. We provide quality services and solutions to meet your needs. Contact us for more information.">
-<link rel="canonical" href="/">
 <meta property="og:site_name" content="{{ $brandingSettings['site_name'] }}">
 <meta property="og:title" content="{{ $brandingSettings['site_name'] }}">
 <meta property="og:description" content="Welcome to our website. We provide quality services and solutions to meet your needs. Contact us for more information.">

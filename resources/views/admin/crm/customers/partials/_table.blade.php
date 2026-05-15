@@ -146,24 +146,75 @@
 
                 </td>
 
-                <td class="py-4 px-6 whitespace-nowrap">
+                {{-- Sales Funnels --}}
+                <td class="py-4 px-6">
 
-                    {{-- @if($customer->latestInvoice)
+                    @php
+                        $funnels = $customer->funnels ?? collect();
 
-                        <span
-                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                        $visibleFunnels = $funnels->take(5);
 
-                            {{ ucfirst($customer->latestInvoice->invoice_status) }}
+                        $remainingFunnels = $funnels->slice(5);
+                    @endphp
 
-                        </span>
+                    <div class="flex flex-wrap gap-1 items-center">
 
-                    @else --}}
+                        @forelse($visibleFunnels as $funnel)
 
-                        <span class="text-xs text-gray-400">
-                            No Funnel
-                        </span>
+                            <span
+                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
 
-                    {{-- @endif --}}
+                                {{ $funnel->funnel_name }}
+
+                            </span>
+
+                        @empty
+
+                            <span class="text-xs text-gray-400">
+                                No Funnel
+                            </span>
+
+                        @endforelse
+
+                        {{-- More Funnels --}}
+                        @if($remainingFunnels->count() > 0)
+
+                            <div class="relative group">
+
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+
+                                    +{{ $remainingFunnels->count() }} more
+
+                                </button>
+
+                                {{-- Hover Popup --}}
+                                <div
+                                    class="absolute left-0 top-full mt-2 hidden group-hover:block z-50 w-64 bg-white border border-gray-200 rounded-xl shadow-xl p-3">
+
+                                    <div class="flex flex-wrap gap-2">
+
+                                        @foreach($remainingFunnels as $funnel)
+
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+
+                                                {{ $funnel->funnel_name }}
+
+                                            </span>
+
+                                        @endforeach
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        @endif
+
+                    </div>
 
                 </td>
 

@@ -93,7 +93,25 @@ class IndexController extends Controller
 
                 });
             }
-            
+
+            /*
+            |--------------------------------------------------------------------------
+            | Funnels Filter
+            |--------------------------------------------------------------------------
+            */
+
+            if ($request->filled('funnel')) {
+
+                $query->whereHas('funnels', function ($q) use ($request) {
+
+                    $q->where(
+                        'sales_funnels.id',
+                        $request->funnel
+                    );
+
+                });
+            }
+
             $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
             $customers = $query->latest('id')->paginate($perPageVal)->withQueryString();

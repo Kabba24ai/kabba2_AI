@@ -86,7 +86,7 @@ Route::prefix('orders')
 
         Route::post('/update-po', UpdatePoidController::class)->name('update-po-id');
 
-        Route::get('repair-deleted-orders', RepairDeletedOrdersController::class)->name('repair-deleted-orders');
+        // Route::get('repair-deleted-orders', RepairDeletedOrdersController::class)->name('repair-deleted-orders');
 
 
     });

@@ -22,6 +22,9 @@ use App\Http\Controllers\Admin\Crm\Customers\Login\ImpersonateController;
 use App\Http\Controllers\Admin\Crm\Customers\PasswordResetController;
 use App\Http\Controllers\Admin\Crm\Customers\FetchCustomerTags;
 
+use App\Http\Controllers\Admin\Crm\Customers\FetchSalesFunnels;
+
+
 
 //
 
@@ -77,6 +80,7 @@ Route::prefix('customers')
 
     Route::get('/{id}/tags/fetch', FetchCustomerTags::class)->name('tags.fetch');
 
+    Route::get('/sales-funnels/fetch', FetchSalesFunnels::class)->name('sales-funnels.fetch');
 
 
 

@@ -30,16 +30,49 @@
     </div>
 
     <!-- Right Card -->
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-        <!-- Assign to Funnels -->
-        <div class="md:col-span-2 flex flex-col flex-grow">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Funnels</label>
-            <div
-                class="border border-gray-300 rounded-md p-5 flex-grow flex items-center justify-center text-gray-400 text-sm bg-gray-50 transition-all">
-                Add or assign funnels here
-            </div>
+<div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+
+    <!-- Assign to Funnels -->
+    <div class="md:col-span-2 flex flex-col flex-grow">
+
+        <div class="flex items-center justify-between mb-2">
+
+            <label class="block text-sm font-medium text-gray-700">
+                Assign to Funnels
+            </label>
+
         </div>
+
+        {{-- STATIC VIEW --}}
+        <div class="static-view border border-gray-300 rounded-md p-5 bg-gray-50 min-h-[120px]">
+
+            <div class="flex flex-wrap gap-2">
+
+                @forelse($customer->funnels as $funnel)
+
+                    <span
+                        class="mb-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 break-words whitespace-normal"
+                    >
+
+                        {{ $funnel->funnel_name }}
+
+                    </span>
+
+                @empty
+
+                    <div class="w-full flex items-center justify-center text-gray-400 text-sm py-6">
+                        No funnels assigned
+                    </div>
+
+                @endforelse
+
+            </div>
+
+        </div>
+
     </div>
+
+</div>
 </div>
 
 <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">

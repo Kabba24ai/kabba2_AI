@@ -703,7 +703,7 @@
                     }else {
                         input.checked = false;
                     }
-                    
+
                 });
             }
             fetchSchedules(pageParam, perPageParam); // initial fetch after loading saved filters
@@ -890,6 +890,27 @@
             const orderIdLabel = document.getElementById('assign-order-id');
             const customerNameLabel = document.getElementById('assign-customer-name');
             const productNameLabel = document.getElementById('assign-product-name');
+            let pendingPreferredCategoryId = '';
+
+            function applyPreferredCategory(categoryId) {
+                const normalizedCategoryId = String(categoryId || '').trim();
+
+                if (!normalizedCategoryId || !categorySelect) {
+                    pendingPreferredCategoryId = '';
+                    return;
+                }
+
+                const hasOption = Array.from(categorySelect.options).some(option => option.value === normalizedCategoryId);
+
+                if (!hasOption) {
+                    pendingPreferredCategoryId = normalizedCategoryId;
+                    return;
+                }
+
+                pendingPreferredCategoryId = '';
+                categorySelect.value = normalizedCategoryId;
+                categorySelect.dispatchEvent(new Event('change'));
+            }
 
             let fullData = {}; // store categories + equipment
 
@@ -903,6 +924,7 @@
                 const orderUniqueId = btn.dataset.orderUniqueId || '';
                 const productName = btn.dataset.productName || '';
                 const customerName = btn.dataset.customerName || '';
+                const preferredCategoryId = btn.dataset.categoryId || '';
                 let orderDetailUrl =
                     "{{ route('admin.order-management.orders.edit', ['unique_id' => 'ORDER_ID_PLACEHOLDER']) }}";
 
@@ -923,6 +945,7 @@
                 }
 
                 modal.classList.remove('hidden');
+                applyPreferredCategory(preferredCategoryId);
 
                 // Refresh status on open in case select kept previous state
                 updateEquipmentStatus();
@@ -961,6 +984,7 @@
                 if (equipmentAssignForm) {
                     equipmentAssignForm.reset();
                 }
+                pendingPreferredCategoryId = '';
 
                 // Disable assign button until a valid available option is chosen
                 if (assignBtn) {
@@ -1192,6 +1216,10 @@
 
                             //  Load all equipment immediately after data arrives
                             loadAllEquipments();
+
+                            if (pendingPreferredCategoryId) {
+                                applyPreferredCategory(pendingPreferredCategoryId);
+                            }
                         }
                     });
             }

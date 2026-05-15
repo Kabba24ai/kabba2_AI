@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
+use App\Models\Customers\SalesFunnel;
 use Illuminate\View\View;
 use App\Models\Customers\Tag;
 
@@ -83,32 +84,35 @@ class ViewController extends Controller
         $allTags = $customer->tag_objects ?? [];
 
        // Convert customer tag objects into list of names
-$customerTagNames = collect($allTags)->pluck('name')->toArray();
+        $customerTagNames = collect($allTags)->pluck('name')->toArray();
 
-// ALL tags from DB EXCEPT customer's current tags
-$existingTagNames = Tag::whereNotIn('name', $customerTagNames)
+        // ALL tags from DB EXCEPT customer's current tags
+        $existingTagNames = Tag::whereNotIn('name', $customerTagNames)
                         ->orderBy('name')
                         ->pluck('name')
                         ->toArray();
 
                         // dd($customer->accounts);
 
-        return view('admin.crm.customers.view', [
-            'customer' => $customer,
-            'states' => $states,
-            'website_protocol' => $protocol,
-            'company_website' => $domain,
-            'website_extension' => $extension,
-            'users' => $users,
-            'lastpaymentdate' => $lastpaymentdate,
-            'customers' => $customers,
-            'paymentSetting' => $paymentSetting,
-            'employees' => $employees,
-            'allTags' => $allTags,
-            'existingTagNames' => $existingTagNames,
-            'customerTagNames' => $customerTagNames,
+                         $funnels = SalesFunnel::active()->orderBy('funnel_name')->pluck('funnel_name', 'id');
 
-        ]);
+                    return view('admin.crm.customers.view', [
+                        'customer' => $customer,
+                        'states' => $states,
+                        'funnels' => $funnels,
+                        'website_protocol' => $protocol,
+                        'company_website' => $domain,
+                        'website_extension' => $extension,
+                        'users' => $users,
+                        'lastpaymentdate' => $lastpaymentdate,
+                        'customers' => $customers,
+                        'paymentSetting' => $paymentSetting,
+                        'employees' => $employees,
+                        'allTags' => $allTags,
+                        'existingTagNames' => $existingTagNames,
+                        'customerTagNames' => $customerTagNames,
+
+                    ]);
 
     }
 }

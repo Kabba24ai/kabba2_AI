@@ -55,6 +55,7 @@ class IndexController extends Controller
                 'softAssignments.orderProduct' => function ($q) {
                     $q->whereHas('order');
                 },
+                'softAssignments.orderProduct.product.categories',
                 'softAssignments.orderProduct.order',
                 'overdueOrderProducts' => function ($q) {
                     $q->whereHas('order');

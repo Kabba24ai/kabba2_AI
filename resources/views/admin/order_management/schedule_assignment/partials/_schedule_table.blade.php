@@ -85,12 +85,16 @@
                 <td class="whitespace-nowrap px-4 py-3 text-left ">{{ $orderProduct->order?->shippingAddress?->phone ?? '-' }}
                 </td>
                 <td class="whitespace-nowrap px-4 py-3 text-center">
+                    @php
+                        $preferredCategoryId = $orderProduct->product?->categories?->first()?->id;
+                    @endphp
                     @if ($orderProduct?->checklistQuestions->isNotEmpty())
                         <button type="button" class="text-blue-600 underline equipment-assign-btn"
                             data-order-product-unique-id="{{ $orderProduct->unique_id }}"
                             data-product-name="{{ $orderProduct->product_name }}"
                             data-order-id="{{ $orderProduct?->order?->order_number }}"
                             data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
+                            data-category-id="{{ $preferredCategoryId ?? '' }}"
                             data-customer-name="{{ $orderProduct?->order?->customer_name }}">
                             {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
                         </button>
@@ -100,6 +104,7 @@
                             data-product-name="{{ $orderProduct->product_name }}"
                             data-order-id="{{ $orderProduct?->order?->order_number }}"
                             data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
+                            data-category-id="{{ $preferredCategoryId ?? '' }}"
                             data-customer-name="{{ $orderProduct?->order?->customer_name }}">
                             {{ $orderProduct->softAssignment?->equipment?->equipment_name ?: 'Assign' }}
                         </button>

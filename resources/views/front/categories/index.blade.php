@@ -1,6 +1,20 @@
 @extends('front.layouts.app')
 
+
 @section('title', $title)
+
+@push('meta')
+    @if (!empty($category->seo_title))
+        <meta name="title" content="{{ $category->seo_title }}">
+        <meta property="og:title" content="{{ $category->seo_title }}">
+        <meta name="twitter:title" content="{{ $category->seo_title }}">
+    @endif
+    @if (!empty($category->seo_description))
+        <meta name="description" content="{{ $category->seo_description }}">
+        <meta property="og:description" content="{{ $category->seo_description }}">
+        <meta name="twitter:description" content="{{ $category->seo_description }}">
+    @endif
+@endpush
 
 @section('content')
     <!-- Page Title Section -->

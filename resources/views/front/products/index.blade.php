@@ -2,6 +2,19 @@
 
 @section('title', $title)
 
+@push('meta')
+    @if (!empty($productDetail->seo_title))
+        <meta name="title" content="{{ $productDetail->seo_title }}">
+        <meta property="og:title" content="{{ $productDetail->seo_title }}">
+        <meta name="twitter:title" content="{{ $productDetail->seo_title }}">
+    @endif
+    @if (!empty($productDetail->seo_description))
+        <meta name="description" content="{{ $productDetail->seo_description }}">
+        <meta property="og:description" content="{{ $productDetail->seo_description }}">
+        <meta name="twitter:description" content="{{ $productDetail->seo_description }}">
+    @endif
+@endpush
+
 @section('content')
 
     <!-- Page Title Section -->
@@ -49,11 +62,14 @@
         <div id="productDetailsSkeleton">
             <!-- Main product section skeleton -->
             <section class="pb-[10px] pt-[60px]">
-                <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
+                <div
+                    class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
                         <!-- Gallery skeleton -->
                         <div class="w-full mx-auto">
-                            <div class="relative w-full aspect-square border border-gray-200 rounded-lg overflow-hidden bg-gray-200 animate-pulse"></div>
+                            <div
+                                class="relative w-full aspect-square border border-gray-200 rounded-lg overflow-hidden bg-gray-200 animate-pulse">
+                            </div>
                             <div class="flex gap-2 mt-3 px-1">
                                 @for ($i = 0; $i < 4; $i++)
                                     <div class="h-12 w-12 rounded-lg bg-gray-200 animate-pulse"></div>
@@ -82,7 +98,8 @@
             </section>
             <!-- Description / tabs skeleton -->
             <section class="py-8">
-                <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
+                <div
+                    class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
                     <div class="flex gap-4 mb-6">
                         <div class="h-8 w-28 bg-gray-200 animate-pulse rounded"></div>
                         <div class="h-8 w-28 bg-gray-200 animate-pulse rounded"></div>
@@ -136,10 +153,11 @@
                     <span class="font-semibold italic">call Customer Service</span> to confirm the schedule details:
                 </p>
 
-                @if(!empty($brandingSettings['site_phone']))
+                @if (!empty($brandingSettings['site_phone']))
                     <!-- Phone Number -->
                     <p class="text-black text-lg mb-6">
-                        <a href="tel:{{ $brandingSettings['site_phone'] }}" class="font-bold hover:underline focus:underline">
+                        <a href="tel:{{ $brandingSettings['site_phone'] }}"
+                            class="font-bold hover:underline focus:underline">
                             {{ $brandingSettings['site_phone'] }}
                         </a>
                     </p>
@@ -177,9 +195,10 @@
                 </p>
 
                 <!-- Phone Number -->
-                @if(!empty($brandingSettings['site_phone']))
+                @if (!empty($brandingSettings['site_phone']))
                     <p class="text-black text-lg mb-6">
-                        <a href="tel:{{ $brandingSettings['site_phone'] }}" class="font-bold hover:underline focus:underline">
+                        <a href="tel:{{ $brandingSettings['site_phone'] }}"
+                            class="font-bold hover:underline focus:underline">
                             {{ $brandingSettings['site_phone'] }}
                         </a>
                     </p>
@@ -234,7 +253,8 @@
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest',
-                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute(
+                                    'content'),
                             },
                             body: JSON.stringify({
                                 kabba_cart: cart

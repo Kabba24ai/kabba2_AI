@@ -1,21 +1,21 @@
-{{-- Application Code Settings --}}
+{{-- Company Code Settings --}}
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
 
     <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-key class="h-5 w-5 text-blue-600" />
 
         <h3 class="text-lg font-bold text-gray-900">
-            Application Code Settings
+            Mobile App - Company Code
         </h3>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
-        {{-- Application Code --}}
+        {{-- Company Code --}}
         <div>
 
             <label for="application_code" class="block text-sm font-medium text-gray-700 mb-1">
-                Application Code
+                Company Code
             </label>
 
             <div class="relative">
@@ -83,7 +83,7 @@
                 </p>
 
                 <p class="text-sm text-blue-700 mt-1">
-                    Application Code is protected and requires master verification before editing.
+                    Company Code is protected and requires master verification before editing.
                 </p>
 
                 <p class="text-sm text-blue-700 mt-1">
@@ -97,4 +97,4 @@
     </div>
 
 </div>
-{{-- End Application Code Settings --}}
+{{-- End Company Code Settings --}}

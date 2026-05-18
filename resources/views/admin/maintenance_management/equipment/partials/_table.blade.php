@@ -37,9 +37,7 @@
                             </span>
                         </td>
                         <td class="py-3 px-3 inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer" onclick="window.location='{{ route('admin.checklist-management.equipment-management.show', $item->unique_id) }}'" >
-                           
                             {!! \App\Helpers\CustomHelper::statusBadge($item->current_status->label()) !!}
-                            
                         </td>
                          <td class="py-4 px-6">
                             @if ($item->status_label == 'Rented')
@@ -206,7 +204,7 @@
                                 <a href="{{ route('admin.maintenance-management.equipment.edit', $item->unique_id) }}"
                                     class="inline-flex items-center justify-center rounded-md p-1.5 text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300"
                                     title="Edit">
-                                   
+
                                 <x-heroicon-o-pencil-square class="w-5 h-5 cursor-pointer" />
 
                                 </a>

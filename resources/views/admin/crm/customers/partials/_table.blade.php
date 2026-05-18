@@ -4,11 +4,11 @@
         <thead class="bg-gray-50 text-gray-600 border-b border-gray-200">  
             <tr>
                 <th class="py-4 px-6 text-left cus-width-3"><input type="checkbox" id="select-all-checkbox" /></th>
-                <th class="cus-width-20 py-4 px-6 text-left font-semibold">Customer</th>
+                <th class="cus-width-15 py-4 px-6 text-left font-semibold">Customer</th>
                 <th class="cus-width-20 py-4 px-6 text-left font-semibold">Company</th>
                 <th class="cus-width-15 py-4 px-6 text-left font-semibold">Phone</th>
 
-                <th class="cus-width-15 py-4 px-6 text-left font-semibold whitespace-nowrap">
+                <th class="cus-width-20 py-4 px-6 text-left font-semibold whitespace-nowrap">
                     Tags
                 </th>
 
@@ -90,7 +90,7 @@
                         @forelse($visibleTags as $tag)
 
                             <span
-                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap">
 
                                 {{ $tag->name }}
 
@@ -126,7 +126,7 @@
                                         @foreach($remainingTags as $tag)
 
                                             <span
-                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap">
 
                                                 {{ $tag->name }}
 
@@ -162,7 +162,7 @@
                         @forelse($visibleFunnels as $funnel)
 
                             <span
-                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 whitespace-nowrap">
 
                                 {{ $funnel->funnel_name }}
 
@@ -198,7 +198,7 @@
                                         @foreach($remainingFunnels as $funnel)
 
                                             <span
-                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 whitespace-nowrap">
 
                                                 {{ $funnel->funnel_name }}
 

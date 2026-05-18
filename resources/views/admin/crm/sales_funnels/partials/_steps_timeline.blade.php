@@ -152,7 +152,7 @@
                                     data-funnel-unique-id="{{ $funnel->unique_id }}"
                                     data-step-json='@json($step)'
                                     class="step-edit-button p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
-                                    <x-heroicon-o-pencil class="w-5 h-5" />
+                                    <x-heroicon-o-pencil-square class="w-5 h-5" />
                                 </button>
 
                                 <button type="button"

@@ -112,15 +112,6 @@
                         </a>
 
 
-                        <!-- <a href="{{ route('admin.crm.customers.edit', $customer->unique_id) }}">
-
-                            <button class="text-green-600 hover:text-green-800" title="Edit">
-                                <x-heroicon-o-pencil class="w-5 h-5" />
-                            </button>
-
-                        </a> -->
-
-
                         {{-- Delete Button --}}
                         <form action="{{ route('admin.crm.customers.delete', $customer->unique_id) }}" method="POST"
                             class="inline" onsubmit="return confirm('Are you sure you want to delete this Customer?');">

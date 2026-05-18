@@ -35,7 +35,9 @@
                             <a href="{{ route('admin.stores.edit', $store->unique_id) }}"
                                 class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                 title="Edit">
-                                <x-heroicon-o-pencil class="w-5 h-5" />
+                              
+                                  <x-heroicon-o-pencil-square class="w-5 h-5 cursor-pointer" />
+
                             </a>
                             <form action="{{ route('admin.stores.delete', $store->unique_id) }}" method="POST"
                                 onsubmit="return confirm('Are you sure you want to delete this store?');">

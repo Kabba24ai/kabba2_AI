@@ -31,7 +31,9 @@
                                 data-description="{{ $category->description }}"
                                 class="edit-category-button text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                 title="Edit Category">
-                                <x-heroicon-o-pencil class="w-5 h-5" />
+                               
+                                <x-heroicon-o-pencil-square class="w-4 h-4 cursor-pointer" />
+
                             </button>
                             <button type="button" class="category-delete-button text-red-600 hover:text-red-800" title="Delete"
                                 data-unique-id="{{ $category->unique_id }}">

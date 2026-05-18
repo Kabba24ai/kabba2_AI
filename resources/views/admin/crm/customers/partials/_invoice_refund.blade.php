@@ -286,7 +286,7 @@
                                 <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap text-green-600">- $${total.toFixed(2)}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="flex items-center justify-center gap-3">
-                                    <button type="button" class="text-blue-600 edit-btn mr-2" title="Edit"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+                                    <button type="button" class="text-blue-600 edit-btn mr-2" title="Edit"><x-heroicon-o-pencil-square class="w-4 h-4" /></button>
                                     <button type="button" class="text-red-600 delete-btn" title="Delete"><x-heroicon-o-trash class="w-4 h-4" /></button>
                                     </div>
                                 </td>
@@ -332,7 +332,7 @@
                                             <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap text-green-600">- $${total.toFixed(2)}</td>
                                             <td class="px-4 py-3 whitespace-nowrap">
                                                 <div class="flex items-center justify-center gap-3">
-                                                <button type="button" class="text-blue-600 edit-btn mr-2" title="Edit"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+                                                <button type="button" class="text-blue-600 edit-btn mr-2" title="Edit"><x-heroicon-o-pencil-square class="w-4 h-4" /></button>
                                                 <button type="button" class="text-red-600 delete-btn" title="Delete"><x-heroicon-o-trash class="w-4 h-4" /></button>
                                                 </div>
                                             </td>

@@ -78,6 +78,7 @@ class UpdateController extends Controller
                 'not_for_rent' => (int) $equipment->not_for_rent,
                 'checklist_master_id' => $equipment->checklist_master_id,
                 'parts_list_id' => $equipment->parts_list_id,
+                'assigned_product_id' => $equipment->assigned_product_id,
             ], Arr::only((array) $row, [
                 'equipment_name',
                 'equipment_id',
@@ -111,6 +112,7 @@ class UpdateController extends Controller
                 'not_for_rent',
                 'checklist_master_id',
                 'parts_list_id',
+                'assigned_product_id',
             ]));
 
             if (!empty($rowData['date_acquired'])) {
@@ -165,6 +167,7 @@ class UpdateController extends Controller
                 'not_for_rent' => ['nullable', 'boolean'],
                 'checklist_master_id' => ['nullable', 'exists:checklist_masters,id'],
                 'parts_list_id' => ['nullable', 'exists:parts_lists,id'],
+                'assigned_product_id' => ['nullable', 'exists:products,id'],
             ]);
 
             if ($validator->fails()) {
@@ -233,6 +236,7 @@ class UpdateController extends Controller
                     'not_for_rent' => ((int) $data['not_for_rent']) === 1 ? 1 : 0,
                     'checklist_master_id' => $data['checklist_master_id'] ?: null,
                     'parts_list_id' => $data['parts_list_id'] ?: null,
+                    'assigned_product_id' => $data['assigned_product_id'] ?: null,
                     'updated_by' => $userId,
                 ]);
             }

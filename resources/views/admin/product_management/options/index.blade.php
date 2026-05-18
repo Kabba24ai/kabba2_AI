@@ -53,7 +53,9 @@
                                     <a href="{{ route('admin.product-management.options.edit', $option->unique_id   ) }}"
                                         class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                         title="Edit">
-                                        <x-heroicon-o-pencil class="w-5 h-5" />
+                                        
+                                <x-heroicon-o-pencil-square class="w-5 h-5 cursor-pointer" />
+
                                     </a>
                                     <form action="{{ route('admin.product-management.options.delete', $option->unique_id    ) }}"
                                         method="POST"

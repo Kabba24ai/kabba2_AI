@@ -899,7 +899,7 @@
                             <button type="button" onclick="openServiceAssignModal()"
                                 class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                                 title="Edit Service Template">
-                                <x-heroicon-o-pencil class="h-4 w-4" />
+                                <x-heroicon-o-pencil-square class="h-4 w-4" />
                             </button>
                         </div>
                         <input type="hidden" name="equipment_service_id"

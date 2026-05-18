@@ -69,10 +69,12 @@
                         <div class="flex gap-2">
                             <a href="{{ route('admin.product-management.equipment-assignments.edit', $assignment->id) }}"
                                 class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Edit">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {{-- <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
+                                </svg> --}}
+                                <x-heroicon-o-pencil-square class="w-5 h-5 cursor-pointer" />
+
                             </a>
                             <button type="button"
                                 class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 delete-btn"

@@ -328,7 +328,7 @@
                         <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
                         <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
                         <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
-                            <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+                            <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil-square class="w-4 h-4" /></button>
                             <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
                         </td>
                     `;
@@ -375,7 +375,7 @@
                     <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
                     <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
                     <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
-                        <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+                        <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil-square class="w-4 h-4" /></button>
                         <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
                     </td>
                 `;

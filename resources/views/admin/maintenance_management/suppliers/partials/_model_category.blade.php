@@ -179,7 +179,7 @@
                 editBtn.className = 'hover:text-blue-800';
                 editBtn.title = 'Edit';
                 editBtn.innerHTML = `
-                    <x-heroicon-o-pencil class="w-5 h-5" />`;
+                    <x-heroicon-o-pencil-square class="w-5 h-5" />`;
                 btnDiv.appendChild(editBtn);
 
                 //  Delete button

@@ -10,20 +10,14 @@ use App\Models\MaintenanceManagement\Supplier;
 use App\Models\MaintenanceManagement\SupplierTag;
 use App\Models\Configurations\Setting;
 
-
-
 class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
+        $settings = Setting::where('setting_type', 'Website Management Contact Us Section')->pluck('setting_value', 'setting_name')->toArray();
 
-    $settings = Setting::where('setting_type', 'Website Management Contact Us Section')
-    ->pluck('setting_value', 'setting_name')
-    ->toArray();
-
-                       return view('admin.website_management.contact_us.index', [
-    'settings' => $settings
-]);
-
+        return view('admin.website_management.contact_us.index', [
+            'settings' => $settings,
+        ]);
     }
 }

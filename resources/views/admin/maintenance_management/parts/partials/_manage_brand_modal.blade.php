@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Edit
             const editBtn = document.createElement('button');
             editBtn.className = 'hover:text-purple-800';
-            editBtn.innerHTML = `<x-heroicon-o-pencil class="w-5 h-5" />`;
+            editBtn.innerHTML = `<x-heroicon-o-pencil-square class="w-5 h-5" />`;
             btns.appendChild(editBtn);
 
             // Delete

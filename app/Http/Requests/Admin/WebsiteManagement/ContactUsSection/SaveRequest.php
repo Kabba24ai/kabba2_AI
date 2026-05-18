@@ -17,6 +17,8 @@ class SaveRequest extends FormRequest
         return [
             'contact_title' => ['required', 'string'],
             'contact_subtitle' => ['nullable', 'string'],
+            'contact_seo_title' => ['nullable', 'string'],
+            'contact_seo_description' => ['nullable', 'string'],
         ];
     }
 

@@ -33,7 +33,7 @@ class ScheduleSection extends Component
         $this->scheduleStats = [
             'deliveries_truck' => [
                 'due_today' => $this->getScheduleCount('delivery', 'Truck', 'Due', true),
-                'completed_today' => $this->getScheduleCount('delivery', 'Truck', 'Due', true),
+                'completed_today' => $this->getScheduleCount('delivery', 'Truck', 'Completed', true),
             ],
             'deliveries_store' => [
                 'due_today' => $this->getScheduleCount('delivery', 'Store', 'Due', true),

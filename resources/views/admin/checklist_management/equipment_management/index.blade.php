@@ -79,7 +79,42 @@
                             Clear Filters
                         </button>
                     </div>
-                    <div id="equipmentList" class="space-y-3 max-h-[1000px] overflow-y-auto"></div>
+                    {{-- <div id="equipmentList" class="space-y-3 max-h-[1000px] overflow-y-auto"></div> --}}
+                    {{-- <div id="equipmentList" class="space-y-3 max-h-[1000px] overflow-y-auto"></div> --}}
+
+                    <div id="equipmentListWrapper" class="max-h-[1000px] overflow-y-auto">
+
+                        <div id="equipmentList" class="space-y-3"></div>
+
+                        <div id="equipmentLoader" class="hidden py-4 px-2">
+                            <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
+
+                                <svg class="animate-spin h-5 w-5 text-blue-500"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24">
+                                    <circle class="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        stroke-width="4">
+                                    </circle>
+
+                                    <path class="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8v8H4z">
+                                    </path>
+                                </svg>
+
+                                <span>Loading more equipment...</span>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    
                 </div>
             </div>
 
@@ -230,6 +265,12 @@
 
             /* ====== CONFIG ====== */
             const REQUIRE_INSPECTOR = true;
+            let currentPage = {{ $equipments->currentPage() }};
+            let lastPage = {{ $equipments->lastPage() }};
+            let totalEquipment = {{ $equipments->total() }};
+            let isLoadingMore = false;
+
+            const equipmentLoader = document.getElementById("equipmentLoader");
 
             /* =================== DATA =================== */
             @php
@@ -316,10 +357,12 @@
                     
                     $item->service_status = $serviceStatus;
                     return $item;
+                    
                 });
             @endphp
             
-            const rawEquipment = @json($equipmentsWithStatus);
+            // const rawEquipment = @json($equipmentsWithStatus);
+            const rawEquipment = @json($equipments->items());
 
             const icons = {
                 damaged: ` <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none"
@@ -404,7 +447,8 @@
 
 
             /* =================== ELEMENTS =================== */
-            const equipmentList = document.getElementById("equipmentList");
+            const equipmentWrapper = document.getElementById("equipmentListWrapper");
+const equipmentList = document.getElementById("equipmentList");
             const equipmentCount = document.getElementById("equipmentCount");
             const checklistContainer = document.getElementById("checklistContainer");
             const checklistTitle = document.getElementById("checklistTitle");
@@ -424,37 +468,138 @@
             const inspectorSelect = document.getElementById("inspectorSelect");
 
             /* =================== INIT =================== */
-            equipmentCount.textContent = `${equipment.length} of ${equipment.length}`;
+            // equipmentCount.textContent = `${equipment.length} of ${equipment.length}`;
+            equipmentCount.textContent = `${equipment.length} of ${totalEquipment}`;
+
             inspectionDateInput.value = new Date().toISOString().slice(0, 10);
             renderEquipment();
 
-            window.applyFilters = function() {
-                renderEquipment();
-            };
+            equipmentWrapper.addEventListener("scroll", () => {
+    const nearBottom =
+    equipmentWrapper.scrollTop + equipmentWrapper.clientHeight >=
+    equipmentWrapper.scrollHeight - 300;
 
-            window.clearFilters = function() {
-                document.getElementById("searchInput").value = "";
-                document.getElementById("categoryFilter").selectedIndex = 0;
-                document.getElementById("statusFilter").selectedIndex = 0;
-                renderEquipment();
-            };
+    if (nearBottom) {
+        loadMoreEquipment();
+    }
+});
 
-            
-            // ===== APPLY URL FILTER FIRST =====
-            const params = new URLSearchParams(window.location.search);
-            const typeFromUrl = params.get('type');
+            // window.applyFilters = function() {
+            //     renderEquipment();
+            // };
 
-            if (typeFromUrl) {
-                const decodedType = decodeURIComponent(typeFromUrl);
-                const statusSelect = document.getElementById('statusFilter');
 
-                for (let i = 0; i < statusSelect.options.length; i++) {
-                    if (statusSelect.options[i].text === decodedType) {
-                        statusSelect.selectedIndex = i;
-                        break;
-                    }
+            window.applyFilters = async function () {
+
+    currentPage = 1;
+
+    equipmentList.innerHTML = "";
+
+    equipmentLoader.classList.remove("hidden");
+
+    try {
+
+        const search = document.getElementById("searchInput").value;
+        const category = document.getElementById("categoryFilter").value;
+        const status = document.getElementById("statusFilter").value;
+
+        const response = await fetch(
+            `?page=1&search=${search}&category=${category}&status=${status}`,
+            {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
                 }
             }
+        );
+
+        const result = await response.json();
+
+        equipment.length = 0;
+
+        const newItems = result.data.map(eq => {
+
+            let serviceIcon = serviceStatusIcons[eq.service_status] || serviceStatusIcons.empty;
+
+            serviceIcon = serviceIcon.replace(/EQUIPMENT_ID/g, eq.unique_id);
+
+            return {
+                id: eq.id,
+                unique_id: eq.unique_id,
+                name: eq.equipment_name,
+                model: eq.model,
+                serial: eq.serial_number,
+                equipment_id: eq.equipment_id,
+                category_id: eq.category_id,
+                category: eq.category_name ?? 'N/A',
+                checklist_master_id: eq.checklist_master_id,
+                hours: eq.equipment_hours,
+                lastInspection: eq.last_inspection ?? '',
+                orderproduct: eq.order_product?.product_name ?? '-',
+                orderproductid: eq.order_product?.id ?? null,
+                order_route: eq.order?.view_link ?? null,
+                orderid: eq.order?.id ?? null,
+                badge: eq.status_label,
+                icon: icons[eq.current_status] ?? icons.available,
+                is_tracked: eq.is_tracked ?? 'No',
+                customername: eq.order?.customer_name ?? ' ',
+                serviceStatus: eq.service_status,
+                serviceStatusIcon: serviceIcon
+            };
+        });
+
+        equipment.push(...newItems);
+
+        totalEquipment = result.total;
+        lastPage = result.last_page;
+
+        renderEquipment();
+
+    } catch (error) {
+
+        console.log("Filter error:", error);
+
+    }
+
+    equipmentLoader.classList.add("hidden");
+};
+
+            // window.clearFilters = function() {
+            //     document.getElementById("searchInput").value = "";
+            //     document.getElementById("categoryFilter").selectedIndex = 0;
+            //     document.getElementById("statusFilter").selectedIndex = 0;
+            //     renderEquipment();
+            // };
+
+           window.clearFilters = async function () {
+
+    document.getElementById("searchInput").value = "";
+    document.getElementById("categoryFilter").selectedIndex = 0;
+    document.getElementById("statusFilter").selectedIndex = 0;
+
+    await applyFilters();
+};
+           // ===== APPLY URL FILTER FIRST =====
+const params = new URLSearchParams(window.location.search);
+const typeFromUrl = params.get('type');
+
+if (typeFromUrl) {
+
+    const decodedType = decodeURIComponent(typeFromUrl);
+
+    const statusSelect = document.getElementById('statusFilter');
+
+    for (let i = 0; i < statusSelect.options.length; i++) {
+
+        if (statusSelect.options[i].text.trim() === decodedType.trim()) {
+
+            statusSelect.selectedIndex = i;
+            break;
+        }
+    }
+
+    // CALL BACKEND FILTER
+    applyFilters();
+}
 
 
             const selectedId = '{{ $selectedEquipmentId }}';
@@ -483,40 +628,44 @@
 
 
             /* =================== LEFT LIST =================== */
-            function renderEquipment(selectedId = null) {
+            // function renderEquipment(selectedId = null) {
+            function renderEquipment(selectedId = null, append = false) {
 
                 const searchValue = document.getElementById("searchInput").value.toLowerCase();
                 const selectedCategory = document.getElementById("categoryFilter").value;
                 const selectedStatus = document.getElementById("statusFilter").value;
 
-                equipmentList.innerHTML = "";
+                // equipmentList.innerHTML = "";
+                if (!append) {
+                    equipmentList.innerHTML = "";
+                }
 
-                const filtered = equipment.filter(eq => {
-                    const name = (eq.name || "").toLowerCase();
-                    const model = (eq.model || "").toLowerCase();
-                    const serial = (eq.serial || "").toLowerCase();
+                // const filtered = equipment.filter(eq => {
+                //     const name = (eq.name || "").toLowerCase();
+                //     const model = (eq.model || "").toLowerCase();
+                //     const serial = (eq.serial || "").toLowerCase();
 
-                    const matchesSearch =
-                        name.includes(searchValue) ||
-                        model.includes(searchValue) ||
-                        serial.includes(searchValue);
+                //     const matchesSearch =
+                //         name.includes(searchValue) ||
+                //         model.includes(searchValue) ||
+                //         serial.includes(searchValue);
 
-                    const matchesCategory =
-                        selectedCategory === "All Categories" || eq.category === selectedCategory;
+                //     const matchesCategory =
+                //         selectedCategory === "All Categories" || eq.category === selectedCategory;
 
-                    let matchesStatus = false;
-                    if (selectedStatus === "All Statuses") {
-                        matchesStatus = true;
-                    } else if (selectedStatus === "Service Due") {
-                        matchesStatus = eq.serviceStatus === "pending";
-                    } else if (selectedStatus === "Service OverDue") {
-                        matchesStatus = eq.serviceStatus === "overdue";
-                    } else {
-                        matchesStatus = eq.badge === selectedStatus;
-                    }
+                //     let matchesStatus = false;
+                //     if (selectedStatus === "All Statuses") {
+                //         matchesStatus = true;
+                //     } else if (selectedStatus === "Service Due") {
+                //         matchesStatus = eq.serviceStatus === "pending";
+                //     } else if (selectedStatus === "Service OverDue") {
+                //         matchesStatus = eq.serviceStatus === "overdue";
+                //     } else {
+                //         matchesStatus = eq.badge === selectedStatus;
+                //     }
 
-                    return matchesSearch && matchesCategory && matchesStatus;
-                });
+                //     return matchesSearch && matchesCategory && matchesStatus;
+                // });
 
 
                 //  Add sorting by badge priority
@@ -527,14 +676,14 @@
                     "Available": 4
                 };
 
-                filtered.sort((a, b) => {
+                equipment.sort((a, b) => {
                     const badgeDiff = (badgeOrder[a.badge] || 99) - (badgeOrder[b.badge] || 99);
                     if (badgeDiff !== 0) return badgeDiff; // status sort first
                     return a.name.localeCompare(b.name, undefined, {
                         sensitivity: 'base'
                     }); // then alphabetical
                 });
-                filtered.forEach(eq => {
+                equipment.forEach(eq => {
                     const card = document.createElement("div");
                     card.className =
                         "equipment-card p-4 rounded-md border-1 transition-all cursor-pointer hover:shadow-md border-gray-200 hover:border-gray-300";
@@ -619,7 +768,73 @@
                         openChecklist(eq);
                     }
                 });
+equipmentCount.textContent = `${equipment.length} of ${totalEquipment}`;
+            }
 
+
+            async function loadMoreEquipment() {
+                if (isLoadingMore || currentPage >= lastPage) return;
+
+                // isLoadingMore = true;
+                isLoadingMore = true;
+                equipmentLoader.classList.remove("hidden");
+                currentPage++;
+
+                try {
+
+                    const search = document.getElementById("searchInput").value;
+                    const category = document.getElementById("categoryFilter").value;
+                    const status = document.getElementById("statusFilter").value;
+
+
+                    const response = await fetch(`?page=${currentPage}&search=${search}&category=${category}&status=${status}`, {
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    const newItems = result.data.map(eq => {
+                        let serviceIcon = serviceStatusIcons[eq.service_status] || serviceStatusIcons.empty;
+                        serviceIcon = serviceIcon.replace(/EQUIPMENT_ID/g, eq.unique_id);
+
+                        return {
+                            id: eq.id,
+                            unique_id: eq.unique_id,
+                            name: eq.equipment_name,
+                            model: eq.model,
+                            serial: eq.serial_number,
+                            equipment_id: eq.equipment_id,
+                            category_id: eq.category_id,
+                            category: eq.category_name ?? 'N/A',
+                            checklist_master_id: eq.checklist_master_id,
+                            hours: eq.equipment_hours,
+                            lastInspection: eq.last_inspection ?? '',
+                            orderproduct: eq.order_product?.product_name ?? '-',
+                            orderproductid: eq.order_product?.id ?? null,
+                            order_route: eq.order?.view_link ?? null,
+                            orderid: eq.order?.id ?? null,
+                            badge: eq.status_label,
+                            icon: icons[eq.current_status] ?? icons.available,
+                            is_tracked: eq.is_tracked ?? 'No',
+                            customername: eq.order?.customer_name ?? ' ',
+                            serviceStatus: eq.service_status,
+                            serviceStatusIcon: serviceIcon
+                        };
+                    });
+
+                    equipment.push(...newItems);
+                    // renderEquipment(null, true);
+                    renderEquipment(null, true);
+
+                } catch (error) {
+                    console.log("Load more equipment error:", error);
+                }
+
+                // isLoadingMore = false;
+                isLoadingMore = false;
+equipmentLoader.classList.add("hidden");
             }
 
             function badgeColors(b) {
@@ -751,7 +966,7 @@
                         checklistContent.innerHTML = "";
 
                         if (data.success === true) {
-                            // console.log("Fetched checklist data:", data);
+                            console.log("Fetched checklist data:", data);
 
                             // Normalize: use questions OR existing_data.questions
                             let items = [];
@@ -776,49 +991,49 @@
                                 const section = document.createElement("div");
                                 section.className = "border border-gray-200 rounded-md p-4";
                                 section.innerHTML = `
-                    <h3 class="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                        <span>${g.title}</span>
-                        <span id="groupCount-${g.key}" class="text-sm text-gray-500">(0/${g.items.length})</span>
-                        <input type="hidden" name="total_questions" value="${g.items.length}">
-                    </h3>
-                    <div id="groupBody-${g.key}" class="space-y-4"></div>`;
-                                checklistContent.appendChild(section);
+                                    <h3 class="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                                        <span>${g.title}</span>
+                                        <span id="groupCount-${g.key}" class="text-sm text-gray-500">(0/${g.items.length})</span>
+                                        <input type="hidden" name="total_questions" value="${g.items.length}">
+                                    </h3>
+                                    <div id="groupBody-${g.key}" class="space-y-4"></div>`;
+                                                checklistContent.appendChild(section);
 
-                                const body = section.querySelector(`#groupBody-${g.key}`);
-                                g.items.forEach((item) => {
-                                    const itemId = item.question_id || item.id;
-                                    const answers = (item.answers || []).map((opt) => `
-                        <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center gap-3 flex-1 min-w-0">
-                                <input type="radio" name="answer-${itemId}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
-                                    value="${opt.status}" data-item="${itemId}" data-opt-id="${opt.id}" data-group="${g.key}">
-                                <span class="text-sm text-gray-900">${opt.label}</span>
-                            </div>
-                            <div class="w-full sm:w-auto sm:ml-auto sm:justify-end flex items-center">
-                                ${statusBadge(opt.status)}
-                            </div>
-                        </label>
-                    `).join("");
+                                                const body = section.querySelector(`#groupBody-${g.key}`);
+                                                g.items.forEach((item) => {
+                                                    const itemId = item.question_id || item.id;
+                                                    const answers = (item.answers || []).map((opt) => `
+                                        <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                                <input type="radio" name="answer-${itemId}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
+                                                    value="${opt.status}" data-item="${itemId}" data-opt-id="${opt.id}" data-group="${g.key}">
+                                                <span class="text-sm text-gray-900">${opt.label}</span>
+                                            </div>
+                                            <div class="w-full sm:w-auto sm:ml-auto sm:justify-end flex items-center">
+                                                ${statusBadge(opt.status)}
+                                            </div>
+                                        </label>
+                                    `).join("");
 
                                     const card = document.createElement("div");
                                     card.className =
                                         "item-card p-4 rounded-md border-2 transition-all border-gray-200 bg-white-50";
                                     card.id = `item-${itemId}`;
                                     card.innerHTML = `
-                        <div class="flex flex-wrap items-center gap-2 mb-3">
-                            <span id="icon-${itemId}" class="inline-flex shrink-0 ">${iconSvg("default")}</span>
-                            <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>' : ''}</span>
+                                        <div class="flex flex-wrap items-center gap-2 mb-3">
+                                            <span id="icon-${itemId}" class="inline-flex shrink-0 ">${iconSvg("default")}</span>
+                                            <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>' : ''}</span>
 
-                            
+                                            
 
-                            <span id="chip-${itemId}"></span>
-                        </div>
-                        <div class="text-sm font-medium text-gray-700 mb-2">Select Condition:</div>
-                        <div class="space-y-2">${answers}</div>
-                        <div id="notes-${itemId}" class="hidden mt-3">
-                            <textarea class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="3" placeholder="Add notes about the issue..."></textarea>
-                        </div>
-                    `;
+                                            <span id="chip-${itemId}"></span>
+                                        </div>
+                                        <div class="text-sm font-medium text-gray-700 mb-2">Select Condition:</div>
+                                        <div class="space-y-2">${answers}</div>
+                                        <div id="notes-${itemId}" class="hidden mt-3">
+                                            <textarea class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="3" placeholder="Add notes about the issue..."></textarea>
+                                        </div>
+                                    `;
 
                                     body.appendChild(card);
                                 });
@@ -827,11 +1042,11 @@
                             /* ---------- General Notes card (NEW) ---------- */
                             const generalNotes = document.createElement("div");
                             generalNotes.innerHTML = `
-                <h3 class="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                    <span>General Notes</span>
-                </h3>
-                <textarea id="generalNotes" name="general_notes" class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="4" placeholder="Add any additional notes or observations..."></textarea>
-            `;
+                                    <h3 class="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                                        <span>General Notes</span>
+                                    </h3>
+                                    <textarea id="generalNotes" name="general_notes" class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="4" placeholder="Add any additional notes or observations..."></textarea>
+                                `;
                             checklistContent.appendChild(generalNotes);
                             
 
@@ -996,6 +1211,8 @@
                 const miscItem = groups
                     .flatMap(g => g.items)
                     .find(it => it.title === "Miscellaneous");
+
+                    console.log("Misc Item Found:", miscItem);
 
                 if (miscItem && itemId === (miscItem.question_id || miscItem.id)) {
 

@@ -76,7 +76,7 @@
                         {{-- Phone --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                High Demand Alert Phone Number
+                                High Demand Alert / Custom Range Phone Number
                             </label>
                             {!! html()->text('site_phone', old('site_phone', old('site_phone', $settings['site_phone'] ?? '')))->class([
                                     'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',

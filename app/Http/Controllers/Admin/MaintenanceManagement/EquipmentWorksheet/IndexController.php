@@ -7,6 +7,7 @@ use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\MaintenanceManagement\PartsList;
 use App\Models\ProductManagement\ProductCategory;
+use App\Models\ProductManagement\Product;
 use App\Models\Stores\Store;
 use Illuminate\Http\Request;
 
@@ -51,11 +52,43 @@ class IndexController extends Controller
         $stores = Store::active()->orderByAdmin()->pluck('store_name', 'id');
         $checklistMasters = ChecklistMaster::orderBy('checklist_system_name')->pluck('checklist_system_name', 'id');
         $partsLists = PartsList::orderBy('name')->pluck('name', 'id');
+        $categoryIds = $equipment->getCollection()
+            ->pluck('product_category_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $productAssignmentOptionsByCategory = [];
+
+        if ($categoryIds->isNotEmpty()) {
+            $products = Product::query()
+                ->whereHas('categories', function ($query) use ($categoryIds) {
+                    $query->whereIn('product_categories.id', $categoryIds);
+                })
+                ->with('categories')
+                ->orderBy('product_name', 'asc')
+                ->get(['id', 'product_name']);
+
+            foreach ($products as $product) {
+                foreach ($product->categories as $category) {
+                    $categoryId = (int) $category->id;
+
+                    if (!in_array($categoryId, $categoryIds->all(), true)) {
+                        continue;
+                    }
+
+                    $productAssignmentOptionsByCategory[$categoryId][] = [
+                        'id' => (int) $product->id,
+                        'label' => (string) $product->product_name,
+                    ];
+                }
+            }
+        }
 
         if ($request->ajax()) {
             $html = view(
                 'admin.maintenance_management.equipment_worksheet.partials._table',
-                compact('equipment', 'categories', 'stores', 'checklistMasters', 'partsLists')
+                compact('equipment', 'categories', 'stores', 'checklistMasters', 'partsLists', 'productAssignmentOptionsByCategory')
             )->render();
 
             return response()->json([
@@ -66,7 +99,7 @@ class IndexController extends Controller
 
         return view(
             'admin.maintenance_management.equipment_worksheet.index',
-            compact('equipment', 'categories', 'stores', 'checklistMasters', 'partsLists')
+            compact('equipment', 'categories', 'stores', 'checklistMasters', 'partsLists', 'productAssignmentOptionsByCategory')
         );
     }
 }

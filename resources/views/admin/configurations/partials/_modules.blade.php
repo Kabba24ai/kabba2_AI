@@ -97,7 +97,7 @@
                     'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
                 x-on:click="activeTab = 'application-code'"
                 id="tab-application-code">
-                Application Code
+                Mobile App Code
             </button>
 
             {{-- <button

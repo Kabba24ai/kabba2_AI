@@ -180,7 +180,7 @@
         <div
             class="bg-white rounded-lg shadow-lg w-full md:max-w-3xl p-6 relative max-w-[95%] flex flex-col md:flex-row items-center gap-6">
             <div class="w-full md:w-1/3 flex justify-center">
-                <img src="{{ asset('storage/front/images/lady-image.webp') }}" alt="Customer Service Representative"
+                <img src="{{ asset('storage/front/images/delivery-range.webp') }}" alt="Customer Service Representative"
                     class="max-h-64 object-contain">
             </div>
 

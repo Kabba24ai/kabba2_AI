@@ -28,6 +28,8 @@ class UpdateController extends Controller
     public function __invoke(UpdateRequest $request, string $unique_id)
     {
 
+        // dd($request->all());
+        // die();
 
         $validated = $request->validated();
 
@@ -97,6 +99,7 @@ class UpdateController extends Controller
                             'sku'                   => $item['sku'] ?? null,
                             'unit'                  => $item['unit'] ?? 0,
                             'tax'                   => $item['tax'] ?? 0,
+                            'sales_tax_type' => $item['sales_tax'] ?? 'add',
                             'total'                 => $item['total'] ?? 0,
                             'extras'                => $item['extras'] ?? null,
                             'notes'                 => $item['notes'] ?? null,
@@ -124,15 +127,26 @@ class UpdateController extends Controller
                         $account->type   = $existingItem->type;
                         $account->notes  = $existingItem->notes ?? null;
 
-                        if (in_array($existingItem->type, ['charge', 'order'])) {
-                            $account->sales_tax = $salesTaxRate;
-                            $account->sales_tax_type = 'add';
-                        } elseif ($existingItem->type === 'discount') {
-                          $account->sales_tax = $salesTaxRate;
-                            $account->sales_tax_type = null;
-                        } elseif ($existingItem->type === 'refund') {
-                            $account->sales_tax = $salesTaxRate;
-                            $account->sales_tax_type = null;
+                        // if (in_array($existingItem->type, ['charge', 'order'])) {
+                        //     $account->sales_tax = $salesTaxRate;
+                        //     $account->sales_tax_type = 'add';
+                        // } elseif ($existingItem->type === 'discount') {
+                        //   $account->sales_tax = $salesTaxRate;
+                        //     $account->sales_tax_type = null;
+                        // } elseif ($existingItem->type === 'refund') {
+                        //     $account->sales_tax = $salesTaxRate;
+                        //     $account->sales_tax_type = null;
+                        // }
+
+
+                        $account->sales_tax = $existingItem->tax ?? 0;
+
+                        $account->sales_tax_type = $existingItem->sales_tax_type ?? 'add';
+
+                        if ($existingItem->sales_tax_type === 'reverse') {
+                            $account->amount =  $existingItem->total ?? 0;
+                        } else {
+                            $account->amount =  $existingItem->unit ?? 0;
                         }
 
                         // Responsible person
@@ -166,6 +180,7 @@ class UpdateController extends Controller
                         'sku'                   => $item['sku'] ?? null,
                         'unit'                  => $item['unit'] ?? 0,
                         'tax'                   => $item['tax'] ?? 0,
+                        'sales_tax_type' => $item['sales_tax'] ?? 'add',
                         'total'                 => $item['total'] ?? 0,
                         'extras'                => $item['extras'] ?? null,
                         'notes'                 => $item['notes'] ?? null,
@@ -184,28 +199,39 @@ class UpdateController extends Controller
                 $type = $newItem->type;
 
             
-                $salesTax = 0;
-                $salesTaxType = null;
+                // $salesTax = 0;
+                // $salesTaxType = null;
 
-                if (in_array($type, ['charge', 'order'])) {
-                    $salesTax = $salesTaxRate;
-                    $salesTaxType = 'add';
+                // if (in_array($type, ['charge', 'order'])) {
+                //     $salesTax = $salesTaxRate;
+                //     $salesTaxType = 'add';
 
-                } elseif ($type === 'discount') {
-                    // $salesTax = 0; // discount has no tax
-                    $salesTax = $salesTaxRate; // refund reduces tax
+                // } elseif ($type === 'discount') {
+                    
+                //     $salesTax = $salesTaxRate; // refund reduces tax
 
-                    $salesTaxType = null;
+                //     $salesTaxType = null;
 
-                } elseif ($type === 'refund') {
+                // } elseif ($type === 'refund') {
 
-                    $salesTax = $salesTaxRate; // refund reduces tax
-                    $salesTaxType = null;
+                //     $salesTax = $salesTaxRate; // refund reduces tax
+                //     $salesTaxType = null;
+                // }
+
+                // $record->amount = $newItem->unit ?? 0;
+                // $record->sales_tax = $salesTax;
+                // $record->sales_tax_type = $salesTaxType;
+
+
+                $record->sales_tax = $newItem->tax ?? 0;
+
+                $record->sales_tax_type = $newItem->sales_tax_type ?? 'add';
+
+                if ($newItem->sales_tax_type === 'reverse') {
+                    $record->amount = $newItem->total ?? 0;
+                } else {
+                    $record->amount = $newItem->unit ?? 0;
                 }
-
-                $record->amount = $newItem->unit ?? 0;
-                $record->sales_tax = $salesTax;
-                $record->sales_tax_type = $salesTaxType;
 
                 // Responsible Person
                 if (!empty($item['responsible_id'])) {

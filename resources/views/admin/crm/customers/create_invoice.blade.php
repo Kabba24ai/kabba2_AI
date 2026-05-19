@@ -810,7 +810,7 @@ $lockInvoiceActions = $isEdit &&
 
                                                 data-unit="{{ $account->amount }}"
                                                 data-sales_tax="{{ $account->sales_tax }}"
-
+                                                
                                                  data-responsible_person_id="{{ $account->responsible_person_id }}"
                                                   data-sales_tax="{{ $account->sales_tax }}"
                                                    data-notes="{{ $account->notes }}"
@@ -1511,6 +1511,7 @@ $lockInvoiceActions = $isEdit &&
                     qty: 1,
                     unit: base,
                     tax: tax,
+                    sales_tax: taxType,
                     total: total,
                     responsible_id: responsibleId,
                     reference: null,

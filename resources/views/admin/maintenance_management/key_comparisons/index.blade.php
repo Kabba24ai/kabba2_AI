@@ -71,13 +71,26 @@
                     <p class="mt-1 text-xs text-gray-500">Weight: <span id="kc-weight-label">50</span></p>
                 </div>
 
+                <!-- Row 1 -->
                 <div class="grid gap-2 md:grid-cols-2">
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-upgrade" type="checkbox" checked class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                        <input id="kc-upgrade" type="checkbox" data-group="row-1" checked class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
                         Upgrade exceeds value
                     </label>
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-caution" type="checkbox" checked class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                        <input id="kc-caution-below" type="checkbox" data-group="row-1" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        Caution if below value
+                    </label>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="grid gap-2 md:grid-cols-2">
+                    <label class="flex items-center gap-2 text-xs text-gray-700">
+                        <input id="kc-upgrade-below" type="checkbox" data-group="row-2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        Upgrade is below value
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-gray-700">
+                        <input id="kc-caution" type="checkbox" data-group="row-2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
                         Caution if exceeds value
                     </label>
                 </div>
@@ -118,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const weightLabel = document.getElementById('kc-weight-label');
     const upgradeInput = document.getElementById('kc-upgrade');
     const cautionInput = document.getElementById('kc-caution');
+    const upgradeBelowInput = document.getElementById('kc-upgrade-below');
+    const cautionBelowInput = document.getElementById('kc-caution-below');
 
     const LIST_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
     const STORE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.store'));
@@ -125,12 +140,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     let isLoadingCriteria = false;
 
+    // Handle mutually exclusive checkboxes within each group
+    document.addEventListener('change', (event) => {
+        if (!event.target.classList.contains('checkbox-exclusive')) return;
+
+        const group = event.target.dataset.group;
+        if (!group || !event.target.checked) return;
+
+        // Uncheck other checkboxes in the same group
+        document.querySelectorAll(`[data-group="${group}"].checkbox-exclusive`).forEach((checkbox) => {
+            if (checkbox !== event.target) {
+                checkbox.checked = false;
+            }
+        });
+    });
+
     function esc(value) {
         return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
     function activeCategory() {
         return categories.find((category) => Number(category.id) === Number(selectedCategoryId));
+    }
+
+    function renderCheckedConditions(item) {
+        const checked = [];
+
+        if (item.upgrade_exceeds_value) checked.push('Upgrade exceeds value');
+        if (item.caution_if_change_value) checked.push('Caution if exceeds value');
+        if (item.upgrade_is_below_value) checked.push('Upgrade is below value');
+        if (item.caution_if_below_value) checked.push('Caution if below value');
+
+        if (!checked.length) {
+            return '<span class="text-xs text-gray-400">No condition selected</span>';
+        }
+
+        return checked.map((label) => `
+            <span class="inline-flex items-center gap-2 text-emerald-700">
+                <span class="inline-flex h-3.5 w-3.5 items-center justify-center rounded border border-emerald-600 bg-emerald-600 text-white">
+                    <svg class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.415 0l-3-3a1 1 0 111.415-1.42l2.293 2.295 6.543-6.545a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                </span>
+                ${esc(label)}
+            </span>
+        `).join('');
     }
 
     function renderCategories() {
@@ -190,18 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="h-2 rounded-full bg-emerald-500" style="width:${Math.max(0, Math.min(100, Number(item.default_weight ?? 50)))}%"></div>
                 </div>
                 <div class="mt-3 flex flex-wrap items-center gap-5 text-xs text-gray-600">
-                    <span class="inline-flex items-center gap-2 ${item.upgrade_exceeds_value ? 'text-emerald-700' : 'text-gray-500'}">
-                        <span class="inline-flex h-3.5 w-3.5 items-center justify-center rounded border ${item.upgrade_exceeds_value ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-gray-300 bg-white'}">
-                            ${item.upgrade_exceeds_value ? '<svg class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.415 0l-3-3a1 1 0 111.415-1.42l2.293 2.295 6.543-6.545a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : ''}
-                        </span>
-                        Upgrade exceeds value
-                    </span>
-                    <span class="inline-flex items-center gap-2 ${item.caution_if_change_value ? 'text-emerald-700' : 'text-gray-500'}">
-                        <span class="inline-flex h-3.5 w-3.5 items-center justify-center rounded border ${item.caution_if_change_value ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-gray-300 bg-white'}">
-                            ${item.caution_if_change_value ? '<svg class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.415 0l-3-3a1 1 0 111.415-1.42l2.293 2.295 6.543-6.545a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : ''}
-                        </span>
-                        Caution if exceeds value
-                    </span>
+                    ${renderCheckedConditions(item)}
                 </div>
             </div>
         `).join('');
@@ -244,7 +285,9 @@ document.addEventListener('DOMContentLoaded', () => {
         weightInput.value = '50';
         weightLabel.textContent = '50';
         upgradeInput.checked = true;
-        cautionInput.checked = true;
+        cautionInput.checked = false;
+        upgradeBelowInput.checked = false;
+        cautionBelowInput.checked = false;
     }
 
     function openModal() {
@@ -303,8 +346,10 @@ document.addEventListener('DOMContentLoaded', () => {
             unitInput.value = item.unit || '';
             weightInput.value = String(item.default_weight ?? 50);
             weightLabel.textContent = String(item.default_weight ?? 50);
-            upgradeInput.checked = item.upgrade_exceeds_value !== false;
-            cautionInput.checked = item.caution_if_change_value !== false;
+            upgradeInput.checked = item.upgrade_exceeds_value === true;
+            cautionInput.checked = item.caution_if_change_value === true;
+            upgradeBelowInput.checked = item.upgrade_is_below_value === true;
+            cautionBelowInput.checked = item.caution_if_below_value === true;
             openModal();
             return;
         }
@@ -353,6 +398,8 @@ document.addEventListener('DOMContentLoaded', () => {
             default_weight: Number(weightInput.value || 50),
             upgrade_exceeds_value: upgradeInput.checked,
             caution_if_change_value: cautionInput.checked,
+            upgrade_is_below_value: upgradeBelowInput.checked,
+            caution_if_below_value: cautionBelowInput.checked,
         };
 
         if (!payload.name) {

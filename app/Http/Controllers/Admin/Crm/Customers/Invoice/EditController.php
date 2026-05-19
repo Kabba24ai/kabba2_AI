@@ -50,6 +50,8 @@ class EditController extends Controller
                 'qty'             => $item->qty,
                 'unit'            => $item->unit,
                 'tax'             => $item->tax,
+                'sales_tax'             => $item->sales_tax_type,
+
                 'total'           => $item->total,
                 'extras' => $item->extras ?? [],
                 'orderId'         => $item->orderProduct->order->unique_id ?? null,
@@ -66,6 +68,7 @@ class EditController extends Controller
 
         $invoiceItems->values()->toJson();
 
+        // dd($invoiceItems);
 
         // biling sumary
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');

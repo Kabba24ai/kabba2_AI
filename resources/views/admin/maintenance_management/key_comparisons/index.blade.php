@@ -74,11 +74,11 @@
                 <!-- Row 1 -->
                 <div class="grid gap-2 md:grid-cols-2">
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-upgrade" type="checkbox" data-group="row-1" checked class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        <input id="kc-upgrade" type="checkbox" data-row="1" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-row-exclusive">
                         Upgrade exceeds value
                     </label>
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-caution-below" type="checkbox" data-group="row-1" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        <input id="kc-caution-below" type="checkbox" data-row="1" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-row-exclusive">
                         Caution if below value
                     </label>
                 </div>
@@ -86,11 +86,11 @@
                 <!-- Row 2 -->
                 <div class="grid gap-2 md:grid-cols-2">
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-upgrade-below" type="checkbox" data-group="row-2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        <input id="kc-upgrade-below" type="checkbox" data-row="2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-row-exclusive">
                         Upgrade is below value
                     </label>
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-caution" type="checkbox" data-group="row-2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        <input id="kc-caution" type="checkbox" data-row="2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-row-exclusive">
                         Caution if exceeds value
                     </label>
                 </div>
@@ -140,19 +140,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     let isLoadingCriteria = false;
 
-    // Handle mutually exclusive checkboxes within each group
+    // Handle row-exclusive checkbox logic:
+    // If any checkbox in row 1 is checked, uncheck all in row 2
+    // If any checkbox in row 2 is checked, uncheck all in row 1
     document.addEventListener('change', (event) => {
-        if (!event.target.classList.contains('checkbox-exclusive')) return;
+        if (!event.target.classList.contains('checkbox-row-exclusive')) return;
 
-        const group = event.target.dataset.group;
-        if (!group || !event.target.checked) return;
+        const row = event.target.dataset.row;
+        if (!row) return;
 
-        // Uncheck other checkboxes in the same group
-        document.querySelectorAll(`[data-group="${group}"].checkbox-exclusive`).forEach((checkbox) => {
-            if (checkbox !== event.target) {
+        const currentRow = Number(row);
+        const otherRow = currentRow === 1 ? 2 : 1;
+
+        // If this checkbox is being checked, uncheck all in the other row
+        if (event.target.checked) {
+            document.querySelectorAll(`[data-row="${otherRow}"].checkbox-row-exclusive`).forEach((checkbox) => {
                 checkbox.checked = false;
-            }
-        });
+            });
+        }
     });
 
     function esc(value) {
@@ -284,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         unitInput.value = '';
         weightInput.value = '50';
         weightLabel.textContent = '50';
-        upgradeInput.checked = true;
+        upgradeInput.checked = false;
         cautionInput.checked = false;
         upgradeBelowInput.checked = false;
         cautionBelowInput.checked = false;

@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CriticalMatchingC
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CriticalMatchingCriteria\StoreController as CriteriaStoreController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CriticalMatchingCriteria\UpdateController as CriteriaUpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CriticalMatchingCriteria\DeleteController as CriteriaDeleteController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\Specification\KeyComparisonController as KeyComparisonController;
 
 
 
@@ -70,4 +71,10 @@ Route::prefix('equipment')
         Route::post('/{unique_id}/critical-matching-criteria', CriteriaStoreController::class)->name('critical-matching-criteria.store');
         Route::put('/{unique_id}/critical-matching-criteria/{criteria_id}', CriteriaUpdateController::class)->name('critical-matching-criteria.update');
         Route::delete('/{unique_id}/critical-matching-criteria/{criteria_id}', CriteriaDeleteController::class)->name('critical-matching-criteria.delete');
+
+        // Key Comparisons
+        Route::get('/{unique_id}/key-comparisons', [KeyComparisonController::class, 'index'])->name('key-comparisons.index');
+        Route::post('/{unique_id}/key-comparisons', [KeyComparisonController::class, 'store'])->name('key-comparisons.store');
+        Route::delete('/{unique_id}/key-comparisons/{comparison_id}', [KeyComparisonController::class, 'destroy'])->name('key-comparisons.destroy');
+        Route::put('/{unique_id}/key-comparisons/reorder', [KeyComparisonController::class, 'reorder'])->name('key-comparisons.reorder');
     });

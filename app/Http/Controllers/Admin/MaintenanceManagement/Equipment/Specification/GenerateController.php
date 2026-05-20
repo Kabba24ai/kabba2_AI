@@ -14,18 +14,23 @@ use Illuminate\Http\Request;
 class GenerateController extends Controller
 {
     private const SPEC_KEYS = [
-        'engine_horsepower'        => 'Engine Horsepower',
-        'operating_weight'         => 'Operating Weight',
-        'rated_operating_capacity' => 'Rated Operating Capacity',
-        'tipping_load'             => 'Tipping Load',
-        'hydraulic_flow'           => 'Hydraulic Flow',
-        'width'                    => 'Width',
-        'height'                   => 'Height',
-        'length'                   => 'Length',
-        'fuel_type'                => 'Fuel Type',
-        'lift_type'                => 'Lift Type',
-        'ground_pressure'          => 'Ground Pressure',
-        'travel_speed'             => 'Travel Speed',
+        'working_height'           => 'Working Height',
+        'platform_height'          => 'Platform Height',
+        'horizontal_reach'         => 'Horizontal Reach',
+        'machine_weight'           => 'Machine Weight',
+        'platform_capacity'        => 'Platform Capacity',
+        'machine_width'            => 'Machine Width',
+        'retracted_width'          => 'Retracted Width',
+        'machine_length'           => 'Machine Length',
+        'machine_height'           => 'Machine Height',
+        'drive_speed'              => 'Drive Speed',
+        'gradeability'             => 'Gradeability',
+        'outriggers_required'      => 'Outriggers Required',
+        'outrigger_type'           => 'Outrigger Type',
+        'self_propelled'           => 'Self Propelled',
+        'towable'                  => 'Towable',
+        'drive_while_elevated'     => 'Drive While Elevated',
+        'rough_terrain_capable'    => 'Rough Terrain Capable',
     ];
 
     public function __invoke(Request $request, string $uniqueId, OpenAIService $openAI): JsonResponse
@@ -62,26 +67,50 @@ class GenerateController extends Controller
         $specKeyCount = count(self::SPEC_KEYS);
 
         $userMessage = <<<PROMPT
-Return technical specifications for the following equipment.
+You are helping build standardized equipment comparison data for the Kabba rental software platform.
 
-Brand: {$lookupPayload['brand']}
-Model: {$lookupPayload['model']}
-Model Year: {$lookupPayload['model_year']}
-Category: {$lookupPayload['category']}
-Equipment Name: {$lookupPayload['equipment_name']}
-Equipment ID: {$lookupPayload['equipment_id']}
-Serial Number: {$lookupPayload['serial_number']}
-VIN: {$lookupPayload['vin']}
+Equipment Category: {$lookupPayload['category']}
+Equipment Make: {$lookupPayload['brand']}
+Equipment Model: {$lookupPayload['model']}
 
-Return ONLY a valid JSON array. Each element must include exactly these fields:
-- spec_key: one of [{$specKeysList}]
-- spec_label: human-readable label for the spec
-- value: string value or null if unknown
-- unit: unit of measurement string or null
-- confidence_score: float 0.0–1.0
-- source_url: most authoritative URL for this spec, or null
+Task:
+Research the manufacturer-published specifications for the exact equipment make and model listed above. Return standardized general specifications using US-based unit types only.
+Use consistent comparison verbiage across all equipment in this category.
 
-Include all {$specKeyCount} spec_keys. Do not include markdown, explanation, or extra keys.
+Return the data using this schema:
+Internal Key | Standard Label | Value Type | Unit Type | Value | Source Confidence | Notes
+
+Rules:
+1. Use only US-based units.
+2. Convert metric values to US units when needed.
+3. Store numeric values only in the Value field when possible.
+4. Do not include unit symbols inside the Value field.
+5. Use decimals where needed.
+6. Use boolean true/false for yes/no values.
+7. Use enum values only when the answer must be selected from a controlled list.
+8. If a specification cannot be verified, return null and explain in Notes.
+9. Prioritize manufacturer specifications over dealer listings.
+10. Do not guess. If sources conflict, use the manufacturer value and mention the conflict in Notes.
+11. Keep Standard Label wording exactly consistent.
+12. Return data in valid JSON format with fields: spec_key, spec_label, value_type, unit_type, value, confidence_score, notes.
+
+Include all of these spec_keys: [{$specKeysList}]
+
+Output format:
+1. Equipment summary
+2. Standardized specification table
+3. JSON array
+4. Source notes
+5. Missing or uncertain fields
+
+Equipment Details:
+- Model Year: {$lookupPayload['model_year']}
+- Equipment Name: {$lookupPayload['equipment_name']}
+- Equipment ID: {$lookupPayload['equipment_id']}
+- Serial Number: {$lookupPayload['serial_number']}
+- VIN: {$lookupPayload['vin']}
+
+Return ONLY valid JSON array with no markdown or extra text.
 PROMPT;
 
         try {
@@ -128,9 +157,11 @@ PROMPT;
                 [
                     'spec_label'        => self::SPEC_KEYS[$key],
                     'value'             => isset($specData['value']) ? (string) $specData['value'] : null,
-                    'unit'              => isset($specData['unit']) ? (string) $specData['unit'] : null,
+                    'unit'              => isset($specData['unit_type']) ? (string) $specData['unit_type'] : (isset($specData['unit']) ? (string) $specData['unit'] : null),
+                    'value_type'        => isset($specData['value_type']) ? (string) $specData['value_type'] : null,
                     'source_url'        => isset($specData['source_url']) ? (string) $specData['source_url'] : null,
-                    'confidence_score'  => isset($specData['confidence_score']) ? (float) $specData['confidence_score'] : null,
+                    'confidence_score'  => isset($specData['confidence_score']) ? (float) $specData['confidence_score'] : (isset($specData['source_confidence']) ? (float) $specData['source_confidence'] : null),
+                    'notes'             => isset($specData['notes']) ? (string) $specData['notes'] : null,
                     'last_verified_at'  => $now,
                     'ai_lookup_payload' => $lookupPayload,
                     'is_manual_override' => false,
@@ -313,9 +344,11 @@ PROMPT;
             'spec_key'         => $s->spec_key,
             'spec_label'       => $s->spec_label,
             'value'            => $s->value,
+            'value_type'       => $s->value_type,
             'unit'             => $s->unit,
             'source_url'       => $s->source_url,
             'confidence_score' => $s->confidence_score,
+            'notes'            => $s->notes,
             'is_approved'      => $s->is_approved,
             'is_manual_override' => $s->is_manual_override,
             'last_verified_at' => $s->last_verified_at?->format('Y-m-d H:i'),

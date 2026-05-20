@@ -217,6 +217,11 @@ class Equipment extends Model
         return $this->hasMany(EquipmentSpecification::class, 'equipment_id');
     }
 
+    public function keyComparisons()
+    {
+        return $this->hasMany(EquipmentKeyComparison::class, 'equipment_id')
+            ->orderBy('sort_order');
+    }
 
     public function customerAdminTemplates()
     {

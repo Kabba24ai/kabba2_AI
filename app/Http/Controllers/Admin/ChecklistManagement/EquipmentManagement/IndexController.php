@@ -14,82 +14,108 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request, $equipment = null)
     {
+
+        $totalStart = microtime(true);
+
+
+        $start = microtime(true);
+
         $users = User::active()->get();
+
+        logger('USERS LOAD: ' . (microtime(true) - $start) . ' sec');
 
 
         // $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0)->orderBy('equipment_name', 'asc')->paginate(5);
         // ->get();
 
         $query = Equipment::with([
-    'productCategory',
-    'latestRentalReadyTemplate',
-    'orderProduct',
-    'orderProduct.order',
-    'order',
-    'serviceTemplate.preset',
-    'serviceTemplate.templateTasks.task'
-])->where('not_for_rent', 0);
+            'productCategory',
+            'latestRentalReadyTemplate',
+            'orderProduct',
+            'orderProduct.order',
+            'order',
+            'serviceTemplate.preset',
+            'serviceTemplate.templateTasks.task'
+        ])->where('not_for_rent', 0);
 
-if ($request->search) {
+        if ($request->search) {
 
-    $search = $request->search;
+            $search = $request->search;
 
-    $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search) {
 
-        $q->where('equipment_name', 'like', "%{$search}%")
-          ->orWhere('model', 'like', "%{$search}%")
-          ->orWhere('serial_number', 'like', "%{$search}%")
-          ->orWhere('equipment_id', 'like', "%{$search}%");
+                $q->where('equipment_name', 'like', "%{$search}%")
+                ->orWhere('model', 'like', "%{$search}%")
+                ->orWhere('serial_number', 'like', "%{$search}%")
+                ->orWhere('equipment_id', 'like', "%{$search}%");
 
-    });
-}
+            });
+        }
 
-if ($request->category && $request->category != 'All Categories') {
+        if ($request->category && $request->category != 'All Categories') {
 
-    $query->whereHas('productCategory', function ($q) use ($request) {
+            $query->whereHas('productCategory', function ($q) use ($request) {
 
-     $q->where('title', $request->category);
+            $q->where('title', $request->category);
 
-    });
-}
+            });
+        }
 
-if ($request->status && $request->status != 'All Statuses') {
+        if ($request->status && $request->status != 'All Statuses') {
 
-    // NORMAL EQUIPMENT STATUS
-    if ($request->status == 'Available') {
+            // NORMAL EQUIPMENT STATUS
+            if ($request->status == 'Available') {
 
-        $query->where('current_status', 'available');
+                $query->where('current_status', 'available');
 
-    } elseif ($request->status == 'Damaged') {
+            } elseif ($request->status == 'Damaged') {
 
-        $query->where('current_status', 'damaged');
+                $query->where('current_status', 'damaged');
 
-    } elseif ($request->status == 'Maint. Hold') {
+            } elseif ($request->status == 'Maint. Hold') {
 
-        $query->where('current_status', 'maintenance');
+                $query->where('current_status', 'maintenance');
 
-    } elseif ($request->status == 'Rented') {
+            } elseif ($request->status == 'Rented') {
 
-        $query->where('current_status', 'rented');
-    }
-}
+                $query->where('current_status', 'rented');
+            }
+        }
 
-$equipments = $query
-    ->orderBy('equipment_name', 'asc')
-    ->paginate(10);
+         $start = microtime(true);
+            $equipments = $query
+                ->orderBy('equipment_name', 'asc')
+                ->paginate(10);
+         logger('EQUIPMENT QUERY: ' . (microtime(true) - $start) . ' sec');
 
-        $categories = ProductCategory::getHierarchy();
+        $start = microtime(true);
+
+             $categories = ProductCategory::getHierarchy();
+
+        logger('CATEGORY LOAD: ' . (microtime(true) - $start) . ' sec');
 
         $selectedEquipment = null;
 
         if ($equipment) {
+
+             $start = microtime(true);
+
             $selectedEquipment = Equipment::where('unique_id', $equipment)->firstOrFail();
+
+                logger('SELECTED EQUIPMENT: ' . (microtime(true) - $start) . ' sec');
+
         }
 
         // Load service settings
+        $start = microtime(true);
+
         $settings = DB::table('service_master_settings')->first();
+
+        logger('SERVICE SETTINGS: ' . (microtime(true) - $start) . ' sec');
         $pendingBeforeHours = $settings->pending_before_hours ?? 20;
         $pendingAfterHours = $settings->pending_after_hours ?? 15;
+
+$start = microtime(true);
 
         // Load all service records
         $serviceRecords = DB::table('equipment_service_tasks')
@@ -98,11 +124,12 @@ $equipments = $query
             ->groupBy(function($record) {
                 return $record->equipment_id . '_' . $record->service_task_id;
             });
-
+logger('SERVICE RECORDS: ' . (microtime(true) - $start) . ' sec');
         // dd($selectedEquipment);
 
 
 
+        $start = microtime(true);
 
             $equipments->getCollection()->transform(function ($item) use ($serviceRecords, $pendingBeforeHours, $pendingAfterHours) {
                 $serviceStatus = 'empty';
@@ -158,6 +185,8 @@ $equipments = $query
                 return $item;
             });
 
+            logger('TRANSFORM TIME: ' . (microtime(true) - $start) . ' sec');
+
             // FILTER SERVICE STATUS
 
 if ($request->status == 'Service Due') {
@@ -183,6 +212,9 @@ if ($request->status == 'Service OverDue') {
 }
 
             if ($request->ajax()) {
+
+            logger('TOTAL AJAX TIME: ' . (microtime(true) - $totalStart) . ' sec');
+
                 return response()->json([
                     'data' => $equipments->items(),
                     'current_page' => $equipments->currentPage(),
@@ -191,6 +223,7 @@ if ($request->status == 'Service OverDue') {
                 ]);
             }
 
+logger('TOTAL PAGE TIME: ' . (microtime(true) - $totalStart) . ' sec');
 
         return view('admin.checklist_management.equipment_management.index', [
             'users' => $users,

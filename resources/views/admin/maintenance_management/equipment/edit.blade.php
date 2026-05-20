@@ -705,9 +705,15 @@
             const CRITERIA_STORE_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.store', $equipment->unique_id));
             const CRITERIA_BASE_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.index', $equipment->unique_id));
             const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+            const categorySelect = document.getElementById('product_category_id');
 
             let editingCriteriaIndex = null;
             let criteriaLibrary = [];
+
+            function currentCategoryId() {
+                const value = String(categorySelect?.value ?? '').trim();
+                return value !== '' ? value : null;
+            }
 
             function criteriaKeyFromName(name) {
                 return String(name || '')
@@ -744,6 +750,12 @@
 
             function renderCriteriaRowsFromLibrary() {
                 if (!criteriaRowsWrap) return;
+
+                if (!criteriaLibrary.length) {
+                    criteriaRowsWrap.innerHTML = '<div class="px-5 py-6 text-center text-sm text-gray-400">No active criteria found for this category.</div>';
+                    renderKeyComparisonPreview();
+                    return;
+                }
 
                 const currentStateByKey = {};
                 criteriaRowsWrap.querySelectorAll('.kc-criteria-row').forEach((row) => {
@@ -829,6 +841,7 @@
                 }).join('');
 
                 criteriaRowsWrap.querySelectorAll('.kc-criteria-row').forEach(wireCriteriaRow);
+                renderKeyComparisonPreview();
             }
 
             function renderModalCriteriaList() {
@@ -852,8 +865,18 @@
             }
 
             async function loadCriteriaFromServer() {
+                const categoryId = currentCategoryId();
+
+                if (!categoryId) {
+                    criteriaLibrary = [];
+                    return true;
+                }
+
                 try {
-                    const res = await fetch(CRITERIA_LIST_URL, {
+                    const url = new URL(CRITERIA_LIST_URL, window.location.origin);
+                    url.searchParams.set('category_id', categoryId);
+
+                    const res = await fetch(url.toString(), {
                         headers: { 'Accept': 'application/json' },
                     });
                     const data = await res.json();
@@ -938,13 +961,17 @@
                     const idx = Number(deleteBtn.dataset.deleteIndex);
                     const item = criteriaLibrary[idx];
                     if (!item?.id) return;
+                    const categoryId = currentCategoryId();
+                    if (!categoryId) return;
 
                     const res = await fetch(`${CRITERIA_BASE_URL}/${item.id}`, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': CSRF,
                             'Accept': 'application/json',
+                            'Content-Type': 'application/json',
                         },
+                        body: JSON.stringify({ category_id: categoryId }),
                     });
                     const data = await res.json();
 
@@ -986,6 +1013,7 @@
                 }
 
                 const payload = {
+                    category_id: currentCategoryId(),
                     name,
                     unit,
                     default_weight: defaultWeight,
@@ -994,6 +1022,11 @@
                     upgrade_is_below_value: criteriaModalUpgradeBelow?.checked ?? false,
                     caution_if_below_value: criteriaModalCautionBelow?.checked ?? false,
                 };
+
+                if (!payload.category_id) {
+                    categorySelect?.focus();
+                    return;
+                }
 
                 if (editingCriteriaIndex === null) {
                     const res = await fetch(CRITERIA_STORE_URL, {
@@ -1052,6 +1085,20 @@
 
                 renderModalCriteriaList();
                 resetCriteriaForm();
+            });
+
+            categorySelect?.addEventListener('change', async () => {
+                const loaded = await loadCriteriaFromServer();
+
+                if (!loaded) {
+                    criteriaLibrary = [];
+                }
+
+                renderCriteriaRowsFromLibrary();
+
+                if (!criteriaModal?.classList.contains('hidden')) {
+                    renderModalCriteriaList();
+                }
             });
 
             // ── Rule toggles ────────────────────────────────────────
@@ -1200,6 +1247,31 @@
             equipmentSpecsColRight.innerHTML = rightRows.length ? renderRows(rightRows) : '';
         }
 
+        function applyGeneratedCriteria(criteriaState) {
+            if (!criteriaState || typeof criteriaState !== 'object') return;
+
+            document.querySelectorAll('.kc-criteria-row').forEach((row) => {
+                const key = row.dataset.key;
+                if (!key || !Object.prototype.hasOwnProperty.call(criteriaState, key)) return;
+
+                const nextState = criteriaState[key] || {};
+                const hiddenThreshold = row.querySelector('.kc-hidden-threshold');
+                const thresholdInput = row.querySelector('.kc-threshold-input');
+                const hiddenWeight = row.querySelector('.kc-hidden-weight');
+                const weightSlider = row.querySelector('.kc-weight-slider');
+                const weightValue = row.querySelector('.kc-weight-value');
+
+                if (hiddenThreshold) hiddenThreshold.value = nextState.threshold ?? '';
+                if (thresholdInput) thresholdInput.value = nextState.threshold ?? '';
+
+                if (hiddenWeight && nextState.weight !== undefined) hiddenWeight.value = nextState.weight;
+                if (weightSlider && nextState.weight !== undefined) weightSlider.value = nextState.weight;
+                if (weightValue && nextState.weight !== undefined) weightValue.textContent = String(nextState.weight);
+            });
+
+            renderKeyComparisonPreview();
+        }
+
         /* ---- generate all ---- */
         async function generateSpecs() {
             if (genBtn) genBtn.disabled = true;
@@ -1221,6 +1293,7 @@
 
                 specState = data.specs;
                 renderEquipmentSpecsPreview(specState);
+                applyGeneratedCriteria(data.criteria || {});
                 if (lastUpdateEl) {
                     const now = new Date();
                     lastUpdateEl.textContent = now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });

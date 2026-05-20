@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment\Specificati
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\MaintenanceManagement\EquipmentCriticalMatchingCriterion;
 use App\Models\MaintenanceManagement\EquipmentSpecification;
 use App\Services\OpenAIService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 
 class GenerateController extends Controller
@@ -137,11 +139,171 @@ PROMPT;
         }
 
         $specs = $equipment->specifications()->with('approvedByUser')->orderBy('spec_key')->get();
+        $criteria = $this->syncCriticalMatchingCriteria($equipment, $specs);
 
         return response()->json([
             'success' => true,
             'specs'   => $specs->map(fn ($s) => $this->formatSpec($s))->values(),
+            'criteria' => $criteria,
         ]);
+    }
+
+    private function syncCriticalMatchingCriteria(Equipment $equipment, Collection $specs): array
+    {
+        $criteriaRows = EquipmentCriticalMatchingCriterion::query()
+            ->where('product_category_id', $equipment->product_category_id)
+            ->where('is_active', true)
+            ->get();
+
+        $criteriaState = (array) ($equipment->critical_matching_criteria ?? []);
+
+        if ($criteriaRows->isEmpty() || $specs->isEmpty()) {
+            return $criteriaState;
+        }
+
+        $specIndex = $this->buildSpecIndex($specs);
+        $hasChanges = false;
+
+        foreach ($criteriaRows as $row) {
+            $matchedSpec = $this->findSpecForCriterion($row, $specIndex);
+
+            if ($matchedSpec === null) {
+                continue;
+            }
+
+            $threshold = $this->extractComparableThreshold($matchedSpec->value);
+
+            if ($threshold === null) {
+                continue;
+            }
+
+            $criteriaKey = (string) $row->criteria_key;
+            $existingState = is_array($criteriaState[$criteriaKey] ?? null)
+                ? $criteriaState[$criteriaKey]
+                : [];
+
+            $criteriaState[$criteriaKey] = [
+                'enabled' => array_key_exists('enabled', $existingState)
+                    ? filter_var($existingState['enabled'], FILTER_VALIDATE_BOOLEAN)
+                    : true,
+                'threshold' => $threshold,
+                'weight' => isset($existingState['weight']) ? (int) $existingState['weight'] : (int) ($row->default_weight ?? 50),
+                'upgrade_exceeds_value' => array_key_exists('upgrade_exceeds_value', $existingState)
+                    ? filter_var($existingState['upgrade_exceeds_value'], FILTER_VALIDATE_BOOLEAN)
+                    : (bool) ($row->upgrade_exceeds_value ?? true),
+                'caution_if_change_value' => array_key_exists('caution_if_change_value', $existingState)
+                    ? filter_var($existingState['caution_if_change_value'], FILTER_VALIDATE_BOOLEAN)
+                    : (bool) ($row->caution_if_change_value ?? false),
+                'upgrade_is_below_value' => array_key_exists('upgrade_is_below_value', $existingState)
+                    ? filter_var($existingState['upgrade_is_below_value'], FILTER_VALIDATE_BOOLEAN)
+                    : (bool) ($row->upgrade_is_below_value ?? false),
+                'caution_if_below_value' => array_key_exists('caution_if_below_value', $existingState)
+                    ? filter_var($existingState['caution_if_below_value'], FILTER_VALIDATE_BOOLEAN)
+                    : (bool) ($row->caution_if_below_value ?? false),
+            ];
+
+            if (($existingState['threshold'] ?? null) !== $threshold) {
+                $hasChanges = true;
+            }
+        }
+
+        if ($hasChanges) {
+            $equipment->forceFill([
+                'critical_matching_criteria' => $criteriaState,
+            ])->save();
+        }
+
+        return $criteriaState;
+    }
+
+    private function buildSpecIndex(Collection $specs): array
+    {
+        $index = [];
+
+        foreach ($specs as $spec) {
+            $keys = [
+                $this->normalizeMatchKey($spec->spec_key),
+                $this->normalizeMatchKey($spec->spec_label),
+            ];
+
+            $normalizedSpecKey = $this->normalizeMatchKey($spec->spec_key);
+            $aliasTarget = $this->criteriaAliasTarget($normalizedSpecKey);
+            if ($aliasTarget) {
+                $keys[] = $this->normalizeMatchKey($aliasTarget);
+            }
+
+            foreach (array_filter(array_unique($keys)) as $key) {
+                $index[$key] = $spec;
+            }
+        }
+
+        return $index;
+    }
+
+    private function findSpecForCriterion(EquipmentCriticalMatchingCriterion $criterion, array $specIndex): ?EquipmentSpecification
+    {
+        $candidates = [
+            $this->normalizeMatchKey($criterion->criteria_key),
+            $this->normalizeMatchKey($criterion->name),
+        ];
+
+        foreach (array_filter($candidates) as $candidate) {
+            if (isset($specIndex[$candidate])) {
+                return $specIndex[$candidate];
+            }
+
+            $aliasTarget = $this->criteriaAliasTarget($candidate);
+            $aliasKey = $aliasTarget ? $this->normalizeMatchKey($aliasTarget) : null;
+
+            if ($aliasKey && isset($specIndex[$aliasKey])) {
+                return $specIndex[$aliasKey];
+            }
+        }
+
+        return null;
+    }
+
+    private function criteriaAliasTarget(string $candidate): ?string
+    {
+        return match ($candidate) {
+            'operatingweight', 'weight', 'machineweight' => 'operating_weight',
+            'enginehorsepower', 'horsepower', 'enginehp', 'hp' => 'engine_horsepower',
+            'ratedoperatingcapacity', 'operatingcapacity', 'capacity', 'roc' => 'rated_operating_capacity',
+            'tippingload' => 'tipping_load',
+            'hydraulicflow', 'flow' => 'hydraulic_flow',
+            'groundpressure' => 'ground_pressure',
+            'travelspeed' => 'travel_speed',
+            'overallwidth' => 'width',
+            'overallheight' => 'height',
+            'overalllength' => 'length',
+            default => null,
+        };
+    }
+
+    private function normalizeMatchKey(?string $value): string
+    {
+        return preg_replace('/[^a-z0-9]+/', '', strtolower(trim((string) $value))) ?? '';
+    }
+
+    private function extractComparableThreshold(mixed $value): ?string
+    {
+        $stringValue = trim((string) ($value ?? ''));
+
+        if ($stringValue === '') {
+            return null;
+        }
+
+        if (!preg_match('/-?\d+(?:,\d{3})*(?:\.\d+)?/', $stringValue, $matches)) {
+            return null;
+        }
+
+        $numericValue = (float) str_replace(',', '', $matches[0]);
+
+        if ((float) ((int) $numericValue) === $numericValue) {
+            return (string) ((int) $numericValue);
+        }
+
+        return rtrim(rtrim(number_format($numericValue, 4, '.', ''), '0'), '.');
     }
 
     public static function formatSpec(EquipmentSpecification $s): array

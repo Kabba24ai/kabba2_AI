@@ -262,7 +262,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-
+         console.time("FULL_PAGE_LOAD");
             /* ====== CONFIG ====== */
             const REQUIRE_INSPECTOR = true;
             let currentPage = {{ $equipments->currentPage() }};
@@ -361,8 +361,11 @@
                 });
             @endphp
             
-            // const rawEquipment = @json($equipmentsWithStatus);
+           console.time("rawEquipmentParse");
+
             const rawEquipment = @json($equipments->items());
+
+            console.timeEnd("rawEquipmentParse");
 
             const icons = {
                 damaged: ` <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none"
@@ -448,7 +451,7 @@
 
             /* =================== ELEMENTS =================== */
             const equipmentWrapper = document.getElementById("equipmentListWrapper");
-const equipmentList = document.getElementById("equipmentList");
+            const equipmentList = document.getElementById("equipmentList");
             const equipmentCount = document.getElementById("equipmentCount");
             const checklistContainer = document.getElementById("checklistContainer");
             const checklistTitle = document.getElementById("checklistTitle");
@@ -475,131 +478,122 @@ const equipmentList = document.getElementById("equipmentList");
             renderEquipment();
 
             equipmentWrapper.addEventListener("scroll", () => {
-    const nearBottom =
-    equipmentWrapper.scrollTop + equipmentWrapper.clientHeight >=
-    equipmentWrapper.scrollHeight - 300;
+                    const nearBottom =
+                    equipmentWrapper.scrollTop + equipmentWrapper.clientHeight >=
+                    equipmentWrapper.scrollHeight - 300;
 
-    if (nearBottom) {
-        loadMoreEquipment();
-    }
-});
-
-            // window.applyFilters = function() {
-            //     renderEquipment();
-            // };
+                    if (nearBottom) {
+                        loadMoreEquipment();
+                    }
+                });
 
 
             window.applyFilters = async function () {
 
-    currentPage = 1;
+                currentPage = 1;
 
-    equipmentList.innerHTML = "";
+                equipmentList.innerHTML = "";
 
-    equipmentLoader.classList.remove("hidden");
+                equipmentLoader.classList.remove("hidden");
 
-    try {
+                try {
 
-        const search = document.getElementById("searchInput").value;
-        const category = document.getElementById("categoryFilter").value;
-        const status = document.getElementById("statusFilter").value;
+                    const search = document.getElementById("searchInput").value;
+                    const category = document.getElementById("categoryFilter").value;
+                    const status = document.getElementById("statusFilter").value;
 
-        const response = await fetch(
-            `?page=1&search=${search}&category=${category}&status=${status}`,
-            {
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
+                    const response = await fetch(
+                        `?page=1&search=${search}&category=${category}&status=${status}`,
+                        {
+                            headers: {
+                                "X-Requested-With": "XMLHttpRequest"
+                            }
+                        }
+                    );
+
+                    const result = await response.json();
+
+                    equipment.length = 0;
+
+                    const newItems = result.data.map(eq => {
+
+                        let serviceIcon = serviceStatusIcons[eq.service_status] || serviceStatusIcons.empty;
+
+                        serviceIcon = serviceIcon.replace(/EQUIPMENT_ID/g, eq.unique_id);
+
+                        return {
+                            id: eq.id,
+                            unique_id: eq.unique_id,
+                            name: eq.equipment_name,
+                            model: eq.model,
+                            serial: eq.serial_number,
+                            equipment_id: eq.equipment_id,
+                            category_id: eq.category_id,
+                            category: eq.category_name ?? 'N/A',
+                            checklist_master_id: eq.checklist_master_id,
+                            hours: eq.equipment_hours,
+                            lastInspection: eq.last_inspection ?? '',
+                            orderproduct: eq.order_product?.product_name ?? '-',
+                            orderproductid: eq.order_product?.id ?? null,
+                            order_route: eq.order?.view_link ?? null,
+                            orderid: eq.order?.id ?? null,
+                            badge: eq.status_label,
+                            icon: icons[eq.current_status] ?? icons.available,
+                            is_tracked: eq.is_tracked ?? 'No',
+                            customername: eq.order?.customer_name ?? ' ',
+                            serviceStatus: eq.service_status,
+                            serviceStatusIcon: serviceIcon
+                        };
+                    });
+
+                    equipment.push(...newItems);
+
+                    totalEquipment = result.total;
+                    lastPage = result.last_page;
+
+                    renderEquipment();
+
+                } catch (error) {
+
+                    console.log("Filter error:", error);
+
                 }
-            }
-        );
 
-        const result = await response.json();
-
-        equipment.length = 0;
-
-        const newItems = result.data.map(eq => {
-
-            let serviceIcon = serviceStatusIcons[eq.service_status] || serviceStatusIcons.empty;
-
-            serviceIcon = serviceIcon.replace(/EQUIPMENT_ID/g, eq.unique_id);
-
-            return {
-                id: eq.id,
-                unique_id: eq.unique_id,
-                name: eq.equipment_name,
-                model: eq.model,
-                serial: eq.serial_number,
-                equipment_id: eq.equipment_id,
-                category_id: eq.category_id,
-                category: eq.category_name ?? 'N/A',
-                checklist_master_id: eq.checklist_master_id,
-                hours: eq.equipment_hours,
-                lastInspection: eq.last_inspection ?? '',
-                orderproduct: eq.order_product?.product_name ?? '-',
-                orderproductid: eq.order_product?.id ?? null,
-                order_route: eq.order?.view_link ?? null,
-                orderid: eq.order?.id ?? null,
-                badge: eq.status_label,
-                icon: icons[eq.current_status] ?? icons.available,
-                is_tracked: eq.is_tracked ?? 'No',
-                customername: eq.order?.customer_name ?? ' ',
-                serviceStatus: eq.service_status,
-                serviceStatusIcon: serviceIcon
+                equipmentLoader.classList.add("hidden");
             };
-        });
 
-        equipment.push(...newItems);
+          
 
-        totalEquipment = result.total;
-        lastPage = result.last_page;
+            window.clearFilters = async function () {
 
-        renderEquipment();
+                    document.getElementById("searchInput").value = "";
+                    document.getElementById("categoryFilter").selectedIndex = 0;
+                    document.getElementById("statusFilter").selectedIndex = 0;
 
-    } catch (error) {
-
-        console.log("Filter error:", error);
-
-    }
-
-    equipmentLoader.classList.add("hidden");
-};
-
-            // window.clearFilters = function() {
-            //     document.getElementById("searchInput").value = "";
-            //     document.getElementById("categoryFilter").selectedIndex = 0;
-            //     document.getElementById("statusFilter").selectedIndex = 0;
-            //     renderEquipment();
-            // };
-
-           window.clearFilters = async function () {
-
-    document.getElementById("searchInput").value = "";
-    document.getElementById("categoryFilter").selectedIndex = 0;
-    document.getElementById("statusFilter").selectedIndex = 0;
-
-    await applyFilters();
-};
+                    await applyFilters();
+                };
            // ===== APPLY URL FILTER FIRST =====
-const params = new URLSearchParams(window.location.search);
-const typeFromUrl = params.get('type');
+                    const params = new URLSearchParams(window.location.search);
+                    const typeFromUrl = params.get('type');
 
-if (typeFromUrl) {
+                    if (typeFromUrl) {
 
-    const decodedType = decodeURIComponent(typeFromUrl);
+                        const decodedType = decodeURIComponent(typeFromUrl);
 
-    const statusSelect = document.getElementById('statusFilter');
+                        const statusSelect = document.getElementById('statusFilter');
 
-    for (let i = 0; i < statusSelect.options.length; i++) {
+                        for (let i = 0; i < statusSelect.options.length; i++) {
 
-        if (statusSelect.options[i].text.trim() === decodedType.trim()) {
+                            if (statusSelect.options[i].text.trim() === decodedType.trim()) {
 
-            statusSelect.selectedIndex = i;
-            break;
-        }
-    }
+                                statusSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
 
-    // CALL BACKEND FILTER
-    applyFilters();
-}
+                        // CALL BACKEND FILTER
+                        applyFilters();
+                    }
 
 
             const selectedId = '{{ $selectedEquipmentId }}';
@@ -630,7 +624,7 @@ if (typeFromUrl) {
             /* =================== LEFT LIST =================== */
             // function renderEquipment(selectedId = null) {
             function renderEquipment(selectedId = null, append = false) {
-
+               console.time("renderEquipment");
                 const searchValue = document.getElementById("searchInput").value.toLowerCase();
                 const selectedCategory = document.getElementById("categoryFilter").value;
                 const selectedStatus = document.getElementById("statusFilter").value;
@@ -639,34 +633,6 @@ if (typeFromUrl) {
                 if (!append) {
                     equipmentList.innerHTML = "";
                 }
-
-                // const filtered = equipment.filter(eq => {
-                //     const name = (eq.name || "").toLowerCase();
-                //     const model = (eq.model || "").toLowerCase();
-                //     const serial = (eq.serial || "").toLowerCase();
-
-                //     const matchesSearch =
-                //         name.includes(searchValue) ||
-                //         model.includes(searchValue) ||
-                //         serial.includes(searchValue);
-
-                //     const matchesCategory =
-                //         selectedCategory === "All Categories" || eq.category === selectedCategory;
-
-                //     let matchesStatus = false;
-                //     if (selectedStatus === "All Statuses") {
-                //         matchesStatus = true;
-                //     } else if (selectedStatus === "Service Due") {
-                //         matchesStatus = eq.serviceStatus === "pending";
-                //     } else if (selectedStatus === "Service OverDue") {
-                //         matchesStatus = eq.serviceStatus === "overdue";
-                //     } else {
-                //         matchesStatus = eq.badge === selectedStatus;
-                //     }
-
-                //     return matchesSearch && matchesCategory && matchesStatus;
-                // });
-
 
                 //  Add sorting by badge priority
                 const badgeOrder = {
@@ -768,7 +734,10 @@ if (typeFromUrl) {
                         openChecklist(eq);
                     }
                 });
-equipmentCount.textContent = `${equipment.length} of ${totalEquipment}`;
+                equipmentCount.textContent = `${equipment.length} of ${totalEquipment}`;
+
+                console.timeEnd("renderEquipment");
+
             }
 
 
@@ -834,7 +803,7 @@ equipmentCount.textContent = `${equipment.length} of ${totalEquipment}`;
 
                 // isLoadingMore = false;
                 isLoadingMore = false;
-equipmentLoader.classList.add("hidden");
+                equipmentLoader.classList.add("hidden");
             }
 
             function badgeColors(b) {
@@ -863,6 +832,9 @@ equipmentLoader.classList.add("hidden");
 
             /* =================== RIGHT: OPEN CHECKLIST =================== */
             function openChecklist(eq) {
+
+                console.time("openChecklist");
+
                 window.currentEquipment = eq;
 
                 // console.log('openChecklist :-');
@@ -892,18 +864,18 @@ equipmentLoader.classList.add("hidden");
 
                     checklistContent.classList.remove("hidden");
                     checklistContent.innerHTML = `
-                <div class="p-4  border  rounded-lg ">
-                    <p class="font-medium  ">
-                        This ${eq.name} - ID: ${eq.equipment_id} is currently <span class="text-red-600 font-bold">Rented</span>
-                        and cannot be updated in the Rental Ready system.
-                    </p>
-                    <p class="mt-2">
-                        If the rental is completed, please update the order to close out the rental →
-                        ${eq.order_route}
+                            <div class="p-4  border  rounded-lg ">
+                                <p class="font-medium  ">
+                                    This ${eq.name} - ID: ${eq.equipment_id} is currently <span class="text-red-600 font-bold">Rented</span>
+                                    and cannot be updated in the Rental Ready system.
+                                </p>
+                                <p class="mt-2">
+                                    If the rental is completed, please update the order to close out the rental →
+                                    ${eq.order_route}
 
-                    </p>
-                </div>
-            `;
+                                </p>
+                            </div>
+                        `;
                     placeholder.classList.add("hidden");
                     checklistContainer.classList.remove("hidden");
 
@@ -935,15 +907,18 @@ equipmentLoader.classList.add("hidden");
 
                 // ----- Show loader while fetching -----
                 checklistContent.innerHTML = `
-        <div id="loaderWrapper" class="p-6 flex flex-col gap-4 animate-pulse">
-            ${Array(3).fill(0).map(() => `
-                    <div class="h-16 bg-gray-200 rounded-md"></div>
-                `).join("")}
-        </div>
-    `;
+                    <div id="loaderWrapper" class="p-6 flex flex-col gap-4 animate-pulse">
+                        ${Array(3).fill(0).map(() => `
+                                <div class="h-16 bg-gray-200 rounded-md"></div>
+                            `).join("")}
+                    </div>
+                `;
+
                 checklistContent.classList.add("opacity-50", "pointer-events-none");
 
                 //  Fetch checklist questions for this equipment
+
+                console.time("fetchChecklist");
                 fetch(`{{ route('admin.checklist-management.equipment-management.get-checklist-questions') }}`, {
                         method: "POST",
                         headers: {
@@ -956,603 +931,608 @@ equipmentLoader.classList.add("hidden");
                             equipment_id: eq.id,
                             order_product_id: eq.orderproductid
                         })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
+                        })
+                        .then(res => res.json())
+                        .then(data => {
 
+                                console.timeEnd("fetchChecklist");
+                            // remove loader
+                            checklistContent.classList.remove("opacity-50", "pointer-events-none");
+                            checklistContent.innerHTML = "";
 
-                        // remove loader
-                        checklistContent.classList.remove("opacity-50", "pointer-events-none");
-                        checklistContent.innerHTML = "";
+                            if (data.success === true) {
+                                console.log("Fetched checklist data:", data);
 
-                        if (data.success === true) {
-                            console.log("Fetched checklist data:", data);
+                                // Normalize: use questions OR existing_data.questions
+                                let items = [];
+                                if (data.questions) {
+                                    items = data.questions; // fresh questions
+                                } else if (data.existing_data && data.existing_data.questions) {
+                                    items = data.existing_data.questions; // saved data
+                                }
 
-                            // Normalize: use questions OR existing_data.questions
-                            let items = [];
-                            if (data.questions) {
-                                items = data.questions; // fresh questions
-                            } else if (data.existing_data && data.existing_data.questions) {
-                                items = data.existing_data.questions; // saved data
-                            }
+                                groups = [{
+                                    key: "default",
+                                    title: "Checklist Questions",
+                                    items: items
+                                }];
 
-                            groups = [{
-                                key: "default",
-                                title: "Checklist Questions",
-                                items: items
-                            }];
+                                window.groups = groups;
 
-                            window.groups = groups;
+                                renderChecklist(groups);
 
-                            renderChecklist(groups);
+                                // now render UI
+                                groups.forEach((g) => {
+                                    const section = document.createElement("div");
+                                    section.className = "border border-gray-200 rounded-md p-4";
+                                    section.innerHTML = `
+                                        <h3 class="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                                            <span>${g.title}</span>
+                                            <span id="groupCount-${g.key}" class="text-sm text-gray-500">(0/${g.items.length})</span>
+                                            <input type="hidden" name="total_questions" value="${g.items.length}">
+                                        </h3>
+                                        <div id="groupBody-${g.key}" class="space-y-4"></div>`;
+                                                    checklistContent.appendChild(section);
 
-                            // now render UI
-                            groups.forEach((g) => {
-                                const section = document.createElement("div");
-                                section.className = "border border-gray-200 rounded-md p-4";
-                                section.innerHTML = `
-                                    <h3 class="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                                        <span>${g.title}</span>
-                                        <span id="groupCount-${g.key}" class="text-sm text-gray-500">(0/${g.items.length})</span>
-                                        <input type="hidden" name="total_questions" value="${g.items.length}">
-                                    </h3>
-                                    <div id="groupBody-${g.key}" class="space-y-4"></div>`;
-                                                checklistContent.appendChild(section);
+                                                    const body = section.querySelector(`#groupBody-${g.key}`);
+                                                    g.items.forEach((item) => {
+                                                        const itemId = item.question_id || item.id;
+                                                        const answers = (item.answers || []).map((opt) => `
+                                            <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+                                                <div class="flex items-center gap-3 flex-1 min-w-0">
+                                                    <input type="radio" name="answer-${itemId}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
+                                                        value="${opt.status}" data-item="${itemId}" data-opt-id="${opt.id}" data-group="${g.key}">
+                                                    <span class="text-sm text-gray-900">${opt.label}</span>
+                                                </div>
+                                                <div class="w-full sm:w-auto sm:ml-auto sm:justify-end flex items-center">
+                                                    ${statusBadge(opt.status)}
+                                                </div>
+                                            </label>
+                                        `).join("");
 
-                                                const body = section.querySelector(`#groupBody-${g.key}`);
-                                                g.items.forEach((item) => {
-                                                    const itemId = item.question_id || item.id;
-                                                    const answers = (item.answers || []).map((opt) => `
-                                        <label class="flex flex-wrap items-center gap-3 p-2 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <div class="flex items-center gap-3 flex-1 min-w-0">
-                                                <input type="radio" name="answer-${itemId}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 shrink-0"
-                                                    value="${opt.status}" data-item="${itemId}" data-opt-id="${opt.id}" data-group="${g.key}">
-                                                <span class="text-sm text-gray-900">${opt.label}</span>
+                                        const card = document.createElement("div");
+                                        card.className =
+                                            "item-card p-4 rounded-md border-2 transition-all border-gray-200 bg-white-50";
+                                        card.id = `item-${itemId}`;
+                                        card.innerHTML = `
+                                            <div class="flex flex-wrap items-center gap-2 mb-3">
+                                                <span id="icon-${itemId}" class="inline-flex shrink-0 ">${iconSvg("default")}</span>
+                                                <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>' : ''}</span>
+
+                                                
+
+                                                <span id="chip-${itemId}"></span>
                                             </div>
-                                            <div class="w-full sm:w-auto sm:ml-auto sm:justify-end flex items-center">
-                                                ${statusBadge(opt.status)}
+                                            <div class="text-sm font-medium text-gray-700 mb-2">Select Condition:</div>
+                                            <div class="space-y-2">${answers}</div>
+                                            <div id="notes-${itemId}" class="hidden mt-3">
+                                                <textarea class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="3" placeholder="Add notes about the issue..."></textarea>
                                             </div>
-                                        </label>
-                                    `).join("");
+                                        `;
 
-                                    const card = document.createElement("div");
-                                    card.className =
-                                        "item-card p-4 rounded-md border-2 transition-all border-gray-200 bg-white-50";
-                                    card.id = `item-${itemId}`;
-                                    card.innerHTML = `
-                                        <div class="flex flex-wrap items-center gap-2 mb-3">
-                                            <span id="icon-${itemId}" class="inline-flex shrink-0 ">${iconSvg("default")}</span>
-                                            <span class="font-medium text-gray-900">${item.title}${item.required ? '<span class="text-red-500 ml-1">*</span>' : ''}</span>
-
-                                            
-
-                                            <span id="chip-${itemId}"></span>
-                                        </div>
-                                        <div class="text-sm font-medium text-gray-700 mb-2">Select Condition:</div>
-                                        <div class="space-y-2">${answers}</div>
-                                        <div id="notes-${itemId}" class="hidden mt-3">
-                                            <textarea class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="3" placeholder="Add notes about the issue..."></textarea>
-                                        </div>
-                                    `;
-
-                                    body.appendChild(card);
+                                        body.appendChild(card);
+                                    });
                                 });
-                            });
 
-                            /* ---------- General Notes card (NEW) ---------- */
-                            const generalNotes = document.createElement("div");
-                            generalNotes.innerHTML = `
-                                    <h3 class="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                                        <span>General Notes</span>
-                                    </h3>
-                                    <textarea id="generalNotes" name="general_notes" class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="4" placeholder="Add any additional notes or observations..."></textarea>
-                                `;
-                            checklistContent.appendChild(generalNotes);
-                            
+                                /* ---------- General Notes card (NEW) ---------- */
+                                const generalNotes = document.createElement("div");
+                                generalNotes.innerHTML = `
+                                        <h3 class="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                                            <span>General Notes</span>
+                                        </h3>
+                                        <textarea id="generalNotes" name="general_notes" class="w-full bg-white border px-3 py-2 rounded-md text-sm border-gray-300" rows="4" placeholder="Add any additional notes or observations..."></textarea>
+                                    `;
+                                checklistContent.appendChild(generalNotes);
+                                
 
-                            // === Apply saved data if available ===
-                            if (data.existing_data && data.existing_data.questions) {
-                                data.existing_data.questions.forEach(saved => {
-                                    const itemId = saved.question_id || saved.id;
-                                    const radio = document.querySelector(
-                                        `input[name="answer-${itemId}"][data-opt-id="${saved.answer_id}"]`
-                                    );
-                                    if (radio) {
-                                        radio.checked = true;
-                                        colorItemCard(itemId, saved.status);
-                                        setHeaderIcon(itemId, saved.status);
-                                        updateGroupCount("default");
+                                // === Apply saved data if available ===
+                                if (data.existing_data && data.existing_data.questions) {
+                                    data.existing_data.questions.forEach(saved => {
+                                        const itemId = saved.question_id || saved.id;
+                                        const radio = document.querySelector(
+                                            `input[name="answer-${itemId}"][data-opt-id="${saved.answer_id}"]`
+                                        );
+                                        if (radio) {
+                                            radio.checked = true;
+                                            colorItemCard(itemId, saved.status);
+                                            setHeaderIcon(itemId, saved.status);
+                                            updateGroupCount("default");
 
-                                        //  sync groups
-                                        const group = groups.find(g => g.key === "default");
-                                        if (group) {
-                                            const itemObj = group.items.find(it => (it.question_id || it
-                                                .id) === itemId);
-                                            if (itemObj) {
-                                                itemObj.answer_id = saved.answer_id;
-                                                itemObj.status = saved.status;
-                                                itemObj.notes = saved.notes || "";
+                                            //  sync groups
+                                            const group = groups.find(g => g.key === "default");
+                                            if (group) {
+                                                const itemObj = group.items.find(it => (it.question_id || it
+                                                    .id) === itemId);
+                                                if (itemObj) {
+                                                    itemObj.answer_id = saved.answer_id;
+                                                    itemObj.status = saved.status;
+                                                    itemObj.notes = saved.notes || "";
+                                                }
+                                            }
+                                        }
+
+
+                                        if (saved.notes) {
+                                            const notesBox = document.querySelector(
+                                                `#notes-${itemId} textarea`);
+                                            if (notesBox) {
+                                                notesBox.value = saved.notes;
+                                                notesBox.parentElement.classList.remove("hidden");
+                                            }
+                                        }
+                                    });
+                                }
+
+                                if (data.existing_data && data.existing_data.general_notes) {
+                                    document.getElementById("generalNotes").value = data.existing_data
+                                    .general_notes;
+                                }
+
+                                if (data.existing_data && data.existing_data.existingTemplate && data.existing_data
+                                    .existingTemplate.employee_name) {
+                                    // document.getElementById("inspectorSelect").innerText = data.existing_data
+                                    //     .existingTemplate.employee_name;
+
+                                    //     console.log('document.getElementById("inspectorSelect").innerText:- ',document.getElementById("inspectorSelect").innerText);
+                                    //     console.log('data.existing_data.existingTemplate.employee_name ',data.existing_data.existingTemplate.employee_name);
+
+
+                                    const select = document.getElementById("inspectorSelect");
+                                    const targetName = data.existing_data.existingTemplate.employee_name;
+
+                                    [...select.options].forEach(option => {
+                                        if (option.text.trim() === targetName.trim()) {
+                                            select.value = option.value;
+                                        }
+                                    });
+
+                                }
+
+                                if (data.existing_data && data.existing_data.existingTemplate && data.existing_data
+                                    .existingTemplate.equipment_hours) {
+                                    document.getElementById("equipmentHours").value = data.existing_data
+                                        .existingTemplate.equipment_hours;
+                                }
+
+
+
+
+                                //  Handle Misc default selection
+                                    const miscItem = groups
+                                        .flatMap(g => g.items)
+                                        .find(it => it.title === "Miscellaneous");
+
+                                    if (miscItem) {
+                                        const miscId = miscItem.question_id || miscItem.id;
+
+                                        // check if already selected (existing data)
+                                        const alreadySelected = document.querySelector(
+                                            `input[name="answer-${miscId}"]:checked`
+                                        );
+
+                                        //  ONLY if no existing selection
+                                        if (!alreadySelected) {
+
+                                            // select "Rental Ready" (Operable)
+                                            const defaultRadio = document.querySelector(
+                                                `input[name="answer-${miscId}"][value="Rental Ready"]`
+                                            );
+
+                                            if (defaultRadio) {
+                                                defaultRadio.checked = true;
+
+                                                // apply UI
+                                                colorItemCard(miscId, "Rental Ready");
+                                                setHeaderIcon(miscId, "Rental Ready");
+
+                                                // sync group data
+                                                miscItem.answer_id = parseInt(defaultRadio.dataset.optId, 10);
+                                                miscItem.status = "Rental Ready";
                                             }
                                         }
                                     }
 
 
-                                    if (saved.notes) {
-                                        const notesBox = document.querySelector(
-                                            `#notes-${itemId} textarea`);
-                                        if (notesBox) {
-                                            notesBox.value = saved.notes;
-                                            notesBox.parentElement.classList.remove("hidden");
-                                        }
-                                    }
-                                });
-                            }
 
-                            if (data.existing_data && data.existing_data.general_notes) {
-                                document.getElementById("generalNotes").value = data.existing_data
-                                .general_notes;
-                            }
-
-                            if (data.existing_data && data.existing_data.existingTemplate && data.existing_data
-                                .existingTemplate.employee_name) {
-                                // document.getElementById("inspectorSelect").innerText = data.existing_data
-                                //     .existingTemplate.employee_name;
-
-                                //     console.log('document.getElementById("inspectorSelect").innerText:- ',document.getElementById("inspectorSelect").innerText);
-                                //     console.log('data.existing_data.existingTemplate.employee_name ',data.existing_data.existingTemplate.employee_name);
-
-
-                                const select = document.getElementById("inspectorSelect");
-                                const targetName = data.existing_data.existingTemplate.employee_name;
-
-                                [...select.options].forEach(option => {
-                                    if (option.text.trim() === targetName.trim()) {
-                                        select.value = option.value;
-                                    }
+                                checklistContent.querySelectorAll('input[type="radio"]').forEach(r => {
+                                    r.addEventListener("change", onChoice);
                                 });
 
+                                updateAllCounts();
+                                updateProgress();
+                            } else {
+                                //notyf.error(data.message);
+
+
+                                // put this once near the top of your script
+                                const editRouteTemplate =
+                                    '{{ route('admin.maintenance-management.equipment.edit', ':id') }}';
+                                footerButton.classList.add("hidden");
+                                // when building the HTML (inside openChecklist)
+                                checklistContent.innerHTML = `<p class="text-red-500">
+                            There is no Checklist assigned to this Equipment ID - Assign a Checklist to this Equipment ID now:
+                            <a href="${editRouteTemplate.replace(':id', eq.unique_id)}" class="text-blue-600">Click Here</a>
+                            </p>`;
                             }
 
-                            if (data.existing_data && data.existing_data.existingTemplate && data.existing_data
-                                .existingTemplate.equipment_hours) {
-                                document.getElementById("equipmentHours").value = data.existing_data
-                                    .existingTemplate.equipment_hours;
-                            }
-
-
-
-
-                            //  Handle Misc default selection
-                                const miscItem = groups
-                                    .flatMap(g => g.items)
-                                    .find(it => it.title === "Miscellaneous");
-
-                                if (miscItem) {
-                                    const miscId = miscItem.question_id || miscItem.id;
-
-                                    // check if already selected (existing data)
-                                    const alreadySelected = document.querySelector(
-                                        `input[name="answer-${miscId}"]:checked`
-                                    );
-
-                                    //  ONLY if no existing selection
-                                    if (!alreadySelected) {
-
-                                        // select "Rental Ready" (Operable)
-                                        const defaultRadio = document.querySelector(
-                                            `input[name="answer-${miscId}"][value="Rental Ready"]`
-                                        );
-
-                                        if (defaultRadio) {
-                                            defaultRadio.checked = true;
-
-                                            // apply UI
-                                            colorItemCard(miscId, "Rental Ready");
-                                            setHeaderIcon(miscId, "Rental Ready");
-
-                                            // sync group data
-                                            miscItem.answer_id = parseInt(defaultRadio.dataset.optId, 10);
-                                            miscItem.status = "Rental Ready";
-                                        }
-                                    }
-                                }
-
-
-
-                            checklistContent.querySelectorAll('input[type="radio"]').forEach(r => {
-                                r.addEventListener("change", onChoice);
-                            });
-
-                            updateAllCounts();
-                            updateProgress();
-                        } else {
-                            //notyf.error(data.message);
-
-
-                            // put this once near the top of your script
-                            const editRouteTemplate =
-                                '{{ route('admin.maintenance-management.equipment.edit', ':id') }}';
-                            footerButton.classList.add("hidden");
-                            // when building the HTML (inside openChecklist)
-                            checklistContent.innerHTML = `<p class="text-red-500">
-                        There is no Checklist assigned to this Equipment ID - Assign a Checklist to this Equipment ID now:
-                        <a href="${editRouteTemplate.replace(':id', eq.unique_id)}" class="text-blue-600">Click Here</a>
-                        </p>`;
-                        }
-                    })
-                    .catch(err => {
-                        checklistContent.classList.remove("opacity-50", "pointer-events-none");
-                        checklistContent.innerHTML = `<p class="text-red-500"> Error loading questions.</p>`;
-                        console.log(err);
-                    });
-            }
-
-            /* =================== HANDLERS =================== */
-            function onChoice(e) {
-                const status = e.target.value;
-                const itemId = e.target.dataset.item;
-                const groupKey = e.target.dataset.group;
-
-                colorItemCard(itemId, status);
-                setHeaderIcon(itemId, status);
-
-                //  sync groups when user changes
-                const group = groups.find(g => g.key === groupKey);
-                if (group) {
-                    const itemObj = group.items.find(it => (it.question_id || it.id) === itemId);
-                    if (itemObj) {
-                        itemObj.answer_id = parseInt(e.target.dataset.optId, 10);
-                        itemObj.status = status;
-                    }
-                }
-
-                // 
-                // check if THIS is Miscellaneous question
-                const miscItem = groups
-                    .flatMap(g => g.items)
-                    .find(it => it.title === "Miscellaneous");
-
-                    console.log("Misc Item Found:", miscItem);
-
-                if (miscItem && itemId === (miscItem.question_id || miscItem.id)) {
-
-                    if (status === "Damaged") {
-
-                        // loop all questions except misc
-                        groups.forEach(g => {
-                            g.items.forEach(item => {
-
-                                const id = item.question_id || item.id;
-
-                                // skip misc itself
-                                if (id === itemId) return;
-
-                                const labels = document.querySelectorAll(`input[name="answer-${id}"]`);
-
-                                    let radio = null;
-
-                                    labels.forEach(r => {
-                                        const labelText = r.closest('label').innerText.toLowerCase();
-
-                                        if (labelText.includes("inspection required")) {
-                                            radio = r;
-                                        }
-                                    });
-
-                                if (radio) {
-                                    radio.checked = true;
-
-                                    colorItemCard(id, "Maint. Hold");
-                                    setHeaderIcon(id, "Maint. Hold");
-
-                                    item.answer_id = parseInt(radio.dataset.optId, 10);
-                                    item.status = "Maint. Hold";
-                                }
-                            });
+                            console.timeEnd("openChecklist");
+                        })
+                        .catch(err => {
+                            checklistContent.classList.remove("opacity-50", "pointer-events-none");
+                            checklistContent.innerHTML = `<p class="text-red-500"> Error loading questions.</p>`;
+                            console.log(err);
                         });
-
-                    }
-                } //  END BLOCK
-
-                updateGroupCount(groupKey);
-                updateProgress();
-            }
-
-
-            function colorItemCard(itemId, status) {
-                const box = document.getElementById(`item-${itemId}`);
-                const chip = document.getElementById(`chip-${itemId}`);
-                const notes = document.getElementById(`notes-${itemId}`);
-
-                box.classList.remove("bg-green-50", "bg-yellow-50", "bg-red-50", "bg-gray-50",
-                    "border-green-300", "border-yellow-300", "border-red-300", "border-gray-200");
-                chip.className = "ml-auto text-xs px-2 py-1 rounded font-medium";
-
-                if (status === "Rental Ready") {
-                    box.classList.add("bg-green-50", "border-green-300");
-                    chip.classList.add("bg-green-100", "text-green-800");
-                    chip.textContent = "Rental Ready";
-                    notes.classList.add("hidden");
-                } else if (status === "Maint. Hold") {
-                    box.classList.add("bg-yellow-50", "border-yellow-300");
-                    chip.classList.add("bg-orange-100", "text-orange-800");
-                    chip.textContent = "Maint. Hold";
-                    notes.classList.remove("hidden");
-                } else if (status === "Damaged") {
-                    box.classList.add("bg-red-50", "border-red-300");
-                    chip.classList.add("bg-red-100", "text-red-800");
-                    chip.textContent = "Damaged";
-                    notes.classList.remove("hidden");
-                } else {
-                    box.classList.add("bg-gray-50", "border-gray-200");
-                    chip.classList.add("bg-gray-100", "text-gray-600");
-                    chip.textContent = "—";
-                    notes.classList.add("hidden");
                 }
-            }
 
-            function setHeaderIcon(itemId, status) {
-                const holder = document.getElementById(`icon-${itemId}`);
-                if (!holder) return;
-                if (status === "Rental Ready") holder.innerHTML = iconSvg("ready");
-                else if (status === "Maint. Hold") holder.innerHTML = iconSvg("hold");
-                else if (status === "Damaged") holder.innerHTML = iconSvg("damaged");
-                else holder.innerHTML = iconSvg("default");
-            }
+                /* =================== HANDLERS =================== */
+                function onChoice(e) {
+                    const status = e.target.value;
+                    const itemId = e.target.dataset.item;
+                    const groupKey = e.target.dataset.group;
 
-            /* =================== PROGRESS & BUTTONS =================== */
-            function computeStatusSummary() {
-                const total = groups.reduce((n, g) => n + g.items.length, 0);
-                const requiredTotal = groups.reduce((n, g) => n + g.items.filter(it => it.required).length, 0);
+                    colorItemCard(itemId, status);
+                    setHeaderIcon(itemId, status);
 
-                let completed = 0,
-                    ready = 0,
-                    hold = 0,
-                    damaged = 0,
-                    requiredCompleted = 0;
-
-                groups.forEach(g => {
-                    g.items.forEach(item => {
-                        const itemId = item.question_id || item.id;
-                        const picked = document.querySelector(
-                            `input[name="answer-${itemId}"]:checked`);
-                        if (picked) {
-                            completed++;
-                            if (item.required) requiredCompleted++;
-                            const s = picked.value;
-                            if (s === "Rental Ready") ready++;
-                            else if (s === "Maint. Hold") hold++;
-                            else if (s === "Damaged") damaged++;
+                    //  sync groups when user changes
+                    const group = groups.find(g => g.key === groupKey);
+                    if (group) {
+                        const itemObj = group.items.find(it => (it.question_id || it.id) === itemId);
+                        if (itemObj) {
+                            itemObj.answer_id = parseInt(e.target.dataset.optId, 10);
+                            itemObj.status = status;
                         }
+                    }
+
+                    // 
+                    // check if THIS is Miscellaneous question
+                    const miscItem = groups
+                        .flatMap(g => g.items)
+                        .find(it => it.title === "Miscellaneous");
+
+                        console.log("Misc Item Found:", miscItem);
+
+                    if (miscItem && itemId === (miscItem.question_id || miscItem.id)) {
+
+                        if (status === "Damaged") {
+
+                            // loop all questions except misc
+                            groups.forEach(g => {
+                                g.items.forEach(item => {
+
+                                    const id = item.question_id || item.id;
+
+                                    // skip misc itself
+                                    if (id === itemId) return;
+
+                                    const labels = document.querySelectorAll(`input[name="answer-${id}"]`);
+
+                                        let radio = null;
+
+                                        labels.forEach(r => {
+                                            const labelText = r.closest('label').innerText.toLowerCase();
+
+                                            if (labelText.includes("inspection required")) {
+                                                radio = r;
+                                            }
+                                        });
+
+                                    if (radio) {
+                                        radio.checked = true;
+
+                                        colorItemCard(id, "Maint. Hold");
+                                        setHeaderIcon(id, "Maint. Hold");
+
+                                        item.answer_id = parseInt(radio.dataset.optId, 10);
+                                        item.status = "Maint. Hold";
+                                    }
+                                });
+                            });
+
+                        }
+                    } //  END BLOCK
+
+                    updateGroupCount(groupKey);
+                    updateProgress();
+                }
+
+
+                function colorItemCard(itemId, status) {
+                    const box = document.getElementById(`item-${itemId}`);
+                    const chip = document.getElementById(`chip-${itemId}`);
+                    const notes = document.getElementById(`notes-${itemId}`);
+
+                    box.classList.remove("bg-green-50", "bg-yellow-50", "bg-red-50", "bg-gray-50",
+                        "border-green-300", "border-yellow-300", "border-red-300", "border-gray-200");
+                    chip.className = "ml-auto text-xs px-2 py-1 rounded font-medium";
+
+                    if (status === "Rental Ready") {
+                        box.classList.add("bg-green-50", "border-green-300");
+                        chip.classList.add("bg-green-100", "text-green-800");
+                        chip.textContent = "Rental Ready";
+                        notes.classList.add("hidden");
+                    } else if (status === "Maint. Hold") {
+                        box.classList.add("bg-yellow-50", "border-yellow-300");
+                        chip.classList.add("bg-orange-100", "text-orange-800");
+                        chip.textContent = "Maint. Hold";
+                        notes.classList.remove("hidden");
+                    } else if (status === "Damaged") {
+                        box.classList.add("bg-red-50", "border-red-300");
+                        chip.classList.add("bg-red-100", "text-red-800");
+                        chip.textContent = "Damaged";
+                        notes.classList.remove("hidden");
+                    } else {
+                        box.classList.add("bg-gray-50", "border-gray-200");
+                        chip.classList.add("bg-gray-100", "text-gray-600");
+                        chip.textContent = "—";
+                        notes.classList.add("hidden");
+                    }
+                }
+
+                function setHeaderIcon(itemId, status) {
+                    const holder = document.getElementById(`icon-${itemId}`);
+                    if (!holder) return;
+                    if (status === "Rental Ready") holder.innerHTML = iconSvg("ready");
+                    else if (status === "Maint. Hold") holder.innerHTML = iconSvg("hold");
+                    else if (status === "Damaged") holder.innerHTML = iconSvg("damaged");
+                    else holder.innerHTML = iconSvg("default");
+                }
+
+                /* =================== PROGRESS & BUTTONS =================== */
+                function computeStatusSummary() {
+                    const total = groups.reduce((n, g) => n + g.items.length, 0);
+                    const requiredTotal = groups.reduce((n, g) => n + g.items.filter(it => it.required).length, 0);
+
+                    let completed = 0,
+                        ready = 0,
+                        hold = 0,
+                        damaged = 0,
+                        requiredCompleted = 0;
+
+                    groups.forEach(g => {
+                        g.items.forEach(item => {
+                            const itemId = item.question_id || item.id;
+                            const picked = document.querySelector(
+                                `input[name="answer-${itemId}"]:checked`);
+                            if (picked) {
+                                completed++;
+                                if (item.required) requiredCompleted++;
+                                const s = picked.value;
+                                if (s === "Rental Ready") ready++;
+                                else if (s === "Maint. Hold") hold++;
+                                else if (s === "Damaged") damaged++;
+                            }
+                        });
                     });
-                });
+
+                    return {
+                        total,
+                        requiredTotal,
+                        completed,
+                        requiredCompleted,
+                        ready,
+                        hold,
+                        damaged
+                    };
+                }
+
+                function updateProgress() {
+                    const {
+                        total,
+                        requiredTotal,
+                        completed,
+                        requiredCompleted,
+                        ready,
+                        hold,
+                        damaged
+                    } = computeStatusSummary();
+                    const pct = Math.round((completed / total) * 100);
+
+                    progressTop.textContent = `${completed} of ${total} items completed`;
+                    progressBottom.textContent = `${completed} of ${total} items completed (${pct}%)`;
+                    bar.style.width = pct + "%";
+
+
+
+                    // ensure counters exist, then update them
+                    const {
+                        req,
+                        maint,
+                        totalmaint,
+                        dmg
+                    } = ensureCounters();
+                    if (req) req.textContent = `${requiredCompleted}/${requiredTotal}`;
+                    if (maint) maint.textContent = hold;
+                    if (dmg) dmg.textContent = damaged;
+
+                    // Show total-maint-hold only if hold > 0
+                    if (totalmaint) {
+                        totalmaint.textContent = hold;
+                        document.getElementById("maint-hold-Msg").classList.toggle("hidden", hold === 0);
+                    }
+
+
+                    const inspectorOk = (typeof REQUIRE_INSPECTOR === "boolean" ? !REQUIRE_INSPECTOR : true) || (
+                        inspectorSelect && inspectorSelect.value !== "");
+                    const allAnswered = (completed === total);
+                    const allReady = allAnswered && (ready === total);
+                    const anyDamaged = allAnswered && (damaged > 0);
+
+                    // default → both visible but disabled gray
+                    setBtn(btnReady, {
+                        enabled: false,
+                        color: "green",
+                        show: true
+                    });
+                    setBtn(btnDamaged, {
+                        enabled: false,
+                        color: "red",
+                        show: true
+                    });
+
+                    if (allReady && inspectorOk) {
+                        setBtn(btnReady, {
+                            enabled: true,
+                            color: "green",
+                            show: true
+                        });
+                        setBtn(btnDamaged, {
+                            enabled: false,
+                            color: "red",
+                            show: false
+                        });
+                    } else if (anyDamaged && inspectorOk) {
+                        setBtn(btnReady, {
+                            enabled: false,
+                            color: "green",
+                            show: false
+                        });
+                        setBtn(btnDamaged, {
+                            enabled: true,
+                            color: "red",
+                            show: true
+                        });
+                    }
+
+                    if (reqMsg) reqMsg.classList.toggle("hidden", inspectorOk);
+                }
+
+                function setBtn(btn, {
+                    enabled,
+                    color,
+                    show
+                }) {
+                    if (!btn) return;
+                    // btn.classList.toggle("hidden", show === false);
+                    btn.classList.remove(
+                        "bg-gray-100", "text-gray-400", "cursor-not-allowed",
+                        "bg-blue-600", "hover:bg-blue-700",
+                        "bg-green-600", "hover:bg-green-700",
+                        "bg-red-600", "hover:bg-red-700", "text-white"
+                    );
+                    if (!enabled) {
+                        btn.disabled = true;
+                        btn.classList.add("bg-gray-100", "text-gray-400", "cursor-not-allowed");
+                    } else {
+                        btn.disabled = false;
+                        btn.classList.add("text-white");
+                        if (color === "green") btn.classList.add("bg-green-600", "hover:bg-green-700");
+                        else if (color === "red") btn.classList.add("bg-red-600", "hover:bg-red-700");
+                        else btn.classList.add("bg-blue-600", "hover:bg-blue-700");
+                    }
+                }
+
+                    /* =================== COUNTS =================== */
+                    function updateGroupCount(groupKey) {
+                        const group = groups.find(g => g.key === groupKey);
+                        if (!group) return;
+                        let done = 0;
+                        group.items.forEach(item => {
+                            const itemId = item.question_id || item.id;
+                            if (document.querySelector(`input[name="answer-${itemId}"]:checked`)) done++;
+                        });
+                        const el = document.getElementById(`groupCount-${groupKey}`);
+                        if (el) el.textContent = `(${done}/${group.items.length})`;
+                    }
+
+                    function updateAllCounts() {
+                        groups.forEach(g => updateGroupCount(g.key));
+                    }
+
+                /* =================== ICONS & BADGES =================== */
+                function statusBadge(status) {
+                    if (status === "Rental Ready")
+                    return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle w-4 h-4 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> <span class="text-xs px-2 py-1 rounded font-medium bg-green-100 text-green-800">Rental Ready</span></div>`;
+
+                    if (status === "Maint. Hold")
+                    return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-600" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 1 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z" />
+                                    </svg><span class="text-xs px-2 py-1 rounded font-medium bg-yellow-100 text-yellow-800">Maint. Hold</span></div>`;
+
+                    if (status === "Damaged")
+                    return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                                        <path d="M12 9v4"></path>
+                                        <path d="M12 17h.01"></path>
+                        </svg><span class="text-xs px-2 py-1 rounded font-medium bg-red-100 text-red-700">Damaged</span></div>`;
+                    return `<span class="text-xs px-2 py-1 rounded font-medium bg-gray-100 text-gray-600">—</span>`;
+                }
+
+                function sectionIcon() {
+                    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle w-4 h-4 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>`;
+                }
+
+                function iconSvg(type) {
+                    if (type === "ready")
+                        return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle w-4 h-4 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>`;
+                    if (type === "hold")
+                        return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-600" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 1 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z" />
+                                    </svg>`;
+                    if (type === "damaged")
+                        return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                                        <path d="M12 9v4"></path>
+                                        <path d="M12 17h.01"></path>
+                        </svg>`;
+                    return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+                }
+
+                /* =================== LISTENERS =================== */
+                if (inspectorSelect) inspectorSelect.addEventListener("change", updateProgress);
+
+                window.computeStatusSummary = computeStatusSummary;
+
+                   console.timeEnd("FULL_PAGE_LOAD");
+            }); 
+
+
+            // --- creates the 3 counters below the progress bar if they don't exist ---
+            function ensureCounters() {
+                const pb = document.getElementById("progressBottom");
+                if (!pb) return {
+                    req: null,
+                    maint: null,
+                    totalmaint: null,
+                    dmg: null
+                };
+
+                // place counters right under the progress bar block
+                const progressBlock = pb.closest(".mb-4") || pb.parentElement;
+
+                if (!document.getElementById("summaryCounters")) {
+                    const ul = document.createElement("ul");
+                    ul.id = "summaryCounters";
+                    ul.className = "mt-4 divide-y divide-gray-200 text-sm";
+                    ul.innerHTML = `
+                    <li class="flex items-center justify-between py-2">
+                        <span class="text-gray-700">Required Items Completed</span>
+                        <span id="reqItems" class="font-medium text-gray-900">0/0</span>
+                    </li>
+                    <li class="flex items-center justify-between py-2">
+                        <span class="text-gray-700">Items Requiring Maintenance</span>
+                        <span id="maintItems" class="font-medium text-orange-500">0</span>
+                    </li>
+                    <li class="flex items-center justify-between py-2">
+                        <span class="text-gray-700">Damaged Items</span>
+                        <span id="damagedItems" class="font-medium text-red-700">0</span>
+                    </li>`;
+                                progressBlock.insertAdjacentElement("afterend", ul);
+                            }
 
                 return {
-                    total,
-                    requiredTotal,
-                    completed,
-                    requiredCompleted,
-                    ready,
-                    hold,
-                    damaged
+                    req: document.getElementById("reqItems"),
+                    maint: document.getElementById("maintItems"),
+                    totalmaint: document.getElementById("total-maint-hold"),
+                    dmg: document.getElementById("damagedItems"),
                 };
             }
 
-            function updateProgress() {
-                const {
-                    total,
-                    requiredTotal,
-                    completed,
-                    requiredCompleted,
-                    ready,
-                    hold,
-                    damaged
-                } = computeStatusSummary();
-                const pct = Math.round((completed / total) * 100);
 
-                progressTop.textContent = `${completed} of ${total} items completed`;
-                progressBottom.textContent = `${completed} of ${total} items completed (${pct}%)`;
-                bar.style.width = pct + "%";
-
-
-
-                // ensure counters exist, then update them
-                const {
-                    req,
-                    maint,
-                    totalmaint,
-                    dmg
-                } = ensureCounters();
-                if (req) req.textContent = `${requiredCompleted}/${requiredTotal}`;
-                if (maint) maint.textContent = hold;
-                if (dmg) dmg.textContent = damaged;
-
-                // Show total-maint-hold only if hold > 0
-                if (totalmaint) {
-                    totalmaint.textContent = hold;
-                    document.getElementById("maint-hold-Msg").classList.toggle("hidden", hold === 0);
-                }
-
-
-                const inspectorOk = (typeof REQUIRE_INSPECTOR === "boolean" ? !REQUIRE_INSPECTOR : true) || (
-                    inspectorSelect && inspectorSelect.value !== "");
-                const allAnswered = (completed === total);
-                const allReady = allAnswered && (ready === total);
-                const anyDamaged = allAnswered && (damaged > 0);
-
-                // default → both visible but disabled gray
-                setBtn(btnReady, {
-                    enabled: false,
-                    color: "green",
-                    show: true
-                });
-                setBtn(btnDamaged, {
-                    enabled: false,
-                    color: "red",
-                    show: true
-                });
-
-                if (allReady && inspectorOk) {
-                    setBtn(btnReady, {
-                        enabled: true,
-                        color: "green",
-                        show: true
-                    });
-                    setBtn(btnDamaged, {
-                        enabled: false,
-                        color: "red",
-                        show: false
-                    });
-                } else if (anyDamaged && inspectorOk) {
-                    setBtn(btnReady, {
-                        enabled: false,
-                        color: "green",
-                        show: false
-                    });
-                    setBtn(btnDamaged, {
-                        enabled: true,
-                        color: "red",
-                        show: true
-                    });
-                }
-
-                if (reqMsg) reqMsg.classList.toggle("hidden", inspectorOk);
-            }
-
-            function setBtn(btn, {
-                enabled,
-                color,
-                show
-            }) {
-                if (!btn) return;
-                // btn.classList.toggle("hidden", show === false);
-                btn.classList.remove(
-                    "bg-gray-100", "text-gray-400", "cursor-not-allowed",
-                    "bg-blue-600", "hover:bg-blue-700",
-                    "bg-green-600", "hover:bg-green-700",
-                    "bg-red-600", "hover:bg-red-700", "text-white"
-                );
-                if (!enabled) {
-                    btn.disabled = true;
-                    btn.classList.add("bg-gray-100", "text-gray-400", "cursor-not-allowed");
-                } else {
-                    btn.disabled = false;
-                    btn.classList.add("text-white");
-                    if (color === "green") btn.classList.add("bg-green-600", "hover:bg-green-700");
-                    else if (color === "red") btn.classList.add("bg-red-600", "hover:bg-red-700");
-                    else btn.classList.add("bg-blue-600", "hover:bg-blue-700");
-                }
-            }
-
-            /* =================== COUNTS =================== */
-            function updateGroupCount(groupKey) {
-                const group = groups.find(g => g.key === groupKey);
-                if (!group) return;
-                let done = 0;
-                group.items.forEach(item => {
-                    const itemId = item.question_id || item.id;
-                    if (document.querySelector(`input[name="answer-${itemId}"]:checked`)) done++;
-                });
-                const el = document.getElementById(`groupCount-${groupKey}`);
-                if (el) el.textContent = `(${done}/${group.items.length})`;
-            }
-
-            function updateAllCounts() {
-                groups.forEach(g => updateGroupCount(g.key));
-            }
-
-            /* =================== ICONS & BADGES =================== */
-            function statusBadge(status) {
-                if (status === "Rental Ready")
-                return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle w-4 h-4 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> <span class="text-xs px-2 py-1 rounded font-medium bg-green-100 text-green-800">Rental Ready</span></div>`;
-
-                if (status === "Maint. Hold")
-                return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-600" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path
-                                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 1 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z" />
-                                </svg><span class="text-xs px-2 py-1 rounded font-medium bg-yellow-100 text-yellow-800">Maint. Hold</span></div>`;
-
-                if (status === "Damaged")
-                return `<div class="flex items-center gap-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-                                    <path d="M12 9v4"></path>
-                                    <path d="M12 17h.01"></path>
-                    </svg><span class="text-xs px-2 py-1 rounded font-medium bg-red-100 text-red-700">Damaged</span></div>`;
-                return `<span class="text-xs px-2 py-1 rounded font-medium bg-gray-100 text-gray-600">—</span>`;
-            }
-
-            function sectionIcon() {
-                return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle w-4 h-4 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>`;
-            }
-
-            function iconSvg(type) {
-                if (type === "ready")
-                    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle w-4 h-4 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>`;
-                if (type === "hold")
-                    return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-600" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path
-                                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 1 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z" />
-                                </svg>`;
-                if (type === "damaged")
-                    return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-                                    <path d="M12 9v4"></path>
-                                    <path d="M12 17h.01"></path>
-                    </svg>`;
-                return `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
-            }
-
-            /* =================== LISTENERS =================== */
-            if (inspectorSelect) inspectorSelect.addEventListener("change", updateProgress);
-
-            window.computeStatusSummary = computeStatusSummary;
-
-        }); // DOMContentLoaded
-
-
-        // --- creates the 3 counters below the progress bar if they don't exist ---
-        function ensureCounters() {
-            const pb = document.getElementById("progressBottom");
-            if (!pb) return {
-                req: null,
-                maint: null,
-                totalmaint: null,
-                dmg: null
-            };
-
-            // place counters right under the progress bar block
-            const progressBlock = pb.closest(".mb-4") || pb.parentElement;
-
-            if (!document.getElementById("summaryCounters")) {
-                const ul = document.createElement("ul");
-                ul.id = "summaryCounters";
-                ul.className = "mt-4 divide-y divide-gray-200 text-sm";
-                ul.innerHTML = `
-      <li class="flex items-center justify-between py-2">
-        <span class="text-gray-700">Required Items Completed</span>
-        <span id="reqItems" class="font-medium text-gray-900">0/0</span>
-      </li>
-      <li class="flex items-center justify-between py-2">
-        <span class="text-gray-700">Items Requiring Maintenance</span>
-        <span id="maintItems" class="font-medium text-orange-500">0</span>
-      </li>
-      <li class="flex items-center justify-between py-2">
-        <span class="text-gray-700">Damaged Items</span>
-        <span id="damagedItems" class="font-medium text-red-700">0</span>
-      </li>`;
-                progressBlock.insertAdjacentElement("afterend", ul);
-            }
-
-            return {
-                req: document.getElementById("reqItems"),
-                maint: document.getElementById("maintItems"),
-                totalmaint: document.getElementById("total-maint-hold"),
-                dmg: document.getElementById("damagedItems"),
-            };
-        }
-
+  
     </script>
 
 

@@ -338,61 +338,44 @@
                                                 $rowUpgradeBelow = filter_var($rowState['upgrade_is_below_value'] ?? $row->upgrade_is_below_value ?? false, FILTER_VALIDATE_BOOLEAN);
                                                 $rowCautionBelow = filter_var($rowState['caution_if_below_value'] ?? $row->caution_if_below_value ?? false, FILTER_VALIDATE_BOOLEAN);
                                             @endphp
-                                            <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="{{ $row->criteria_key }}">
-                                                <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[{{ $row->criteria_key }}][enabled]" value="1">
-                                                <input type="hidden" class="kc-hidden-threshold" name="critical_matching_criteria[{{ $row->criteria_key }}][threshold]" value="{{ $rowThreshold }}">
-                                                <input type="hidden" class="kc-hidden-weight" name="critical_matching_criteria[{{ $row->criteria_key }}][weight]" value="{{ $rowWeight }}">
-                                                {{-- enable toggle --}}
-                                                <button type="button" role="switch" aria-checked="true" style="display:none;"
-                                                    class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none bg-teal-400">
-                                                    <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 translate-x-4"></span>
-                                                </button>
-
-                                                {{-- label --}}
+                                            <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="{{ $row->criteria_key }}" data-threshold="{{ $rowThreshold }}">
                                                 <span class="kc-criteria-label w-36 text-sm text-gray-700">{{ $row->name }}</span>
-
-                                                {{-- weight label + slider --}}
-                                                <span class="text-xs font-medium text-gray-500">Weight</span>
-                                                <input type="range" min="0" max="100" value="{{ $rowWeight }}"
-                                                    class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 disabled:opacity-40"
-                                                    disabled>
+                                                <span class="kc-criteria-unit w-8 text-xs text-gray-500">{{ $row->unit ?? '' }}</span>
+                                                <span class="text-xs font-medium text-gray-500">Weight:</span>
+                                                <div class="flex-1 min-w-[100px] h-1.5 bg-gray-200 rounded-full overflow-hidden relative">
+                                                    <div class="absolute left-0 top-0 h-full bg-teal-400 rounded-full" style="width: {{ $rowWeight }}%"></div>
+                                                </div>
                                                 <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">{{ $rowWeight }}</span>
-
-                                                {{-- per-criteria flags --}}
                                                 <div class="w-full pt-1 space-y-2">
                                                     <div class="grid gap-2 md:grid-cols-2">
-                                                        <label class="flex items-center gap-2 cursor-pointer select-none">
-                                                            <input type="hidden" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_exceeds_value]" value="0">
-                                                            <input type="checkbox" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_exceeds_value]" value="1"
-                                                                data-row="1"
-                                                                class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
-                                                                {{ $rowUpgradeExceeds ? 'checked' : '' }} disabled>
+                                                        <label class="flex items-center gap-2 select-none">
+                                                            <input type="checkbox" disabled readonly tabindex="-1"
+                                                                data-flag="upgrade-exceeds"
+                                                                class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
+                                                                {{ $rowUpgradeExceeds ? 'checked' : '' }}>
                                                             <span class="text-xs text-gray-600">Upgrade exceeds value</span>
                                                         </label>
-                                                        <label class="flex items-center gap-2 cursor-pointer select-none">
-                                                            <input type="hidden" name="critical_matching_criteria[{{ $row->criteria_key }}][caution_if_below_value]" value="0">
-                                                            <input type="checkbox" name="critical_matching_criteria[{{ $row->criteria_key }}][caution_if_below_value]" value="1"
-                                                                data-row="1"
-                                                                class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
-                                                                {{ $rowCautionBelow ? 'checked' : '' }} disabled>
+                                                        <label class="flex items-center gap-2 select-none">
+                                                            <input type="checkbox" disabled readonly tabindex="-1"
+                                                                data-flag="caution-below"
+                                                                class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
+                                                                {{ $rowCautionBelow ? 'checked' : '' }}>
                                                             <span class="text-xs text-gray-600">Caution if below value</span>
                                                         </label>
                                                     </div>
                                                     <div class="grid gap-2 md:grid-cols-2">
-                                                        <label class="flex items-center gap-2 cursor-pointer select-none">
-                                                            <input type="hidden" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_is_below_value]" value="0">
-                                                            <input type="checkbox" name="critical_matching_criteria[{{ $row->criteria_key }}][upgrade_is_below_value]" value="1"
-                                                                data-row="2"
-                                                                class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
-                                                                {{ $rowUpgradeBelow ? 'checked' : '' }} disabled>
+                                                        <label class="flex items-center gap-2 select-none">
+                                                            <input type="checkbox" disabled readonly tabindex="-1"
+                                                                data-flag="upgrade-below"
+                                                                class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
+                                                                {{ $rowUpgradeBelow ? 'checked' : '' }}>
                                                             <span class="text-xs text-gray-600">Upgrade is below value</span>
                                                         </label>
-                                                        <label class="flex items-center gap-2 cursor-pointer select-none">
-                                                            <input type="hidden" name="critical_matching_criteria[{{ $row->criteria_key }}][caution_if_change_value]" value="0">
-                                                            <input type="checkbox" name="critical_matching_criteria[{{ $row->criteria_key }}][caution_if_change_value]" value="1"
-                                                                data-row="2"
-                                                                class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
-                                                                {{ $rowCautionIfChange ? 'checked' : '' }} disabled>
+                                                        <label class="flex items-center gap-2 select-none">
+                                                            <input type="checkbox" disabled readonly tabindex="-1"
+                                                                data-flag="caution-change"
+                                                                class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
+                                                                {{ $rowCautionIfChange ? 'checked' : '' }}>
                                                             <span class="text-xs text-gray-600">Caution if exceeds value</span>
                                                         </label>
                                                     </div>
@@ -578,6 +561,53 @@
     </div>
 @endsection
 
+@push('css')
+<style>
+    .kc-weight-slider {
+        --kc-weight-progress: 0%;
+        appearance: none;
+        -webkit-appearance: none;
+        border-radius: 9999px;
+        background: linear-gradient(to right, #2dd4bf 0%, #2dd4bf var(--kc-weight-progress), #e5e7eb var(--kc-weight-progress), #e5e7eb 100%);
+    }
+
+    .kc-weight-slider::-webkit-slider-runnable-track {
+        height: 0.375rem;
+        border-radius: 9999px;
+        background: transparent;
+    }
+
+    .kc-weight-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+
+    .kc-weight-slider::-moz-range-track,
+    .kc-weight-slider::-moz-range-progress {
+        height: 0.375rem;
+        border-radius: 9999px;
+    }
+
+    .kc-weight-slider::-moz-range-track {
+        background: #e5e7eb;
+    }
+
+    .kc-weight-slider::-moz-range-progress {
+        background: #2dd4bf;
+    }
+
+    .kc-weight-slider::-moz-range-thumb {
+        width: 0;
+        height: 0;
+        border: 0;
+        opacity: 0;
+    }
+</style>
+@endpush
+
 @push('js')
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -630,52 +660,7 @@
 
             // ── Criteria row toggles + sliders ──────────────────────
             function wireCriteriaRow(row) {
-                const toggle = row.querySelector('.kc-criteria-toggle');
-                const threshold = row.querySelector('.kc-threshold-input');
-                const slider = row.querySelector('.kc-weight-slider');
-                const weightVal = row.querySelector('.kc-weight-value');
-                const hiddenEnabled = row.querySelector('.kc-hidden-enabled');
-                const hiddenThreshold = row.querySelector('.kc-hidden-threshold');
-                const hiddenWeight = row.querySelector('.kc-hidden-weight');
-
-                function syncHiddenValues() {
-                    if (hiddenEnabled) hiddenEnabled.value = '1';
-                    if (hiddenThreshold && threshold) hiddenThreshold.value = threshold.value;
-                    if (hiddenWeight && slider) hiddenWeight.value = slider.value;
-                }
-
-                function setRowEnabled(enabled) {
-                    toggle?.setAttribute('aria-checked', enabled ? 'true' : 'false');
-                    toggle?.classList.toggle('bg-teal-400', enabled);
-                    toggle?.classList.toggle('bg-gray-200', !enabled);
-                    const thumb = toggle?.querySelector('span');
-                    if (thumb) {
-                        thumb.classList.toggle('translate-x-4', enabled);
-                        thumb.classList.toggle('translate-x-0', !enabled);
-                    }
-                    if (threshold) threshold.disabled = !enabled;
-                    if (slider) slider.disabled = !enabled;
-                    syncHiddenValues();
-                }
-
-                toggle?.addEventListener('click', function () {
-                    const current = this.getAttribute('aria-checked') === 'true';
-                    setRowEnabled(!current);
-                });
-
-                slider?.addEventListener('input', function () {
-                    if (weightVal) weightVal.textContent = this.value;
-                    syncHiddenValues();
-                });
-
-                threshold?.addEventListener('input', function () {
-                    syncHiddenValues();
-                });
-
-                if (slider && weightVal) {
-                    weightVal.textContent = slider.value;
-                }
-                setRowEnabled(true);
+                return row;
             }
 
             document.querySelectorAll('.kc-criteria-row').forEach(wireCriteriaRow);
@@ -709,6 +694,7 @@
 
             let editingCriteriaIndex = null;
             let criteriaLibrary = [];
+            const criteriaValueState = {};
 
             function currentCategoryId() {
                 const value = String(categorySelect?.value ?? '').trim();
@@ -734,16 +720,24 @@
 
             function readCriteriaLibraryFromRows() {
                 criteriaLibrary = Array.from(document.querySelectorAll('.kc-criteria-row')).map((row) => {
+                    const key = row.dataset.key || 'criteria';
+                    const thresholdText = row.dataset.threshold || '';
+                    const weightText = row.querySelector('.kc-weight-value')?.textContent?.trim() || '50';
+                    criteriaValueState[key] = {
+                        threshold: thresholdText,
+                        weight: Number(weightText || 50),
+                    };
+
                     return {
                         id: null,
-                        key: row.dataset.key || 'criteria',
+                        key,
                         name: row.querySelector('.kc-criteria-label')?.textContent?.trim() || 'Criteria',
                         unit: row.querySelector('.kc-criteria-unit')?.textContent?.trim() || '',
-                        defaultWeight: Number(row.querySelector('.kc-weight-slider')?.value || 50),
-                        upgradeExceedsValue: row.querySelector('input[type="checkbox"][name*="[upgrade_exceeds_value]"]')?.checked ?? true,
-                        cautionIfChangeValue: row.querySelector('input[type="checkbox"][name*="[caution_if_change_value]"]')?.checked ?? false,
-                        upgradeIsBelowValue: row.querySelector('input[type="checkbox"][name*="[upgrade_is_below_value]"]')?.checked ?? false,
-                        cautionIfBelowValue: row.querySelector('input[type="checkbox"][name*="[caution_if_below_value]"]')?.checked ?? false,
+                        defaultWeight: Number(weightText || 50),
+                        upgradeExceedsValue: row.querySelector('input[data-flag="upgrade-exceeds"]')?.checked ?? true,
+                        cautionIfChangeValue: row.querySelector('input[data-flag="caution-change"]')?.checked ?? false,
+                        upgradeIsBelowValue: row.querySelector('input[data-flag="upgrade-below"]')?.checked ?? false,
+                        cautionIfBelowValue: row.querySelector('input[data-flag="caution-below"]')?.checked ?? false,
                     };
                 });
             }
@@ -757,83 +751,59 @@
                     return;
                 }
 
-                const currentStateByKey = {};
-                criteriaRowsWrap.querySelectorAll('.kc-criteria-row').forEach((row) => {
-                    const key = row.dataset.key;
-                    if (!key) return;
-                    currentStateByKey[key] = {
-                        enabled: true,
-                        threshold: row.querySelector('.kc-hidden-threshold')?.value ?? '',
-                        weight: row.querySelector('.kc-hidden-weight')?.value ?? row.querySelector('.kc-weight-slider')?.value ?? '50',
-                        upgradeExceeds: row.querySelector('input[type="checkbox"][name*="[upgrade_exceeds_value]"]')?.checked ?? true,
-                        cautionIfChange: row.querySelector('input[type="checkbox"][name*="[caution_if_change_value]"]')?.checked ?? false,
-                        upgradeBelow: row.querySelector('input[type="checkbox"][name*="[upgrade_is_below_value]"]')?.checked ?? false,
-                        cautionBelow: row.querySelector('input[type="checkbox"][name*="[caution_if_below_value]"]')?.checked ?? false,
-                    };
-                });
-
                 criteriaRowsWrap.innerHTML = criteriaLibrary.map((item) => {
                     const key = item.key || criteriaKeyFromName(item.name);
                     const safeName = escapeHtml(item.name || 'Criteria');
                     const safeUnit = escapeHtml(item.unit || '');
-                    const state = currentStateByKey[key] || {};
-                    const enabled = true;
+                    const state = criteriaValueState[key] || {};
                     const threshold = String(state.threshold ?? '');
                     const weight = Number(state.weight ?? item.defaultWeight ?? 50);
-                    const upgradeExceeds = key in currentStateByKey ? Boolean(state.upgradeExceeds) : (item.upgradeExceedsValue !== false);
-                    const cautionIfChange = key in currentStateByKey ? Boolean(state.cautionIfChange) : (item.cautionIfChangeValue === true);
-                    const upgradeBelow = key in currentStateByKey ? Boolean(state.upgradeBelow) : (item.upgradeIsBelowValue === true);
-                    const cautionBelow = key in currentStateByKey ? Boolean(state.cautionBelow) : (item.cautionIfBelowValue === true);
+                    const upgradeExceeds = item.upgradeExceedsValue !== false;
+                    const cautionIfChange = item.cautionIfChangeValue === true;
+                    const upgradeBelow = item.upgradeIsBelowValue === true;
+                    const cautionBelow = item.cautionIfBelowValue === true;
 
                     return `
-                        <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="${key}">
-                            <input type="hidden" class="kc-hidden-enabled" name="critical_matching_criteria[${key}][enabled]" value="1">
-                            <input type="hidden" class="kc-hidden-threshold" name="critical_matching_criteria[${key}][threshold]" value="${escapeHtml(threshold)}">
-                            <input type="hidden" class="kc-hidden-weight" name="critical_matching_criteria[${key}][weight]" value="${weight}">
-                            <button type="button" role="switch" aria-checked="true" style="display:none;"
-                                class="kc-criteria-toggle relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-teal-400 transition-colors duration-200 focus:outline-none">
-                                <span class="inline-block h-4 w-4 translate-x-4 rounded-full bg-white shadow transition-transform duration-200"></span>
-                            </button>
+                        <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3" data-key="${key}" data-threshold="${escapeHtml(threshold)}">
                             <span class="kc-criteria-label w-36 text-sm text-gray-700">${safeName}</span>
-                            <input type="number" min="0" placeholder="0" value="${escapeHtml(threshold)}"
-                                class="kc-threshold-input w-20 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:opacity-40">
                             <span class="kc-criteria-unit w-8 text-xs text-gray-500">${safeUnit}</span>
-                            <span class="text-xs font-medium text-gray-500">Weight</span>
-                            <input type="range" min="0" max="100" value="${weight}"
-                                class="kc-weight-slider h-1.5 flex-1 min-w-[100px] accent-teal-400 opacity-60 cursor-not-allowed pointer-events-none" tabindex="-1" disabled readonly>
+                            <span class="text-xs font-medium text-gray-500">Weight:</span>
+                            <div class="flex-1 min-w-[100px] h-1.5 bg-gray-200 rounded-full overflow-hidden relative">
+                                <div class="absolute left-0 top-0 h-full bg-teal-400 rounded-full" style="width: ${weight}%"></div>
+                            </div>
                             <span class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">${weight}</span>
                             <div class="w-full pt-1 space-y-2">
                                 <div class="grid gap-2 md:grid-cols-2">
-                                    <input type="hidden" name="critical_matching_criteria[${key}][upgrade_exceeds_value]" value="${upgradeExceeds ? '1' : '0'}">
-                                    <div class="flex items-center gap-2">
-                                        <span class="inline-flex h-3.5 w-3.5 items-center justify-center rounded ${upgradeExceeds ? 'bg-teal-500' : 'bg-gray-300'} text-white">
-                                            ${upgradeExceeds ? '<svg class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.415 0l-3-3a1 1 0 111.415-1.42l2.293 2.295 6.543-6.545a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : ''}
-                                        </span>
+                                    <label class="flex items-center gap-2 select-none">
+                                        <input type="checkbox" disabled readonly tabindex="-1"
+                                            data-flag="upgrade-exceeds"
+                                            class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
+                                            ${upgradeExceeds ? 'checked' : ''}>
                                         <span class="text-xs text-gray-600">Upgrade exceeds value</span>
-                                    </div>
-                                    <input type="hidden" name="critical_matching_criteria[${key}][caution_if_below_value]" value="${cautionBelow ? '1' : '0'}">
-                                    <div class="flex items-center gap-2">
-                                        <span class="inline-flex h-3.5 w-3.5 items-center justify-center rounded ${cautionBelow ? 'bg-teal-500' : 'bg-gray-300'} text-white">
-                                            ${cautionBelow ? '<svg class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.415 0l-3-3a1 1 0 111.415-1.42l2.293 2.295 6.543-6.545a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : ''}
-                                        </span>
+                                    </label>
+                                    <label class="flex items-center gap-2 select-none">
+                                        <input type="checkbox" disabled readonly tabindex="-1"
+                                            data-flag="caution-below"
+                                            class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
+                                            ${cautionBelow ? 'checked' : ''}>
                                         <span class="text-xs text-gray-600">Caution if below value</span>
-                                    </div>
+                                    </label>
                                 </div>
                                 <div class="grid gap-2 md:grid-cols-2">
-                                    <input type="hidden" name="critical_matching_criteria[${key}][upgrade_is_below_value]" value="${upgradeBelow ? '1' : '0'}">
-                                    <div class="flex items-center gap-2">
-                                        <span class="inline-flex h-3.5 w-3.5 items-center justify-center rounded ${upgradeBelow ? 'bg-teal-500' : 'bg-gray-300'} text-white">
-                                            ${upgradeBelow ? '<svg class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.415 0l-3-3a1 1 0 111.415-1.42l2.293 2.295 6.543-6.545a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : ''}
-                                        </span>
+                                    <label class="flex items-center gap-2 select-none">
+                                        <input type="checkbox" disabled readonly tabindex="-1"
+                                            data-flag="upgrade-below"
+                                            class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
+                                            ${upgradeBelow ? 'checked' : ''}>
                                         <span class="text-xs text-gray-600">Upgrade is below value</span>
-                                    </div>
-                                    <input type="hidden" name="critical_matching_criteria[${key}][caution_if_change_value]" value="${cautionIfChange ? '1' : '0'}">
-                                    <div class="flex items-center gap-2">
-                                        <span class="inline-flex h-3.5 w-3.5 items-center justify-center rounded ${cautionIfChange ? 'bg-teal-500' : 'bg-gray-300'} text-white">
-                                            ${cautionIfChange ? '<svg class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.415 0l-3-3a1 1 0 111.415-1.42l2.293 2.295 6.543-6.545a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : ''}
-                                        </span>
+                                    </label>
+                                    <label class="flex items-center gap-2 select-none">
+                                        <input type="checkbox" disabled readonly tabindex="-1"
+                                            data-flag="caution-change"
+                                            class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
+                                            ${cautionIfChange ? 'checked' : ''}>
                                         <span class="text-xs text-gray-600">Caution if exceeds value</span>
-                                    </div>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -1052,6 +1022,10 @@
                             upgradeIsBelowValue: data.item.upgrade_is_below_value === true,
                             cautionIfBelowValue: data.item.caution_if_below_value === true,
                         });
+                        criteriaValueState[data.item.key] = criteriaValueState[data.item.key] || {
+                            threshold: '',
+                            weight: Number(data.item.default_weight ?? 50),
+                        };
                     }
                 } else {
                     const item = criteriaLibrary[editingCriteriaIndex];
@@ -1079,6 +1053,10 @@
                             cautionIfChangeValue: data.item.caution_if_change_value === true,
                             upgradeIsBelowValue: data.item.upgrade_is_below_value === true,
                             cautionIfBelowValue: data.item.caution_if_below_value === true,
+                        };
+                        criteriaValueState[data.item.key] = {
+                            threshold: criteriaValueState[data.item.key]?.threshold ?? '',
+                            weight: Number(data.item.default_weight ?? 50),
                         };
                     }
                 }
@@ -1197,9 +1175,9 @@
 
             const rows = Array.from(document.querySelectorAll('.kc-criteria-row')).map((row) => {
                 const label = row.querySelector('.kc-criteria-label')?.textContent?.trim() || '';
-                const threshold = row.querySelector('.kc-hidden-threshold')?.value ?? row.querySelector('.kc-threshold-input')?.value ?? '';
+                const threshold = row.dataset.threshold || '';
                 const unit = row.querySelector('.kc-criteria-unit')?.textContent?.trim() || '';
-                const enabled = row.querySelector('.kc-hidden-enabled')?.value === '1';
+                const enabled = true;
                 return { label, threshold, unit, enabled };
             }).filter((item) => item.enabled && String(item.threshold ?? '').trim() !== '');
 
@@ -1255,20 +1233,21 @@
                 if (!key || !Object.prototype.hasOwnProperty.call(criteriaState, key)) return;
 
                 const nextState = criteriaState[key] || {};
-                const hiddenThreshold = row.querySelector('.kc-hidden-threshold');
-                const thresholdInput = row.querySelector('.kc-threshold-input');
-                const hiddenWeight = row.querySelector('.kc-hidden-weight');
-                const weightSlider = row.querySelector('.kc-weight-slider');
-                const weightValue = row.querySelector('.kc-weight-value');
+                const thresholdText = String(nextState.threshold ?? '').trim();
+                const current = criteriaValueState[key] || {};
+                criteriaValueState[key] = {
+                    threshold: thresholdText,
+                    weight: nextState.weight !== undefined ? Number(nextState.weight) : Number(current.weight ?? 50),
+                };
+                row.dataset.threshold = thresholdText;
 
-                if (hiddenThreshold) hiddenThreshold.value = nextState.threshold ?? '';
-                if (thresholdInput) thresholdInput.value = nextState.threshold ?? '';
-
-                if (hiddenWeight && nextState.weight !== undefined) hiddenWeight.value = nextState.weight;
-                if (weightSlider && nextState.weight !== undefined) weightSlider.value = nextState.weight;
-                if (weightValue && nextState.weight !== undefined) weightValue.textContent = String(nextState.weight);
+                if (nextState.weight !== undefined) {
+                    const target = criteriaLibrary.find((item) => item.key === key);
+                    if (target) target.defaultWeight = Number(nextState.weight);
+                }
             });
 
+            renderCriteriaRowsFromLibrary();
             renderKeyComparisonPreview();
         }
 
@@ -1314,14 +1293,8 @@
         renderKeyComparisonPreview();
         renderEquipmentSpecsPreview(specState || []);
 
-        document.addEventListener('input', (event) => {
-            if (event.target.closest('.kc-threshold-input')) {
-                renderKeyComparisonPreview();
-            }
-        });
-
         document.addEventListener('click', (event) => {
-            if (event.target.closest('.kc-criteria-toggle') || event.target.closest('#kc-modal-done')) {
+            if (event.target.closest('#kc-modal-done')) {
                 requestAnimationFrame(renderKeyComparisonPreview);
             }
         });

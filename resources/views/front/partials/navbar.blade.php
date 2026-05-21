@@ -29,8 +29,8 @@
 <nav class="text-dark border-b border-b-neutral-800 fixed w-full mt-0 z-[9999] bg-neutral-800 bg-opacity-100 no-print">
     <div class="container !px-0">
         <div class="max-w-7xl mx-auto py-1.5 flex items-center px-4">
-            <a href="{{ route('front.home.index') }}" class="1/6">
-                <img src="{{ $logo }}" alt="" class="h-full md:w-23 w-40">
+            <a href="{{ route('front.home.index') }}" >
+                <img src="{{ $logo }}" alt="" class="w-auto">
             </a>
             <div class="flex space-x-4 5/6 w-full items-center justify-right text-white ml-5"">
                 <ul class=" lg:flex hidden flex items-center gap-6">

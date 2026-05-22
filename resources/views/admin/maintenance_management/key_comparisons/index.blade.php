@@ -113,6 +113,38 @@
         </div>
     </div>
 </div>
+
+<div id="kc-ai-spec-modal" class="fixed inset-0 z-[9999] hidden">
+    <div id="kc-ai-spec-modal-overlay" class="absolute inset-0 bg-gray-900/40"></div>
+    <div class="relative z-10 flex min-h-full items-center justify-center p-4">
+        <div class="w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-xl">
+            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                <h3 class="text-base font-semibold text-gray-900">Create Specification</h3>
+                <button type="button" id="kc-ai-spec-modal-close" class="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-4 px-5 py-4">
+                <div>
+                    <label class="mb-1 block text-xs font-semibold text-gray-600">Name</label>
+                    <input id="kc-ai-spec-name" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none" placeholder="e.g. Engine Type">
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold text-gray-600">Unit</label>
+                    <input id="kc-ai-spec-unit" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none" placeholder="e.g. cc, hp">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4">
+                <button id="kc-ai-spec-modal-cancel" type="button" class="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100">Cancel</button>
+                <button id="kc-ai-spec-modal-save" type="button" class="rounded-lg bg-teal-600 px-5 py-2 text-sm font-semibold text-white hover:bg-teal-700">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('js')
@@ -141,6 +173,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalSave = document.getElementById('kc-modal-save');
     const modalTitle = document.getElementById('kc-modal-title');
 
+    const aiSpecModal = document.getElementById('kc-ai-spec-modal');
+    const aiSpecModalOverlay = document.getElementById('kc-ai-spec-modal-overlay');
+    const aiSpecModalClose = document.getElementById('kc-ai-spec-modal-close');
+    const aiSpecModalCancel = document.getElementById('kc-ai-spec-modal-cancel');
+    const aiSpecModalSave = document.getElementById('kc-ai-spec-modal-save');
+    const aiSpecNameInput = document.getElementById('kc-ai-spec-name');
+    const aiSpecUnitInput = document.getElementById('kc-ai-spec-unit');
+
     const nameInput = document.getElementById('kc-name');
     const unitInput = document.getElementById('kc-unit');
     const weightInput = document.getElementById('kc-weight');
@@ -153,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const LIST_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
     const ADD_URL_BASE = @json(route('admin.maintenance-management.key-comparisons.criteria.add', ['criteria_id' => '__ID__']));
     const STORE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.store'));
+    const AI_SPEC_STORE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.ai-specifications.store'));
     const UPDATE_BASE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     let isLoadingCriteria = false;
@@ -257,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" data-edit-id="${item.id}" class="rounded-md border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50">Edit</button>
-                        <button type="button" data-delete-id="${item.id}" class="rounded-md border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50">Delete</button>
+                        <button type="button" data-delete-id="${item.id}" class="hidden rounded-md border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50">Delete</button>
                     </div>
                 </div>
                 <div class="mt-3 h-2 w-full rounded-full bg-gray-200">
@@ -345,12 +386,24 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        const aiCreateButton = `
+            <button type="button" data-kc-action="open-ai-spec-modal" class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-100">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Create Specification
+            </button>
+        `;
+
         const aiSection = aiSpecs.length ? `
             <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
                 <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
-                        <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
+                            <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                        </div>
+                        ${aiCreateButton}
                     </div>
                 </div>
                 <div class="grid grid-cols-1 divide-y divide-gray-200 md:grid-cols-2 md:divide-x md:divide-y-0">
@@ -359,7 +412,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         ` : `
-            <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">No AI-pulled specifications found for this category.</div>
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
+                            <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                        </div>
+                        ${aiCreateButton}
+                    </div>
+                </div>
+                <div class="p-6 text-center text-sm text-gray-500">No AI-pulled specifications found for this category.</div>
+            </div>
         `;
 
         aiListEl.innerHTML = `
@@ -452,6 +516,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.remove('overflow-hidden');
     }
 
+    function resetAiSpecForm() {
+        aiSpecNameInput.value = '';
+        aiSpecUnitInput.value = '';
+    }
+
+    function openAiSpecModal() {
+        aiSpecModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        aiSpecNameInput.focus();
+    }
+
+    function closeAiSpecModal() {
+        aiSpecModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
     function updateCategoryCount(delta) {
         const category = activeCategory();
         if (!category) return;
@@ -467,6 +547,10 @@ document.addEventListener('DOMContentLoaded', () => {
     modalOverlay?.addEventListener('click', closeModal);
     modalClose?.addEventListener('click', closeModal);
     modalCancel?.addEventListener('click', closeModal);
+
+    aiSpecModalOverlay?.addEventListener('click', closeAiSpecModal);
+    aiSpecModalClose?.addEventListener('click', closeAiSpecModal);
+    aiSpecModalCancel?.addEventListener('click', closeAiSpecModal);
 
     weightInput?.addEventListener('input', () => {
         weightLabel.textContent = weightInput.value;
@@ -553,6 +637,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     aiListEl?.addEventListener('click', async (event) => {
+        const createButton = event.target.closest('[data-kc-action="open-ai-spec-modal"]');
+        if (createButton) {
+            resetAiSpecForm();
+            openAiSpecModal();
+            return;
+        }
+
         const button = event.target.closest('[data-toggle-criteria-id]');
         if (!button) return;
 
@@ -565,6 +656,41 @@ document.addEventListener('DOMContentLoaded', () => {
             await toggleAiCriteria(criteriaId, action);
         } finally {
             button.disabled = false;
+        }
+    });
+
+    aiSpecModalSave?.addEventListener('click', async () => {
+        const payload = {
+            category_id: selectedCategoryId,
+            name: aiSpecNameInput.value.trim(),
+            unit: aiSpecUnitInput.value.trim(),
+        };
+
+        if (!payload.name) {
+            aiSpecNameInput.focus();
+            return;
+        }
+
+        aiSpecModalSave.disabled = true;
+        try {
+            const res = await fetch(AI_SPEC_STORE_URL, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': CSRF,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                closeAiSpecModal();
+                resetAiSpecForm();
+                await loadCriteria(selectedCategoryId);
+            }
+        } finally {
+            aiSpecModalSave.disabled = false;
         }
     });
 

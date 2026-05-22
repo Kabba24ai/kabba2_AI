@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\EquipmentCriticalMatchingCriterion;
+use App\Models\MaintenanceManagement\EquipmentSpecification;
 use App\Models\ProductManagement\ProductCategory;
 use Illuminate\Http\Request;
 
@@ -13,6 +14,7 @@ class IndexController extends Controller
     {
         $criteriaCountsByCategory = EquipmentCriticalMatchingCriterion::query()
             ->where('is_active', true)
+            ->where('is_key_criteria', true)
             ->selectRaw('product_category_id, COUNT(*) as total')
             ->groupBy('product_category_id')
             ->pluck('total', 'product_category_id');
@@ -36,11 +38,13 @@ class IndexController extends Controller
             $activeCategoryId = (int) ($categories->first()['id'] ?? 0);
         }
 
+        $initialAiSpecs = collect();
         $initialCriteria = collect();
         if ($activeCategoryId > 0) {
             $initialCriteria = EquipmentCriticalMatchingCriterion::query()
                 ->where('product_category_id', $activeCategoryId)
                 ->where('is_active', true)
+                ->where('is_key_criteria', true)
                 ->orderBy('sort_order')
                 ->orderBy('id')
                 ->get()
@@ -56,15 +60,43 @@ class IndexController extends Controller
                         'upgrade_is_below_value' => (bool) $item->upgrade_is_below_value,
                         'caution_if_below_value' => (bool) $item->caution_if_below_value,
                         'sort_order' => (int) $item->sort_order,
+                        'is_key_criteria' => (bool) $item->is_key_criteria,
+                        'source_type' => (string) ($item->source_type ?? 'manual'),
                     ];
                 })
                 ->values();
+
+            $initialAiSpecs = $this->getAiSpecs($activeCategoryId);
         }
 
         return view('admin.maintenance_management.key_comparisons.index', [
             'categories' => $categories->toArray(),
             'activeCategoryId' => $activeCategoryId,
             'initialCriteria' => $initialCriteria->toArray(),
+            'initialAiSpecs' => $initialAiSpecs,
         ]);
+    }
+
+    private function getAiSpecs(int $categoryId): array
+    {
+        return EquipmentCriticalMatchingCriterion::query()
+            ->where('product_category_id', $categoryId)
+            ->where('is_active', true)
+            ->where('source_type', 'ai')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => (int) $item->id,
+                    'spec_key' => (string) ($item->criteria_key ?? ''),
+                    'spec_label' => (string) ($item->name ?? ''),
+                    'unit' => (string) ($item->unit ?? ''),
+                    'is_key_criteria' => (bool) $item->is_key_criteria,
+                    'source_type' => (string) ($item->source_type ?? 'ai'),
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

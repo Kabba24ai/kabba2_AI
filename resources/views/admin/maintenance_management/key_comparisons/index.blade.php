@@ -11,12 +11,12 @@
                     <h1 class="text-2xl font-semibold text-gray-900">Key Comparisons</h1>
                     <p class="mt-1 text-sm text-gray-500">Manage matching criteria libraries by equipment category</p>
                 </div>
-                <button id="kc-open-form" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                {{-- <button id="kc-open-form" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Add Criterion
-                </button>
+                </button> --}}
             </div>
         </div>
 
@@ -32,9 +32,19 @@
                         <h2 id="kc-active-category" class="text-lg font-semibold text-gray-900">Category</h2>
                         <p class="text-xs text-gray-500">Matching criteria library applied to this category.</p>
                     </div>
+                    <div class="inline-flex rounded-lg border border-gray-200 bg-white p-1">
+                        <button type="button" data-kc-tab="property" class="kc-tab-btn rounded-md px-3 py-1.5 text-sm font-semibold text-gray-600">Property</button>
+                        <button type="button" data-kc-tab="ai-table" class="kc-tab-btn rounded-md px-3 py-1.5 text-sm font-semibold text-gray-600">AI Table</button>
+                    </div>
                 </div>
 
-                <div id="kc-criteria-list" class="space-y-3"></div>
+                <div id="kc-criteria-panel">
+                    <div id="kc-criteria-list" class="space-y-3"></div>
+                </div>
+
+                <div id="kc-ai-panel" class="hidden">
+                    <div id="kc-ai-list"></div>
+                </div>
             </section>
         </div>
     </div>
@@ -111,12 +121,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const categories = @json($categories ?? []);
     let selectedCategoryId = Number(@json($activeCategoryId ?? 0));
     let criteria = @json($initialCriteria ?? []);
+    let aiSpecs = @json($initialAiSpecs ?? []);
     let editingId = null;
+    let activeTab = 'property';
 
     const categoryListEl = document.getElementById('kc-category-list');
     const criteriaListEl = document.getElementById('kc-criteria-list');
     const activeCategoryEl = document.getElementById('kc-active-category');
     const openFormBtn = document.getElementById('kc-open-form');
+    const criteriaPanelEl = document.getElementById('kc-criteria-panel');
+    const aiPanelEl = document.getElementById('kc-ai-panel');
+    const aiListEl = document.getElementById('kc-ai-list');
+    const tabButtons = Array.from(document.querySelectorAll('.kc-tab-btn'));
 
     const modal = document.getElementById('kc-modal');
     const modalOverlay = document.getElementById('kc-modal-overlay');
@@ -135,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cautionBelowInput = document.getElementById('kc-caution-below');
 
     const LIST_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
+    const ADD_URL_BASE = @json(route('admin.maintenance-management.key-comparisons.criteria.add', ['criteria_id' => '__ID__']));
     const STORE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.store'));
     const UPDATE_BASE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
@@ -253,6 +270,125 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
+    function renderTabs() {
+        tabButtons.forEach((button) => {
+            const isActive = button.dataset.kcTab === activeTab;
+            button.classList.toggle('bg-emerald-600', isActive);
+            button.classList.toggle('text-white', isActive);
+            button.classList.toggle('shadow-sm', isActive);
+            button.classList.toggle('text-gray-600', !isActive);
+        });
+
+        criteriaPanelEl.classList.toggle('hidden', activeTab !== 'property');
+        aiPanelEl.classList.toggle('hidden', activeTab !== 'ai-table');
+    }
+
+    function renderAiSpecs() {
+        if (isLoadingCriteria) {
+            aiListEl.innerHTML = `
+                <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden animate-pulse">
+                    <div class="border-b border-gray-100 px-4 py-3">
+                        <div class="h-4 w-40 rounded bg-gray-200"></div>
+                    </div>
+                    <div class="space-y-3 p-4">
+                        <div class="h-10 rounded bg-gray-100"></div>
+                        <div class="h-10 rounded bg-gray-100"></div>
+                        <div class="h-10 rounded bg-gray-100"></div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const renderRows = (items, labelField = 'spec_label', mode = 'plain') => items.length
+            ? items.map((item) => {
+                const isKey = item.is_key_criteria === true;
+                const removeBtn = `<button type="button" data-toggle-criteria-id="${item.id}" data-toggle-action="remove" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-red-200 text-red-500 hover:bg-red-50" title="Delete" aria-label="Delete key comparison"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>`;
+                const addBtn = `<button type="button" data-toggle-criteria-id="${item.id}" data-toggle-action="add" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-teal-200 text-teal-600 hover:bg-teal-50" title="Add to key comparison" aria-label="Add to key comparison"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg></button>`;
+                const actionButton = mode === 'key' ? removeBtn : (mode === 'ai' && !isKey ? addBtn : '');
+
+                return `
+                    <div class="flex items-center justify-between gap-3 px-5 py-3 text-sm bg-white border-b border-gray-200 last:border-b-0">
+                        <div class="flex flex-1 items-center gap-3">
+                            ${actionButton}
+                            <span class="text-gray-600 block">${esc(item[labelField] || item.spec_key || '-')}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs ${isKey ? 'rounded-full bg-emerald-50 px-2 py-1 font-semibold text-emerald-700' : 'rounded-full bg-gray-100 px-2 py-1 font-semibold text-gray-500'}">${isKey ? 'In key data' : 'AI only'}</span>
+                            <span class="text-right font-semibold text-gray-900">${esc(item.unit || '-')}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('')
+            : '<div class="px-5 py-3 text-sm text-gray-500">No items found.</div>';
+
+        const criteriaMidpoint = Math.ceil(criteria.length / 2);
+        const criteriaLeftRows = criteria.slice(0, criteriaMidpoint);
+        const criteriaRightRows = criteria.slice(criteriaMidpoint);
+
+        const aiMidpoint = Math.ceil(aiSpecs.length / 2);
+        const aiLeftRows = aiSpecs.slice(0, aiMidpoint);
+        const aiRightRows = aiSpecs.slice(aiMidpoint);
+
+        const keyComparisonSection = `
+            <div class="mb-5 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900">Key Comparison Data</h3>
+                        <p class="text-xs text-gray-500">Critical specification definitions for the selected category.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 divide-y divide-gray-200 md:grid-cols-2 md:divide-x md:divide-y-0">
+                    <div class="divide-y divide-gray-200">${criteria.length ? renderRows(criteriaLeftRows, 'name', 'key') : '<div class="px-5 py-3 text-sm text-gray-500">No key comparison data found for this category.</div>'}</div>
+                    <div class="divide-y divide-gray-200">${criteria.length ? renderRows(criteriaRightRows, 'name', 'key') : '<div class="px-5 py-3 text-sm text-gray-500">No key comparison data found for this category.</div>'}</div>
+                </div>
+            </div>
+        `;
+
+        const aiSection = aiSpecs.length ? `
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
+                        <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 divide-y divide-gray-200 md:grid-cols-2 md:divide-x md:divide-y-0">
+                    <div class="divide-y divide-gray-200">${renderRows(aiLeftRows, 'spec_label', 'ai')}</div>
+                    <div class="divide-y divide-gray-200">${renderRows(aiRightRows, 'spec_label', 'ai')}</div>
+                </div>
+            </div>
+        ` : `
+            <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">No AI-pulled specifications found for this category.</div>
+        `;
+
+        aiListEl.innerHTML = `
+            ${keyComparisonSection}
+            ${aiSection}
+        `;
+    }
+
+    async function toggleAiCriteria(criteriaId, action) {
+        const url = new URL(action === 'add'
+            ? ADD_URL_BASE.replace('__ID__', String(criteriaId))
+            : `${UPDATE_BASE_URL}/${criteriaId}`, window.location.origin);
+
+        const res = await fetch(url.toString(), {
+            method: action === 'add' ? 'POST' : 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': CSRF,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ category_id: selectedCategoryId }),
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            await loadCriteria(selectedCategoryId);
+        }
+    }
+
     async function loadCriteria(categoryId) {
         const url = new URL(LIST_URL, window.location.origin);
         url.searchParams.set('category_id', String(categoryId));
@@ -266,18 +402,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!res.ok || !data.success) {
                 criteria = [];
+                aiSpecs = [];
                 renderCriteria();
+                renderAiSpecs();
                 return;
             }
 
             criteria = data.items || [];
+            aiSpecs = data.ai_items || [];
+            const category = activeCategory();
+            if (category) {
+                category.criteria_count = criteria.length;
+            }
             renderCriteria();
+            renderAiSpecs();
         } catch (error) {
             criteria = [];
+            aiSpecs = [];
             renderCriteria();
+            renderAiSpecs();
         } finally {
             isLoadingCriteria = false;
             renderCriteria();
+            renderAiSpecs();
         }
     }
 
@@ -337,6 +484,16 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadCriteria(selectedCategoryId);
     });
 
+    tabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const nextTab = button.dataset.kcTab;
+            if (!nextTab || nextTab === activeTab) return;
+
+            activeTab = nextTab;
+            renderTabs();
+        });
+    });
+
     criteriaListEl?.addEventListener('click', async (event) => {
         const editButton = event.target.closest('[data-edit-id]');
         if (editButton) {
@@ -393,6 +550,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCriteria();
             }
         });
+    });
+
+    aiListEl?.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-toggle-criteria-id]');
+        if (!button) return;
+
+        const criteriaId = Number(button.dataset.toggleCriteriaId || 0);
+        const action = button.dataset.toggleAction || 'add';
+        if (!criteriaId) return;
+
+        button.disabled = true;
+        try {
+            await toggleAiCriteria(criteriaId, action);
+        } finally {
+            button.disabled = false;
+        }
     });
 
     modalSave?.addEventListener('click', async () => {
@@ -456,6 +629,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderCategories();
     renderCriteria();
+    renderAiSpecs();
+    renderTabs();
 });
 </script>
 @endpush

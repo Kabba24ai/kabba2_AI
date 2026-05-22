@@ -27,7 +27,10 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CriticalMatchingC
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CriticalMatchingCriteria\StoreController as CriteriaStoreController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CriticalMatchingCriteria\UpdateController as CriteriaUpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\CriticalMatchingCriteria\DeleteController as CriteriaDeleteController;
-use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\Specification\KeyComparisonController as KeyComparisonController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\KeyComparison\IndexController as KeyComparisonIndexController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\KeyComparison\StoreController as KeyComparisonStoreController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\KeyComparison\DeleteController as KeyComparisonDeleteController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\KeyComparison\ReorderController as KeyComparisonReorderController;
 
 
 
@@ -73,8 +76,8 @@ Route::prefix('equipment')
         Route::delete('/{unique_id}/critical-matching-criteria/{criteria_id}', CriteriaDeleteController::class)->name('critical-matching-criteria.delete');
 
         // Key Comparisons
-        Route::get('/{unique_id}/key-comparisons', [KeyComparisonController::class, 'index'])->name('key-comparisons.index');
-        Route::post('/{unique_id}/key-comparisons', [KeyComparisonController::class, 'store'])->name('key-comparisons.store');
-        Route::delete('/{unique_id}/key-comparisons/{comparison_id}', [KeyComparisonController::class, 'destroy'])->name('key-comparisons.destroy');
-        Route::put('/{unique_id}/key-comparisons/reorder', [KeyComparisonController::class, 'reorder'])->name('key-comparisons.reorder');
+        Route::get('/{unique_id}/key-comparisons', KeyComparisonIndexController::class)->name('key-comparisons.index');
+        Route::post('/{unique_id}/key-comparisons', KeyComparisonStoreController::class)->name('key-comparisons.store');
+        Route::delete('/{unique_id}/key-comparisons/{comparison_id}', KeyComparisonDeleteController::class)->name('key-comparisons.destroy');
+        Route::put('/{unique_id}/key-comparisons/reorder', KeyComparisonReorderController::class)->name('key-comparisons.reorder');
     });

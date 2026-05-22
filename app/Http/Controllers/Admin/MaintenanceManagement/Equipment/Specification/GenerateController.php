@@ -63,15 +63,34 @@ class GenerateController extends Controller
             'vin'            => $fromRequest('vin') ?: ($equipment->vehicle_identification_number ?? null),
         ];
 
-        $specKeysList = implode(', ', array_keys(self::SPEC_KEYS));
-        $specKeyCount = count(self::SPEC_KEYS);
+        $criteriaRows = EquipmentCriticalMatchingCriterion::query()
+            ->where('product_category_id', $equipment->product_category_id)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        $requestedSpecs = $this->buildRequestedSpecMap($criteriaRows, $forceKey);
+        $prioritySpecs = $criteriaRows
+            ->mapWithKeys(function (EquipmentCriticalMatchingCriterion $row) use ($requestedSpecs) {
+                $key = trim((string) $row->criteria_key);
+
+                if ($key === '' || !isset($requestedSpecs[$key])) {
+                    return [];
+                }
+
+                return [$key => $requestedSpecs[$key]];
+            })
+            ->all();
+
+        $specKeysList = implode(', ', array_keys($requestedSpecs));
+        $requestedSpecLines = $this->buildPromptSpecLines($requestedSpecs);
+        $prioritySpecLines = $this->buildPromptSpecLines($prioritySpecs);
 
         $userMessage = <<<PROMPT
 You are helping build standardized equipment comparison data for the Kabba rental software platform.
 
 Equipment Category: {$lookupPayload['category']}
-Equipment Make: {$lookupPayload['brand']}
-Equipment Model: {$lookupPayload['model']}
+Equipment Make & Model: {$lookupPayload['brand']} {$lookupPayload['model']}
 
 Task:
 Research the manufacturer-published specifications for the exact equipment make and model listed above. Return standardized general specifications using US-based unit types only.
@@ -93,8 +112,17 @@ Rules:
 10. Do not guess. If sources conflict, use the manufacturer value and mention the conflict in Notes.
 11. Keep Standard Label wording exactly consistent.
 12. Return data in valid JSON format with fields: spec_key, spec_label, value_type, unit_type, value, confidence_score, notes.
+13. Return one JSON object for every requested spec_key below.
+14. If a requested spec_key cannot be found, still return it with value set to null, unit_type set to null, and explain why in notes.
+15. The priority spec_keys are the most important and must be attempted first.
 
 Include all of these spec_keys: [{$specKeysList}]
+
+Priority spec_keys:
+{$prioritySpecLines}
+
+Requested spec_keys and exact labels:
+{$requestedSpecLines}
 
 Output format:
 1. Equipment summary
@@ -130,6 +158,8 @@ PROMPT;
             if (!is_array($aiSpecs)) {
                 return response()->json(['success' => false, 'message' => 'AI returned non-JSON output. Please try again.'], 422);
             }
+
+            $aiSpecs = $this->normalizeAiSpecs($aiSpecs, $requestedSpecs);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -139,7 +169,7 @@ PROMPT;
         foreach ($aiSpecs as $specData) {
             $key = $specData['spec_key'] ?? null;
 
-            if (!$key || !isset(self::SPEC_KEYS[$key])) {
+            if (!$key || !isset($requestedSpecs[$key])) {
                 continue;
             }
 
@@ -155,7 +185,7 @@ PROMPT;
             EquipmentSpecification::updateOrCreate(
                 ['equipment_id' => $equipment->id, 'spec_key' => $key],
                 [
-                    'spec_label'        => self::SPEC_KEYS[$key],
+                    'spec_label'        => $requestedSpecs[$key],
                     'value'             => isset($specData['value']) ? (string) $specData['value'] : null,
                     'unit'              => isset($specData['unit_type']) ? (string) $specData['unit_type'] : (isset($specData['unit']) ? (string) $specData['unit'] : null),
                     'value_type'        => isset($specData['value_type']) ? (string) $specData['value_type'] : null,
@@ -170,6 +200,7 @@ PROMPT;
         }
 
         $specs = $equipment->specifications()->with('approvedByUser')->orderBy('spec_key')->get();
+        $this->syncCategoryCatalogSpecs($equipment, $specs);
         $criteria = $this->syncCriticalMatchingCriteria($equipment, $specs);
 
         return response()->json([
@@ -177,6 +208,86 @@ PROMPT;
             'specs'   => $specs->map(fn ($s) => $this->formatSpec($s))->values(),
             'criteria' => $criteria,
         ]);
+    }
+
+    private function buildRequestedSpecMap(Collection $criteriaRows, ?string $forceKey = null): array
+    {
+        $requestedSpecs = [];
+
+        foreach ($criteriaRows as $row) {
+            $key = trim((string) $row->criteria_key);
+            $label = trim((string) $row->name);
+
+            if ($key === '') {
+                continue;
+            }
+
+            $requestedSpecs[$key] = $label !== ''
+                ? $label
+                : self::SPEC_KEYS[$key] ?? ucwords(str_replace('_', ' ', $key));
+        }
+
+        foreach (self::SPEC_KEYS as $key => $label) {
+            if (!isset($requestedSpecs[$key])) {
+                $requestedSpecs[$key] = $label;
+            }
+        }
+
+        if ($forceKey && isset($requestedSpecs[$forceKey])) {
+            return [$forceKey => $requestedSpecs[$forceKey]];
+        }
+
+        return $requestedSpecs;
+    }
+
+    private function buildPromptSpecLines(array $specs): string
+    {
+        if ($specs === []) {
+            return '- None';
+        }
+
+        return collect($specs)
+            ->map(fn (string $label, string $key) => "- {$key}: {$label}")
+            ->implode("\n");
+    }
+
+    private function normalizeAiSpecs(array $aiSpecs, array $requestedSpecs): array
+    {
+        $normalized = [];
+
+        foreach ($aiSpecs as $specData) {
+            if (!is_array($specData)) {
+                continue;
+            }
+
+            $key = trim((string) ($specData['spec_key'] ?? ''));
+
+            if ($key === '' || !isset($requestedSpecs[$key])) {
+                continue;
+            }
+
+            $specData['spec_key'] = $key;
+            $specData['spec_label'] = $requestedSpecs[$key];
+            $normalized[$key] = $specData;
+        }
+
+        foreach ($requestedSpecs as $key => $label) {
+            if (isset($normalized[$key])) {
+                continue;
+            }
+
+            $normalized[$key] = [
+                'spec_key' => $key,
+                'spec_label' => $label,
+                'value_type' => null,
+                'unit_type' => null,
+                'value' => null,
+                'confidence_score' => 0,
+                'notes' => 'Requested prioritized specification was not returned by AI.',
+            ];
+        }
+
+        return array_values($normalized);
     }
 
     private function syncCriticalMatchingCriteria(Equipment $equipment, Collection $specs): array
@@ -245,6 +356,54 @@ PROMPT;
         }
 
         return $criteriaState;
+    }
+
+    private function syncCategoryCatalogSpecs(Equipment $equipment, Collection $specs): void
+    {
+        if ($specs->isEmpty()) {
+            return;
+        }
+
+        foreach ($specs as $spec) {
+            $criteriaKey = trim((string) $spec->spec_key);
+
+            if ($criteriaKey === '') {
+                continue;
+            }
+
+            $existing = EquipmentCriticalMatchingCriterion::query()
+                ->where('product_category_id', $equipment->product_category_id)
+                ->where('criteria_key', $criteriaKey)
+                ->first();
+
+            $payload = [
+                'name' => (string) ($spec->spec_label ?? $criteriaKey),
+                'unit' => (string) ($spec->unit ?? ''),
+                'source_type' => 'ai',
+                'is_active' => true,
+            ];
+
+            if ($existing) {
+                $existing->forceFill($payload)->save();
+                continue;
+            }
+
+            EquipmentCriticalMatchingCriterion::create([
+                'product_category_id' => $equipment->product_category_id,
+                'criteria_key' => $criteriaKey,
+                'name' => $payload['name'],
+                'unit' => $payload['unit'],
+                'source_type' => 'ai',
+                'default_weight' => 50,
+                'upgrade_exceeds_value' => true,
+                'caution_if_change_value' => false,
+                'upgrade_is_below_value' => false,
+                'caution_if_below_value' => false,
+                'sort_order' => 0,
+                'is_active' => true,
+                'is_key_criteria' => false,
+            ]);
+        }
     }
 
     private function buildSpecIndex(Collection $specs): array

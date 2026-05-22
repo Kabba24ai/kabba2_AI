@@ -14,6 +14,7 @@ class EquipmentCriticalMatchingCriterion extends Model
         'criteria_key',
         'name',
         'unit',
+        'source_type',
         'default_weight',
         'upgrade_exceeds_value',
         'caution_if_change_value',
@@ -21,6 +22,7 @@ class EquipmentCriticalMatchingCriterion extends Model
         'caution_if_below_value',
         'sort_order',
         'is_active',
+        'is_key_criteria',
     ];
 
     protected $casts = [
@@ -31,6 +33,7 @@ class EquipmentCriticalMatchingCriterion extends Model
         'caution_if_below_value' => 'boolean',
         'sort_order' => 'integer',
         'is_active' => 'boolean',
+        'is_key_criteria' => 'boolean',
     ];
 
     public function productCategory()

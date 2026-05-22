@@ -1310,17 +1310,24 @@
 
                 if (keyComparisonState.length === 0) {
                     keyComparisonPreview.innerHTML =
-                        '<div class="px-5 py-3 text-sm text-gray-500">Drag specifications here or add from list below.</div>';
+                        '<div class="px-5 py-3 text-sm text-gray-500">Click + on any specification below to add key comparison data.</div>';
                     return;
                 }
 
                 keyComparisonPreview.innerHTML = keyComparisonState.map((item, idx) => {
                     return `
-                    <div class="kc-spec-item flex items-center justify-between gap-3 px-5 py-3 text-sm border-l-4 border-gray-200 hover:border-teal-300 hover:bg-gray-50 transition-colors cursor-grab" draggable="true" data-spec-id="${item.id}">
-                        <div class="flex-1">
+                    <div class="kc-spec-item flex items-center justify-between gap-3 px-5 py-3 text-sm bg-white" data-spec-id="${item.id}">
+                        <div class="flex flex-1 items-center gap-3">
+                            <button type="button" class="kc-remove-spec inline-flex h-7 w-7 items-center justify-center rounded-md border border-red-200 text-red-500 hover:bg-red-50" data-comparison-id="${item.id}" title="Delete" aria-label="Delete key comparison">
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                             <span class="text-gray-600 block">${escHtml(item.spec_label || '-')}</span>
                         </div>
-                        <span class="text-right">${fmtSpecValue(item.spec_value, item.spec_unit)}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-right">${fmtSpecValue(item.spec_value, item.spec_unit)}</span>
+                        </div>
                     </div>
                 `;
                 }).join('');
@@ -1329,41 +1336,14 @@
                 keyComparisonPreview.querySelectorAll('.kc-remove-spec').forEach(btn => {
                     btn.addEventListener('click', removeKeyComparison);
                 });
-
-                // Add spec item drag listeners
-                keyComparisonPreview.querySelectorAll('.kc-spec-item').forEach(item => {
-                    item.addEventListener('dragstart', handleKeyComparisonSpecDragStart);
-                });
             }
 
-            function handleKeyComparisonDragOver(e) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'copy';
-                keyComparisonPreview?.classList.add('border-2', 'border-teal-400', 'bg-teal-50');
-            }
+            async function addSpecToKeyComparisons(spec) {
+                if (!spec || !spec.spec_label) return;
 
-            function handleKeyComparisonDragEnd(e) {
-                keyComparisonPreview?.classList.remove('border-2', 'border-teal-400', 'bg-teal-50');
-            }
-
-            async function handleKeyComparisonDrop(e) {
-                e.preventDefault();
-                keyComparisonPreview?.classList.remove('border-2', 'border-teal-400', 'bg-teal-50');
-
-                const specId = e.dataTransfer.getData('text/plain');
-                if (!specId) return;
-
-                // Find the spec in specState
-                const spec = specState.find(s => String(s.id) === String(specId));
-                if (!spec) return;
-
-                // Check if already in key comparisons by label
                 const alreadyExists = keyComparisonState.some(kc => kc.spec_label === spec.spec_label);
-                if (alreadyExists) {
-                    return;
-                }
+                if (alreadyExists) return;
 
-                // Show loading state
                 keyComparisonPreview.innerHTML = `
                     <div class="flex items-center gap-2 px-5 py-3 text-sm text-gray-400">
                         <svg class="h-4 w-4 animate-spin text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1373,7 +1353,6 @@
                         Adding…
                     </div>`;
 
-                // Call API to add
                 try {
                     const res = await fetch(KEY_COMPARISON_STORE_URL, {
                         method: 'POST',
@@ -1398,18 +1377,24 @@
                     console.error('Error adding key comparison:', err);
                 } finally {
                     renderKeyComparisonPreview();
+                    renderEquipmentSpecsPreview(specState || []);
                 }
             }
 
-            function handleKeyComparisonSpecDragStart(e) {
-                e.dataTransfer.effectAllowed = 'copy';
-                e.dataTransfer.setData('text/plain', e.currentTarget.dataset.specId);
-                e.currentTarget.classList.add('opacity-50');
-            }
-
             async function removeKeyComparison(e) {
-                const comparisonId = e.currentTarget.dataset.comparisonId;
+                const deleteButton = e.currentTarget;
+                const comparisonId = deleteButton.dataset.comparisonId;
                 if (!comparisonId) return;
+
+                const originalButtonHtml = deleteButton.innerHTML;
+                deleteButton.disabled = true;
+                deleteButton.classList.add('opacity-60', 'cursor-not-allowed');
+                deleteButton.innerHTML = `
+                    <svg class="h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                `;
 
                 try {
                     const url = KEY_COMPARISON_DESTROY_URL.replace(':id', comparisonId);
@@ -1426,9 +1411,16 @@
                     if (res.ok && data.success) {
                         keyComparisonState = keyComparisonState.filter(kc => kc.id !== parseInt(comparisonId));
                         renderKeyComparisonPreview();
+                        renderEquipmentSpecsPreview(specState || []);
                     }
                 } catch (err) {
                     console.error('Error removing key comparison:', err);
+                } finally {
+                    if (document.body.contains(deleteButton)) {
+                        deleteButton.disabled = false;
+                        deleteButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                        deleteButton.innerHTML = originalButtonHtml;
+                    }
                 }
             }
 
@@ -1465,12 +1457,24 @@
 
                 const renderRows = (items) => {
                     return items.map((spec) => {
+                        const isAlreadyInKeyComparison = keyComparisonState.some(kc => kc.spec_label === spec.spec_label);
+                        const addButtonHtml = isAlreadyInKeyComparison ? '' : `
+                                <button type="button" class="kc-add-spec inline-flex h-7 w-7 items-center justify-center rounded-md border border-teal-200 text-teal-600 hover:bg-teal-50" data-spec-id="${spec.id}" title="Add to key comparison" aria-label="Add to key comparison">
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                        `;
+
                         return `
-                        <div class="spec-item flex items-center justify-between gap-3 px-5 py-3 text-sm border-l-4 border-gray-200 hover:border-teal-300 hover:bg-gray-50 transition-colors cursor-grab" draggable="true" data-spec-id="${spec.id}">
-                            <div class="flex-1">
+                        <div class="spec-item flex items-center justify-between gap-3 px-5 py-3 text-sm bg-white" data-spec-id="${spec.id}">
+                            <div class="flex flex-1 items-center gap-3">
+                                ${addButtonHtml}
                                 <span class="text-gray-600 block">${escHtml(spec.spec_label || '-')}</span>
                             </div>
-                            <span class="text-right">${fmtSpecValue(spec.value, spec.unit)}</span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-right">${fmtSpecValue(spec.value, spec.unit)}</span>
+                            </div>
                         </div>
                     `;
                     }).join('');
@@ -1479,15 +1483,13 @@
                 equipmentSpecsColLeft.innerHTML = renderRows(leftRows);
                 equipmentSpecsColRight.innerHTML = rightRows.length ? renderRows(rightRows) : '';
 
-                // Add drag listeners to specs
-                document.querySelectorAll('.spec-item').forEach(item => {
-                    item.addEventListener('dragstart', (e) => {
-                        e.dataTransfer.effectAllowed = 'copy';
-                        e.dataTransfer.setData('text/plain', e.currentTarget.dataset.specId);
-                        e.currentTarget.classList.add('opacity-50');
-                    });
-                    item.addEventListener('dragend', (e) => {
-                        e.currentTarget.classList.remove('opacity-50');
+                document.querySelectorAll('.kc-add-spec').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const specId = e.currentTarget.dataset.specId;
+                        if (!specId) return;
+                        const spec = specState.find(s => String(s.id) === String(specId));
+                        if (!spec) return;
+                        await addSpecToKeyComparisons(spec);
                     });
                 });
             }
@@ -1569,13 +1571,6 @@
             }
 
             genBtn?.addEventListener('click', () => generateSpecs());
-
-            // Attach container-level drag listeners once so drop works even when list is empty
-            if (keyComparisonPreview) {
-                keyComparisonPreview.addEventListener('dragover', handleKeyComparisonDragOver);
-                keyComparisonPreview.addEventListener('drop', handleKeyComparisonDrop);
-                keyComparisonPreview.addEventListener('dragend', handleKeyComparisonDragEnd);
-            }
 
             // Load key comparisons from database
             loadKeyComparisons().then(() => {

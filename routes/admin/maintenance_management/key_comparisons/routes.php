@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Criteria\Add
 use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Criteria\StoreController as CriteriaStoreController;
 use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Criteria\UpdateController as CriteriaUpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Criteria\DeleteController as CriteriaDeleteController;
+use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Specifications\GenerateController as SpecificationsGenerateController;
 
 Route::prefix('key-comparisons')
     ->name('key-comparisons.')
@@ -19,4 +20,6 @@ Route::prefix('key-comparisons')
         Route::post('/criteria', CriteriaStoreController::class)->name('criteria.store');
         Route::put('/criteria/{criteria_id}', CriteriaUpdateController::class)->name('criteria.update');
         Route::delete('/criteria/{criteria_id}', CriteriaDeleteController::class)->name('criteria.delete');
+
+        Route::post('/specifications/generate', SpecificationsGenerateController::class)->name('specifications.generate');
     });

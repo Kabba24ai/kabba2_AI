@@ -129,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryListEl = document.getElementById('kc-category-list');
     const criteriaListEl = document.getElementById('kc-criteria-list');
     const activeCategoryEl = document.getElementById('kc-active-category');
-    const openFormBtn = document.getElementById('kc-open-form');
     const criteriaPanelEl = document.getElementById('kc-criteria-panel');
     const aiPanelEl = document.getElementById('kc-ai-panel');
     const aiListEl = document.getElementById('kc-ai-list');
@@ -155,8 +154,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const ADD_URL_BASE = @json(route('admin.maintenance-management.key-comparisons.criteria.add', ['criteria_id' => '__ID__']));
     const STORE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.store'));
     const UPDATE_BASE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
+    const GENERATE_URL = @json(route('admin.maintenance-management.key-comparisons.specifications.generate'));
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     let isLoadingCriteria = false;
+    let isGenerating = false;
 
     // Handle row-exclusive checkbox logic:
     // If any checkbox in row 1 is checked, uncheck all in row 2
@@ -349,9 +350,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const aiSection = aiSpecs.length ? `
             <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
                 <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
-                        <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
+                            <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="kc-create-ai-prompt" type="button" class="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-semibold text-black">
+                                Create with AI Prompt
+                            </button>
+                            <button id="kc-open-form" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Criterion
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 divide-y divide-gray-200 md:grid-cols-2 md:divide-x md:divide-y-0">
@@ -362,9 +376,22 @@ document.addEventListener('DOMContentLoaded', () => {
         ` : `
             <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
                 <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
-                        <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
+                            <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="kc-create-ai-prompt" type="button" class="inline-flex items-center gap-2 rounded-lg border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-sky-50">
+                                Create with AI Prompt
+                            </button>
+                            <button id="kc-open-form" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Criterion
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="p-6 text-center text-sm text-gray-500">No AI-pulled specifications found for this category.</div>
@@ -468,11 +495,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCategories();
     }
 
-    openFormBtn?.addEventListener('click', () => {
-        resetForm();
-        openModal();
-    });
-
     modalOverlay?.addEventListener('click', closeModal);
     modalClose?.addEventListener('click', closeModal);
     modalCancel?.addEventListener('click', closeModal);
@@ -562,6 +584,54 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     aiListEl?.addEventListener('click', async (event) => {
+        const aiPromptButton = event.target.closest('#kc-create-ai-prompt');
+        if (aiPromptButton) {
+            if (isGenerating || !selectedCategoryId) return;
+            isGenerating = true;
+            const originalText = aiPromptButton.textContent.trim();
+            aiPromptButton.disabled = true;
+            aiPromptButton.textContent = 'Generating…';
+            try {
+                const res = await fetch(GENERATE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ category_id: selectedCategoryId }),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    aiSpecs = data.ai_items || [];
+                    renderAiSpecs();
+                    if (window.showToast) {
+                        window.showToast(data.message || 'AI specifications generated successfully.', 'success');
+                    }
+                } else {
+                    if (window.showToast) {
+                        window.showToast(data.message || 'Failed to generate AI specifications.', 'error');
+                    }
+                }
+            } catch (err) {
+                if (window.showToast) {
+                    window.showToast('An error occurred while generating specifications.', 'error');
+                }
+            } finally {
+                isGenerating = false;
+                aiPromptButton.disabled = false;
+                aiPromptButton.textContent = originalText;
+            }
+            return;
+        }
+
+        const addButton = event.target.closest('#kc-open-form');
+        if (addButton) {
+            resetForm();
+            openModal();
+            return;
+        }
+
         const button = event.target.closest('[data-toggle-criteria-id]');
         if (!button) return;
 

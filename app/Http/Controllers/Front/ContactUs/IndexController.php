@@ -16,15 +16,12 @@ class IndexController extends Controller
     {
         $stores = Store::with('state')->active()->get();
 
-           $contact_settings = Setting::where('setting_type', 'Website Management Contact Us Section')
-            ->pluck('setting_value', 'setting_name')
-            ->toArray();
+        $contact_settings = Setting::where('setting_type', 'Website Management Contact Us Section')->pluck('setting_value', 'setting_name')->toArray();
 
-        return view('front.contact_us.index',[
-            'title'=> 'Contact - Equipment Rentals Hickman / Dickson County',
+        return view('front.contact_us.index', [
+            'title' => 'Contact',
             'stores' => $stores,
             'contact_settings' => $contact_settings,
-
         ]);
     }
 }

@@ -8,7 +8,7 @@
             <a href="{{ route('admin.product-management.options.edit', $objProductOption->unique_id ?? null) }}"
                  class="text-blue-600 hover:text-blue-800 dark:hover:text-blue-400 flex items-center"
                 title="Edit Option">
-                <x-heroicon-o-pencil class="w-5 h-5" />
+                <x-heroicon-o-pencil-square class="w-5 h-5" />
             </a>
         </h4>
 

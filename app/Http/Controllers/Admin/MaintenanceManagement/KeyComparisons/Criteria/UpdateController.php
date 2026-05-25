@@ -26,6 +26,8 @@ class UpdateController extends Controller
             'default_weight' => $validated['default_weight'],
             'upgrade_exceeds_value' => filter_var($validated['upgrade_exceeds_value'] ?? $criterion->upgrade_exceeds_value, FILTER_VALIDATE_BOOLEAN),
             'caution_if_change_value' => filter_var($validated['caution_if_change_value'] ?? $criterion->caution_if_change_value, FILTER_VALIDATE_BOOLEAN),
+            'upgrade_is_below_value' => filter_var($validated['upgrade_is_below_value'] ?? $criterion->upgrade_is_below_value, FILTER_VALIDATE_BOOLEAN),
+            'caution_if_below_value' => filter_var($validated['caution_if_below_value'] ?? $criterion->caution_if_below_value, FILTER_VALIDATE_BOOLEAN),
             'sort_order' => $validated['sort_order'] ?? $criterion->sort_order,
         ]);
 
@@ -39,8 +41,12 @@ class UpdateController extends Controller
                 'default_weight' => (int) $criterion->default_weight,
                 'upgrade_exceeds_value' => (bool) $criterion->upgrade_exceeds_value,
                 'caution_if_change_value' => (bool) $criterion->caution_if_change_value,
+                'upgrade_is_below_value' => (bool) $criterion->upgrade_is_below_value,
+                'caution_if_below_value' => (bool) $criterion->caution_if_below_value,
                 'sort_order' => (int) $criterion->sort_order,
                 'is_active' => (bool) $criterion->is_active,
+                'is_key_criteria' => (bool) $criterion->is_key_criteria,
+                'source_type' => (string) ($criterion->source_type ?? 'manual'),
             ],
         ]);
     }

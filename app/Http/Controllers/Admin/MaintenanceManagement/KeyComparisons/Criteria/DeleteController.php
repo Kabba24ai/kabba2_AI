@@ -20,7 +20,10 @@ class DeleteController extends Controller
             ->where('product_category_id', $categoryId)
             ->firstOrFail();
 
-        $criterion->delete();
+        $criterion->forceFill([
+            'is_key_criteria' => false,
+            'is_active' => true,
+        ])->save();
 
         return response()->json([
             'success' => true,

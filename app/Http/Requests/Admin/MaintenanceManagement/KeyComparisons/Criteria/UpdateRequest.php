@@ -20,6 +20,8 @@ class UpdateRequest extends FormRequest
             'default_weight' => ['required', 'integer', 'between:0,100'],
             'upgrade_exceeds_value' => ['nullable', 'boolean'],
             'caution_if_change_value' => ['nullable', 'boolean'],
+            'upgrade_is_below_value' => ['nullable', 'boolean'],
+            'caution_if_below_value' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }

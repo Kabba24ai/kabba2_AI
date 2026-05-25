@@ -30,7 +30,7 @@ class SaveRequest extends FormRequest
     {
         return [
 
-            'site_logo' => 'nullable|image',
+            'site_logo' => 'nullable|image|dimensions:width=64,height=64',
 
             'site_name' => [
                 'nullable',
@@ -49,6 +49,21 @@ class SaveRequest extends FormRequest
 
 
             'home_page_image' => 'nullable|image|dimensions:width=1900,height=430',
+
+            'home_seo_title' => [
+                'nullable',
+                'string'
+            ],
+
+            'home_seo_description' => [
+                'nullable',
+                'string'
+            ],
+
+            'home_page_subtitle' => [
+                'nullable',
+                'string'
+            ],
 
             'top_text' => [
                 'nullable',
@@ -93,12 +108,16 @@ class SaveRequest extends FormRequest
                 'string'
             ],
 
+
+
         ];
     }
 
     public function messages(): array
 {
     return [
+        'site_logo.dimensions' => 'The site logo must be exactly 64 x 64 pixels.',
+        'site_logo.image' => 'Please upload a valid site logo image file.',
         'home_page_image.dimensions' => 'The home page image must be exactly 1900 × 430 pixels.',
         'home_page_image.image' => 'Please upload a valid image file.',
     ];

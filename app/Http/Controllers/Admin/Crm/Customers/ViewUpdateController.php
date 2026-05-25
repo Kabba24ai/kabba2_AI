@@ -6,8 +6,6 @@ use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Crm\Customers\ViewUpdateRequest;
 
-
-
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +24,7 @@ class ViewUpdateController extends Controller
 
         $validated = $request->validated();
 
-        // dd($validated);
+        // dd($request->all());
 
         $customer = Customer::where('unique_id', $unique_id)->firstOrFail();
 
@@ -118,6 +116,15 @@ class ViewUpdateController extends Controller
 
             //  SAVE MEDIA IDS
             $customer->save();
+
+
+
+               // Sync funnels
+            if (!empty($validated['funnels']) && is_array($validated['funnels'])) {
+                $customer->funnels()->sync($validated['funnels']);
+            } else {
+                $customer->funnels()->detach();
+            }
 
 
             // Process address list

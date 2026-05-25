@@ -29,5 +29,7 @@ Route::prefix('test')->name('test.')
     Route::get('/send-bulk-sms', [IndexController::class, 'sendBulkSms'])->name('send_bulk_sms');
     Route::get('/send-same-day-job', [IndexController::class, 'sendSameDayJob'])->name('send_same_day_job');
     Route::get('/send-day-before-job', [IndexController::class, 'sendDayBeforeJob'])->name('send_day_before_job');
+    Route::get('/payment-profile-card-info/{paymentProfileId?}', [IndexController::class, 'paymentProfileCardInfo'])->name('payment_profile_card_info');
+    Route::get('/backfill-customer-card-info', [IndexController::class, 'backfillCustomerCardInfo'])->name('backfill_customer_card_info');
     Route::get('/test-openai', [IndexController::class, 'testOpenAi'])->name('test_openai');
 });

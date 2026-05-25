@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\DownloadPdfControll
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\UpdateController;
 use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\DeleteController;
 
+use App\Http\Controllers\Admin\Crm\Customers\CustomerAccount\FixRunningBalancesController;
+
 
 Route::prefix('customer-account')
 ->name('customer-account.')
@@ -35,5 +37,9 @@ Route::prefix('customer-account')
     Route::PUT('/{id}/transactionupdate', UpdateController::class)->name('transactionupdate');
     
     Route::delete('/{id}/delete', DeleteController::class)->name('transactiondelete');
+
+
+    // Route::get('/fix-running-balances', FixRunningBalancesController::class)
+    // ->name('fixrunningbalances');
 
 });

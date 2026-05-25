@@ -1,3 +1,4 @@
+
    <div class="bg-white rounded-xl shadow-sm p-6 md:flex-row md:items-center md:justify-between gap-4  mt-6">
        <!-- Left: Name and Account -->
        <div class="text-left">
@@ -46,42 +47,42 @@
        </div>
 
       <!-- Credit Limit -->
-<div class="bg-white p-4 rounded-xl shadow-sm relative flex items-center gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm relative flex items-center gap-4">
 
-    <!-- Edit Icon -->
-    <button
-        type="button"
-        onclick="OpenCustomerEditModal()"
-        class="absolute top-3 right-3 text-gray-400 hover:text-blue-600 transition"
-        title="Edit Credit Limit"
-    >
-        <svg class="w-5 h-5 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
-</svg>
-    </button>
+            <!-- Edit Icon -->
+            <button
+                type="button"
+                onclick="OpenCustomerEditModal()"
+                class="absolute top-3 right-3 text-gray-400 hover:text-blue-600 transition"
+                title="Edit Credit Limit"
+            >
+                <svg class="w-5 h-5 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
+                </svg>
+            </button>
 
-    <!-- Icon -->
-    <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
-        <svg xmlns="http://www.w3.org/2000/svg"
-             width="20" height="20" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="lucide lucide-alert-circle w-6 h-6">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-    </div>
+            <!-- Icon -->
+            <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                    width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-alert-circle w-6 h-6">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+            </div>
 
-    <!-- Content -->
-    <div>
-        <p class="text-sm text-gray-500">Credit Limit</p>
-        <p class="text-xl font-semibold text-gray-900">
-            {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
-        </p>
-    </div>
+            <!-- Content -->
+            <div>
+                <p class="text-sm text-gray-500">Credit Limit</p>
+                <p class="text-xl font-semibold text-gray-900">
+                    {{ \App\Helpers\CustomHelper::formatCurrency($customer->credit_limit) }}
+                </p>
+            </div>
 
-</div>
+        </div>
 
 
        <!-- Last Payment -->
@@ -124,8 +125,9 @@
    </div>
 
    <div class=" mx-auto bg-white shadow rounded-2xl mt-6 mb-6">
+    
        <!-- Header and Filter -->
-       <div class="border-b border-gray-200 p-4 ">
+       <div class="sticky top-16 z-40 bg-white border-b border-gray-200 p-4">
            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
                <!-- Title -->
@@ -232,71 +234,71 @@
                <tbody id=" ">
 
                    @php
-                   $typeStyles = [
-                   'charge' => [
-                   'bg' => 'bg-red-100',
-                   'text' => 'text-red-800',
-                   'amount' => 'text-red-600',
-                   'sign' => '+',
-                   'icon' => 'plus',
-                   ],
-                   'payment' => [
-                   'bg' => 'bg-green-100',
-                   'text' => 'text-green-800',
-                   'amount' => 'text-green-600',
-                   'sign' => '-',
-                   'icon' => 'credit-card',
-                   ],
-                   'order' => [
-                   'bg' => 'bg-red-100',
-                   'text' => 'text-red-800',
-                   'amount' => 'text-red-600',
-                   'sign' => '+',
-                   'icon' => 'cart',
-                   ],
-                   'discount' => [
-                   'bg' => 'bg-purple-100',
-                   'text' => 'text-purple-800',
-                   'amount' => 'text-green-600',
-                   'sign' => '-',
-                   'icon' => 'award',
-                   ],
-                   'credit' => [
-                   'bg' => 'bg-yellow-100',
-                   'text' => 'text-yellow-800',
-                   'amount' => 'text-green-600',
-                   'sign' => '-',
-                   'icon' => 'arrow-down-left',
-                   ],
-                   'debit' => [
-                   'bg' => 'bg-orange-100',
-                   'text' => 'text-orange-800',
-                   'amount' => 'text-red-600',
-                   'sign' => '+',
-                   'icon' => 'arrow-up-right',
-                   ],
-                   'refund' => [
-                   'bg' => 'bg-blue-100',
-                   'text' => 'text-blue-800',
-                   'amount' => 'text-green-600',
-                   'sign' => '-',
-                   'icon' => 'trending-up',
-                   ],
-                   'account_invoice' => [
-                    'bg' => 'bg-indigo-100',
-                    'text' => 'text-indigo-800',
-                    'amount' => 'text-indigo-600', 
-                    'sign' => '',
-                    'icon' => 'file-text',
-                     'label' => 'Invoice',
-                ],
-                   ];
+                        $typeStyles = [
+                                    'charge' => [
+                                    'bg' => 'bg-red-100',
+                                    'text' => 'text-red-800',
+                                    'amount' => 'text-red-600',
+                                    'sign' => '+',
+                                    'icon' => 'plus',
+                                    ],
+                                    'payment' => [
+                                    'bg' => 'bg-green-100',
+                                    'text' => 'text-green-800',
+                                    'amount' => 'text-green-600',
+                                    'sign' => '-',
+                                    'icon' => 'credit-card',
+                                    ],
+                                    'order' => [
+                                    'bg' => 'bg-red-100',
+                                    'text' => 'text-red-800',
+                                    'amount' => 'text-red-600',
+                                    'sign' => '+',
+                                    'icon' => 'cart',
+                                    ],
+                                    'discount' => [
+                                    'bg' => 'bg-purple-100',
+                                    'text' => 'text-purple-800',
+                                    'amount' => 'text-green-600',
+                                    'sign' => '-',
+                                    'icon' => 'award',
+                                    ],
+                                    'credit' => [
+                                    'bg' => 'bg-yellow-100',
+                                    'text' => 'text-yellow-800',
+                                    'amount' => 'text-green-600',
+                                    'sign' => '-',
+                                    'icon' => 'arrow-down-left',
+                                    ],
+                                    'debit' => [
+                                    'bg' => 'bg-orange-100',
+                                    'text' => 'text-orange-800',
+                                    'amount' => 'text-red-600',
+                                    'sign' => '+',
+                                    'icon' => 'arrow-up-right',
+                                    ],
+                                    'refund' => [
+                                    'bg' => 'bg-blue-100',
+                                    'text' => 'text-blue-800',
+                                    'amount' => 'text-green-600',
+                                    'sign' => '-',
+                                    'icon' => 'trending-up',
+                                    ],
+                                    'account_invoice' => [
+                                        'bg' => 'bg-indigo-100',
+                                        'text' => 'text-indigo-800',
+                                        'amount' => 'text-indigo-600', 
+                                        'sign' => '',
+                                        'icon' => 'file-text',
+                                        'label' => 'Invoice',
+                                    ],
+                        ];
                    @endphp
 
                    @foreach ($customer->accounts as $transaction)
-                   @php
-                   $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
-                   @endphp
+                        @php
+                        $style = $typeStyles[$transaction->type] ?? $typeStyles['charge'];
+                        @endphp
 
                    <tr data-status="{{ $transaction->type }}" class="border-b status-row">
                        <td class="py-4 px-6"> {{ App\Helpers\CustomHelper::formatDate($transaction->date) ?? 'N/A' }} </td>
@@ -457,14 +459,14 @@
                        {{-- Total Amount with Tax if Applicable --}}
                        <td class="py-4 px-6 text-right whitespace-nowrap {{ $style['amount'] }}">
                            @php
-                           $totalWithTax = $transaction->amount;
+                                $totalWithTax = $transaction->amount;
 
-                           if($transaction->type === 'account_invoice')
-                                                     $totalWithTax = $transaction->amount;
-                           elseif ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
-                           // Only add tax if it's NOT already included
-                           $totalWithTax += ($transaction->amount * $transaction->sales_tax);
-                           }
+                                if($transaction->type === 'account_invoice')
+                                                            $totalWithTax = $transaction->amount;
+                                elseif ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+                                // Only add tax if it's NOT already included
+                                $totalWithTax += ($transaction->amount * $transaction->sales_tax);
+                                }
                            @endphp
 
                            {{ $style['sign'] }}
@@ -514,8 +516,7 @@
                                     <a href="{{ route('admin.crm.customers.invoice.edit', $transaction->invoice->unique_id) }}"  class=" text-green-600 hover:text-green-800"
                                     
                                     title="Edit">
-                                    {{-- <x-heroicon-o-pencil class="w-4 h-4" /> --}}
-
+                                   
                                     <svg class="w-4 h-4 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
                                     </svg>
@@ -543,8 +544,7 @@
                                         @endif
 
                                         title="Edit">
-                                        {{-- <x-heroicon-o-pencil class="w-4 h-4" /> --}}
-
+                                        
                                              <svg class="w-4 h-4 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
                                             </svg>
@@ -595,9 +595,21 @@
                                             <x-heroicon-o-trash class="w-4 h-4" />
                                         </button>
                                     </form>
-                                @elseif (
+                                {{-- @elseif (
                                     $transaction->type !== 'order' &&
                                     !($transaction->invoice_id && $transaction->type === 'payment')
+                                ) --}}
+
+
+                                @elseif (
+                                    $transaction->type !== 'order' &&
+                                    !(
+                                        $transaction->invoice_id &&
+                                        (
+                                            $transaction->type === 'payment' ||
+                                            $transaction->invoice?->invoice_status === 'paid'
+                                        )
+                                    )
                                 )
 
                                  <!-- Transaction delete button -->

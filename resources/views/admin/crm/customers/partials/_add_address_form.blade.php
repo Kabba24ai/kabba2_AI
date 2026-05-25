@@ -229,7 +229,7 @@
                             <div class="text-sm flex-1">${fullText}</div>
                             <div class="ml-2 flex gap-x-2">
                                 <button type="button" class="text-green-600 hover:text-green-800 edit-address" title="Edit">
-                                    <x-heroicon-o-pencil class="w-4 h-4" />
+                                    <x-heroicon-o-pencil-square class="w-4 h-4" />
                                 </button>
                                 <button type="button" class="text-red-600 hover:text-red-800 delete-address" title="Delete">
                                     <x-heroicon-o-trash class="w-4 h-4" />

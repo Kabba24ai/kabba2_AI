@@ -226,7 +226,7 @@ button:disabled,
 */
 @layer components {
   .tooltip-panel {
-    @apply absolute z-[9999] hidden group-hover:block
+    @apply absolute z-[999999] hidden group-hover:block
            bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700
            rounded shadow-xl p-3
            text-xs text-gray-700 dark:text-gray-200
@@ -251,7 +251,7 @@ button:disabled,
 
     /* NEW Custom Tooltip */
   .custom-tooltip {
-    @apply absolute z-[9999]
+    @apply absolute z-[999999]
            hidden group-hover:block
            bg-white dark:bg-gray-900
            border border-gray-200 dark:border-gray-700

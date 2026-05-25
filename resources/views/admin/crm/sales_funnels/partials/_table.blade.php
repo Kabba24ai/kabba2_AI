@@ -69,7 +69,8 @@
                     @endif
                     <button class="funnel-edit-button p-2 text-blue-600 hover:bg-blue-50 rounded-lg" type="button"
                         title="Edit" data-unique-id="{{ $funnel->unique_id }}">
-                        <x-heroicon-o-pencil class="w-5 h-5" />
+                                <x-heroicon-o-pencil-square class="w-5 h-5 cursor-pointer" />
+
                     </button>
                     <button class="funnel-duplicate-button p-2 text-gray-600 hover:bg-gray-50 rounded-lg" type="button"
                         title="Duplicate" data-unique-id="{{ $funnel->unique_id }}">

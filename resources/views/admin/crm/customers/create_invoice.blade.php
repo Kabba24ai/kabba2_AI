@@ -290,7 +290,7 @@ $lockInvoiceActions = $isEdit &&
                                 <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
 
                                  @if(!in_array($invoice->invoice_status, ['paid', 'partial_paid']))
-                                        <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+                                        <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil-square class="w-4 h-4" /></button>
                                         <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
                                     @endif
                                 </td>
@@ -810,7 +810,7 @@ $lockInvoiceActions = $isEdit &&
 
                                                 data-unit="{{ $account->amount }}"
                                                 data-sales_tax="{{ $account->sales_tax }}"
-
+                                                
                                                  data-responsible_person_id="{{ $account->responsible_person_id }}"
                                                   data-sales_tax="{{ $account->sales_tax }}"
                                                    data-notes="{{ $account->notes }}"
@@ -1016,9 +1016,7 @@ $lockInvoiceActions = $isEdit &&
     }
    
 </script>
- {{-- // <button type="button" class="text-blue-600 edit-btn mr-2">
-    //                 <x-heroicon-o-pencil class="w-4 h-4" />
-    //             </button> --}}
+ 
 
 <script>
     function updateInvoiceButton() {
@@ -1513,6 +1511,7 @@ $lockInvoiceActions = $isEdit &&
                     qty: 1,
                     unit: base,
                     tax: tax,
+                    sales_tax: taxType,
                     total: total,
                     responsible_id: responsibleId,
                     reference: null,

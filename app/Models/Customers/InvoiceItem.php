@@ -22,6 +22,7 @@ class InvoiceItem extends Model
         'sku',
         'unit',
         'tax',
+        'sales_tax_type',
         'total',
         'extras',
         'notes',

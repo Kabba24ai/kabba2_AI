@@ -5,7 +5,6 @@
 @section('content')
 
     @include('flash::message')
-    {{-- @include('admin.partials.formErrors') --}}
 
     <form method="POST" action="{{ route('admin.website-management.branding.update') }}" enctype="multipart/form-data"
         data-parsley-validate>
@@ -47,6 +46,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Upload Site Logo (Navbar & favicon)
+                                <span class="block text-red-600 text-xs mt-1">(Required Size: 64px x 64px)</span>
                             </label>
                             <div class="flex items-center space-x-4">
                                 @if (!empty($siteLogo))
@@ -63,6 +63,9 @@
                                         'accept' => 'image/*',
                                     ]) !!}
                             </div>
+                            @error('site_logo')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         {{-- Site Name --}}
                         <div>
@@ -72,11 +75,14 @@
                             {!! html()->text('site_name', old('site_name', $settings['site_name'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'Example: Rent n King',
                                 ]) !!}
+                            @error('site_name')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         {{-- Phone --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                High Demand Alert Phone Number
+                                High Demand Alert / Custom Range Phone Number
                             </label>
                             {!! html()->text('site_phone', old('site_phone', old('site_phone', $settings['site_phone'] ?? '')))->class([
                                     'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
@@ -90,6 +96,9 @@
                                     'id' => 'site_phone',
                                     'autocomplete' => 'tel',
                                 ]) !!}
+                            @error('site_phone')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         {{-- Email --}}
                         <div>
@@ -99,6 +108,9 @@
                             {!! html()->email('site_email', old('site_email', $settings['site_email'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'example@email.com',
                                 ]) !!}
+                            @error('site_email')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         {{-- Powered By --}}
                         <div>
@@ -108,6 +120,9 @@
                             {!! html()->text('all_rights_reserved', old('all_rights_reserved', $settings['all_rights_reserved'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'Example: Rent `n King',
                                 ]) !!}
+                            @error('all_rights_reserved')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         {{-- Powered By --}}
                         <div class="hidden">
@@ -118,10 +133,72 @@
                                     'placeholder' => 'Example: Kabba.ai',
                                     'readonly' => true,
                                 ]) !!}
+                            @error('powered_by')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
+
+                    <div class="mt-6 border border-gray-200 rounded-md p-4 bg-gray-50">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium text-sm text-gray-700">Search Engine Optimize</span>
+                            <a href="#" onclick="document.getElementById('home-seo-fields').classList.toggle('hidden'); return false;"
+                                class="text-sm text-blue-600 hover:underline">Edit SEO meta</a>
+                        </div>
+
+                        <div class="text-sm text-gray-800">
+                            <p class="text-blue-600 font-semibold truncate">
+                                {{ old('home_seo_title', $settings['home_seo_title'] ?? '') }}
+                            </p>
+                            <p class="text-green-700 text-xs truncate">
+                                <a href="{{ route('front.home.index') }}" class="text-blue-600 hover:underline break-all" target="_blank">
+                                    {{ route('front.home.index') }}
+                                </a>
+                            </p>
+                            <p class="text-gray-700 mt-1">
+                                {{ old('home_seo_description', $settings['home_seo_description'] ?? '') }}
+                            </p>
+                        </div>
+
+                        <div id="home-seo-fields" class="mt-4 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    SEO Title
+                                </label>
+                                {!! html()->text('home_seo_title', old('home_seo_title', $settings['home_seo_title'] ?? ''))
+                                ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
+                                ->attributes([
+                                'placeholder' => 'SEO Title',
+                                'maxlength' => 60,
+                                'data-parsley-maxlength' => 60,
+                                ]) !!}
+                                @error('home_seo_title')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    SEO Description
+                                </label>
+                                {!! html()->textarea('home_seo_description', old('home_seo_description', $settings['home_seo_description'] ?? ''))
+                                ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
+                                ->attributes([
+                                'rows' => 3,
+                                'placeholder' => 'SEO Description',
+                                'maxlength' => 160,
+                                'data-parsley-maxlength' => 160,
+                                ]) !!}
+                                @error('home_seo_description')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+
+                <div class="border border-gray-200 rounded-md p-4 bg-gray-50">
                     <div class="flex items-center space-x-2 mb-6">
                         <x-heroicon-o-paint-brush class="h-5 w-5 text-blue-600" />
                         <h3 class="text-lg font-bold text-gray-900">Home Page Settings</h3>
@@ -162,6 +239,9 @@
                             {!! html()->text('top_text', old('top_text', $settings['top_text'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'Call for Live Assistance from a Real Person',
                                 ]) !!}
+                            @error('top_text')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         {{-- Phone Number --}}
                         <div>
@@ -180,6 +260,9 @@
                                     'id' => 'top_phone',
                                     'autocomplete' => 'tel',
                                 ]) !!}
+                            @error('top_phone')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         {{-- Bottom Title --}}
                         <div>
@@ -187,6 +270,9 @@
                                 Bottom Text Title
                             </label>
                             {!! html()->text('bottom_title', old('bottom_title', old('bottom_title', $settings['bottom_title'] ?? '')))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none') !!}
+                            @error('bottom_title')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         {{-- Bottom Text --}}
                         <div>
@@ -196,9 +282,13 @@
                             {!! html()->textarea('bottom_text', old('bottom_text', $settings['bottom_text'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'rows' => 4,
                                 ]) !!}
+                            @error('bottom_text')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
+
                 <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
                     <div class="flex items-center space-x-2 mb-6">
                         <x-heroicon-o-document-text class="h-5 w-5 text-blue-600" />
@@ -213,6 +303,9 @@
                                     'terms_condition_text_1',
                                     old('Terms & Conditions Text 1', $settings['terms_condition_text_1']),
                                 )->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none') !!}
+                            @error('terms_condition_text_1')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -222,6 +315,9 @@
                                     'terms_condition_text_2',
                                     old('Terms & Conditions Text 2', $settings['terms_condition_text_2']),
                                 )->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none') !!}
+                            @error('terms_condition_text_2')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -231,6 +327,9 @@
                                     'terms_condition_text_3',
                                     old('Terms & Conditions Text 3', $settings['terms_condition_text_3']),
                                 )->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none') !!}
+                            @error('terms_condition_text_3')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div class="flex items-center gap-4">
                             <a href="{{ asset('storage/admin/images/samples/terms-layout-preview.png') }}" target="_blank"

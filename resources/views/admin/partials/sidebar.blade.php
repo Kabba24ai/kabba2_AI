@@ -221,16 +221,13 @@
                                     </a>
                                 </li>
 
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('admin.product-management.equipment-assignments.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.product-management.equipment-assignments.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-wrench-screwdriver class="h-5 w-5" /> Equipment Assignments
                                     </a>
-                                </li>
-
-
-
+                                </li> --}}
                             </ul>
                         </div>
                     </li>

@@ -60,6 +60,54 @@
                         </div>
                     </div>
                 </div>
+
+
+
+                <!-- Sales Tax Treatment -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Sales Tax Treatment
+                    </label>
+
+                    <div class="space-y-2 text-sm text-gray-700">
+
+                        @foreach([
+                            'add' => [
+                                'label' => 'Add Sales Tax',
+                                'desc' => 'Add 9.75% sales tax to the entered amount'
+                            ],
+
+                            'free' => [
+                                'label' => 'Tax Free',
+                                'desc' => 'No sales tax applied to this charge'
+                            ],
+
+                            'reverse' => [
+                                'label' => 'Reverse Sales Tax',
+                                'desc' => 'Split entered amount proportionally between base amount and tax'
+                            ],
+
+                        ] as $value => $info)
+
+                            <label class="flex items-start gap-2">
+
+                                {!! html()
+                                    ->radio('sales_tax', $value === 'add', $value)
+                                    ->class('mt-1.5 text-blue-600 focus:ring-blue-500')
+                                !!}
+
+                                <div>
+                                    <p class="font-medium">{{ $info['label'] }}</p>
+                                    <p class="text-gray-500">{{ $info['desc'] }}</p>
+                                </div>
+
+                            </label>
+
+                        @endforeach
+
+                    </div>
+                </div>
+
                 <!-- Charge Reason -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1 required">Charge Reason </label>
@@ -209,17 +257,78 @@
         cancelBtn.addEventListener('click', closeModal);
 
         // preview calculation
-        amountInput.addEventListener("input", function() {
-            this.value = this.value.replace(/[^0-9.]/g, "");
-            const amount = parseFloat(this.value) || 0;
+        // amountInput.addEventListener("input", function() {
+        //     this.value = this.value.replace(/[^0-9.]/g, "");
+        //     const amount = parseFloat(this.value) || 0;
+        //     const taxRate = window.SALES_TAX_RATE;
+        //     const tax = amount * taxRate;
+        //     const total = amount + tax;
+        //     amountPreview.textContent = `$${amount.toFixed(2)}`;
+        //     taxPreview.textContent = `$${tax.toFixed(2)}`;
+        //     totalPreview.textContent = `$${total.toFixed(2)}`;
+        //     clueBox.classList.toggle("hidden", this.value.trim() === "");
+        // });
+
+
+        function updateChargePreview() {
+
+            amountInput.value = amountInput.value.replace(/[^0-9.]/g, "");
+
+            const amount = parseFloat(amountInput.value) || 0;
             const taxRate = window.SALES_TAX_RATE;
-            const tax = amount * taxRate;
-            const total = amount + tax;
-            amountPreview.textContent = `$${amount.toFixed(2)}`;
+
+            const taxType = document.querySelector(
+                'input[name="sales_tax"]:checked'
+            ).value;
+
+            let baseAmount = amount;
+            let tax = 0;
+            let total = amount;
+
+            if (taxType === "add") {
+
+                tax = amount * taxRate;
+                total = amount + tax;
+
+            } else if (taxType === "free") {
+
+                tax = 0;
+                total = amount;
+
+            } else if (taxType === "reverse") {
+
+                baseAmount = amount / (1 + taxRate);
+                tax = amount - baseAmount;
+                total = amount;
+            }
+
+            // amountPreview.textContent = `$${baseAmount.toFixed(2)}`;
+            // taxPreview.textContent = `$${tax.toFixed(2)}`;
+            // totalPreview.textContent = `$${total.toFixed(2)}`;
+
+
+
+            baseAmount = Number(baseAmount.toFixed(2));
+            tax = Number(tax.toFixed(2));
+            total = Number(total.toFixed(2));
+
+            amountPreview.textContent = `$${baseAmount.toFixed(2)}`;
             taxPreview.textContent = `$${tax.toFixed(2)}`;
             totalPreview.textContent = `$${total.toFixed(2)}`;
-            clueBox.classList.toggle("hidden", this.value.trim() === "");
+
+
+            clueBox.classList.toggle(
+                "hidden",
+                amountInput.value.trim() === ""
+            );
+        }
+
+        amountInput.addEventListener("input", updateChargePreview);
+
+        document.querySelectorAll('input[name="sales_tax"]').forEach(radio => {
+            radio.addEventListener("change", updateChargePreview);
         });
+
 
         // edit handal
         invoiceItems.addEventListener("click", (e) => {
@@ -236,14 +345,23 @@
             // store editing ID in the form itself
             form.dataset.editingId = itemId;
 
-            const value = item.unit || 0; // keep it as number
-            const valueStr = value.toString(); // convert number to string
+            // const value = item.unit || 0; // keep it as number
+            // const value = item.total || 0;
+            let value = item.unit || 0;
+
+            if (item.sales_tax === "reverse") {
+                value = item.total || 0;
+            }
+            // const valueStr = value.toString(); // convert number to string
+            const valueStr = parseFloat(value).toFixed(2);
 
             // Set input value with 2 decimals
             form.elements["amount"].value = parseFloat(value).toFixed(2);
 
             // Sync digits for your custom input handler
-            form.elements["amount"].digits = valueStr.replace(/\D/g, '');
+            // form.elements["amount"].digits = valueStr.replace(/\D/g, '');
+            form.elements["amount"].digits =
+    parseFloat(value).toFixed(2).replace(/\D/g, '');
 
             // Trigger input event to update preview
             const event = new Event('input', {
@@ -255,11 +373,19 @@
             form.elements["responsible_person"].value = item.responsible_id;
             form.elements["reference"].value = item.reference;
             form.elements["notes"].value = item.notes || "";
+                        
+            document.querySelector(
+                `input[name="sales_tax"][value="${item.sales_tax || 'add'}"]`
+            ).checked = true;
 
             // update preview box
-            amountPreview.textContent = `$${item.unit}`;
-            taxPreview.textContent = `$${item.tax}`;
-            totalPreview.textContent = `$${item.total}`;
+            // amountPreview.textContent = `$${item.unit}`;
+            // taxPreview.textContent = `$${item.tax}`;
+            // totalPreview.textContent = `$${item.total}`;
+
+            amountPreview.textContent = `$${Number(item.unit).toFixed(2)}`;
+            taxPreview.textContent = `$${Number(item.tax).toFixed(2)}`;
+            totalPreview.textContent = `$${Number(item.total).toFixed(2)}`;
             clueBox.classList.remove("hidden");
 
             document.querySelector("#chargeModalWrapper h2").textContent = "Edit Charge";
@@ -281,9 +407,37 @@
                 const notes = fd.get("notes")?.trim() || "";
                 const price = parseFloat(amountInput.value) || 0;
                 const qty = 1;
+                // const taxRate = window.SALES_TAX_RATE;
+                // const taxPrice = price * taxRate;
+                // const total = price + taxPrice;
+
+
                 const taxRate = window.SALES_TAX_RATE;
-                const taxPrice = price * taxRate;
-                const total = price + taxPrice;
+
+                const taxType = document.querySelector(
+                    'input[name="sales_tax"]:checked'
+                ).value;
+
+                let basePrice = price;
+                let taxPrice = 0;
+                let total = price;
+
+                if (taxType === "add") {
+
+                    taxPrice = price * taxRate;
+                    total = price + taxPrice;
+
+                } else if (taxType === "free") {
+
+                    taxPrice = 0;
+                    total = price;
+
+                } else if (taxType === "reverse") {
+
+                    basePrice = price / (1 + taxRate);
+                    taxPrice = price - basePrice;
+                    total = price;
+                }
 
                 const responsibleId = fd.get("responsible_person") || "-";
                 const reference = fd.get("reference") || "-";
@@ -298,11 +452,15 @@
                 if (editingId) {
                     // ---- EDIT MODE ----
                     const item = invoice_data.find(p => p.id === editingId);
+
+                  
                     if (item) {
                         Object.assign(item, {
                             name: desc,
                             qty: qty,
-                            unit: price,
+                            // unit: price,
+                            unit: basePrice,
+                            sales_tax: taxType,
                             tax: taxPrice,
                             total: total,
                             responsible_id: responsibleId,
@@ -324,11 +482,11 @@
                             ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
                         </td>
                         <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
-                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${price.toFixed(2)}</td>
+                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${basePrice.toFixed(2)}</td>
                         <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
                         <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
                         <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
-                            <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+                            <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil-square class="w-4 h-4" /></button>
                             <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
                         </td>
                     `;
@@ -349,7 +507,9 @@
                         id: uniqueId,
                         name: desc,
                         qty: qty,
-                        unit: price,
+                        // unit: price,
+                        unit: basePrice,
+                        sales_tax: taxType,
                         tax: taxPrice,
                         total: total,
                         responsible_id: responsibleId,
@@ -371,11 +531,11 @@
                         ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
                     </td>
                     <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
-                    <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${price.toFixed(2)}</td>
+                    <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${basePrice.toFixed(2)}</td>
                     <td class="px-4 py-3 text-right text-sm whitespace-nowrap">$${taxPrice.toFixed(2)}</td>
                     <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap">$${total.toFixed(2)}</td>
                     <td class="px-4 py-3 text-center h-full items-center justify-center gap-3 whitespace-nowrap">
-                        <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil class="w-4 h-4" /></button>
+                        <button type="button" class="text-blue-600 edit-btn mr-2"><x-heroicon-o-pencil-square class="w-4 h-4" /></button>
                         <button type="button" class="text-red-600 delete-btn"><x-heroicon-o-trash class="w-4 h-4" /></button>
                     </td>
                 `;

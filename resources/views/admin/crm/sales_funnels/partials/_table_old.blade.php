@@ -49,7 +49,7 @@
                                 class="funnel-edit-button text-blue-600 hover:text-blue-800"
                                 data-unique-id="{{ $funnel->unique_id }}"
                                 title="Edit Funnel">
-                                <x-heroicon-o-pencil class="w-5 h-5"/>
+                                <x-heroicon-o-pencil-square class="w-5 h-5"/>
                             </button>
 
 

@@ -47,6 +47,8 @@ class CreateFromAccountController extends Controller
             ->orderBy('date', 'asc')
             ->get();
 
+
+
         // dd($customerAccounts);
 
         return view('admin.crm.customers.create_invoice', ['customer' => $customer , 'invoiceItems' => $jsonInvoiceItems , 'orders'=> $order, 'users' => $users,'sales_tax' => $sales_tax, 'paymentSetting' => $paymentSetting, 'customerAccounts'=> $customerAccounts, ]);

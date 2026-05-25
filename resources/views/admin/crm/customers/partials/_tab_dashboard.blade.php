@@ -30,16 +30,49 @@
     </div>
 
     <!-- Right Card -->
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-        <!-- Assign to Funnels -->
-        <div class="md:col-span-2 flex flex-col flex-grow">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Funnels</label>
-            <div
-                class="border border-gray-300 rounded-md p-5 flex-grow flex items-center justify-center text-gray-400 text-sm bg-gray-50 transition-all">
-                Add or assign funnels here
-            </div>
+<div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+
+    <!-- Assign to Funnels -->
+    <div class="md:col-span-2 flex flex-col flex-grow">
+
+        <div class="flex items-center justify-between mb-2">
+
+            <label class="block text-sm font-medium text-gray-700">
+                Assign to Funnels
+            </label>
+
         </div>
+
+        {{-- STATIC VIEW --}}
+        <div class="static-view border border-gray-300 rounded-md p-5 bg-gray-50 min-h-[120px]">
+
+            <div class="flex flex-wrap gap-2">
+
+                @forelse($customer->funnels as $funnel)
+
+                    <span
+                        class="mb-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 break-words whitespace-normal"
+                    >
+
+                        {{ $funnel->funnel_name }}
+
+                    </span>
+
+                @empty
+
+                    <div class="w-full flex items-center justify-center text-gray-400 text-sm py-6">
+                        No funnels assigned
+                    </div>
+
+                @endforelse
+
+            </div>
+
+        </div>
+
     </div>
+
+</div>
 </div>
 
 <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -62,7 +95,7 @@
                 class="text-gray-500 hover:text-blue-600 transition">
             <svg class="w-5 h-5 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
-                </svg>
+            </svg>
             </button>
         </div>
 

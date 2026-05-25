@@ -10,13 +10,14 @@
         <thead class="sticky top-0 z-10 bg-gray-100">
             <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
                 <th class="px-3 py-3 sticky top-0 left-0 z-20 bg-gray-100 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.08)]">Equipment Name</th>
-                <th class="px-3 py-3">Category</th>
-                <th class="px-3 py-3">Hours</th>
-                <th class="px-3 py-3">Overage Rate</th>
-                <th class="px-3 py-3">Equipment ID</th>
-                <th class="px-3 py-3">Store</th>
+                <th class="px-3 py-3">Direct Assignment</th>
                 <th class="px-3 py-3">Brand</th>
                 <th class="px-3 py-3">Model</th>
+                <th class="px-3 py-3">Equipment ID</th>
+                <th class="px-3 py-3">Hours</th>
+                <th class="px-3 py-3">Overage Rate</th>
+                <th class="px-3 py-3">Category</th>
+                <th class="px-3 py-3">Store</th>
                 <th class="px-3 py-3">Model Year</th>
                 <th class="px-3 py-3">Date Acquired</th>
                 <th class="px-3 py-3">Starting Mechanism</th>
@@ -47,6 +48,8 @@
             @forelse ($equipment as $item)
                 @php
                     $row = old('rows.' . $item->unique_id, []);
+                    $currentCategoryId = (int) data_get($row, 'product_category_id', $item->product_category_id);
+                    $currentProductOptions = $productAssignmentOptionsByCategory[$currentCategoryId] ?? [];
                 @endphp
                 <tr class="align-top">
                     <td class="px-3 py-2 sticky left-0 z-5 bg-white shadow-[2px_0_4px_-1px_rgba(0,0,0,0.08)]">
@@ -56,15 +59,32 @@
                     </td>
 
                     <td class="px-3 py-2">
-                        <select name="rows[{{ $item->unique_id }}][product_category_id]"
-                            class="w-52 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.product_category_id') ? 'border-red-500' : 'border-gray-300' }}">
-                            <option value="">Select</option>
-                            @foreach ($categories as $id => $title)
-                                <option value="{{ $id }}" @selected((string) data_get($row, 'product_category_id', $item->product_category_id) === (string) $id)>
-                                    {{ $title }}
+                        <select name="rows[{{ $item->unique_id }}][assigned_product_id]" class="w-56 rounded border px-2 py-1.5">
+                            <option value="">Select Product</option>
+                            @foreach ($currentProductOptions as $product)
+                                <option value="{{ $product['id'] }}" {{ (string) data_get($row, 'assigned_product_id', $item->assigned_product_id ?? '') === (string) $product['id'] ? 'selected' : '' }}>
+                                    {{ $product['label'] }}
                                 </option>
                             @endforeach
                         </select>
+                    </td>
+
+                    <td class="px-3 py-2">
+                        <input type="text" name="rows[{{ $item->unique_id }}][brand]"
+                            value="{{ data_get($row, 'brand', $item->brand) }}"
+                            class="w-40 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.brand') ? 'border-red-500' : 'border-gray-300' }}" />
+                    </td>
+
+                    <td class="px-3 py-2">
+                        <input type="text" name="rows[{{ $item->unique_id }}][model]"
+                            value="{{ data_get($row, 'model', $item->model) }}"
+                            class="w-32 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.model') ? 'border-red-500' : 'border-gray-300' }}" />
+                    </td>
+
+                    <td class="px-3 py-2">
+                        <input type="text" name="rows[{{ $item->unique_id }}][equipment_id]"
+                            value="{{ data_get($row, 'equipment_id', $item->equipment_id) }}"
+                            class="w-40 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.equipment_id') ? 'border-red-500' : 'border-gray-300' }}" />
                     </td>
 
                     <td class="px-3 py-2">
@@ -82,9 +102,15 @@
                     </td>
 
                     <td class="px-3 py-2">
-                        <input type="text" name="rows[{{ $item->unique_id }}][equipment_id]"
-                            value="{{ data_get($row, 'equipment_id', $item->equipment_id) }}"
-                            class="w-40 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.equipment_id') ? 'border-red-500' : 'border-gray-300' }}" />
+                        <select name="rows[{{ $item->unique_id }}][product_category_id]"
+                            class="w-52 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.product_category_id') ? 'border-red-500' : 'border-gray-300' }}">
+                            <option value="">Select</option>
+                            @foreach ($categories as $id => $title)
+                                <option value="{{ $id }}" @selected((string) data_get($row, 'product_category_id', $item->product_category_id) === (string) $id)>
+                                    {{ $title }}
+                                </option>
+                            @endforeach
+                        </select>
                     </td>
 
                     <td class="px-3 py-2">
@@ -97,18 +123,6 @@
                                 </option>
                             @endforeach
                         </select>
-                    </td>
-
-                    <td class="px-3 py-2">
-                        <input type="text" name="rows[{{ $item->unique_id }}][brand]"
-                            value="{{ data_get($row, 'brand', $item->brand) }}"
-                            class="w-40 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.brand') ? 'border-red-500' : 'border-gray-300' }}" />
-                    </td>
-
-                    <td class="px-3 py-2">
-                        <input type="text" name="rows[{{ $item->unique_id }}][model]"
-                            value="{{ data_get($row, 'model', $item->model) }}"
-                            class="w-32 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.model') ? 'border-red-500' : 'border-gray-300' }}" />
                     </td>
 
                     <td class="px-3 py-2">
@@ -294,7 +308,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="32" class="px-4 py-8 text-center text-sm text-gray-500">No equipment found for
+                    <td colspan="33" class="px-4 py-8 text-center text-sm text-gray-500">No equipment found for
                         current filters.</td>
                 </tr>
             @endforelse

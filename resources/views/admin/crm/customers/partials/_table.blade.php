@@ -4,9 +4,18 @@
         <thead class="bg-gray-50 text-gray-600 border-b border-gray-200">  
             <tr>
                 <th class="py-4 px-6 text-left cus-width-3"><input type="checkbox" id="select-all-checkbox" /></th>
-                <th class="cus-width-20 py-4 px-6 text-left font-semibold">Customer</th>
+                <th class="cus-width-15 py-4 px-6 text-left font-semibold">Customer</th>
                 <th class="cus-width-20 py-4 px-6 text-left font-semibold">Company</th>
                 <th class="cus-width-15 py-4 px-6 text-left font-semibold">Phone</th>
+
+                <th class="cus-width-20 py-4 px-6 text-left font-semibold whitespace-nowrap">
+                    Tags
+                </th>
+
+                <th class="cus-width-15 py-4 px-6 text-left font-semibold whitespace-nowrap">
+                    Sales Funnels
+                </th>
+
                 <th class="cus-width-15 py-4 px-6 text-left font-semibold">Status</th>
                 <th class="cus-width-10 py-4 px-6 text-left font-semibold">Orders</th>
                 <th class="cus-width-10 py-4 px-6 text-left font-semibold whitespace-nowrap">Total Spent</th>
@@ -63,6 +72,152 @@
                         $isSuspended = $customer->status === 'Archived' || $customer->status === 'Suspended';
 
                 @endphp
+
+        
+                {{-- Tags --}}
+                <td class="py-4 px-6">
+
+                    @php
+                        $tags = $customer->tag_objects ?? collect();
+
+                        $visibleTags = $tags->take(5);
+
+                        $remainingTags = $tags->slice(5);
+                    @endphp
+
+                    <div class="flex flex-wrap gap-1 items-center">
+
+                        @forelse($visibleTags as $tag)
+
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap">
+
+                                {{ $tag->name }}
+
+                            </span>
+
+                        @empty
+
+                            <span class="text-xs text-gray-400">
+                                No Tags
+                            </span>
+
+                        @endforelse
+
+                        {{-- More Tags --}}
+                        @if($remainingTags->count() > 0)
+
+                            <div class="relative group">
+
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+
+                                    +{{ $remainingTags->count() }} more
+
+                                </button>
+
+                                {{-- Hover Popup --}}
+                                <div
+                                    class="absolute left-0 top-full mt-2 hidden group-hover:block z-50 w-64 bg-white border border-gray-200 rounded-xl shadow-xl p-3">
+
+                                    <div class="flex flex-wrap gap-2">
+
+                                        @foreach($remainingTags as $tag)
+
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap">
+
+                                                {{ $tag->name }}
+
+                                            </span>
+
+                                        @endforeach
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        @endif
+
+                    </div>
+
+                </td>
+
+                {{-- Sales Funnels --}}
+                <td class="py-4 px-6">
+
+                    @php
+                        $funnels = $customer->funnels ?? collect();
+
+                        $visibleFunnels = $funnels->take(5);
+
+                        $remainingFunnels = $funnels->slice(5);
+                    @endphp
+
+                    <div class="flex flex-wrap gap-1 items-center">
+
+                        @forelse($visibleFunnels as $funnel)
+
+                            <span
+                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 whitespace-nowrap">
+
+                                {{ $funnel->funnel_name }}
+
+                            </span>
+
+                        @empty
+
+                            <span class="text-xs text-gray-400">
+                                No Funnel
+                            </span>
+
+                        @endforelse
+
+                        {{-- More Funnels --}}
+                        @if($remainingFunnels->count() > 0)
+
+                            <div class="relative group">
+
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+
+                                    +{{ $remainingFunnels->count() }} more
+
+                                </button>
+
+                                {{-- Hover Popup --}}
+                                <div
+                                    class="absolute left-0 top-full mt-2 hidden group-hover:block z-50 w-64 bg-white border border-gray-200 rounded-xl shadow-xl p-3">
+
+                                    <div class="flex flex-wrap gap-2">
+
+                                        @foreach($remainingFunnels as $funnel)
+
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 whitespace-nowrap">
+
+                                                {{ $funnel->funnel_name }}
+
+                                            </span>
+
+                                        @endforeach
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        @endif
+
+                    </div>
+
+                </td>
+
 
 
                 <td class="py-4 px-6 inline-flex whitespace-nowrap">

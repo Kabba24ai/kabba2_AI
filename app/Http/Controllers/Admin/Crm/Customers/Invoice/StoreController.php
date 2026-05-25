@@ -25,6 +25,10 @@ class StoreController extends Controller
      */
     public function __invoke(StoreRequest $request)
     {
+
+        // dd($request->all());
+        // die();
+
         $validated = $request->validated();
 
         DB::beginTransaction();
@@ -60,6 +64,7 @@ class StoreController extends Controller
                     'sku'                   => $item['sku'] ?? null,
                     'unit'                  => $item['unit'] ?? 0,
                     'tax'                   => $item['tax'] ?? 0,
+                    'sales_tax_type' => $item['sales_tax'] ?? 'add',
                     'total'                 => $item['total'] ?? 0,
                     'extras'                => $item['extras'] ?? null,
                     'notes'                 => $item['notes'] ?? null,
@@ -137,22 +142,32 @@ class StoreController extends Controller
                     if (in_array($type, ['charge', 'order'])) {
 
                         $salesTax = $salesTaxRate;
-                        $salesTaxType = 'add';
+                        
+                        $salesTaxType = $invoiceItem->sales_tax_type ?? 'add';
+
+                        if($invoiceItem->sales_tax_type == 'reverse'){
+                            $record->amount = $invoiceItem->total ?? 0;
+
+                        } else{
+                              $record->amount = $invoiceItem->unit ?? 0;
+
+                        }
+                       
 
                     } elseif ($type === 'discount') {
 
-
+ $record->amount = $invoiceItem->unit ?? 0;
                         $salesTax = $salesTaxRate; // discount has no tax
                         $salesTaxType = null;
 
                     } elseif ($type === 'refund') {
 
-
+ $record->amount = $invoiceItem->unit ?? 0;
                         $salesTax = $salesTaxRate; // refund reduces tax
                         $salesTaxType = null;
                     }
 
-                    $record->amount = $invoiceItem->unit ?? 0;
+                   
                     $record->sales_tax = $salesTax;
                     $record->sales_tax_type = $salesTaxType;
 

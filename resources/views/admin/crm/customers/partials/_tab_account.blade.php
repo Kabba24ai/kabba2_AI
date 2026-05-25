@@ -597,17 +597,101 @@
 
     <div class="bg-white rounded-xl shadow border border-gray-200 p-4 flex flex-col h-full">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
-            <!-- Assign to Funnels -->
-            <div class="md:col-span-2 mt-2 flex flex-col flex-grow">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Funnels</label>
-                <div
-                    class="border border-gray-300 rounded-md flex-grow flex items-center justify-center text-gray-400 text-sm bg-gray-50 hover:border-blue-400 hover:text-gray-700 transition-all">
-                    Add or assign funnels here
-                </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+
+        <div class="md:col-span-2 mt-2 flex flex-col flex-grow">
+
+            <div class="flex items-center justify-between mb-2">
+
+                <label class="block text-sm font-medium text-gray-700">
+                    Assign to Funnels
+                </label>
+
             </div>
+
+            {{-- EDIT MODE --}}
+            <div class="edit-view border border-gray-300 rounded-md p-4 bg-gray-50 flex-grow">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto pr-2 custom-scroll">
+
+                    @if ($funnels->isNotEmpty())
+
+                        @php
+                            $selectedFunnels = old(
+                                'funnels',
+                                isset($customer) && $customer->funnels
+                                    ? $customer->funnels->pluck('id')->toArray()
+                                    : []
+                            );
+                        @endphp
+
+                        @foreach ($funnels as $id => $funnel)
+
+                            <div class="flex items-center space-x-2 text-sm">
+
+                                {!! html()
+                                    ->checkbox(
+                                        'funnels[]',
+                                        in_array($id, $selectedFunnels)
+                                    )
+                                    ->value($id)
+                                    ->id("funnel_{$id}") !!}
+
+                                <label
+                                    for="funnel_{{ $id }}"
+                                    class="text-gray-700"
+                                >
+                                    {{ $funnel }}
+                                </label>
+
+                            </div>
+
+                        @endforeach
+
+                    @else
+
+                        <div class="col-span-full text-sm text-gray-400 text-center py-6">
+                            No funnels available
+                        </div>
+
+                    @endif
+
+                </div>
+
+            </div>
+
+            {{-- VIEW MODE --}}
+            <div class="static-view">
+
+                <div class="flex flex-wrap gap-2 max-h-60 overflow-y-auto">
+
+                    @forelse($customer->funnels as $funnel)
+
+                        <span
+                            class="mb-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 break-words whitespace-normal"
+                        >
+
+                            {{ $funnel->funnel_name }}
+
+                        </span>
+
+                    @empty
+
+                        <span class="text-sm text-gray-400">
+                            No funnels assigned
+                        </span>
+
+                    @endforelse
+
+                </div>
+
+            </div>
+
         </div>
+
     </div>
+
+</div>
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-6 items-stretch">

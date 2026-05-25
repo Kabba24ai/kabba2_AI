@@ -94,7 +94,7 @@
                 </td>
                 <td class="px-4 py-4">
                     <div class="inline-flex items-center gap-1">
-                        @if ($eq->status_label == 'Rented' && $eq?->orderProduct?->checklistQuestions->isNotEmpty())
+                        @if ($eq->status_label == 'Rented' || $eq?->orderProduct?->checklistQuestions->isNotEmpty())
                             <a href="{{ $eq->order?->customer ? route('admin.crm.customers.view', $eq->order->customer->unique_id) : '#' }}"
                                  class="text-blue-600 hover:underline">
                                 {{ $eq->order?->customer_name ?? '-' }}
@@ -212,6 +212,7 @@
                                                     data-product-name="{{ $assignment->orderProduct->product_name }}"
                                                     data-order-unique-id="{{ $assignment->orderProduct?->order?->unique_id }}"
                                                     data-order-id="{{ $assignment->orderProduct?->order?->order_number }}"
+                                                    data-category-id="{{ $assignment->orderProduct?->product?->categories?->first()?->id ?? '' }}"
                                                     data-customer-name="{{ $assignment->orderProduct?->order?->customer_name }}">
                                                     {{ $assignment->order?->order_number ?? '-' }}
                                                 </button>

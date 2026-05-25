@@ -8,9 +8,18 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {{-- Admin Code --}}
         <div>
-            <label for="master_passcode" class="block text-sm font-medium text-gray-700 mb-1">
-                Admin Code
-                <span class="text-xs text-blue-600 ml-1">(Encrypted)</span>
+            <label for="master_passcode" class="text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                <span>
+                    Admin Code
+                    <span class="text-xs text-blue-600 ml-1">(Encrypted)</span>
+                </span>
+
+                <span class="relative group inline-flex items-center">
+                    <x-heroicon-o-information-circle class="w-4 h-4 text-blue-400 hover:text-blue-500 cursor-pointer" />
+                    <span class="tooltip-panel tooltip-panel--right max-w-sm">
+                        Admin Code - Secure code used to authorize Tax-Exempt purchases and Master Login access on the Checkout page.
+                    </span>
+                </span>
             </label>
 
             <div class="relative">
@@ -55,9 +64,18 @@
 
         {{-- Master Password Entry --}}
         <div>
-            <label for="master_password_entry" class="block text-sm font-medium text-gray-700 mb-1">
-                Master Password – Entry
-                <span class="text-xs text-blue-600 ml-1">(Encrypted)</span>
+            <label for="master_password_entry" class="text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                <span>
+                    Master Password - Entry
+                    <span class="text-xs text-blue-600 ml-1">(Encrypted)</span>
+                </span>
+
+                <span class="relative group inline-flex items-center">
+                    <x-heroicon-o-information-circle class="w-4 h-4 text-blue-400 hover:text-blue-500 cursor-pointer" />
+                    <span class="tooltip-panel tooltip-panel--right max-w-sm">
+                        Master Password - Secure password required to modify any administrative settings.
+                    </span>
+                </span>
             </label>
 
             <div class="relative">

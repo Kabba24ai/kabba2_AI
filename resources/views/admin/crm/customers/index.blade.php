@@ -101,6 +101,36 @@
         </div>
 
 
+         {{-- Tags Filter --}}
+        <div class="w-full sm:w-48">
+            
+
+            <select
+                name="tag"
+                id="tags_select"
+                class="w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500"
+            >
+                <option value="">
+                    All Tags
+                </option>
+            </select>
+        </div>
+
+        {{-- Funnels Filter --}}
+<div class="w-full sm:w-48">
+
+    <select
+        name="funnel"
+        id="funnels_select"
+        class="w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500"
+    >
+        <option value="">
+            All Funnels
+        </option>
+    </select>
+
+</div>
+
         <!-- Total count -->
 
         <div
@@ -141,6 +171,9 @@
             let company_name = document.querySelector('input[name="search_company_name"]');
             let statusSelect = document.querySelector('select[name="tax_status"]');
             let wrapper = document.querySelector('#customer-table-wrapper');
+            const tagsSelect = document.getElementById('tags_select');
+
+            const funnelsSelect = document.getElementById('funnels_select');
 
             let loader = document.querySelector('#customer-loader');
             let timeout = null;
@@ -156,29 +189,94 @@
                 'search_phone': phoneInput,
                 'search_company_name': company_name,
                 'tax_status': statusSelect,
+                 'tag': tagsSelect,
+                 'funnel': funnelsSelect,
             };
 
-            // Load saved filters on page load
-            FilterFreezer.loadFilters(screenKey, fieldMap);
+            // // Load saved filters on page load
+            // FilterFreezer.loadFilters(screenKey, fieldMap);
 
             // Clear filters functionality using global clearFilters
             document.getElementById('clear-filters').addEventListener('click', function() {
-                window.clearFilters(fieldMap, screenKey);
-                fetchCustomers(1); // reload first page
+
+                /*
+                |--------------------------------------------------------------------------
+                | Clear Normal Filters
+                |--------------------------------------------------------------------------
+                */
+
+                window.clearFilters(
+                    fieldMap,
+                    screenKey
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Clear Tags Choices Dropdown
+                |--------------------------------------------------------------------------
+                */
+
+                if (window.customerTagChoices) {
+
+                    window.customerTagChoices.removeActiveItems();
+
+                    window.customerTagChoices.setChoiceByValue('');
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Remove Saved Tag
+                |--------------------------------------------------------------------------
+                */
+
+                localStorage.removeItem(
+                    `${screenKey}_tag`
+                );
+
+
+                if (window.customerFunnelChoices) {
+
+                    window.customerFunnelChoices.removeActiveItems();
+
+                    window.customerFunnelChoices.setChoiceByValue('');
+                }
+
+                localStorage.removeItem(
+                    `${screenKey}_funnel`
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Reload Customers
+                |--------------------------------------------------------------------------
+                */
+
+                fetchCustomers(1);
             });
 
-            fetchCustomers(pageParam, perPageParam); // initial fetch
+            // fetchCustomers(pageParam, perPageParam); // initial fetch
             function fetchCustomers(page = 1, perPage = 30) {
                 const name = nameInput.value;
                 const phone = phoneInput.value;
                 const company = company_name.value;
                 const tax_status = statusSelect.value;
+                const tag = window.customerTagChoices
+    ? window.customerTagChoices.getValue(true)
+    : tagsSelect.value;
+
+                const funnel = window.customerFunnelChoices
+                ? window.customerFunnelChoices.getValue(true)
+                : funnelsSelect.value;
 
                 const params = new URLSearchParams();
                 if (name.length >= 3 || name.length === 0) params.append('search_name', name);
                 if (phone.length >= 3 || phone.length === 0) params.append('search_phone', phone);
                 if (company.length >= 3 || company.length === 0) params.append('search_company_name', company);
                 if (tax_status !== 'All') params.append('tax_status', tax_status);
+                if (tag) params.append('tag', tag);
+
+                if (funnel) params.append('funnel', funnel);
+
                 if (perPage) params.append('per_page', perPage);
                 params.append('page', page);
 
@@ -244,6 +342,268 @@
             statusSelect.addEventListener('change', function() {
                 fetchCustomers(); // no timeout
             });
+
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Tags Choices Dropdown
+            |--------------------------------------------------------------------------
+            */
+
+            if (tagsSelect && !window.customerTagChoices) {
+
+                window.customerTagChoices = new Choices(tagsSelect, {
+
+                    searchEnabled: true,
+
+                    shouldSort: false,
+
+                    placeholderValue: 'Select Tag',
+
+                    itemSelectText: '',
+
+                    removeItemButton: true,
+
+                });
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Funnel Choices Dropdown
+            |--------------------------------------------------------------------------
+            */
+
+            if (funnelsSelect && !window.customerFunnelChoices) {
+
+                window.customerFunnelChoices = new Choices(funnelsSelect, {
+
+                    searchEnabled: true,
+
+                    shouldSort: false,
+
+                    placeholderValue: 'Select Funnel',
+
+                    itemSelectText: '',
+
+                    removeItemButton: true,
+
+                });
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Load Tags
+            |--------------------------------------------------------------------------
+            */
+
+            async function loadCustomerTags() {
+
+                return fetch(`{{ route('admin.crm.tags.fetch') }}`)
+
+                    .then(res => res.json())
+
+                    .then(data => {
+
+                        if (!data.success) {
+                            return;
+                        }
+
+                       const currentValue = localStorage.getItem(
+                            `${screenKey}_tag`
+                        ) || '';
+
+                        const choices = [
+
+                            {
+                                value: '',
+                                label: 'All Tags',
+                                selected: currentValue === ''
+                            },
+
+                            ...data.tags.map(tag => ({
+
+                                value: String(tag.id),
+
+                                label: `#${tag.name}`,
+
+                                selected: String(currentValue) === String(tag.id)
+
+                            }))
+
+                        ];
+
+                        window.customerTagChoices.setChoices(
+                            choices,
+                            'value',
+                            'label',
+                            true
+                        );
+                    });
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Load Funnels
+            |--------------------------------------------------------------------------
+            */
+
+            async function loadCustomerFunnels() {
+
+                return fetch(`{{ route('admin.crm.customers.sales-funnels.fetch') }}`)
+
+                    .then(res => res.json())
+
+                    .then(data => {
+
+                        if (!data.success) {
+                            return;
+                        }
+
+                        const currentValue = localStorage.getItem(
+                            `${screenKey}_funnel`
+                        ) || '';
+
+                        const choices = [
+
+                            {
+                                value: '',
+                                label: 'All Funnels',
+                                selected: currentValue === ''
+                            },
+
+                            ...data.funnels.map(funnel => ({
+
+                                value: String(funnel.id),
+
+                                label: funnel.funnel_name,
+
+                                selected: String(currentValue) === String(funnel.id)
+
+                            }))
+
+                        ];
+
+                        window.customerFunnelChoices.setChoices(
+                            choices,
+                            'value',
+                            'label',
+                            true
+                        );
+                    });
+            }
+           /*
+            |--------------------------------------------------------------------------
+            | Initial Load
+            |--------------------------------------------------------------------------
+            */
+
+            async function initializeFilters() {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Load Saved Filters FIRST
+            |--------------------------------------------------------------------------
+            */
+
+            FilterFreezer.loadFilters(
+                screenKey,
+                fieldMap
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Load Tags Dropdown
+            |--------------------------------------------------------------------------
+            */
+
+            await loadCustomerTags();
+
+            await loadCustomerFunnels();
+            /*
+            |--------------------------------------------------------------------------
+            | Restore Saved Tag
+            |--------------------------------------------------------------------------
+            */
+
+            const savedTag = localStorage.getItem(
+                `${screenKey}_tag`
+            );
+
+           
+
+            if (
+                savedTag &&
+                window.customerTagChoices
+            ) {
+
+                window.customerTagChoices.setChoiceByValue(
+                    savedTag
+                );
+            }
+
+             const savedFunnel = localStorage.getItem(
+                `${screenKey}_funnel`
+            );
+
+            if (
+                savedFunnel &&
+                window.customerFunnelChoices
+            ) {
+
+                window.customerFunnelChoices.setChoiceByValue(
+                    savedFunnel
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | FINAL FETCH
+            |--------------------------------------------------------------------------
+            */
+
+            fetchCustomers(
+                pageParam,
+                perPageParam
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Initialize
+        |--------------------------------------------------------------------------
+        */
+
+        initializeFilters();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Filter Change
+            |--------------------------------------------------------------------------
+            */
+
+           tagsSelect.addEventListener('change', function () {
+
+                localStorage.setItem(
+                    `${screenKey}_tag`,
+                    tagsSelect.value
+                );
+
+                fetchCustomers();
+            });
+
+            funnelsSelect.addEventListener('change', function () {
+
+                localStorage.setItem(
+                    `${screenKey}_funnel`,
+                    funnelsSelect.value
+                );
+
+                fetchCustomers();
+            });
+
+
         });
     </script>
 

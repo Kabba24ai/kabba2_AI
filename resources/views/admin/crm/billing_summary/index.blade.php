@@ -119,7 +119,7 @@
             </div>
 
             <!-- Customer Name -->
-            <div class="flex flex-col billing-summary-w-16">
+            <div class="flex flex-col billing-summary-w-9">
                 <label class="text-sm text-gray-500 mb-1">Customer Name</label>
                 <div class="relative">
                     <input type="text" name="b_customers_name" value="{{ request('customers_name') }}"
@@ -134,7 +134,7 @@
             </div>
 
             <!-- Company Name -->
-            <div class="flex flex-col billing-summary-w-16">
+            <div class="flex flex-col billing-summary-w-12">
                 <label class="text-sm text-gray-500 mb-1">Company Name</label>
                 <div class="relative">
                     <input name="b_company_name" value="{{ request('b_company_name') }}" type="text"
@@ -149,7 +149,7 @@
             </div>
 
             <!-- Phone -->
-            <div class="flex flex-col billing-summary-w-16">
+            <div class="flex flex-col billing-summary-w-8">
                 <label class="text-sm text-gray-500 mb-1">Phone</label>
                 <div class="relative">
                     <input type="text" name="b_search_phone" placeholder="(xxx) xxx-xxxx"
@@ -166,7 +166,7 @@
             </div>
 
             <!-- Alerts -->
-            <div class="flex flex-col billing-summary-w-13">
+            <div class="flex flex-col billing-summary-w-11">
                 <label class="text-sm text-gray-500 mb-1">Alerts</label>
                 <select name="alert_status" class="px-3 py-3 border border-gray-300 rounded-md w-full ">
                     <!-- <option value="" selected>All Accounts</option>
@@ -198,7 +198,7 @@
             </div>
 
 
-            <div class="flex flex-col billing-summary-w-16">
+            <div class="flex flex-col billing-summary-w-12">
                 <label class="text-sm text-gray-500 mb-1">Sort</label>
                 <select id="balanceSortSelect" class="px-3 py-3 border border-gray-300 rounded-md w-full">
                     <option value="balance" selected>Balance: Highest to Lowest</option>
@@ -208,13 +208,13 @@
                 </select>
             </div>
 
-            <div class="flex flex-col billing-summary-w-16">
+            <div class="flex flex-col billing-summary-w-8">
                 <label class="text-sm text-gray-500 mb-1">Missing Invoice Month</label>
                 <input type="month" id="invoice_month" name="invoice_month"
                     class="px-3 py-3 border border-gray-300 rounded-md w-full">
             </div>
 
-            <div class="flex flex-col billing-summary-w-16">
+            <div class="flex flex-col billing-summary-w-8">
                 <label class="text-sm text-gray-500 mb-1">Payment Aging</label>
                 <select id="payment_aging" name="payment_aging"
                     class="px-3 py-3 border border-gray-300 rounded-md w-full">
@@ -224,6 +224,16 @@
                     <option value="45">31 - 45 Days</option>
                     <option value="90">46 - 90 Days</option>
                     <option value="90_plus">More than 90 Days</option>
+                </select>
+            </div>
+
+            <div class="flex flex-col billing-summary-w-12">
+                <label class="text-sm text-gray-500 mb-1">Show By Balance</label>
+                <select id="balance_type" name="balance_type"
+                    class="px-3 py-3 border border-gray-300 rounded-md w-full">
+                    <option value="positive" selected>Positive - Customer Owes</option>
+                    <option value="negative">Negative - Customer Credit</option>
+                    <option value="">All Accounts</option>
                 </select>
             </div>
 
@@ -268,6 +278,7 @@
                 'balanceSortSelect': document.getElementById('balanceSortSelect'),
                 'invoice_month': document.getElementById('invoice_month'),
                 'payment_aging': document.getElementById('payment_aging'),
+                'balance_type': document.getElementById('balance_type'),
             };
 
             // Load saved filters on page load
@@ -276,6 +287,10 @@
             // Clear filters functionality using global clearFilters
             document.getElementById('clear-filters').addEventListener('click', function() {
                 window.clearFilters(fieldMap, screenKey);
+
+                // Restore defaults: both credit type checkboxes checked
+                creditCheckboxes.forEach(cb => { cb.checked = true; });
+
                 fetchCustomers();
             });
 
@@ -295,10 +310,13 @@
 
 
                 // Get selected credit types
+                const balanceType = document.getElementById('balance_type').value;
+
                 const params = new URLSearchParams();
                 if (name.length >= 3 || name.length === 0) params.append('search_name', name);
-if (invoiceMonth) params.append('invoice_month', invoiceMonth);
-if (paymentAging) params.append('payment_aging', paymentAging);
+                if (invoiceMonth) params.append('invoice_month', invoiceMonth);
+                if (paymentAging) params.append('payment_aging', paymentAging);
+                if (balanceType) params.append('balance_type', balanceType);
                 if (phone.length >= 3 || phone.length === 0) params.append('search_phone', phone);
                 if (company.length >= 3 || company.length === 0) params.append('search_company_name', company);
                 if (alert_status.length > 0) params.append('alert_status', alert_status);
@@ -395,6 +413,10 @@ if (paymentAging) params.append('payment_aging', paymentAging);
 
             document.getElementById('balanceSortSelect').addEventListener('change', function() {
                 sortValue = this.value;
+                fetchCustomers();
+            });
+
+            document.getElementById('balance_type').addEventListener('change', function() {
                 fetchCustomers();
             });
 

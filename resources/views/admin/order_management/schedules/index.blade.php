@@ -211,6 +211,11 @@
                             class="text-red-600 focus:ring-red-500 rounded border-gray-300" @checked(request('rescheduled_only') == 'Reschedule')>
                         <span class="font-medium">Rescheduled Pending : {{ $rescheduleOrder }}</span>
                     </label>
+                    <label class="flex items-center gap-1 ml-4">
+                        <input type="checkbox" name="overdue" value="1" id="overdue"
+                            class="text-red-600 focus:ring-red-500 rounded border-gray-300" @checked(request('overdue') == '1')>
+                        <span class="font-medium">Overdue</span>
+                    </label>
                 </div>
                 <!-- Quick Filter Buttons -->
                 <div class="flex gap-2">
@@ -633,6 +638,7 @@
             let transportModeInputs = document.querySelectorAll('input[name="transport_mode[]"]');
             let scheduleTypeInputs = document.querySelectorAll('input[name="schedule_type[]"]');
             let rescheduledOnlyInput = document.querySelector('input[name="rescheduled_only"]');
+            let overdueInput = document.querySelector('input[name="overdue"]');
             let loadingIndicator = document.querySelector('#schedule-loading');
             let wrapper = document.querySelector('#schedule-table-wrapper');
             let timeout = null;
@@ -659,6 +665,7 @@
                 'date_filter': dateFilterInput,
                 'store_location[]': storeLocationInputs,
                 'rescheduled_only': rescheduledOnlyInput,
+                'overdue': overdueInput,
                 'schedule_type[]': scheduleTypeInputs,
                 'transport_mode[]': transportModeInputs,
             };
@@ -666,6 +673,12 @@
             // Clear filters functionality using global clearFilters
             document.getElementById('clear-filters').addEventListener('click', function() {
                 window.clearFilters(fieldMap, screenKey);
+
+                // Restore defaults: all schedule types, delivery modes, and stores checked
+                scheduleTypeInputs.forEach(input => { input.checked = true; });
+                transportModeInputs.forEach(input => { input.checked = true; });
+                storeLocationInputs.forEach(input => { input.checked = true; });
+
                 fetchSchedules();
             });
 
@@ -673,6 +686,12 @@
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
+
+            // If arriving from the dashboard Overdue Orders card, force-check overdue
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('overdue') === '1' && overdueInput) {
+                overdueInput.checked = true;
+            }
 
             if (urlScheduleType) {
                 scheduleTypeInputs.forEach(input => {
@@ -727,6 +746,7 @@
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
                 if (rescheduledOnlyInput && rescheduledOnlyInput.checked) params.append('rescheduled_only',
                     rescheduledOnlyInput.value);
+                if (overdueInput && overdueInput.checked) params.append('overdue', '1');
                 if (perPage) params.append('per_page', perPage);
                 params.set('page', page); // Set the current page
 
@@ -822,6 +842,7 @@
             if (dateFilterInput) dateFilterInput.addEventListener('change', fetchSchedules);
             storeLocationInputs.forEach(input => input.addEventListener('change', fetchSchedules));
             if (rescheduledOnlyInput) rescheduledOnlyInput.addEventListener('change', fetchSchedules);
+            if (overdueInput) overdueInput.addEventListener('change', fetchSchedules);
 
             transportModeInputs.forEach(input => {
                 input.addEventListener('change', function(e) {

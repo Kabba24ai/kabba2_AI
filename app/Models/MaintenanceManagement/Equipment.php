@@ -311,13 +311,15 @@ class Equipment extends Model
 
     public function equipmentLocation()
     {
-
-        if ($this->orderProduct?->checklistQuestions->isNotEmpty()) {
-            return $this->status_label === 'Rented'
-                ? $this->order?->customer_name ?? '-'
-                : $this->store?->store_name ?? '-';
-
+        if ($this->status_label === 'Rented') {
+            return $this->order?->customer_name ?? '-';
         }
+
+        // if ($this->orderProduct?->checklistQuestions->isNotEmpty()) {
+        //     return $this->status_label === 'Rented'
+        //         ? $this->order?->customer_name ?? '-'
+        //         : $this->store?->store_name ?? '-';
+        // }
 
 
         if ($this->softAssignments && $this->softAssignments->isNotEmpty()) {

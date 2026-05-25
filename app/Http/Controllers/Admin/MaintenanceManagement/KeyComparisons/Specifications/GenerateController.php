@@ -14,26 +14,6 @@ use Illuminate\Support\Collection;
 
 class GenerateController extends Controller
 {
-    private const SPEC_KEYS = [
-        'working_height'       => 'Working Height',
-        'platform_height'      => 'Platform Height',
-        'horizontal_reach'     => 'Horizontal Reach',
-        'machine_weight'       => 'Machine Weight',
-        'platform_capacity'    => 'Platform Capacity',
-        'machine_width'        => 'Machine Width',
-        'retracted_width'      => 'Retracted Width',
-        'machine_length'       => 'Machine Length',
-        'machine_height'       => 'Machine Height',
-        'drive_speed'          => 'Drive Speed',
-        'gradeability'         => 'Gradeability',
-        'outriggers_required'  => 'Outriggers Required',
-        'outrigger_type'       => 'Outrigger Type',
-        'self_propelled'       => 'Self Propelled',
-        'towable'              => 'Towable',
-        'drive_while_elevated' => 'Drive While Elevated',
-        'rough_terrain_capable'=> 'Rough Terrain Capable',
-    ];
-
     public function __invoke(Request $request, OpenAIService $openAI): JsonResponse
     {
         $categoryId = (int) $request->input('category_id', 0);
@@ -54,10 +34,14 @@ class GenerateController extends Controller
         $equipmentList = Equipment::query()
             ->where('product_category_id', $categoryId)
             ->whereNull('deleted_at')
-            ->select(['id', 'unique_id', 'equipment_name', 'brand', 'model', 'model_year', 'equipment_id', 'serial_number', 'vehicle_identification_number'])
+            ->select(['id', 'unique_id', 'brand', 'model'])
             ->orderBy('brand')
             ->orderBy('model')
-            ->get();
+            ->get()
+            ->unique(fn (Equipment $equipment) => strtolower(trim((string) $equipment->brand) . '|' . trim((string) $equipment->model)))
+            ->values();
+
+
 
         if ($equipmentList->isEmpty()) {
             return response()->json(['success' => false, 'message' => 'No equipment found in this category.'], 422);
@@ -77,13 +61,10 @@ class GenerateController extends Controller
         // Build the equipment list section of the prompt
         $equipmentLines = $equipmentList->map(function (Equipment $e) {
             return sprintf(
-                '- ID: %s | Name: %s | Brand: %s | Model: %s | Year: %s | Serial: %s',
+                '- ID: %s | Equipment Make & Model: %s %s',
                 $e->unique_id,
-                $e->equipment_name ?? 'N/A',
                 $e->brand ?? 'N/A',
-                $e->model ?? 'N/A',
-                $e->model_year ?? 'N/A',
-                $e->serial_number ?? 'N/A'
+                $e->model ?? 'N/A'
             );
         })->implode("\n");
 
@@ -167,14 +148,8 @@ PROMPT;
 
             $normalizedSpecs = $this->normalizeAiSpecs($equipmentSpecs, $requestedSpecs);
             $lookupPayload = [
-                'brand'          => (string) ($equipment->brand ?? ''),
-                'model'          => (string) ($equipment->model ?? ''),
-                'model_year'     => $equipment->model_year,
-                'category'       => $categoryTitle,
-                'equipment_name' => (string) ($equipment->equipment_name ?? ''),
-                'equipment_id'   => (string) ($equipment->equipment_id ?? ''),
-                'serial_number'  => $equipment->serial_number ?? null,
-                'vin'            => $equipment->vehicle_identification_number ?? null,
+                'brand' => (string) ($equipment->brand ?? ''),
+                'model' => (string) ($equipment->model ?? ''),
             ];
 
             foreach ($normalizedSpecs as $specData) {
@@ -250,13 +225,7 @@ PROMPT;
 
             $requestedSpecs[$key] = $label !== ''
                 ? $label
-                : self::SPEC_KEYS[$key] ?? ucwords(str_replace('_', ' ', $key));
-        }
-
-        foreach (self::SPEC_KEYS as $key => $label) {
-            if (!isset($requestedSpecs[$key])) {
-                $requestedSpecs[$key] = $label;
-            }
+                : ucwords(str_replace('_', ' ', $key));
         }
 
         return $requestedSpecs;

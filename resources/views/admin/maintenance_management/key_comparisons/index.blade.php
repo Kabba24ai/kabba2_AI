@@ -601,22 +601,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     body: JSON.stringify({ category_id: selectedCategoryId }),
                 });
-                const data = await res.json();
+                const rawBody = await res.text();
+                let data = {};
+
+                try {
+                    data = rawBody ? JSON.parse(rawBody) : {};
+                } catch (parseError) {
+                    data = {};
+                }
+
                 if (res.ok && data.success) {
                     aiSpecs = data.ai_items || [];
                     renderAiSpecs();
-                    if (window.showToast) {
-                        window.showToast(data.message || 'AI specifications generated successfully.', 'success');
-                    }
+                    window.notyf?.success?.(data.message || 'AI specifications generated successfully.');
                 } else {
-                    if (window.showToast) {
-                        window.showToast(data.message || 'Failed to generate AI specifications.', 'error');
-                    }
+                    const fallback = res.status >= 500
+                        ? 'Server error while generating AI specifications.'
+                        : 'Failed to generate AI specifications.';
+                    window.notyf?.error?.(data.message || fallback);
                 }
             } catch (err) {
-                if (window.showToast) {
-                    window.showToast('An error occurred while generating specifications.', 'error');
-                }
+                window.notyf?.error?.((err && err.message) ? err.message : 'An error occurred while generating specifications.');
             } finally {
                 isGenerating = false;
                 aiPromptButton.disabled = false;

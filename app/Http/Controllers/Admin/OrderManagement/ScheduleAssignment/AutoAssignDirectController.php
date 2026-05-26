@@ -13,28 +13,36 @@ class AutoAssignDirectController extends Controller
 {
     public function __invoke(Request $request, ConflictDetectionService $conflictDetectionService)
     {
-        // Build the same unassigned-order-products query used on the schedule assignment page
-        $query = OrderProduct::query()
-            ->with(['product.categories', 'softAssignment', 'order'])
-            ->where('product_data->product_type', 'Rental')
-            ->whereHas('order')
-            ->whereNotNull('delivery_date')
-            ->whereDoesntHave('softAssignment')
-            ->whereDoesntHave('equipment')
-            ->where(function ($q) {
-                $q->where('delivery_status', 'Pending')->orWhere('pickup_status', 'Pending');
-            })
-            ->where('delivery_status', '!=', 'Reschedule')
-            ->where('pickup_status', '!=', 'Reschedule');
+        // Single-item mode: if an order_product_id is provided, only process that one
+        if ($request->filled('order_product_id')) {
+            $single = OrderProduct::with(['product.categories', 'softAssignment', 'order'])
+                ->find((int) $request->order_product_id);
 
-        // Apply the category filter from the current Schedule Assignment filter
-        if ($request->filled('category')) {
-            $query->whereHas('product.categories', function ($q) use ($request) {
-                $q->where('product_categories.id', $request->category);
-            });
+            $orderProducts = $single ? collect([$single]) : collect();
+        } else {
+            // Build the same unassigned-order-products query used on the schedule assignment page
+            $query = OrderProduct::query()
+                ->with(['product.categories', 'softAssignment', 'order'])
+                ->where('product_data->product_type', 'Rental')
+                ->whereHas('order')
+                ->whereNotNull('delivery_date')
+                ->whereDoesntHave('softAssignment')
+                ->whereDoesntHave('equipment')
+                ->where(function ($q) {
+                    $q->where('delivery_status', 'Pending')->orWhere('pickup_status', 'Pending');
+                })
+                ->where('delivery_status', '!=', 'Reschedule')
+                ->where('pickup_status', '!=', 'Reschedule');
+
+            // Apply the category filter from the current Schedule Assignment filter
+            if ($request->filled('category')) {
+                $query->whereHas('product.categories', function ($q) use ($request) {
+                    $q->where('product_categories.id', $request->category);
+                });
+            }
+
+            $orderProducts = $query->get();
         }
-
-        $orderProducts = $query->get();
 
         $assigned = 0;
         $skipped  = 0;

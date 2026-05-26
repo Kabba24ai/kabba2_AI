@@ -871,6 +871,51 @@
             }
             // ── End Assign All ──────────────────────────────────────────────────────
 
+
+                // ── Per-row Auto Assign Direct ──────────────────────────────────────────
+                document.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.auto-assign-direct-btn');
+                    if (!btn) return;
+
+                    const orderProductId = btn.dataset.orderProductId;
+                    const originalHtml = btn.innerHTML;
+
+                    btn.disabled = true;
+                    btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>`;
+
+                    const params = new URLSearchParams();
+                    params.append('order_product_id', orderProductId);
+
+                    apiFetch('{{ route('admin.order-management.schedule-assignment.auto-assign-direct') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Accept': 'application/json',
+                        },
+                        body: params.toString(),
+                    })
+                    .then(data => {
+                        fetchSchedules();
+                        fetchEquipments();
+
+                        if (data.assigned > 0) {
+                            const detail = data.details?.[0];
+                            notyf.success(`Assigned: ${detail?.equipment_name ?? ''} (${detail?.equipment_id ?? ''})`);
+                        } else {
+                            const reason = data.details?.[0]?.reason ?? 'Could not auto-assign this item.';
+                            notyf.error(reason);
+                        }
+                    })
+                    .catch(() => {})
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    });
+                });
+                // ── End Per-row Auto Assign Direct ─────────────────────────────────────
+
+
             const modal = document.getElementById('equipmentAssignModal');
 
             const equipmentAssignForm = document.getElementById('equipmentAssignForm');

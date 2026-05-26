@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Customers\SalesFunnel;
 use App\Models\Customers\SalesFunnelCategory;
 use App\Models\Customers\SmsCategory;
+use App\Models\Customers\EmailCategory;
 
 class IndexController extends Controller
 {
@@ -44,6 +45,14 @@ class IndexController extends Controller
         $unassignedFunnels = $queryFunnel->whereNull('sales_funnel_category_id')->count();
 
         $smsCategories = SmsCategory::orderBy('name')->get();
-        return view('admin.crm.sales_funnels.index', compact('categories', 'totalFunnels', 'unassignedFunnels', 'smsCategories'));
+        $emailCategories = EmailCategory::orderBy('name')->get();
+
+        return view('admin.crm.sales_funnels.index', compact(
+            'categories',
+            'totalFunnels',
+            'unassignedFunnels',
+            'smsCategories',
+            'emailCategories'
+        ));
     }
 }

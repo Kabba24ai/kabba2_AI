@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 // Models
 use App\Models\Customers\SalesFunnel;
 use App\Models\Customers\SmsCategory;
+use App\Models\Customers\EmailCategory;
+use App\Models\Customers\EmailTemplate;
 
 class SalesFunnelSteps extends Model
 {
@@ -17,13 +19,21 @@ class SalesFunnelSteps extends Model
         'unique_id',
         'sales_funnel_id',
         'step_type',
+        'timing_reference_type',
+        'offset_direction',
+        'offset_days',
+        'offset_hours',
+        'offset_minutes_val',
+        'offset_minutes',       // computed total (days*1440 + hours*60 + minutes_val)
+        'message_category_id',
+        'message_template_id',
         'sms_category_id',
         'sms_message_id',
+        'email_category_id',
         'name',
         'message',
-        'delay_unit',
-        'delay_value',
         'sort_order',
+        'is_active',
     ];
 
     // Auto-generate UUID when creating
@@ -49,5 +59,15 @@ class SalesFunnelSteps extends Model
     public function smsMessage()
     {
         return $this->belongsTo(SmsFunnel::class, 'sms_message_id');
+    }
+
+    public function emailCategory()
+    {
+        return $this->belongsTo(EmailCategory::class, 'message_category_id');
+    }
+
+    public function emailTemplate()
+    {
+        return $this->belongsTo(EmailTemplate::class, 'message_template_id');
     }
 }

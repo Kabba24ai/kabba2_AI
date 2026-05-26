@@ -15,19 +15,15 @@ class StoreRequest extends ApiBaseFormRequest
 
             'category_id' => ['nullable', 'exists:sales_funnel_categories,id'],
 
-            'trigger_event' => [
+            'trigger_type' => [
                 'required',
-                'in:rental_start_date,new_lead_added',
+                'in:new_order,rental_schedule,lead_added',
             ],
 
-            'timing' => [
+            'trigger_reference' => [
                 'required',
-                'in:before,after',
+                'in:order_created_datetime,order_paid_datetime,delivery_datetime,return_datetime,lead_added_datetime',
             ],
-
-            'date_value' => ['nullable', 'integer', 'min:1', 'max:31'],
-            'hour_value' => ['nullable', 'integer', 'min:0', 'max:23'],
-            'minute_value' => ['nullable', 'integer', 'in:15,30,45'],
 
             'is_active' => ['nullable', 'boolean'],
         ];

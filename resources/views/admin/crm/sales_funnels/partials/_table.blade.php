@@ -19,20 +19,12 @@
                                 <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M13 2L3 14h7l-1 8 12-14h-7l-1-6z" />
                                 </svg>
-                                <span>Event: {{ str($funnel->trigger_event)->replace('_', ' ')->title() }}</span>
+                                <span>Event: {{ str($funnel->trigger_type)->replace('_', ' ')->title() }}</span>
                             </div>
                             <span>•</span>
                             <span>
-                                Starts
-                                @if ((int) $funnel->date_value === 0 && (int) $funnel->hour_value === 0 && (int) $funnel->minute_value === 0)
-                                    at event
-                                @else
-                                    {{ $funnel->date_value ? $funnel->date_value . ' ' . Str::plural('day', $funnel->date_value) : '' }}
-                                    {{ $funnel->hour_value ? $funnel->hour_value . ' ' . Str::plural('hour', $funnel->hour_value) : '' }}
-                                    {{ $funnel->minute_value ? $funnel->minute_value . ' ' . Str::plural('minute', $funnel->minute_value) : '' }}
-                                    {{ str($funnel->trigger_event_timing)->replace('Event', '')->trim() }}
-                                @endif
-                            </span>
+                            Starts from {{ str($funnel->trigger_reference)->replace('_', ' ')->title() }}
+                        </span>
                         </div>
 
                         <div class="flex justify-start lg:justify-end">

@@ -24,7 +24,7 @@ class UpdateController extends Controller
             return response()->json(
                 [
                     'success' => false,
-                    'message' => 'Failed to create category. Please try again.',
+                    'message' => 'Failed to update category. Please try again.',
                     'error' => $e->getMessage(), // optional for debugging
                 ],
                 500,
@@ -33,7 +33,8 @@ class UpdateController extends Controller
 
          return response()->json([
             'success' => true,
-            'message' => 'Sales funnel category created successfully.',
+            'message' => 'Sales funnel category updated successfully.',
+            'data' => $category,
         ]);
     }
 }

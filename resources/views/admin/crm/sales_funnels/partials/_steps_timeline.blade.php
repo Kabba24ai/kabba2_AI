@@ -13,21 +13,13 @@
                     <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                     </svg>
-                    <span>Event: {{ str($funnel->trigger_event)->replace('_', ' ')->title() }}</span>
+                    <span>Trigger: {{ str($funnel->trigger_type)->replace('_', ' ')->title() }}</span>
                 </div>
 
                 <span class="text-sm text-gray-400">•</span>
 
                 <span class="text-xs text-gray-600">
-                    Starts
-                    @if ((int) $funnel->date_value === 0 && (int) $funnel->hour_value === 0 && (int) $funnel->minute_value === 0)
-                        at event
-                    @else
-                        {{ $funnel->date_value ? $funnel->date_value . ' ' . Str::plural('day', $funnel->date_value) : '' }}
-                        {{ $funnel->hour_value ? $funnel->hour_value . ' ' . Str::plural('hour', $funnel->hour_value) : '' }}
-                        {{ $funnel->minute_value ? $funnel->minute_value . ' ' . Str::plural('minute', $funnel->minute_value) : '' }}
-                        {{ str($funnel->trigger_event_timing)->replace('Event', '')->trim() }}
-                    @endif
+                    Starts from: {{ str($funnel->trigger_reference)->replace('_', ' ')->title() }}
                 </span>
 
                 <span class="text-sm text-gray-400">•</span>
@@ -100,7 +92,6 @@
                                     </div>
 
                                     <div class="flex items-center gap-4">
-                                        {{-- Delay --}}
                                         <div class="flex items-center gap-2 text-sm">
                                             <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100">
                                                 <svg class="w-4 h-4 text-orange-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -109,18 +100,25 @@
                                                 </svg>
                                             </div>
                                             <div>
-                                                <div class="text-xs text-gray-500">Delay</div>
+                                                <div class="text-xs text-gray-500">Reference</div>
+                                                @php
+                                                    $timingLabels = [
+                                                        'funnel_entry_time'       => 'Funnel Entry Time',
+                                                        'order_created_datetime'  => 'Order Created',
+                                                        'order_paid_datetime'     => 'Order Paid',
+                                                        'rental_delivery_datetime'=> 'Delivery Date/Time',
+                                                        'rental_return_datetime'  => 'Return Date/Time',
+                                                        'lead_added_datetime'     => 'Lead Added',
+                                                        'after_previous_event'    => 'After Previous Event',
+                                                    ];
+                                                    $timingLabel = $timingLabels[$step->timing_reference_type] ?? str($step->timing_reference_type)->replace('_',' ')->title();
+                                                @endphp
                                                 <div class="font-semibold text-gray-900">
-                                                    @if ($step->delay_value == 0)
-                                                        Immediate
-                                                    @else
-                                                        {{ $step->delay_value }} {{ ucfirst($step->delay_unit) }}
-                                                    @endif
+                                                    {{ $timingLabel }}
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {{-- Total time --}}
                                         <div class="flex items-center gap-2 text-sm">
                                             <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100">
                                                 <svg class="w-4 h-4 text-purple-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -130,12 +128,24 @@
                                                 </svg>
                                             </div>
                                             <div>
-                                                <div class="text-xs text-gray-500">Total Time</div>
+                                                <div class="text-xs text-gray-500">Offset</div>
+                                                @php
+                                                    $totalMin = (int) ($step->offset_minutes ?? 0);
+                                                    $d = intdiv($totalMin, 1440);
+                                                    $r = $totalMin % 1440;
+                                                    $h = intdiv($r, 60);
+                                                    $m = $r % 60;
+                                                    $parts = [];
+                                                    if ($d) $parts[] = $d . ' ' . Str::plural('day', $d);
+                                                    if ($h) $parts[] = $h . ' ' . Str::plural('hour', $h);
+                                                    if ($m) $parts[] = $m . ' min';
+                                                    $offsetDisplay = count($parts) ? implode(' ', $parts) : 'at reference time';
+                                                @endphp
                                                 <div class="font-semibold text-gray-900">
-                                                    @if ($step->delay_value == 0)
-                                                        At Start
+                                                    @if(count($parts))
+                                                        {{ ucfirst($step->offset_direction) }} {{ $offsetDisplay }}
                                                     @else
-                                                        +{{ $step->delay_value }}{{ strtolower(substr($step->delay_unit, 0, 1)) }}
+                                                        At reference time
                                                     @endif
                                                 </div>
                                             </div>
@@ -169,7 +179,7 @@
                                 <div class="flex items-center gap-2 mb-1.5">
                                     <span class="text-xs font-semibold text-gray-700">Message:</span>
                                     <span class="text-xs text-gray-600">
-                                        {{ $step?->smsMessage->name ?? 'N/A' }}
+                                        {{ $step->name ?? 'N/A' }}
                                     </span>
                                 </div>
 
@@ -179,11 +189,12 @@
                             </div>
 
                             <p class="text-xs text-gray-500">
-                                @if ($step->delay_value == 0)
-                                    Sends when after funnel starts
+                                @if(count($parts))
+                                    Sends {{ $step->offset_direction }} {{ $offsetDisplay }}
                                 @else
-                                    Sends {{ $step->delay_value }} {{ ucfirst($step->delay_unit) }} after above step completed
+                                    Sends at
                                 @endif
+                                from {{ $timingLabel }}.
                             </p>
                         </div>
                     </div>

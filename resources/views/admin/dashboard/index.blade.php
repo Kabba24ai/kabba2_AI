@@ -1098,6 +1098,7 @@ if (status === "uncollectible") {
                 height: 400,
                 type: "line",
                 toolbar: { show: false },
+                zoom: { enabled: false },
             },
             xaxis: {
                 categories: data.categories,

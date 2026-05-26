@@ -26,11 +26,8 @@ class StoreController extends Controller
                 'funnel_name'              => $request->name,
                 'description'              => $request->description,
                 'sales_funnel_category_id' => $request->category_id,
-                'trigger_event'            => $triggerEventMap[$request->trigger_event] ?? null,
-                'trigger_event_timing'     => $timingMap[$request->timing] ?? null,
-                'date_value'               => $request->date_value,
-                'hour_value'               => $request->hour_value,
-                'minute_value'             => $request->minute_value,
+                'trigger_type'             => $request->trigger_type,
+                'trigger_reference'        => $request->trigger_reference,
                 'status'                   => $request->is_active ? 'Active' : 'Inactive',
             ]);
 

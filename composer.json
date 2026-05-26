@@ -44,6 +44,9 @@
         "rap2hpoutre/laravel-log-viewer": "^2.5"
     },
     "autoload": {
+        "files": [
+            "app/helpers.php"
+        ],
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",

@@ -204,6 +204,15 @@ class IndexController extends Controller
         $pendingCount = $serviceStatusCounts['pendingCount'];
         $overdueCount = $serviceStatusCounts['overdueCount'];
 
+        // Overdue orders: delivered but not yet returned past their pickup date
+        $overdueOrderCount = OrderProduct::query()
+            ->where('product_data->product_type', 'Rental')
+            ->where('delivery_status', 'Completed')
+            ->where('pickup_status', 'Pending')
+            ->whereNotNull('pickup_date')
+            ->whereDate('pickup_date', '<', Carbon::today())
+            ->count();
+
         $data = [
             'deliveries_truck' => [
                 'due_today' => $this->getScheduleCount('delivery', 'Truck', 'Due', true),
@@ -224,7 +233,7 @@ class IndexController extends Controller
         ];
 
 
-        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount'));
+        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount'));
 
     }
 

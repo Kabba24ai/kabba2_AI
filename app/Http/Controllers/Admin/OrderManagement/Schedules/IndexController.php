@@ -199,6 +199,13 @@ class IndexController extends Controller
                 });
             }
 
+            if ($request->filled('overdue') && $request->overdue === '1') {
+                $query->where('delivery_status', 'Completed')
+                      ->where('pickup_status', 'Pending')
+                      ->whereNotNull('pickup_date')
+                      ->whereDate('pickup_date', '<', \Carbon\Carbon::today());
+            }
+
             $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
             $orderProducts = $query->orderBy($orderByField, $orderBy)->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links

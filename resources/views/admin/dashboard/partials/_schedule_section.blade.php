@@ -292,7 +292,7 @@
                             <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
                                     <div class="text-2xl font-bold text-red-600 mb-1">{{ $equipmentStats['maintenance']['due_today'] ?? 0; }}</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
+                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">START</div>
                                 </div>
                                 <div class="h-12 w-px bg-gray-300"></div>
                                 <div class="flex-1 flex flex-col items-center justify-center">
@@ -352,7 +352,7 @@
                             <div class="flex items-center">
                                 <div class="flex-1 flex flex-col items-center justify-center">
                                     <div class="text-2xl font-bold text-red-600 mb-1">{{ $equipmentStats['damaged']['due_today'] ?? 0; }}</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">DUE</div>
+                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">START</div>
                                 </div>
                                 <div class="h-12 w-px bg-gray-300"></div>
                                 <div class="flex-1 flex flex-col items-center justify-center">
@@ -382,43 +382,85 @@
                             </div>
                         </div>
 
-                        <!-- Service Due -->
-                        <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
-                           class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all block">
+                    </div>
+
+                    {{-- Bottom row: 2-col mirroring top row --}}
+                    {{-- Left: Overdue Orders (full height, same structure as Maintenance Hold) --}}
+                    {{-- Right: Service Due + Service OverDue stacked 50/50 (same design language as Damaged Items) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6 items-stretch">
+
+                        <!-- Overdue Orders — mirrors Maintenance Hold in size & structure -->
+                        <a href="{{ route('admin.order-management.schedules.index') }}?overdue=1"
+                           class="bg-white rounded-xl shadow-sm border border-red-300 p-5 flex flex-col hover:shadow-lg hover:border-red-400 transition-all">
                             <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 group-hover:scale-110 transition-transform duration-200">
+                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-600 to-red-700">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                     </svg>
                                 </div>
                             </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Service Due</h3>
-                            <div class="flex items-center">
+                            <h3 class="text-sm font-bold text-red-600 mb-4 leading-tight">Overdue Orders</h3>
+                            <div class="flex items-center flex-1">
                                 <div class="flex-1 flex flex-col items-center justify-center">
-                                    <div class="text-2xl font-bold text-yellow-600 mb-1">{{ $pendingCount ?? 0 }}</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">{{ ($pendingCount ?? 0) > 1 ? 'EQUIPMENTS' : 'EQUIPMENT' }}</div>
+                                    <div class="text-2xl font-bold text-red-600 mb-1">{{ $overdueOrderCount ?? 0 }}</div>
+                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">START</div>
+                                </div>
+                                <div class="h-12 w-px bg-gray-300"></div>
+                                <div class="flex-1 flex flex-col items-center justify-center">
+                                    <div class="text-2xl font-bold text-green-600 mb-1">0</div>
+                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">COMPLETED</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-gray-300">
+                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                    <span>Progress</span>
+                                    <span>0%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="h-1.5 rounded-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-500" style="width: 0%"></div>
                                 </div>
                             </div>
                         </a>
 
-                        <!-- Service Overdue -->
-                        <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
-                           class="bg-white rounded-xl shadow-sm border border-gray-300 p-5 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all block">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 group-hover:scale-110 transition-transform duration-200">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                                    </svg>
+                        <!-- Right column: Service Due + Service OverDue stacked 50/50 -->
+                        <div class="flex flex-col gap-[14px] h-full">
+
+                            <!-- Service Due -->
+                            <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
+                               class="flex-1 bg-white rounded-xl shadow-sm border border-gray-300 p-5 flex items-center justify-between hover:shadow-lg hover:border-blue-400 transition-all">
+                                <div>
+                                    <div class="p-2.5 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 mb-3 w-fit">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-sm font-semibold text-gray-800 leading-tight">Service Due</h3>
                                 </div>
-                            </div>
-                            <h3 class="text-sm font-semibold text-gray-800 mb-4 leading-tight">Service OverDue</h3>
-                            <div class="flex items-center">
-                                <div class="flex-1 flex flex-col items-center justify-center">
+                                <div class="flex flex-col items-center">
+                                    <div class="text-2xl font-bold text-yellow-600 mb-1">{{ $pendingCount ?? 0 }}</div>
+                                    <div class="text-xs text-gray-500 font-medium tracking-wide">EQUIPMENT</div>
+                                </div>
+                            </a>
+
+                            <!-- Service Overdue -->
+                            <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
+                               class="flex-1 bg-white rounded-xl shadow-sm border border-gray-300 p-5 flex items-center justify-between hover:shadow-lg hover:border-blue-400 transition-all">
+                                <div>
+                                    <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 mb-3 w-fit">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-sm font-semibold text-gray-800 leading-tight">Service Overdue</h3>
+                                </div>
+                                <div class="flex flex-col items-center">
                                     <div class="text-2xl font-bold text-red-600 mb-1">{{ $overdueCount ?? 0 }}</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">{{ ($overdueCount ?? 0) > 1 ? 'EQUIPMENTS' : 'EQUIPMENT' }}</div>
+                                    <div class="text-xs text-gray-500 font-medium tracking-wide">EQUIPMENT</div>
                                 </div>
-                            </div>
-                        </a>
+                            </a>
+
+                        </div>{{-- end right column --}}
+
                     </div>
                 </div>
             </div>

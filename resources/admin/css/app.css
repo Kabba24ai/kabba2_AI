@@ -868,6 +868,18 @@ span.flatpickr-weekday,
 .billing-summary-w-16{
   width: 16%;
 }
+.billing-summary-w-8{
+  width: 8%;
+}
+.billing-summary-w-12{
+  width: 12%;
+}
+.billing-summary-w-11{
+  width: 11%;
+}
+.billing-summary-w-9{
+  width: 9%;
+}
 .billing-summary-w-13{
   width: 13%;
 }
@@ -922,16 +934,28 @@ svg.checkmark {
 }
 @media screen and (min-width: 1000px) and (max-width: 1174px) {
   .billing-summary-w-16{width: 15% !important;}
+  .billing-summary-w-12{width: 11% !important;}
+  .billing-summary-w-11{width: 10% !important;}
+  .billing-summary-w-9{width: 8% !important;}
+  .billing-summary-w-8{width: 8% !important;}
   .billing-summary-w-15{width: 14% !important;}
   .billing-summary-w-13{width: 12% !important;}
 }
 @media screen and (min-width:768px) and (max-width:992px) {
   .billing-summary-w-16{width: 30%;}
+  .billing-summary-w-12{width: 22%;}
+  .billing-summary-w-11{width: 20%;}
+  .billing-summary-w-9{width: 17%;}
+  .billing-summary-w-8{width: 15%;}
   .billing-summary-w-15{width: 30%;}
   .billing-summary-w-13{width: 30%;}
 }
 @media screen and (max-width:699px) {
   .billing-summary-w-16{width: 100%;}
+  .billing-summary-w-12{width: 100%;}
+  .billing-summary-w-11{width: 100%;}
+  .billing-summary-w-9{width: 100%;}
+  .billing-summary-w-8{width: 100%;}
   .billing-summary-w-15{width: 100%;}
   .billing-summary-w-13{width: 100%;}
 }

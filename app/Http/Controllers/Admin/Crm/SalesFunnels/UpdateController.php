@@ -19,25 +19,12 @@ class UpdateController extends Controller
             ], 404);
         }
 
-        $triggerEventMap = [
-            'rental_start_date' => 'Rental Start Date',
-            'new_lead_added'    => 'New Lead Added',
-        ];
-
-        $timingMap = [
-            'before' => 'Before Event',
-            'after'  => 'After Event',
-        ];
-
         $funnel->update([
             'funnel_name'              => $request->name,
             'description'              => $request->description,
             'sales_funnel_category_id' => $request->category_id,
-            'trigger_event'            => $triggerEventMap[$request->trigger_event],
-            'trigger_event_timing'     => $timingMap[$request->timing],
-            'date_value'               => $request->date_value,
-            'hour_value'               => $request->hour_value,
-            'minute_value'             => $request->minute_value,
+            'trigger_type'             => $request->trigger_type,
+            'trigger_reference'        => $request->trigger_reference,
             'status'                   => $request->is_active ? 'Active' : 'Inactive',
         ]);
 

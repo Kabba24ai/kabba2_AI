@@ -4,6 +4,7 @@ namespace App\Models\Customers;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Helpers\ModelHelper;
+use App\Models\Customers\Customer;
 use App\Models\Orders\OrderProductFunnelLog;
 use App\Models\ProductManagement\Product;
 
@@ -16,11 +17,8 @@ class SalesFunnel extends Model
         'funnel_name',
         'description',
         'sales_funnel_category_id',
-        'trigger_event',
-        'trigger_event_timing',
-        'minute_value',
-        'hour_value',
-        'date_value',
+        'trigger_type',
+        'trigger_reference',
         'status',
     ];
 
@@ -42,12 +40,16 @@ class SalesFunnel extends Model
 
     public function scopeBeforeEvent($query)
     {
-        return $query->where('trigger_event_timing', 'Before Event');
+        return $query->whereHas('steps', function ($q) {
+            $q->where('offset_direction', 'before');
+        });
     }
 
     public function scopeAfterEvent($query)
     {
-        return $query->where('trigger_event_timing', 'After Event');
+        return $query->whereHas('steps', function ($q) {
+            $q->where('offset_direction', 'after');
+        });
     }
 
     /**

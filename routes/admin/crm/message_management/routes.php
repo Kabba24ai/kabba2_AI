@@ -28,6 +28,7 @@ Route::prefix('message-management')
 
 
         require base_path('routes/admin/crm/message_management/email_category/routes.php');
+        require base_path('routes/admin/crm/message_management/email_template/routes.php');
         require base_path('routes/admin/crm/message_management/sms_category/routes.php');
 
         require base_path('routes/admin/crm/message_management/sms_created_broadcast/routes.php');

@@ -17,7 +17,7 @@ class StoreController extends Controller
         $validated = $request->validated();
 
         try {
-            SalesFunnelCategory::create($validated);
+            $category = SalesFunnelCategory::create($validated);
         } catch (\Exception $e) {
 
             return response()->json(
@@ -33,6 +33,7 @@ class StoreController extends Controller
          return response()->json([
             'success' => true,
             'message' => 'Sales funnel category created successfully.',
+            'data' => $category,
         ]);
     }
 }

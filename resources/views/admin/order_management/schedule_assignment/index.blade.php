@@ -209,9 +209,19 @@
 
         <div class="bg-white shadow-sm rounded-lg flex-1 flex flex-col min-h-0"
             id="unassignedOrder">
-            <h2 class="text-lg font-semibold p-5">
-                Unassigned Orders <span id="unassignedOrderCount"></span>
-            </h2>
+            <div class="flex items-center justify-between px-5 py-4">
+                <h2 class="text-lg font-semibold">
+                    Unassigned Orders <span id="unassignedOrderCount"></span>
+                </h2>
+                <button type="button" id="assignAllDirectBtn"
+                    class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    Assign All
+                </button>
+            </div>
 
             <div id="schedule-table-wrapper" class="overflow-x-auto overflow-y-auto flex-1 min-h-0">
                 @include('admin.order_management.schedule_assignment.partials._schedule_table', [
@@ -789,6 +799,121 @@
                         scheduleTableWrapper.classList.remove('opacity-50', 'pointer-events-none');
                     });
             }
+
+            // ── Assign All (Direct Assignment auto-assign) ──────────────────────────
+            const assignAllDirectBtn = document.getElementById('assignAllDirectBtn');
+            if (assignAllDirectBtn) {
+                assignAllDirectBtn.addEventListener('click', function () {
+                    const btn = this;
+                    btn.disabled = true;
+                    btn.innerHTML = `
+                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0
+                                   3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
+                                   13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                        </svg>
+                        Assigning…`;
+
+                    const params = new URLSearchParams();
+                    if (categorySelect.value) params.append('category', categorySelect.value);
+
+                    apiFetch('{{ route('admin.order-management.schedule-assignment.auto-assign-direct') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Accept': 'application/json',
+                        },
+                        body: params.toString(),
+                    })
+                    .then(data => {
+                        // Refresh both tables so changes appear immediately
+                        fetchSchedules();
+                        fetchEquipments();
+
+                        // Build a result summary for the notification
+                        if (data.assigned === 0 && data.skipped > 0) {
+                            notyf.error(`No orders could be auto-assigned (${data.skipped} skipped — see console for details).`);
+                        } else if (data.total === 0) {
+                            notyf.success('No unassigned orders found.');
+                        } else {
+                            const msg = `${data.assigned} order${data.assigned !== 1 ? 's' : ''} assigned` +
+                                (data.skipped > 0 ? `, ${data.skipped} skipped` : '') + '.';
+                            notyf.success(msg);
+                        }
+
+                        if (data.details && data.details.length) {
+                            console.group('Auto-assign Direct — details');
+                            data.details.forEach(d => {
+                                const prefix = d.status === 'assigned' ? '✅' : '⏭️';
+                                const suffix = d.status === 'assigned'
+                                    ? `→ ${d.equipment_name} (${d.equipment_id})`
+                                    : `Skipped: ${d.reason}`;
+                                console.log(`${prefix} Order #${d.order}  ${d.product_name}  ${suffix}`);
+                            });
+                            console.groupEnd();
+                        }
+                    })
+                    .catch(() => {
+                        // apiFetch already shows a notyf error
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = `
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                            Assign All`;
+                    });
+                });
+            }
+            // ── End Assign All ──────────────────────────────────────────────────────
+
+
+                // ── Per-row Auto Assign Direct ──────────────────────────────────────────
+                document.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.auto-assign-direct-btn');
+                    if (!btn) return;
+
+                    const orderProductId = btn.dataset.orderProductId;
+                    const originalHtml = btn.innerHTML;
+
+                    btn.disabled = true;
+                    btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>`;
+
+                    const params = new URLSearchParams();
+                    params.append('order_product_id', orderProductId);
+
+                    apiFetch('{{ route('admin.order-management.schedule-assignment.auto-assign-direct') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Accept': 'application/json',
+                        },
+                        body: params.toString(),
+                    })
+                    .then(data => {
+                        fetchSchedules();
+                        fetchEquipments();
+
+                        if (data.assigned > 0) {
+                            const detail = data.details?.[0];
+                            notyf.success(`Assigned: ${detail?.equipment_name ?? ''} (${detail?.equipment_id ?? ''})`);
+                        } else {
+                            const reason = data.details?.[0]?.reason ?? 'Could not auto-assign this item.';
+                            notyf.error(reason);
+                        }
+                    })
+                    .catch(() => {})
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    });
+                });
+                // ── End Per-row Auto Assign Direct ─────────────────────────────────────
 
 
             const modal = document.getElementById('equipmentAssignModal');

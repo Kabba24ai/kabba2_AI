@@ -121,8 +121,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const categories = @json($categories ?? []);
     let selectedCategoryId = Number(@json($activeCategoryId ?? 0));
-    let criteria = @json($initialCriteria ?? []);
-    let aiSpecs = @json($initialAiSpecs ?? []);
+    let criteria = [];
+    let aiSpecs = [];
     let editingId = null;
     let activeTab = 'property';
 
@@ -158,6 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     let isLoadingCriteria = false;
     let isGenerating = false;
+    let currentLoadController = null;
+    const categoryDataCache = new Map();
 
     // Handle row-exclusive checkbox logic:
     // If any checkbox in row 1 is checked, uncheck all in row 2
@@ -426,14 +428,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadCriteria(categoryId) {
+        const cacheKey = Number(categoryId);
+        if (categoryDataCache.has(cacheKey)) {
+            const cached = categoryDataCache.get(cacheKey);
+            criteria = cached?.criteria || [];
+            aiSpecs = cached?.aiSpecs || [];
+            const category = activeCategory();
+            if (category) {
+                category.criteria_count = criteria.length;
+            }
+            isLoadingCriteria = false;
+            renderCriteria();
+            renderAiSpecs();
+            return;
+        }
+
+        if (currentLoadController) {
+            currentLoadController.abort();
+        }
+
+        currentLoadController = new AbortController();
         const url = new URL(LIST_URL, window.location.origin);
         url.searchParams.set('category_id', String(categoryId));
 
         isLoadingCriteria = true;
         renderCriteria();
+        renderAiSpecs();
 
         try {
-            const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+            const res = await fetch(url.toString(), {
+                headers: { 'Accept': 'application/json' },
+                signal: currentLoadController.signal,
+            });
             const data = await res.json();
 
             if (!res.ok || !data.success) {
@@ -446,6 +472,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             criteria = data.items || [];
             aiSpecs = data.ai_items || [];
+            categoryDataCache.set(cacheKey, {
+                criteria: [...criteria],
+                aiSpecs: [...aiSpecs],
+            });
             const category = activeCategory();
             if (category) {
                 category.criteria_count = criteria.length;
@@ -453,12 +483,16 @@ document.addEventListener('DOMContentLoaded', () => {
             renderCriteria();
             renderAiSpecs();
         } catch (error) {
+            if (error?.name === 'AbortError') {
+                return;
+            }
             criteria = [];
             aiSpecs = [];
             renderCriteria();
             renderAiSpecs();
         } finally {
             isLoadingCriteria = false;
+            currentLoadController = null;
             renderCriteria();
             renderAiSpecs();
         }
@@ -492,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const category = activeCategory();
         if (!category) return;
         category.criteria_count = Math.max(0, Number(category.criteria_count || 0) + delta);
+        categoryDataCache.delete(Number(selectedCategoryId));
         renderCategories();
     }
 
@@ -612,6 +647,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (res.ok && data.success) {
                     aiSpecs = data.ai_items || [];
+                    categoryDataCache.set(Number(selectedCategoryId), {
+                        criteria: [...criteria],
+                        aiSpecs: [...aiSpecs],
+                    });
                     renderAiSpecs();
                     window.notyf?.success?.(data.message || 'AI specifications generated successfully.');
                 } else {
@@ -646,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         button.disabled = true;
         try {
+            categoryDataCache.delete(Number(selectedCategoryId));
             await toggleAiCriteria(criteriaId, action);
         } finally {
             button.disabled = false;
@@ -684,6 +724,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok && data.success && data.item) {
                 criteria.push(data.item);
                 updateCategoryCount(1);
+                categoryDataCache.set(Number(selectedCategoryId), {
+                    criteria: [...criteria],
+                    aiSpecs: [...aiSpecs],
+                });
                 renderCriteria();
                 closeModal();
                 resetForm();
@@ -705,6 +749,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (res.ok && data.success && data.item) {
             criteria = criteria.map((row) => Number(row.id) === Number(editingId) ? data.item : row);
+            categoryDataCache.set(Number(selectedCategoryId), {
+                criteria: [...criteria],
+                aiSpecs: [...aiSpecs],
+            });
             renderCriteria();
             closeModal();
             resetForm();
@@ -715,6 +763,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCriteria();
     renderAiSpecs();
     renderTabs();
+
+    if (selectedCategoryId) {
+        loadCriteria(selectedCategoryId);
+    }
 });
 </script>
 @endpush

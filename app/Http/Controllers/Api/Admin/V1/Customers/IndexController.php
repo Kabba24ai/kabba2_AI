@@ -32,7 +32,7 @@ class IndexController extends BaseController
         $customersQuery = Customer::query()
             ->with(['notes' => fn($q) => $q
                 ->with('user')
-            ])
+            , 'billingAddress.state', 'shippingAddress.state'])
             ->orderByRaw("CONCAT(first_name, ' ', last_name)");
 
         if (!empty($validatedData['search_name'])) {

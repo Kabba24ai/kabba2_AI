@@ -145,40 +145,25 @@
                                             </div>
                                         </div>
 
-                                        <!-- Trigger Type -->
+                                        <!-- Funnel Type -->
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1 required">
-                                                Trigger Type
+                                                Funnel Type
                                             </label>
                                             <select id="trigger_type" name="trigger_type" required
                                                 class="w-full border border-gray-300 rounded-md
-                                                     forwarding px-3 py-3 text-sm
-                                                        focus:ring-2 focus:ring-blue-500">
-                                                <option value="new_order">New Order Created</option>
+                                                       px-3 py-3 text-sm
+                                                       focus:ring-2 focus:ring-blue-500">
+                                                <option value="retail_order">Retail Order</option>
                                                 <option value="rental_schedule">Rental Schedule</option>
-                                                <option value="lead_added">New Lead Added</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Trigger Reference -->
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1 required">
-                                                Trigger Reference
-                                            </label>
-                                            <select id="trigger_reference" name="trigger_reference" required
-                                                class="w-full border border-gray-300 rounded-md
-                                                     forwarding px-3 py-3 text-sm
-                                                        focus:ring-2 focus:ring-blue-500">
-                                                <option value="order_created_datetime">Order Created Date/Time</option>
-                                                <option value="order_paid_datetime">Order Paid Date/Time</option>
-                                                <option value="delivery_datetime">Delivery Date/Time</option>
-                                                <option value="return_datetime">Return Date/Time</option>
-                                                <option value="lead_added_datetime">Lead Added Date/Time</option>
+                                                <option value="lead_added">New Lead</option>
                                             </select>
 
-                                            <div id="triggerReferenceNote" class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
                                                 <p class="text-sm text-blue-700">
-                                                    <span class="font-semibold">Note:</span> The funnel will trigger based on the selected reference event and step offsets.
+                                                    <span class="font-semibold">Note:</span>
+                                                    Funnel Type controls which event timing references are available.
+                                                    Timing is configured inside each Event.
                                                 </p>
                                             </div>
                                         </div>
@@ -274,7 +259,7 @@
                                 class="w-full max-w-3xl bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
                                 <!-- header -->
                                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                                    <h3 class="text-lg font-semibold text-gray-900" id="stepModalTitle">Add Funnel Step</h3>
+                                    <h3 class="text-lg font-semibold text-gray-900" id="stepModalTitle">Add Event</h3>
                                     <button type="button" class="p-2 rounded-lg hover:bg-gray-50"
                                         data-close-add-step-modal aria-label="Close">
                                         <!-- X -->
@@ -514,7 +499,7 @@
                                             <button type="submit" id="addStepButton"
                                                 class="w-full px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50"
                                                 disabled>
-                                                Save Step
+                                                Save Event
                                             </button>
                                         </div>
                                     </form>
@@ -976,41 +961,8 @@
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
             });
 
-            // ── Dynamic trigger_reference options based on trigger_type ──────────
-            const triggerTypeOptions = {
-                new_order:        ['order_created_datetime', 'order_paid_datetime'],
-                rental_schedule:  ['delivery_datetime', 'return_datetime'],
-                lead_added:       ['lead_added_datetime'],
-            };
-
-            function filterTriggerReferenceOptions(selectedType) {
-                const refSelect = document.getElementById('trigger_reference');
-                if (!refSelect) return;
-
-                const allowed = triggerTypeOptions[selectedType] || [];
-                let firstVisible = null;
-
-                Array.from(refSelect.options).forEach(opt => {
-                    const visible = !opt.value || allowed.includes(opt.value);
-                    opt.hidden   = !visible;
-                    opt.disabled = !visible;
-                    if (visible && opt.value && !firstVisible) firstVisible = opt.value;
-                });
-
-                // Auto-select first valid option if current is hidden
-                if (refSelect.options[refSelect.selectedIndex]?.hidden && firstVisible) {
-                    refSelect.value = firstVisible;
-                }
-            }
-
-            const triggerTypeSelect = document.getElementById('trigger_type');
-            if (triggerTypeSelect) {
-                triggerTypeSelect.addEventListener('change', () => {
-                    filterTriggerReferenceOptions(triggerTypeSelect.value);
-                });
-                // Run immediately so options match on page load / edit
-                filterTriggerReferenceOptions(triggerTypeSelect.value);
-            }
+            // ── Funnel Type select has no dynamic side-effects in this modal ────
+            // Timing is now entirely configured inside each Event, not here.
             // ────────────────────────────────────────────────────────────────────
 
             showBtn.addEventListener('click', () => {
@@ -1065,12 +1017,11 @@
                                 .getAttribute('content')
                         },
                         body: JSON.stringify({
-                            name: funnelForm.name.value,
+                            name:        funnelForm.name.value,
                             description: funnelForm.description.value,
                             category_id: funnelForm.category_id.value,
                             trigger_type: funnelForm.trigger_type.value,
-                            trigger_reference: funnelForm.trigger_reference.value,
-                            is_active: funnelForm.is_active.checked ? 1 : 0,
+                            is_active:   funnelForm.is_active.checked ? 1 : 0,
                         })
                     })
                     .then(res => {
@@ -1185,14 +1136,11 @@
                         const f = res.data;
                         const form = document.getElementById('funnelForm');
 
-                        form.name.value = f.funnel_name;
-                        form.description.value = f.description ?? '';
-                        form.category_id.value = f.sales_funnel_category_id ?? '';
-                        form.trigger_type.value = f.trigger_type ?? 'new_order';
-                        // Filter options before setting the reference value
-                        filterTriggerReferenceOptions(form.trigger_type.value);
-                        form.trigger_reference.value = f.trigger_reference ?? 'order_created_datetime';
-                        form.is_active.checked = f.status === 'Active';
+                        form.name.value         = f.funnel_name;
+                        form.description.value  = f.description ?? '';
+                        form.category_id.value  = f.sales_funnel_category_id ?? '';
+                        form.trigger_type.value = f.trigger_type ?? 'retail_order';
+                        form.is_active.checked  = f.status === 'Active';
 
                         document.getElementById('funnelModalTitle').textContent = 'Edit Funnel';
                         document.getElementById('funnelForm-btn').textContent = 'Update Funnel';
@@ -1268,9 +1216,42 @@
             const modalFunnelIdInput = document.getElementById('funnel_unique_id');
             if (!modal) return;
 
-            const openModal = (funnelUniqueId) => {
+            // ── Which timing_reference_type options are allowed per Funnel Type ──
+            const eventTimingByFunnelType = {
+                retail_order:    ['funnel_entry_time', 'order_created_datetime', 'order_paid_datetime', 'after_previous_event'],
+                rental_schedule: ['funnel_entry_time', 'order_created_datetime', 'order_paid_datetime', 'rental_delivery_datetime', 'rental_return_datetime', 'after_previous_event'],
+                lead_added:      ['funnel_entry_time', 'lead_added_datetime', 'after_previous_event'],
+            };
+
+            let currentFunnelType = null;
+
+            function filterEventTimingOptions(funnelType) {
+                const timingSelect = document.getElementById('timing_reference_type');
+                if (!timingSelect) return;
+
+                const allowed = eventTimingByFunnelType[funnelType] || Object.values(eventTimingByFunnelType).flat();
+                let firstVisible = null;
+
+                Array.from(timingSelect.options).forEach(opt => {
+                    const visible = !opt.value || allowed.includes(opt.value);
+                    opt.hidden   = !visible;
+                    opt.disabled = !visible;
+                    if (visible && opt.value && !firstVisible) firstVisible = opt.value;
+                });
+
+                // Auto-select first valid option if current selection is now hidden
+                if (timingSelect.options[timingSelect.selectedIndex]?.hidden && firstVisible) {
+                    timingSelect.value = firstVisible;
+                    timingSelect.dispatchEvent(new Event('change'));
+                }
+            }
+            // ─────────────────────────────────────────────────────────────────────
+
+            const openModal = (funnelUniqueId, funnelType) => {
                 modalFunnelIdInput.value = funnelUniqueId;
-                window.setActiveFunnel(funnelUniqueId); // Track the active funnel for step operations
+                currentFunnelType = funnelType || null;
+                window.setActiveFunnel(funnelUniqueId);
+                filterEventTimingOptions(currentFunnelType);
                 modal.classList.remove('hidden');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('overflow-hidden');
@@ -1281,7 +1262,7 @@
                 modal.classList.add('hidden');
                 modal.setAttribute('aria-hidden', 'true');
                 document.body.classList.remove('overflow-hidden');
-                document.getElementById('stepModalTitle').textContent = 'Add Funnel Step';
+                document.getElementById('stepModalTitle').textContent = 'Add Event';
                 document.getElementById('stepForm').reset();
                 document.getElementById('messagePreview').classList.add('hidden');
                 document.getElementById('messagePreviewContent').textContent = 'Please select a message to see the preview.';
@@ -1290,6 +1271,9 @@
                     offsetDirectionSelect.disabled = false;
                     offsetDirectionSelect.title = '';
                 }
+                // Reset funnel-type filter so all timing options are visible next open
+                currentFunnelType = null;
+                filterEventTimingOptions(null);
                 document.getElementById('quickAddCategoryPanel')?.classList.add('hidden');
                 document.getElementById('quickAddTemplatePanel')?.classList.add('hidden');
                 editStepUniqueIdInput = document.getElementById('editStepUniqueId');
@@ -1303,10 +1287,13 @@
                 // OPEN
                 if (e.target.closest('[data-open-add-step]')) {
                     e.preventDefault();
-                    const funnelId = e.target.closest('[data-open-add-step]').getAttribute(
-                    'data-funnel-unique-id');
-                    console.log('Opening Add Step Modal for Funnel ID:', funnelId);
-                    openModal(funnelId);
+                    const trigger   = e.target.closest('[data-open-add-step]');
+                    const funnelId  = trigger.getAttribute('data-funnel-unique-id');
+                    // Read funnel type from the button or walk up to the funnel card
+                    const funnelType = trigger.getAttribute('data-funnel-type')
+                        || trigger.closest('[data-funnel-card]')?.getAttribute('data-funnel-type')
+                        || null;
+                    openModal(funnelId, funnelType);
                     return;
                 }
 
@@ -1684,14 +1671,22 @@
 
                 // Populate modal fields
                 modalFunnelIdInput.value = btn.getAttribute('data-funnel-unique-id');
-                window.setActiveFunnel(modalFunnelIdInput.value); // Track the active funnel for step operations
+                window.setActiveFunnel(modalFunnelIdInput.value);
+
+                // Apply funnel-type timing filter (read from card or button)
+                const funnelCard = btn.closest('[data-funnel-card]');
+                currentFunnelType = btn.getAttribute('data-funnel-type')
+                    || funnelCard?.getAttribute('data-funnel-type')
+                    || null;
+                filterEventTimingOptions(currentFunnelType);
 
                 const radios = document.getElementsByName('step_type');
                 radios.forEach(radio => {
                     radio.checked = radio.value === stepData.step_type;
                 });
 
-                document.getElementById('timing_reference_type').value  = stepData.timing_reference_type || 'funnel_entry_time';
+                // Set timing reference (filtering already applied above)
+                document.getElementById('timing_reference_type').value = stepData.timing_reference_type || 'funnel_entry_time';
                 syncDirectionForTimingRef(); // enforce direction lock if after_previous_event
                 document.getElementById('offset_direction').value        = stepData.offset_direction || 'after';
                 document.getElementById('offset_days').value             = stepData.offset_days         ?? 0;
@@ -1705,7 +1700,7 @@
                     fetchMessageTemplates(stepData.message_category_id, selectedType, stepData.message_template_id);
                 }
 
-                document.getElementById('stepModalTitle').textContent = 'Edit Funnel Step';
+                document.getElementById('stepModalTitle').textContent = 'Edit Event';
 
                 // Add hidden input to track edit mode
                 let hidden = document.getElementById('editStepUniqueId');
@@ -1740,7 +1735,7 @@
                 }
 
                 showConfirm(
-                    'Do you want to delete this step?',
+                    'Do you want to delete this event?',
                     'This action cannot be undone.'
                 ).then(result => {
                     if (!result.isConfirmed) {

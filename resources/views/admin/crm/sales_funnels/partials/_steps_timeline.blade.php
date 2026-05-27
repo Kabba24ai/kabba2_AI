@@ -1,46 +1,54 @@
-{{-- Tailwind/Laravel Blade static design (converted from your JSX) --}}
+{{-- Sales Funnel — Events Timeline --}}
 <div class="space-y-6">
 
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h4 class="text-base font-semibold text-gray-900">Funnel Timeline</h4>
+            <h4 class="text-base font-semibold text-gray-900">Funnel Events</h4>
 
             <div class="flex items-center gap-2 mt-1 flex-wrap">
-                {{-- Trigger badge --}}
+                {{-- Funnel Type badge --}}
+                @php
+                    $funnelTypeLabels = [
+                        'retail_order'    => 'Retail Order',
+                        'rental_schedule' => 'Rental Schedule',
+                        'lead_added'      => 'New Lead',
+                    ];
+                    $funnelTypeLabel = $funnelTypeLabels[$funnel->trigger_type]
+                        ?? str($funnel->trigger_type)->replace('_', ' ')->title();
+                @endphp
                 <div class="inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-md text-xs font-medium bg-blue-50 text-blue-700 border-blue-200">
                     {{-- Zap icon --}}
                     <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                     </svg>
-                    <span>Trigger: {{ str($funnel->trigger_type)->replace('_', ' ')->title() }}</span>
+                    <span>Funnel Type: {{ $funnelTypeLabel }}</span>
                 </div>
 
                 <span class="text-sm text-gray-400">•</span>
 
-                <span class="text-xs text-gray-600">
-                    Starts from: {{ str($funnel->trigger_reference)->replace('_', ' ')->title() }}
-                </span>
-
-                <span class="text-sm text-gray-400">•</span>
-
-                <p class="text-sm text-gray-600">{{ $funnel->steps_count }} {{ $funnel->steps_count == 1 ? 'Step' : 'Steps' }}</p>
+                <p class="text-sm text-gray-600">
+                    {{ $funnel->steps_count }} {{ $funnel->steps_count == 1 ? 'Event' : 'Events' }}
+                </p>
             </div>
         </div>
 
-        {{-- Your existing button (keep your data attrs) --}}
+        {{-- Add Event button --}}
         <button type="button"
             class="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            data-open-add-step data-funnel-id="{{ $funnel->id }}" data-funnel-unique-id="{{ $funnel->unique_id }}">
+            data-open-add-step
+            data-funnel-id="{{ $funnel->id }}"
+            data-funnel-unique-id="{{ $funnel->unique_id }}"
+            data-funnel-type="{{ $funnel->trigger_type }}">
             {{-- Plus icon --}}
             <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            Add Step
+            Add Event
         </button>
     </div>
 
-    {{-- Timeline --}}
+    {{-- Events Timeline --}}
     <div class="relative pl-8">
         {{-- vertical line --}}
         <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-blue-300 to-blue-200"></div>
@@ -57,12 +65,12 @@
                     </div>
                 @endif
 
-                {{-- step number --}}
+                {{-- Event number dot --}}
                 <div class="absolute left-[-2rem] top-6 w-6 h-6 rounded-full bg-blue-500 border-4 border-white shadow-md flex items-center justify-center z-10">
                     <span class="text-white text-xs font-bold">{{ $index + 1 }}</span>
                 </div>
 
-                {{-- card --}}
+                {{-- Card --}}
                 <div class="ml-6 bg-white border-2 border-gray-200 hover:border-blue-300 rounded-xl shadow-sm hover:shadow-md transition-all select-none">
                     <div class="p-5">
                         <div class="flex items-start justify-between gap-3 mb-4">
@@ -77,7 +85,6 @@
 
                                 {{-- type icon --}}
                                 <div class="w-14 h-14 rounded-xl flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 shadow-md">
-                                    {{-- MessageSquare --}}
                                     <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                         <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"
                                             stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -92,6 +99,7 @@
                                     </div>
 
                                     <div class="flex items-center gap-4">
+                                        {{-- Timing Reference --}}
                                         <div class="flex items-center gap-2 text-sm">
                                             <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100">
                                                 <svg class="w-4 h-4 text-orange-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -103,15 +111,16 @@
                                                 <div class="text-xs text-gray-500">Reference</div>
                                                 @php
                                                     $timingLabels = [
-                                                        'funnel_entry_time'       => 'Funnel Entry Time',
-                                                        'order_created_datetime'  => 'Order Created',
-                                                        'order_paid_datetime'     => 'Order Paid',
-                                                        'rental_delivery_datetime'=> 'Delivery Date/Time',
-                                                        'rental_return_datetime'  => 'Return Date/Time',
-                                                        'lead_added_datetime'     => 'Lead Added',
-                                                        'after_previous_event'    => 'After Previous Event',
+                                                        'funnel_entry_time'        => 'Funnel Entry Time',
+                                                        'order_created_datetime'   => 'Order Created',
+                                                        'order_paid_datetime'      => 'Order Paid',
+                                                        'rental_delivery_datetime' => 'Delivery Date/Time',
+                                                        'rental_return_datetime'   => 'Return Date/Time',
+                                                        'lead_added_datetime'      => 'Lead Added',
+                                                        'after_previous_event'     => 'After Previous Event',
                                                     ];
-                                                    $timingLabel = $timingLabels[$step->timing_reference_type] ?? str($step->timing_reference_type)->replace('_',' ')->title();
+                                                    $timingLabel = $timingLabels[$step->timing_reference_type]
+                                                        ?? str($step->timing_reference_type)->replace('_', ' ')->title();
                                                 @endphp
                                                 <div class="font-semibold text-gray-900">
                                                     {{ $timingLabel }}
@@ -119,6 +128,7 @@
                                             </div>
                                         </div>
 
+                                        {{-- Offset --}}
                                         <div class="flex items-center gap-2 text-sm">
                                             <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100">
                                                 <svg class="w-4 h-4 text-purple-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -154,26 +164,26 @@
                                 </div>
                             </div>
 
-                            {{-- actions --}}
+                            {{-- Actions --}}
                             <div class="flex items-center gap-1 flex-shrink-0">
-                                {{-- Edit button using Heroicons (pencil-square) --}}
                                 <button type="button"
                                     data-step-unique-id="{{ $step->unique_id }}"
                                     data-funnel-unique-id="{{ $funnel->unique_id }}"
+                                    data-funnel-type="{{ $funnel->trigger_type }}"
                                     data-step-json='@json($step)'
-                                    class="step-edit-button p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                                    class="step-edit-button p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Event">
                                     <x-heroicon-o-pencil-square class="w-5 h-5" />
                                 </button>
 
                                 <button type="button"
                                     data-step-unique-id="{{ $step->unique_id }}"
-                                    class="step-delete-button p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                    class="step-delete-button p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Event">
                                     <x-heroicon-o-trash class="w-5 h-5" />
                                 </button>
                             </div>
                         </div>
 
-                        {{-- message preview --}}
+                        {{-- Message preview --}}
                         <div class="pt-3 border-t border-gray-100">
                             <div class="mb-3">
                                 <div class="flex items-center gap-2 mb-1.5">
@@ -200,20 +210,18 @@
                     </div>
                 </div>
 
-                @if ($index == 0)
-                    {{-- next step --}}
+                {{-- "Next event" connector (between events) --}}
+                @if ($index < count($funnel->steps) - 1)
                     <div class="ml-6 pl-6 py-4 flex items-center gap-2 text-gray-400">
                         <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             <path d="M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <span class="text-xs font-medium">Next step</span>
+                        <span class="text-xs font-medium">Next event</span>
                     </div>
                 @endif
             </div>
         @endforeach
-
-
 
         {{-- Funnel complete --}}
         <div class="ml-6 pl-6 mt-4 flex items-center gap-2 px-4 py-3 bg-green-50 border-2 border-green-200 rounded-lg">

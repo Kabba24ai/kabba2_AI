@@ -24,7 +24,6 @@ class UpdateController extends Controller
             'description'              => $request->description,
             'sales_funnel_category_id' => $request->category_id,
             'trigger_type'             => $request->trigger_type,
-            'trigger_reference'        => $request->trigger_reference,
             'status'                   => $request->is_active ? 'Active' : 'Inactive',
         ]);
 
@@ -34,4 +33,3 @@ class UpdateController extends Controller
         ]);
     }
 }
-

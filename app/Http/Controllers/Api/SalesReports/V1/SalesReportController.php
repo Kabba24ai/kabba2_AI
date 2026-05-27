@@ -383,7 +383,7 @@ class SalesReportController extends Controller
     {
         $filters = $request->all();
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -450,13 +450,24 @@ class SalesReportController extends Controller
     }
 
     /**
-     * Get revenue breakdown by type
+     * Get revenue breakdown by type.
+     *
+     * Each order_product row stores all pricing components in the product_data JSON:
+     *   - product_price               → base unit price (rental or retail)
+     *   - service_option_price        → delivery fee (flat, not per-unit)
+     *   - product_rental_items_prices → keyed add-on prices:
+     *       rental_damage_waiver      → unit price × quantity
+     *       rental_track_insurance    → unit price × quantity
+     *       rental_tire_insurance     → unit price × quantity
+     *       rental_prepaid_cleaning   → flat fee (already total)
+     *       rental_prepaid_fuel       → flat fee (already total)
+     *   - product_option_items        → array of {price, charged} other add-ons
      */
     public function getRevenueBreakdown(Request $request)
     {
-        $filters = $request->all();
+        $filters   = $request->all();
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -464,57 +475,85 @@ class SalesReportController extends Controller
             ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
             ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
                 $startDate->format('Y-m-d'),
-                $endDate->format('Y-m-d')
+                $endDate->format('Y-m-d'),
             ]);
 
         $this->applyFiltersToQuery($query, $filters);
 
         $data = $query->select(
-            'order_products.total',
+            'order_products.product_data',
+            'order_products.quantity',
+            'order_products.sub_total',
             'order_products.tax',
             'products.product_type',
-            'products.product_name',
             'order_payments.refund_amount'
         )->get();
 
         $breakdown = [
-            'retailSales' => 0,
-            'rentalRevenue' => 0,
-            'deliveryRevenue' => 0,
-            'damageWaiverRevenue' => 0,
-            'trackInsuranceRevenue' => 0,
-            'prepaidFuelRevenue' => 0,
+            'retailSales'            => 0,
+            'rentalRevenue'          => 0,
+            'deliveryRevenue'        => 0,
+            'damageWaiverRevenue'    => 0,
+            'trackInsuranceRevenue'  => 0,
+            'prepaidFuelRevenue'     => 0,
             'prepaidCleaningRevenue' => 0,
-            'feesOtherRevenue' => 0
+            'feesOtherRevenue'       => 0,
         ];
 
         foreach ($data as $item) {
-            $amount = $item->total - $item->tax;
-            
-            if ($item->refund_amount > 0) {
-                $amount = -$amount; // Negative for refunds
+            // Decode product_data JSON
+            $productData = is_string($item->product_data)
+                ? (json_decode($item->product_data, true) ?? [])
+                : ($item->product_data ?? []);
+
+            $quantity    = (int)($item->quantity ?? 1);
+            $isRefund    = (float)($item->refund_amount ?? 0) > 0;
+            $productType = $item->product_type ?? '';
+            $sign        = $isRefund ? -1 : 1;
+
+            // ── Rental add-on prices stored in product_data ──────────────────
+            $rentalItemPrices = $productData['product_rental_items_prices'] ?? [];
+
+            // Enum add-ons: unit price × quantity (each rental period)
+            $damageWaiver   = (float)($rentalItemPrices['rental_damage_waiver']   ?? 0) * $quantity;
+            $trackInsurance = (float)($rentalItemPrices['rental_track_insurance']  ?? 0) * $quantity;
+            $tireInsurance  = (float)($rentalItemPrices['rental_tire_insurance']   ?? 0) * $quantity;
+
+            // Flat add-ons: fixed fee regardless of quantity
+            $prepaidCleaning = (float)($rentalItemPrices['rental_prepaid_cleaning'] ?? 0);
+            $prepaidFuel     = (float)($rentalItemPrices['rental_prepaid_fuel']     ?? 0);
+
+            // ── Delivery fee ─────────────────────────────────────────────────
+            $deliveryFee = (float)($productData['service_option_price'] ?? 0);
+
+            // ── Product option items (other add-ons, e.g. extra fuel gallons) ─
+            $optionItems  = $productData['product_option_items'] ?? [];
+            $optionsTotal = 0;
+            foreach ($optionItems as $opt) {
+                $optPrice      = (float)($opt['price'] ?? 0);
+                $optionsTotal += ($opt['charged'] ?? '') === 'Unlimited'
+                    ? $optPrice * $quantity
+                    : $optPrice;
             }
 
-            $productName = strtolower($item->product_name ?? '');
-            $productType = $item->product_type ?? '';
+            // ── Base product price × quantity (pure rental or retail revenue) ─
+            // product_price is the base unit price without any add-ons
+            $basePrice   = (float)($productData['product_price'] ?? 0);
+            $baseRevenue = $basePrice * $quantity;
 
-            // Categorize by product name keywords
-            if (strpos($productName, 'waiver') !== false || strpos($productName, 'damage') !== false) {
-                $breakdown['damageWaiverRevenue'] += $amount;
-            } elseif (strpos($productName, 'insurance') !== false || strpos($productName, 'track') !== false) {
-                $breakdown['trackInsuranceRevenue'] += $amount;
-            } elseif (strpos($productName, 'delivery') !== false) {
-                $breakdown['deliveryRevenue'] += $amount;
-            } elseif (strpos($productName, 'fuel') !== false) {
-                $breakdown['prepaidFuelRevenue'] += $amount;
-            } elseif (strpos($productName, 'cleaning') !== false) {
-                $breakdown['prepaidCleaningRevenue'] += $amount;
-            } elseif ($productType === 'Retail') {
-                $breakdown['retailSales'] += $amount;
-            } elseif ($productType === 'Rental') {
-                $breakdown['rentalRevenue'] += $amount;
+            // ── Accumulate into breakdown buckets ────────────────────────────
+            $breakdown['deliveryRevenue']        += $sign * $deliveryFee;
+            $breakdown['damageWaiverRevenue']    += $sign * $damageWaiver;
+            $breakdown['trackInsuranceRevenue']  += $sign * $trackInsurance;
+            $breakdown['prepaidCleaningRevenue'] += $sign * $prepaidCleaning;
+            $breakdown['prepaidFuelRevenue']     += $sign * $prepaidFuel;
+            // Tire insurance and misc option items go to feesOther
+            $breakdown['feesOtherRevenue']       += $sign * ($tireInsurance + $optionsTotal);
+
+            if ($productType === 'Retail') {
+                $breakdown['retailSales']   += $sign * $baseRevenue;
             } else {
-                $breakdown['feesOtherRevenue'] += $amount;
+                $breakdown['rentalRevenue'] += $sign * $baseRevenue;
             }
         }
 
@@ -528,7 +567,7 @@ class SalesReportController extends Controller
     {
         $filters = $request->all();
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -604,7 +643,7 @@ class SalesReportController extends Controller
     {
         $filters = $request->all();
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         // Note: This assumes there's a discount field in order_products or orders table
         // Adjust based on your actual database schema
@@ -636,7 +675,7 @@ class SalesReportController extends Controller
     {
         $filters = $request->all();
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -711,7 +750,7 @@ class SalesReportController extends Controller
     {
         $filters = $request->all();
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
-        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange);
+        [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')

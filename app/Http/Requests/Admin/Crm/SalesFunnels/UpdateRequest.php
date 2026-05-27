@@ -15,23 +15,17 @@ class UpdateRequest extends ApiBaseFormRequest
 
             'category_id' => ['nullable', 'exists:sales_funnel_categories,id'],
 
+            // Funnel Type — controls which event timing references are allowed per event.
+            // Timing itself is configured inside each Event, not at the funnel level.
             'trigger_type' => [
                 'required',
-                'in:new_order,rental_schedule,lead_added',
-            ],
-
-            'trigger_reference' => [
-                'required',
-                'in:order_created_datetime,order_paid_datetime,delivery_datetime,return_datetime,lead_added_datetime',
+                'in:retail_order,rental_schedule,lead_added',
             ],
 
             'is_active' => ['nullable', 'boolean'],
         ];
     }
 
-    /**
-     * Normalize inputs
-     */
     protected function prepareForValidation(): void
     {
         $this->merge([

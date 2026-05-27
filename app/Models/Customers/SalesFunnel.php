@@ -17,8 +17,7 @@ class SalesFunnel extends Model
         'funnel_name',
         'description',
         'sales_funnel_category_id',
-        'trigger_type',
-        'trigger_reference',
+        'trigger_type',   // retail_order | rental_schedule | lead_added
         'status',
     ];
 

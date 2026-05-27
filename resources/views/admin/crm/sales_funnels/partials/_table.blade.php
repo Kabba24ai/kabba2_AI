@@ -1,6 +1,8 @@
 @forelse ($funnels as $funnel)
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden my-4" data-funnel-card
-        data-funnel-id="{{ $funnel->id }}" id="funnel-row-{{ $funnel->unique_id }}">
+        data-funnel-id="{{ $funnel->id }}"
+        data-funnel-type="{{ $funnel->trigger_type }}"
+        id="funnel-row-{{ $funnel->unique_id }}">
 
         {{-- Header (click to toggle) --}}
         <div class="p-4">
@@ -10,7 +12,7 @@
                         <div class="flex items-center gap-3">
                             <h3 class="text-lg font-semibold text-gray-900">{{ $funnel->funnel_name }}</h3>
                             <span class="text-sm text-gray-500">
-                                {{ $funnel->steps_count }} {{ $funnel->steps_count == 1 ? 'Step' : 'Steps' }}
+                                {{ $funnel->steps_count }} {{ $funnel->steps_count == 1 ? 'Event' : 'Events' }}
                             </span>
                         </div>
 
@@ -19,12 +21,17 @@
                                 <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M13 2L3 14h7l-1 8 12-14h-7l-1-6z" />
                                 </svg>
-                                <span>Event: {{ str($funnel->trigger_type)->replace('_', ' ')->title() }}</span>
+                                @php
+                                    $funnelTypeLabels = [
+                                        'retail_order'    => 'Retail Order',
+                                        'rental_schedule' => 'Rental Schedule',
+                                        'lead_added'      => 'New Lead',
+                                    ];
+                                    $funnelTypeLabel = $funnelTypeLabels[$funnel->trigger_type]
+                                        ?? str($funnel->trigger_type)->replace('_', ' ')->title();
+                                @endphp
+                                <span>Funnel Type: {{ $funnelTypeLabel }}</span>
                             </div>
-                            <span>•</span>
-                            <span>
-                            Starts from {{ str($funnel->trigger_reference)->replace('_', ' ')->title() }}
-                        </span>
                         </div>
 
                         <div class="flex justify-start lg:justify-end">
@@ -41,7 +48,7 @@
                     @endif
                 </div>
 
-                {{-- Right icons (design only) --}}
+                {{-- Right icons --}}
                 <div class="flex items-center gap-2 shrink-0">
                     @if ($funnel->status === 'Active')
                         <button class="funnel-toggle-button p-2 text-green-400 hover:bg-gray-50 rounded-lg"
@@ -61,8 +68,7 @@
                     @endif
                     <button class="funnel-edit-button p-2 text-blue-600 hover:bg-blue-50 rounded-lg" type="button"
                         title="Edit" data-unique-id="{{ $funnel->unique_id }}">
-                                <x-heroicon-o-pencil-square class="w-5 h-5 cursor-pointer" />
-
+                        <x-heroicon-o-pencil-square class="w-5 h-5 cursor-pointer" />
                     </button>
                     <button class="funnel-duplicate-button p-2 text-gray-600 hover:bg-gray-50 rounded-lg" type="button"
                         title="Duplicate" data-unique-id="{{ $funnel->unique_id }}">
@@ -79,7 +85,7 @@
         {{-- Expand area (hidden by default) --}}
         <div class="border-t border-gray-200 bg-gray-50 p-6 hidden" data-funnel-panel aria-hidden="true">
             @if (count($funnel->steps) === 0)
-                {{-- Empty state (like screenshot) --}}
+                {{-- Empty state --}}
                 <div class="text-center py-14">
                     <div class="text-gray-300 mb-4">
                         <svg class="w-14 h-14 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -87,14 +93,16 @@
                             <path d="M12 5v14M5 12h14" />
                         </svg>
                     </div>
-                    <h4 class="text-lg font-semibold text-gray-900 mb-2">Build Your Sales Funnel</h4>
-                    <p class="text-gray-600 mb-6">Add steps to create an automated sequence of messages</p>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-2">Build Your Funnel</h4>
+                    <p class="text-gray-600 mb-6">Add events to create an automated sequence of messages</p>
 
                     <button type="button"
                         class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                        data-open-add-step data-funnel-id="{{ $funnel->id }}"
-                        data-funnel-unique-id="{{ $funnel->unique_id }}">
-                        Add First Step
+                        data-open-add-step
+                        data-funnel-id="{{ $funnel->id }}"
+                        data-funnel-unique-id="{{ $funnel->unique_id }}"
+                        data-funnel-type="{{ $funnel->trigger_type }}">
+                        Add First Event
                     </button>
                 </div>
             @else
@@ -124,8 +132,8 @@
 
                 <button type="button" data-open-funnel-modal
                     class="mt-6 inline-flex items-center rounded-lg
-                                        bg-blue-600 px-5 py-2.5 text-sm
-                                        font-medium text-white hover:bg-blue-700">
+                           bg-blue-600 px-5 py-2.5 text-sm
+                           font-medium text-white hover:bg-blue-700">
                     Create Your First Funnel
                 </button>
             </div>
@@ -164,11 +172,7 @@
 
             // Toggle
             const isHidden = panel.getAttribute('aria-hidden') === 'true';
-
             panel.setAttribute('aria-hidden', String(!isHidden));
-            panel.classList.toggle('hidden', !isHidden === false); // (keeps consistent)
-
-            // simpler version (recommended):
             panel.classList.toggle('hidden', !isHidden);
         });
     </script>

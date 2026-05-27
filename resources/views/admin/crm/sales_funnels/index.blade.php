@@ -433,8 +433,8 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Message Template -->
-                                            <div>
+                                            <!-- Message Template — forced to right column (col-start-2) -->
+                                            <div class="md:col-start-2">
                                                 <div class="flex items-center justify-between mb-1">
                                                     <label class="block text-sm font-medium text-gray-700 required">
                                                         Select Message Template

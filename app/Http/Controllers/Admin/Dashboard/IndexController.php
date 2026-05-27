@@ -48,6 +48,7 @@ class IndexController extends Controller
             $q->whereNotIn('damage_status', [
                 'completed',
                 'uncollectible',
+                'resolved',
             ]);
         })
         ->latest('id')
@@ -121,6 +122,7 @@ class IndexController extends Controller
                     ->whereNotIn('fuel_charge_status', [
                         'completed',
                         'uncollectible',
+                        'resolved',
                     ])
                     ->whereHas('equipment', function ($q) {
                         $q->where('not_for_rent', 0)

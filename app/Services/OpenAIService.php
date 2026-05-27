@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Global\OpenAILog;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Client\ConnectionException;
 use RuntimeException;
 use Throwable;
 
@@ -42,10 +43,40 @@ class OpenAIService
         $baseUrl = rtrim($this->baseUrl(), '/');
         $startedAt = microtime(true);
 
-        $response = Http::timeout(60)
-            ->withToken($apiKey)
-            ->acceptJson()
-            ->post("{$baseUrl}{$endpoint}", $payload);
+        try {
+            $response = Http::connectTimeout((int) config('services.openai.connect_timeout', 15))
+                ->timeout((int) config('services.openai.timeout', 60))
+                ->retry(2, 500)
+                ->withToken($apiKey)
+                ->acceptJson()
+                ->post("{$baseUrl}{$endpoint}", $payload);
+        } catch (ConnectionException $exception) {
+            $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
+
+            $this->storeLog([
+                'request_type' => $requestType,
+                'status' => 'failed',
+                'sent_data' => $payload,
+                'received_data' => null,
+                'error_message' => $exception->getMessage(),
+                'error_code' => 'connection_exception',
+                'prompt_tokens' => null,
+                'completion_tokens' => null,
+                'total_tokens' => null,
+                'response_time_ms' => $durationMs,
+                'openai_request_id' => null,
+                'model' => $payload['model'] ?? null,
+                'endpoint' => $endpoint,
+                'ip_address' => app()->bound('request') ? request()->ip() : null,
+                'notes' => 'Network connection failed before receiving an HTTP response.',
+            ]);
+
+            throw new RuntimeException(
+                'OpenAI connection failed. Please verify outbound HTTPS access to api.openai.com:443, proxy/firewall rules, and OPENAI_BASE_URL. Original error: ' . $exception->getMessage(),
+                0,
+                $exception
+            );
+        }
 
         $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
         $responseJson = $response->json();

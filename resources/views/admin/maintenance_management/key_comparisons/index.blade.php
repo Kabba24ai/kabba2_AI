@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button id="kc-create-ai-prompt" type="button" class="inline-flex items-center gap-2 rounded-lg border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-sky-50">
+                            <button id="kc-create-ai-prompt" type="button" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-sky-50">
                                 Create with AI Prompt
                             </button>
                             <button id="kc-open-form" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">

@@ -70,23 +70,11 @@
                     </td>
                     <td class="text-right px-4 py-4">
                         <div class="inline-flex items-center justify-end gap-2 whitespace-nowrap">
-                            {{-- Copy Button --}}
-                            <form action="{{ route('admin.product-management.products.copy', $product->unique_id) }}" method="POST" class="inline-flex">
-                                @csrf
-                                <button type="submit"
-                                    class="inline-flex items-center justify-center rounded-md p-1.5 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                                    title="Copy Product">
-                                    <x-heroicon-o-document-duplicate class="w-5 h-5" />
-                                </button>
-                            </form>
-
                             {{-- Edit Button --}}
                             <a href="{{ route('admin.product-management.products.edit', $product->unique_id) }}"
                                 class="inline-flex items-center justify-center rounded-md p-1.5 text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300"
                                 title="Edit">
-                               
                                 <x-heroicon-o-pencil-square class="w-5 h-5 cursor-pointer" />
-
                             </a>
 
                             {{-- Delete Button --}}
@@ -99,6 +87,16 @@
                                     class="inline-flex items-center justify-center rounded-md p-1.5 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
                                     title="Delete">
                                     <x-heroicon-o-trash class="w-5 h-5" />
+                                </button>
+                            </form>
+
+                            {{-- Duplicate Button --}}
+                            <form action="{{ route('admin.product-management.products.copy', $product->unique_id) }}" method="POST" class="inline-flex">
+                                @csrf
+                                <button type="submit"
+                                    class="inline-flex items-center justify-center rounded-md p-1.5 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                                    title="Duplicate Product">
+                                    <x-heroicon-o-document-duplicate class="w-5 h-5" />
                                 </button>
                             </form>
                         </div>

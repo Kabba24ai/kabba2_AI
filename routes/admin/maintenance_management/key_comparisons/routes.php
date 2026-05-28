@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Criteria\Sto
 use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Criteria\UpdateController as CriteriaUpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Criteria\DeleteController as CriteriaDeleteController;
 use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Specifications\GenerateController as SpecificationsGenerateController;
+use App\Http\Controllers\Admin\MaintenanceManagement\KeyComparisons\Specifications\PreviewController as SpecificationsPreviewController;
 
 Route::prefix('key-comparisons')
     ->name('key-comparisons.')
@@ -22,4 +23,5 @@ Route::prefix('key-comparisons')
         Route::delete('/criteria/{criteria_id}', CriteriaDeleteController::class)->name('criteria.delete');
 
         Route::post('/specifications/generate', SpecificationsGenerateController::class)->name('specifications.generate');
+        Route::post('/specifications/preview', SpecificationsPreviewController::class)->name('specifications.preview');
     });

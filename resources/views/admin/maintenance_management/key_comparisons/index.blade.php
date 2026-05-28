@@ -114,6 +114,60 @@
     </div>
 </div>
 
+{{-- AI Prompt Preview Modal --}}
+<div id="kc-prompt-modal" class="fixed inset-0 z-[9999] hidden">
+    <div id="kc-prompt-modal-overlay" class="absolute inset-0 bg-gray-900/40"></div>
+    <div class="relative z-10 flex min-h-full items-center justify-center p-4">
+        <div class="w-full max-w-3xl rounded-xl border border-gray-200 bg-white shadow-xl flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 shrink-0">
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900">AI Prompt Preview</h3>
+                    <p id="kc-prompt-modal-subtitle" class="text-xs text-gray-500 mt-0.5"></p>
+                </div>
+                <button type="button" id="kc-prompt-modal-close" class="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+
+            <div class="overflow-y-auto flex-1 px-5 py-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        {{-- Equipment list summary --}}
+                        <div id="kc-prompt-equipment-summary" class="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Equipment Included</p>
+                            <div id="kc-prompt-equipment-list" class="space-y-1 text-xs text-gray-700 max-h-40 overflow-y-auto"></div>
+                        </div>
+                        {{-- Prompt text --}}
+                        <div>
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Prompt</p>
+                            <pre id="kc-prompt-text" class="whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs text-gray-700 leading-relaxed font-mono overflow-x-auto"></pre>
+                        </div>
+                    </div>
+                    <div>
+                        <div id="kc-ai-response-section" class="hidden">
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">AI Response (Raw JSON)</p>
+                            <pre id="kc-ai-response-json" class="whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs text-gray-700 leading-relaxed font-mono overflow-x-auto"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 shrink-0">
+                <button id="kc-prompt-modal-cancel" type="button" class="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100">Cancel</button>
+                <button id="kc-prompt-modal-send" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Send to AI
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('js')
@@ -155,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.store'));
     const UPDATE_BASE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
     const GENERATE_URL = @json(route('admin.maintenance-management.key-comparisons.specifications.generate'));
+    const PREVIEW_URL = @json(route('admin.maintenance-management.key-comparisons.specifications.preview'));
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     let isLoadingCriteria = false;
     let isGenerating = false;
@@ -534,6 +589,111 @@ document.addEventListener('DOMContentLoaded', () => {
     modalClose?.addEventListener('click', closeModal);
     modalCancel?.addEventListener('click', closeModal);
 
+    // ---- Prompt preview modal ----
+    const promptModal = document.getElementById('kc-prompt-modal');
+    const promptModalOverlay = document.getElementById('kc-prompt-modal-overlay');
+    const promptModalClose = document.getElementById('kc-prompt-modal-close');
+    const promptModalCancel = document.getElementById('kc-prompt-modal-cancel');
+    const promptModalSend = document.getElementById('kc-prompt-modal-send');
+    const promptModalSubtitle = document.getElementById('kc-prompt-modal-subtitle');
+    const promptEquipmentList = document.getElementById('kc-prompt-equipment-list');
+    const promptText = document.getElementById('kc-prompt-text');
+
+    function openPromptModal() {
+        promptModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closePromptModal() {
+        promptModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    promptModalOverlay?.addEventListener('click', closePromptModal);
+    promptModalClose?.addEventListener('click', closePromptModal);
+    promptModalCancel?.addEventListener('click', closePromptModal);
+
+    // Step 2: actually send to AI when user confirms in the preview modal
+    const aiResponseSection = document.getElementById('kc-ai-response-section');
+    const aiResponseJson = document.getElementById('kc-ai-response-json');
+
+    promptModalSend?.addEventListener('click', async () => {
+        if (isGenerating || !selectedCategoryId) return;
+
+        isGenerating = true;
+        promptModalSend.disabled = true;
+        promptModalSend.innerHTML = `
+            <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Generating…
+        `;
+
+        // Hide previous response
+        aiResponseSection.classList.add('hidden');
+        aiResponseJson.textContent = '';
+
+        try {
+            const res = await fetch(GENERATE_URL, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': CSRF,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    category_id: selectedCategoryId,
+                    prompt: promptText.textContent,
+                }),
+            });
+            const rawBody = await res.text();
+            let data = {};
+
+            try {
+                data = rawBody ? JSON.parse(rawBody) : {};
+            } catch (parseError) {
+                data = {};
+            }
+
+            // Show the raw AI response JSON (if present)
+            if (data && data.ai_items) {
+                aiResponseSection.classList.remove('hidden');
+                aiResponseJson.textContent = JSON.stringify(data.ai_items, null, 2);
+            } else if (data && data.message) {
+                aiResponseSection.classList.remove('hidden');
+                aiResponseJson.textContent = data.message;
+            }
+
+            if (res.ok && data.success) {
+                aiSpecs = data.ai_items || [];
+                categoryDataCache.set(Number(selectedCategoryId), {
+                    criteria: [...criteria],
+                    aiSpecs: [...aiSpecs],
+                });
+                renderAiSpecs();
+                window.notyf?.success?.(data.message || 'AI specifications generated successfully.');
+            } else {
+                const fallback = res.status >= 500
+                    ? 'Server error while generating AI specifications.'
+                    : 'Failed to generate AI specifications.';
+                window.notyf?.error?.(data.message || fallback);
+            }
+        } catch (err) {
+            aiResponseSection.classList.remove('hidden');
+            aiResponseJson.textContent = (err && err.message) ? err.message : 'An error occurred while generating specifications.';
+            window.notyf?.error?.((err && err.message) ? err.message : 'An error occurred while generating specifications.');
+        } finally {
+            isGenerating = false;
+            promptModalSend.disabled = false;
+            promptModalSend.innerHTML = `
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Send to AI
+            `;
+        }
+    });
+
     weightInput?.addEventListener('input', () => {
         weightLabel.textContent = weightInput.value;
     });
@@ -622,12 +782,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const aiPromptButton = event.target.closest('#kc-create-ai-prompt');
         if (aiPromptButton) {
             if (isGenerating || !selectedCategoryId) return;
-            isGenerating = true;
+
+            // Step 1: fetch the prompt preview
             const originalText = aiPromptButton.textContent.trim();
             aiPromptButton.disabled = true;
-            aiPromptButton.textContent = 'Generating…';
+            aiPromptButton.textContent = 'Loading preview…';
+
             try {
-                const res = await fetch(GENERATE_URL, {
+                const res = await fetch(PREVIEW_URL, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': CSRF,
@@ -636,33 +798,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     body: JSON.stringify({ category_id: selectedCategoryId }),
                 });
-                const rawBody = await res.text();
-                let data = {};
+                const data = await res.json();
 
-                try {
-                    data = rawBody ? JSON.parse(rawBody) : {};
-                } catch (parseError) {
-                    data = {};
+                if (!res.ok || !data.success) {
+                    window.notyf?.error?.(data.message || 'Failed to load prompt preview.');
+                    return;
                 }
 
-                if (res.ok && data.success) {
-                    aiSpecs = data.ai_items || [];
-                    categoryDataCache.set(Number(selectedCategoryId), {
-                        criteria: [...criteria],
-                        aiSpecs: [...aiSpecs],
-                    });
-                    renderAiSpecs();
-                    window.notyf?.success?.(data.message || 'AI specifications generated successfully.');
-                } else {
-                    const fallback = res.status >= 500
-                        ? 'Server error while generating AI specifications.'
-                        : 'Failed to generate AI specifications.';
-                    window.notyf?.error?.(data.message || fallback);
-                }
+                // Populate and open the preview modal
+                promptModalSubtitle.textContent = `${data.category_title} — ${data.equipment_count} equipment item(s)`;
+                promptEquipmentList.innerHTML = (data.equipment_list || [])
+                    .map((e) => `<div class="flex gap-2"><span class="font-mono text-gray-400">${esc(String(e.unique_id))}</span><span>${esc(e.brand)} ${esc(e.model)}</span></div>`)
+                    .join('');
+                promptText.textContent = data.prompt;
+                openPromptModal();
             } catch (err) {
-                window.notyf?.error?.((err && err.message) ? err.message : 'An error occurred while generating specifications.');
+                window.notyf?.error?.((err && err.message) ? err.message : 'An error occurred while loading the preview.');
             } finally {
-                isGenerating = false;
                 aiPromptButton.disabled = false;
                 aiPromptButton.textContent = originalText;
             }

@@ -25,5 +25,6 @@ Route::prefix('maintenance-management')
     require base_path('routes/admin/maintenance_management/suppliers/routes.php');
     require base_path('routes/admin/maintenance_management/service_master/routes.php');
     require base_path('routes/admin/maintenance_management/key_comparisons/routes.php');
+    require base_path('routes/admin/maintenance_management/equipment_ai/routes.php');
 
 });

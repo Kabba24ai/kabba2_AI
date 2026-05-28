@@ -1,0 +1,275 @@
+@extends('admin.layouts.app')
+
+@section('title', 'AI Specifications — ' . $profile->make . ' ' . $profile->model)
+
+@section('content')
+<div class="space-y-6" x-data="{ showAddForm: false, editingId: null }">
+
+    {{-- ─── Breadcrumb / Back ───────────────────────────────────────── --}}
+    <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <a href="{{ route('admin.maintenance-management.equipment-ai.index', ['category_id' => $profile->category_id]) }}"
+            class="hover:text-brand-500">Equipment Management AI</a>
+        <x-heroicon-o-chevron-right class="h-4 w-4" />
+        <span class="font-medium text-gray-800 dark:text-gray-200">{{ $profile->make }} {{ $profile->model }}</span>
+    </div>
+
+    {{-- ─── Flash Messages ───────────────────────────────────────────── --}}
+    @if (session('success'))
+        <div class="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-700/50 dark:bg-green-900/20 dark:text-green-400">
+            <x-heroicon-o-check-circle class="h-5 w-5 shrink-0" />
+            {{ session('success') }}
+        </div>
+    @endif
+    @if ($errors->any())
+        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-400">
+            <ul class="list-disc pl-4 space-y-1">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    {{-- ─── Profile Header Card ─────────────────────────────────────── --}}
+    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 py-5">
+            <div class="flex items-start gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
+                    <x-heroicon-o-cpu-chip class="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+                        {{ $profile->make }} {{ $profile->model }}
+                    </h1>
+                    <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span>Category: <strong class="text-gray-700 dark:text-gray-300">{{ $profile->category->title ?? '—' }}</strong></span>
+                        <span>·</span>
+                        <span>ID: <code class="rounded bg-gray-100 px-1 text-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ $profile->unique_id }}</code></span>
+                        <span>·</span>
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 font-semibold {{ $profile->statusBadgeClass() }}">
+                            {{ $profile->statusLabel() }}
+                        </span>
+                    </div>
+                    @if ($profile->source_notes)
+                        <p class="mt-1 text-xs text-gray-400 dark:text-gray-500 italic">{{ $profile->source_notes }}</p>
+                    @endif
+                </div>
+            </div>
+            <button @click="showAddForm = !showAddForm"
+                class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 shrink-0">
+                <x-heroicon-o-plus class="h-4 w-4" />
+                Add Specification
+            </button>
+        </div>
+    </div>
+
+    {{-- ─── Add Specification Form (collapsible) ───────────────────── --}}
+    <div x-show="showAddForm" x-transition x-cloak
+        class="rounded-2xl border border-indigo-100 bg-indigo-50/50 shadow-sm dark:border-indigo-700/30 dark:bg-indigo-900/10">
+        <div class="border-b border-indigo-100 px-6 py-4 dark:border-indigo-700/30">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Add / Update Specification</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                If a spec with the same key already exists for this profile it will be updated.
+            </p>
+        </div>
+        <form method="POST"
+              action="{{ route('admin.maintenance-management.equipment-ai.profiles.specifications.store', $profile->unique_id) }}"
+              class="grid grid-cols-1 gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-3">
+            @csrf
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Spec Key <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="spec_key" placeholder="engine_hp"
+                    value="{{ old('spec_key') }}"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                <p class="mt-0.5 text-xs text-gray-400">Lowercase, underscores (e.g. lift_height_ft)</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Display Label <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="spec_label" placeholder="Engine Horsepower"
+                    value="{{ old('spec_label') }}"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Value</label>
+                <input type="text" name="spec_value" placeholder="74"
+                    value="{{ old('spec_value') }}"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Unit</label>
+                <input type="text" name="spec_unit" placeholder="hp"
+                    value="{{ old('spec_unit') }}"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Source</label>
+                <select name="source"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                    <option value="manual" {{ old('source') == 'manual' ? 'selected' : '' }}>Manual Entry</option>
+                    <option value="manufacturer_pdf" {{ old('source') == 'manufacturer_pdf' ? 'selected' : '' }}>Manufacturer PDF</option>
+                    <option value="manufacturer_website" {{ old('source') == 'manufacturer_website' ? 'selected' : '' }}>Manufacturer Website</option>
+                    <option value="ai_openai" {{ old('source') == 'ai_openai' ? 'selected' : '' }}>AI (OpenAI)</option>
+                    <option value="ai_other" {{ old('source') == 'ai_other' ? 'selected' : '' }}>AI (Other)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Confidence (0–1)</label>
+                <input type="number" name="confidence_score" placeholder="1.0" min="0" max="1" step="0.01"
+                    value="{{ old('confidence_score', '1.0') }}"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+            </div>
+
+            <div class="sm:col-span-2 lg:col-span-3 flex justify-end gap-3">
+                <button type="button" @click="showAddForm = false"
+                    class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2 text-sm font-medium text-white hover:bg-brand-600">
+                    <x-heroicon-o-check class="h-4 w-4" />
+                    Save Specification
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {{-- ─── Specifications Table ────────────────────────────────────── --}}
+    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+        <div class="border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">
+                Specifications
+                <span class="ml-1 text-sm font-normal text-gray-400">({{ $profile->specifications->count() }})</span>
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Spec Key</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Label</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Value</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Unit</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Source</th>
+                        <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Confidence</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-900">
+                    @forelse ($profile->specifications as $spec)
+                        {{-- View row --}}
+                        <tr x-show="editingId !== {{ $spec->id }}"
+                            class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                            <td class="px-5 py-3">
+                                <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $spec->spec_key }}</code>
+                            </td>
+                            <td class="px-5 py-3 text-gray-800 dark:text-gray-200">{{ $spec->spec_label }}</td>
+                            <td class="px-5 py-3 font-medium text-gray-900 dark:text-gray-100">{{ $spec->spec_value ?? '—' }}</td>
+                            <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->spec_unit ?? '—' }}</td>
+                            <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->source ?? '—' }}</td>
+                            <td class="px-5 py-3 text-center">
+                                @php $pct = round(($spec->confidence_score ?? 1) * 100); @endphp
+                                <span class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">
+                                    {{ $pct }}%
+                                </span>
+                            </td>
+                            <td class="px-5 py-3">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button @click="editingId = {{ $spec->id }}"
+                                        class="inline-flex items-center justify-center rounded-md p-1.5 text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300"
+                                        title="Edit">
+                                        <x-heroicon-o-pencil-square class="h-4 w-4" />
+                                    </button>
+                                    <form method="POST"
+                                        action="{{ route('admin.maintenance-management.equipment-ai.specifications.delete', $spec->id) }}"
+                                        class="inline"
+                                        onsubmit="return confirm('Delete spec "{{ addslashes($spec->spec_key) }}"?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="inline-flex items-center justify-center rounded-md p-1.5 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                                            title="Delete">
+                                            <x-heroicon-o-trash class="h-4 w-4" />
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        {{-- Inline edit row --}}
+                        <tr x-show="editingId === {{ $spec->id }}" x-cloak
+                            class="bg-blue-50/50 dark:bg-blue-900/10">
+                            <td colspan="7" class="px-5 py-4">
+                                <form method="POST"
+                                      action="{{ route('admin.maintenance-management.equipment-ai.specifications.update', $spec->id) }}"
+                                      class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label *</label>
+                                        <input type="text" name="spec_label" value="{{ $spec->spec_label }}" required
+                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Value</label>
+                                        <input type="text" name="spec_value" value="{{ $spec->spec_value }}"
+                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Unit</label>
+                                        <input type="text" name="spec_unit" value="{{ $spec->spec_unit }}"
+                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Source</label>
+                                        <select name="source"
+                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                            @foreach (['manual','manufacturer_pdf','manufacturer_website','ai_openai','ai_other'] as $src)
+                                                <option value="{{ $src }}" {{ $spec->source == $src ? 'selected' : '' }}>{{ ucwords(str_replace('_',' ',$src)) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Confidence</label>
+                                        <input type="number" name="confidence_score" value="{{ $spec->confidence_score }}" min="0" max="1" step="0.01"
+                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    </div>
+                                    <div class="flex items-end gap-2">
+                                        <button type="submit"
+                                            class="rounded-md bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">
+                                            Save
+                                        </button>
+                                        <button type="button" @click="editingId = null"
+                                            class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
+                                No specifications yet.
+                                Click <strong>Add Specification</strong> above to start building the spec sheet.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+@endsection

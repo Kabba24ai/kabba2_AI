@@ -423,7 +423,8 @@
 
                        <td class="py-4 px-6 text-right">
 
-                           @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
+                           @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || (in_array($transaction->type, ['charge', 'discount']) 
+    && $transaction->sales_tax_type === 'reverse')))
                            {{-- Tax is included in the amount (payment or reverse charge) --}}
                            {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) / (1 + $transaction->sales_tax)) }}
 
@@ -442,7 +443,10 @@
 
                            @if($transaction->type === 'account_invoice') 
                             {{ \App\Helpers\CustomHelper::formatCurrency($transaction->sales_tax) }}
-                           @elseif($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')))
+                           @elseif($transaction->sales_tax > 0 && ($transaction->type === 'payment' || (
+    in_array($transaction->type, ['charge', 'discount']) &&
+    $transaction->sales_tax_type === 'reverse'
+)))
                            {{-- Tax is included in the amount (payment or reverse charge) --}}
                            @php
                            $taxAmount = ($transaction->amount ?? 0) - (($transaction->amount ?? 0) / (1 + $transaction->sales_tax));
@@ -463,7 +467,13 @@
 
                                 if($transaction->type === 'account_invoice')
                                                             $totalWithTax = $transaction->amount;
-                                elseif ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
+                                elseif ($transaction->sales_tax > 0 && !(
+    $transaction->type === 'payment' ||
+    (
+        in_array($transaction->type, ['charge', 'discount']) &&
+        $transaction->sales_tax_type === 'reverse'
+    )
+)) {
                                 // Only add tax if it's NOT already included
                                 $totalWithTax += ($transaction->amount * $transaction->sales_tax);
                                 }
@@ -1004,10 +1014,10 @@
                    <!-- <form> -->
 
                    {{ html()->form('POST', route('admin.crm.customers.customer-account.discountstore'))->id('applyDiscount')->attributes([
-                    'autocomplete' => 'off',
-                    'data-parsley-validate' => true,
-                    'class' => 'space-y-8',
-                ])->open() }}
+                        'autocomplete' => 'off',
+                        'data-parsley-validate' => true,
+                        'class' => 'space-y-8',
+                    ])->open() }}
 
 
                    {!! html()->text('customer_id', $customer->id ?? '')->class('hidden')->attributes([
@@ -1042,6 +1052,29 @@
 
                        </div>
                    </div>
+
+                       <!-- Sales Tax Treatment -->
+                   <div class="mb-4">
+                       <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
+                       <div class="space-y-2 text-sm text-gray-700">
+
+                           @foreach([
+                           'add' => ['label' => 'Add Sales Tax', 'desc' => 'Add 9.75% sales tax to the entered amount'],
+                           'free' => ['label' => 'Tax Free', 'desc' => 'No sales tax applied to this charge'],
+                           'reverse' => ['label' => 'Reverse Sales Tax', 'desc' => 'Split entered amount proportionally between base amount and tax'],
+                           ] as $value => $info)
+                           <label class="flex items-start gap-2">
+                               {!! html()->radio('sales_tax', $value === 'add', $value)->class('mt-1.5 text-blue-600 focus:ring-blue-500') !!}
+                               <div>
+                                   <p class="font-medium">{{ $info['label'] }}</p>
+                                   <p class="text-gray-500">{{ $info['desc'] }}</p>
+                               </div>
+                           </label>
+                           @endforeach
+
+                       </div>
+                   </div>
+
                    <!-- Discount Reason -->
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Discount Reason </label>

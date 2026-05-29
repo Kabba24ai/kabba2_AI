@@ -17,7 +17,7 @@ use App\Http\Controllers\Api\TimeTracker\V1\Users\ExportEmployeeTimeEntriesContr
 use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryUpdateController;
 use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryCreateController;
 use App\Http\Controllers\Api\TimeTracker\V1\Users\CreateEmptyTimeEntryController;
-
+use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryDeleteController;
 use App\Http\Controllers\Api\TimeTracker\V1\Users\TimeEntryBulkUpdateController;
 
 
@@ -46,4 +46,6 @@ Route::group(['prefix' => 'users'], function () {
         Route::post('/time-entries/create-empty', CreateEmptyTimeEntryController::class);
 
         Route::post('/time-entries/bulk-update', TimeEntryBulkUpdateController::class);
+
+        Route::post('/time-entries/delete', TimeEntryDeleteController::class);
 });

@@ -79,7 +79,7 @@ class TimeEntryDeleteController extends BaseController
                 |
                 */
 
-                if (in_array($type, ['lunch_out', 'unpaid_out'])) {
+                if (in_array($type, ['lunch_in', 'unpaid_in'])) {
 
                     $break->delete();
                 }

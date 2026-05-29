@@ -119,7 +119,7 @@
             </div>
 
             <!-- Customer Name -->
-            <div class="flex flex-col billing-summary-w-9">
+            <div class="flex flex-col billing-summary-w-16">
                 <label class="text-sm text-gray-500 mb-1">Customer Name</label>
                 <div class="relative">
                     <input type="text" name="b_customers_name" value="{{ request('customers_name') }}"
@@ -134,11 +134,11 @@
             </div>
 
             <!-- Company Name -->
-            <div class="flex flex-col billing-summary-w-12">
+            <div class="flex flex-col billing-summary-w-16">
                 <label class="text-sm text-gray-500 mb-1">Company Name</label>
                 <div class="relative">
                     <input name="b_company_name" value="{{ request('b_company_name') }}" type="text"
-                        placeholder="Customer company" class="pl-9 pr-3 px-3 py-3 border border-gray-300 rounded-md w-full " />
+                        placeholder="Company Name" class="pl-9 pr-3 px-3 py-3 border border-gray-300 rounded-md w-full " />
                     <svg class="absolute w-4 h-4 text-gray-400 left-3 top-1/2 transform -translate-y-1/2"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -149,7 +149,7 @@
             </div>
 
             <!-- Phone -->
-            <div class="flex flex-col billing-summary-w-8">
+            <div class="flex flex-col billing-summary-w-12">
                 <label class="text-sm text-gray-500 mb-1">Phone</label>
                 <div class="relative">
                     <input type="text" name="b_search_phone" placeholder="(xxx) xxx-xxxx"
@@ -166,7 +166,7 @@
             </div>
 
             <!-- Alerts -->
-            <div class="flex flex-col billing-summary-w-11">
+            <div class="flex flex-col billing-summary-w-13">
                 <label class="text-sm text-gray-500 mb-1">Alerts</label>
                 <select name="alert_status" class="px-3 py-3 border border-gray-300 rounded-md w-full ">
                     <!-- <option value="" selected>All Accounts</option>
@@ -198,7 +198,7 @@
             </div>
 
 
-            <div class="flex flex-col billing-summary-w-12">
+            <div class="flex flex-col billing-summary-w-18">
                 <label class="text-sm text-gray-500 mb-1">Sort</label>
                 <select id="balanceSortSelect" class="px-3 py-3 border border-gray-300 rounded-md w-full">
                     <option value="balance" selected>Balance: Highest to Lowest</option>
@@ -208,13 +208,13 @@
                 </select>
             </div>
 
-            <div class="flex flex-col billing-summary-w-8">
+            <div class="flex flex-col billing-summary-w-14">
                 <label class="text-sm text-gray-500 mb-1">Missing Invoice Month</label>
                 <input type="month" id="invoice_month" name="invoice_month"
                     class="px-3 py-3 border border-gray-300 rounded-md w-full">
             </div>
 
-            <div class="flex flex-col billing-summary-w-8">
+            <div class="flex flex-col billing-summary-w-6">
                 <label class="text-sm text-gray-500 mb-1">Payment Aging</label>
                 <select id="payment_aging" name="payment_aging"
                     class="px-3 py-3 border border-gray-300 rounded-md w-full">
@@ -227,7 +227,7 @@
                 </select>
             </div>
 
-            <div class="flex flex-col billing-summary-w-12">
+            <div class="flex flex-col billing-summary-w-16">
                 <label class="text-sm text-gray-500 mb-1">Show By Balance</label>
                 <select id="balance_type" name="balance_type"
                     class="px-3 py-3 border border-gray-300 rounded-md w-full">

@@ -9,7 +9,7 @@ class IndexController extends Controller
 {
     public function __invoke(string $uniqueId)
     {
-        $profile = EquipmentAiProfile::with(['category', 'specifications' => fn ($q) => $q->orderBy('spec_key')])
+        $profile = EquipmentAiProfile::with(['category', 'specifications' => fn ($q) => $q->orderByDesc('is_key_comparison')->orderBy('spec_key')])
             ->where('unique_id', $uniqueId)
             ->firstOrFail();
 

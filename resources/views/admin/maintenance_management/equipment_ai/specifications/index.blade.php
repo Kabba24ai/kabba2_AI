@@ -7,6 +7,8 @@
     showAddForm: false,
     editingId: null,
     generating: false,
+    togglingId: null,
+
     async generateSpecs() {
         if (!confirm('Use AI to research and generate specifications for {{ addslashes($profile->make . ' ' . $profile->model) }}?\n\nThis calls the OpenAI API and may take 15–30 seconds.')) return;
         this.generating = true;
@@ -29,6 +31,30 @@
         } catch (e) {
             alert('Request failed. Please check your connection and try again.');
             this.generating = false;
+        }
+    },
+
+    async toggleKeyComparison(specId, checkbox) {
+        this.togglingId = specId;
+        try {
+            const res = await fetch(`/maintenance-management/equipment-ai/specifications/${specId}/toggle-key-comparison`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await res.json();
+            if (!data.success) {
+                checkbox.checked = !checkbox.checked; // revert
+                alert('Failed to update. Please try again.');
+            }
+        } catch (e) {
+            checkbox.checked = !checkbox.checked; // revert
+            alert('Request failed. Please check your connection.');
+        } finally {
+            this.togglingId = null;
         }
     }
 }">
@@ -201,7 +227,7 @@
             <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-800">
                     <tr>
-                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Spec Key</th>
+                        <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 w-32">Key Comparison</th>
                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Label</th>
                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Value</th>
                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Unit</th>
@@ -214,11 +240,22 @@
                     @forelse ($profile->specifications as $spec)
                         {{-- View row --}}
                         <tr x-show="editingId !== {{ $spec->id }}"
-                            class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                            <td class="px-5 py-3">
-                                <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $spec->spec_key }}</code>
+                            class="{{ $spec->is_key_comparison ? 'bg-amber-50/40 dark:bg-amber-900/10' : '' }} hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                            {{-- Key Comparison checkbox ─────────────────────────── --}}
+                            <td class="px-5 py-3 text-center">
+                                <input type="checkbox"
+                                    id="kc_{{ $spec->id }}"
+                                    {{ $spec->is_key_comparison ? 'checked' : '' }}
+                                    :disabled="togglingId === {{ $spec->id }}"
+                                    @change="toggleKeyComparison({{ $spec->id }}, $event.target)"
+                                    class="h-4 w-4 cursor-pointer rounded border-gray-300 text-amber-500 focus:ring-amber-400 disabled:opacity-50">
                             </td>
-                            <td class="px-5 py-3 text-gray-800 dark:text-gray-200">{{ $spec->spec_label }}</td>
+                            <td class="px-5 py-3 text-gray-800 dark:text-gray-200">
+                                {{ $spec->spec_label }}
+                                @if ($spec->is_key_comparison)
+                                    <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">key</span>
+                                @endif
+                            </td>
                             <td class="px-5 py-3 font-medium text-gray-900 dark:text-gray-100">{{ $spec->spec_value ?? '—' }}</td>
                             <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->spec_unit ?? '—' }}</td>
                             <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->source ?? '—' }}</td>
@@ -306,8 +343,8 @@
                     @empty
                         <tr>
                             <td colspan="7" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
-                                No specifications yet.
-                                Click <strong>Add Specification</strong> above to start building the spec sheet.
+                                No specifications yet. Click <strong>Research &amp; Create General Specification</strong> to generate with AI,
+                                or <strong>Add Specification</strong> to add manually.
                             </td>
                         </tr>
                     @endforelse

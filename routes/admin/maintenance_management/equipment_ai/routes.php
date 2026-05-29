@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\UpdateController as SpecUpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\DeleteController as SpecDeleteController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\GenerateController as SpecGenerateController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\ToggleKeyComparisonController as SpecToggleKeyComparisonController;
 
 // Controllers — Category Comparison Keys
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\IndexController as KeyIndexController;
@@ -52,9 +53,10 @@ Route::prefix('equipment-ai')
                 Route::post('/generate', SpecGenerateController::class)->name('generate');
             });
 
-        // Spec update/delete keyed by spec id (not profile unique_id)
+        // Spec update/delete/toggle keyed by spec id (not profile unique_id)
         Route::put('/specifications/{id}', SpecUpdateController::class)->name('specifications.update');
         Route::delete('/specifications/{id}', SpecDeleteController::class)->name('specifications.delete');
+        Route::post('/specifications/{id}/toggle-key-comparison', SpecToggleKeyComparisonController::class)->name('specifications.toggle-key-comparison');
 
         /*
         |-----------------------------------------------------------

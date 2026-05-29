@@ -19,10 +19,12 @@ class EquipmentAiSpecification extends Model
         'spec_unit',
         'confidence_score',
         'source',
+        'is_key_comparison',
     ];
 
     protected $casts = [
-        'confidence_score' => 'float',
+        'confidence_score'  => 'float',
+        'is_key_comparison' => 'boolean',
     ];
 
     /* ------------------------------------------------------------------

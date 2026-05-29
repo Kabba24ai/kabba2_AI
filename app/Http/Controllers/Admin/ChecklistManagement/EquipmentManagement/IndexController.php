@@ -20,7 +20,7 @@ class IndexController extends Controller
 
         $users = User::active()->get();
 
-        logger('USERS LOAD: ' . (microtime(true) - $start) . ' sec');
+        // logger('USERS LOAD: ' . (microtime(true) - $start) . ' sec');
 
         // $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0)->orderBy('equipment_name', 'asc')->paginate(5);
         // ->get();
@@ -59,13 +59,13 @@ class IndexController extends Controller
 
         $start = microtime(true);
         $equipments = $query->orderBy('equipment_name', 'asc')->paginate(10);
-        logger('EQUIPMENT QUERY: ' . (microtime(true) - $start) . ' sec');
+        // logger('EQUIPMENT QUERY: ' . (microtime(true) - $start) . ' sec');
 
         $start = microtime(true);
 
         $categories = ProductCategory::getHierarchy();
 
-        logger('CATEGORY LOAD: ' . (microtime(true) - $start) . ' sec');
+        // logger('CATEGORY LOAD: ' . (microtime(true) - $start) . ' sec');
 
         $selectedEquipment = null;
 
@@ -74,7 +74,7 @@ class IndexController extends Controller
 
             $selectedEquipment = Equipment::where('unique_id', $equipment)->firstOrFail();
 
-            logger('SELECTED EQUIPMENT: ' . (microtime(true) - $start) . ' sec');
+            // logger('SELECTED EQUIPMENT: ' . (microtime(true) - $start) . ' sec');
         }
 
         // Load service settings
@@ -82,7 +82,7 @@ class IndexController extends Controller
 
         $settings = DB::table('service_master_settings')->first();
 
-        logger('SERVICE SETTINGS: ' . (microtime(true) - $start) . ' sec');
+        // logger('SERVICE SETTINGS: ' . (microtime(true) - $start) . ' sec');
         $pendingBeforeHours = $settings->pending_before_hours ?? 20;
         $pendingAfterHours = $settings->pending_after_hours ?? 15;
 
@@ -95,7 +95,7 @@ class IndexController extends Controller
             ->groupBy(function ($record) {
                 return $record->equipment_id . '_' . $record->service_task_id;
             });
-        logger('SERVICE RECORDS: ' . (microtime(true) - $start) . ' sec');
+        // logger('SERVICE RECORDS: ' . (microtime(true) - $start) . ' sec');
         // dd($selectedEquipment);
 
         $start = microtime(true);
@@ -163,7 +163,7 @@ class IndexController extends Controller
             return $item;
         });
 
-        logger('TRANSFORM TIME: ' . (microtime(true) - $start) . ' sec');
+        // logger('TRANSFORM TIME: ' . (microtime(true) - $start) . ' sec');
 
         // FILTER SERVICE STATUS
 
@@ -188,7 +188,7 @@ class IndexController extends Controller
         }
 
         if ($request->ajax()) {
-            logger('TOTAL AJAX TIME: ' . (microtime(true) - $totalStart) . ' sec');
+            // logger('TOTAL AJAX TIME: ' . (microtime(true) - $totalStart) . ' sec');
 
             return response()->json([
                 'data' => $equipments->items(),
@@ -198,7 +198,7 @@ class IndexController extends Controller
             ]);
         }
 
-        logger('TOTAL PAGE TIME: ' . (microtime(true) - $totalStart) . ' sec');
+        // logger('TOTAL PAGE TIME: ' . (microtime(true) - $totalStart) . ' sec');
 
         return view('admin.checklist_management.equipment_management.index', [
             'users' => $users,

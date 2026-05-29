@@ -773,8 +773,8 @@ $lockInvoiceActions = $isEdit &&
                                                     $total = $amount;
 
                                                     if ($taxRate > 0) {
-                                                        $isReverse = ($type === 'payment') || 
-                                                                    ($type === 'charge' && $taxType === 'reverse');
+
+                                                        $isReverse = ($type === 'payment') || ( in_array($type, ['charge', 'discount']) && $taxType === 'reverse' );
 
                                                         if (!$isReverse) {
                                                             $total += ($amount * $taxRate);
@@ -791,7 +791,6 @@ $lockInvoiceActions = $isEdit &&
 
                                         </td>
 
-
                                         <td class="px-4 py-3 space-x-2 whitespace-nowrap">
                                             
                                             <button
@@ -803,16 +802,18 @@ $lockInvoiceActions = $isEdit &&
                                                 data-order-id="{{ $account->order->unique_id }}"
 
                                             @endif
-                                                type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn"  data-account-id="{{ $account->unique_id }}"
+                                                type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 add-to-invoice-btn"  
+                                                data-account-id="{{ $account->unique_id }}"
                                                 data-type="{{ $account->type }}"
-
                                                 data-reason="{{ $account->reason }}"
 
-                                                data-unit="{{ $account->amount }}"
+                                                  data-unit="{{ $account->amount }}"
+
                                                 data-sales_tax="{{ $account->sales_tax }}"
-                                                
+                                                data-sales_tax_type="{{ $account->sales_tax_type }}"
+
                                                  data-responsible_person_id="{{ $account->responsible_person_id }}"
-                                                  data-sales_tax="{{ $account->sales_tax }}"
+
                                                    data-notes="{{ $account->notes }}"
                                                 >
                                                 + Add to Invoice
@@ -1376,8 +1377,13 @@ $lockInvoiceActions = $isEdit &&
 
             if (taxRate > 0) {
 
-                const isReverse = (type === 'payment') || 
-                                (type === 'charge' && taxType === 'reverse');
+                const isReverse =
+                    (type === 'payment') ||
+
+                    (
+                        ['charge', 'discount'].includes(type) &&
+                        taxType === 'reverse'
+                    );
 
                 if (isReverse) {
                     // Tax INCLUDED in amount
@@ -1412,7 +1418,7 @@ $lockInvoiceActions = $isEdit &&
 
               const orderId = btn.dataset.orderId;
 
-            //   console.log('orderId:-',orderId);
+              //   console.log('orderId:-',orderId);
 
                 const orderDetailsBaseUrl = "{{ route('admin.crm.customers.invoice.orders.details', ['unique_id' => ':id']) }}";
 

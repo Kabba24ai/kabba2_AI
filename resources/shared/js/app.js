@@ -188,7 +188,7 @@ window.FilterFreezer = {
         });
 
         localStorage.setItem(screenKey, JSON.stringify(data));
-    }
+    }        
 };
 
 /**

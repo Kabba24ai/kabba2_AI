@@ -227,7 +227,7 @@
                 </select>
             </div>
 
-            <div class="flex flex-col billing-summary-w-16">
+            <div class="flex flex-col billing-summary-w-18">
                 <label class="text-sm text-gray-500 mb-1">Show By Balance</label>
                 <select id="balance_type" name="balance_type"
                     class="px-3 py-3 border border-gray-300 rounded-md w-full">

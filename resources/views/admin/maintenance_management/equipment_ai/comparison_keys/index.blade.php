@@ -1,0 +1,304 @@
+@extends('admin.layouts.app')
+
+@section('title', 'Category Comparison Keys — Equipment AI')
+
+@section('content')
+<div class="space-y-6" x-data="{ showAddForm: false, editingId: null }">
+
+    {{-- ─── Page Header ─────────────────────────────────────────────── --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Category Comparison Keys</h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Define which specification keys matter when comparing equipment within a category.
+                Each category has its own set of keys.
+            </p>
+        </div>
+        <a href="{{ route('admin.maintenance-management.equipment-ai.index') }}"
+            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+            <x-heroicon-o-arrow-left class="h-4 w-4" />
+            Back to AI Profiles
+        </a>
+    </div>
+
+    {{-- ─── Flash Messages ───────────────────────────────────────────── --}}
+    @if (session('success'))
+        <div class="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-700/50 dark:bg-green-900/20 dark:text-green-400">
+            <x-heroicon-o-check-circle class="h-5 w-5 shrink-0" />
+            {{ session('success') }}
+        </div>
+    @endif
+    @if ($errors->any())
+        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-400">
+            <ul class="list-disc pl-4 space-y-1">
+                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+            </ul>
+        </div>
+    @endif
+
+    {{-- ─── Category Selector ───────────────────────────────────────── --}}
+    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 px-6 py-5">
+        <form method="GET" action="{{ route('admin.maintenance-management.equipment-ai.comparison-keys.index') }}"
+              class="flex flex-col sm:flex-row gap-3">
+            <select name="category_id"
+                class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                <option value="">— Select a Category —</option>
+                @foreach ($categories as $cat)
+                    <option value="{{ $cat->id }}" {{ ($selectedCategory && $selectedCategory->id == $cat->id) ? 'selected' : '' }}>
+                        {{ $cat->title }}
+                    </option>
+                @endforeach
+            </select>
+            <button type="submit"
+                class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2 text-sm font-medium text-white hover:bg-brand-600">
+                <x-heroicon-o-funnel class="h-4 w-4" />
+                Filter
+            </button>
+            @if ($selectedCategory)
+                <button type="button" @click="showAddForm = !showAddForm"
+                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                    <x-heroicon-o-plus class="h-4 w-4" />
+                    Add Key
+                </button>
+            @endif
+        </form>
+    </div>
+
+    {{-- ─── Add Key Form (collapsible) ─────────────────────────────── --}}
+    @if ($selectedCategory)
+    <div x-show="showAddForm" x-transition x-cloak
+        class="rounded-2xl border border-indigo-100 bg-indigo-50/50 shadow-sm dark:border-indigo-700/30 dark:bg-indigo-900/10">
+        <div class="border-b border-indigo-100 px-6 py-4 dark:border-indigo-700/30">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">
+                Add Comparison Key — {{ $selectedCategory->title }}
+            </h2>
+        </div>
+        <form method="POST"
+              action="{{ route('admin.maintenance-management.equipment-ai.comparison-keys.store') }}"
+              class="grid grid-cols-1 gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-3">
+            @csrf
+            <input type="hidden" name="category_id" value="{{ $selectedCategory->id }}">
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Spec Key <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="spec_key" placeholder="engine_hp" value="{{ old('spec_key') }}"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                <p class="mt-0.5 text-xs text-gray-400">Must match spec_key in AI specifications</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Display Label <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="display_label" placeholder="Engine Horsepower" value="{{ old('display_label') }}"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Importance Level <span class="text-red-500">*</span>
+                </label>
+                <select name="importance_level"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                    <option value="critical" {{ old('importance_level') == 'critical' ? 'selected' : '' }}>Critical</option>
+                    <option value="high" {{ old('importance_level') == 'high' ? 'selected' : '' }}>High</option>
+                    <option value="medium" {{ old('importance_level','medium') == 'medium' ? 'selected' : '' }}>Medium</option>
+                    <option value="low" {{ old('importance_level') == 'low' ? 'selected' : '' }}>Low</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Comparison Type <span class="text-red-500">*</span>
+                </label>
+                <select name="comparison_type"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                    <option value="higher_is_better" {{ old('comparison_type') == 'higher_is_better' ? 'selected' : '' }}>Higher is Better</option>
+                    <option value="lower_is_better" {{ old('comparison_type') == 'lower_is_better' ? 'selected' : '' }}>Lower is Better</option>
+                    <option value="must_match" {{ old('comparison_type') == 'must_match' ? 'selected' : '' }}>Must Match</option>
+                    <option value="range_acceptable" {{ old('comparison_type') == 'range_acceptable' ? 'selected' : '' }}>Range Acceptable</option>
+                    <option value="informational_only" {{ old('comparison_type','informational_only') == 'informational_only' ? 'selected' : '' }}>Informational Only</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Sort Order</label>
+                <input type="number" name="sort_order" placeholder="0" value="{{ old('sort_order', 0) }}" min="0"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+            </div>
+
+            <div class="flex items-center gap-3 pt-5">
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <input type="checkbox" name="is_required" value="1" {{ old('is_required') ? 'checked' : '' }}
+                        class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                    Required for substitution
+                </label>
+            </div>
+
+            <div class="sm:col-span-2 lg:col-span-3 flex justify-end gap-3">
+                <button type="button" @click="showAddForm = false"
+                    class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2 text-sm font-medium text-white hover:bg-brand-600">
+                    <x-heroicon-o-check class="h-4 w-4" />
+                    Save Key
+                </button>
+            </div>
+        </form>
+    </div>
+    @endif
+
+    {{-- ─── Keys Table ──────────────────────────────────────────────── --}}
+    @if ($selectedCategory)
+    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+        <div class="border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">
+                Comparison Keys — {{ $selectedCategory->title }}
+                <span class="ml-1 text-sm font-normal text-gray-400">({{ $keys->count() }})</span>
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Order</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Spec Key</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Display Label</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Importance</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Comparison</th>
+                        <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Required</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-900">
+                    @forelse ($keys as $key)
+                        {{-- View row --}}
+                        <tr x-show="editingId !== {{ $key->id }}"
+                            class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                            <td class="px-5 py-3 text-gray-500 dark:text-gray-400 tabular-nums">{{ $key->sort_order }}</td>
+                            <td class="px-5 py-3">
+                                <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $key->spec_key }}</code>
+                            </td>
+                            <td class="px-5 py-3 text-gray-800 dark:text-gray-200">{{ $key->display_label }}</td>
+                            <td class="px-5 py-3">
+                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ $key->importanceBadgeClass() }}">
+                                    {{ ucfirst($key->importance_level) }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 text-gray-600 dark:text-gray-400 text-xs">{{ $key->comparisonTypeLabel() }}</td>
+                            <td class="px-5 py-3 text-center">
+                                @if ($key->is_required)
+                                    <x-heroicon-o-check-circle class="mx-auto h-4 w-4 text-green-500" />
+                                @else
+                                    <span class="text-gray-300 dark:text-gray-600">—</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button @click="editingId = {{ $key->id }}"
+                                        class="inline-flex items-center justify-center rounded-md p-1.5 text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300"
+                                        title="Edit">
+                                        <x-heroicon-o-pencil-square class="h-4 w-4" />
+                                    </button>
+                                    <form method="POST"
+                                        action="{{ route('admin.maintenance-management.equipment-ai.comparison-keys.delete', $key->id) }}"
+                                        class="inline"
+                                        onsubmit="return confirm('Delete comparison key "{{ addslashes($key->spec_key) }}"?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="inline-flex items-center justify-center rounded-md p-1.5 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                                            title="Delete">
+                                            <x-heroicon-o-trash class="h-4 w-4" />
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        {{-- Inline edit row --}}
+                        <tr x-show="editingId === {{ $key->id }}" x-cloak
+                            class="bg-blue-50/50 dark:bg-blue-900/10">
+                            <td colspan="7" class="px-5 py-4">
+                                <form method="POST"
+                                      action="{{ route('admin.maintenance-management.equipment-ai.comparison-keys.update', $key->id) }}"
+                                      class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label *</label>
+                                        <input type="text" name="display_label" value="{{ $key->display_label }}" required
+                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Importance</label>
+                                        <select name="importance_level"
+                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                            @foreach (['critical','high','medium','low'] as $lvl)
+                                                <option value="{{ $lvl }}" {{ $key->importance_level == $lvl ? 'selected' : '' }}>{{ ucfirst($lvl) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Comparison</label>
+                                        <select name="comparison_type"
+                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                            @foreach (['higher_is_better','lower_is_better','must_match','range_acceptable','informational_only'] as $ct)
+                                                <option value="{{ $ct }}" {{ $key->comparison_type == $ct ? 'selected' : '' }}>{{ ucwords(str_replace('_',' ',$ct)) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Sort Order</label>
+                                        <input type="number" name="sort_order" value="{{ $key->sort_order }}" min="0"
+                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    </div>
+                                    <div class="flex items-center pt-4">
+                                        <label class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                                            <input type="checkbox" name="is_required" value="1" {{ $key->is_required ? 'checked' : '' }}
+                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                            Required
+                                        </label>
+                                    </div>
+                                    <div class="flex items-end gap-2">
+                                        <button type="submit"
+                                            class="rounded-md bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">
+                                            Save
+                                        </button>
+                                        <button type="button" @click="editingId = null"
+                                            class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
+                                No comparison keys defined for this category yet.
+                                Click <strong>Add Key</strong> to define which specifications matter for substitution scoring.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @else
+        <div class="rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
+                <x-heroicon-o-adjustments-horizontal class="h-12 w-12 text-gray-300 dark:text-gray-600" />
+                <p class="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">Select a category above to manage its comparison keys.</p>
+            </div>
+        </div>
+    @endif
+
+</div>
+@endsection

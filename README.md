@@ -42,7 +42,7 @@ Laravel projects commonly follow PHP-FIG's [PSR standards](https://www.php-fig.o
 # 📖 Coding Standards (PSR-12 with Project Conventions)
 
 This project follows **[PSR-1](https://www.php-fig.org/psr/psr-1/)** and **[PSR-12](https://www.php-fig.org/psr/psr-12/)** coding style guidelines with some additional conventions.
-
+ 
 ---
 
 ## 📄 File & Folder Structure

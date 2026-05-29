@@ -14,7 +14,10 @@ class DiscountStoreController extends Controller
 {
     public function __invoke(DiscountStoreRequest $request)
     {
-           $validated = $request->validated();
+
+        // dd($request->all());
+
+            $validated = $request->validated();
             DB::beginTransaction();
 
         try {
@@ -30,6 +33,11 @@ class DiscountStoreController extends Controller
             $user = User::findOrFail($validated['responsible_person']);
             $record->responsible_person_id = $user->id ?? '';
             $record->responsible_person_name = $user->full_name ?? '';
+
+            // Set sales tax type
+            $record->sales_tax_type = $validated['sales_tax'] ?? null;
+
+            $record->sales_tax = 0.00;
 
             $record->notes = $validated['notes'] ?? null;
             $record->date = now();

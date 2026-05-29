@@ -22,11 +22,11 @@
     @endphp
 
     <!-- Hero Section -->
-    <section id="banner" class="pb-3 md:pt-17 pt-17 lg:pt-20 transform transition-all duration-300 ease-in-out">
+    <section id="banner" class="pb-3 pt-16 transform transition-all duration-300 ease-in-out">
         <div class="max-w-full mx-auto px-0">
             <div class="flex flex-col items-center ">
                 <img src="{{ $homeImage ? $homeImage : asset('storage/front/images/banner.jpg') }}" {{-- class="w-[100%] lg:w-full banner object-cover object-top ml-auto" --}}
-                    class="w-[100%] lg:w-full banner ml-auto" alt="Equipment Banner">
+                    class="block w-[100%] lg:w-full banner ml-auto" alt="Equipment Banner">
             </div>
         </div>
     </section>

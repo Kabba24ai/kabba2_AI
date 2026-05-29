@@ -16,6 +16,7 @@ class IndexController extends Controller
         $criteria = EquipmentCriticalMatchingCriterion::query()
             ->where('product_category_id', $categoryId)
             ->where('is_active', true)
+            ->where('is_key_criteria', true)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
@@ -36,8 +37,34 @@ class IndexController extends Controller
                     'caution_if_below_value' => (bool) $item->caution_if_below_value,
                     'sort_order' => (int) $item->sort_order,
                     'is_active' => (bool) $item->is_active,
+                    'is_key_criteria' => (bool) $item->is_key_criteria,
+                    'source_type' => (string) ($item->source_type ?? 'manual'),
                 ];
             })->values(),
+            'ai_items' => $this->getAiSpecs($categoryId),
         ]);
+    }
+
+    private function getAiSpecs(int $categoryId): array
+    {
+        return EquipmentCriticalMatchingCriterion::query()
+            ->where('product_category_id', $categoryId)
+            ->where('is_active', true)
+            ->where('source_type', 'ai')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => (int) $item->id,
+                    'spec_key' => (string) ($item->criteria_key ?? ''),
+                    'spec_label' => (string) ($item->name ?? ''),
+                    'unit' => (string) ($item->unit ?? ''),
+                    'is_key_criteria' => (bool) $item->is_key_criteria,
+                    'source_type' => (string) ($item->source_type ?? 'ai'),
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

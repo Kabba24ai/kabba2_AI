@@ -841,7 +841,7 @@
                     <label for="checklist_master_id" class="block text-sm font-medium text-gray-700">
                         Checklist Master
                     </label>
-                    @if (isset($equipment) && $equipment->checklist_master_id)
+                    @if (isset($equipment) && $equipment->checklistMaster?->unique_id)
                         <a href="{{ route('admin.checklist-management.checklist-master.edit', $equipment->checklistMaster->unique_id) }}"
                              rel="noopener"
                             class="inline-flex items-center text-gray-500 hover:text-blue-600"
@@ -941,7 +941,7 @@
                 <label class="text-sm font-medium text-gray-700">
                     Parts List Templates
                 </label>
-                @if (isset($equipment) && $equipment->parts_list_id)
+                @if (isset($equipment) && $equipment->partsList?->unique_id)
                     <a href="{{ route('admin.maintenance-management.parts.parts-list.view', $equipment->partsList->unique_id) }}"
                          rel="noopener"
                         class="inline-flex items-center text-gray-500 hover:text-blue-600" title="View Parts List">

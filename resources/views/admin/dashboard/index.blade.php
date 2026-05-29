@@ -200,6 +200,11 @@ const salesDataFromServer = @json($salesData);
 
                 item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
 
+                item.querySelector("[data-resolved]").onclick = () => {
+                    dropdown.classList.add("hidden");
+                    this.openResolvedModal(alert);
+                };
+
                 // Edit notes
                 // item.querySelector("[data-edit-notes]").onclick = () => {
                 //     this.editingAlert = alert;
@@ -405,6 +410,11 @@ if (isFuel) {
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("damage", alert.id, "paid");
                 item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
 
+                item.querySelector("[data-resolved]").onclick = () => {
+                    dropdown.classList.add("hidden");
+                    this.openResolvedModal(alert);
+                };
+
                 item.querySelector("[data-edit-notes]").onclick = () => {
                     this.editingAlert = alert;
                     this.tempNotes = "";
@@ -471,6 +481,102 @@ if (isFuel) {
                 badge.classList.remove("bg-red-100", "text-red-800");
                 badge.classList.add("bg-green-100", "text-green-800");
             }
+        }
+
+        /** ------------------------
+         *    RESOLVED MODAL
+         --------------------------*/
+        openResolvedModal(alert) {
+            this.editingAlert = alert;
+
+            const label = alert.type === 'fuel' ? 'Fuel Charge' : 'Damage Charge';
+            document.getElementById("resolved-modal-title").textContent = `Mark ${label} as Resolved`;
+            document.getElementById("resolved-note-input").value = "";
+            document.getElementById("resolved-by-select").value = "";
+
+            document.getElementById("resolved-modal").classList.remove("hidden");
+            document.getElementById("resolved-modal").classList.add("flex");
+        }
+
+        closeResolvedModal() {
+            document.getElementById("resolved-modal").classList.add("hidden");
+            document.getElementById("resolved-modal").classList.remove("flex");
+        }
+
+        saveResolved() {
+            if (!this.editingAlert) {
+                notyf.error("Alert not found.");
+                return;
+            }
+
+            const note = document.getElementById("resolved-note-input").value.trim();
+            if (!note) {
+                notyf.error("Please enter a resolution note.");
+                return;
+            }
+
+            const resolvedBy = document.getElementById("resolved-by-select").value;
+            if (!resolvedBy) {
+                notyf.error("Please select who resolved this.");
+                return;
+            }
+
+            const orderProductId = this.editingAlert.order_product?.id;
+            if (!orderProductId) {
+                notyf.error("Order product not found.");
+                return;
+            }
+
+            const url = "{{ route('admin.dashboard.extra-charges.resolved', ':id') }}"
+                .replace(':id', orderProductId);
+
+            const saveBtn = document.getElementById("resolved-save-btn");
+            const originalText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.textContent = "Saving...";
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: JSON.stringify({
+                    type:            this.editingAlert.type,
+                    resolution_note: note,
+                    resolved_by:     resolvedBy,
+                }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    notyf.success(data.message || 'Marked as resolved');
+
+                    const alertId   = this.editingAlert.id;
+                    const alertType = this.editingAlert.type;
+
+                    if (alertType === 'fuel') {
+                        this.fuelAlerts = this.fuelAlerts.filter(a => a.id !== alertId);
+                        this.renderFuelAlerts();
+                        this.updateFuelAlertBadge();
+                        this.updateFuelAlertHeader();
+                    } else {
+                        this.damageAlerts = this.damageAlerts.filter(a => a.id !== alertId);
+                        this.renderDamageAlerts();
+                        this.updateDamageAlertBadge();
+                        this.updateDamageAlertHeader();
+                    }
+
+                    this.closeResolvedModal();
+                } else {
+                    notyf.error(data.message || 'Something went wrong');
+                }
+            })
+            .catch(() => notyf.error('Failed to mark as resolved'))
+            .finally(() => {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            });
         }
 
         openNotesModal(alert) {
@@ -1098,6 +1204,7 @@ if (status === "uncollectible") {
                 height: 400,
                 type: "line",
                 toolbar: { show: false },
+                zoom: { enabled: false },
             },
             xaxis: {
                 categories: data.categories,

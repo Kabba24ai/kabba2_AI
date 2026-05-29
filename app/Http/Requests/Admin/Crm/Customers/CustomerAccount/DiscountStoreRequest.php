@@ -25,6 +25,7 @@ class DiscountStoreRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reason' => ['required'],
             'responsible_person' => ['required'],
+                'sales_tax' => ['nullable', Rule::in(['add', 'free', 'reverse'])],
             'notes' => ['nullable', 'string'],
         ];
     }

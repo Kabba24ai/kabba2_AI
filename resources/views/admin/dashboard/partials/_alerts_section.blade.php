@@ -1,3 +1,115 @@
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-6">
+
+    {{-- Header --}}
+    <div class="flex items-center justify-between mb-4">
+
+        <div class="flex items-center gap-2">
+
+            <div class="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center">
+                <x-heroicon-o-bell-alert class="w-5 h-5 text-red-600" />
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                    Alerts & Activities
+                </h2>
+
+                <p class="text-sm text-gray-500">
+                    Recent system activities and reminders
+                </p>
+            </div>
+
+        </div>
+
+        <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+            2 New
+        </span>
+
+    </div>
+
+    {{-- Alerts List --}}
+    <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+
+        {{-- Alert Item --}}
+        <div class="border border-gray-100 rounded-xl p-4 hover:bg-gray-50 transition">
+
+            <div class="flex items-start justify-between gap-3">
+
+                <div class="flex gap-3">
+
+                    <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                        <x-heroicon-o-document-text class="w-5 h-5 text-green-600" />
+                    </div>
+
+                    <div>
+
+                        <h3 class="text-sm font-semibold text-gray-900">
+                            New Application Submitted
+                        </h3>
+
+                        <p class="text-sm text-gray-600 mt-1">
+                            John Smith submitted a new rental application.
+                        </p>
+
+                        <p class="text-xs text-gray-400 mt-2">
+                            2 minutes ago
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <a href="#"
+                    class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                    View
+                </a>
+
+            </div>
+
+        </div>
+
+        {{-- Alert Item --}}
+        <div class="border border-gray-100 rounded-xl p-4 hover:bg-gray-50 transition">
+
+            <div class="flex items-start justify-between gap-3">
+
+                <div class="flex gap-3">
+
+                    <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                        <x-heroicon-o-document-text class="w-5 h-5 text-green-600" />
+                    </div>
+
+                    <div>
+
+                        <h3 class="text-sm font-semibold text-gray-900">
+                            New Application Submitted
+                        </h3>
+
+                        <p class="text-sm text-gray-600 mt-1">
+                            John Smith submitted a new rental application.
+                        </p>
+
+                        <p class="text-xs text-gray-400 mt-2">
+                            2 minutes ago
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <a href="#"
+                    class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                    View
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Fuel Charge Alerts -->
                 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-300">
@@ -47,19 +159,22 @@
                                 <div class="px-1 relative">
                                     <button data-status-btn class="p-1.5 text-sm text-green-600 hover:text-green-800 hover:bg-green-100 rounded transition-colors"><svg fill="currentColor" class="w-5 h-5 " xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M297.4 470.6C309.9 483.1 330.2 483.1 342.7 470.6L534.7 278.6C547.2 266.1 547.2 245.8 534.7 233.3C522.2 220.8 501.9 220.8 489.4 233.3L320 402.7L150.6 233.4C138.1 220.9 117.8 220.9 105.3 233.4C92.8 245.9 92.8 266.2 105.3 278.7L297.3 470.7z"/></svg> </button>
 
-                                    <div data-status-dropdown class="hidden absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px]">
-                                        
-                                        <button data-paid class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100" >Make a Payment</button>
+                                    <div data-status-dropdown class="hidden absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[160px]">
 
+                                        <button data-paid class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Make a Payment</button>
 
-                                          {{-- <button data-paid class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100">Make a Payment</button> --}}
+                                        <button data-resolved class="w-full px-3 py-2 text-left text-sm text-green-700 hover:bg-green-50">Mark as Resolved</button>
 
                                         <button data-uncollectible class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Mark as Uncollectible</button>
                                     </div>
                                 </div>
 
                                 <div class="px-1">
-                                    <button data-edit-notes class="p-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"><svg fill="currentColor" class="w-5 h-5 "  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M128 128C128 92.7 156.7 64 192 64L341.5 64C358.5 64 374.8 70.7 386.8 82.7L493.3 189.3C505.3 201.3 512 217.6 512 234.6L512 512C512 547.3 483.3 576 448 576L192 576C156.7 576 128 547.3 128 512L128 128zM336 122.5L336 216C336 229.3 346.7 240 360 240L453.5 240L336 122.5zM248 320C234.7 320 224 330.7 224 344C224 357.3 234.7 368 248 368L392 368C405.3 368 416 357.3 416 344C416 330.7 405.3 320 392 320L248 320zM248 416C234.7 416 224 426.7 224 440C224 453.3 234.7 464 248 464L392 464C405.3 464 416 453.3 416 440C416 426.7 405.3 416 392 416L248 416z"/></svg> </button>
+                                    <button data-edit-notes class="p-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors" title="Notes">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.966 8.966 0 0 0-6 2.292m0-14.25v14.25" />
+                                        </svg>
+                                    </button>
                                 </div>
 
                                 <div class="flex-shrink-0 text-sm text-right min-w-[80px]">
@@ -149,15 +264,18 @@
                                     <button data-status-btn class="p-1.5 text-sm text-green-600 hover:text-green-800 hover:bg-green-100 rounded">
                                       <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-5 h-5 " viewBox="0 0 640 640"><path d="M297.4 470.6C309.9 483.1 330.2 483.1 342.7 470.6L534.7 278.6C547.2 266.1 547.2 245.8 534.7 233.3C522.2 220.8 501.9 220.8 489.4 233.3L320 402.7L150.6 233.4C138.1 220.9 117.8 220.9 105.3 233.4C92.8 245.9 92.8 266.2 105.3 278.7L297.3 470.7z"/></svg>
                                     </button>
-                                    <div data-status-dropdown class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px]">
-                                        <button data-paid class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100">Make a Payment</button>
-                                        <button data-uncollectible class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100">Mark as Uncollectible</button>
+                                    <div data-status-dropdown class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[160px]">
+                                        <button data-paid class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Make a Payment</button>
+                                        <button data-resolved class="w-full px-3 py-2 text-left text-sm text-green-700 hover:bg-green-50">Mark as Resolved</button>
+                                        <button data-uncollectible class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Mark as Uncollectible</button>
                                     </div>
                                 </div>
 
                                 <div class="px-1">
-                                    <button data-edit-notes class="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-5 h-5 " viewBox="0 0 640 640"><path d="M128 128C128 92.7 156.7 64 192 64L341.5 64C358.5 64 374.8 70.7 386.8 82.7L493.3 189.3C505.3 201.3 512 217.6 512 234.6L512 512C512 547.3 483.3 576 448 576L192 576C156.7 576 128 547.3 128 512L128 128zM336 122.5L336 216C336 229.3 346.7 240 360 240L453.5 240L336 122.5zM248 320C234.7 320 224 330.7 224 344C224 357.3 234.7 368 248 368L392 368C405.3 368 416 357.3 416 344C416 330.7 405.3 320 392 320L248 320zM248 416C234.7 416 224 426.7 224 440C224 453.3 234.7 464 248 464L392 464C405.3 464 416 453.3 416 440C416 426.7 405.3 416 392 416L248 416z"/></svg>
+                                    <button data-edit-notes class="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded" title="Notes">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.966 8.966 0 0 0-6 2.292m0-14.25v14.25" />
+                                        </svg>
                                     </button>
                                 </div>
 
@@ -184,6 +302,56 @@
 
 
 
+
+<!-- Resolved Modal -->
+<div id="resolved-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-full">
+
+        <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-100">
+            <div class="flex items-center justify-center w-9 h-9 rounded-full bg-green-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+            </div>
+            <h3 id="resolved-modal-title" class="text-lg font-semibold text-gray-900">Mark as Resolved</h3>
+        </div>
+
+        <div class="px-6 py-4 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                    Resolution Note <span class="text-red-500">*</span>
+                </label>
+                <textarea id="resolved-note-input" rows="4"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Explain how this was resolved (e.g. customer paid cash in person, waived by management)..."></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                    Resolved By <span class="text-red-500">*</span>
+                </label>
+                <select id="resolved-by-select"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="">-- Select person responsible --</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-2 px-6 pb-5 border-t border-gray-100 pt-4">
+            <button onclick="dashboardApp.closeResolvedModal()"
+                class="px-5 py-2.5 text-sm rounded-lg font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                Cancel
+            </button>
+            <button id="resolved-save-btn" onclick="dashboardApp.saveResolved()"
+                class="px-5 py-2.5 text-sm rounded-lg font-medium bg-green-600 text-white hover:bg-green-700">
+                Mark as Resolved
+            </button>
+        </div>
+    </div>
+</div>
 
    <!-- Notes Modal -->
 <div id="notes-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
@@ -681,8 +849,8 @@
                    // Tokenize
                    Accept.dispatchData({
                        authData: {
-                           clientKey: "{{ Crypt::decryptString($paymentSetting['payment_api_public_key']) ?? '' }}",
-                           apiLoginID: "{{ Crypt::decryptString($paymentSetting['payment_api_key']) ?? '' }}"
+                           clientKey: "{{ safe_decrypt($paymentSetting['payment_api_public_key']) }}",
+                           apiLoginID: "{{ safe_decrypt($paymentSetting['payment_api_key']) }}"
                        },
                        cardData: {
                            cardNumber: cardNumberInput.value.replace(/\s/g, ''),

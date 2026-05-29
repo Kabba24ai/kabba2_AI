@@ -11,7 +11,7 @@ class ShowSettingsController extends BaseController
 {
 
     /**
-     * Login
+     * Show System Settings
      * @group Admin App
      */
     public function __invoke()

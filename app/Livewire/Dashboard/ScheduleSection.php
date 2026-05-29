@@ -17,6 +17,7 @@ class ScheduleSection extends Component
     public array $equipmentStats = [];
     public int $pendingCount = 0;
     public int $overdueCount = 0;
+    public int $overdueOrderCount = 0;
 
     public function mount()
     {
@@ -75,6 +76,16 @@ class ScheduleSection extends Component
         $serviceStatusCounts = $this->getServiceStatusCounts();
         $this->pendingCount = $serviceStatusCounts['pending'];
         $this->overdueCount = $serviceStatusCounts['overdue'];
+
+        // Overdue orders: delivered but not yet returned past pickup date
+        $this->overdueOrderCount = OrderProduct::query()
+            ->has('order')
+            ->where('product_data->product_type', 'Rental')
+            ->where('delivery_status', 'Completed')
+            ->where('pickup_status', 'Pending')
+            ->whereNotNull('pickup_date')
+            ->whereDate('pickup_date', '<', Carbon::today())
+            ->count();
     }
 
     public function render()

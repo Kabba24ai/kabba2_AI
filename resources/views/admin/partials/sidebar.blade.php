@@ -381,6 +381,7 @@
                         'admin.maintenance-management.parts.*',
                         'admin.maintenance-management.suppliers.*',
                         'admin.maintenance-management.key-comparisons.*',
+                        'admin.maintenance-management.equipment-ai.*',
                         ]);
 
                     // Checklist Management
@@ -433,6 +434,14 @@
                                         {{ Route::is('admin.maintenance-management.equipment.*') && !Route::is('admin.maintenance-management.equipment-service.*') && !Route::is('admin.maintenance-management.equipment-worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
                                         <x-heroicon-o-circle-stack class="h-5 w-5" /> Equipment Mgt.
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('admin.maintenance-management.equipment-ai.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.equipment-ai.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-cpu-chip class="h-5 w-5" /> Equipment Mgt. AI
                                     </a>
                                 </li>
 

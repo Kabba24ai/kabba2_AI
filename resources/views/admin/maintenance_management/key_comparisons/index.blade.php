@@ -11,12 +11,12 @@
                     <h1 class="text-2xl font-semibold text-gray-900">Key Comparisons</h1>
                     <p class="mt-1 text-sm text-gray-500">Manage matching criteria libraries by equipment category</p>
                 </div>
-                <button id="kc-open-form" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                {{-- <button id="kc-open-form" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Add Criterion
-                </button>
+                </button> --}}
             </div>
         </div>
 
@@ -32,9 +32,19 @@
                         <h2 id="kc-active-category" class="text-lg font-semibold text-gray-900">Category</h2>
                         <p class="text-xs text-gray-500">Matching criteria library applied to this category.</p>
                     </div>
+                    <div class="inline-flex rounded-lg border border-gray-200 bg-white p-1">
+                        <button type="button" data-kc-tab="property" class="kc-tab-btn rounded-md px-3 py-1.5 text-sm font-semibold text-gray-600">Property</button>
+                        <button type="button" data-kc-tab="ai-table" class="kc-tab-btn rounded-md px-3 py-1.5 text-sm font-semibold text-gray-600">AI Table</button>
+                    </div>
                 </div>
 
-                <div id="kc-criteria-list" class="space-y-3"></div>
+                <div id="kc-criteria-panel">
+                    <div id="kc-criteria-list" class="space-y-3"></div>
+                </div>
+
+                <div id="kc-ai-panel" class="hidden">
+                    <div id="kc-ai-list"></div>
+                </div>
             </section>
         </div>
     </div>
@@ -74,11 +84,11 @@
                 <!-- Row 1 -->
                 <div class="grid gap-2 md:grid-cols-2">
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-upgrade" type="checkbox" data-group="row-1" checked class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        <input id="kc-upgrade" type="checkbox" data-row="1" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-row-exclusive">
                         Upgrade exceeds value
                     </label>
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-caution-below" type="checkbox" data-group="row-1" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        <input id="kc-caution-below" type="checkbox" data-row="1" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-row-exclusive">
                         Caution if below value
                     </label>
                 </div>
@@ -86,11 +96,11 @@
                 <!-- Row 2 -->
                 <div class="grid gap-2 md:grid-cols-2">
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-upgrade-below" type="checkbox" data-group="row-2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        <input id="kc-upgrade-below" type="checkbox" data-row="2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-row-exclusive">
                         Upgrade is below value
                     </label>
                     <label class="flex items-center gap-2 text-xs text-gray-700">
-                        <input id="kc-caution" type="checkbox" data-group="row-2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-exclusive">
+                        <input id="kc-caution" type="checkbox" data-row="2" class="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 checkbox-row-exclusive">
                         Caution if exceeds value
                     </label>
                 </div>
@@ -103,6 +113,61 @@
         </div>
     </div>
 </div>
+
+{{-- AI Prompt Preview Modal --}}
+<div id="kc-prompt-modal" class="fixed inset-0 z-[9999] hidden">
+    <div id="kc-prompt-modal-overlay" class="absolute inset-0 bg-gray-900/40"></div>
+    <div class="relative z-10 flex min-h-full items-center justify-center p-4">
+        <div class="w-full max-w-3xl rounded-xl border border-gray-200 bg-white shadow-xl flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 shrink-0">
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900">AI Prompt Preview</h3>
+                    <p id="kc-prompt-modal-subtitle" class="text-xs text-gray-500 mt-0.5"></p>
+                </div>
+                <button type="button" id="kc-prompt-modal-close" class="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+
+            <div class="overflow-y-auto flex-1 px-5 py-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        {{-- Equipment list summary --}}
+                        <div id="kc-prompt-equipment-summary" class="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Equipment Included</p>
+                            <div id="kc-prompt-equipment-list" class="space-y-1 text-xs text-gray-700 max-h-40 overflow-y-auto"></div>
+                        </div>
+                        {{-- Prompt text --}}
+                        <div>
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Prompt</p>
+                            <pre id="kc-prompt-text" class="whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs text-gray-700 leading-relaxed font-mono overflow-x-auto"></pre>
+                        </div>
+                    </div>
+                    <div>
+                        <div id="kc-ai-response-section" class="hidden">
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">AI Response (Raw JSON)</p>
+                            <pre id="kc-ai-response-json" class="whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs text-gray-700 leading-relaxed font-mono overflow-x-auto"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-4 shrink-0">
+                <button id="kc-prompt-modal-cancel" type="button" class="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100">Cancel</button>
+                <button id="kc-prompt-modal-send" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Send to AI
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('js')
@@ -110,13 +175,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     const categories = @json($categories ?? []);
     let selectedCategoryId = Number(@json($activeCategoryId ?? 0));
-    let criteria = @json($initialCriteria ?? []);
+    let criteria = [];
+    let aiSpecs = [];
     let editingId = null;
+    let activeTab = 'property';
 
     const categoryListEl = document.getElementById('kc-category-list');
     const criteriaListEl = document.getElementById('kc-criteria-list');
     const activeCategoryEl = document.getElementById('kc-active-category');
-    const openFormBtn = document.getElementById('kc-open-form');
+    const criteriaPanelEl = document.getElementById('kc-criteria-panel');
+    const aiPanelEl = document.getElementById('kc-ai-panel');
+    const aiListEl = document.getElementById('kc-ai-list');
+    const tabButtons = Array.from(document.querySelectorAll('.kc-tab-btn'));
 
     const modal = document.getElementById('kc-modal');
     const modalOverlay = document.getElementById('kc-modal-overlay');
@@ -135,24 +205,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const cautionBelowInput = document.getElementById('kc-caution-below');
 
     const LIST_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
+    const ADD_URL_BASE = @json(route('admin.maintenance-management.key-comparisons.criteria.add', ['criteria_id' => '__ID__']));
     const STORE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.store'));
     const UPDATE_BASE_URL = @json(route('admin.maintenance-management.key-comparisons.criteria.index'));
+    const GENERATE_URL = @json(route('admin.maintenance-management.key-comparisons.specifications.generate'));
+    const PREVIEW_URL = @json(route('admin.maintenance-management.key-comparisons.specifications.preview'));
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     let isLoadingCriteria = false;
+    let isGenerating = false;
+    let currentLoadController = null;
+    const categoryDataCache = new Map();
 
-    // Handle mutually exclusive checkboxes within each group
+    // Handle row-exclusive checkbox logic:
+    // If any checkbox in row 1 is checked, uncheck all in row 2
+    // If any checkbox in row 2 is checked, uncheck all in row 1
     document.addEventListener('change', (event) => {
-        if (!event.target.classList.contains('checkbox-exclusive')) return;
+        if (!event.target.classList.contains('checkbox-row-exclusive')) return;
 
-        const group = event.target.dataset.group;
-        if (!group || !event.target.checked) return;
+        const row = event.target.dataset.row;
+        if (!row) return;
 
-        // Uncheck other checkboxes in the same group
-        document.querySelectorAll(`[data-group="${group}"].checkbox-exclusive`).forEach((checkbox) => {
-            if (checkbox !== event.target) {
+        const currentRow = Number(row);
+        const otherRow = currentRow === 1 ? 2 : 1;
+
+        // If this checkbox is being checked, uncheck all in the other row
+        if (event.target.checked) {
+            document.querySelectorAll(`[data-row="${otherRow}"].checkbox-row-exclusive`).forEach((checkbox) => {
                 checkbox.checked = false;
-            }
-        });
+            });
+        }
     });
 
     function esc(value) {
@@ -235,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" data-edit-id="${item.id}" class="rounded-md border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50">Edit</button>
-                        <button type="button" data-delete-id="${item.id}" class="rounded-md border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50">Delete</button>
+                        <button type="button" data-delete-id="${item.id}" class="hidden rounded-md border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50">Delete</button>
                     </div>
                 </div>
                 <div class="mt-3 h-2 w-full rounded-full bg-gray-200">
@@ -248,31 +329,227 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
+    function renderTabs() {
+        tabButtons.forEach((button) => {
+            const isActive = button.dataset.kcTab === activeTab;
+            button.classList.toggle('bg-emerald-600', isActive);
+            button.classList.toggle('text-white', isActive);
+            button.classList.toggle('shadow-sm', isActive);
+            button.classList.toggle('text-gray-600', !isActive);
+        });
+
+        criteriaPanelEl.classList.toggle('hidden', activeTab !== 'property');
+        aiPanelEl.classList.toggle('hidden', activeTab !== 'ai-table');
+    }
+
+    function renderAiSpecs() {
+        if (isLoadingCriteria) {
+            aiListEl.innerHTML = `
+                <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden animate-pulse">
+                    <div class="border-b border-gray-100 px-4 py-3">
+                        <div class="h-4 w-40 rounded bg-gray-200"></div>
+                    </div>
+                    <div class="space-y-3 p-4">
+                        <div class="h-10 rounded bg-gray-100"></div>
+                        <div class="h-10 rounded bg-gray-100"></div>
+                        <div class="h-10 rounded bg-gray-100"></div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const renderRows = (items, labelField = 'spec_label', mode = 'plain') => items.length
+            ? items.map((item) => {
+                const isKey = item.is_key_criteria === true;
+                const removeBtn = `<button type="button" data-toggle-criteria-id="${item.id}" data-toggle-action="remove" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-red-200 text-red-500 hover:bg-red-50" title="Delete" aria-label="Delete key comparison"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>`;
+                const addBtn = `<button type="button" data-toggle-criteria-id="${item.id}" data-toggle-action="add" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-teal-200 text-teal-600 hover:bg-teal-50" title="Add to key comparison" aria-label="Add to key comparison"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg></button>`;
+                const actionButton = mode === 'key' ? removeBtn : (mode === 'ai' && !isKey ? addBtn : '');
+
+                return `
+                    <div class="flex items-center justify-between gap-3 px-5 py-3 text-sm bg-white border-b border-gray-200 last:border-b-0">
+                        <div class="flex flex-1 items-center gap-3">
+                            ${actionButton}
+                            <span class="text-gray-600 block">${esc(item[labelField] || item.spec_key || '-')}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs ${isKey ? 'rounded-full bg-emerald-50 px-2 py-1 font-semibold text-emerald-700' : 'rounded-full bg-gray-100 px-2 py-1 font-semibold text-gray-500'}">${isKey ? 'In key data' : 'AI only'}</span>
+                            <span class="text-right font-semibold text-gray-900">${esc(item.unit || '-')}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('')
+            : '<div class="px-5 py-3 text-sm text-gray-500">No items found.</div>';
+
+        const criteriaMidpoint = Math.ceil(criteria.length / 2);
+        const criteriaLeftRows = criteria.slice(0, criteriaMidpoint);
+        const criteriaRightRows = criteria.slice(criteriaMidpoint);
+
+        const aiMidpoint = Math.ceil(aiSpecs.length / 2);
+        const aiLeftRows = aiSpecs.slice(0, aiMidpoint);
+        const aiRightRows = aiSpecs.slice(aiMidpoint);
+
+        const keyComparisonSection = `
+            <div class="mb-5 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900">Key Comparison Data</h3>
+                        <p class="text-xs text-gray-500">Critical specification definitions for the selected category.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 divide-y divide-gray-200 md:grid-cols-2 md:divide-x md:divide-y-0">
+                    <div class="divide-y divide-gray-200">${criteria.length ? renderRows(criteriaLeftRows, 'name', 'key') : '<div class="px-5 py-3 text-sm text-gray-500">No key comparison data found for this category.</div>'}</div>
+                    <div class="divide-y divide-gray-200">${criteria.length ? renderRows(criteriaRightRows, 'name', 'key') : '<div class="px-5 py-3 text-sm text-gray-500">No key comparison data found for this category.</div>'}</div>
+                </div>
+            </div>
+        `;
+
+        const aiSection = aiSpecs.length ? `
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
+                            <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="kc-create-ai-prompt" type="button" class="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-semibold text-black">
+                                Create with AI Prompt
+                            </button>
+                            <button id="kc-open-form" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Criterion
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 divide-y divide-gray-200 md:grid-cols-2 md:divide-x md:divide-y-0">
+                    <div class="divide-y divide-gray-200">${renderRows(aiLeftRows, 'spec_label', 'ai')}</div>
+                    <div class="divide-y divide-gray-200">${renderRows(aiRightRows, 'spec_label', 'ai')}</div>
+                </div>
+            </div>
+        ` : `
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">AI Pulled Specifications</h3>
+                            <p class="text-xs text-gray-500">Category-level AI specification labels and units.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="kc-create-ai-prompt" type="button" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-sky-50">
+                                Create with AI Prompt
+                            </button>
+                            <button id="kc-open-form" type="button" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Criterion
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 text-center text-sm text-gray-500">No AI-pulled specifications found for this category.</div>
+            </div>
+        `;
+
+        aiListEl.innerHTML = `
+            ${keyComparisonSection}
+            ${aiSection}
+        `;
+    }
+
+    async function toggleAiCriteria(criteriaId, action) {
+        const url = new URL(action === 'add'
+            ? ADD_URL_BASE.replace('__ID__', String(criteriaId))
+            : `${UPDATE_BASE_URL}/${criteriaId}`, window.location.origin);
+
+        const res = await fetch(url.toString(), {
+            method: action === 'add' ? 'POST' : 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': CSRF,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ category_id: selectedCategoryId }),
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            await loadCriteria(selectedCategoryId);
+        }
+    }
+
     async function loadCriteria(categoryId) {
+        const cacheKey = Number(categoryId);
+        if (categoryDataCache.has(cacheKey)) {
+            const cached = categoryDataCache.get(cacheKey);
+            criteria = cached?.criteria || [];
+            aiSpecs = cached?.aiSpecs || [];
+            const category = activeCategory();
+            if (category) {
+                category.criteria_count = criteria.length;
+            }
+            isLoadingCriteria = false;
+            renderCriteria();
+            renderAiSpecs();
+            return;
+        }
+
+        if (currentLoadController) {
+            currentLoadController.abort();
+        }
+
+        currentLoadController = new AbortController();
         const url = new URL(LIST_URL, window.location.origin);
         url.searchParams.set('category_id', String(categoryId));
 
         isLoadingCriteria = true;
         renderCriteria();
+        renderAiSpecs();
 
         try {
-            const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+            const res = await fetch(url.toString(), {
+                headers: { 'Accept': 'application/json' },
+                signal: currentLoadController.signal,
+            });
             const data = await res.json();
 
             if (!res.ok || !data.success) {
                 criteria = [];
+                aiSpecs = [];
                 renderCriteria();
+                renderAiSpecs();
                 return;
             }
 
             criteria = data.items || [];
+            aiSpecs = data.ai_items || [];
+            categoryDataCache.set(cacheKey, {
+                criteria: [...criteria],
+                aiSpecs: [...aiSpecs],
+            });
+            const category = activeCategory();
+            if (category) {
+                category.criteria_count = criteria.length;
+            }
             renderCriteria();
+            renderAiSpecs();
         } catch (error) {
+            if (error?.name === 'AbortError') {
+                return;
+            }
             criteria = [];
+            aiSpecs = [];
             renderCriteria();
+            renderAiSpecs();
         } finally {
             isLoadingCriteria = false;
+            currentLoadController = null;
             renderCriteria();
+            renderAiSpecs();
         }
     }
 
@@ -284,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         unitInput.value = '';
         weightInput.value = '50';
         weightLabel.textContent = '50';
-        upgradeInput.checked = true;
+        upgradeInput.checked = false;
         cautionInput.checked = false;
         upgradeBelowInput.checked = false;
         cautionBelowInput.checked = false;
@@ -304,17 +581,118 @@ document.addEventListener('DOMContentLoaded', () => {
         const category = activeCategory();
         if (!category) return;
         category.criteria_count = Math.max(0, Number(category.criteria_count || 0) + delta);
+        categoryDataCache.delete(Number(selectedCategoryId));
         renderCategories();
     }
-
-    openFormBtn?.addEventListener('click', () => {
-        resetForm();
-        openModal();
-    });
 
     modalOverlay?.addEventListener('click', closeModal);
     modalClose?.addEventListener('click', closeModal);
     modalCancel?.addEventListener('click', closeModal);
+
+    // ---- Prompt preview modal ----
+    const promptModal = document.getElementById('kc-prompt-modal');
+    const promptModalOverlay = document.getElementById('kc-prompt-modal-overlay');
+    const promptModalClose = document.getElementById('kc-prompt-modal-close');
+    const promptModalCancel = document.getElementById('kc-prompt-modal-cancel');
+    const promptModalSend = document.getElementById('kc-prompt-modal-send');
+    const promptModalSubtitle = document.getElementById('kc-prompt-modal-subtitle');
+    const promptEquipmentList = document.getElementById('kc-prompt-equipment-list');
+    const promptText = document.getElementById('kc-prompt-text');
+
+    function openPromptModal() {
+        promptModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closePromptModal() {
+        promptModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    promptModalOverlay?.addEventListener('click', closePromptModal);
+    promptModalClose?.addEventListener('click', closePromptModal);
+    promptModalCancel?.addEventListener('click', closePromptModal);
+
+    // Step 2: actually send to AI when user confirms in the preview modal
+    const aiResponseSection = document.getElementById('kc-ai-response-section');
+    const aiResponseJson = document.getElementById('kc-ai-response-json');
+
+    promptModalSend?.addEventListener('click', async () => {
+        if (isGenerating || !selectedCategoryId) return;
+
+        isGenerating = true;
+        promptModalSend.disabled = true;
+        promptModalSend.innerHTML = `
+            <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Generating…
+        `;
+
+        // Hide previous response
+        aiResponseSection.classList.add('hidden');
+        aiResponseJson.textContent = '';
+
+        try {
+            const res = await fetch(GENERATE_URL, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': CSRF,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    category_id: selectedCategoryId,
+                    prompt: promptText.textContent,
+                }),
+            });
+            const rawBody = await res.text();
+            let data = {};
+
+            try {
+                data = rawBody ? JSON.parse(rawBody) : {};
+            } catch (parseError) {
+                data = {};
+            }
+
+            // Show the raw AI response JSON (if present)
+            if (data && data.ai_items) {
+                aiResponseSection.classList.remove('hidden');
+                aiResponseJson.textContent = JSON.stringify(data.ai_items, null, 2);
+            } else if (data && data.message) {
+                aiResponseSection.classList.remove('hidden');
+                aiResponseJson.textContent = data.message;
+            }
+
+            if (res.ok && data.success) {
+                aiSpecs = data.ai_items || [];
+                categoryDataCache.set(Number(selectedCategoryId), {
+                    criteria: [...criteria],
+                    aiSpecs: [...aiSpecs],
+                });
+                renderAiSpecs();
+                window.notyf?.success?.(data.message || 'AI specifications generated successfully.');
+            } else {
+                const fallback = res.status >= 500
+                    ? 'Server error while generating AI specifications.'
+                    : 'Failed to generate AI specifications.';
+                window.notyf?.error?.(data.message || fallback);
+            }
+        } catch (err) {
+            aiResponseSection.classList.remove('hidden');
+            aiResponseJson.textContent = (err && err.message) ? err.message : 'An error occurred while generating specifications.';
+            window.notyf?.error?.((err && err.message) ? err.message : 'An error occurred while generating specifications.');
+        } finally {
+            isGenerating = false;
+            promptModalSend.disabled = false;
+            promptModalSend.innerHTML = `
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Send to AI
+            `;
+        }
+    });
 
     weightInput?.addEventListener('input', () => {
         weightLabel.textContent = weightInput.value;
@@ -330,6 +708,16 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedCategoryId = nextId;
         renderCategories();
         await loadCriteria(selectedCategoryId);
+    });
+
+    tabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const nextTab = button.dataset.kcTab;
+            if (!nextTab || nextTab === activeTab) return;
+
+            activeTab = nextTab;
+            renderTabs();
+        });
     });
 
     criteriaListEl?.addEventListener('click', async (event) => {
@@ -390,6 +778,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    aiListEl?.addEventListener('click', async (event) => {
+        const aiPromptButton = event.target.closest('#kc-create-ai-prompt');
+        if (aiPromptButton) {
+            if (isGenerating || !selectedCategoryId) return;
+
+            // Step 1: fetch the prompt preview
+            const originalText = aiPromptButton.textContent.trim();
+            aiPromptButton.disabled = true;
+            aiPromptButton.textContent = 'Loading preview…';
+
+            try {
+                const res = await fetch(PREVIEW_URL, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ category_id: selectedCategoryId }),
+                });
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    window.notyf?.error?.(data.message || 'Failed to load prompt preview.');
+                    return;
+                }
+
+                // Populate and open the preview modal
+                promptModalSubtitle.textContent = `${data.category_title} — ${data.equipment_count} equipment item(s)`;
+                promptEquipmentList.innerHTML = (data.equipment_list || [])
+                    .map((e) => `<div class="flex gap-2"><span class="font-mono text-gray-400">${esc(String(e.unique_id))}</span><span>${esc(e.brand)} ${esc(e.model)}</span></div>`)
+                    .join('');
+                promptText.textContent = data.prompt;
+                openPromptModal();
+            } catch (err) {
+                window.notyf?.error?.((err && err.message) ? err.message : 'An error occurred while loading the preview.');
+            } finally {
+                aiPromptButton.disabled = false;
+                aiPromptButton.textContent = originalText;
+            }
+            return;
+        }
+
+        const addButton = event.target.closest('#kc-open-form');
+        if (addButton) {
+            resetForm();
+            openModal();
+            return;
+        }
+
+        const button = event.target.closest('[data-toggle-criteria-id]');
+        if (!button) return;
+
+        const criteriaId = Number(button.dataset.toggleCriteriaId || 0);
+        const action = button.dataset.toggleAction || 'add';
+        if (!criteriaId) return;
+
+        button.disabled = true;
+        try {
+            categoryDataCache.delete(Number(selectedCategoryId));
+            await toggleAiCriteria(criteriaId, action);
+        } finally {
+            button.disabled = false;
+        }
+    });
+
     modalSave?.addEventListener('click', async () => {
         const payload = {
             category_id: selectedCategoryId,
@@ -422,6 +876,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok && data.success && data.item) {
                 criteria.push(data.item);
                 updateCategoryCount(1);
+                categoryDataCache.set(Number(selectedCategoryId), {
+                    criteria: [...criteria],
+                    aiSpecs: [...aiSpecs],
+                });
                 renderCriteria();
                 closeModal();
                 resetForm();
@@ -443,6 +901,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (res.ok && data.success && data.item) {
             criteria = criteria.map((row) => Number(row.id) === Number(editingId) ? data.item : row);
+            categoryDataCache.set(Number(selectedCategoryId), {
+                criteria: [...criteria],
+                aiSpecs: [...aiSpecs],
+            });
             renderCriteria();
             closeModal();
             resetForm();
@@ -451,6 +913,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderCategories();
     renderCriteria();
+    renderAiSpecs();
+    renderTabs();
+
+    if (selectedCategoryId) {
+        loadCriteria(selectedCategoryId);
+    }
 });
 </script>
 @endpush

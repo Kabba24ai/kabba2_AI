@@ -13,6 +13,7 @@ class IndexController extends Controller
     {
         $criteriaCountsByCategory = EquipmentCriticalMatchingCriterion::query()
             ->where('is_active', true)
+            ->where('is_key_criteria', true)
             ->selectRaw('product_category_id, COUNT(*) as total')
             ->groupBy('product_category_id')
             ->pluck('total', 'product_category_id');
@@ -36,35 +37,9 @@ class IndexController extends Controller
             $activeCategoryId = (int) ($categories->first()['id'] ?? 0);
         }
 
-        $initialCriteria = collect();
-        if ($activeCategoryId > 0) {
-            $initialCriteria = EquipmentCriticalMatchingCriterion::query()
-                ->where('product_category_id', $activeCategoryId)
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get()
-                ->map(function (EquipmentCriticalMatchingCriterion $item) {
-                    return [
-                        'id' => (int) $item->id,
-                        'key' => (string) $item->criteria_key,
-                        'name' => (string) $item->name,
-                        'unit' => (string) ($item->unit ?? ''),
-                        'default_weight' => (int) $item->default_weight,
-                        'upgrade_exceeds_value' => (bool) $item->upgrade_exceeds_value,
-                        'caution_if_change_value' => (bool) $item->caution_if_change_value,
-                        'upgrade_is_below_value' => (bool) $item->upgrade_is_below_value,
-                        'caution_if_below_value' => (bool) $item->caution_if_below_value,
-                        'sort_order' => (int) $item->sort_order,
-                    ];
-                })
-                ->values();
-        }
-
         return view('admin.maintenance_management.key_comparisons.index', [
             'categories' => $categories->toArray(),
             'activeCategoryId' => $activeCategoryId,
-            'initialCriteria' => $initialCriteria->toArray(),
         ]);
     }
 }

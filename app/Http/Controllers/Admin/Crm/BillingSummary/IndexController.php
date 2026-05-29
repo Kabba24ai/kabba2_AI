@@ -101,6 +101,18 @@ class IndexController extends Controller
                 }
             }
 
+            if ($request->filled('balance_type')) {
+                switch ($request->balance_type) {
+                    case 'positive':
+                        $query->where('available_credit_balance', '>', 0);
+                        break;
+                    case 'negative':
+                        $query->where('available_credit_balance', '<', 0);
+                        break;
+                    // 'all' / empty → keep the existing !=0 base filter
+                }
+            }
+
             if ($request->filled('credit_types')) {
                 $types = $request->input('credit_types');
 

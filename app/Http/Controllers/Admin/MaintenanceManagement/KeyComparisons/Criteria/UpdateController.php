@@ -45,6 +45,8 @@ class UpdateController extends Controller
                 'caution_if_below_value' => (bool) $criterion->caution_if_below_value,
                 'sort_order' => (int) $criterion->sort_order,
                 'is_active' => (bool) $criterion->is_active,
+                'is_key_criteria' => (bool) $criterion->is_key_criteria,
+                'source_type' => (string) ($criterion->source_type ?? 'manual'),
             ],
         ]);
     }

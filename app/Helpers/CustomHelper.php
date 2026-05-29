@@ -376,13 +376,40 @@ class CustomHelper
                             break;
 
                         case 'discount':
-                            // $record->sales_tax = 0;
-                            // $newBalance -= $record->amount;
-                            // break;
+                           
+                            if ($customer->getTaxStatus() === 'Taxable') {
+                                
+                                // $record->sales_tax = $salesTaxRate;
+                                // $amountWithTax = $record->amount + $record->amount * $record->sales_tax;
 
-                              if ($customer->getTaxStatus() === 'Taxable') {
-                                $record->sales_tax = $salesTaxRate;
-                                $amountWithTax = $record->amount + $record->amount * $record->sales_tax;
+                                   if ($record->sales_tax_type === 'add') {
+
+                                        $record->sales_tax = $salesTaxRate;
+
+                                        $amountWithTax =
+                                            $record->amount +
+                                            ($record->amount * $record->sales_tax);
+
+                                    } elseif ($record->sales_tax_type === 'reverse') {
+
+                                        $record->sales_tax = $salesTaxRate;
+
+                                        $amountWithTax = $record->amount;
+
+                                    } elseif ($record->sales_tax_type === 'free') {
+
+                                        $record->sales_tax = 0;
+
+                                        $amountWithTax = $record->amount;
+
+                                    } else {
+
+                                        $record->sales_tax = 0;
+
+                                        $amountWithTax = $record->amount;
+                                    }
+
+
                             } else {
                                 $record->sales_tax = 0;
                                 $amountWithTax = $record->amount;
@@ -463,6 +490,19 @@ class CustomHelper
                 // break;
 
 
+                if ($record->sales_tax_type === 'reverse') {
+
+                    $adjustedBalance += $record->amount;
+                    break;
+
+                } else {
+                      $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+
+                    $adjustedBalance += $record->amount + $salesTaxAmount;
+                    break;
+
+                }
+
                 $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
 
                 $adjustedBalance += $record->amount + $salesTaxAmount;
@@ -514,9 +554,6 @@ class CustomHelper
 
             $isCreditAccount = ($customer->credit_limit > 0) && ($customer->is_credit_account == 1);
 
-            //   Log::info('BALANCE MODE', [
-            //         'isCreditAccount' => $isCreditAccount,
-            //     ]);
 
             // =========================
             // NO CREDIT ACCOUNT
@@ -543,7 +580,8 @@ class CustomHelper
                     if ($taxRate > 0 &&
                         !(
                             $account->type === 'payment' ||
-                            ($account->type === 'charge' && $account->sales_tax_type === 'reverse')
+                            // ($account->type === 'charge' && $account->sales_tax_type === 'reverse')
+                            (in_array($account->type, ['charge', 'discount']) && $account->sales_tax_type === 'reverse')
                         )
                     ) {
                         $totalWithTax += ($amount * $taxRate);
@@ -607,7 +645,8 @@ class CustomHelper
                 if ($taxRate > 0 &&
                     !(
                         $account->type === 'payment' ||
-                        ($account->type === 'charge' && $account->sales_tax_type === 'reverse')
+                        // ($account->type === 'charge' && $account->sales_tax_type === 'reverse')
+                        (in_array($account->type, ['charge', 'discount']) && $account->sales_tax_type === 'reverse')
                     )
                 ) {
                     $totalWithTax += ($amount * $taxRate);
@@ -718,201 +757,117 @@ class CustomHelper
 
 
 
+    public static function updateInvoiceSummary(Invoice $invoice): void
+    {
 
-public static function updateInvoiceSummary(Invoice $invoice): void
-{
+        $subtotal = 0;
+        $totalTax = 0;
+        $totalDiscount = 0;
+        $totalRefund = 0;
 
-//  \Log::info('Invoice Summary Update Started', [
-
-//         'invoice_id' => $invoice->id,
-
-//         'invoice_number' => $invoice->invoice_number,
-
-//     ]);
-    $subtotal = 0;
-    $totalTax = 0;
-    $totalDiscount = 0;
-    $totalRefund = 0;
-
-    $invoice->loadMissing('items');
-
-    //  \Log::info('Invoice Items Loaded', [
-
-    //     'invoice_id' => $invoice->id,
-
-    //     'items_count' => $invoice->items->count(),
-
-    // ]);
+        $invoice->loadMissing('items');
 
 
-    foreach ($invoice->items as $item) {
 
-        $price = (float) ($item->unit ?? 0);
-        $tax   = (float) ($item->tax ?? 0);
-    // \Log::info('Processing Invoice Item', [
 
-    //         'item_id' => $item->id,
+        foreach ($invoice->items as $item) {
 
-    //         'type' => $item->type,
+            $price = (float) ($item->unit ?? 0);
+            $tax   = (float) ($item->tax ?? 0);
 
-    //         'price' => $price,
 
-    //         'tax' => $tax,
+            // charge + order
+            if (in_array($item->type, ['charge', 'order'])) {
+                $subtotal += $price;
+                $totalTax += $tax;
 
-    //     ]);
+    
+            }
 
-        // charge + order
-        if (in_array($item->type, ['charge', 'order'])) {
-            $subtotal += $price;
-            $totalTax += $tax;
+            // discount
+            if ($item->type === 'discount') {
+                $totalDiscount += abs($price);
+                $totalTax -= abs($tax);
 
-            //   \Log::info('Charge/Order Applied', [
+    
+            }
 
-            //     'subtotal' => $subtotal,
+            // refund
+            if ($item->type === 'refund') {
+                $totalRefund += abs($price);
+                $totalTax -= abs($tax);
 
-            //     'total_tax' => $totalTax,
 
-            // ]);
+            }
         }
 
-        // discount
-        if ($item->type === 'discount') {
-            $totalDiscount += abs($price);
-             $totalTax -= abs($tax);
+        $subtotal = max(0, $subtotal);
+        $totalTax = max(0, $totalTax);
 
-            //  \Log::info('Discount Applied', [
+        $finalTotal = $subtotal + $totalTax - $totalDiscount - $totalRefund;
+        $finalTotal = max(0, $finalTotal);
 
-            //     'discount_total' => $totalDiscount,
+        $invoice->subtotal  = round($subtotal, 2);
+        $invoice->sales_tax = round($totalTax, 2);
+        $invoice->total     = round($finalTotal, 2);
 
-            //     'total_tax' => $totalTax,
 
-            // ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Recalculate Payments
+        |--------------------------------------------------------------------------
+        */
+
+        $paidAmount = CustomerAccount::where(
+            'invoice_id',
+            $invoice->id
+        )
+        ->where('type', 'payment')
+        ->sum('amount');
+
+        $paidAmount = abs((float) $paidAmount);
+
+        $openAmount = max(
+            $finalTotal - $paidAmount,
+            0
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Invoice Status
+        |--------------------------------------------------------------------------
+        */
+
+        if ($openAmount <= 0) {
+
+            $invoiceStatus = 'paid';
+
+        } elseif ($paidAmount > 0) {
+
+            $invoiceStatus = 'partial_paid';
+
+        } else {
+
+            $invoiceStatus = 'pending';
         }
 
-        // refund
-        if ($item->type === 'refund') {
-            $totalRefund += abs($price);
-            $totalTax -= abs($tax);
+        $invoice->paid_amount = round(
+            $paidAmount,
+            2
+        );
 
-            //   \Log::info('Refund Applied', [
+        $invoice->open_amount = round(
+            $openAmount,
+            2
+        );
 
-            //     'refund_total' => $totalRefund,
+        $invoice->invoice_status = $invoiceStatus;
 
-            //     'total_tax' => $totalTax,
 
-            // ]);
-        }
+
+        $invoice->save();
+
+    
     }
-
-    $subtotal = max(0, $subtotal);
-    $totalTax = max(0, $totalTax);
-
-    $finalTotal = $subtotal + $totalTax - $totalDiscount - $totalRefund;
-    $finalTotal = max(0, $finalTotal);
-
-    //     \Log::info('Invoice Totals Calculated', [
-
-    //     'subtotal' => $subtotal,
-
-    //     'sales_tax' => $totalTax,
-
-    //     'discount' => $totalDiscount,
-
-    //     'refund' => $totalRefund,
-
-    //     'final_total' => $finalTotal,
-
-    // ]);
-
-    $invoice->subtotal  = round($subtotal, 2);
-    $invoice->sales_tax = round($totalTax, 2);
-    $invoice->total     = round($finalTotal, 2);
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Recalculate Payments
-    |--------------------------------------------------------------------------
-    */
-
-    $paidAmount = CustomerAccount::where(
-        'invoice_id',
-        $invoice->id
-    )
-    ->where('type', 'payment')
-    ->sum('amount');
-
-    $paidAmount = abs((float) $paidAmount);
-
-    $openAmount = max(
-        $finalTotal - $paidAmount,
-        0
-    );
-//  \Log::info('Payment Summary Calculated', [
-
-//         'invoice_id' => $invoice->id,
-
-//         'paid_amount' => $paidAmount,
-
-//         'open_amount' => $openAmount,
-
-//     ]);
-    /*
-    |--------------------------------------------------------------------------
-    | Invoice Status
-    |--------------------------------------------------------------------------
-    */
-
-    if ($openAmount <= 0) {
-
-        $invoiceStatus = 'paid';
-
-    } elseif ($paidAmount > 0) {
-
-        $invoiceStatus = 'partial_paid';
-
-    } else {
-
-        $invoiceStatus = 'pending';
-    }
-//  \Log::info('Invoice Status Determined', [
-
-//         'invoice_status' => $invoiceStatus,
-
-//     ]);
-    $invoice->paid_amount = round(
-        $paidAmount,
-        2
-    );
-
-    $invoice->open_amount = round(
-        $openAmount,
-        2
-    );
-
-    $invoice->invoice_status = $invoiceStatus;
-
-
-
-    $invoice->save();
-
-    //   \Log::info('Invoice Summary Updated Successfully', [
-
-    //     'invoice_id' => $invoice->id,
-
-    //     'subtotal' => $invoice->subtotal,
-
-    //     'sales_tax' => $invoice->sales_tax,
-
-    //     'total' => $invoice->total,
-
-    //     'paid_amount' => $invoice->paid_amount,
-
-    //     'open_amount' => $invoice->open_amount,
-
-    //     'invoice_status' => $invoice->invoice_status,
-
-    // ]);
-}
 
 }

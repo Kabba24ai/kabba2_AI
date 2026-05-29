@@ -88,30 +88,52 @@
                     @php
                         $preferredCategoryId = $orderProduct->product?->categories?->first()?->id;
                     @endphp
-                    @if ($orderProduct?->checklistQuestions->isNotEmpty())
-                        <button type="button" class="text-blue-600 underline equipment-assign-btn"
-                            data-order-product-unique-id="{{ $orderProduct->unique_id }}"
-                            data-product-name="{{ $orderProduct->product_name }}"
-                            data-order-id="{{ $orderProduct?->order?->order_number }}"
-                            data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
-                            data-category-id="{{ $preferredCategoryId ?? '' }}"
-                            data-customer-name="{{ $orderProduct?->order?->customer_name }}">
-                            {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
-                        </button>
+                    @if ($orderProduct?->equipment?->current_status?->isRented())
+                        <div class="inline-flex items-center gap-2">
+                            <button type="button" class="text-blue-600 underline equipment-assign-btn"
+                                data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                data-product-name="{{ $orderProduct->product_name }}"
+                                data-order-id="{{ $orderProduct?->order?->order_number }}"
+                                data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
+                                data-category-id="{{ $preferredCategoryId ?? '' }}"
+                                data-customer-name="{{ $orderProduct?->order?->customer_name }}">
+                                {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
+                            </button>
+                            <button
+                                type="button"
+                                class="text-green-600 hover:text-green-800 auto-assign-direct-btn"
+                                data-order-product-id="{{ $orderProduct->id }}"
+                                data-row-id="order-row-{{ $orderProduct->id }}"
+                                title="Auto Assign Direct"
+                            >
+                                <x-heroicon-o-bolt class="w-4 h-4" />
+                            </button>
+                        </div>
                     @else
-                        <button type="button" class="text-blue-600 underline equipment-assign-btn"
-                            data-order-product-unique-id="{{ $orderProduct->unique_id }}"
-                            data-product-name="{{ $orderProduct->product_name }}"
-                            data-order-id="{{ $orderProduct?->order?->order_number }}"
-                            data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
-                            data-category-id="{{ $preferredCategoryId ?? '' }}"
-                            data-customer-name="{{ $orderProduct?->order?->customer_name }}">
-                            {{ $orderProduct->softAssignment?->equipment?->equipment_name ?: 'Assign' }}
-                        </button>
+                        <div class="inline-flex items-center gap-2">
+                            <button type="button" class="text-blue-600 underline equipment-assign-btn"
+                                data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                data-product-name="{{ $orderProduct->product_name }}"
+                                data-order-id="{{ $orderProduct?->order?->order_number }}"
+                                data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
+                                data-category-id="{{ $preferredCategoryId ?? '' }}"
+                                data-customer-name="{{ $orderProduct?->order?->customer_name }}">
+                                {{ $orderProduct->softAssignment?->equipment?->equipment_name ?: 'Assign' }}
+                            </button>
+                            <button
+                                type="button"
+                                class="text-green-600 hover:text-green-800 auto-assign-direct-btn"
+                                data-order-product-id="{{ $orderProduct->id }}"
+                                data-row-id="order-row-{{ $orderProduct->id }}"
+                                title="Auto Assign Direct"
+                            >
+                                <x-heroicon-o-bolt class="w-4 h-4" />
+                            </button>
+                        </div>
                     @endif
                 </td>
                 <td class="whitespace-nowrap px-4 py-3 text-center ">
-                    @if ($orderProduct?->checklistQuestions->isNotEmpty())
+                    @if ($orderProduct?->equipment?->current_status?->isRented())
                         <span
                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
                             {{ $orderProduct->equipment_details['equipment_id'] }}
@@ -126,7 +148,7 @@
 
                 <td class="px-4 py-3 text-center">
                     <div class="inline-flex items-center gap-1">
-                        @if ($orderProduct?->checklistQuestions->isNotEmpty())
+                        @if ($orderProduct?->equipment?->current_status?->isRented())
                             <a href="{{ route('admin.crm.customers.view', $orderProduct?->order?->customer->unique_id) }}"
                                  class="text-blue-600 hover:underline">
                                 {{ $orderProduct?->order->customer_name ?? '-' }}
@@ -192,15 +214,6 @@
                 </td>
                 <td class="whitespace-nowrap px-4 py-3">
                     <div class="flex gap-2 items-center justify-center">
-                        <button
-                            type="button"
-                            class="text-sky-600 hover:text-sky-800"
-                            onclick="openAIScheduleAdvisorModal({{ $orderProduct->id }})"
-                            title="AI Schedule Advisor"
-                        >
-                            <x-heroicon-o-sparkles class="w-4 h-4" />
-                        </button>
-
                         <a href="{{ $orderProduct->order?->unique_id ? route('admin.order-management.orders.edit', $orderProduct->order->unique_id) : '#' }}"
                             class="text-sky-600 hover:text-sky-800" title="View" >
                             <x-heroicon-o-eye class="w-4 h-4" />

@@ -145,100 +145,26 @@
                                             </div>
                                         </div>
 
-                                        <!-- Trigger Event -->
+                                        <!-- Funnel Type -->
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1 required">
-                                                Trigger Event
+                                                Funnel Type
                                             </label>
-                                            <select name="trigger_event" required
+                                            <select id="trigger_type" name="trigger_type" required
                                                 class="w-full border border-gray-300 rounded-md
-                                                     forwarding px-3 py-3 text-sm
-                                                        focus:ring-2 focus:ring-blue-500">
-                                                <option value="rental_start_date">Rental Start Date</option>
-                                                <option value="new_lead_added" disabled>New Lead Added</option>
+                                                       px-3 py-3 text-sm
+                                                       focus:ring-2 focus:ring-blue-500">
+                                                <option value="retail_order">Retail Order</option>
+                                                <option value="rental_schedule">Rental Schedule</option>
+                                                <option value="lead_added">New Lead</option>
                                             </select>
 
-                                            <!-- Note for Rental Start Date -->
-                                            <div id="rentalStartDateNote" class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
                                                 <p class="text-sm text-blue-700">
-                                                    <span class="font-semibold">Note:</span> This funnel will trigger on the scheduled delivery date at
-                                                    <span id="triggerTimeDisplay">9:00 AM</span>
-                                                    <span id="triggerTimingDisplay">(Before/After Event)</span>
+                                                    <span class="font-semibold">Note:</span>
+                                                    Funnel Type controls which event timing references are available.
+                                                    Timing is configured inside each Event.
                                                 </p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Funnel Start Timing -->
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-2 required">
-                                                Funnel Start Timing
-                                            </label>
-
-                                            <!-- Before / After -->
-                                            <div class="flex items-center gap-8 mb-3">
-                                                <label class="inline-flex items-center gap-2 text-sm">
-                                                    <input type="radio" name="timing" value="before">
-                                                    Before Event
-                                                </label>
-
-                                                <label class="inline-flex items-center gap-2 text-sm">
-                                                    <input type="radio" name="timing" value="after" checked>
-                                                    After Event
-                                                </label>
-                                            </div>
-
-                                            <!-- Timing Box -->
-                                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
-                                                    <!-- Day -->
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-600 mb-1">
-                                                            Day
-                                                        </label>
-                                                        <select name="date_value"
-                                                            class="w-full border border-gray-300 rounded-md
-                                                                    px-3 py-2 text-sm">
-                                                            <option value="">Select</option>
-                                                            @for ($i = 1; $i <= 31; $i++)
-                                                                <option value="{{ $i }}">{{ $i }}
-                                                                </option>
-                                                            @endfor
-                                                        </select>
-                                                    </div>
-
-                                                    <!-- Hour -->
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-600 mb-1">
-                                                            Hour
-                                                        </label>
-                                                        <select name="hour_value"
-                                                            class="w-full border border-gray-300 rounded-md
-                                                                    px-3 py-2 text-sm">
-                                                            <option value="">Select</option>
-                                                            @for ($i = 1; $i <= 23; $i++)
-                                                                <option value="{{ $i }}">{{ $i }}
-                                                                </option>
-                                                            @endfor
-                                                        </select>
-                                                    </div>
-
-                                                    <!-- Minute -->
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-600 mb-1">
-                                                            Minute
-                                                        </label>
-                                                        <select name="minute_value"
-                                                            class="w-full border border-gray-300 rounded-md
-                                                                    px-3 py-2 text-sm">
-                                                            <option value="">Select</option>
-                                                            <option value="15">15</option>
-                                                            <option value="30">30</option>
-                                                            <option value="45">45</option>
-                                                        </select>
-                                                    </div>
-
-                                                </div>
                                             </div>
                                         </div>
 
@@ -333,7 +259,7 @@
                                 class="w-full max-w-3xl bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
                                 <!-- header -->
                                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                                    <h3 class="text-lg font-semibold text-gray-900" id="stepModalTitle">Add Funnel Step</h3>
+                                    <h3 class="text-lg font-semibold text-gray-900" id="stepModalTitle">Add Event</h3>
                                     <button type="button" class="p-2 rounded-lg hover:bg-gray-50"
                                         data-close-add-step-modal aria-label="Close">
                                         <!-- X -->
@@ -350,28 +276,74 @@
                                         <input type="hidden" id="funnel_unique_id" name="funnel_unique_id" value="">
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <!-- Delay -->
+                                            <!-- Timing Reference -->
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 required">
-                                                    Delay from Funnel Start
+                                                    Timing Reference
                                                 </label>
+                                                <select name="timing_reference_type" id="timing_reference_type" required
+                                                    class="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                    <optgroup label="Relative to fixed event">
+                                                        <option value="funnel_entry_time">Funnel Entry Time</option>
+                                                        <option value="order_created_datetime">Order Created Date/Time</option>
+                                                        <option value="order_paid_datetime">Order Paid Date/Time</option>
+                                                        <option value="rental_delivery_datetime">Delivery Date/Time</option>
+                                                        <option value="rental_return_datetime">Return Date/Time</option>
+                                                        <option value="lead_added_datetime">Lead Added Date/Time</option>
+                                                    </optgroup>
+                                                    <optgroup label="Relative to funnel flow">
+                                                        <option value="after_previous_event">After Previous Event</option>
+                                                    </optgroup>
+                                                </select>
+                                            </div>
 
-                                                <div class="mt-2 flex gap-3">
-                                                    <select name="delay_unit" id="delay_unit" data-parsley-errors-container="#delay_unit-errors"
-                                                        class="w-40 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                                        <option value="Days">Days</option>
-                                                        <option value="Hours">Hours</option>
-                                                        <option value="Minutes">Minutes</option>
-                                                    </select>
+                                            <!-- Offset Direction -->
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 required">
+                                                    Offset Direction
+                                                </label>
+                                                <select name="offset_direction" id="offset_direction" required
+                                                    class="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                    <option value="before">Before</option>
+                                                    <option value="after">After</option>
+                                                </select>
+                                            </div>
 
-                                                    <input type="number" value="0" name="delay_value" data-parsley-errors-container="#delay_value-errors" id="delay_value"
-                                                        class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                            <!-- Offset — three-part combined (Days + Hours + Minutes) -->
+                                            <div class="md:col-span-2">
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                    Offset from Reference
+                                                    <span class="text-red-500">*</span>
+                                                </label>
+                                                <div class="grid grid-cols-3 gap-3">
+                                                    <!-- Days -->
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 mb-1">Days <span class="text-gray-400">(0–30)</span></label>
+                                                        <input type="number" name="offset_days" id="offset_days"
+                                                            value="0" min="0" max="30" step="1"
+                                                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                                    </div>
+                                                    <!-- Hours -->
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 mb-1">Hours <span class="text-gray-400">(0–23)</span></label>
+                                                        <input type="number" name="offset_hours" id="offset_hours"
+                                                            value="0" min="0" max="23" step="1"
+                                                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                                    </div>
+                                                    <!-- Minutes -->
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 mb-1">Minutes</label>
+                                                        <select name="offset_minutes_val" id="offset_minutes_val"
+                                                            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                            <option value="0">0</option>
+                                                            <option value="15">15</option>
+                                                            <option value="30">30</option>
+                                                            <option value="45">45</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                                <div id="delay_value-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
-                                                <div id="delay_unit-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
-                                                <p class="mt-2 text-xs text-gray-500">
-                                                    {{-- <span class="font-semibold">Note:</span> --}}
-                                                    Days: 1-30 | Hours: 1-24 | Minutes: 0, 15, 30, 45 | 0 = at funnel start
+                                                <p class="mt-1.5 text-xs text-gray-400">
+                                                    Combine any units — e.g. 1 day + 2 hours + 15 min. All zero = at reference time.
                                                 </p>
                                             </div>
 
@@ -386,11 +358,9 @@
                                                         <input type="radio" name="step_type" value="SMS" checked required data-parsley-errors-container="#step_type-errors"
                                                             class="text-blue-600 focus:ring-blue-500">
                                                         <span class="inline-flex items-center gap-2">
-                                                            <!-- sms icon -->
                                                             <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24"
                                                                 fill="none" stroke="currentColor" stroke-width="2">
-                                                                <path
-                                                                    d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+                                                                <path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
                                                             </svg>
                                                             SMS
                                                         </span>
@@ -398,15 +368,14 @@
 
                                                     <label class="inline-flex items-center gap-2 text-sm text-gray-700">
                                                         <input type="radio" name="step_type" value="Email" required data-parsley-errors-container="#step_type-errors"
-                                                            class="text-blue-600 focus:ring-blue-500" disabled>
+                                                            class="text-blue-600 focus:ring-blue-500">
                                                         <span class="inline-flex items-center gap-2">
-                                                            <!-- mail icon -->
                                                             <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24"
                                                                 fill="none" stroke="currentColor" stroke-width="2">
                                                                 <path d="M4 4h16v16H4z" />
                                                                 <path d="m22 6-10 7L2 6" />
                                                             </svg>
-                                                            Email - coming soon
+                                                            Email
                                                         </span>
                                                     </label>
                                                 </div>
@@ -415,32 +384,100 @@
 
                                             <!-- Category -->
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700">
-                                                    Select Message Category
-                                                </label>
-                                                <select name="sms_category_id" id="smsCategorySelect" data-parsley-errors-container="#sms_category_id-errors"
-                                                    class="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <label class="block text-sm font-medium text-gray-700 required">
+                                                        Select Message Category
+                                                    </label>
+                                                    <button type="button" id="addNewCategoryBtn"
+                                                        class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                                                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                                                        Add New
+                                                    </button>
+                                                </div>
+                                                <select name="message_category_id" id="messageCategorySelect" data-parsley-errors-container="#message_category_id-errors"
+                                                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                                     <option value="" selected>Select a category...</option>
                                                     @foreach ($smsCategories as $smsCategory)
                                                         <option value="{{ $smsCategory->id }}"
+                                                            data-type="SMS"
                                                             data-description="{{ $smsCategory->description }}">
-                                                            {{ $smsCategory->name }}
+                                                            SMS: {{ $smsCategory->name }}
+                                                        </option>
+                                                    @endforeach
+                                                    @foreach ($emailCategories as $emailCategory)
+                                                        <option value="{{ $emailCategory->id }}"
+                                                            data-type="Email"
+                                                            data-description="{{ $emailCategory->description }}">
+                                                            Email: {{ $emailCategory->name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                <div id="sms_category_id-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
+                                                <div id="message_category_id-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
+
+                                                <!-- Inline quick-add category panel -->
+                                                <div id="quickAddCategoryPanel" class="hidden mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 space-y-2">
+                                                    <p id="quickCategoryPanelTitle" class="text-xs font-semibold text-blue-700">Add SMS Category</p>
+                                                    <input type="text" id="quickCategoryName"
+                                                        class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        placeholder="Category name…" autocomplete="off">
+                                                    <div class="flex gap-2">
+                                                        <button type="button" id="quickCategorySaveBtn"
+                                                            class="flex-1 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
+                                                            Save Category
+                                                        </button>
+                                                        <button type="button" id="quickCategoryCancelBtn"
+                                                            class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <!-- Message -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 required">
-                                                    Select Message
-                                                </label>
-                                                <select name="sms_funnel_id" id="smsFunnelSelect" data-parsley-errors-container="#sms_funnel_id-errors"
-                                                    class="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                                    <option value="" selected>Select a message...</option>
+                                            <!-- Message Template — forced to right column (col-start-2) -->
+                                            <div class="md:col-start-2">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <label class="block text-sm font-medium text-gray-700 required">
+                                                        Select Message Template
+                                                    </label>
+                                                    <button type="button" id="addNewTemplateBtn"
+                                                        class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed">
+                                                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                                                        Add New
+                                                    </button>
+                                                </div>
+                                                <select name="message_template_id" id="messageTemplateSelect" data-parsley-errors-container="#message_template_id-errors"
+                                                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                    <option value="" selected>Select a template...</option>
                                                 </select>
-                                                <div id="sms_funnel_id-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
+                                                <div id="message_template_id-errors" class="mt-1 text-sm text-red-600 dark:text-red-400"></div>
+
+                                                <!-- Inline quick-add template panel -->
+                                                <div id="quickAddTemplatePanel" class="hidden mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 space-y-2">
+                                                    <p id="quickTemplatePanelTitle" class="text-xs font-semibold text-blue-700">Add SMS Template</p>
+                                                    <input type="text" id="quickTemplateName"
+                                                        class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        placeholder="Template name…" autocomplete="off">
+                                                    <!-- Email-only: subject field -->
+                                                    <div id="quickTemplateSubjectWrap" class="hidden">
+                                                        <input type="text" id="quickTemplateSubject"
+                                                            class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            placeholder="Email subject…" autocomplete="off">
+                                                    </div>
+                                                    <!-- Body / message content -->
+                                                    <textarea id="quickTemplateContent" rows="3"
+                                                        class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                                        placeholder="Message content / body…"></textarea>
+                                                    <div class="flex gap-2">
+                                                        <button type="button" id="quickTemplateSaveBtn"
+                                                            class="flex-1 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
+                                                            Save Template
+                                                        </button>
+                                                        <button type="button" id="quickTemplateCancelBtn"
+                                                            class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                         </div>
@@ -462,7 +499,7 @@
                                             <button type="submit" id="addStepButton"
                                                 class="w-full px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50"
                                                 disabled>
-                                                Save Step
+                                                Save Event
                                             </button>
                                         </div>
                                     </form>
@@ -711,6 +748,7 @@
                             notyf.success(res.message);
                             closeModal();
                             categoryForm.reset();
+                            initFunnelCategorySelect(res.data?.id || null);
                             fetchCategories();
                             // After a successful update
                             if (editCategoryId) {
@@ -923,6 +961,9 @@
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
             });
 
+            // ── Funnel Type select has no dynamic side-effects in this modal ────
+            // Timing is now entirely configured inside each Event, not here.
+            // ────────────────────────────────────────────────────────────────────
 
             showBtn.addEventListener('click', () => {
 
@@ -976,15 +1017,11 @@
                                 .getAttribute('content')
                         },
                         body: JSON.stringify({
-                            name: funnelForm.name.value,
+                            name:        funnelForm.name.value,
                             description: funnelForm.description.value,
                             category_id: funnelForm.category_id.value,
-                            trigger_event: funnelForm.trigger_event.value,
-                            timing: funnelForm.timing.value,
-                            date_value: funnelForm.date_value.value,
-                            hour_value: funnelForm.hour_value.value,
-                            minute_value: funnelForm.minute_value.value,
-                            is_active: funnelForm.is_active.checked ? 1 : 0,
+                            trigger_type: funnelForm.trigger_type.value,
+                            is_active:   funnelForm.is_active.checked ? 1 : 0,
                         })
                     })
                     .then(res => {
@@ -1099,23 +1136,11 @@
                         const f = res.data;
                         const form = document.getElementById('funnelForm');
 
-                        form.name.value = f.funnel_name;
-                        form.description.value = f.description ?? '';
-                        form.category_id.value = f.sales_funnel_category_id ?? '';
-                        form.trigger_event.value =
-                            f.trigger_event === 'Rental Start Date' ?
-                            'rental_start_date' :
-                            'new_lead_added';
-
-                        form.timing.value =
-                            f.trigger_event_timing === 'Before Event' ?
-                            'before' :
-                            'after';
-
-                        form.date_value.value = f.date_value ?? '';
-                        form.hour_value.value = f.hour_value ?? '';
-                        form.minute_value.value = f.minute_value ?? '';
-                        form.is_active.checked = f.status === 'Active';
+                        form.name.value         = f.funnel_name;
+                        form.description.value  = f.description ?? '';
+                        form.category_id.value  = f.sales_funnel_category_id ?? '';
+                        form.trigger_type.value = f.trigger_type ?? 'retail_order';
+                        form.is_active.checked  = f.status === 'Active';
 
                         document.getElementById('funnelModalTitle').textContent = 'Edit Funnel';
                         document.getElementById('funnelForm-btn').textContent = 'Update Funnel';
@@ -1180,23 +1205,8 @@
                     });
             });
 
-            const rentalStartDateNote = document.getElementById('rentalStartDateNote');
-            const triggerEventSelect = document.getElementById('trigger_event');
 
-            if (!rentalStartDateNote || !triggerEventSelect) return;
-
-            const toggleNote = () => {
-                rentalStartDateNote.classList.toggle(
-                    'hidden',
-                    triggerEventSelect.value !== 'rental_start_date'
-                );
-            };
-
-            // Run on change
-            triggerEventSelect.addEventListener('change', toggleNote);
-
-            // Run once on page load (important)
-            toggleNote();
+            // (trigger reference note is always visible — no toggleNote needed)
         });
     </script>
 
@@ -1206,9 +1216,42 @@
             const modalFunnelIdInput = document.getElementById('funnel_unique_id');
             if (!modal) return;
 
-            const openModal = (funnelUniqueId) => {
+            // ── Which timing_reference_type options are allowed per Funnel Type ──
+            const eventTimingByFunnelType = {
+                retail_order:    ['funnel_entry_time', 'order_created_datetime', 'order_paid_datetime', 'after_previous_event'],
+                rental_schedule: ['funnel_entry_time', 'order_created_datetime', 'order_paid_datetime', 'rental_delivery_datetime', 'rental_return_datetime', 'after_previous_event'],
+                lead_added:      ['funnel_entry_time', 'lead_added_datetime', 'after_previous_event'],
+            };
+
+            let currentFunnelType = null;
+
+            function filterEventTimingOptions(funnelType) {
+                const timingSelect = document.getElementById('timing_reference_type');
+                if (!timingSelect) return;
+
+                const allowed = eventTimingByFunnelType[funnelType] || Object.values(eventTimingByFunnelType).flat();
+                let firstVisible = null;
+
+                Array.from(timingSelect.options).forEach(opt => {
+                    const visible = !opt.value || allowed.includes(opt.value);
+                    opt.hidden   = !visible;
+                    opt.disabled = !visible;
+                    if (visible && opt.value && !firstVisible) firstVisible = opt.value;
+                });
+
+                // Auto-select first valid option if current selection is now hidden
+                if (timingSelect.options[timingSelect.selectedIndex]?.hidden && firstVisible) {
+                    timingSelect.value = firstVisible;
+                    timingSelect.dispatchEvent(new Event('change'));
+                }
+            }
+            // ─────────────────────────────────────────────────────────────────────
+
+            const openModal = (funnelUniqueId, funnelType) => {
                 modalFunnelIdInput.value = funnelUniqueId;
-                window.setActiveFunnel(funnelUniqueId); // Track the active funnel for step operations
+                currentFunnelType = funnelType || null;
+                window.setActiveFunnel(funnelUniqueId);
+                filterEventTimingOptions(currentFunnelType);
                 modal.classList.remove('hidden');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('overflow-hidden');
@@ -1219,10 +1262,20 @@
                 modal.classList.add('hidden');
                 modal.setAttribute('aria-hidden', 'true');
                 document.body.classList.remove('overflow-hidden');
-                document.getElementById('stepModalTitle').textContent = 'Add Funnel Step';
+                document.getElementById('stepModalTitle').textContent = 'Add Event';
                 document.getElementById('stepForm').reset();
                 document.getElementById('messagePreview').classList.add('hidden');
                 document.getElementById('messagePreviewContent').textContent = 'Please select a message to see the preview.';
+                // Reset direction lock and close inline panels
+                if (offsetDirectionSelect) {
+                    offsetDirectionSelect.disabled = false;
+                    offsetDirectionSelect.title = '';
+                }
+                // Reset funnel-type filter so all timing options are visible next open
+                currentFunnelType = null;
+                filterEventTimingOptions(null);
+                document.getElementById('quickAddCategoryPanel')?.classList.add('hidden');
+                document.getElementById('quickAddTemplatePanel')?.classList.add('hidden');
                 editStepUniqueIdInput = document.getElementById('editStepUniqueId');
                 if (editStepUniqueIdInput) {
                     editStepUniqueIdInput.remove();
@@ -1234,10 +1287,13 @@
                 // OPEN
                 if (e.target.closest('[data-open-add-step]')) {
                     e.preventDefault();
-                    const funnelId = e.target.closest('[data-open-add-step]').getAttribute(
-                    'data-funnel-unique-id');
-                    console.log('Opening Add Step Modal for Funnel ID:', funnelId);
-                    openModal(funnelId);
+                    const trigger   = e.target.closest('[data-open-add-step]');
+                    const funnelId  = trigger.getAttribute('data-funnel-unique-id');
+                    // Read funnel type from the button or walk up to the funnel card
+                    const funnelType = trigger.getAttribute('data-funnel-type')
+                        || trigger.closest('[data-funnel-card]')?.getAttribute('data-funnel-type')
+                        || null;
+                    openModal(funnelId, funnelType);
                     return;
                 }
 
@@ -1261,46 +1317,78 @@
                 }
             });
 
-            const delayValueInput = document.getElementById('delay_value');
-            const delayUnitSelect = document.getElementById('delay_unit');
-            delayUnitSelect.addEventListener('change', () => {
-                if (delayUnitSelect.value === '') {
-                    delayValueInput.value = 0;
-                    delayValueInput.disabled = true;
-                } else {
-                    delayValueInput.disabled = false;
-
-                    // Set input constraints based on delay unit
-                    switch(delayUnitSelect.value) {
-                        case 'Days':
-                            delayValueInput.type = 'number';
-                            delayValueInput.min = '1';
-                            delayValueInput.max = '30';
-                            delayValueInput.step = '1';
-                            delayValueInput.placeholder = '1-30';
-                            break;
-                        case 'Hours':
-                            delayValueInput.type = 'number';
-                            delayValueInput.min = '1';
-                            delayValueInput.max = '24';
-                            delayValueInput.step = '1';
-                            delayValueInput.placeholder = '1-24';
-                            break;
-                        case 'Minutes':
-                            delayValueInput.type = 'number';
-                            delayValueInput.min = '0';
-                            delayValueInput.max = '45';
-                            delayValueInput.step = '15';
-                            delayValueInput.placeholder = '0, 15, 30, 45';
-                            break;
-                    }
-                }
-            });
-
+            const stepTypeRadios = Array.from(document.getElementsByName('step_type'));
+            const messageCategorySelect = document.getElementById('messageCategorySelect');
+            const messageTemplateSelect = document.getElementById('messageTemplateSelect');
+            const messagePreview = document.getElementById('messagePreview');
+            const messagePreviewContent = document.getElementById('messagePreviewContent');
+            const addStepButton = document.getElementById('addStepButton');
+            const addNewTemplateBtn = document.getElementById('addNewTemplateBtn');
 
             const form = document.getElementById('stepForm');
 
             if (!form) return; // safety guard
+
+            const filterCategoryOptions = () => {
+                const selectedType = document.querySelector('input[name="step_type"]:checked').value;
+                Array.from(messageCategorySelect.options).forEach(option => {
+                    if (!option.value) {
+                        option.hidden = false;
+                        return;
+                    }
+                    const optionType = option.dataset.type;
+                    option.hidden = optionType !== selectedType;
+                });
+
+                if (!messageCategorySelect.value || messageCategorySelect.selectedOptions[0]?.hidden) {
+                    messageCategorySelect.value = '';
+                    messageTemplateSelect.innerHTML = '<option value="">Select a template...</option>';
+                    messagePreview.classList.add('hidden');
+                    addStepButton.disabled = true;
+                }
+            };
+
+            const setMessagePreview = () => {
+                const selectedOption = messageTemplateSelect.options[messageTemplateSelect.selectedIndex];
+                if (!selectedOption || !selectedOption.value) {
+                    messagePreviewContent.textContent = 'Please select a message to see the preview.';
+                    messagePreview.classList.add('hidden');
+                    addStepButton.disabled = true;
+                    return;
+                }
+
+                const content = selectedOption.dataset.content || 'No preview available';
+                messagePreviewContent.textContent = content;
+                messagePreview.classList.remove('hidden');
+                addStepButton.disabled = false;
+            };
+
+            stepTypeRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    filterCategoryOptions();
+                    messageTemplateSelect.innerHTML = '<option value="">Select a template...</option>';
+                    messagePreview.classList.add('hidden');
+                    addStepButton.disabled = true;
+                });
+            });
+
+            if (messageCategorySelect) {
+                messageCategorySelect.addEventListener('change', function() {
+                    const categoryId = this.value;
+                    messageTemplateSelect.innerHTML = '<option value="">Select a template...</option>';
+                    messagePreview.classList.add('hidden');
+                    addStepButton.disabled = true;
+
+                    if (categoryId) {
+                        const selectedType = document.querySelector('input[name="step_type"]:checked').value;
+                        fetchMessageTemplates(categoryId, selectedType);
+                    }
+                });
+            }
+
+            if (messageTemplateSelect) {
+                messageTemplateSelect.addEventListener('change', setMessagePreview);
+            }
 
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -1313,17 +1401,20 @@
                 const editStepUniqueIdInput = document.getElementById('editStepUniqueId');
                 const url = editStepUniqueIdInput && editStepUniqueIdInput.value ?
                     `{{ route('admin.crm.sales-funnels.steps.update', ':step_unique_id') }}`
-                    .replace(':step_unique_id', editStepUniqueIdInput.value) :
+                        .replace(':step_unique_id', editStepUniqueIdInput.value) :
                     `{{ route('admin.crm.sales-funnels.steps.store') }}`;
 
-                const formData = JSON.stringify({
-                    funnel_unique_id: modalFunnelIdInput.value,
-                    step_type: this.step_type.value,
-                    delay_value: this.delay_value.value,
-                    delay_unit: this.delay_unit.value,
-                    sms_category_id: this.sms_category_id ? this.sms_category_id.value : null,
-                    sms_funnel_id: this.sms_funnel_id ? this.sms_funnel_id.value : null,
-                });
+                const payload = {
+                    funnel_unique_id:       modalFunnelIdInput.value,
+                    step_type:              this.step_type.value,
+                    timing_reference_type:  this.timing_reference_type.value,
+                    offset_direction:       this.offset_direction.value,
+                    offset_days:            parseInt(document.getElementById('offset_days').value)         || 0,
+                    offset_hours:           parseInt(document.getElementById('offset_hours').value)        || 0,
+                    offset_minutes_val:     parseInt(document.getElementById('offset_minutes_val').value)  || 0,
+                    message_category_id:    this.message_category_id ? this.message_category_id.value : null,
+                    message_template_id:    this.message_template_id ? this.message_template_id.value : null,
+                };
 
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalText = submitBtn.textContent;
@@ -1332,15 +1423,13 @@
                 submitBtn.textContent = 'Saving...';
 
                 apiFetch(url, {
-                        method: editStepUniqueIdInput && editStepUniqueIdInput.value ? 'PUT' : 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document
-                                .querySelector('meta[name="csrf-token"]')
-                                .getAttribute('content')
-                        },
-                        body: formData
-                    })
+                    method: editStepUniqueIdInput && editStepUniqueIdInput.value ? 'PUT' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(payload)
+                })
                     .then(res => {
                         if (res?.success) {
                             form.reset();
@@ -1361,61 +1450,203 @@
                     });
             });
 
-            const smsCategorySelect = document.getElementById('smsCategorySelect');
-            if (smsCategorySelect) {
-                smsCategorySelect.addEventListener('change', function() {
-                    messagePreview.classList.add('hidden')
-                    smsFunnelSelect.innerHTML = '<option value="">Select message</option>';
-                    const categoryId = this.value;
-                    if (categoryId){
-                        fetchSmsCategories(categoryId);
+            // ── "After Previous Event" → force direction to "After" ──────────────
+            const timingReferenceSelect = document.getElementById('timing_reference_type');
+            const offsetDirectionSelect = document.getElementById('offset_direction');
+
+            function syncDirectionForTimingRef() {
+                if (timingReferenceSelect.value === 'after_previous_event') {
+                    offsetDirectionSelect.value = 'after';
+                    offsetDirectionSelect.disabled = true;
+                    offsetDirectionSelect.title = 'Direction is fixed to "After" when timing is relative to the previous event.';
+                } else {
+                    offsetDirectionSelect.disabled = false;
+                    offsetDirectionSelect.title = '';
+                }
+            }
+
+            timingReferenceSelect.addEventListener('change', syncDirectionForTimingRef);
+            syncDirectionForTimingRef(); // run on open
+            // ─────────────────────────────────────────────────────────────────────
+
+            // ── Enable "Add New Template" only when a category is selected ────────
+            function syncAddTemplateBtnState() {
+                if (addNewTemplateBtn) {
+                    addNewTemplateBtn.disabled = !messageCategorySelect.value;
+                }
+            }
+            messageCategorySelect.addEventListener('change', syncAddTemplateBtnState);
+            syncAddTemplateBtnState();
+            // ─────────────────────────────────────────────────────────────────────
+
+            // ── Quick-create: Category ────────────────────────────────────────────
+            const quickAddCategoryPanel  = document.getElementById('quickAddCategoryPanel');
+            const quickCategoryName      = document.getElementById('quickCategoryName');
+            const quickCategoryPanelTitle = document.getElementById('quickCategoryPanelTitle');
+
+            document.getElementById('addNewCategoryBtn').addEventListener('click', () => {
+                const currentType = document.querySelector('input[name="step_type"]:checked')?.value || 'SMS';
+                quickCategoryPanelTitle.textContent = `Add ${currentType} Category`;
+                quickCategoryName.value = '';
+                quickAddCategoryPanel.classList.remove('hidden');
+                quickCategoryName.focus();
+            });
+
+            document.getElementById('quickCategoryCancelBtn').addEventListener('click', () => {
+                quickAddCategoryPanel.classList.add('hidden');
+            });
+
+            document.getElementById('quickCategorySaveBtn').addEventListener('click', () => {
+                const name = quickCategoryName.value.trim();
+                if (!name) { quickCategoryName.focus(); return; }
+
+                const currentType = document.querySelector('input[name="step_type"]:checked')?.value || 'SMS';
+                const endpoint = currentType === 'Email'
+                    ? `{{ route('admin.crm.sales-funnels.quick-create.email-category') }}`
+                    : `{{ route('admin.crm.sales-funnels.quick-create.sms-category') }}`;
+
+                const btn = document.getElementById('quickCategorySaveBtn');
+                btn.disabled = true;
+                btn.textContent = 'Saving…';
+
+                apiFetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ name })
+                }).then(res => {
+                    if (res?.success) {
+                        // Add new option to the category select & select it
+                        const prefix = res.data.type === 'Email' ? 'Email' : 'SMS';
+                        const opt = document.createElement('option');
+                        opt.value = res.data.id;
+                        opt.dataset.type = prefix;
+                        opt.textContent = `${prefix}: ${res.data.name}`;
+                        messageCategorySelect.appendChild(opt);
+                        messageCategorySelect.value = res.data.id;
+                        messageCategorySelect.dispatchEvent(new Event('change'));
+                        notyf.success(res.message);
+                        quickAddCategoryPanel.classList.add('hidden');
+                    } else {
+                        notyf.error(res?.message || 'Failed to create category');
                     }
+                }).finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Save Category';
+                });
+            });
+            // ─────────────────────────────────────────────────────────────────────
+
+            // ── Quick-create: Template ────────────────────────────────────────────
+            const quickAddTemplatePanel    = document.getElementById('quickAddTemplatePanel');
+            const quickTemplateName        = document.getElementById('quickTemplateName');
+            const quickTemplateContent     = document.getElementById('quickTemplateContent');
+            const quickTemplateSubjectWrap = document.getElementById('quickTemplateSubjectWrap');
+            const quickTemplateSubject     = document.getElementById('quickTemplateSubject');
+            const quickTemplatePanelTitle  = document.getElementById('quickTemplatePanelTitle');
+
+            if (addNewTemplateBtn) {
+                addNewTemplateBtn.addEventListener('click', () => {
+                    const currentType = document.querySelector('input[name="step_type"]:checked')?.value || 'SMS';
+                    quickTemplatePanelTitle.textContent = `Add ${currentType} Template`;
+                    quickTemplateName.value = '';
+                    quickTemplateContent.value = '';
+                    quickTemplateSubject.value = '';
+                    quickTemplateSubjectWrap.classList.toggle('hidden', currentType !== 'Email');
+                    quickTemplateContent.placeholder = currentType === 'Email' ? 'Email body…' : 'SMS message text…';
+                    quickAddTemplatePanel.classList.remove('hidden');
+                    quickTemplateName.focus();
                 });
             }
 
+            document.getElementById('quickTemplateCancelBtn').addEventListener('click', () => {
+                quickAddTemplatePanel.classList.add('hidden');
+            });
 
-            const smsFunnelSelect = document.getElementById('smsFunnelSelect');
-            const messagePreview = document.getElementById('messagePreview');
-            const messagePreviewContent = document.getElementById('messagePreviewContent');
-            const addStepButton = document.getElementById('addStepButton');
-            if(smsFunnelSelect){
-                smsFunnelSelect.addEventListener('change', function() {
-                    const selectedOption = this.options[this.selectedIndex];
-                    const content = selectedOption.dataset.content || 'No preview available';
-                    messagePreviewContent.textContent = content;
-                    messagePreview.classList.remove('hidden');
-                    addStepButton.disabled = !this.value;
+            document.getElementById('quickTemplateSaveBtn').addEventListener('click', () => {
+                const name    = quickTemplateName.value.trim();
+                const content = quickTemplateContent.value.trim();
+                const subject = quickTemplateSubject.value.trim();
+                const catId   = messageCategorySelect.value;
+
+                const currentType = document.querySelector('input[name="step_type"]:checked')?.value || 'SMS';
+
+                if (!name) { quickTemplateName.focus(); return; }
+                if (currentType === 'Email' && !subject) { quickTemplateSubject.focus(); return; }
+                if (!content) { quickTemplateContent.focus(); return; }
+
+                const endpoint = currentType === 'Email'
+                    ? `{{ route('admin.crm.sales-funnels.quick-create.email-template') }}`
+                    : `{{ route('admin.crm.sales-funnels.quick-create.sms-template') }}`;
+
+                const body = currentType === 'Email'
+                    ? { name, category_id: catId, subject, body: content }
+                    : { name, category_id: catId, description: content };
+
+                const btn = document.getElementById('quickTemplateSaveBtn');
+                btn.disabled = true;
+                btn.textContent = 'Saving…';
+
+                apiFetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(body)
+                }).then(res => {
+                    if (res?.success) {
+                        // Add new option to template select & select it
+                        const opt = document.createElement('option');
+                        opt.value = res.data.id;
+                        opt.textContent = res.data.name;
+                        opt.dataset.content = res.data.content || '';
+                        messageTemplateSelect.appendChild(opt);
+                        messageTemplateSelect.value = res.data.id;
+                        messageTemplateSelect.dispatchEvent(new Event('change'));
+                        notyf.success(res.message);
+                        quickAddTemplatePanel.classList.add('hidden');
+                    } else {
+                        notyf.error(res?.message || 'Failed to create template');
+                    }
+                }).finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Save Template';
                 });
-            }
+            });
+            // ─────────────────────────────────────────────────────────────────────
 
-            function fetchSmsCategories(categoryId, preselectFunnelId = null) {
+            const smsFetchRoute = `{{ route('admin.crm.message-management.sms-funnel.fetch', ':categoryId') }}`;
+            const emailFetchRoute = `{{ route('admin.crm.message-management.email-template.fetch', ':categoryId') }}`;
 
-                smsFunnelSelect.innerHTML = '<option value="">Select message</option>';
-                apiFetch(`{{ route('admin.crm.message-management.sms-funnel.fetch', ':categoryId') }}`
-                        .replace(':categoryId', categoryId))
+            function fetchMessageTemplates(categoryId, stepType, preselectTemplateId = null) {
+                messageTemplateSelect.innerHTML = '<option value="">Select a template...</option>';
+                const route = stepType === 'Email' ? emailFetchRoute : smsFetchRoute;
+                apiFetch(route.replace(':categoryId', categoryId))
                     .then(res => {
                         if (res?.success) {
-                            // Handle the fetched SMS categories as needed
-                            res.funnels.forEach(funnel => {
+                            const templates = stepType === 'Email' ? res.templates : res.funnels;
+                            templates.forEach(item => {
                                 const option = document.createElement('option');
-                                option.value = funnel.id;
-                                option.textContent = funnel.name;
-                                option.dataset.content = funnel.description || '';
-                                smsFunnelSelect.appendChild(option);
+                                option.value = item.id;
+                                option.textContent = item.name;
+                                option.dataset.content = stepType === 'Email' ? `${item.subject || ''}\n\n${item.body || ''}` : item.description || '';
+                                messageTemplateSelect.appendChild(option);
                             });
 
-                            // Preselect funnel if provided
-                            if (preselectFunnelId) {
-                                smsFunnelSelect.value = preselectFunnelId;
-                                smsFunnelSelect.dispatchEvent(new Event('change'));
+                            if (preselectTemplateId) {
+                                messageTemplateSelect.value = preselectTemplateId;
+                                messageTemplateSelect.dispatchEvent(new Event('change'));
                             }
                         } else {
-                            notyf.error(res?.message || 'Failed to fetch SMS categories');
+                            notyf.error(res?.message || 'Failed to fetch templates');
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        notyf.error('Something went wrong while fetching SMS categories');
+                        notyf.error('Something went wrong while fetching templates');
                     });
             }
 
@@ -1440,22 +1671,36 @@
 
                 // Populate modal fields
                 modalFunnelIdInput.value = btn.getAttribute('data-funnel-unique-id');
-                window.setActiveFunnel(modalFunnelIdInput.value); // Track the active funnel for step operations
-                // Set step type radio
+                window.setActiveFunnel(modalFunnelIdInput.value);
+
+                // Apply funnel-type timing filter (read from card or button)
+                const funnelCard = btn.closest('[data-funnel-card]');
+                currentFunnelType = btn.getAttribute('data-funnel-type')
+                    || funnelCard?.getAttribute('data-funnel-type')
+                    || null;
+                filterEventTimingOptions(currentFunnelType);
+
                 const radios = document.getElementsByName('step_type');
                 radios.forEach(radio => {
                     radio.checked = radio.value === stepData.step_type;
                 });
-                document.getElementById('delay_value').value = stepData.delay_value || 0;
-                document.getElementById('delay_unit').value = stepData.delay_unit || 'Days';
-                document.getElementById('delay_unit').dispatchEvent(new Event('change'));
 
-                // Set SMS Category and fetch messages
-                document.getElementById('smsCategorySelect').value = stepData.sms_category_id || '';
-                fetchSmsCategories(stepData.sms_category_id, stepData.sms_message_id);
+                // Set timing reference (filtering already applied above)
+                document.getElementById('timing_reference_type').value = stepData.timing_reference_type || 'funnel_entry_time';
+                syncDirectionForTimingRef(); // enforce direction lock if after_previous_event
+                document.getElementById('offset_direction').value        = stepData.offset_direction || 'after';
+                document.getElementById('offset_days').value             = stepData.offset_days         ?? 0;
+                document.getElementById('offset_hours').value            = stepData.offset_hours        ?? 0;
+                document.getElementById('offset_minutes_val').value      = stepData.offset_minutes_val  ?? 0;
 
-                // Set modal title and button
-                document.getElementById('stepModalTitle').textContent = 'Edit Funnel Step';
+                filterCategoryOptions();
+                document.getElementById('messageCategorySelect').value = stepData.message_category_id || '';
+                if (stepData.message_category_id) {
+                    const selectedType = stepData.step_type;
+                    fetchMessageTemplates(stepData.message_category_id, selectedType, stepData.message_template_id);
+                }
+
+                document.getElementById('stepModalTitle').textContent = 'Edit Event';
 
                 // Add hidden input to track edit mode
                 let hidden = document.getElementById('editStepUniqueId');
@@ -1490,7 +1735,7 @@
                 }
 
                 showConfirm(
-                    'Do you want to delete this step?',
+                    'Do you want to delete this event?',
                     'This action cannot be undone.'
                 ).then(result => {
                     if (!result.isConfirmed) {

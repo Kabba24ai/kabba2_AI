@@ -12,7 +12,7 @@ class UpdateSettingsController extends BaseController
 {
 
     /**
-     * Login
+     * Update System Settings
      * @group Admin App
      */
     public function __invoke(Request $request)

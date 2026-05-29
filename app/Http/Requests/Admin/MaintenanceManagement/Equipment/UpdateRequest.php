@@ -131,6 +131,8 @@ class UpdateRequest extends FormRequest
             'critical_matching_criteria.*.weight' => 'nullable|integer|min:0|max:100',
             'critical_matching_criteria.*.upgrade_exceeds_value' => 'nullable|boolean',
             'critical_matching_criteria.*.caution_if_change_value' => 'nullable|boolean',
+            'critical_matching_criteria.*.upgrade_is_below_value' => 'nullable|boolean',
+            'critical_matching_criteria.*.caution_if_below_value' => 'nullable|boolean',
 
             'allow_upgrades' => 'nullable|boolean',
             'allow_downgrades' => 'nullable|boolean',

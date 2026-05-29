@@ -4,5 +4,6 @@
         'equipmentStats' => $equipmentStats,
         'pendingCount' => $pendingCount,
         'overdueCount' => $overdueCount,
+        'overdueOrderCount' => $overdueOrderCount,
     ])
 </div>

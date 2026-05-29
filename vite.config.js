@@ -5,7 +5,8 @@ import 'dotenv/config'; // Loads .env automatically
 
 export default defineConfig(() => {
     const hmrHost = process.env.FRONT_DOMAIN  || 'kabba.local';
-    const originProtocol = process.env.VITE_ORIGIN_PROTOCOL || 'https';
+    const originProtocol = process.env.VITE_ORIGIN_PROTOCOL || 'http';
+    const vitePort = parseInt(process.env.VITE_PORT || '5173');
 
     return {
         server: {
@@ -16,12 +17,13 @@ export default defineConfig(() => {
             }
             : false,
             host: '0.0.0.0',
-            port: 8000,
+            port: vitePort,
             strictPort: true,
-            origin: `${originProtocol}://${hmrHost}:8000`,
+            origin: `${originProtocol}://${hmrHost}:${vitePort}`,
             cors: true,
             hmr: {
                 host: hmrHost,
+                port: vitePort,
             },
             // fs: {
             //     strict: false,

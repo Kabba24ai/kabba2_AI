@@ -92,7 +92,7 @@
                         @php
                             $preferredCategoryId = $orderProduct->product?->categories?->first()?->id;
                         @endphp
-                        @if ($orderProduct?->checklistQuestions->isNotEmpty())
+                        @if ($orderProduct?->equipment?->current_status?->isRented())
                             <button type="button" class="text-blue-600 underline equipment-assign-btn"
                                 data-order-product-unique-id="{{ $orderProduct->unique_id }}"
                                 data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
@@ -115,7 +115,7 @@
                         @endif
                     </td>
                     <td class="py-4 px-6 text-center">
-                        @if ($orderProduct?->checklistQuestions->isNotEmpty())
+                        @if ($orderProduct?->equipment?->current_status?->isRented())
                             <span
                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
                                 {{ isset($orderProduct->equipment_details['equipment_id']) ? $orderProduct->equipment_details['equipment_id'] : '-' }}
@@ -130,7 +130,7 @@
 
                     <td class="py-4 px-6 text-center">
                         <div class="inline-flex items-center gap-1">
-                            @if ($orderProduct?->checklistQuestions->isNotEmpty())
+                             @if ($orderProduct?->equipment?->current_status?->isRented())
                                 <a href="{{ route('admin.crm.customers.view', $orderProduct?->order?->customer?->unique_id ?? 0) }}"
                                    class="text-blue-600 hover:underline">
                                     {{ $orderProduct?->order?->customer_name ?? '-' }}

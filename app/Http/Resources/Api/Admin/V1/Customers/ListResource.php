@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\Admin\V1\Customers;
 
+use App\Http\Resources\Api\Admin\V1\CustomerAddresses\ListResource as CustomerAddressesListResource;
 use App\Http\Resources\Api\Admin\V1\CustomerNotes\ListResource as CustomerNotesListResource;
 use App\Http\Resources\Api\Admin\V1\CustomerTags\ListResource as CustomerTagsListResource;
 use Illuminate\Http\Request;
@@ -45,6 +46,12 @@ class ListResource extends JsonResource
             'tax_document_type' => $this->tax_document_type ?? '',
             // 'tax_status_approved_by' => $this->tax_status_approved_by ?? '',
             'tax_document_media' => $this?->media->url ?? '',
+            'billing_address' => $this->relationLoaded('billingAddress')
+                ? new CustomerAddressesListResource($this->billingAddress)
+                : null,
+            'delivery_address' => $this->relationLoaded('shippingAddress')
+                ? new CustomerAddressesListResource($this->shippingAddress)
+                : null,
 
             'tags' => CustomerTagsListResource::collection($this->getTagObjectsAttribute()),
             'notes' => CustomerNotesListResource::collection($this->whenLoaded('notes')),

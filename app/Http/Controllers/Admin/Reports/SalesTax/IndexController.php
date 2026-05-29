@@ -51,8 +51,8 @@ class IndexController extends Controller
                 $q->whereBetween('order_date', [$start, $end]);
             });
 
-        $orders = $ordersQuery->get();
-
+        //$orders = $ordersQuery->get();
+        $orders = $ordersQuery->limit(500)->get();
         // Load payment accounts ONLY when a store is NOT selected
         $paymentAccounts = collect(); // default empty collection
 

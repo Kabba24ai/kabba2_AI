@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 // Controllers — AI Profiles
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\IndexController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ScanController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\RefreshController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\DeleteController;
 
 // Controllers — Profile Specifications
@@ -12,6 +13,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\StoreController as SpecStoreController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\UpdateController as SpecUpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\DeleteController as SpecDeleteController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\GenerateController as SpecGenerateController;
 
 // Controllers — Category Comparison Keys
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\IndexController as KeyIndexController;
@@ -33,6 +35,7 @@ Route::prefix('equipment-ai')
         */
         Route::get('/', IndexController::class)->name('index');
         Route::post('/scan', ScanController::class)->name('scan');
+        Route::post('/refresh', RefreshController::class)->name('refresh');
         Route::delete('/profiles/{unique_id}', DeleteController::class)->name('profiles.delete');
 
         /*
@@ -44,8 +47,9 @@ Route::prefix('equipment-ai')
         Route::prefix('profiles/{unique_id}/specifications')
             ->name('profiles.specifications.')
             ->group(function () {
-                Route::get('/', SpecIndexController::class)->name('index');
-                Route::post('/', SpecStoreController::class)->name('store');
+                Route::get('/',          SpecIndexController::class)->name('index');
+                Route::post('/',         SpecStoreController::class)->name('store');
+                Route::post('/generate', SpecGenerateController::class)->name('generate');
             });
 
         // Spec update/delete keyed by spec id (not profile unique_id)

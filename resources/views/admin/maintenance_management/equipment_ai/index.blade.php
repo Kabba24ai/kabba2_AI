@@ -63,25 +63,44 @@
                 </button>
             </form>
 
-            {{-- Scan action --}}
+            {{-- Scan / Refresh actions --}}
             @if ($selectedCategory)
-                <form method="POST" action="{{ route('admin.maintenance-management.equipment-ai.scan') }}"
-                      class="mt-4 flex items-center gap-3 border-t border-gray-100 pt-4 dark:border-gray-700">
-                    @csrf
-                    <input type="hidden" name="category_id" value="{{ $selectedCategory->id }}">
-                    <div class="flex-1">
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Scan <span class="font-semibold text-gray-800 dark:text-gray-200">{{ $selectedCategory->title }}</span>
-                            for unique make/model combinations and create missing AI profiles.
-                        </p>
+                <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 border-t border-gray-100 pt-4 dark:border-gray-700">
+                    <p class="flex-1 text-sm text-gray-600 dark:text-gray-400">
+                        Manage AI profiles for
+                        <span class="font-semibold text-gray-800 dark:text-gray-200">{{ $selectedCategory->title }}</span>.
+                    </p>
+                    <div class="flex items-center gap-2 shrink-0">
+
+                        {{-- Refresh: re-syncs profiles to current equipment data ──────── --}}
+                        {{-- Removes stale (no matching equipment + no specs), flags orphans --}}
+                        <form method="POST"
+                              action="{{ route('admin.maintenance-management.equipment-ai.refresh') }}">
+                            @csrf
+                            <input type="hidden" name="category_id" value="{{ $selectedCategory->id }}">
+                            <button type="submit"
+                                class="inline-flex items-center gap-2 rounded-lg border border-amber-400 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1 dark:border-amber-500 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                                onclick="return confirm('Refresh will remove stale profiles that no longer match any equipment record (only if they have no specs). Orphaned profiles WITH specs will be flagged for manual review — not deleted. Continue?')">
+                                <x-heroicon-o-arrow-path class="h-4 w-4" />
+                                Refresh Category Profiles
+                            </button>
+                        </form>
+
+                        {{-- Scan: only adds new profiles, never removes existing ones ──── --}}
+                        <form method="POST"
+                              action="{{ route('admin.maintenance-management.equipment-ai.scan') }}">
+                            @csrf
+                            <input type="hidden" name="category_id" value="{{ $selectedCategory->id }}">
+                            <button type="submit"
+                                class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
+                                onclick="return confirm('Scan {{ addslashes($selectedCategory->title) }} for new unique make/model combinations? Existing profiles are not affected.')">
+                                <x-heroicon-o-magnifying-glass class="h-4 w-4" />
+                                Scan Category for Unique Equipment
+                            </button>
+                        </form>
+
                     </div>
-                    <button type="submit"
-                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
-                        onclick="return confirm('Scan {{ addslashes($selectedCategory->title) }} for unique equipment profiles?')">
-                        <x-heroicon-o-magnifying-glass class="h-4 w-4" />
-                        Scan Category for Unique Equipment
-                    </button>
-                </form>
+                </div>
             @endif
         </div>
     </div>

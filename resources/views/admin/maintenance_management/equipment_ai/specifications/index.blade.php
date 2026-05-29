@@ -3,7 +3,35 @@
 @section('title', 'AI Specifications — ' . $profile->make . ' ' . $profile->model)
 
 @section('content')
-<div class="space-y-6" x-data="{ showAddForm: false, editingId: null }">
+<div class="space-y-6" x-data="{
+    showAddForm: false,
+    editingId: null,
+    generating: false,
+    async generateSpecs() {
+        if (!confirm('Use AI to research and generate specifications for {{ addslashes($profile->make . ' ' . $profile->model) }}?\n\nThis calls the OpenAI API and may take 15–30 seconds.')) return;
+        this.generating = true;
+        try {
+            const res = await fetch('{{ route('admin.maintenance-management.equipment-ai.profiles.specifications.generate', $profile->unique_id) }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.message || 'Generation failed. Please try again.');
+                this.generating = false;
+            }
+        } catch (e) {
+            alert('Request failed. Please check your connection and try again.');
+            this.generating = false;
+        }
+    }
+}">
 
     {{-- ─── Breadcrumb / Back ───────────────────────────────────────── --}}
     <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -55,11 +83,28 @@
                     @endif
                 </div>
             </div>
-            <button @click="showAddForm = !showAddForm"
-                class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 shrink-0">
-                <x-heroicon-o-plus class="h-4 w-4" />
-                Add Specification
-            </button>
+            <div class="flex items-center gap-2 shrink-0">
+
+                {{-- ── AI Generate button ─────────────────────────────────────── --}}
+                <button @click="generateSpecs()"
+                    :disabled="generating"
+                    class="inline-flex items-center gap-2 rounded-lg border border-purple-400 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-900/20">
+                    <svg x-show="generating" class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <x-heroicon-o-sparkles x-show="!generating" class="h-4 w-4" />
+                    <span x-text="generating ? 'Generating…' : 'Research & Create General Specification'"></span>
+                </button>
+
+                {{-- ── Manual Add button ──────────────────────────────────────── --}}
+                <button @click="showAddForm = !showAddForm"
+                    class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1">
+                    <x-heroicon-o-plus class="h-4 w-4" />
+                    Add Specification
+                </button>
+
+            </div>
         </div>
     </div>
 

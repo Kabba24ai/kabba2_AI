@@ -45,6 +45,53 @@
 
 
                 </div>
+
+                
+                <!-- Sales Tax Treatment -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Sales Tax Treatment
+                    </label>
+
+                    <div class="space-y-2 text-sm text-gray-700">
+
+                        @foreach([
+                            'add' => [
+                                'label' => 'Add Sales Tax',
+                                'desc' => 'Add 9.75% sales tax to the entered amount'
+                            ],
+
+                            'free' => [
+                                'label' => 'Tax Free',
+                                'desc' => 'No sales tax applied to this charge'
+                            ],
+
+                            'reverse' => [
+                                'label' => 'Reverse Sales Tax',
+                                'desc' => 'Split entered amount proportionally between base amount and tax'
+                            ],
+
+                        ] as $value => $info)
+
+                            <label class="flex items-start gap-2">
+
+                                {!! html()
+                                    ->radio('discount_sales_tax', $value === 'add', $value)
+                                    ->class('mt-1.5 text-blue-600 focus:ring-blue-500')
+                                !!}
+
+                                <div>
+                                    <p class="font-medium">{{ $info['label'] }}</p>
+                                    <p class="text-gray-500">{{ $info['desc'] }}</p>
+                                </div>
+
+                            </label>
+
+                        @endforeach
+
+                    </div>
+                </div>
+
                 <!-- Discount Reason -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1 required">Discount Reason </label>
@@ -204,7 +251,11 @@
             discountForm.dataset.editingId = itemId;
 
             // Convert unit to number
-            const unit = Number(item.unit) || 0;
+           let unit = Number(item.unit) || 0;
+
+            if (item.sales_tax === "reverse") {
+                unit = Number(item.total) || 0;
+            }
 
             // Prefill input
             discountForm.elements["damount"].value = unit.toFixed(2);
@@ -220,6 +271,11 @@
             discountForm.elements["responsible_person"].value = item.responsible_id;
             discountForm.elements["reference"].value = item.reference;
             discountForm.elements["notes"].value = item.notes || "";
+
+                 document.querySelector(
+                `input[name="discount_sales_tax"][value="${item.sales_tax || 'add'}"]`
+            ).checked = true;
+
 
             // Update modal title and button text
             document.querySelector("#discountModalWrapper h2").textContent = "Edit Discount";
@@ -258,9 +314,38 @@
                 const amount = parseFloat(rawAmount.replace(/[^0-9.]/g, "")) || 0;
                 const qty = 1;
 
+                // const taxRate = window.SALES_TAX_RATE;
+                // const taxPrice = amount * taxRate;
+                // const total = amount + taxPrice;
+
+
                 const taxRate = window.SALES_TAX_RATE;
-                const taxPrice = amount * taxRate;
-                const total = amount + taxPrice;
+
+                const taxType = document.querySelector(
+                    'input[name="discount_sales_tax"]:checked'
+                ).value;
+
+                let basePrice = amount;
+                let taxPrice = 0;
+                let total = amount;
+
+                if (taxType === "add") {
+
+                    taxPrice = amount * taxRate;
+                    total = amount + taxPrice;
+
+                } else if (taxType === "free") {
+
+                    taxPrice = 0;
+                    total = amount;
+
+                } else if (taxType === "reverse") {
+
+                    basePrice = amount / (1 + taxRate);
+                    taxPrice = amount - basePrice;
+                    total = amount;
+                }
+
 
                 const editingId = discountForm.dataset.editingId;
 
@@ -271,8 +356,9 @@
                         Object.assign(item, {
                             name: reason,
                             qty: qty,
-                            unit: rawAmount,
-                            tax: 0,
+                            unit: basePrice,
+                            tax: taxPrice,
+                            sales_tax: taxType,
                             total: total,
                             responsible_id: responsibleId,
                             reference: reference,
@@ -294,7 +380,7 @@
                                             ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
                                         </td>
                                         <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
-                                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${amount.toFixed(2)}</td>
+                                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${basePrice.toFixed(2)}</td>
                                         <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${taxPrice.toFixed(2)}</td>
                                         <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap text-green-600">- $${total.toFixed(2)}</td>
                                         <td class="px-4 py-3 whitespace-nowrap">
@@ -319,7 +405,8 @@
                         id: uniqueId,
                         name: reason,
                         qty: qty,
-                        unit: rawAmount,
+                        unit: basePrice,
+                        sales_tax: taxType,
                         tax: taxPrice,
                         total: total,
                         responsible_id: responsibleId,
@@ -343,7 +430,7 @@
                                             ${notes ? `<div class="text-gray-500 text-sm">${notes}</div>` : ""}
                                         </td>
                                         <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${qty}</td>
-                                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${amount.toFixed(2)}</td>
+                                        <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${basePrice.toFixed(2)}</td>
                                         <td class="px-4 py-3 text-right text-sm whitespace-nowrap text-green-600">- $${taxPrice.toFixed(2)}</td>
                                         <td class="px-4 py-3 text-right font-semibold text-sm whitespace-nowrap text-green-600">- $${total.toFixed(2)}</td>
                                         <td class="px-4 py-3 whitespace-nowrap">

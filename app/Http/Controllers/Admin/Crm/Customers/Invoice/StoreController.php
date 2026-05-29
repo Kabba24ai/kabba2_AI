@@ -156,13 +156,28 @@ class StoreController extends Controller
 
                     } elseif ($type === 'discount') {
 
- $record->amount = $invoiceItem->unit ?? 0;
-                        $salesTax = $salesTaxRate; // discount has no tax
-                        $salesTaxType = null;
+                            $salesTax =
+                                $invoiceItem->sales_tax_type === 'free'
+                                    ? 0
+                                    : $salesTaxRate;
+
+                            $salesTaxType =
+                                $invoiceItem->sales_tax_type ?? 'add';
+
+                            if ($invoiceItem->sales_tax_type === 'reverse') {
+
+                                $record->amount =
+                                    $invoiceItem->total ?? 0;
+
+                            } else {
+
+                                $record->amount =
+                                    $invoiceItem->unit ?? 0;
+                            }
 
                     } elseif ($type === 'refund') {
 
- $record->amount = $invoiceItem->unit ?? 0;
+                        $record->amount = $invoiceItem->unit ?? 0;
                         $salesTax = $salesTaxRate; // refund reduces tax
                         $salesTaxType = null;
                     }

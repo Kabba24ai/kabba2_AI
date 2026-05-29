@@ -1,3 +1,115 @@
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-6">
+
+    {{-- Header --}}
+    <div class="flex items-center justify-between mb-4">
+
+        <div class="flex items-center gap-2">
+
+            <div class="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center">
+                <x-heroicon-o-bell-alert class="w-5 h-5 text-red-600" />
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                    Alerts & Activities
+                </h2>
+
+                <p class="text-sm text-gray-500">
+                    Recent system activities and reminders
+                </p>
+            </div>
+
+        </div>
+
+        <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+            2 New
+        </span>
+
+    </div>
+
+    {{-- Alerts List --}}
+    <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+
+        {{-- Alert Item --}}
+        <div class="border border-gray-100 rounded-xl p-4 hover:bg-gray-50 transition">
+
+            <div class="flex items-start justify-between gap-3">
+
+                <div class="flex gap-3">
+
+                    <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                        <x-heroicon-o-document-text class="w-5 h-5 text-green-600" />
+                    </div>
+
+                    <div>
+
+                        <h3 class="text-sm font-semibold text-gray-900">
+                            New Application Submitted
+                        </h3>
+
+                        <p class="text-sm text-gray-600 mt-1">
+                            John Smith submitted a new rental application.
+                        </p>
+
+                        <p class="text-xs text-gray-400 mt-2">
+                            2 minutes ago
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <a href="#"
+                    class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                    View
+                </a>
+
+            </div>
+
+        </div>
+
+        {{-- Alert Item --}}
+        <div class="border border-gray-100 rounded-xl p-4 hover:bg-gray-50 transition">
+
+            <div class="flex items-start justify-between gap-3">
+
+                <div class="flex gap-3">
+
+                    <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                        <x-heroicon-o-document-text class="w-5 h-5 text-green-600" />
+                    </div>
+
+                    <div>
+
+                        <h3 class="text-sm font-semibold text-gray-900">
+                            New Application Submitted
+                        </h3>
+
+                        <p class="text-sm text-gray-600 mt-1">
+                            John Smith submitted a new rental application.
+                        </p>
+
+                        <p class="text-xs text-gray-400 mt-2">
+                            2 minutes ago
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <a href="#"
+                    class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                    View
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Fuel Charge Alerts -->
                 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-300">

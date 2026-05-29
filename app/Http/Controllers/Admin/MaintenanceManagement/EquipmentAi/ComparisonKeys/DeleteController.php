@@ -14,7 +14,7 @@ class DeleteController extends Controller
         $key->delete();
 
         return redirect()
-            ->route('admin.maintenance-management.equipment-ai.comparison-keys.index', ['category_id' => $categoryId])
+            ->route('admin.maintenance-management.equipment-ai.index', ['category_id' => $categoryId, 'tab' => 'comparison'])
             ->with('success', 'Comparison key deleted.');
     }
 }

@@ -26,7 +26,7 @@ class UpdateController extends Controller
         $key->update($data);
 
         return redirect()
-            ->route('admin.maintenance-management.equipment-ai.comparison-keys.index', ['category_id' => $key->category_id])
+            ->route('admin.maintenance-management.equipment-ai.index', ['category_id' => $key->category_id, 'tab' => 'comparison'])
             ->with('success', 'Comparison key updated.');
     }
 }

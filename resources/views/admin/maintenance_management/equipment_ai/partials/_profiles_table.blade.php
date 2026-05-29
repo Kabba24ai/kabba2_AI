@@ -1,6 +1,13 @@
 @php
-    // Only profiles NOT yet completed are eligible for bulk generation
     $pendingForBulk = $profiles->whereNotIn('ai_status', ['completed'])->values();
+
+    $pendingProfilesForBulk = $pendingForBulk->map(function ($p) {
+        return [
+            'unique_id' => $p->unique_id,
+            'make'      => $p->make,
+            'model'     => $p->model ?? '',
+        ];
+    })->values();
 @endphp
 
 {{-- ─────────────────────────────────────────────────────────────────────────
@@ -17,14 +24,11 @@
          doneCount:   0,
          rowStatus:   {},   /* unique_id → 'running' | 'success' | 'error' */
          rowSaved:    {},   /* unique_id → number of specs saved            */
-         csrfToken:   '{{ csrf_token() }}',
+         csrfToken: @js(csrf_token()),
+
 
          /* ── Pending profiles list (server-rendered, JSON-safe) ────── */
-         pendingProfiles: @json($pendingForBulk->map(fn($p) => [
-             'unique_id' => $p->unique_id,
-             'make'      => $p->make,
-             'model'     => $p->model ?? '',
-         ])->values()),
+         pendingProfiles: @js($pendingProfilesForBulk),
 
          /* ── Computed ─────────────────────────────────────────────── */
          get totalPending()  { return this.pendingProfiles.length; },

@@ -31,7 +31,7 @@ class StoreController extends Controller
         );
 
         return redirect()
-            ->route('admin.maintenance-management.equipment-ai.comparison-keys.index', ['category_id' => $data['category_id']])
+            ->route('admin.maintenance-management.equipment-ai.index', ['category_id' => $data['category_id'], 'tab' => 'comparison'])
             ->with('success', 'Comparison key saved.');
     }
 }

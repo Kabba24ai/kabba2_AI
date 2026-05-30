@@ -25,7 +25,7 @@ class IndexController extends Controller
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
         //  Orders Query
-        $ordersQuery = Order::with('shippingAddress', 'products.product.categories', 'lastPayment')
+        $ordersQuery = Order::with('shippingAddress', 'products.product', 'lastPayment')
             // ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
             ->whereHas('lastPayment', function ($q) {
                 $q->where('payment_method', '!=', 'COD')
@@ -51,38 +51,85 @@ class IndexController extends Controller
                 $q->whereBetween('order_date', [$start, $end]);
             });
 
-        //$orders = $ordersQuery->get();
-        $orders = $ordersQuery->limit(500)->get();
+        $orders = $ordersQuery->get();
+        // $orders = $ordersQuery->limit(500)->get();
+
         // Load payment accounts ONLY when a store is NOT selected
         $paymentAccounts = collect(); // default empty collection
 
+        // if (empty($request->store)) {
+        //     //  Payment Accounts
+        //     $paymentAccounts = Customer::with([
+        //         'paymentAccounts' => function ($q) use ($request) {
+        //             if ($request->filled('payment_method') && $request->payment_method !== 'All Methods') {
+        //                 $q->where('payment_type', $request->payment_method);
+        //             }
+        //             if ($request->filled('month_range')) {
+        //                 [$year, $month] = explode('-', $request->month_range);
+        //                 $start = Carbon::create($year, $month, 1)->startOfMonth();
+        //                 $end = Carbon::create($year, $month, 1)->endOfMonth();
+        //                 $q->whereBetween('date', [$start, $end]);
+        //             }
+        //             if ($request->filled('start_date') && $request->filled('end_date')) {
+        //                 $start = Carbon::parse($request->start_date)->startOfDay();
+        //                 $end = Carbon::parse($request->end_date)->endOfDay();
+        //                 $q->whereBetween('date', [$start, $end]);
+        //             }
+        //         },
+        //     ])
+        //         ->get()
+        //         ->pluck('paymentAccounts')
+        //         ->flatten()
+        //         ->map(function ($item) {
+        //             $item->is_payment_account = true;
+        //             return $item;
+        //         });
+        // }
+
+
         if (empty($request->store)) {
-            //  Payment Accounts
-            $paymentAccounts = Customer::with([
-                'paymentAccounts' => function ($q) use ($request) {
-                    if ($request->filled('payment_method') && $request->payment_method !== 'All Methods') {
-                        $q->where('payment_type', $request->payment_method);
-                    }
-                    if ($request->filled('month_range')) {
-                        [$year, $month] = explode('-', $request->month_range);
-                        $start = Carbon::create($year, $month, 1)->startOfMonth();
-                        $end = Carbon::create($year, $month, 1)->endOfMonth();
-                        $q->whereBetween('date', [$start, $end]);
-                    }
-                    if ($request->filled('start_date') && $request->filled('end_date')) {
+
+            $paymentAccounts = CustomerAccount::query()
+                ->with('customer')
+                ->where('type', 'payment')
+
+                ->when(
+                    $request->filled('payment_method')
+                    && $request->payment_method !== 'All Methods',
+                    fn($q) => $q->where('payment_type', $request->payment_method)
+                )
+
+                ->when($request->filled('month_range'), function ($q) use ($request) {
+
+                    [$year, $month] = explode('-', $request->month_range);
+
+                    $start = Carbon::create($year, $month, 1)->startOfMonth();
+                    $end = Carbon::create($year, $month, 1)->endOfMonth();
+
+                    $q->whereBetween('date', [$start, $end]);
+                })
+
+                ->when(
+                    $request->filled('start_date')
+                    && $request->filled('end_date'),
+                    function ($q) use ($request) {
+
                         $start = Carbon::parse($request->start_date)->startOfDay();
                         $end = Carbon::parse($request->end_date)->endOfDay();
+
                         $q->whereBetween('date', [$start, $end]);
                     }
-                },
-            ])
+                )
+
                 ->get()
-                ->pluck('paymentAccounts')
-                ->flatten()
+
                 ->map(function ($item) {
                     $item->is_payment_account = true;
                     return $item;
                 });
+
+        } else {
+            $paymentAccounts = collect();
         }
 
         //  Combine & Paginate
@@ -220,14 +267,7 @@ class IndexController extends Controller
             return response()->json(['success' => true, 'html' => $html, 'stats' => $stats]);
         }
 
-        // Normal view
-        // $availableMonths = Order::selectRaw('YEAR(order_date) as year, MONTH(order_date) as month')->groupBy('year', 'month')->orderByDesc('year')->orderByDesc('month')->limit(12)->get()->map(
-        //     fn($item) => [
-        //         'value' => "{$item->year}-" . str_pad($item->month, 2, '0', STR_PAD_LEFT),
-        //         'label' => 'Pay for ' . Carbon::create($item->year, $item->month, 1)->format('M 1') . ' - ' . Carbon::create($item->year, $item->month, 1)->endOfMonth()->format('M d'),
-        //     ],
-        // );
-
+        
         // Get months from Orders
         $orderMonths = Order::selectRaw('YEAR(order_date) as year, MONTH(order_date) as month')
             ->groupBy('year', 'month')

@@ -13,23 +13,21 @@ class ToggleKeyComparisonController extends Controller
     /**
      * Toggle the is_key_comparison flag on a single AI specification.
      *
-     * When enabled  → also upserts an entry in equipment_category_comparison_keys
+     * When enabled  → upserts an entry in equipment_category_comparison_keys
      *                 so the spec is registered at the category level.
-     * When disabled → leaves the category-level record in place
-     *                 (admin manages that table independently).
+     * When disabled → deletes the matching category-level record (if it exists).
      */
     public function __invoke(Request $request, int $id): JsonResponse
     {
         $spec = EquipmentAiSpecification::with('profile')->findOrFail($id);
 
-        $newValue = ! $spec->is_key_comparison;
+        $newValue   = ! $spec->is_key_comparison;
+        $categoryId = $spec->profile->category_id;
 
         $spec->update(['is_key_comparison' => $newValue]);
 
-        // ── Register in category-level comparison keys when enabling ──────────
         if ($newValue) {
-            $categoryId = $spec->profile->category_id;
-
+            // ── Checking: add / update the category-level key ─────────────────
             EquipmentCategoryComparisonKey::updateOrCreate(
                 [
                     'category_id' => $categoryId,
@@ -43,6 +41,11 @@ class ToggleKeyComparisonController extends Controller
                     'is_required'      => false,
                 ]
             );
+        } else {
+            // ── Unchecking: remove the category-level key ─────────────────────
+            EquipmentCategoryComparisonKey::where('category_id', $categoryId)
+                ->where('spec_key', $spec->spec_key)
+                ->delete();
         }
 
         return response()->json([

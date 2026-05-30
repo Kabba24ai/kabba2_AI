@@ -108,20 +108,43 @@
                 </p>
             </div>
 
-            {{-- "Research Specs for All" — disabled once running or if nothing pending --}}
-            <button @click="runAll()"
-                :disabled="running || totalPending === 0"
-                class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-purple-400 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-900/20">
-                <svg x-show="running" class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                </svg>
-                <x-heroicon-o-sparkles x-show="!running" class="h-4 w-4" />
-                <span x-text="running
-                    ? 'Processing ' + (currentIndex + 1) + ' of ' + totalPending + '…'
-                    : 'Research and Create Specs for All'">
-                </span>
-            </button>
+            <div class="flex flex-wrap items-center gap-2">
+
+                {{-- "Compare & Commonize" — category-level synonym analysis ──── --}}
+                <form method="POST"
+                      action="{{ route('admin.maintenance-management.equipment-ai.commonize.analyze') }}"
+                      x-data="{ analyzing: false }">
+                    @csrf
+                    <input type="hidden" name="category_id" value="{{ $selectedCategory->id }}">
+                    <button type="submit"
+                            @click="analyzing = true"
+                            :disabled="analyzing"
+                            class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-indigo-400 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-900/20">
+                        <svg x-show="analyzing" class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        <x-heroicon-o-arrows-right-left x-show="!analyzing" class="h-4 w-4" />
+                        <span x-text="analyzing ? 'Analyzing…' : 'Compare & Commonize'"></span>
+                    </button>
+                </form>
+
+                {{-- "Research Specs for All" — disabled once running or if nothing pending --}}
+                <button @click="runAll()"
+                    :disabled="running || totalPending === 0"
+                    class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-purple-400 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-900/20">
+                    <svg x-show="running" class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <x-heroicon-o-sparkles x-show="!running" class="h-4 w-4" />
+                    <span x-text="running
+                        ? 'Processing ' + (currentIndex + 1) + ' of ' + totalPending + '…'
+                        : 'Research and Create Specs for All'">
+                    </span>
+                </button>
+
+            </div>
         </div>
     </div>
 

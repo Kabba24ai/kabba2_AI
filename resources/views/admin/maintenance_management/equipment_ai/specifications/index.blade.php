@@ -46,14 +46,16 @@
                 }
             });
             const data = await res.json();
-            if (!data.success) {
+            if (data.success) {
+                window.location.reload(); // refresh so sort order, badge & amber tint update
+            } else {
                 checkbox.checked = !checkbox.checked; // revert
                 alert('Failed to update. Please try again.');
+                this.togglingId = null;
             }
         } catch (e) {
             checkbox.checked = !checkbox.checked; // revert
             alert('Request failed. Please check your connection.');
-        } finally {
             this.togglingId = null;
         }
     }
@@ -110,6 +112,13 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
+
+                {{-- ── Back to Profiles list ──────────────────────────────────── --}}
+                <a href="{{ route('admin.maintenance-management.equipment-ai.index', ['category_id' => $profile->category_id]) }}"
+                   class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <x-heroicon-o-arrow-left class="h-4 w-4" />
+                    {{ $profile->category->title ?? 'Profiles' }}
+                </a>
 
                 {{-- ── AI Generate button ─────────────────────────────────────── --}}
                 <button @click="generateSpecs()"

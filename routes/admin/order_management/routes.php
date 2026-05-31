@@ -23,6 +23,9 @@ Route::prefix('order-management')
     // schedules
     require base_path('routes/admin/order_management/schedules/routes.php');
 
+    // dispatch (driver-focused, Truck-only view)
+    require base_path('routes/admin/order_management/dispatch/routes.php');
+
     // schedule assignment
     require base_path('routes/admin/order_management/schedule_assignment/routes.php');
 

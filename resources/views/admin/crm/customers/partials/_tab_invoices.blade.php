@@ -26,58 +26,7 @@
 
  </div>
 
- <!-- Invoice Status Cards -->
- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-     <!-- Paid -->
-     <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
-         <div>
-             <p class="text-sm text-gray-500">Paid Invoices</p>
-             <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_paid_invoices) }} </p>
-         </div>
-         <div class="bg-green-100 p-2 rounded-md">
-             <svg xmlns="http://www.w3.org/2000/svg"
-                 width="20" height="20" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                 class="lucide lucide-check-circle w-6 h-6 text-green-500">
-                 <path d="M9 12l2 2l4 -4"></path>
-                 <circle cx="12" cy="12" r="10"></circle>
-             </svg>
-         </div>
-     </div>
-
-     <!-- Pending -->
-     <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
-         <div>
-             <p class="text-sm text-gray-500">Pending Invoices</p>
-             <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_pending_invoices) }} </p>
-         </div>
-         <div class="bg-yellow-100 p-2 rounded-md">
-             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-             </svg>
-         </div>
-     </div>
-
-     <!-- Overdue -->
-     <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm ">
-         <div>
-             <p class="text-sm text-gray-500">Overdue Invoices</p>
-             <p class="text-xl font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($customer->total_overdue_invoices) }}</p>
-         </div>
-         <div class="bg-red-100 p-2 rounded-md  text-red-500">
-             <svg xmlns="http://www.w3.org/2000/svg"
-                 width="20" height="20" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                 class="lucide lucide-alert-circle w-6 h-6">
-                 <circle cx="12" cy="12" r="10" />
-                 <line x1="12" y1="8" x2="12" y2="12" />
-                 <line x1="12" y1="16" x2="12.01" y2="16" />
-             </svg>
-         </div>
-     </div>
- </div>
+{{-- Status summary cards removed — account uses running debit/credit balance, not per-invoice reconciliation --}}
 
  <div class="bg-white rounded-2xl shadow-sm mt-6 mb-6">
      <!-- Header with Filter -->
@@ -116,9 +65,6 @@
                      <th class="py-4 px-6 w-32">Created</th>
                      <th class="py-4 px-6 w-32">Due Date</th>
                      <th class="py-4 px-6 w-32 text-right">Amount</th>
-                          <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
-                               <th class="py-4 px-6 w-32 text-right">Open Amount</th>
-                     <th class="py-4 px-6 w-32 text-right">Payment Status</th>
                      <th class="py-4 px-6 w-32 text-right">Mail Date</th>
 
                      <th class="py-4 px-6 w-32 text-right">Email Status</th>
@@ -146,59 +92,6 @@
                          {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
                      </td>
                      <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
-
-                       {{-- Paid Amount --}}
-                    <td class="py-4 px-6 text-right text-green-600 font-semibold">
-                        ${{ number_format($invoice->paid_amount ?? 0, 2) }}
-                    </td>
-
-                  {{-- Open Amount --}}
-
-                        <td class="py-4 px-6 text-right text-red-600 font-semibold"
-                            data-open-amount="{{
-                                $invoice->invoice_status === 'paid'
-                                    ? 0
-                                    : ($invoice->open_amount > 0
-                                        ? $invoice->open_amount
-                                        : ($invoice->total > 0 ? $invoice->total : 0))
-                            }}">
-                            $
-                            {{
-                                number_format(
-                                    $invoice->invoice_status === 'paid'
-                                        ? 0
-                                        : ($invoice->open_amount > 0
-                                            ? $invoice->open_amount
-                                            : ($invoice->total > 0 ? $invoice->total : 0)),
-                                    2
-                                )
-                            }}
-                        </td>
-
-                     <td class="py-4 px-6 text-right">
-                        @php
-                            $statusColors = [
-                                'paid' => 'green',
-                                'partial_paid' => 'blue',
-                                'overdue' => 'red',
-                                'pending' => 'yellow',
-                            ];
-
-                            $color = $statusColors[$invoice->invoice_status] ?? 'gray';
-
-                            $statusLabel = match ($invoice->invoice_status) {
-                                'partial_paid' => 'Partial Paid',
-                                'paid' => 'Paid',
-                                'overdue' => 'Overdue',
-                                'pending' => 'Pending',
-                                default => ucfirst(str_replace('_', ' ', $invoice->invoice_status)),
-                            };
-                        @endphp
-
-                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
-                            {{ $statusLabel }}
-                        </span>
-                    </td>
 
                    <td class="py-4 px-6 text-right">
 
@@ -244,7 +137,16 @@
                          <div class="flex gap-2 items-center justify-end">
 
                             @if($invoice->invoice_status !== 'paid')
-                                <button  class="text-green-600 inline-flex items-center i_openPaymentModal" data-invoice-id="{{ $invoice->id }}"  data-remaing-amount="{{ $invoice->id }}">
+                                @php
+                                    $openAmt = $invoice->invoice_status === 'paid'
+                                        ? 0
+                                        : ($invoice->open_amount > 0
+                                            ? $invoice->open_amount
+                                            : ($invoice->total > 0 ? $invoice->total : 0));
+                                @endphp
+                                <button class="text-green-600 inline-flex items-center i_openPaymentModal"
+                                        data-invoice-id="{{ $invoice->id }}"
+                                        data-open-amount="{{ $openAmt }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
                                         <line x1="12" x2="12" y1="2" y2="22"></line>
                                         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
@@ -293,7 +195,7 @@
                  </tr>
                  @empty
                  <tr>
-                     <td colspan="7" class="text-center py-4 px-6">No invoices found</td>
+                     <td colspan="8" class="text-center py-4 px-6">No invoices found</td>
                  </tr>
                  @endforelse
              </tbody>
@@ -824,11 +726,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     btn.addEventListener('click', function () {
 
                         const invoiceId = this.dataset.invoiceId;
-                        const row = this.closest('tr');
 
-                        const openAmount = parseFloat(
-                            row.querySelector('[data-open-amount]')?.dataset.openAmount || 0
-                        );
+                        // data-open-amount now lives directly on this button
+                        const openAmount = parseFloat(this.dataset.openAmount || 0);
 
                         const amountInputtext = modalWrapper.querySelector('input[name="amount"]');
 

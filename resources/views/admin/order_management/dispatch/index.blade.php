@@ -469,11 +469,18 @@
                 window.clearFilters(fieldMap, screenKey);
                 scheduleTypeInputs.forEach(input => { input.checked = true; });
                 storeLocationInputs.forEach(input => { input.checked = true; });
+                // Reset date to 'today' (default for Dispatch — shows today + overdue)
+                if (dateFilterInput) dateFilterInput.value = 'today';
                 fetchDispatch();
             });
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
+
+            // Default date_filter to 'today' (today + overdue) when no saved preference exists
+            if (dateFilterInput && !dateFilterInput.value) {
+                dateFilterInput.value = 'today';
+            }
 
             const pageParam    = new URLSearchParams(window.location.search).get('page') || 1;
             const perPageParam = document.getElementById('per_page_sm')?.value ||

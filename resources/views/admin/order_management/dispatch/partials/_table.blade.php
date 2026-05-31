@@ -156,8 +156,8 @@
 
                             {{-- Delivery Driver --}}
                             <div class="flex items-center gap-1">
-                                <x-heroicon-o-truck class="w-3.5 h-3.5 text-blue-500 shrink-0" />
                                 @if ($orderProduct->deliveryEmployee)
+                                    <x-heroicon-o-truck class="w-3.5 h-3.5 text-blue-500 shrink-0" />
                                     <span class="text-xs font-medium text-gray-800">
                                         {{ $orderProduct->deliveryEmployee->first_name }}
                                         {{ $orderProduct->deliveryEmployee->last_name }}
@@ -178,7 +178,7 @@
                                     </button>
                                 @else
                                     <button type="button"
-                                        class="assign-driver-btn text-xs text-orange-500 hover:text-orange-700 font-medium underline underline-offset-2"
+                                        class="assign-driver-btn inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
                                         title="Assign delivery driver"
                                         data-slot="delivery"
                                         data-order-product-unique-id="{{ $orderProduct->unique_id }}"
@@ -189,6 +189,7 @@
                                         data-delivery-date="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date, 'M d, y') : '' }}"
                                         data-current-driver-id=""
                                         data-current-driver-name="">
+                                        <x-heroicon-o-truck class="w-3.5 h-3.5" />
                                         Assign
                                     </button>
                                 @endif
@@ -196,8 +197,8 @@
 
                             {{-- Return Driver --}}
                             <div class="flex items-center gap-1">
-                                <x-heroicon-o-arrow-uturn-left class="w-3.5 h-3.5 text-purple-500 shrink-0" />
                                 @if ($orderProduct->pickupEmployee)
+                                    <x-heroicon-o-arrow-uturn-left class="w-3.5 h-3.5 text-purple-500 shrink-0" />
                                     <span class="text-xs font-medium text-gray-800">
                                         {{ $orderProduct->pickupEmployee->first_name }}
                                         {{ $orderProduct->pickupEmployee->last_name }}
@@ -218,7 +219,7 @@
                                     </button>
                                 @else
                                     <button type="button"
-                                        class="assign-driver-btn text-xs text-orange-500 hover:text-orange-700 font-medium underline underline-offset-2"
+                                        class="assign-driver-btn inline-flex items-center gap-1 text-xs text-purple-600 hover:text-purple-800 font-medium"
                                         title="Assign return driver"
                                         data-slot="return"
                                         data-order-product-unique-id="{{ $orderProduct->unique_id }}"
@@ -229,6 +230,7 @@
                                         data-delivery-date="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date, 'M d, y') : '' }}"
                                         data-current-driver-id=""
                                         data-current-driver-name="">
+                                        <x-heroicon-o-arrow-uturn-left class="w-3.5 h-3.5" />
                                         Assign
                                     </button>
                                 @endif

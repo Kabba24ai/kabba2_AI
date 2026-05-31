@@ -23,7 +23,7 @@ class IndexController extends Controller
     {
         if ($request->ajax()) {
             $query = OrderProduct::query()
-                ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes')
+                ->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee')
                 ->where('product_data->product_type', 'Rental')
                 ->whereHas('order')
                 ->whereNotNull('delivery_date');
@@ -172,19 +172,22 @@ class IndexController extends Controller
         $categories = ProductCategory::getHierarchy();
         $stores     = Store::orderBy('store_name')->get();
 
-        $users = User::active()->orderBy('first_name', 'asc')
-            ->get()
-            ->map(fn($user) => [
-                'unique_id' => $user->unique_id,
-                'full_name' => $user->full_name,
-            ]);
+        $allUsers = User::active()->orderBy('first_name', 'asc')->get();
 
-        $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
+        // Equipment assign modal: uses unique_id (different endpoint)
+        $employees = $allUsers
+            ->map(fn($u) => ['unique_id' => $u->unique_id, 'full_name' => $u->full_name])
+            ->pluck('full_name', 'unique_id')
+            ->prepend('Select Employee', '');
+
+        // Driver assign modal: uses numeric id (update-product-schedule endpoint validates delivery_by as integer)
+        $driverEmployees = $allUsers->pluck('full_name', 'id');
 
         return view('admin.order_management.dispatch.index', [
-            'categories' => $categories,
-            'stores'     => $stores,
-            'employees'  => $employees,
+            'categories'      => $categories,
+            'stores'          => $stores,
+            'employees'       => $employees,        // for equipment assign modal (unique_id keys)
+            'driverEmployees' => $driverEmployees,  // for driver assign modal (numeric id keys)
         ]);
     }
 }

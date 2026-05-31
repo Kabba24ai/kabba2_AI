@@ -274,6 +274,78 @@
         </div>
     </div>
 
+    {{-- ===== Driver Assignment Modal ===== --}}
+    <div id="driverAssignModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center px-4">
+        <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
+
+            <!-- Header -->
+            <div class="relative px-6 pt-6 pb-4 border-b">
+                <h2 id="driver-modal-title" class="text-xl font-semibold text-gray-900 text-center">Assign Driver</h2>
+                <button type="button" id="close-driver-modal"
+                    class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none absolute right-6 top-6">&times;</button>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="px-6 pt-4 pb-2">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-1.5 text-sm">
+                    <div class="flex gap-2">
+                        <span class="font-semibold text-gray-500 w-24 shrink-0">Order:</span>
+                        <span id="driver-modal-order-number" class="font-semibold text-gray-800">-</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="font-semibold text-gray-500 w-24 shrink-0">Customer:</span>
+                        <span id="driver-modal-customer" class="text-gray-800">-</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="font-semibold text-gray-500 w-24 shrink-0">Product:</span>
+                        <span id="driver-modal-product" class="text-gray-800">-</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="font-semibold text-gray-500 w-24 shrink-0">Date:</span>
+                        <span id="driver-modal-date" class="text-gray-800">-</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="font-semibold text-gray-500 w-24 shrink-0">Type:</span>
+                        <span id="driver-modal-slot-label"
+                            class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Driver Select -->
+            <div class="px-6 py-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="driver-select">
+                    Select Driver
+                </label>
+                <select id="driver-select"
+                    class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
+                    <option value="">— Unassign / Clear —</option>
+                    @foreach ($driverEmployees as $driverId => $driverName)
+                        <option value="{{ $driverId }}">{{ $driverName }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Hidden state -->
+            <input type="hidden" id="driver-modal-slot" value="">
+            <input type="hidden" id="driver-modal-order-product-uid" value="">
+            <input type="hidden" id="driver-modal-order-uid" value="">
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button" id="close-driver-modal-footer"
+                    class="px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="button" id="driver-assign-submit"
+                    class="px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition">
+                    Save Driver
+                </button>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('js')
@@ -408,6 +480,9 @@
                                  new URLSearchParams(location.search).get('per_page') || null;
 
             fetchDispatch(pageParam, perPageParam);
+
+            // Expose globally so driver modal JS can call it after saving a driver
+            window.fetchDispatch = fetchDispatch;
 
             function fetchDispatch(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
@@ -746,6 +821,136 @@
                 });
                 equipmentSelect.appendChild(group);
             }
+        });
+    </script>
+
+    {{-- ===== Driver Assignment Modal JS ===== --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const driverModal         = document.getElementById('driverAssignModal');
+            const driverModalTitle    = document.getElementById('driver-modal-title');
+            const driverModalSlotLabel= document.getElementById('driver-modal-slot-label');
+            const driverModalOrder    = document.getElementById('driver-modal-order-number');
+            const driverModalCustomer = document.getElementById('driver-modal-customer');
+            const driverModalProduct  = document.getElementById('driver-modal-product');
+            const driverModalDate     = document.getElementById('driver-modal-date');
+            const driverSelect        = document.getElementById('driver-select');
+            const driverSlotInput     = document.getElementById('driver-modal-slot');
+            const driverOPUidInput    = document.getElementById('driver-modal-order-product-uid');
+            const driverOrderUidInput = document.getElementById('driver-modal-order-uid');
+            const driverSubmitBtn     = document.getElementById('driver-assign-submit');
+
+            // Build the URL template for update-product-schedule
+            const updateScheduleUrlTemplate =
+                '{{ route('admin.order-management.orders.update-product-schedule', [':order_uid', ':op_uid']) }}';
+
+            // ---- Open modal via event delegation (works after AJAX table reload) ----
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.assign-driver-btn');
+                if (!btn) return;
+
+                const slot          = btn.dataset.slot;          // 'delivery' | 'return'
+                const opUid         = btn.dataset.orderProductUniqueId;
+                const orderUid      = btn.dataset.orderUniqueId;
+                const orderNum      = btn.dataset.orderNumber;
+                const customerName  = btn.dataset.customerName;
+                const productName   = btn.dataset.productName;
+                const date          = btn.dataset.deliveryDate;
+                const currentDriver = btn.dataset.currentDriverId;
+
+                // Populate modal
+                const isDelivery = slot === 'delivery';
+                driverModalTitle.textContent    = isDelivery ? 'Assign Delivery Driver' : 'Assign Return Driver';
+                driverModalSlotLabel.textContent = isDelivery ? '🚛 Delivery' : '↩ Return';
+                driverModalSlotLabel.className   = isDelivery
+                    ? 'inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700'
+                    : 'inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700';
+
+                driverModalOrder.textContent    = orderNum    || '-';
+                driverModalCustomer.textContent = customerName|| '-';
+                driverModalProduct.textContent  = productName || '-';
+                driverModalDate.textContent     = date        || '-';
+
+                // Pre-select current driver (driver ID is a numeric users.id)
+                driverSelect.value = currentDriver || '';
+
+                // Store context
+                driverSlotInput.value     = slot;
+                driverOPUidInput.value    = opUid;
+                driverOrderUidInput.value = orderUid;
+
+                driverModal.classList.remove('hidden');
+            });
+
+            // ---- Close modal ----
+            document.getElementById('close-driver-modal')?.addEventListener('click',       closeDriverModal);
+            document.getElementById('close-driver-modal-footer')?.addEventListener('click', closeDriverModal);
+            driverModal?.addEventListener('click', function (e) {
+                if (e.target === driverModal) closeDriverModal();
+            });
+
+            function closeDriverModal() {
+                driverModal.classList.add('hidden');
+                driverSelect.value = '';
+            }
+
+            // ---- Save driver ----
+            driverSubmitBtn?.addEventListener('click', function () {
+                const slot    = driverSlotInput.value;
+                const opUid   = driverOPUidInput.value;
+                const orderUid= driverOrderUidInput.value;
+                const driverId= driverSelect.value;   // numeric user id or ''
+
+                if (!opUid || !orderUid) {
+                    if (window.notyf) notyf.error('Missing order context. Please try again.');
+                    return;
+                }
+
+                const url = updateScheduleUrlTemplate
+                    .replace(':order_uid', orderUid)
+                    .replace(':op_uid',    opUid);
+
+                // Map slot → DB field names
+                const isDelivery = slot === 'delivery';
+                const typeParam  = isDelivery ? 'delivery' : 'return';
+                const fieldParam = isDelivery ? 'delivery_by' : 'pickup_by';
+
+                const payload = {
+                    _method: 'PUT',
+                    type: typeParam,
+                    [fieldParam]: driverId === '' ? null : parseInt(driverId, 10),
+                };
+
+                driverSubmitBtn.disabled     = true;
+                driverSubmitBtn.textContent  = 'Saving…';
+
+                apiFetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                .then(data => {
+                    if (data?.success) {
+                        closeDriverModal();
+                        if (window.notyf) notyf.success('Driver updated.');
+                        // Re-fetch the dispatch table to reflect the new driver name
+                        if (typeof window.fetchDispatch === 'function') window.fetchDispatch();
+                    } else {
+                        if (window.notyf) notyf.error(data?.message || 'Failed to update driver.');
+                    }
+                })
+                .catch(() => {
+                    if (window.notyf) notyf.error('Something went wrong. Please try again.');
+                })
+                .finally(() => {
+                    driverSubmitBtn.disabled    = false;
+                    driverSubmitBtn.textContent = 'Save Driver';
+                });
+            });
         });
     </script>
 @endpush

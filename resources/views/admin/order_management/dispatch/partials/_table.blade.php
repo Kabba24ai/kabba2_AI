@@ -12,7 +12,7 @@
                 <th class="py-4 px-6 text-center">Location</th>
                 <th class="py-4 px-6 text-center">Delivery Date</th>
                 <th class="py-4 px-6 text-center">Return Date</th>
-                <th class="py-4 px-6 text-center">Payment</th>
+                <th class="py-4 px-6 text-center">Driver</th>
                 <th class="py-4 px-6 text-center">Actions</th>
             </tr>
         </thead>
@@ -20,7 +20,9 @@
         <tbody class="divide-y">
             @forelse ($orderProducts as $orderProduct)
                 <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
-                    <td class="py-4 px-6 text-left min-w-3xs max-w-3xs">
+
+                    {{-- Product — ~20% narrower than the schedule page (9.5rem vs 12rem) --}}
+                    <td class="py-4 px-6 text-left min-w-[9.5rem] max-w-[9.5rem]">
                         {{ $orderProduct->product_name }}
 
                         @php
@@ -29,7 +31,7 @@
                         @endphp
 
                         @if ($count === 1)
-                            <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                            <div class="text-xs text-gray-500 mt-1">
                                 <span>{{ $categories->first()->title }}</span>
                             </div>
                         @elseif ($count > 1)
@@ -54,15 +56,11 @@
                         <div class="font-medium">
                             {{ $orderProduct->order?->customer_name ?? '-' }}
                         </div>
-
                         @php $customer = $orderProduct->order?->customer; @endphp
-
                         @if ($customer && $customer->company_name)
                             <div class="text-xs text-gray-500 mt-1">
                                 @if (!empty($customer->company_website))
-                                    <a href="{{ $customer->company_website }}" class="underline">
-                                        {{ $customer->company_name }}
-                                    </a>
+                                    <a href="{{ $customer->company_website }}" class="underline">{{ $customer->company_name }}</a>
                                 @else
                                     <span>{{ $customer->company_name }}</span>
                                 @endif
@@ -152,8 +150,91 @@
                         </div>
                     </td>
 
-                    <td class="py-4 px-6 text-center">
-                        {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
+                    {{-- ===== DRIVER COLUMN ===== --}}
+                    <td class="py-4 px-6 text-center min-w-[9rem]">
+                        <div class="flex flex-col items-center gap-1.5">
+
+                            {{-- Delivery Driver --}}
+                            <div class="flex items-center gap-1">
+                                <x-heroicon-o-truck class="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                @if ($orderProduct->deliveryEmployee)
+                                    <span class="text-xs font-medium text-gray-800">
+                                        {{ $orderProduct->deliveryEmployee->first_name }}
+                                        {{ $orderProduct->deliveryEmployee->last_name }}
+                                    </span>
+                                    <button type="button"
+                                        class="assign-driver-btn text-gray-400 hover:text-blue-600 ml-0.5"
+                                        title="Reassign delivery driver"
+                                        data-slot="delivery"
+                                        data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                        data-order-unique-id="{{ $orderProduct->order?->unique_id }}"
+                                        data-order-number="{{ $orderProduct->order?->order_number }}"
+                                        data-customer-name="{{ $orderProduct->order?->customer_name }}"
+                                        data-product-name="{{ $orderProduct->product_name }}"
+                                        data-delivery-date="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date, 'M d, y') : '' }}"
+                                        data-current-driver-id="{{ $orderProduct->delivery_by }}"
+                                        data-current-driver-name="{{ $orderProduct->deliveryEmployee->full_name }}">
+                                        <x-heroicon-o-pencil-square class="w-3.5 h-3.5" />
+                                    </button>
+                                @else
+                                    <button type="button"
+                                        class="assign-driver-btn text-xs text-orange-500 hover:text-orange-700 font-medium underline underline-offset-2"
+                                        title="Assign delivery driver"
+                                        data-slot="delivery"
+                                        data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                        data-order-unique-id="{{ $orderProduct->order?->unique_id }}"
+                                        data-order-number="{{ $orderProduct->order?->order_number }}"
+                                        data-customer-name="{{ $orderProduct->order?->customer_name }}"
+                                        data-product-name="{{ $orderProduct->product_name }}"
+                                        data-delivery-date="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date, 'M d, y') : '' }}"
+                                        data-current-driver-id=""
+                                        data-current-driver-name="">
+                                        Assign
+                                    </button>
+                                @endif
+                            </div>
+
+                            {{-- Return Driver --}}
+                            <div class="flex items-center gap-1">
+                                <x-heroicon-o-arrow-uturn-left class="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                                @if ($orderProduct->pickupEmployee)
+                                    <span class="text-xs font-medium text-gray-800">
+                                        {{ $orderProduct->pickupEmployee->first_name }}
+                                        {{ $orderProduct->pickupEmployee->last_name }}
+                                    </span>
+                                    <button type="button"
+                                        class="assign-driver-btn text-gray-400 hover:text-purple-600 ml-0.5"
+                                        title="Reassign return driver"
+                                        data-slot="return"
+                                        data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                        data-order-unique-id="{{ $orderProduct->order?->unique_id }}"
+                                        data-order-number="{{ $orderProduct->order?->order_number }}"
+                                        data-customer-name="{{ $orderProduct->order?->customer_name }}"
+                                        data-product-name="{{ $orderProduct->product_name }}"
+                                        data-delivery-date="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date, 'M d, y') : '' }}"
+                                        data-current-driver-id="{{ $orderProduct->pickup_by }}"
+                                        data-current-driver-name="{{ $orderProduct->pickupEmployee->full_name }}">
+                                        <x-heroicon-o-pencil-square class="w-3.5 h-3.5" />
+                                    </button>
+                                @else
+                                    <button type="button"
+                                        class="assign-driver-btn text-xs text-orange-500 hover:text-orange-700 font-medium underline underline-offset-2"
+                                        title="Assign return driver"
+                                        data-slot="return"
+                                        data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                        data-order-unique-id="{{ $orderProduct->order?->unique_id }}"
+                                        data-order-number="{{ $orderProduct->order?->order_number }}"
+                                        data-customer-name="{{ $orderProduct->order?->customer_name }}"
+                                        data-product-name="{{ $orderProduct->product_name }}"
+                                        data-delivery-date="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date, 'M d, y') : '' }}"
+                                        data-current-driver-id=""
+                                        data-current-driver-name="">
+                                        Assign
+                                    </button>
+                                @endif
+                            </div>
+
+                        </div>
                     </td>
 
                     <td class="py-4 px-6">

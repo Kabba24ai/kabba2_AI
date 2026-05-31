@@ -182,6 +182,13 @@
                         class="dispatch-filter-btn px-3 py-2 rounded bg-purple-100 text-purple-700 text-xs font-semibold hover:bg-purple-200 border border-purple-200"
                         data-schedule-type="Return">Returns - Truck</button>
                 </div>
+
+                <!-- Show All toggle -->
+                <label class="flex items-center gap-2 cursor-pointer ml-2 select-none">
+                    <input type="checkbox" id="show_all" name="show_all"
+                        class="text-blue-600 focus:ring-blue-500 rounded border-gray-300 w-4 h-4">
+                    <span class="text-sm font-medium text-gray-700">Show All</span>
+                </label>
             </div>
         </div>
     </div>
@@ -309,6 +316,10 @@
                         <span class="font-semibold text-gray-500 w-24 shrink-0">Type:</span>
                         <span id="driver-modal-slot-label"
                             class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">-</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="font-semibold text-gray-500 w-24 shrink-0">Driver Phone:</span>
+                        <a id="driver-modal-phone" href="#" class="text-gray-800 hover:underline">-</a>
                     </div>
                 </div>
             </div>
@@ -444,6 +455,7 @@
             const dateFilterInput          = document.querySelector('select[name="date_filter"]');
             const storeLocationInputs      = document.querySelectorAll('input[name="store_location[]"]');
             const scheduleTypeInputs       = document.querySelectorAll('input[name="schedule_type[]"]');
+            const showAllInput             = document.getElementById('show_all');
             const loadingIndicator         = document.querySelector('#dispatch-loading');
             const wrapper                  = document.querySelector('#dispatch-table-wrapper');
 
@@ -462,6 +474,7 @@
                 'date_filter':          dateFilterInput,
                 'store_location[]':     storeLocationInputs,
                 'schedule_type[]':      scheduleTypeInputs,
+                'show_all':             showAllInput,
             };
 
             // Clear filters
@@ -471,6 +484,8 @@
                 storeLocationInputs.forEach(input => { input.checked = true; });
                 // Reset date to 'today' (default for Dispatch — shows today + overdue)
                 if (dateFilterInput) dateFilterInput.value = 'today';
+                // Reset Show All to off (default — hide completed)
+                if (showAllInput) showAllInput.checked = false;
                 fetchDispatch();
             });
 
@@ -506,6 +521,7 @@
                 if (paymentStatusInput && paymentStatusInput.value) params.append('payment_status', paymentStatusInput.value);
                 if (paymentMethodInput && paymentMethodInput.value) params.append('payment_method', paymentMethodInput.value);
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
+                if (showAllInput?.checked) params.append('show_all', '1');
                 if (perPage) params.append('per_page', perPage);
                 params.set('page', page);
 
@@ -560,6 +576,7 @@
             if (paymentStatusInput) paymentStatusInput.addEventListener('change', fetchDispatch);
             if (paymentMethodInput) paymentMethodInput.addEventListener('change', fetchDispatch);
             if (dateFilterInput) dateFilterInput.addEventListener('change', fetchDispatch);
+            if (showAllInput) showAllInput.addEventListener('change', fetchDispatch);
             storeLocationInputs.forEach(input => input.addEventListener('change', fetchDispatch));
 
             scheduleTypeInputs.forEach(input => {
@@ -841,11 +858,15 @@
             const driverModalCustomer = document.getElementById('driver-modal-customer');
             const driverModalProduct  = document.getElementById('driver-modal-product');
             const driverModalDate     = document.getElementById('driver-modal-date');
+            const driverModalPhone    = document.getElementById('driver-modal-phone');
             const driverSelect        = document.getElementById('driver-select');
             const driverSlotInput     = document.getElementById('driver-modal-slot');
             const driverOPUidInput    = document.getElementById('driver-modal-order-product-uid');
             const driverOrderUidInput = document.getElementById('driver-modal-order-uid');
             const driverSubmitBtn     = document.getElementById('driver-assign-submit');
+
+            // Phone lookup: driverId (numeric) → phone string
+            const driverPhones = @json($driverPhones ?? []);
 
             // Build the URL template for update-product-schedule
             const updateScheduleUrlTemplate =
@@ -881,12 +902,33 @@
                 // Pre-select current driver (driver ID is a numeric users.id)
                 driverSelect.value = currentDriver || '';
 
+                // Show current driver's phone
+                updateDriverPhone(currentDriver);
+
                 // Store context
                 driverSlotInput.value     = slot;
                 driverOPUidInput.value    = opUid;
                 driverOrderUidInput.value = orderUid;
 
                 driverModal.classList.remove('hidden');
+            });
+
+            // ---- Phone helper ----
+            function updateDriverPhone(driverId) {
+                if (!driverModalPhone) return;
+                const phone = driverId ? (driverPhones[driverId] || '') : '';
+                if (phone) {
+                    driverModalPhone.textContent = phone;
+                    driverModalPhone.href        = 'tel:' + phone.replace(/\D/g, '');
+                } else {
+                    driverModalPhone.textContent = driverId ? 'N/A' : '-';
+                    driverModalPhone.removeAttribute('href');
+                }
+            }
+
+            // Update phone when driver selection changes
+            driverSelect?.addEventListener('change', function () {
+                updateDriverPhone(this.value);
             });
 
             // ---- Close modal ----
@@ -899,6 +941,7 @@
             function closeDriverModal() {
                 driverModal.classList.add('hidden');
                 driverSelect.value = '';
+                updateDriverPhone('');
             }
 
             // ---- Save driver ----

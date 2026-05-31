@@ -76,24 +76,28 @@ class IndexController extends Controller
             $scheduleTypes = [];
             $orderByField  = 'delivery_date';
             $orderBy       = 'asc';
+            $showAll       = $request->boolean('show_all'); // true → include completed rows
 
             if ($request->filled('schedule_type')) {
                 $scheduleTypes = array_filter((array) $request->input('schedule_type', []), fn($v) => $v !== '' && $v !== 'false');
                 $isReturnOnly  = in_array('Return', $scheduleTypes) && !in_array('Delivery', $scheduleTypes);
 
-                $query->where(function ($q) use ($scheduleTypes, $isReturnOnly) {
-                    if (in_array('Delivery', $scheduleTypes)) {
-                        $q->where('delivery_status', 'Pending');
-                    }
-                    if (in_array('Return', $scheduleTypes)) {
-                        if ($isReturnOnly) {
-                            $q->where('pickup_status', 'Pending')
-                                ->where('delivery_status', 'Completed');
-                        } else {
-                            $q->orWhere('pickup_status', 'Pending');
+                // Default (show_all=false): hide completed rows — only show actionable items
+                if (!$showAll) {
+                    $query->where(function ($q) use ($scheduleTypes, $isReturnOnly) {
+                        if (in_array('Delivery', $scheduleTypes)) {
+                            $q->where('delivery_status', 'Pending');
                         }
-                    }
-                });
+                        if (in_array('Return', $scheduleTypes)) {
+                            if ($isReturnOnly) {
+                                $q->where('pickup_status', 'Pending')
+                                    ->where('delivery_status', 'Completed');
+                            } else {
+                                $q->orWhere('pickup_status', 'Pending');
+                            }
+                        }
+                    });
+                }
             }
 
             if (in_array('Return', $scheduleTypes) && !in_array('Delivery', $scheduleTypes)) {
@@ -106,6 +110,13 @@ class IndexController extends Controller
                     $q->where('delivery_transport_mode', 'Truck')
                       ->orWhere('pickup_transport_mode', 'Truck');
                 });
+                // When no schedule_type filter and show_all is off, exclude fully-completed rows
+                if (!$showAll) {
+                    $query->where(function ($q) {
+                        $q->where('delivery_status', '!=', 'Completed')
+                          ->orWhere('pickup_status', '!=', 'Completed');
+                    });
+                }
             } else {
                 $query->where(function ($q) use ($scheduleTypes) {
                     if (in_array('Delivery', $scheduleTypes)) {
@@ -183,11 +194,17 @@ class IndexController extends Controller
         // Driver assign modal: uses numeric id (update-product-schedule endpoint validates delivery_by as integer)
         $driverEmployees = $allUsers->pluck('full_name', 'id');
 
+        // Driver phone map (id → phone) — shown in modal so dispatcher can contact the driver
+        $driverPhones = $allUsers->mapWithKeys(fn($u) => [
+            $u->id => $u->mobile_phone ?: $u->phone_number ?: '',
+        ]);
+
         return view('admin.order_management.dispatch.index', [
             'categories'      => $categories,
             'stores'          => $stores,
             'employees'       => $employees,        // for equipment assign modal (unique_id keys)
             'driverEmployees' => $driverEmployees,  // for driver assign modal (numeric id keys)
+            'driverPhones'    => $driverPhones,     // for driver modal phone display (id keys)
         ]);
     }
 }

@@ -72,13 +72,16 @@ class OrderProduct extends Model
         'equipment_id',
         'equipment_details',
         'assigned_by',
-        'assigned_at'
+        'assigned_at',
+
+        'dispatch_checklist',   // JSON: driver pre-delivery checklist state
     ];
 
     // In your OrderProduct.php model
     protected $casts = [
-        'product_data' => 'array',
-        'equipment_details' => 'array',
+        'product_data'       => 'array',
+        'equipment_details'  => 'array',
+        'dispatch_checklist' => 'array',
     ];
 
     // Relationships

@@ -237,7 +237,13 @@
                     </td>
 
                     <td class="py-4 px-6">
-                        <div class="flex gap-2 items-center justify-center">
+                        <div class="flex gap-3 items-center justify-center">
+                            {{-- Dispatch detail / driver checklist --}}
+                            <a href="{{ route('admin.order-management.dispatch.show', $orderProduct->unique_id) }}"
+                                class="text-blue-600 hover:text-blue-800" title="Dispatch Checklist">
+                                <x-heroicon-o-clipboard-document-check class="w-4 h-4" />
+                            </a>
+                            {{-- Full order view --}}
                             <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order?->unique_id ?? 0) }}"
                                 class="text-sky-600 hover:text-sky-800" title="View Order">
                                 @if ($orderProduct?->order?->notes->isNotEmpty())

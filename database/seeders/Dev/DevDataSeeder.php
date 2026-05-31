@@ -388,6 +388,9 @@ class DevDataSeeder extends Seeder
         // Only use available equipment to avoid status conflicts
         $availableEquipment = collect($equipment)->filter(fn($e) => $e->current_status === 'available');
 
+        // Fetch store IDs so order products get assigned to a store (dispatch store-location filter requires this)
+        $storeIds = Store::pluck('id')->toArray() ?: [1];
+
         $paymentStatuses = ['Paid', 'Paid', 'Paid', 'Pending', 'Account'];
         $paymentMethods  = ['Card', 'Card', 'COD', 'Account'];
 
@@ -478,6 +481,9 @@ class DevDataSeeder extends Seeder
                     'rental_type'  => 'daily',
                 ];
 
+                // Alternate store assignment across orders
+                $storeId = $storeIds[($customerIndex * $this->ordersPerCustomer + $i) % count($storeIds)];
+
                 $orderProduct = OrderProduct::create([
                     'order_id'               => $order->id,
                     'product_id'             => $product->id,
@@ -494,10 +500,12 @@ class DevDataSeeder extends Seeder
                     'delivery_transport_mode'=> 'Truck',
                     'delivery_date'          => $deliveryDate->format('Y-m-d'),
                     'delivery_time'          => $this->randomDeliveryTime(),
+                    'delivery_store_id'      => $storeId,
                     'pickup_status'          => $pickupStatus,
                     'pickup_transport_mode'  => 'Truck',
                     'pickup_date'            => $returnDate->format('Y-m-d'),
                     'pickup_time'            => '09:00:00',
+                    'pickup_store_id'        => $storeId,
                 ]);
             }
         }

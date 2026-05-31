@@ -580,7 +580,7 @@
                                         </span>
                                     </li>
                                 @endforeach
-                                @foreach ($orderProduct->product_data['product_option_items'] as $option)
+                                @foreach ($orderProduct->product_data['product_option_items'] ?? [] as $option)
                                     <li class="flex justify-between">
                                         <span>
                                             {{ $option['name'] }}

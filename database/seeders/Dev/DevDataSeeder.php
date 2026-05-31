@@ -485,6 +485,8 @@ class DevDataSeeder extends Seeder
                         'rental_weekly'  => (float) ($product->rental_weekly  ?? round($unitPrice * 5, 2)),
                         'rental_monthly' => (float) ($product->rental_monthly ?? round($unitPrice * 18, 2)),
                     ],
+                    // Selected add-on options (empty for seed data — no options pre-selected)
+                    'product_option_items' => [],
                 ];
 
                 // Alternate store assignment across orders

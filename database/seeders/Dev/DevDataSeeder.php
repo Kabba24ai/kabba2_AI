@@ -479,6 +479,12 @@ class DevDataSeeder extends Seeder
                     'product_name' => $product->product_name,
                     'product_type' => 'Rental',
                     'rental_type'  => 'daily',
+                    // Pricing breakdown expected by order edit view
+                    'product_rental_items_prices' => [
+                        'rental_daily'   => (float) ($product->rental_daily   ?? $unitPrice),
+                        'rental_weekly'  => (float) ($product->rental_weekly  ?? round($unitPrice * 5, 2)),
+                        'rental_monthly' => (float) ($product->rental_monthly ?? round($unitPrice * 18, 2)),
+                    ],
                 ];
 
                 // Alternate store assignment across orders

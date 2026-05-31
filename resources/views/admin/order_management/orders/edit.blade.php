@@ -555,7 +555,7 @@
 
 
 
-                        @if ($orderProduct->product_data && count($orderProduct->product_data))
+                        @if ($orderProduct->product_data && !empty($orderProduct->product_data['product_rental_items_prices']))
                             <div class="flex justify-between">
                                 <span class="underline">Options</span>
                             </div>

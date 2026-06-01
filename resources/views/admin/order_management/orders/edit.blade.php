@@ -96,30 +96,19 @@
                     {{-- PO ID Field --}}
 
                     <div class="flex gap-2 items-center">
-                        <input
-                            type="text"
-                            id="po_id"
-                            name="po_id"
-                            value="{{ $order->po_id ?? '' }}"
+                        <input type="text" id="po_id" name="po_id" value="{{ $order->po_id ?? '' }}"
                             data-order-id="{{ $order->id }}"
                             class="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Enter PO ID"
-                        />
+                            placeholder="Enter PO ID" />
 
-                        <svg
-                            class="w-5 h-5 text-blue-500 hover:text-blue-600 cursor-pointer edit-po-btn"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                        >
+                        <svg class="w-5 h-5 text-blue-500 hover:text-blue-600 cursor-pointer edit-po-btn"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor">
 
                             <path stroke-linecap="round" stroke-linejoin="round"
-                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                            />
+                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                         </svg>
-                     </div>
+                    </div>
 
 
 
@@ -294,7 +283,7 @@
                         <div class="grid grid-cols-3" id="billing_map_link">
                             <span></span>
                             <a href="https://maps.google.com/?q={{ urlencode($order->billingAddress->full_address) }}"
-                                 class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
+                                class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
                                 maps</a>
                         </div>
                     @endif
@@ -363,7 +352,7 @@
                         <div class="grid grid-cols-3" id="shipping_map_link">
                             <span></span>
                             <a href="https://maps.google.com/?q={{ urlencode($order->shippingAddress->full_address) }}"
-                                 class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
+                                class="text-blue-600 text-xs hover:underline col-span-2 text-right">See on
                                 maps</a>
                         </div>
                     @endif
@@ -436,8 +425,12 @@
                             </a>
                             @if ($orderProduct->product_data['product_type'] === 'Rental')
                                 @php
-                                    $disableEquipmentLink = in_array($orderProduct->delivery_status, ['Completed', 'Close as Completed'], true)
-                                        && $orderProduct->pickup_status === 'Completed';
+                                    $disableEquipmentLink =
+                                        in_array(
+                                            $orderProduct->delivery_status,
+                                            ['Completed', 'Close as Completed'],
+                                            true,
+                                        ) && $orderProduct->pickup_status === 'Completed';
                                 @endphp
                                 <p class="text-sm text-gray-500">
                                     Equipment:
@@ -450,7 +443,7 @@
                                                 </span>
                                             @else
                                                 <a href="{{ route('admin.maintenance-management.equipment.edit', $orderProduct->equipment->unique_id) }}"
-                                                     class="text-xs text-green-600 hover:underline">
+                                                    class="text-xs text-green-600 hover:underline">
                                                     {{ $orderProduct->equipment->equipment_name ?? '—' }} ||
                                                     ({{ $orderProduct->equipment->equipment_id ?? '—' }})
                                                 </a>
@@ -473,13 +466,15 @@
                                             <span class="ml-2 inline-flex items-center gap-1">
                                                 @if ($disableEquipmentLink)
                                                     <span class="text-xs text-gray-400">
-                                                        {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }} ||
+                                                        {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }}
+                                                        ||
                                                         ({{ $orderProduct?->softAssignment?->equipment->equipment_id ?? '—' }})
                                                     </span>
                                                 @else
                                                     <a href="{{ route('admin.maintenance-management.equipment.edit', $softUnique) }}"
-                                                       class="text-xs text-blue-600 hover:underline">
-                                                        {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }} ||
+                                                        class="text-xs text-blue-600 hover:underline">
+                                                        {{ $orderProduct?->softAssignment?->equipment->equipment_name ?? '—' }}
+                                                        ||
                                                         ({{ $orderProduct?->softAssignment?->equipment->equipment_id ?? '—' }})
                                                     </a>
                                                 @endif
@@ -632,8 +627,7 @@
                                                 <input type="text" id="delivery_date_{{ $orderProduct->unique_id }}"
                                                     data-format="{{ config('app.date.js_date_format') }}"
                                                     value="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date) : '' }}"
-                                                    placeholder="Select date"
-                                                    {{-- data-min-date="{{ now()->format(config('app.date.db_date_format')) }}" --}}
+                                                    placeholder="Select date" {{-- data-min-date="{{ now()->format(config('app.date.db_date_format')) }}" --}}
                                                     class="datepicker delivery_date border rounded px-3 py-3 text-xs w-full" />
                                             </div>
                                             <!-- Time -->
@@ -758,7 +752,11 @@
 
                                 {{-- Return Schedule --}}
                                 @php
-                                    $allowPickupComplete = in_array($orderProduct->delivery_status, ['Completed', 'Close as Completed'], true);
+                                    $allowPickupComplete = in_array(
+                                        $orderProduct->delivery_status,
+                                        ['Completed', 'Close as Completed'],
+                                        true,
+                                    );
                                 @endphp
                                 <div class="space-y-2 mb-4" x-data="{ pickupStatus: '{{ $orderProduct->pickup_status ?? 'Pending' }}' }">
                                     <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
@@ -989,7 +987,7 @@
                                         <div class="flex justify-center mb-1 gap-1">
                                             @if ($order->terms_status->isPending())
                                                 <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                                     title="View Terms">
+                                                    title="View Terms">
                                                     <span
                                                         class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
                                                         <x-heroicon-o-x-mark class="w-4 h-4" />
@@ -1010,7 +1008,7 @@
                                                 </button>
                                             @else
                                                 <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                                     title="View Terms">
+                                                    title="View Terms">
                                                     <span
                                                         class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
                                                         <x-heroicon-o-check class="w-4 h-4" />
@@ -1018,13 +1016,30 @@
                                                 </a>
                                             @endif
                                         </div>
-                                        @if (!empty($order->last_terms_sms_sent_at))
+                                        {{-- @if (!empty($order->last_terms_sms_sent_at))
                                             <span class="text-yellow-500 text-xs font-bold">
                                                 {{ \App\Helpers\CustomHelper::formatDateTime($order->last_terms_sms_sent_at) }}
                                             </span>
+                                        @endif --}}
+                                        @if ($order->terms_first_sent_at)
+                                            <span class="text-yellow-600">
+                                                1st sent {{ \App\Helpers\CustomHelper::formatDateTime($order->terms_first_sent_at) }}
+                                            </span>
+                                        @endif
+
+                                        @if ($order->terms_second_sent_at)
+                                            <span class="text-red-600">
+                                                2nd sent {{ \App\Helpers\CustomHelper::formatDateTime($order->terms_second_sent_at) }}
+                                            </span>
+                                        @endif
+
+                                        @if ($order->terms_third_sent_at)
+                                            <span class="font-bold text-black">
+                                                3rd sent {{ \App\Helpers\CustomHelper::formatDateTime($order->terms_third_sent_at) }}
+                                            </span>
                                         @endif
                                     </div>
-                                    <!-- License -->
+
                                     <!-- License -->
                                     <div class="flex flex-col items-center">
                                         <div>License</div>
@@ -1603,11 +1618,11 @@
 
                                 if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card) {
                                     $refundOptions =
-                                        array_slice($refundOptions, 0, 1, true)
-                                        + [
-                                            \App\Enums\Customers\PaymentMethod::CreditCard->value => 'Credit / Debit Card',
-                                        ]
-                                        + array_slice($refundOptions, 1, null, true);
+                                        array_slice($refundOptions, 0, 1, true) + [
+                                            \App\Enums\Customers\PaymentMethod::CreditCard->value =>
+                                                'Credit / Debit Card',
+                                        ] +
+                                        array_slice($refundOptions, 1, null, true);
                                 }
 
                             @endphp
@@ -1767,7 +1782,7 @@
                                             <th class="py-2 px-2">Delivered</th>
                                             <th class="py-2 px-2">Returned</th>
                                             <!-- <th class="py-2 px-2">Balance</th>
-                                                                                <th class="py-2 px-2">Value</th> -->
+                                                                                    <th class="py-2 px-2">Value</th> -->
                                             <th class="py-2 px-2 text-right">Customer Owes</th>
                                         </tr>
                                     </thead>
@@ -1933,7 +1948,6 @@
 
                                         {{-- @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0) --}}
                                         @if (!is_null($product->fuel_initial_reading))
-
                                             @php
                                                 $arrFuelDelivery = [
                                                     ['id' => 10, 'name' => 'Prepaid'],
@@ -2182,11 +2196,11 @@
 
                                                     <!-- Save button pinned to bottom on md+ -->
                                                     <!-- <div class="mt-auto flex justify-end">
-                                                                                            <button type="submit"
-                                                                                                class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
-                                                                                                Save
-                                                                                            </button>
-                                                                                        </div> -->
+                                                                                                <button type="submit"
+                                                                                                    class="px-4 py-2 text-sm rounded bg-sky-600 text-white hover:bg-sky-700 shadow-sm">
+                                                                                                    Save
+                                                                                                </button>
+                                                                                            </div> -->
                                                 </div>
 
                                             </div>
@@ -2272,7 +2286,8 @@
                     <div class="flex items-center gap-2">
                         <input type="radio" name="assignment_type" id="assignNew" value="new" class="w-4 h-4"
                             checked>
-                        <label for="assignNew" class="text-sm font-semibold text-gray-700">Assign New Equipment ID</label>
+                        <label for="assignNew" class="text-sm font-semibold text-gray-700">Assign New Equipment
+                            ID</label>
                     </div>
 
                     <div id="newAssignmentFields" class="ml-6 space-y-2">
@@ -2292,9 +2307,9 @@
                                 <option value="" data-current-status="">Select Equipment</option>
                             </select>
                             <div class="flex items-center justify-between gap-3 mt-2">
-                                <span id="equipment-status-display" class="text-sm font-semibold text-yellow-400"></span>
-                                <a href="#"
-                                    class="text-blue-600 hover:underline text-sm font-semibold"
+                                <span id="equipment-status-display"
+                                    class="text-sm font-semibold text-yellow-400"></span>
+                                <a href="#" class="text-blue-600 hover:underline text-sm font-semibold"
                                     id="equipment-page-link"></a>
                             </div>
                         </div>
@@ -2323,9 +2338,9 @@
     <!-- Change Return Date Modal -->
     @php
         $hoursSettings = $allocatedHoursSettings ?? [];
-        $dailyHours   = floatval($hoursSettings['daily_hours']   ?? 8);
+        $dailyHours = floatval($hoursSettings['daily_hours'] ?? 8);
         $weekendHours = round(floatval($hoursSettings['weekend_hours'] ?? 14) / 2.5, 1);
-        $weeklyHours  = floatval($hoursSettings['weekly_hours']  ?? 40);
+        $weeklyHours = floatval($hoursSettings['weekly_hours'] ?? 40);
         $monthlyHours = floatval($hoursSettings['monthly_hours'] ?? 160);
     @endphp
     <div id="changeReturnDateModal"
@@ -2354,45 +2369,39 @@
 
                 <!-- Hours options -->
                 <div id="returnHoursOptions" class="ml-7 space-y-2 pt-1">
-                    @foreach ([
-                        ['id' => 'hoursTypeDaily',   'value' => 'daily',   'label' => 'Daily',        'hours' => $dailyHours],
-                        ['id' => 'hoursTypeWeekend', 'value' => 'weekend', 'label' => 'Weekend Spcl', 'hours' => $weekendHours],
-                        ['id' => 'hoursTypeWeekly',  'value' => 'weekly',  'label' => 'Weekly',       'hours' => $weeklyHours],
-                        ['id' => 'hoursTypeMonthly', 'value' => 'monthly', 'label' => 'Monthly',      'hours' => $monthlyHours],
-                    ] as $hoursOption)
-                    <div class="flex items-center justify-between gap-2">
-                        <label class="flex items-center gap-2 cursor-pointer flex-1">
-                            <input type="radio" name="hoursType" id="{{ $hoursOption['id'] }}"
-                                value="{{ $hoursOption['value'] }}"
-                                data-hours="{{ $hoursOption['hours'] }}"
-                                class="hours-type-radio w-4 h-4 accent-blue-600"
-                                @if($hoursOption['value'] === 'daily') checked @endif>
-                            <span class="text-sm text-gray-700">{{ $hoursOption['label'] }} <span class="text-gray-500">{!! '{' . $hoursOption['hours'] . ' Hours}' !!}</span></span>
-                        </label>
-                        <div class="flex items-center gap-1 hours-qty-row" data-type="{{ $hoursOption['value'] }}">
-                            <button type="button"
-                                class="hours-qty-minus w-6 h-6 rounded-full bg-yellow-400 text-white font-bold text-sm flex items-center justify-center leading-none"
-                                data-type="{{ $hoursOption['value'] }}">−</button>
-                            <span class="hours-qty-display text-sm font-medium w-5 text-center"
-                                data-type="{{ $hoursOption['value'] }}">1</span>
-                            <button type="button"
-                                class="hours-qty-plus w-6 h-6 rounded-full bg-yellow-400 text-white font-bold text-sm flex items-center justify-center leading-none"
-                                data-type="{{ $hoursOption['value'] }}">+</button>
-                            <span class="text-xs text-gray-400 ml-0.5">Qty</span>
+                    @foreach ([['id' => 'hoursTypeDaily', 'value' => 'daily', 'label' => 'Daily', 'hours' => $dailyHours], ['id' => 'hoursTypeWeekend', 'value' => 'weekend', 'label' => 'Weekend Spcl', 'hours' => $weekendHours], ['id' => 'hoursTypeWeekly', 'value' => 'weekly', 'label' => 'Weekly', 'hours' => $weeklyHours], ['id' => 'hoursTypeMonthly', 'value' => 'monthly', 'label' => 'Monthly', 'hours' => $monthlyHours]] as $hoursOption)
+                        <div class="flex items-center justify-between gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer flex-1">
+                                <input type="radio" name="hoursType" id="{{ $hoursOption['id'] }}"
+                                    value="{{ $hoursOption['value'] }}" data-hours="{{ $hoursOption['hours'] }}"
+                                    class="hours-type-radio w-4 h-4 accent-blue-600"
+                                    @if ($hoursOption['value'] === 'daily') checked @endif>
+                                <span class="text-sm text-gray-700">{{ $hoursOption['label'] }} <span
+                                        class="text-gray-500">{!! '{' . $hoursOption['hours'] . ' Hours}' !!}</span></span>
+                            </label>
+                            <div class="flex items-center gap-1 hours-qty-row"
+                                data-type="{{ $hoursOption['value'] }}">
+                                <button type="button"
+                                    class="hours-qty-minus w-6 h-6 rounded-full bg-yellow-400 text-white font-bold text-sm flex items-center justify-center leading-none"
+                                    data-type="{{ $hoursOption['value'] }}">−</button>
+                                <span class="hours-qty-display text-sm font-medium w-5 text-center"
+                                    data-type="{{ $hoursOption['value'] }}">1</span>
+                                <button type="button"
+                                    class="hours-qty-plus w-6 h-6 rounded-full bg-yellow-400 text-white font-bold text-sm flex items-center justify-center leading-none"
+                                    data-type="{{ $hoursOption['value'] }}">+</button>
+                                <span class="text-xs text-gray-400 ml-0.5">Qty</span>
+                            </div>
                         </div>
-                    </div>
                     @endforeach
                     <!-- Custom -->
                     <div class="flex items-center justify-between gap-2">
                         <label class="flex items-center gap-2 cursor-pointer flex-1">
                             <input type="radio" name="hoursType" id="hoursTypeCustom" value="custom"
-                                data-hours="0"
-                                class="hours-type-radio w-4 h-4 accent-blue-600">
+                                data-hours="0" class="hours-type-radio w-4 h-4 accent-blue-600">
                             <span class="text-sm text-gray-700">Custom</span>
                         </label>
                         <input type="number" id="customHoursInput" min="0" step="0.5"
-                            class="border rounded px-2 py-1 text-sm w-20 text-right hidden"
-                            placeholder="Hours">
+                            class="border rounded px-2 py-1 text-sm w-20 text-right hidden" placeholder="Hours">
                     </div>
                     <!-- Total -->
                     <div class="pt-2 border-t text-sm font-semibold text-gray-800 text-right">
@@ -2548,7 +2557,8 @@
                             notyf.success(res.message || 'Equipment removed successfully.');
                             window.location.reload();
                         } else {
-                            notyf.error(res && res.message ? res.message : 'Failed to remove equipment.');
+                            notyf.error(res && res.message ? res.message :
+                                'Failed to remove equipment.');
                         }
                     })
                     .catch(() => {
@@ -2882,8 +2892,10 @@
 
                     deliveryDate.addEventListener('change', function() {
                         var returnDateValue = returnDate ? returnDate.value : null;
-                        var previousDeliveryDateValue = this.getAttribute('data-previous-value') || '';
-                        if (returnDateValue && new Date(deliveryDate.value) > new Date(returnDateValue)) {
+                        var previousDeliveryDateValue = this.getAttribute('data-previous-value') ||
+                            '';
+                        if (returnDateValue && new Date(deliveryDate.value) > new Date(
+                                returnDateValue)) {
                             notyf.error('Delivery date cannot be after return date.');
                             this.value = previousDeliveryDateValue || '';
                             return;
@@ -3002,8 +3014,10 @@
 
                     returnDate.addEventListener('change', function() {
                         var deliveryDateValue = deliveryDate ? deliveryDate.value : null;
-                        var previousReturnDateValue = this.getAttribute('data-previous-value') || '';
-                        if (deliveryDateValue && new Date(returnDate.value) < new Date(deliveryDateValue)) {
+                        var previousReturnDateValue = this.getAttribute('data-previous-value') ||
+                        '';
+                        if (deliveryDateValue && new Date(returnDate.value) < new Date(
+                                deliveryDateValue)) {
                             notyf.error('Return date cannot be before delivery date.');
                             this.value = previousReturnDateValue || '';
                             return;
@@ -3012,8 +3026,10 @@
                         this.setAttribute('data-previous-value', this.value || '');
 
                         const orderProducts = @json($order->products);
-                        const orderProduct = orderProducts.find(op => op.unique_id === orderProductId);
-                        const currentAllocatedHours = parseFloat(orderProduct?.allocated_hours) || 0;
+                        const orderProduct = orderProducts.find(op => op.unique_id ===
+                            orderProductId);
+                        const currentAllocatedHours = parseFloat(orderProduct?.allocated_hours) ||
+                        0;
 
                         window.openChangeReturnDateModal(
                             orderProductId,
@@ -4374,7 +4390,7 @@
                             </a>
                         </div>
                     `;
-                    }
+                }
 
                 // Image
                 else if (m.url.match(/\.(jpeg|jpg|png|gif|webp)$/)) {
@@ -4447,7 +4463,7 @@
     </script>
 
     <script>
-        document.addEventListener('click', function (e) {
+        document.addEventListener('click', function(e) {
 
             const btn = e.target.closest('.edit-po-btn');
             if (!btn) return;
@@ -4464,53 +4480,59 @@
                 if (!result.isConfirmed) return;
 
                 apiFetch('{{ route('admin.order-management.orders.update-po-id') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        order_id: orderId,
-                        po_id: poId
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            order_id: orderId,
+                            po_id: poId
+                        })
                     })
-                })
-                .then(res => {
-                    if (res && res.success) {
-                        notyf.success(res.message || 'PO ID updated successfully.');
-                    } else {
-                        notyf.error(res && res.message ? res.message : 'Failed to update PO ID.');
-                    }
-                })
-                .catch(() => {
-                    notyf.error('Failed to update PO ID.');
-                });
+                    .then(res => {
+                        if (res && res.success) {
+                            notyf.success(res.message || 'PO ID updated successfully.');
+                        } else {
+                            notyf.error(res && res.message ? res.message : 'Failed to update PO ID.');
+                        }
+                    })
+                    .catch(() => {
+                        notyf.error('Failed to update PO ID.');
+                    });
 
             });
 
         });
 
         // ── Change Return Date Modal ──────────────────────────────────────────
-        (function () {
-            const modal           = document.getElementById('changeReturnDateModal');
-            const optionDateOnly  = document.getElementById('returnDateOnly');
+        (function() {
+            const modal = document.getElementById('changeReturnDateModal');
+            const optionDateOnly = document.getElementById('returnDateOnly');
             const optionDateHours = document.getElementById('returnDateAndHours');
-            const hoursSection    = document.getElementById('returnHoursOptions');
+            const hoursSection = document.getElementById('returnHoursOptions');
             const currentAllocatedDisplay = document.getElementById('returnCurrentAllocatedHours');
-            const totalDisplay    = document.getElementById('returnTotalHoursAdded');
-            const customInput     = document.getElementById('customHoursInput');
-            const saveBtn         = document.getElementById('saveChangeReturnDate');
-            const cancelBtns      = [
+            const totalDisplay = document.getElementById('returnTotalHoursAdded');
+            const customInput = document.getElementById('customHoursInput');
+            const saveBtn = document.getElementById('saveChangeReturnDate');
+            const cancelBtns = [
                 document.getElementById('closeChangeReturnDateModal'),
                 document.getElementById('cancelChangeReturnDate'),
             ];
 
-            let _orderProductId   = null;
-            let _newDateValue     = null;
-            let _updateFn         = null;
+            let _orderProductId = null;
+            let _newDateValue = null;
+            let _updateFn = null;
 
             // qty state per type
-            const qty = { daily: 1, weekend: 1, weekly: 1, monthly: 1 };
+            const qty = {
+                daily: 1,
+                weekend: 1,
+                weekly: 1,
+                monthly: 1
+            };
 
             function getSelectedHoursType() {
                 return document.querySelector('input[name="hoursType"]:checked')?.value ?? 'daily';
@@ -4553,7 +4575,7 @@
 
             // Hours type radios
             document.querySelectorAll('.hours-type-radio').forEach(radio => {
-                radio.addEventListener('change', function () {
+                radio.addEventListener('change', function() {
                     customInput.classList.toggle('hidden', this.value !== 'custom');
                     recalcTotal();
                 });
@@ -4561,13 +4583,16 @@
 
             // Qty buttons
             document.querySelectorAll('.hours-qty-minus, .hours-qty-plus').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const type  = this.dataset.type;
+                btn.addEventListener('click', function() {
+                    const type = this.dataset.type;
                     const delta = this.classList.contains('hours-qty-plus') ? 1 : -1;
-                    qty[type]   = Math.max(1, (qty[type] ?? 1) + delta);
+                    qty[type] = Math.max(1, (qty[type] ?? 1) + delta);
                     // Select the corresponding radio
                     const radio = document.querySelector(`input[name="hoursType"][value="${type}"]`);
-                    if (radio) { radio.checked = true; customInput.classList.add('hidden'); }
+                    if (radio) {
+                        radio.checked = true;
+                        customInput.classList.add('hidden');
+                    }
                     updateQtyDisplay(type);
                     recalcTotal();
                 });
@@ -4578,26 +4603,26 @@
 
             // Close handlers
             cancelBtns.forEach(btn => btn?.addEventListener('click', closeModal));
-            modal.addEventListener('click', function (e) {
+            modal.addEventListener('click', function(e) {
                 if (e.target === modal) closeModal();
             });
 
             function closeModal() {
                 modal.classList.add('hidden');
                 _orderProductId = null;
-                _newDateValue   = null;
-                _updateFn       = null;
+                _newDateValue = null;
+                _updateFn = null;
             }
 
             // Save
-            saveBtn.addEventListener('click', function () {
+            saveBtn.addEventListener('click', function() {
                 if (!_updateFn || !_orderProductId) return;
 
                 // Capture values before closeModal() nulls them
-                const fn        = _updateFn;
+                const fn = _updateFn;
                 const dateValue = _newDateValue;
                 const updateHours = optionDateHours.checked;
-                const totalHours  = updateHours ? recalcTotal() : 0;
+                const totalHours = updateHours ? recalcTotal() : 0;
 
                 closeModal();
 
@@ -4612,17 +4637,21 @@
             });
 
             // Public opener
-            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0) {
+            window.openChangeReturnDateModal = function(orderProductId, newDate, updateScheduleField,
+                currentAllocatedHours = 0) {
                 _orderProductId = orderProductId;
-                _newDateValue   = newDate;
-                _updateFn       = updateScheduleField;
+                _newDateValue = newDate;
+                _updateFn = updateScheduleField;
 
                 if (currentAllocatedDisplay) {
                     currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;
                 }
 
                 // Reset qty
-                Object.keys(qty).forEach(k => { qty[k] = 1; updateQtyDisplay(k); });
+                Object.keys(qty).forEach(k => {
+                    qty[k] = 1;
+                    updateQtyDisplay(k);
+                });
                 // Default: daily checked, hours section visible
                 document.getElementById('hoursTypeDaily').checked = true;
                 customInput.classList.add('hidden');
@@ -4634,7 +4663,6 @@
                 modal.classList.remove('hidden');
             };
         })();
-
     </script>
 
 @endpush

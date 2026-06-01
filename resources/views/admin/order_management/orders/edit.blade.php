@@ -2936,7 +2936,7 @@
                             return;
                         }
 
-                        updateScheduleField('delivery', 'delivery_date', newDelivery);
+                        updateScheduleField('delivery', 'delivery_date', this.value);
                     });
                 }
                 if (deliveryTime) {
@@ -4544,6 +4544,9 @@
             const optionDateOnly  = document.getElementById('returnDateOnly');
             const optionDateHours = document.getElementById('returnDateAndHours');
             const hoursSection    = document.getElementById('returnHoursOptions');
+            const currentDateLabel = document.getElementById('returnCurrentDateLabel');
+            const calcDateDisplay = document.getElementById('returnCalcDateDisplay');
+            const manualDateInput = document.getElementById('returnManualDateInput');
             const currentAllocatedDisplay = document.getElementById('returnCurrentAllocatedHours');
             const totalDisplay    = document.getElementById('returnTotalHoursAdded');
             const customInput     = document.getElementById('customHoursInput');
@@ -4556,6 +4559,16 @@
             let _orderProductId   = null;
             let _newDateValue     = null;
             let _updateFn         = null;
+            let _currentReturnDateValue = '';
+            let _deliveryDateValue = '';
+            let _returnEl = null;
+
+            const DURATION_DAYS = {
+                daily: 1,
+                weekend: 2,
+                weekly: 7,
+                monthly: 30,
+            };
 
             // qty state per type
             const qty = {
@@ -4621,7 +4634,7 @@
                 } else {
                     calcDateDisplay.classList.remove('hidden');
                     manualDateInput.classList.add('hidden');
-                    const newDate = calcReturnDate(_currentReturnDateValue, type, qty[type]);
+                    const newDate = calcReturnDate(_deliveryDateValue, type, qty[type]);
                     calcDateDisplay.textContent = newDate || '—';
                 }
             }
@@ -4693,17 +4706,27 @@
                 _orderProductId = null;
                 _newDateValue   = null;
                 _updateFn       = null;
+                _currentReturnDateValue = '';
+                _deliveryDateValue = '';
+                _returnEl = null;
             }
 
             // Save
             saveBtn.addEventListener('click', function () {
                 if (!_updateFn || !_orderProductId) return;
 
+                const selectedType = getSelectedHoursType();
+                const isManualMode = optionDateOnly.checked || selectedType === 'custom';
+                const resolvedDate = isManualMode
+                    ? (manualDateInput?.value || _currentReturnDateValue)
+                    : (calcReturnDate(_deliveryDateValue, selectedType, qty[selectedType]) || _currentReturnDateValue);
+
                 // Capture values before closeModal() nulls them
                 const fn        = _updateFn;
-                const dateValue = _newDateValue;
+                const dateValue = resolvedDate;
                 const updateHours = optionDateHours.checked;
                 const totalHours  = updateHours ? recalcTotal() : 0;
+                const returnEl = _returnEl;
 
                 closeModal();
 
@@ -4728,10 +4751,24 @@
             });
 
             // Public opener
-            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0) {
+            window.openChangeReturnDateModal = function (
+                orderProductId,
+                currentReturnDate,
+                deliveryDateValue,
+                updateScheduleField,
+                currentAllocatedHours = 0,
+                returnEl = null
+            ) {
                 _orderProductId = orderProductId;
-                _newDateValue   = newDate;
+                _newDateValue   = currentReturnDate;
                 _updateFn       = updateScheduleField;
+                _currentReturnDateValue = currentReturnDate || '';
+                _deliveryDateValue = deliveryDateValue || '';
+                _returnEl = returnEl;
+
+                if (currentDateLabel) {
+                    currentDateLabel.textContent = _currentReturnDateValue || '—';
+                }
 
                 if (currentAllocatedDisplay) {
                     currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;

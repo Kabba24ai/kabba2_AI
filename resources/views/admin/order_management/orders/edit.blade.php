@@ -2936,7 +2936,7 @@
                             return;
                         }
 
-                        updateScheduleField('delivery', 'delivery_date', this.value);
+                        updateScheduleField('delivery', 'delivery_date', newDelivery);
                     });
                 }
                 if (deliveryTime) {
@@ -4543,9 +4543,6 @@
             const optionDateOnly  = document.getElementById('returnDateOnly');
             const optionDateHours = document.getElementById('returnDateAndHours');
             const hoursSection    = document.getElementById('returnHoursOptions');
-            const currentDateLabel = document.getElementById('returnCurrentDateLabel');
-            const calcDateDisplay = document.getElementById('returnCalcDateDisplay');
-            const manualDateInput = document.getElementById('returnManualDateInput');
             const currentAllocatedDisplay = document.getElementById('returnCurrentAllocatedHours');
             const totalDisplay    = document.getElementById('returnTotalHoursAdded');
             const customInput     = document.getElementById('customHoursInput');
@@ -4706,18 +4703,11 @@
             saveBtn.addEventListener('click', function () {
                 if (!_updateFn || !_orderProductId) return;
 
-                const selectedType = getSelectedHoursType();
-                const isManualMode = optionDateOnly.checked || selectedType === 'custom';
-                const resolvedDate = isManualMode
-                    ? (manualDateInput?.value || _currentReturnDateValue)
-                    : (calcReturnDate(_deliveryDateValue, selectedType, qty[selectedType]) || _currentReturnDateValue);
-
                 // Capture values before closeModal() nulls them
                 const fn          = _updateFn;
                 const returnEl    = _returnDateEl;
                 const updateHours = optionDateHours.checked;
                 const totalHours  = updateHours ? recalcTotal() : 0;
-                const returnEl = _returnEl;
 
                 // Compute the new date: manual pick or duration calculation
                 let dateValue;
@@ -4752,7 +4742,7 @@
             // Public opener
             window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0, returnDateEl = null) {
                 _orderProductId = orderProductId;
-                _newDateValue   = currentReturnDate;
+                _newDateValue   = newDate;
                 _updateFn       = updateScheduleField;
                 _returnDateEl   = returnDateEl;
 

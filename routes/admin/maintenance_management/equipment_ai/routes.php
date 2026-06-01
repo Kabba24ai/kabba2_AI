@@ -16,6 +16,10 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\GenerateController as SpecGenerateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\ToggleKeyComparisonController as SpecToggleKeyComparisonController;
 
+// Controllers — Commonize (Compare & Commonize)
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\AnalyzeController as CommonizeAnalyzeController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\ApplyController as CommonizeApplyController;
+
 // Controllers — Category Comparison Keys
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\IndexController as KeyIndexController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\StoreController as KeyStoreController;
@@ -38,6 +42,20 @@ Route::prefix('equipment-ai')
         Route::post('/scan', ScanController::class)->name('scan');
         Route::post('/refresh', RefreshController::class)->name('refresh');
         Route::delete('/profiles/{unique_id}', DeleteController::class)->name('profiles.delete');
+
+        /*
+        |-----------------------------------------------------------
+        | Compare & Commonize
+        |-----------------------------------------------------------
+        | Full name: admin.maintenance-management.equipment-ai.commonize.analyze
+        |            admin.maintenance-management.equipment-ai.commonize.apply
+        */
+        Route::prefix('commonize')
+            ->name('commonize.')
+            ->group(function () {
+                Route::post('/analyze', CommonizeAnalyzeController::class)->name('analyze');
+                Route::post('/apply',   CommonizeApplyController::class)->name('apply');
+            });
 
         /*
         |-----------------------------------------------------------

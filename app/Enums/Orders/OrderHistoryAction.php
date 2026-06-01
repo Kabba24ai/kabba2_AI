@@ -2,7 +2,7 @@
 
 namespace App\Enums\Orders;
 
-enum OrderHistoryAction : string
+enum OrderHistoryAction: string
 {
     case CreateOrder = 'create_order';
     case PaymentInitiated = 'payment_initiated';
@@ -25,13 +25,16 @@ enum OrderHistoryAction : string
     case ChecklistDelivered = 'checklist_delivered';
     case ChecklistReturned = 'checklist_returned';
     case ChecklistRemoved = 'checklist_removed';
+    case TermsFirstRequest = 'terms_first_request';
+    case TermsSecondRequest = 'terms_second_request';
+    case TermsThirdRequest = 'terms_third_request';
 
     case PaymentCollected = 'payment_collected';
     case PaymentUncollectable = 'payment_uncollectable';
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::CreateOrder => 'Order Created',
             self::PaymentInitiated => 'Payment Initiated',
             self::PaymentFailed => 'Payment Failed',
@@ -53,10 +56,11 @@ enum OrderHistoryAction : string
             self::ChecklistDelivered => 'Customer Checklist Delivered',
             self::ChecklistReturned => 'Customer Checklist Returned',
             self::ChecklistRemoved => 'Customer Checklist Removed',
-
-             self::PaymentCollected => 'Payment Collected',
-        self::PaymentUncollectable => 'Payment Marked Uncollectable',
+            self::TermsFirstRequest => 'Terms First Request Sent',
+            self::TermsSecondRequest => 'Terms Second Request Sent',
+            self::TermsThirdRequest => 'Terms Third Request Sent',
+            self::PaymentCollected => 'Payment Collected',
+            self::PaymentUncollectable => 'Payment Marked Uncollectable',
         };
     }
-
 }

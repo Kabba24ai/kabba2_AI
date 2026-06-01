@@ -27,7 +27,7 @@ use App\Helpers\ModelHelper;
 // Request
 use App\Http\Requests\Front\Checkout\PostRequest;
 use App\Jobs\CreateReceiptJob;
-
+use App\Jobs\SendTermsRequestJob;
 // Models
 use App\Models\Customers\Customer;
 
@@ -571,6 +571,21 @@ class PostController extends Controller
             }
 
 
+            // Dispatch delayed jobs for terms request if terms are pending (after response)
+            if ($order->terms_status === OrderTermsStatus::Pending) {
+                SendTermsRequestJob::dispatch($order->id, 1)->delay(now()->addMinutes(15));
+                SendTermsRequestJob::dispatch($order->id, 2)->delay(now()->addHours(2));
+                foreach($order->products as $product) {
+                    if ($product->product_type == 'Rental' && !empty($product->delivery_date)) {
+                        // send final reminder at 6:45 AM on delivery date
+                        $deliveryDate = Carbon::parse($product->delivery_date)->setTime(6, 45, 0);
+                        if ($deliveryDate->isFuture()) {
+                            SendTermsRequestJob::dispatch($order->id, 3)->delay($deliveryDate);
+                        }
+                    }
+                }
+            }
+
             // Success: redirect to signed thank you page with order id
             Log::info('Redirecting to thank you page at ' . now() . ' with URL: ' . $redirectUrl);
 
@@ -582,6 +597,7 @@ class PostController extends Controller
                 'redirect_url' => $redirectUrl,
                 'order_id' => $order->unique_id ?? ''
             ]);
+
         } catch (\Exception $e) {
             // Log the error if needed: logger($e);
             Log::error('Checkout failed', [

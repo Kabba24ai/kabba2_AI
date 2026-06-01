@@ -323,7 +323,7 @@ class Order extends Model
             ->get()
             ->map(function ($note) {
                 $note->source_label = 'Order Note';
-                $note->is_editable = class_basename((string) $note->created_by_type) === 'User';
+                $note->is_editable = true; // All order notes are editable/deletable in the admin interface
                 return $note;
             });
 

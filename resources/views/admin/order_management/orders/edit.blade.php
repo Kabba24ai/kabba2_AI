@@ -3062,11 +3062,10 @@
 
                         window.openChangeReturnDateModal(
                             orderProductId,
-                            returnDate.value,                           // current return date
-                            deliveryDate ? deliveryDate.value : '',     // delivery date (for calc)
+                            returnDate.value,
                             updateScheduleField,
                             currentAllocatedHours,
-                            returnDate                                  // DOM element to update on save
+                            returnDate
                         );
                     });
                 }
@@ -4556,19 +4555,13 @@
                 document.getElementById('cancelChangeReturnDate'),
             ];
 
+            const calcDateDisplay = document.getElementById('returnCalcDateDisplay');
+            const manualDateInput = document.getElementById('returnManualDateInput');
+
             let _orderProductId   = null;
             let _newDateValue     = null;
             let _updateFn         = null;
-            let _currentReturnDateValue = '';
-            let _deliveryDateValue = '';
-            let _returnEl = null;
-
-            const DURATION_DAYS = {
-                daily: 1,
-                weekend: 2,
-                weekly: 7,
-                monthly: 30,
-            };
+            let _returnDateEl     = null;
 
             // qty state per type
             const qty = {
@@ -4634,7 +4627,7 @@
                 } else {
                     calcDateDisplay.classList.remove('hidden');
                     manualDateInput.classList.add('hidden');
-                    const newDate = calcReturnDate(_deliveryDateValue, type, qty[type]);
+                    const newDate = calcReturnDate(_newDateValue, type, qty[type]);
                     calcDateDisplay.textContent = newDate || '—';
                 }
             }
@@ -4706,9 +4699,7 @@
                 _orderProductId = null;
                 _newDateValue   = null;
                 _updateFn       = null;
-                _currentReturnDateValue = '';
-                _deliveryDateValue = '';
-                _returnEl = null;
+                _returnDateEl   = null;
             }
 
             // Save
@@ -4722,11 +4713,19 @@
                     : (calcReturnDate(_deliveryDateValue, selectedType, qty[selectedType]) || _currentReturnDateValue);
 
                 // Capture values before closeModal() nulls them
-                const fn        = _updateFn;
-                const dateValue = resolvedDate;
+                const fn          = _updateFn;
+                const returnEl    = _returnDateEl;
                 const updateHours = optionDateHours.checked;
                 const totalHours  = updateHours ? recalcTotal() : 0;
                 const returnEl = _returnEl;
+
+                // Compute the new date: manual pick or duration calculation
+                let dateValue;
+                if (optionDateOnly.checked || getSelectedHoursType() === 'custom') {
+                    dateValue = manualDateInput ? manualDateInput.value : _newDateValue;
+                } else {
+                    dateValue = calcReturnDate(_newDateValue, getSelectedHoursType(), qty[getSelectedHoursType()]);
+                }
 
                 closeModal();
 
@@ -4751,24 +4750,11 @@
             });
 
             // Public opener
-            window.openChangeReturnDateModal = function (
-                orderProductId,
-                currentReturnDate,
-                deliveryDateValue,
-                updateScheduleField,
-                currentAllocatedHours = 0,
-                returnEl = null
-            ) {
+            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0, returnDateEl = null) {
                 _orderProductId = orderProductId;
                 _newDateValue   = currentReturnDate;
                 _updateFn       = updateScheduleField;
-                _currentReturnDateValue = currentReturnDate || '';
-                _deliveryDateValue = deliveryDateValue || '';
-                _returnEl = returnEl;
-
-                if (currentDateLabel) {
-                    currentDateLabel.textContent = _currentReturnDateValue || '—';
-                }
+                _returnDateEl   = returnDateEl;
 
                 if (currentAllocatedDisplay) {
                     currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;
@@ -4776,9 +4762,9 @@
 
                 // Pre-populate manual picker with current return date
                 if (manualDateInput) {
-                    manualDateInput.value = currentReturnDate || '';
-                    if (_manualPicker && currentReturnDate) {
-                        const parsed = parseScheduleDate(currentReturnDate);
+                    manualDateInput.value = _newDateValue || '';
+                    if (_manualPicker && _newDateValue) {
+                        const parsed = parseScheduleDate(_newDateValue);
                         if (parsed) _manualPicker.selectDate(parsed, { silent: true });
                     }
                 }

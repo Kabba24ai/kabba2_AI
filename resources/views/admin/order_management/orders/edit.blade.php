@@ -4554,11 +4554,15 @@
 
             const calcDateDisplay = document.getElementById('returnCalcDateDisplay');
             const manualDateInput = document.getElementById('returnManualDateInput');
+            const currentDateLabel = document.getElementById('returnCurrentDateLabel');
 
             let _orderProductId   = null;
             let _newDateValue     = null;
             let _updateFn         = null;
             let _returnDateEl     = null;
+
+            // Calendar days added per duration type × 1 qty
+            const DURATION_DAYS = { daily: 1, weekend: 1, weekly: 7, monthly: 28 };
 
             // qty state per type
             const qty = {
@@ -4626,6 +4630,16 @@
                     manualDateInput.classList.add('hidden');
                     const newDate = calcReturnDate(_newDateValue, type, qty[type]);
                     calcDateDisplay.textContent = newDate || '—';
+                    // Warn if calculated date is not after the current return date
+                    const baseDate = parseScheduleDate(_newDateValue);
+                    const calcDate = parseScheduleDate(newDate);
+                    const isPast   = calcDate && baseDate && calcDate <= baseDate;
+                    calcDateDisplay.classList.toggle('text-red-700',    isPast);
+                    calcDateDisplay.classList.toggle('bg-red-50',       isPast);
+                    calcDateDisplay.classList.toggle('border-red-300',  isPast);
+                    calcDateDisplay.classList.toggle('text-blue-700',   !isPast);
+                    calcDateDisplay.classList.toggle('bg-blue-50',      !isPast);
+                    calcDateDisplay.classList.toggle('border-blue-200', !isPast);
                 }
             }
 
@@ -4717,6 +4731,14 @@
                     dateValue = calcReturnDate(_newDateValue, getSelectedHoursType(), qty[getSelectedHoursType()]);
                 }
 
+                // Block save if new date is not after the current return date
+                const baseDate    = parseScheduleDate(_newDateValue);
+                const newDateParsed = parseScheduleDate(dateValue);
+                if (!newDateParsed || (baseDate && newDateParsed <= baseDate)) {
+                    if (window.notyf) window.notyf.error('New return date must be after the current return date.');
+                    return;
+                }
+
                 closeModal();
 
                 // Update the return date field on screen
@@ -4746,6 +4768,9 @@
                 _updateFn       = updateScheduleField;
                 _returnDateEl   = returnDateEl;
 
+                if (currentDateLabel) {
+                    currentDateLabel.textContent = _newDateValue || '—';
+                }
                 if (currentAllocatedDisplay) {
                     currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;
                 }
@@ -4761,7 +4786,8 @@
 
                 // Reset qty
                 Object.keys(qty).forEach(k => { qty[k] = 1; updateQtyDisplay(k); });
-                // Default: daily checked, hours section visible
+                // Default: "date & hours" checked, daily selected
+                optionDateHours.checked = true;
                 document.getElementById('hoursTypeDaily').checked = true;
                 customInput.classList.add('hidden');
                 customInput.value = '';

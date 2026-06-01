@@ -29,12 +29,32 @@ class IndexController extends Controller
                 'execution_time' => round(microtime(true) - $startTime, 2) . ' sec'
             ]);
 
+
+            Log::info('STEP A');
+
             $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
+            
+            Log::info('STEP B');
+
             //  Orders Query
-            $ordersQuery = Order::with('shippingAddress', 'products.product', 'lastPayment')
-                // ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
-                ->whereHas('lastPayment', function ($q) {
+            // $ordersQuery = Order::with('shippingAddress', 'products.product', 'lastPayment')
+                $ordersQuery = Order::query()
+    ->select([
+        'id',
+        'unique_id',
+        'order_number',
+        'order_date',
+        'subtotal',
+        'tax_amount',
+        'discount_amount',
+        'grand_total',
+    ])
+    ->with([
+        'shippingAddress:id,order_id,first_name,last_name',  
+           'products:id,order_id,product_name',
+        'lastPayment'
+    ])->whereHas('lastPayment', function ($q) {
                     $q->where('payment_method', '!=', 'COD')
                     ->orWhere(function ($q) {
                         $q->where('payment_method', 'COD')
@@ -57,6 +77,9 @@ class IndexController extends Controller
                     $end = Carbon::parse($request->end_date)->endOfDay();
                     $q->whereBetween('order_date', [$start, $end]);
                 });
+
+                Log::info('STEP C');
+
                 $timer = microtime(true);
                         $orders = $ordersQuery->get();
 
@@ -68,6 +91,8 @@ class IndexController extends Controller
 
             // Load payment accounts ONLY when a store is NOT selected
             $paymentAccounts = collect(); // default empty collection
+
+            Log::info('STEP D');
 
             // if (empty($request->store)) {
             //     //  Payment Accounts
@@ -342,7 +367,8 @@ class IndexController extends Controller
 
         } catch (\Throwable $e) {
 
-        Log::error('Sales Tax Report Error', [
+
+        Log::info('Sales Tax Report Error', [
             'message' => $e->getMessage(),
             'file'    => $e->getFile(),
             'line'    => $e->getLine(),

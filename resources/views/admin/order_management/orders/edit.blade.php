@@ -2844,6 +2844,9 @@
                        String(date.getDate()).padStart(2, '0') + '/' +
                        date.getFullYear();
             }
+            // Expose to global scope so the changeReturnDateModal IIFE (separate <script> block) can reach them
+            window.parseScheduleDate = parseScheduleDate;
+            window.formatScheduleDate = formatScheduleDate;
 
             document.querySelectorAll('.order-product-unique-id').forEach(function(hiddenInput, idx) {
                 const container = hiddenInput.closest('.bg-white.rounded-xl.border');

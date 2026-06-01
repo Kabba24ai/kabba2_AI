@@ -3062,11 +3062,10 @@
 
                         window.openChangeReturnDateModal(
                             orderProductId,
-                            returnDate.value,                           // current return date
-                            deliveryDate ? deliveryDate.value : '',     // delivery date (for calc)
+                            returnDate.value,
                             updateScheduleField,
                             currentAllocatedHours,
-                            returnDate                                  // DOM element to update on save
+                            returnDate
                         );
                     });
                 }
@@ -4553,9 +4552,13 @@
                 document.getElementById('cancelChangeReturnDate'),
             ];
 
+            const calcDateDisplay = document.getElementById('returnCalcDateDisplay');
+            const manualDateInput = document.getElementById('returnManualDateInput');
+
             let _orderProductId   = null;
             let _newDateValue     = null;
             let _updateFn         = null;
+            let _returnDateEl     = null;
 
             // qty state per type
             const qty = {
@@ -4621,7 +4624,7 @@
                 } else {
                     calcDateDisplay.classList.remove('hidden');
                     manualDateInput.classList.add('hidden');
-                    const newDate = calcReturnDate(_currentReturnDateValue, type, qty[type]);
+                    const newDate = calcReturnDate(_newDateValue, type, qty[type]);
                     calcDateDisplay.textContent = newDate || '—';
                 }
             }
@@ -4693,6 +4696,7 @@
                 _orderProductId = null;
                 _newDateValue   = null;
                 _updateFn       = null;
+                _returnDateEl   = null;
             }
 
             // Save
@@ -4700,10 +4704,18 @@
                 if (!_updateFn || !_orderProductId) return;
 
                 // Capture values before closeModal() nulls them
-                const fn        = _updateFn;
-                const dateValue = _newDateValue;
+                const fn          = _updateFn;
+                const returnEl    = _returnDateEl;
                 const updateHours = optionDateHours.checked;
                 const totalHours  = updateHours ? recalcTotal() : 0;
+
+                // Compute the new date: manual pick or duration calculation
+                let dateValue;
+                if (optionDateOnly.checked || getSelectedHoursType() === 'custom') {
+                    dateValue = manualDateInput ? manualDateInput.value : _newDateValue;
+                } else {
+                    dateValue = calcReturnDate(_newDateValue, getSelectedHoursType(), qty[getSelectedHoursType()]);
+                }
 
                 closeModal();
 
@@ -4728,10 +4740,11 @@
             });
 
             // Public opener
-            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0) {
+            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0, returnDateEl = null) {
                 _orderProductId = orderProductId;
                 _newDateValue   = newDate;
                 _updateFn       = updateScheduleField;
+                _returnDateEl   = returnDateEl;
 
                 if (currentAllocatedDisplay) {
                     currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;
@@ -4739,9 +4752,9 @@
 
                 // Pre-populate manual picker with current return date
                 if (manualDateInput) {
-                    manualDateInput.value = currentReturnDate || '';
-                    if (_manualPicker && currentReturnDate) {
-                        const parsed = parseScheduleDate(currentReturnDate);
+                    manualDateInput.value = _newDateValue || '';
+                    if (_manualPicker && _newDateValue) {
+                        const parsed = parseScheduleDate(_newDateValue);
                         if (parsed) _manualPicker.selectDate(parsed, { silent: true });
                     }
                 }

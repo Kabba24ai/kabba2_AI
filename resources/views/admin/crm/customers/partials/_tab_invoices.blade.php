@@ -27,7 +27,7 @@
  </div>
 
  <!-- Invoice Status Cards -->
- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+ {{-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
      <!-- Paid -->
      <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
          <div>
@@ -77,7 +77,7 @@
              </svg>
          </div>
      </div>
- </div>
+ </div> --}}
 
  <div class="bg-white rounded-2xl shadow-sm mt-6 mb-6">
      <!-- Header with Filter -->
@@ -116,9 +116,9 @@
                      <th class="py-4 px-6 w-32">Created</th>
                      <th class="py-4 px-6 w-32">Due Date</th>
                      <th class="py-4 px-6 w-32 text-right">Amount</th>
-                          <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
+                          {{-- <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
                                <th class="py-4 px-6 w-32 text-right">Open Amount</th>
-                     <th class="py-4 px-6 w-32 text-right">Payment Status</th>
+                     <th class="py-4 px-6 w-32 text-right">Payment Status</th> --}}
                      <th class="py-4 px-6 w-32 text-right">Mail Date</th>
 
                      <th class="py-4 px-6 w-32 text-right">Email Status</th>
@@ -148,13 +148,13 @@
                      <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
                        {{-- Paid Amount --}}
-                    <td class="py-4 px-6 text-right text-green-600 font-semibold">
+                    {{-- <td class="py-4 px-6 text-right text-green-600 font-semibold">
                         ${{ number_format($invoice->paid_amount ?? 0, 2) }}
-                    </td>
+                    </td> --}}
 
                   {{-- Open Amount --}}
 
-                        <td class="py-4 px-6 text-right text-red-600 font-semibold"
+                        {{-- <td class="py-4 px-6 text-right text-red-600 font-semibold"
                             data-open-amount="{{
                                 $invoice->invoice_status === 'paid'
                                     ? 0
@@ -173,9 +173,9 @@
                                     2
                                 )
                             }}
-                        </td>
+                        </td> --}}
 
-                     <td class="py-4 px-6 text-right">
+                     {{-- <td class="py-4 px-6 text-right">
                         @php
                             $statusColors = [
                                 'paid' => 'green',
@@ -198,7 +198,7 @@
                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
                             {{ $statusLabel }}
                         </span>
-                    </td>
+                    </td> --}}
 
                    <td class="py-4 px-6 text-right">
 

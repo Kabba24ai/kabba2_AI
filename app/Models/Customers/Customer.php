@@ -252,7 +252,7 @@ class Customer extends Authenticatable
     
     public function invoices()
     {
-        return $this->hasMany(Invoice::class);
+        return $this->hasMany(Invoice::class)->orderBy('created_at', 'desc');
     }
 
     /**

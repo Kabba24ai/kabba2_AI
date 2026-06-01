@@ -8,10 +8,10 @@
 
          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
              <!-- Create Account Invoice Button -->
-            <a href="{{ route('admin.crm.customers.invoice.create-from-account',$customer->unique_id ) }}" 
-               
+            <a href="{{ route('admin.crm.customers.invoice.create-from-account',$customer->unique_id ) }}"
+
                class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
-                + Create From Account 
+                + Create From Account
             </a>
 
              {{-- <a href="{{ route('admin.crm.customers.invoice.create',$customer->unique_id ) }}"  class="bg-green-600 hover:bg-green-700 text-white text-md px-6 py-3 rounded-md font-medium">
@@ -27,7 +27,7 @@
  </div>
 
  <!-- Invoice Status Cards -->
- {{-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+ <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
      <!-- Paid -->
      <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
          <div>
@@ -77,7 +77,7 @@
              </svg>
          </div>
      </div>
- </div> --}}
+ </div>
 
  <div class="bg-white rounded-2xl shadow-sm mt-6 mb-6">
      <!-- Header with Filter -->
@@ -116,9 +116,9 @@
                      <th class="py-4 px-6 w-32">Created</th>
                      <th class="py-4 px-6 w-32">Due Date</th>
                      <th class="py-4 px-6 w-32 text-right">Amount</th>
-                          {{-- <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
+                          <th class="py-4 px-6 w-32 text-right">Paid Amount</th>
                                <th class="py-4 px-6 w-32 text-right">Open Amount</th>
-                     <th class="py-4 px-6 w-32 text-right">Payment Status</th> --}}
+                     <th class="py-4 px-6 w-32 text-right">Payment Status</th>
                      <th class="py-4 px-6 w-32 text-right">Mail Date</th>
 
                      <th class="py-4 px-6 w-32 text-right">Email Status</th>
@@ -148,13 +148,13 @@
                      <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
                        {{-- Paid Amount --}}
-                    {{-- <td class="py-4 px-6 text-right text-green-600 font-semibold">
+                    <td class="py-4 px-6 text-right text-green-600 font-semibold">
                         ${{ number_format($invoice->paid_amount ?? 0, 2) }}
-                    </td> --}}
+                    </td>
 
                   {{-- Open Amount --}}
 
-                        {{-- <td class="py-4 px-6 text-right text-red-600 font-semibold"
+                        <td class="py-4 px-6 text-right text-red-600 font-semibold"
                             data-open-amount="{{
                                 $invoice->invoice_status === 'paid'
                                     ? 0
@@ -173,9 +173,9 @@
                                     2
                                 )
                             }}
-                        </td> --}}
+                        </td>
 
-                     {{-- <td class="py-4 px-6 text-right">
+                     <td class="py-4 px-6 text-right">
                         @php
                             $statusColors = [
                                 'paid' => 'green',
@@ -198,13 +198,13 @@
                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
                             {{ $statusLabel }}
                         </span>
-                    </td> --}}
+                    </td>
 
                    <td class="py-4 px-6 text-right">
 
-                        
 
-                
+
+
                         @if($invoice->is_mail === 'yes' && $invoice->is_mail_date)
                             <span class="ml-2 text-gray-600 text-[11px]">
                                 {{ App\Helpers\CustomHelper::formatDate($invoice->is_mail_date) ?? '-' }}
@@ -244,7 +244,16 @@
                          <div class="flex gap-2 items-center justify-end">
 
                             @if($invoice->invoice_status !== 'paid')
-                                <button  class="text-green-600 inline-flex items-center i_openPaymentModal" data-invoice-id="{{ $invoice->id }}"  data-remaing-amount="{{ $invoice->id }}">
+                                @php
+                                    $openAmt = $invoice->invoice_status === 'paid'
+                                        ? 0
+                                        : ($invoice->open_amount > 0
+                                            ? $invoice->open_amount
+                                            : ($invoice->total > 0 ? $invoice->total : 0));
+                                @endphp
+                                <button class="text-green-600 inline-flex items-center i_openPaymentModal"
+                                        data-invoice-id="{{ $invoice->id }}"
+                                        data-open-amount="{{ $openAmt }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
                                         <line x1="12" x2="12" y1="2" y2="22"></line>
                                         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
@@ -293,7 +302,7 @@
                  </tr>
                  @empty
                  <tr>
-                     <td colspan="7" class="text-center py-4 px-6">No invoices found</td>
+                     <td colspan="8" class="text-center py-4 px-6">No invoices found</td>
                  </tr>
                  @endforelse
              </tbody>
@@ -334,7 +343,7 @@
                     class="space-y-6">
                     @csrf
 
-               
+
 
                     <input type="hidden" id="invoice_id" name="invoice_id">
 
@@ -705,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!billingChecked && !customerChecked) {
             e.preventDefault();
-            
+
             notyf.error("Please select at least one email.");
             return;
         }
@@ -807,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (cardOption) cardOption.value = 'NewCard';
         }
 
-        
+
 
             function setupModal(openBtnclass, modalWrapperId, closeBtnId, cancelBtnId) {
 
@@ -815,25 +824,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 const openBtns = document.querySelectorAll(openBtnclass);
                 const closeBtn = document.getElementById(closeBtnId);
                 const cancelBtn = document.getElementById(cancelBtnId);
-            
+
                 if (!modalWrapper || !openBtns || !closeBtn || !cancelBtn) return;
-    
-                
+
+
 
                 openBtns.forEach(btn => {
                     btn.addEventListener('click', function () {
 
                         const invoiceId = this.dataset.invoiceId;
-                        const row = this.closest('tr');
 
-                        const openAmount = parseFloat(
-                            row.querySelector('[data-open-amount]')?.dataset.openAmount || 0
-                        );
+                        // data-open-amount now lives directly on this button
+                        const openAmount = parseFloat(this.dataset.openAmount || 0);
 
                         const amountInputtext = modalWrapper.querySelector('input[name="amount"]');
 
                         if (amountInputtext) {
-                            amountInputtext.dataset.max = openAmount;   
+                            amountInputtext.dataset.max = openAmount;
                         }
 
                         // Reset modal first
@@ -865,7 +872,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 });
 
-            
+
                 // Close
                 const closeModal = () => {
                     modalWrapper.style.display = 'none';

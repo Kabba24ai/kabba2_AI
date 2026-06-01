@@ -550,7 +550,7 @@
 
 
 
-                        @if ($orderProduct->product_data && count($orderProduct->product_data))
+                        @if ($orderProduct->product_data && !empty($orderProduct->product_data['product_rental_items_prices']))
                             <div class="flex justify-between">
                                 <span class="underline">Options</span>
                             </div>
@@ -575,7 +575,7 @@
                                         </span>
                                     </li>
                                 @endforeach
-                                @foreach ($orderProduct->product_data['product_option_items'] as $option)
+                                @foreach ($orderProduct->product_data['product_option_items'] ?? [] as $option)
                                     <li class="flex justify-between">
                                         <span>
                                             {{ $option['name'] }}
@@ -2354,6 +2354,24 @@
             </div>
             <!-- Body -->
             <div class="px-6 py-4 space-y-3">
+
+                <!-- ── Date summary bar ────────────────────────────────────── -->
+                <div class="flex items-center justify-between rounded-lg bg-gray-50 border border-gray-200 px-4 py-2.5">
+                    <div class="text-xs text-gray-500">
+                        Current: <strong id="returnCurrentDateLabel" class="text-gray-700 font-semibold">—</strong>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                        New Date:
+                        {{-- Calculated date (shown for duration-based modes) --}}
+                        <span id="returnCalcDateDisplay"
+                              class="inline-block rounded bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-sm font-bold text-blue-700">—</span>
+                        {{-- Manual date picker (shown for "date only" and "custom" modes) --}}
+                        <input type="text" id="returnManualDateInput"
+                               class="hidden border border-gray-300 rounded px-2 py-1 text-sm w-32 text-center"
+                               placeholder="MM/DD/YYYY" autocomplete="off" />
+                    </div>
+                </div>
+
                 <!-- Option 1 -->
                 <label class="flex items-center gap-3 cursor-pointer">
                     <input type="radio" name="returnDateOption" id="returnDateOnly" value="date_only"
@@ -2821,6 +2839,25 @@
             // });
 
 
+            // ── Schedule date utilities (MM/dd/yyyy ↔ Date) ──────────────────────
+            function parseScheduleDate(str) {
+                if (!str) return null;
+                const parts = str.split('/');
+                if (parts.length !== 3) return null;
+                const [m, d, y] = parts.map(Number);
+                if (!m || !d || !y) return null;
+                return new Date(y, m - 1, d);
+            }
+            function formatScheduleDate(date) {
+                if (!(date instanceof Date) || isNaN(date)) return '';
+                return String(date.getMonth() + 1).padStart(2, '0') + '/' +
+                       String(date.getDate()).padStart(2, '0') + '/' +
+                       date.getFullYear();
+            }
+            // Expose to global scope so the changeReturnDateModal IIFE (separate <script> block) can reach them
+            window.parseScheduleDate = parseScheduleDate;
+            window.formatScheduleDate = formatScheduleDate;
+
             document.querySelectorAll('.order-product-unique-id').forEach(function(hiddenInput, idx) {
                 const container = hiddenInput.closest('.bg-white.rounded-xl.border');
                 if (!container) return;
@@ -2892,18 +2929,14 @@
 
                     deliveryDate.addEventListener('change', function() {
                         var returnDateValue = returnDate ? returnDate.value : null;
-                        var previousDeliveryDateValue = this.getAttribute('data-previous-value') ||
-                            '';
-                        if (returnDateValue && new Date(deliveryDate.value) > new Date(
-                                returnDateValue)) {
+                        var previousDeliveryDateValue = this.getAttribute('data-previous-value') || '';
+                        if (returnDateValue && new Date(deliveryDate.value) > new Date(returnDateValue)) {
                             notyf.error('Delivery date cannot be after return date.');
                             this.value = previousDeliveryDateValue || '';
                             return;
                         }
 
-                        this.setAttribute('data-previous-value', this.value || '');
-
-                        updateScheduleField('delivery', 'delivery_date', deliveryDate.value);
+                        updateScheduleField('delivery', 'delivery_date', newDelivery);
                     });
                 }
                 if (deliveryTime) {
@@ -3004,7 +3037,7 @@
                     });
                 }
 
-                // Return listeners
+                // Return date — clicking opens the modal directly (bypasses AirDatepicker)
                 if (returnDate) {
                     returnDate.setAttribute('data-previous-value', returnDate.value || '');
 
@@ -3014,10 +3047,8 @@
 
                     returnDate.addEventListener('change', function() {
                         var deliveryDateValue = deliveryDate ? deliveryDate.value : null;
-                        var previousReturnDateValue = this.getAttribute('data-previous-value') ||
-                        '';
-                        if (deliveryDateValue && new Date(returnDate.value) < new Date(
-                                deliveryDateValue)) {
+                        var previousReturnDateValue = this.getAttribute('data-previous-value') || '';
+                        if (deliveryDateValue && new Date(returnDate.value) < new Date(deliveryDateValue)) {
                             notyf.error('Return date cannot be before delivery date.');
                             this.value = previousReturnDateValue || '';
                             return;
@@ -3026,16 +3057,16 @@
                         this.setAttribute('data-previous-value', this.value || '');
 
                         const orderProducts = @json($order->products);
-                        const orderProduct = orderProducts.find(op => op.unique_id ===
-                            orderProductId);
-                        const currentAllocatedHours = parseFloat(orderProduct?.allocated_hours) ||
-                        0;
+                        const orderProduct = orderProducts.find(op => op.unique_id === orderProductId);
+                        const currentAllocatedHours = parseFloat(orderProduct?.allocated_hours) || 0;
 
                         window.openChangeReturnDateModal(
                             orderProductId,
-                            returnDate.value,
+                            returnDate.value,                           // current return date
+                            deliveryDate ? deliveryDate.value : '',     // delivery date (for calc)
                             updateScheduleField,
-                            currentAllocatedHours
+                            currentAllocatedHours,
+                            returnDate                                  // DOM element to update on save
                         );
                     });
                 }
@@ -4508,23 +4539,23 @@
         });
 
         // ── Change Return Date Modal ──────────────────────────────────────────
-        (function() {
-            const modal = document.getElementById('changeReturnDateModal');
-            const optionDateOnly = document.getElementById('returnDateOnly');
+        (function () {
+            const modal           = document.getElementById('changeReturnDateModal');
+            const optionDateOnly  = document.getElementById('returnDateOnly');
             const optionDateHours = document.getElementById('returnDateAndHours');
-            const hoursSection = document.getElementById('returnHoursOptions');
+            const hoursSection    = document.getElementById('returnHoursOptions');
             const currentAllocatedDisplay = document.getElementById('returnCurrentAllocatedHours');
-            const totalDisplay = document.getElementById('returnTotalHoursAdded');
-            const customInput = document.getElementById('customHoursInput');
-            const saveBtn = document.getElementById('saveChangeReturnDate');
-            const cancelBtns = [
+            const totalDisplay    = document.getElementById('returnTotalHoursAdded');
+            const customInput     = document.getElementById('customHoursInput');
+            const saveBtn         = document.getElementById('saveChangeReturnDate');
+            const cancelBtns      = [
                 document.getElementById('closeChangeReturnDateModal'),
                 document.getElementById('cancelChangeReturnDate'),
             ];
 
-            let _orderProductId = null;
-            let _newDateValue = null;
-            let _updateFn = null;
+            let _orderProductId   = null;
+            let _newDateValue     = null;
+            let _updateFn         = null;
 
             // qty state per type
             const qty = {
@@ -4534,6 +4565,7 @@
                 monthly: 1
             };
 
+            // ── Helpers ──────────────────────────────────────────────────────
             function getSelectedHoursType() {
                 return document.querySelector('input[name="hoursType"]:checked')?.value ?? 'daily';
             }
@@ -4561,23 +4593,71 @@
                 });
             }
 
-            // Toggle hours section visibility
+            /**
+             * Calculate the new return date from the delivery date + type × qty days.
+             * Returns a formatted string (MM/dd/yyyy) or '' on failure.
+             */
+            function calcReturnDate(deliveryStr, type, q) {
+                const base = parseScheduleDate(deliveryStr);
+                if (!base) return '';
+                const days    = (DURATION_DAYS[type] || 1) * (q || 1);
+                const newDate = new Date(base.getTime() + days * 86400000);
+                return formatScheduleDate(newDate);
+            }
+
+            /**
+             * Sync the "New Date" display in the summary bar.
+             * - Duration modes: show calculated date in blue badge.
+             * - "date only" or "custom": show manual date picker.
+             */
+            function updateDateDisplay() {
+                const type       = getSelectedHoursType();
+                const dateOnly   = optionDateOnly.checked;
+                const isManual   = dateOnly || (type === 'custom');
+
+                if (isManual) {
+                    calcDateDisplay.classList.add('hidden');
+                    manualDateInput.classList.remove('hidden');
+                } else {
+                    calcDateDisplay.classList.remove('hidden');
+                    manualDateInput.classList.add('hidden');
+                    const newDate = calcReturnDate(_currentReturnDateValue, type, qty[type]);
+                    calcDateDisplay.textContent = newDate || '—';
+                }
+            }
+
+            // Toggle hours section visibility + update date display
             function syncHoursSection() {
                 if (optionDateHours.checked) {
                     hoursSection.classList.remove('hidden');
                 } else {
                     hoursSection.classList.add('hidden');
                 }
+                updateDateDisplay();
             }
 
             optionDateOnly.addEventListener('change', syncHoursSection);
             optionDateHours.addEventListener('change', syncHoursSection);
+
+            // Initialise AirDatepicker on the manual date input inside the modal
+            let _manualPicker = null;
+            if (window.AirDatepicker && manualDateInput) {
+                _manualPicker = new window.AirDatepicker(manualDateInput, {
+                    locale:     window.airDatepickerLocaleEn,
+                    dateFormat: '{{ config('app.date.js_date_format') }}',
+                    autoClose:  true,
+                    onSelect({ formattedDate }) {
+                        manualDateInput.value = formattedDate || '';
+                    },
+                });
+            }
 
             // Hours type radios
             document.querySelectorAll('.hours-type-radio').forEach(radio => {
                 radio.addEventListener('change', function() {
                     customInput.classList.toggle('hidden', this.value !== 'custom');
                     recalcTotal();
+                    updateDateDisplay();
                 });
             });
 
@@ -4595,6 +4675,7 @@
                     }
                     updateQtyDisplay(type);
                     recalcTotal();
+                    updateDateDisplay();  // recalculate and show new date
                 });
             });
 
@@ -4610,21 +4691,31 @@
             function closeModal() {
                 modal.classList.add('hidden');
                 _orderProductId = null;
-                _newDateValue = null;
-                _updateFn = null;
+                _newDateValue   = null;
+                _updateFn       = null;
             }
 
             // Save
-            saveBtn.addEventListener('click', function() {
+            saveBtn.addEventListener('click', function () {
                 if (!_updateFn || !_orderProductId) return;
 
                 // Capture values before closeModal() nulls them
-                const fn = _updateFn;
+                const fn        = _updateFn;
                 const dateValue = _newDateValue;
                 const updateHours = optionDateHours.checked;
-                const totalHours = updateHours ? recalcTotal() : 0;
+                const totalHours  = updateHours ? recalcTotal() : 0;
 
                 closeModal();
+
+                // Update the return date field on screen
+                if (returnEl) {
+                    returnEl.value = dateValue;
+                    returnEl.setAttribute('data-previous-value', dateValue);
+                    if (returnEl._airDatepicker) {
+                        const parsed = parseScheduleDate(dateValue);
+                        if (parsed) returnEl._airDatepicker.selectDate(parsed, { silent: true });
+                    }
+                }
 
                 // Always save the date
                 const datePromise = fn('return', 'pickup_date', dateValue);
@@ -4637,28 +4728,33 @@
             });
 
             // Public opener
-            window.openChangeReturnDateModal = function(orderProductId, newDate, updateScheduleField,
-                currentAllocatedHours = 0) {
+            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0) {
                 _orderProductId = orderProductId;
-                _newDateValue = newDate;
-                _updateFn = updateScheduleField;
+                _newDateValue   = newDate;
+                _updateFn       = updateScheduleField;
 
                 if (currentAllocatedDisplay) {
                     currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;
                 }
 
+                // Pre-populate manual picker with current return date
+                if (manualDateInput) {
+                    manualDateInput.value = currentReturnDate || '';
+                    if (_manualPicker && currentReturnDate) {
+                        const parsed = parseScheduleDate(currentReturnDate);
+                        if (parsed) _manualPicker.selectDate(parsed, { silent: true });
+                    }
+                }
+
                 // Reset qty
-                Object.keys(qty).forEach(k => {
-                    qty[k] = 1;
-                    updateQtyDisplay(k);
-                });
+                Object.keys(qty).forEach(k => { qty[k] = 1; updateQtyDisplay(k); });
                 // Default: daily checked, hours section visible
                 document.getElementById('hoursTypeDaily').checked = true;
                 customInput.classList.add('hidden');
                 customInput.value = '';
-                optionDateHours.checked = true;
                 syncHoursSection();
                 recalcTotal();
+                updateDateDisplay();   // show calculated date for Daily ×1
 
                 modal.classList.remove('hidden');
             };

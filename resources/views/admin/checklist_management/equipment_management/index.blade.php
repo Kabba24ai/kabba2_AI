@@ -794,8 +794,10 @@
                     });
 
                     equipment.push(...newItems);
-                    // renderEquipment(null, true);
-                    renderEquipment(null, true);
+                    // Re-render the full (now combined) list in correct sort order.
+                    // Must NOT use append=true because the sort may move new items
+                    // anywhere in the list, not just at the bottom.
+                    renderEquipment();
 
                 } catch (error) {
                     console.log("Load more equipment error:", error);

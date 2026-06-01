@@ -20,9 +20,12 @@ class ViewController extends Controller
      */
     public function __invoke(string $unique_id): View
     {
-        $customer = Customer::with('orders.products', 'orders.payments',
+        $customer = Customer::with([
+            'orders.products', 'orders.payments',
             'notes.user',
-            'invoices.items', 'accountApprovedBy', 'taxStatusApprovedBy', 'addresses.state', 'billingAddress', 'shippingAddress', 'accounts.responsibleUser', 'media')
+            'invoices' => fn ($q) => $q->with('items')->orderByDesc('invoice_date'),
+            'accountApprovedBy', 'taxStatusApprovedBy', 'addresses.state', 'billingAddress', 'shippingAddress', 'accounts.responsibleUser', 'media',
+        ])
             ->where('unique_id', $unique_id)
             ->firstOrFail();
 

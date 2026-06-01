@@ -58,7 +58,15 @@ class IndexController extends Controller
         }
 
         $start = microtime(true);
-        $equipments = $query->orderBy('equipment_name', 'asc')->paginate(10);
+        $equipments = $query
+            ->orderByRaw("CASE current_status
+                WHEN 'damaged'     THEN 1
+                WHEN 'maintenance' THEN 2
+                WHEN 'rented'      THEN 3
+                WHEN 'available'   THEN 4
+                ELSE 5 END")
+            ->orderBy('equipment_name', 'asc')
+            ->paginate(10);
         // logger('EQUIPMENT QUERY: ' . (microtime(true) - $start) . ' sec');
 
         $start = microtime(true);

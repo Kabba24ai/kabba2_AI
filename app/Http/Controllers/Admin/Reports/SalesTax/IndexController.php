@@ -21,321 +21,337 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $startTime = microtime(true);
 
-        Log::info('Sales Tax Report Total Time', [
-    'execution_time' => round(microtime(true) - $startTime, 2) . ' sec'
-]);
+    try {
+            $startTime = microtime(true);
 
-        $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
+            Log::info('Sales Tax Report Total Time', [
+                'execution_time' => round(microtime(true) - $startTime, 2) . ' sec'
+            ]);
 
-        //  Orders Query
-        $ordersQuery = Order::with('shippingAddress', 'products.product', 'lastPayment')
-            // ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
-            ->whereHas('lastPayment', function ($q) {
-                $q->where('payment_method', '!=', 'COD')
-                ->orWhere(function ($q) {
-                    $q->where('payment_method', 'COD')
-                        ->where('status', 'Paid');
-                });
-            })
-            ->whereRelation('lastPayment', 'payment_method', '!=', 'Account')
-            ->when($request->filled('payment_method') && $request->payment_method !== 'All Methods', fn($q) => $q->whereRelation('lastPayment', 'payment_method', $request->payment_method))
-            ->when($request->filled('store'), function ($q) use ($request) {
-                $q->whereHas('products', fn($sub) => $sub->where(fn($s) => $s->where('delivery_store_id', $request->store)->orWhere('pickup_store_id', $request->store)));
-            })
-            ->when($request->filled('month_range'), function ($q) use ($request) {
-                [$year, $month] = explode('-', $request->month_range);
-                $start = Carbon::create($year, $month, 1)->startOfMonth();
-                $end = Carbon::create($year, $month, 1)->endOfMonth();
-                $q->whereBetween('order_date', [$start, $end]);
-            })
-            ->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($request) {
-                $start = Carbon::parse($request->start_date)->startOfDay();
-                $end = Carbon::parse($request->end_date)->endOfDay();
-                $q->whereBetween('order_date', [$start, $end]);
-            });
-$timer = microtime(true);
-        $orders = $ordersQuery->get();
+            $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
-        Log::info('Orders Query', [
-    'time' => round(microtime(true) - $timer, 2) . ' sec',
-    'count' => $orders->count()
-]);
-        // $orders = $ordersQuery->limit(500)->get();
-
-        // Load payment accounts ONLY when a store is NOT selected
-        $paymentAccounts = collect(); // default empty collection
-
-        // if (empty($request->store)) {
-        //     //  Payment Accounts
-        //     $paymentAccounts = Customer::with([
-        //         'paymentAccounts' => function ($q) use ($request) {
-        //             if ($request->filled('payment_method') && $request->payment_method !== 'All Methods') {
-        //                 $q->where('payment_type', $request->payment_method);
-        //             }
-        //             if ($request->filled('month_range')) {
-        //                 [$year, $month] = explode('-', $request->month_range);
-        //                 $start = Carbon::create($year, $month, 1)->startOfMonth();
-        //                 $end = Carbon::create($year, $month, 1)->endOfMonth();
-        //                 $q->whereBetween('date', [$start, $end]);
-        //             }
-        //             if ($request->filled('start_date') && $request->filled('end_date')) {
-        //                 $start = Carbon::parse($request->start_date)->startOfDay();
-        //                 $end = Carbon::parse($request->end_date)->endOfDay();
-        //                 $q->whereBetween('date', [$start, $end]);
-        //             }
-        //         },
-        //     ])
-        //         ->get()
-        //         ->pluck('paymentAccounts')
-        //         ->flatten()
-        //         ->map(function ($item) {
-        //             $item->is_payment_account = true;
-        //             return $item;
-        //         });
-        // }
-
-
-        if (empty($request->store)) {
-$timer = microtime(true);
-
-            $paymentAccounts = CustomerAccount::query()
-                ->with('customer')
-                ->where('type', 'payment')
-
-                ->when(
-                    $request->filled('payment_method')
-                    && $request->payment_method !== 'All Methods',
-                    fn($q) => $q->where('payment_type', $request->payment_method)
-                )
-
+            //  Orders Query
+            $ordersQuery = Order::with('shippingAddress', 'products.product', 'lastPayment')
+                // ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
+                ->whereHas('lastPayment', function ($q) {
+                    $q->where('payment_method', '!=', 'COD')
+                    ->orWhere(function ($q) {
+                        $q->where('payment_method', 'COD')
+                            ->where('status', 'Paid');
+                    });
+                })
+                ->whereRelation('lastPayment', 'payment_method', '!=', 'Account')
+                ->when($request->filled('payment_method') && $request->payment_method !== 'All Methods', fn($q) => $q->whereRelation('lastPayment', 'payment_method', $request->payment_method))
+                ->when($request->filled('store'), function ($q) use ($request) {
+                    $q->whereHas('products', fn($sub) => $sub->where(fn($s) => $s->where('delivery_store_id', $request->store)->orWhere('pickup_store_id', $request->store)));
+                })
                 ->when($request->filled('month_range'), function ($q) use ($request) {
-
                     [$year, $month] = explode('-', $request->month_range);
-
                     $start = Carbon::create($year, $month, 1)->startOfMonth();
                     $end = Carbon::create($year, $month, 1)->endOfMonth();
-
-                    $q->whereBetween('date', [$start, $end]);
+                    $q->whereBetween('order_date', [$start, $end]);
                 })
+                ->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($request) {
+                    $start = Carbon::parse($request->start_date)->startOfDay();
+                    $end = Carbon::parse($request->end_date)->endOfDay();
+                    $q->whereBetween('order_date', [$start, $end]);
+                });
+                $timer = microtime(true);
+                        $orders = $ordersQuery->get();
 
-                ->when(
-                    $request->filled('start_date')
-                    && $request->filled('end_date'),
-                    function ($q) use ($request) {
+                        Log::info('Orders Query', [
+                    'time' => round(microtime(true) - $timer, 2) . ' sec',
+                    'count' => $orders->count()
+                ]);
+            // $orders = $ordersQuery->limit(500)->get();
 
-                        $start = Carbon::parse($request->start_date)->startOfDay();
-                        $end = Carbon::parse($request->end_date)->endOfDay();
+            // Load payment accounts ONLY when a store is NOT selected
+            $paymentAccounts = collect(); // default empty collection
+
+            // if (empty($request->store)) {
+            //     //  Payment Accounts
+            //     $paymentAccounts = Customer::with([
+            //         'paymentAccounts' => function ($q) use ($request) {
+            //             if ($request->filled('payment_method') && $request->payment_method !== 'All Methods') {
+            //                 $q->where('payment_type', $request->payment_method);
+            //             }
+            //             if ($request->filled('month_range')) {
+            //                 [$year, $month] = explode('-', $request->month_range);
+            //                 $start = Carbon::create($year, $month, 1)->startOfMonth();
+            //                 $end = Carbon::create($year, $month, 1)->endOfMonth();
+            //                 $q->whereBetween('date', [$start, $end]);
+            //             }
+            //             if ($request->filled('start_date') && $request->filled('end_date')) {
+            //                 $start = Carbon::parse($request->start_date)->startOfDay();
+            //                 $end = Carbon::parse($request->end_date)->endOfDay();
+            //                 $q->whereBetween('date', [$start, $end]);
+            //             }
+            //         },
+            //     ])
+            //         ->get()
+            //         ->pluck('paymentAccounts')
+            //         ->flatten()
+            //         ->map(function ($item) {
+            //             $item->is_payment_account = true;
+            //             return $item;
+            //         });
+            // }
+
+
+            if (empty($request->store)) {
+            $timer = microtime(true);
+
+                $paymentAccounts = CustomerAccount::query()
+                    ->with('customer')
+                    ->where('type', 'payment')
+
+                    ->when(
+                        $request->filled('payment_method')
+                        && $request->payment_method !== 'All Methods',
+                        fn($q) => $q->where('payment_type', $request->payment_method)
+                    )
+
+                    ->when($request->filled('month_range'), function ($q) use ($request) {
+
+                        [$year, $month] = explode('-', $request->month_range);
+
+                        $start = Carbon::create($year, $month, 1)->startOfMonth();
+                        $end = Carbon::create($year, $month, 1)->endOfMonth();
 
                         $q->whereBetween('date', [$start, $end]);
-                    }
-                )
+                    })
 
-                ->get()
+                    ->when(
+                        $request->filled('start_date')
+                        && $request->filled('end_date'),
+                        function ($q) use ($request) {
 
-                ->map(function ($item) {
-                    $item->is_payment_account = true;
-                    return $item;
-                });
+                            $start = Carbon::parse($request->start_date)->startOfDay();
+                            $end = Carbon::parse($request->end_date)->endOfDay();
 
-                Log::info('Payment Accounts Query', [
-    'time' => round(microtime(true) - $timer, 2) . ' sec',
-    'count' => $paymentAccounts->count()
-]);
+                            $q->whereBetween('date', [$start, $end]);
+                        }
+                    )
 
-        } else {
-            $paymentAccounts = collect();
-        }
+                    ->get()
 
-        //  Combine & Paginate
-        $combined = $orders->concat($paymentAccounts)->sortByDesc(fn($item) => isset($item->is_payment_account) ? $item->date : $item->order_date)->values();
-$timer = microtime(true);
+                    ->map(function ($item) {
+                        $item->is_payment_account = true;
+                        return $item;
+                    });
 
-        //  Combine into unified rows
-        $reportRows = $orders
-            ->map(function ($order) {
-                $productNames = $order->products->pluck('product_name')->toArray();
+                    Log::info('Payment Accounts Query', [
+                    'time' => round(microtime(true) - $timer, 2) . ' sec',
+                    'count' => $paymentAccounts->count()
+                ]);
 
-                $paymentType = $order->last_payment_type?->label();
+            } else {
+                $paymentAccounts = collect();
+            }
 
-                return (object) [
-                    'type' => 'order',
-                    'unique_id' => $order->unique_id,
-                    'link' => $order->view_link,
-                    'date' => $order->order_date,
-                    'customer_name' => $order->shippingAddress?->full_name ?? '-',
-                    'products' => implode(', ', $productNames),
-                    'payment_type' => $paymentType ?? '-',
-                    'subtotal' => $order->subtotal,
-                    'tax_amount' => $order->tax_amount,
-                    'discount_amount' => $order->discount_amount,
-                    'grand_total' => $order->grand_total,
-                ];
-            })
-            ->concat(
-                $paymentAccounts->map(function ($payment) {
-                    $amount = $payment->amount ?? 0;
-                    $taxAmount = $amount - $amount / (1 + ($payment->sales_tax ?? 0));
-                    $subtotal = $amount - $taxAmount;
+            //  Combine & Paginate
+            $combined = $orders->concat($paymentAccounts)->sortByDesc(fn($item) => isset($item->is_payment_account) ? $item->date : $item->order_date)->values();
+            $timer = microtime(true);
 
-                    $AccountspaymentType = $payment->payment_type?->label() ?? '';
+            //  Combine into unified rows
+            $reportRows = $orders
+                ->map(function ($order) {
+                    $productNames = $order->products->pluck('product_name')->toArray();
+
+                    $paymentType = $order->last_payment_type?->label();
 
                     return (object) [
-                        'type' => 'payment',
-                        'unique_id' => $payment->customer?->unique_id ?? '-',
-                        'link' => '<a href="' . route('admin.reports.sales-tax.paymentview', $payment->customer?->unique_id) . '" class="text-brand-500 underline font-bold" >View Payment</a>',
-                        'date' => $payment->date,
-                        'customer_name' => $payment->customer?->full_name ?? '-',
-                        'products' => 'Payment Account',
-                        'payment_type' => $AccountspaymentType ?? '-',
-                        'subtotal' => $subtotal,
-                        'tax_amount' => $taxAmount,
-                        'discount_amount' => 0,
-                        'grand_total' => $amount,
+                        'type' => 'order',
+                        'unique_id' => $order->unique_id,
+                        'link' => $order->view_link,
+                        'date' => $order->order_date,
+                        'customer_name' => $order->shippingAddress?->full_name ?? '-',
+                        'products' => implode(', ', $productNames),
+                        'payment_type' => $paymentType ?? '-',
+                        'subtotal' => $order->subtotal,
+                        'tax_amount' => $order->tax_amount,
+                        'discount_amount' => $order->discount_amount,
+                        'grand_total' => $order->grand_total,
                     ];
-                }),
-            )
-            ->sortByDesc(fn($row) => $row->date)
-            ->values();
+                })
+                ->concat(
+                    $paymentAccounts->map(function ($payment) {
+                        $amount = $payment->amount ?? 0;
+                        $taxAmount = $amount - $amount / (1 + ($payment->sales_tax ?? 0));
+                        $subtotal = $amount - $taxAmount;
 
-            Log::info('ReportRows Processing', [
-    'time' => round(microtime(true) - $timer, 2) . ' sec',
-    'count' => $reportRows->count(),
-]);
+                        $AccountspaymentType = $payment->payment_type?->label() ?? '';
 
-            //  dd($reportRows);
+                        return (object) [
+                            'type' => 'payment',
+                            'unique_id' => $payment->customer?->unique_id ?? '-',
+                            'link' => '<a href="' . route('admin.reports.sales-tax.paymentview', $payment->customer?->unique_id) . '" class="text-brand-500 underline font-bold" >View Payment</a>',
+                            'date' => $payment->date,
+                            'customer_name' => $payment->customer?->full_name ?? '-',
+                            'products' => 'Payment Account',
+                            'payment_type' => $AccountspaymentType ?? '-',
+                            'subtotal' => $subtotal,
+                            'tax_amount' => $taxAmount,
+                            'discount_amount' => 0,
+                            'grand_total' => $amount,
+                        ];
+                    }),
+                )
+                ->sortByDesc(fn($row) => $row->date)
+                ->values();
 
-        // $totalRevenue = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->grand_total));
+                Log::info('ReportRows Processing', [
+                    'time' => round(microtime(true) - $timer, 2) . ' sec',
+                    'count' => $reportRows->count(),
+                ]);
 
-        $reportRowsTotal = $reportRows->sum(fn($row) => $row->grand_total);
+                //  dd($reportRows);
 
+            // $totalRevenue = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->grand_total));
 
-        $rowsalesTaxCollected = $reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal) ;
-
-$timer = microtime(true);
-
-        $orderExtraCharges = OrderExtraCharges::query()
-            ->when($request->filled('month_range'), function ($q) use ($request) {
-                [$year, $month] = explode('-', $request->month_range);
-                $start = Carbon::create($year, $month, 1)->startOfMonth();
-                $end = Carbon::create($year, $month, 1)->endOfMonth();
-                $q->whereBetween('created_at', [$start, $end]);
-            })
-            ->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($request) {
-                $start = Carbon::parse($request->start_date)->startOfDay();
-                $end = Carbon::parse($request->end_date)->endOfDay();
-                $q->whereBetween('created_at', [$start, $end]);
-            })
-            ->get();
-
-Log::info('Extra Charges Query', [
-    'time' => round(microtime(true) - $timer, 2) . ' sec',
-    'count' => $orderExtraCharges->count()
-]);
-        $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
-        // $extraChargesTotalRaw = 0;
-
-        $taxFreeRevenue = CustomHelper::formatCurrency($rowsalesTaxCollected + $extraChargesTotalRaw);
-
-        $reversetaxableRevenue = $reportRows->filter(fn($row) => $row->tax_amount > 0)->sum(fn($row) => $row->grand_total);
-
-        $taxableRevenue = $reversetaxableRevenue / (1 + $sales_tax);
-
-        $salesTaxCollectedbeforCurrencyicon = $reportRows->sum(fn($row) => $row->tax_amount) ;
-
-        // $salesTaxCollected = CustomHelper::formatCurrency($salesTaxCollectedbeforCurrencyicon);
-
-        // $taxableRevenue = CustomHelper::formatCurrency($taxableRevenue + $salesTaxCollectedbeforCurrencyicon);
-
-        $rowtaxableRevenue = $reportRowsTotal - $rowsalesTaxCollected ;
-
-        $taxableRevenue = CustomHelper::formatCurrency( $rowtaxableRevenue );
-
-        $salesTaxCollected = CustomHelper::formatCurrency( $rowtaxableRevenue * $sales_tax );
-
-        $reportRows = $reportRows->filter(fn($row) => $row->tax_amount > 0)->values();
-
-        $totalCollectedAllSources = CustomHelper::formatCurrency($extraChargesTotalRaw + $reportRowsTotal);
-
-        $totalRevenue = CustomHelper::formatCurrency( $reportRowsTotal - $rowsalesTaxCollected);
+            $reportRowsTotal = $reportRows->sum(fn($row) => $row->grand_total);
 
 
+            $rowsalesTaxCollected = $reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal) ;
 
-        // Pagination
-        $perPage = $request->get('per_page', 30);
-        $page = $request->get('page', 1);
-        $total = $reportRows->count();
-        $items = $reportRows->slice(($page - 1) * $perPage, $perPage)->values();
+            $timer = microtime(true);
 
-        $paginated = new LengthAwarePaginator($items, $total, $perPage, $page, [
-            'path' => $request->url(),
-            'query' => $request->query(),
-        ]);
+            $orderExtraCharges = OrderExtraCharges::query()
+                ->when($request->filled('month_range'), function ($q) use ($request) {
+                    [$year, $month] = explode('-', $request->month_range);
+                    $start = Carbon::create($year, $month, 1)->startOfMonth();
+                    $end = Carbon::create($year, $month, 1)->endOfMonth();
+                    $q->whereBetween('created_at', [$start, $end]);
+                })
+                ->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($request) {
+                    $start = Carbon::parse($request->start_date)->startOfDay();
+                    $end = Carbon::parse($request->end_date)->endOfDay();
+                    $q->whereBetween('created_at', [$start, $end]);
+                })
+                ->get();
 
-        //  AJAX response
-        if ($request->ajax()) {
+            Log::info('Extra Charges Query', [
+                'time' => round(microtime(true) - $timer, 2) . ' sec',
+                'count' => $orderExtraCharges->count()
+            ]);
+            $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
+            // $extraChargesTotalRaw = 0;
 
-            $orders = $paginated;
+            $taxFreeRevenue = CustomHelper::formatCurrency($rowsalesTaxCollected + $extraChargesTotalRaw);
 
-            $html = view('admin.reports.sales_tax.partials._table', compact('orders'))->render();
+            $reversetaxableRevenue = $reportRows->filter(fn($row) => $row->tax_amount > 0)->sum(fn($row) => $row->grand_total);
 
-            $stats = [
-                  'totalCollectedAllSources' => $totalCollectedAllSources,
+            $taxableRevenue = $reversetaxableRevenue / (1 + $sales_tax);
+
+            $salesTaxCollectedbeforCurrencyicon = $reportRows->sum(fn($row) => $row->tax_amount) ;
+
+            // $salesTaxCollected = CustomHelper::formatCurrency($salesTaxCollectedbeforCurrencyicon);
+
+            // $taxableRevenue = CustomHelper::formatCurrency($taxableRevenue + $salesTaxCollectedbeforCurrencyicon);
+
+            $rowtaxableRevenue = $reportRowsTotal - $rowsalesTaxCollected ;
+
+            $taxableRevenue = CustomHelper::formatCurrency( $rowtaxableRevenue );
+
+            $salesTaxCollected = CustomHelper::formatCurrency( $rowtaxableRevenue * $sales_tax );
+
+            $reportRows = $reportRows->filter(fn($row) => $row->tax_amount > 0)->values();
+
+            $totalCollectedAllSources = CustomHelper::formatCurrency($extraChargesTotalRaw + $reportRowsTotal);
+
+            $totalRevenue = CustomHelper::formatCurrency( $reportRowsTotal - $rowsalesTaxCollected);
+
+
+
+            // Pagination
+            $perPage = $request->get('per_page', 30);
+            $page = $request->get('page', 1);
+            $total = $reportRows->count();
+            $items = $reportRows->slice(($page - 1) * $perPage, $perPage)->values();
+
+            $paginated = new LengthAwarePaginator($items, $total, $perPage, $page, [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]);
+
+            //  AJAX response
+            if ($request->ajax()) {
+
+                $orders = $paginated;
+
+                $html = view('admin.reports.sales_tax.partials._table', compact('orders'))->render();
+
+                $stats = [
+                    'totalCollectedAllSources' => $totalCollectedAllSources,
+                    'totalRevenue' => $totalRevenue,
+
+                    'taxFreeRevenue' => $taxFreeRevenue,
+                    'taxableRevenue' => $taxableRevenue,
+                    'salesTaxCollected' => $salesTaxCollected,
+                ];
+
+                return response()->json(['success' => true, 'html' => $html, 'stats' => $stats]);
+            }
+
+            
+            // Get months from Orders
+            $orderMonths = Order::selectRaw('YEAR(order_date) as year, MONTH(order_date) as month')
+                ->groupBy('year', 'month')
+                ->get();
+
+            // Get months from Payment Accounts
+            $paymentMonths = CustomerAccount::selectRaw('YEAR(date) as year, MONTH(date) as month')
+            ->where('type', 'payment')
+                ->groupBy('year', 'month')
+                ->get();
+
+            // Merge both collections
+            $allMonths = $orderMonths
+                ->concat($paymentMonths)
+                ->unique(function ($item) {
+                    return $item->year . '-' . $item->month;
+                })
+                ->sortByDesc(function ($item) {
+                    return $item->year . str_pad($item->month, 2, '0', STR_PAD_LEFT);
+                })
+                ->take(12)
+                ->values();
+
+            // Format for dropdown
+            $availableMonths = $allMonths->map(fn($item) => [
+                'value' => "{$item->year}-" . str_pad($item->month, 2, '0', STR_PAD_LEFT),
+                'label' => 'Pay for '
+                    . Carbon::create($item->year, $item->month, 1)->format('M 1')
+                    . ' - '
+                    . Carbon::create($item->year, $item->month, 1)->endOfMonth()->format('M d'),
+            ]);
+
+
+
+            return view('admin.reports.sales_tax.index', [
+                'orders' => $paginated,
+                'stores' => Store::all(),
+                'availableMonths' => $availableMonths,
                 'totalRevenue' => $totalRevenue,
-
+                'totalCollectedAllSources' => $totalCollectedAllSources,
                 'taxFreeRevenue' => $taxFreeRevenue,
                 'taxableRevenue' => $taxableRevenue,
                 'salesTaxCollected' => $salesTaxCollected,
-            ];
+            ]);
 
-            return response()->json(['success' => true, 'html' => $html, 'stats' => $stats]);
-        }
+        } catch (\Throwable $e) {
 
-        
-        // Get months from Orders
-        $orderMonths = Order::selectRaw('YEAR(order_date) as year, MONTH(order_date) as month')
-            ->groupBy('year', 'month')
-            ->get();
-
-        // Get months from Payment Accounts
-        $paymentMonths = CustomerAccount::selectRaw('YEAR(date) as year, MONTH(date) as month')
-        ->where('type', 'payment')
-            ->groupBy('year', 'month')
-            ->get();
-
-        // Merge both collections
-        $allMonths = $orderMonths
-            ->concat($paymentMonths)
-            ->unique(function ($item) {
-                return $item->year . '-' . $item->month;
-            })
-            ->sortByDesc(function ($item) {
-                return $item->year . str_pad($item->month, 2, '0', STR_PAD_LEFT);
-            })
-            ->take(12)
-            ->values();
-
-        // Format for dropdown
-        $availableMonths = $allMonths->map(fn($item) => [
-            'value' => "{$item->year}-" . str_pad($item->month, 2, '0', STR_PAD_LEFT),
-            'label' => 'Pay for '
-                . Carbon::create($item->year, $item->month, 1)->format('M 1')
-                . ' - '
-                . Carbon::create($item->year, $item->month, 1)->endOfMonth()->format('M d'),
+        Log::error('Sales Tax Report Error', [
+            'message' => $e->getMessage(),
+            'file'    => $e->getFile(),
+            'line'    => $e->getLine(),
         ]);
 
-
-
-        return view('admin.reports.sales_tax.index', [
-            'orders' => $paginated,
-            'stores' => Store::all(),
-            'availableMonths' => $availableMonths,
-            'totalRevenue' => $totalRevenue,
-            'totalCollectedAllSources' => $totalCollectedAllSources,
-            'taxFreeRevenue' => $taxFreeRevenue,
-            'taxableRevenue' => $taxableRevenue,
-            'salesTaxCollected' => $salesTaxCollected,
-        ]);
+        return response()->json([
+            'success' => false,
+            'error'   => $e->getMessage(),
+        ], 500);
+    }
     }
 }

@@ -21,6 +21,11 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
+        $startTime = microtime(true);
+
+        Log::info('Sales Tax Report Total Time', [
+    'execution_time' => round(microtime(true) - $startTime, 2) . ' sec'
+]);
 
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
@@ -50,8 +55,13 @@ class IndexController extends Controller
                 $end = Carbon::parse($request->end_date)->endOfDay();
                 $q->whereBetween('order_date', [$start, $end]);
             });
-
+$timer = microtime(true);
         $orders = $ordersQuery->get();
+
+        Log::info('Orders Query', [
+    'time' => round(microtime(true) - $timer, 2) . ' sec',
+    'count' => $orders->count()
+]);
         // $orders = $ordersQuery->limit(500)->get();
 
         // Load payment accounts ONLY when a store is NOT selected
@@ -88,6 +98,7 @@ class IndexController extends Controller
 
 
         if (empty($request->store)) {
+$timer = microtime(true);
 
             $paymentAccounts = CustomerAccount::query()
                 ->with('customer')
@@ -128,13 +139,18 @@ class IndexController extends Controller
                     return $item;
                 });
 
+                Log::info('Payment Accounts Query', [
+    'time' => round(microtime(true) - $timer, 2) . ' sec',
+    'count' => $paymentAccounts->count()
+]);
+
         } else {
             $paymentAccounts = collect();
         }
 
         //  Combine & Paginate
         $combined = $orders->concat($paymentAccounts)->sortByDesc(fn($item) => isset($item->is_payment_account) ? $item->date : $item->order_date)->values();
-
+$timer = microtime(true);
 
         //  Combine into unified rows
         $reportRows = $orders
@@ -183,6 +199,11 @@ class IndexController extends Controller
             ->sortByDesc(fn($row) => $row->date)
             ->values();
 
+            Log::info('ReportRows Processing', [
+    'time' => round(microtime(true) - $timer, 2) . ' sec',
+    'count' => $reportRows->count(),
+]);
+
             //  dd($reportRows);
 
         // $totalRevenue = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->grand_total));
@@ -192,6 +213,7 @@ class IndexController extends Controller
 
         $rowsalesTaxCollected = $reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal) ;
 
+$timer = microtime(true);
 
         $orderExtraCharges = OrderExtraCharges::query()
             ->when($request->filled('month_range'), function ($q) use ($request) {
@@ -207,7 +229,10 @@ class IndexController extends Controller
             })
             ->get();
 
-
+Log::info('Extra Charges Query', [
+    'time' => round(microtime(true) - $timer, 2) . ' sec',
+    'count' => $orderExtraCharges->count()
+]);
         $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
         // $extraChargesTotalRaw = 0;
 

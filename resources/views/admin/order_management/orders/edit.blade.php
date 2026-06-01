@@ -4554,10 +4554,11 @@
                 document.getElementById('cancelChangeReturnDate'),
             ];
 
-            let _orderProductId    = null;
-            let _deliveryDateValue = null;   // delivery date string for calculation
-            let _updateFn          = null;
-            let _returnDateEl      = null;   // DOM element to update on save
+            let _orderProductId         = null;
+            let _deliveryDateValue      = null;
+            let _currentReturnDateValue = null;  // current return date — base for duration calculations
+            let _updateFn               = null;
+            let _returnDateEl           = null;  // DOM element to update on save
 
             // Calendar days added per duration type × 1 qty
             const DURATION_DAYS = { daily: 1, weekend: 1, weekly: 7, monthly: 28 };
@@ -4621,7 +4622,7 @@
                 } else {
                     calcDateDisplay.classList.remove('hidden');
                     manualDateInput.classList.add('hidden');
-                    const newDate = calcReturnDate(_deliveryDateValue, type, qty[type]);
+                    const newDate = calcReturnDate(_currentReturnDateValue, type, qty[type]);
                     calcDateDisplay.textContent = newDate || '—';
                 }
             }
@@ -4747,10 +4748,11 @@
                 currentAllocatedHours = 0,
                 returnDateEl = null
             ) {
-                _orderProductId    = orderProductId;
-                _deliveryDateValue = deliveryDate;
-                _updateFn          = updateScheduleField;
-                _returnDateEl      = returnDateEl;
+                _orderProductId         = orderProductId;
+                _deliveryDateValue      = deliveryDate;
+                _currentReturnDateValue = currentReturnDate;
+                _updateFn               = updateScheduleField;
+                _returnDateEl           = returnDateEl;
 
                 // Show current date in summary bar
                 if (currentDateLabel) {

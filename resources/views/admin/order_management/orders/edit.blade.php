@@ -4571,10 +4571,11 @@
                 document.getElementById('cancelChangeReturnDate'),
             ];
 
-            let _orderProductId    = null;
-            let _deliveryDateValue = null;   // delivery date string for calculation
-            let _updateFn          = null;
-            let _returnDateEl      = null;   // DOM element to update on save
+            let _orderProductId       = null;
+            let _currentReturnDateValue = null; // current return date string for calculation
+            let _deliveryDateValue    = null;   // fallback when current return date is unavailable
+            let _updateFn             = null;
+            let _returnDateEl         = null;   // DOM element to update on save
 
             // Calendar days added per duration type × 1 qty
             const DURATION_DAYS = { daily: 1, weekend: 1, weekly: 7, monthly: 28 };
@@ -4611,15 +4612,19 @@
             }
 
             /**
-             * Calculate the new return date from the delivery date + type × qty days.
+             * Calculate the new return date from the current return date + type × qty days.
              * Returns a formatted string (MM/dd/yyyy) or '' on failure.
              */
-            function calcReturnDate(deliveryStr, type, q) {
-                const base = parseScheduleDate(deliveryStr);
+            function calcReturnDate(baseDateStr, type, q) {
+                const base = parseScheduleDate(baseDateStr);
                 if (!base) return '';
                 const days    = (DURATION_DAYS[type] || 1) * (q || 1);
                 const newDate = new Date(base.getTime() + days * 86400000);
                 return formatScheduleDate(newDate);
+            }
+
+            function getReturnDateCalcBase() {
+                return _currentReturnDateValue || _deliveryDateValue || '';
             }
 
             /**
@@ -4638,7 +4643,7 @@
                 } else {
                     calcDateDisplay.classList.remove('hidden');
                     manualDateInput.classList.add('hidden');
-                    const newDate = calcReturnDate(_deliveryDateValue, type, qty[type]);
+                    const newDate = calcReturnDate(getReturnDateCalcBase(), type, qty[type]);
                     calcDateDisplay.textContent = newDate || '—';
                 }
             }
@@ -4704,10 +4709,11 @@
 
             function closeModal() {
                 modal.classList.add('hidden');
-                _orderProductId    = null;
-                _deliveryDateValue = null;
-                _updateFn          = null;
-                _returnDateEl      = null;
+                _orderProductId         = null;
+                _currentReturnDateValue = null;
+                _deliveryDateValue      = null;
+                _updateFn               = null;
+                _returnDateEl           = null;
             }
 
             // ── Save ─────────────────────────────────────────────────────────
@@ -4725,7 +4731,7 @@
                 if (optionDateOnly.checked || type === 'custom') {
                     dateValue = manualDateInput.value;
                 } else {
-                    dateValue = calcReturnDate(_deliveryDateValue, type, qty[type]);
+                    dateValue = calcReturnDate(getReturnDateCalcBase(), type, qty[type]);
                 }
 
                 if (!dateValue) {
@@ -4764,10 +4770,11 @@
                 currentAllocatedHours = 0,
                 returnDateEl = null
             ) {
-                _orderProductId    = orderProductId;
-                _deliveryDateValue = deliveryDate;
-                _updateFn          = updateScheduleField;
-                _returnDateEl      = returnDateEl;
+                _orderProductId         = orderProductId;
+                _currentReturnDateValue = currentReturnDate;
+                _deliveryDateValue      = deliveryDate;
+                _updateFn               = updateScheduleField;
+                _returnDateEl           = returnDateEl;
 
                 // Show current date in summary bar
                 if (currentDateLabel) {

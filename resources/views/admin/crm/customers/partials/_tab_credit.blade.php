@@ -1057,9 +1057,11 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
                        <div class="space-y-2 text-sm text-gray-700">
-
+@php
+    $taxPercentage = \App\Helpers\CustomHelper::displayPercentage($sales_tax);
+@endphp
                            @foreach([
-                           'add' => ['label' => 'Add Sales Tax', 'desc' => 'Add 9.75% sales tax to the entered amount'],
+                           'add' => ['label' => 'Add Sales Tax', 'desc' => "Add {$taxPercentage}% sales tax to the entered amount"],
                            'free' => ['label' => 'Tax Free', 'desc' => 'No sales tax applied to this charge'],
                            'reverse' => ['label' => 'Reverse Sales Tax', 'desc' => 'Split entered amount proportionally between base amount and tax'],
                            ] as $value => $info)
@@ -1213,10 +1215,12 @@
                    <div class="mb-4">
                        <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
                        <div class="space-y-2 text-sm text-gray-700">
-
+@php
+    $taxPercentage = \App\Helpers\CustomHelper::displayPercentage($sales_tax);
+@endphp
 
                            @foreach([
-                           'add' => ['label' => 'Add Sales Tax', 'desc' => 'Add 9.75% sales tax to the entered amount'],
+                           'add' => ['label' => 'Add Sales Tax', 'desc' => "Add {$taxPercentage}% sales tax to the entered amount"],
                            'free' => ['label' => 'Tax Free', 'desc' => 'No sales tax applied to this charge'],
                            'reverse' => ['label' => 'Reverse Sales Tax', 'desc' => 'Split entered amount proportionally between base amount and tax'],
                            ] as $value => $info)

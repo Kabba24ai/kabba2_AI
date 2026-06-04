@@ -18,6 +18,9 @@
 
         <!-- Section 2: Customer Alerts -->
         <div class="mb-6">
+
+             @include('admin.dashboard.partials._alerts_activities')
+
             <livewire:dashboard.alerts-section />
               @include('admin.dashboard.partials._alerts_section')
         </div>

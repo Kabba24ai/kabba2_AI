@@ -235,7 +235,9 @@ class IndexController extends Controller
         ];
 
 
-        return view('admin.dashboard.index', compact('salesData','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount'));
+        $customers = Customer::whereIn('status', ['Active', 'Archived'])->get();
+
+        return view('admin.dashboard.index', compact('salesData','customers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount'));
 
     }
 

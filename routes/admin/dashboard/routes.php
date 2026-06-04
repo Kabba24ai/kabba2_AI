@@ -9,7 +9,13 @@ use App\Http\Controllers\Admin\Dashboard\AmountUpdateController;
 use App\Http\Controllers\Admin\Dashboard\PaymentStoreController;
 use App\Http\Controllers\Admin\Dashboard\MarkUncollectibleController;
 use App\Http\Controllers\Admin\Dashboard\MarkResolvedController;
-use App\Http\Controllers\Admin\Dashboard\ExtraChargesShowController;
+use App\Http\Controllers\Admin\Dashboard\ExtraChargesShowController
+;
+use App\Http\Controllers\Admin\Dashboard\CallNeededStoreController;
+use App\Http\Controllers\Admin\Dashboard\CallNeededListController;
+use App\Http\Controllers\Admin\Dashboard\CallNeededShowController;
+use App\Http\Controllers\Admin\Dashboard\CallNeededClearController;
+use App\Http\Controllers\Admin\Dashboard\CallNeededUpdateController;
 
 
 Route::prefix('dashboard')
@@ -28,5 +34,17 @@ Route::prefix('dashboard')
       Route::post('/extra-charges/resolved/{id}', MarkResolvedController::class)->name('extra-charges.resolved');
 
       Route::get('/extra-charges/show/{unique_id}', ExtraChargesShowController::class)->name('extra-charges.show');
+
+
+
+      Route::post('/call-needed/store',CallNeededStoreController::class)->name('call-needed.store');
+
+    Route::get('/call-needed/list', CallNeededListController::class)->name('call-needed.list');
+Route::get('/call-needed/show/{id}', CallNeededShowController::class)->name('call-needed.show');
+Route::post('/call-needed/clear/{id}', CallNeededClearController::class)->name('call-needed.clear');
+Route::post(
+    '/call-needed/update/{id}',
+    CallNeededUpdateController::class
+)->name('call-needed.update');
 
 });

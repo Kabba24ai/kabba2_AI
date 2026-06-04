@@ -4571,11 +4571,12 @@
                 document.getElementById('cancelChangeReturnDate'),
             ];
 
-            let _orderProductId       = null;
-            let _currentReturnDateValue = null; // current return date string for calculation
-            let _deliveryDateValue    = null;   // fallback when current return date is unavailable
-            let _updateFn             = null;
-            let _returnDateEl         = null;   // DOM element to update on save
+            const calcDateDisplay = document.getElementById('returnCalcDateDisplay');
+            const manualDateInput = document.getElementById('returnManualDateInput');
+            const currentDateLabel = document.getElementById('returnCurrentDateLabel');
+
+            // Calendar days added per duration type × 1 qty
+            const DURATION_DAYS = { daily: 1, weekend: 1, weekly: 7, monthly: 28 };
 
             // Calendar days added per duration type × 1 qty
             const DURATION_DAYS = { daily: 1, weekend: 1, weekly: 7, monthly: 28 };
@@ -4645,6 +4646,16 @@
                     manualDateInput.classList.add('hidden');
                     const newDate = calcReturnDate(getReturnDateCalcBase(), type, qty[type]);
                     calcDateDisplay.textContent = newDate || '—';
+                    // Warn if calculated date is not after the current return date
+                    const baseDate = parseScheduleDate(_newDateValue);
+                    const calcDate = parseScheduleDate(newDate);
+                    const isPast   = calcDate && baseDate && calcDate <= baseDate;
+                    calcDateDisplay.classList.toggle('text-red-700',    isPast);
+                    calcDateDisplay.classList.toggle('bg-red-50',       isPast);
+                    calcDateDisplay.classList.toggle('border-red-300',  isPast);
+                    calcDateDisplay.classList.toggle('text-blue-700',   !isPast);
+                    calcDateDisplay.classList.toggle('bg-blue-50',      !isPast);
+                    calcDateDisplay.classList.toggle('border-blue-200', !isPast);
                 }
             }
 
@@ -4739,6 +4750,14 @@
                     return;
                 }
 
+                // Block save if new date is not after the current return date
+                const baseDate    = parseScheduleDate(_newDateValue);
+                const newDateParsed = parseScheduleDate(dateValue);
+                if (!newDateParsed || (baseDate && newDateParsed <= baseDate)) {
+                    if (window.notyf) window.notyf.error('New return date must be after the current return date.');
+                    return;
+                }
+
                 closeModal();
 
                 // Update the return date field on screen
@@ -4761,24 +4780,15 @@
                 }
             });
 
-            // ── Public opener ─────────────────────────────────────────────────
-            window.openChangeReturnDateModal = function (
-                orderProductId,
-                currentReturnDate,
-                deliveryDate,
-                updateScheduleField,
-                currentAllocatedHours = 0,
-                returnDateEl = null
-            ) {
-                _orderProductId         = orderProductId;
-                _currentReturnDateValue = currentReturnDate;
-                _deliveryDateValue      = deliveryDate;
-                _updateFn               = updateScheduleField;
-                _returnDateEl           = returnDateEl;
+            // Public opener
+            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0, returnDateEl = null) {
+                _orderProductId = orderProductId;
+                _newDateValue   = newDate;
+                _updateFn       = updateScheduleField;
+                _returnDateEl   = returnDateEl;
 
-                // Show current date in summary bar
                 if (currentDateLabel) {
-                    currentDateLabel.textContent = currentReturnDate || '—';
+                    currentDateLabel.textContent = _newDateValue || '—';
                 }
                 if (currentAllocatedDisplay) {
                     currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;

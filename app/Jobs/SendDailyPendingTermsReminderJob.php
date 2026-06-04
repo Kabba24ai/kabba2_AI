@@ -24,7 +24,7 @@ class SendDailyPendingTermsReminderJob implements ShouldQueue
 
         Order::query()
             ->where('terms_status', OrderTermsStatus::Pending)
-            ->whereNull('terms_signed_at')
+            ->whereNull('terms_accepted_at')
             ->whereNull('reference_order_number')
             ->whereHas('products', function ($query) use ($today) {
                 $query->where('product_data->product_type', 'Rental')

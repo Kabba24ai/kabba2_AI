@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Tests;
 
 use App\Enums\Communication\SmsType;
 use App\Enums\Orders\OrderPaymentMethod;
+use App\Enums\Orders\OrderTermsStatus;
 use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Iam\Personnel\User;
@@ -34,6 +35,28 @@ use Throwable;
 class IndexController extends Controller
 {
     // new method here
+    public function termDailyReminder()
+    {
+        $today = Carbon::now('America/Chicago')->toDateString();
+
+        Order::query()
+            ->where('terms_status', OrderTermsStatus::Pending)
+            ->whereNull('terms_accepted_at')
+            ->whereNull('reference_order_number')
+            ->whereHas('products', function ($query) use ($today) {
+                $query->where('product_data->product_type', 'Rental')
+                    ->whereDate('delivery_date', $today);
+            })
+            ->select('order_number')
+            ->chunkById(200, function ($orders) {
+                foreach ($orders as $order) {
+                    dump("Dispatching terms reminder for Order ID: {$order->order_number}");
+                }
+            });
+        dd("Term daily reminder process completed for orders with delivery date: {$today}");
+
+    }
+
      public function salesFunnelStepAfterEvent()
     {
         $now = Carbon::now(config('app.timezone', 'UTC'));

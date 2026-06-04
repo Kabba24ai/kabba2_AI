@@ -12,6 +12,7 @@
                 <th class="py-4 px-6 text-right">Amount</th>
                 <th class="py-4 px-6 text-center">Payment Type</th>
                 <th class="py-4 px-6 text-center">Payment</th>
+                <th class="py-4 px-6 text-center">Terms Status</th>
                 {{-- <th class="py-4 px-6 text-center">Delivery</th>
                 <th class="py-4 px-6 text-center">Return</th> --}}
                 <th class="py-4 px-6 text-center">Created</th>
@@ -59,6 +60,9 @@
 
                         {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
 
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        {!! \App\Helpers\CustomHelper::statusBadge($order->terms_status->label() ?? '-') !!}
                     </td>
                     <td class="py-4 px-6 text-center">{{ $order->created_at->format(config('app.date.date_format')) }}
                     </td>

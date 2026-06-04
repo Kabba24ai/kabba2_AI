@@ -89,6 +89,9 @@ class ViewController extends Controller
        // Convert customer tag objects into list of names
         $customerTagNames = collect($allTags)->pluck('name')->toArray();
 
+        $sales_tax = ConfigurationHelper::getSettings(null , 'sales_tax');
+
+
         // ALL tags from DB EXCEPT customer's current tags
         $existingTagNames = Tag::whereNotIn('name', $customerTagNames)
                         ->orderBy('name')
@@ -114,6 +117,7 @@ class ViewController extends Controller
                         'allTags' => $allTags,
                         'existingTagNames' => $existingTagNames,
                         'customerTagNames' => $customerTagNames,
+                        'sales_tax' => $sales_tax
 
                     ]);
 

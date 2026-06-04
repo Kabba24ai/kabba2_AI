@@ -68,11 +68,14 @@
                     </label>
 
                     <div class="space-y-2 text-sm text-gray-700">
+@php
+    $taxPercentage = \App\Helpers\CustomHelper::displayPercentage($sales_tax);
+@endphp
 
                         @foreach([
                             'add' => [
                                 'label' => 'Add Sales Tax',
-                                'desc' => 'Add 9.75% sales tax to the entered amount'
+                                'desc' => "Add {$taxPercentage}% sales tax to the entered amount"
                             ],
 
                             'free' => [

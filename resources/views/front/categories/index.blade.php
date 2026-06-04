@@ -152,7 +152,7 @@
                                                 </span>
                                                 <span>
                                                     <span class="font-normal text-lg text-black">
-                                                        {{ App\Helpers\CustomHelper::formatCurrency($item->getRetailPrice(false)) }}
+                                                        {{ App\Helpers\CustomHelper::formatCurrency($item->getRetailPrice(true)) }}
                                                     </span>
                                                     @if ($item->isRetailOnSale())
                                                         <span class="line-through text-gray-500 text-base ml-1 font-normal italic">

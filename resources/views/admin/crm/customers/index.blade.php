@@ -117,19 +117,19 @@
         </div>
 
         {{-- Funnels Filter --}}
-<div class="w-full sm:w-48">
+        <div class="w-full sm:w-48">
 
-    <select
-        name="funnel"
-        id="funnels_select"
-        class="w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500"
-    >
-        <option value="">
-            All Funnels
-        </option>
-    </select>
+            <select
+                name="funnel"
+                id="funnels_select"
+                class="w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-blue-500"
+            >
+                <option value="">
+                    All Funnels
+                </option>
+            </select>
 
-</div>
+        </div>
 
         <!-- Total count -->
 

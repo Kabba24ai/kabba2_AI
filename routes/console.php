@@ -93,5 +93,12 @@ Schedule::job(new \App\Jobs\SendMeetingReminderJob())
     ->onOneServer()
     ->name('send-meeting-reminder-job');
 
+Schedule::job(new \App\Jobs\SendDailyPendingTermsReminderJob())
+    ->dailyAt('06:45')
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('send-daily-pending-terms-reminder-job');
+
 
 

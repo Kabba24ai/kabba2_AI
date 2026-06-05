@@ -82,7 +82,7 @@ class IndexController extends BaseController
             });
         }
 
-        $customers = $customersQuery->paginate($perPage);
+        $customers = $customersQuery->latest('id')->paginate($perPage);
 
         if ($customers->isEmpty()) {
             return response()->json([

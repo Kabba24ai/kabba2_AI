@@ -10,6 +10,7 @@ return [
         'no_tags_found' => 'No tags found.',
         'tags_found' => 'Tags found.',
         'tag_created_successfully' => 'Customer tag created successfully.',
+        'tags_assigned_successfully' => 'Tags assigned to customer successfully.',
     ],
 
     'cards' => [

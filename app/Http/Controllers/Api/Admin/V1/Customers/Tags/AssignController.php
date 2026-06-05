@@ -29,8 +29,23 @@ class AssignController extends BaseController
 
         $customer = Customer::where('unique_id', $validated['customer_unique_id'])->first();
 
-        // Store as JSON array of tag IDs
-        $customer->tags = json_encode(array_values(array_unique($validated['tag_ids'])));
+        $existingTagIds = [];
+
+        if (! empty($customer->tags)) {
+            $decodedTags = json_decode($customer->tags, true);
+
+            $existingTagIds = is_array($decodedTags)
+                ? $decodedTags
+                : explode(',', $customer->tags);
+        }
+
+        $mergedTagIds = array_values(array_unique(array_filter(array_merge(
+            $existingTagIds,
+            $validated['tag_ids']
+        ))));
+
+        // Keep old tags and append new unique tags only
+        $customer->tags = json_encode($mergedTagIds);
         $customer->save();
 
         return response()->json([

@@ -21,7 +21,7 @@ class IndexRequest extends ApiBaseFormRequest
             'search_company_name' => 'nullable|string|max:255',
             'search_phone' => 'nullable|string|max:255',
             'tax_status' => 'nullable|string|max:255',
-            'tag' => 'nullable|string|max:255',
+            'tag' => 'nullable|integer|max:255',
         ];
     }
 
@@ -45,27 +45,27 @@ class IndexRequest extends ApiBaseFormRequest
             ],
             'search_name' => [
                 'description' => 'Filter customers by full name.',
-                'example' => 'John Doe',
+                'example' => '',
                 'type' => 'string',
             ],
             'search_company_name' => [
                 'description' => 'Filter customers by company name.',
-                'example' => 'Acme Corp',
+                'example' => '',
                 'type' => 'string',
             ],
             'search_phone' => [
                 'description' => 'Filter customers by phone number.',
-                'example' => '(555) 123-4567',
+                'example' => '',
                 'type' => 'string',
             ],
             'tax_status' => [
                 'description' => 'Filter customers by tax status.',
-                'example' => 'Exempt',
+                'example' => '',
                 'type' => 'string',
             ],
             'tag' => [
                 'description' => 'Filter customers by tag id or stored tag value.',
-                'example' => '3',
+                'example' => '',
                 'type' => 'string',
             ],
         ];

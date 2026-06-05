@@ -29,7 +29,7 @@ class IndexController extends BaseController
 
         $perPage = $validatedData['per_page'] ?? 10;
 
-        $customersQuery = Customer::query()
+        $customersQuery = Customer::query()->withCount('orders')
             ->with(['notes' => fn($q) => $q
                 ->with('user')
             , 'billingAddress.state', 'shippingAddress.state'])

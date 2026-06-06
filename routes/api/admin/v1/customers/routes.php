@@ -9,6 +9,10 @@ use App\Http\Controllers\Api\Admin\V1\Customers\Tags\IndexController as TagsInde
 use App\Http\Controllers\Api\Admin\V1\Customers\Tags\StoreController as TagsStoreController;
 use App\Http\Controllers\Api\Admin\V1\Customers\Tags\AssignController as TagsAssignController;
 use App\Http\Controllers\Api\Admin\V1\Customers\Cards\IndexController as CardsIndexController;
+use App\Http\Controllers\Api\Admin\V1\Customers\Notes\IndexController as NotesIndexController;
+use App\Http\Controllers\Api\Admin\V1\Customers\Notes\StoreController as NotesStoreController;
+use App\Http\Controllers\Api\Admin\V1\Customers\Notes\UpdateController as NotesUpdateController;
+use App\Http\Controllers\Api\Admin\V1\Customers\Notes\RemoveController as NotesRemoveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,5 +37,12 @@ Route::group(['prefix' => 'customers'], function () {
 
     Route::group(['prefix' => 'cards'], function () {
         Route::post('/', CardsIndexController::class);
+    });
+
+    Route::group(['prefix' => 'notes'], function () {
+        Route::post('/', NotesIndexController::class);
+        Route::post('/create', NotesStoreController::class);
+        Route::post('/update', NotesUpdateController::class);
+        Route::post('/remove', NotesRemoveController::class);
     });
 });

@@ -17,4 +17,14 @@ return [
         'no_cards_found' => 'No customer cards found.',
         'cards_found' => 'Customer cards found.',
     ],
+
+    'notes' => [
+        'no_notes_found' => 'No customer notes found.',
+        'notes_found' => 'Customer notes found.',
+        'note_created' => 'Customer note created successfully.',
+        'note_creation_failed' => 'Customer note creation failed.',
+        'note_updated' => 'Customer note updated successfully.',
+        'note_deleted' => 'Customer note deleted successfully.',
+        'note_not_found' => 'Customer note not found.',
+    ],
 ];

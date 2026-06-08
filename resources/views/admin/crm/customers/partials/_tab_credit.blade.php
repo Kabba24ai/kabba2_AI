@@ -215,9 +215,9 @@
 
 
        <!-- Table -->
-       <div class="overflow-x-auto">
-           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
-               <thead class="border-b bg-gray-50 border-gray-200 font-semibold text-gray-700">
+       <div class="overflow-auto max-h-[600px]">
+           <table class="min-w-full divide-y divide-gray-200 text-sm text-left whitespace-nowrap">
+               <thead class="sticky top-0 z-20 bg-gray-50 border-b border-gray-200">
                    <tr>
                        <th class="py-4 px-6">Date</th>
                        <th class="py-4 px-6">Type</th>

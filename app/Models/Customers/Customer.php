@@ -189,24 +189,37 @@ class Customer extends Authenticatable
         return $this->hasMany(CustomerCard::class);
     }
 
-    public function getPaidSalesAttribute()
-    {
-        return $this->orders()
-            ->whereHas('payments', function ($query) {
-                $query->where('status', 'Paid')->whereRaw('id = (SELECT MIN(id) FROM order_payments WHERE order_id = orders.id)');
-            })
-            ->sum('grand_total');
-    }
-
+public function getPaidSalesAttribute()
+{
+    return $this->orders()
+        ->whereHas('payments', function ($query) {
+            $query->whereIn('status', [
+                'Paid',
+                'Refunded',
+                'Partial Refund',
+            ])
+            ->whereRaw('id = (
+                SELECT MAX(id)
+                FROM order_payments
+                WHERE order_id = orders.id
+            )');
+        })
+        ->sum('grand_total');
+}
     // Total Pending Sales (via OrderPayment status)
-    public function getPendingSalesAttribute()
-    {
-        return $this->orders()
-            ->whereHas('payments', function ($query) {
-                $query->where('status', 'Pending')->whereRaw('id = (SELECT MIN(id) FROM order_payments WHERE order_id = orders.id)');
-            })
-            ->sum('grand_total');
-    }
+   public function getPendingSalesAttribute()
+{
+    return $this->orders()
+        ->whereHas('payments', function ($query) {
+            $query->where('status', 'Pending')
+            ->whereRaw('id = (
+                SELECT MAX(id)
+                FROM order_payments
+                WHERE order_id = orders.id
+            )');
+        })
+        ->sum('grand_total');
+}
 
     public function getTaxStatus(): string
     {

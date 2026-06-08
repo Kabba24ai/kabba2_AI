@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Api\Admin\V1\Orders;
+namespace App\Http\Requests\Api\Admin\V1\Customers\Notes;
 
 use App\Http\Requests\ApiBaseFormRequest;
 
-class RemoveMediaRequest extends ApiBaseFormRequest
+class IndexRequest extends ApiBaseFormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,7 +14,7 @@ class RemoveMediaRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'customer_note_unique_id' => 'required|string|exists:customer_notes,unique_id', // Required unique ID parameter
+            'customer_unique_id' => 'required|string|exists:customers,unique_id',
         ];
     }
 
@@ -26,9 +26,9 @@ class RemoveMediaRequest extends ApiBaseFormRequest
     public function bodyParameters(): array
     {
         return [
-            'customer_note_unique_id' => [
-                'description' => 'The unique ID of the customer note.',
-                'example' => 'CUST-NOTE-6NO6-KQY3',
+            'customer_unique_id' => [
+                'description' => 'The unique_id of the customer.',
+                'example' => 'CUS-00001',
                 'type' => 'string',
             ],
         ];

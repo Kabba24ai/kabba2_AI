@@ -46,6 +46,8 @@ class ListResource extends JsonResource
             'tax_document_type' => $this->tax_document_type ?? '',
             // 'tax_status_approved_by' => $this->tax_status_approved_by ?? '',
             'tax_document_media' => $this?->media->url ?? '',
+            'orders_count' => $this->whenCounted('orders'),
+
             'billing_address' => $this->relationLoaded('billingAddress')
                 ? new CustomerAddressesListResource($this->billingAddress)
                 : null,

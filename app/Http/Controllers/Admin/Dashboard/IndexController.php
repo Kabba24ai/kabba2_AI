@@ -619,7 +619,7 @@ private function getLastMonthData($now)
 private function getRevenueRows(Carbon $start, Carbon $end)
 {
     // ORDERS (same rules as Sales Tax)
-    $orders = Order::whereBetween('order_date', [$start, $end])
+    $orders = Order::with(['payments'])->whereBetween('order_date', [$start, $end])
         // ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
         ->whereHas('lastPayment', function ($q) {
                 $q->where('payment_method', '!=', 'COD')
@@ -629,11 +629,32 @@ private function getRevenueRows(Carbon $start, Carbon $end)
                 });
             })
         ->whereRelation('lastPayment', 'payment_method', '!=', 'Account')
-        ->get()
-        ->map(fn ($order) => (object) [
-            'date' => $order->order_date,
-            'grand_total' => (float) $order->grand_total,
+        ->get();
+        // ->map(fn ($order) => (object) [
+        //     'date' => $order->order_date,
+        //     'grand_total' => (float) $order->grand_total,
+        // ]);
+
+         $orderRows = $orders->map(fn ($order) => (object) [
+        'date' => $order->order_date,
+        'grand_total' => (float) $order->grand_total,
         ]);
+
+        $orderRefundedPayments = $orders->flatMap(function ($order) {
+        return $order->payments
+            ->filter(function ($payment) {
+                return in_array($payment->status?->value ?? $payment->status, [
+                    'Refunded',
+                    'Partial Refund',
+                ]);
+            })
+            ->map(function ($payment) use ($order) {
+                return (object) [
+                    'date' => $payment->payment_datetime ?? $payment->created_at ?? $order->order_date,
+                    'grand_total' => -((float) $payment->refund_amount),
+                ];
+            });
+    });
 
     // PAYMENT ACCOUNTS (same rules as Sales Tax)
     $payments = Customer::with('paymentAccounts')
@@ -646,7 +667,9 @@ private function getRevenueRows(Carbon $start, Carbon $end)
             'grand_total' => (float) $p->amount,
         ]);
 
-    return $orders->concat($payments);
+      return $orderRows
+        ->concat($orderRefundedPayments)
+        ->concat($payments);
 }
 
 private function getServiceStatusCounts()

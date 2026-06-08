@@ -23,22 +23,11 @@ class IndexController extends Controller
     {
 
     try {
-            $startTime = microtime(true);
-
-            Log::info('Sales Tax Report Total Time', [
-                'execution_time' => round(microtime(true) - $startTime, 2) . ' sec'
-            ]);
-
-
-            Log::info('STEP A');
+           
 
             $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
-            
-            Log::info('STEP B');
-
-            //  Orders Query
-            // $ordersQuery = Order::with('shippingAddress', 'products.product', 'lastPayment')
+         
                 $ordersQuery = Order::query()
     ->select([
         'id',
@@ -52,7 +41,8 @@ class IndexController extends Controller
     ])
     ->with([
         'shippingAddress:id,order_id,first_name,last_name',  
-           'products:id,order_id,product_name',
+        'products:id,order_id,product_name',
+        'payments',
         'lastPayment'
     ])->whereHas('lastPayment', function ($q) {
                     $q->where('payment_method', '!=', 'COD')
@@ -78,55 +68,18 @@ class IndexController extends Controller
                     $q->whereBetween('order_date', [$start, $end]);
                 });
 
-                Log::info('STEP C');
-
-                $timer = microtime(true);
+             
+      
                         $orders = $ordersQuery->get();
 
-                        Log::info('Orders Query', [
-                    'time' => round(microtime(true) - $timer, 2) . ' sec',
-                    'count' => $orders->count()
-                ]);
-            // $orders = $ordersQuery->limit(500)->get();
+                   
 
             // Load payment accounts ONLY when a store is NOT selected
             $paymentAccounts = collect(); // default empty collection
 
-            Log::info('STEP D');
-
-            // if (empty($request->store)) {
-            //     //  Payment Accounts
-            //     $paymentAccounts = Customer::with([
-            //         'paymentAccounts' => function ($q) use ($request) {
-            //             if ($request->filled('payment_method') && $request->payment_method !== 'All Methods') {
-            //                 $q->where('payment_type', $request->payment_method);
-            //             }
-            //             if ($request->filled('month_range')) {
-            //                 [$year, $month] = explode('-', $request->month_range);
-            //                 $start = Carbon::create($year, $month, 1)->startOfMonth();
-            //                 $end = Carbon::create($year, $month, 1)->endOfMonth();
-            //                 $q->whereBetween('date', [$start, $end]);
-            //             }
-            //             if ($request->filled('start_date') && $request->filled('end_date')) {
-            //                 $start = Carbon::parse($request->start_date)->startOfDay();
-            //                 $end = Carbon::parse($request->end_date)->endOfDay();
-            //                 $q->whereBetween('date', [$start, $end]);
-            //             }
-            //         },
-            //     ])
-            //         ->get()
-            //         ->pluck('paymentAccounts')
-            //         ->flatten()
-            //         ->map(function ($item) {
-            //             $item->is_payment_account = true;
-            //             return $item;
-            //         });
-            // }
-
-
+      
             if (empty($request->store)) {
-            $timer = microtime(true);
-
+          
                 $paymentAccounts = CustomerAccount::query()
                     ->with('customer')
                     ->where('type', 'payment')
@@ -166,10 +119,6 @@ class IndexController extends Controller
                         return $item;
                     });
 
-                    Log::info('Payment Accounts Query', [
-                    'time' => round(microtime(true) - $timer, 2) . ' sec',
-                    'count' => $paymentAccounts->count()
-                ]);
 
             } else {
                 $paymentAccounts = collect();
@@ -177,7 +126,59 @@ class IndexController extends Controller
 
             //  Combine & Paginate
             $combined = $orders->concat($paymentAccounts)->sortByDesc(fn($item) => isset($item->is_payment_account) ? $item->date : $item->order_date)->values();
-            $timer = microtime(true);
+         
+
+            $orderRefundedPayments = $orders->flatMap(function ($order) {
+
+                return $order->payments
+                    ->filter(function ($payment) {
+
+                        return in_array(
+                            $payment->status?->value ?? $payment->status,
+                            [
+                                'Refunded',
+                                'Partial Refund',
+                            ]
+                        );
+
+                    })
+                    ->map(function ($payment) use ($order) {
+
+                        $refundAmount = (float) $payment->refund_amount;
+
+                        $refundTax = CustomHelper::calculateRefundSalesTax(
+                            $refundAmount,
+                            $order->subtotal,
+                            $order->tax_amount
+                        );
+
+                        $refundSubtotal = $refundAmount - $refundTax;
+
+                        return (object) [
+                            'type' => 'refund',
+                            'unique_id' => $order->unique_id,
+                            'link' => $order->view_link,
+                             'date' => $order->order_date,
+                            'customer_name' =>
+                                $order->shippingAddress?->full_name ?? '-',
+                            'products' =>
+                                'Refund - ' .
+                                $order->products
+                                    ->pluck('product_name')
+                                    ->implode(', '),
+                            'payment_type' =>
+                                $payment->payment_method?->label() ?? '-',
+                            // NEGATIVE VALUES
+                            'subtotal' => -$refundSubtotal,
+                            'tax_amount' => -$refundTax,
+                            'discount_amount' => 0,
+                            'grand_total' => -$refundAmount,
+                        ];
+                    });
+
+            });
+
+            // dd($orderRefundedPayments);
 
             //  Combine into unified rows
             $reportRows = $orders
@@ -200,6 +201,7 @@ class IndexController extends Controller
                         'grand_total' => $order->grand_total,
                     ];
                 })
+                ->concat($orderRefundedPayments)
                 ->concat(
                     $paymentAccounts->map(function ($payment) {
                         $amount = $payment->amount ?? 0;
@@ -225,22 +227,12 @@ class IndexController extends Controller
                 )
                 ->sortByDesc(fn($row) => $row->date)
                 ->values();
-
-                Log::info('ReportRows Processing', [
-                    'time' => round(microtime(true) - $timer, 2) . ' sec',
-                    'count' => $reportRows->count(),
-                ]);
-
-                //  dd($reportRows);
-
-            // $totalRevenue = CustomHelper::formatCurrency($reportRows->sum(fn($row) => $row->grand_total));
+                
 
             $reportRowsTotal = $reportRows->sum(fn($row) => $row->grand_total);
 
 
             $rowsalesTaxCollected = $reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal) ;
-
-            $timer = microtime(true);
 
             $orderExtraCharges = OrderExtraCharges::query()
                 ->when($request->filled('month_range'), function ($q) use ($request) {
@@ -256,13 +248,9 @@ class IndexController extends Controller
                 })
                 ->get();
 
-            Log::info('Extra Charges Query', [
-                'time' => round(microtime(true) - $timer, 2) . ' sec',
-                'count' => $orderExtraCharges->count()
-            ]);
+           
             $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
-            // $extraChargesTotalRaw = 0;
-
+           
             $taxFreeRevenue = CustomHelper::formatCurrency($rowsalesTaxCollected + $extraChargesTotalRaw);
 
             $reversetaxableRevenue = $reportRows->filter(fn($row) => $row->tax_amount > 0)->sum(fn($row) => $row->grand_total);
@@ -271,23 +259,20 @@ class IndexController extends Controller
 
             $salesTaxCollectedbeforCurrencyicon = $reportRows->sum(fn($row) => $row->tax_amount) ;
 
-            // $salesTaxCollected = CustomHelper::formatCurrency($salesTaxCollectedbeforCurrencyicon);
-
-            // $taxableRevenue = CustomHelper::formatCurrency($taxableRevenue + $salesTaxCollectedbeforCurrencyicon);
-
             $rowtaxableRevenue = $reportRowsTotal - $rowsalesTaxCollected ;
 
             $taxableRevenue = CustomHelper::formatCurrency( $rowtaxableRevenue );
 
             $salesTaxCollected = CustomHelper::formatCurrency( $rowtaxableRevenue * $sales_tax );
 
-            $reportRows = $reportRows->filter(fn($row) => $row->tax_amount > 0)->values();
+            // $reportRows = $reportRows->filter(fn($row) => $row->tax_amount > 0)->values();
+            $reportRows = $reportRows
+    ->filter(fn($row) => $row->tax_amount != 0)
+    ->values();
 
             $totalCollectedAllSources = CustomHelper::formatCurrency($extraChargesTotalRaw + $reportRowsTotal);
 
             $totalRevenue = CustomHelper::formatCurrency( $reportRowsTotal - $rowsalesTaxCollected);
-
-
 
             // Pagination
             $perPage = $request->get('per_page', 30);
@@ -352,8 +337,6 @@ class IndexController extends Controller
                     . Carbon::create($item->year, $item->month, 1)->endOfMonth()->format('M d'),
             ]);
 
-
-
             return view('admin.reports.sales_tax.index', [
                 'orders' => $paginated,
                 'stores' => Store::all(),
@@ -366,7 +349,6 @@ class IndexController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-
 
         Log::info('Sales Tax Report Error', [
             'message' => $e->getMessage(),

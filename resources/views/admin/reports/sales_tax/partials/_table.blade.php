@@ -38,7 +38,13 @@
 
                     <td class="px-4 py-3 truncate  text-left">
 
+                      @if($order->type === 'refund')
+                        <span class="text-green-600 font-medium">
+                            {{ $order->products }}
+                        </span>
+                    @else
                         {{ $order->products }}
+                    @endif
 
                     </td>
                     <td class="px-4 py-3 text-center">
@@ -48,19 +54,27 @@
                     </td>
 
                     <td class="px-4 py-3 font-semibold text-right">
+                         <span class="{{ $order->type === 'refund' ? 'text-green-600' : '' }}">
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}
+                         </span>
                     </td>
 
                     <td class="px-4 py-3 font-semibold text-right">
+                         <span class="{{ $order->type === 'refund' ? 'text-green-600' : '' }}">
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->tax_amount) }}
+                         </span>
                     </td>
 
                     <td class="px-4 py-3 font-semibold text-right">
+                         <span class="{{ $order->type === 'refund' ? 'text-green-600' : '' }}">
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->discount_amount) }}
+                         </span>
                     </td>
 
                     <td class="px-4 py-3 font-semibold text-right">
+                         <span class="{{ $order->type === 'refund' ? 'text-green-600' : '' }}">
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
+                         </span>
                     </td>
 
                 </tr>

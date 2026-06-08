@@ -873,4 +873,34 @@ class CustomHelper
 
     }
 
+
+    public static function calculateSalesTaxRate(
+    float $subtotal,
+    float $taxAmount
+    ): float {
+
+        if ($subtotal <= 0) {
+            return 0;
+        }
+
+        return $taxAmount / $subtotal;
+    }
+
+   public static function calculateRefundSalesTax($refundAmount, $subtotal, $taxAmount)
+{
+    $refundAmount = (float) $refundAmount;
+    $subtotal     = (float) $subtotal;
+    $taxAmount    = (float) $taxAmount;
+
+    if ($refundAmount <= 0 || $subtotal <= 0 || $taxAmount <= 0) {
+        return 0;
+    }
+
+    $taxRate = $taxAmount / $subtotal;
+
+    return round(
+        $refundAmount - ($refundAmount / (1 + $taxRate)),
+        2
+    );
+}
 }

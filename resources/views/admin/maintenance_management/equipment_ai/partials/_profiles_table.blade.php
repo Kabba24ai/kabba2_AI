@@ -191,6 +191,7 @@
                     <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">AI Status</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Last AI Update</th>
                     <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Specs</th>
+                    <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Key Specs</th>
                     <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
                 </tr>
             </thead>
@@ -253,10 +254,22 @@
                             </span>
                             {{-- Default server-rendered count --}}
                             <span x-show="rowStatus['{{ $profile->unique_id }}'] !== 'success'">
-                                @php $specCount = $profile->specifications->count(); @endphp
-                                @if ($specCount > 0)
+
+                                @if ($profile->specifications_count > 0)
                                     <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-400">
-                                        {{ $specCount }}
+                                        {{ $profile->specifications_count }}
+                                    </span>
+                                @else
+                                    <span class="text-xs text-gray-400">0</span>
+                                @endif
+                            </span>
+                        </td>
+
+                        {{-- Key Specs count summary (non-reactive) --}}
+                        <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-center">
+                             @if ($profile->key_specifications_count > 0)
+                                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-400">
+                                        {{ $profile->key_specifications_count }}
                                     </span>
                                 @else
                                     <span class="text-xs text-gray-400">0</span>

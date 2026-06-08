@@ -22,7 +22,7 @@ class IndexController extends Controller
         if ($request->filled('category_id')) {
             $selectedCategory = ProductCategory::find($request->category_id);
 
-            $profiles = EquipmentAiProfile::with('specifications')
+            $profiles = EquipmentAiProfile::withCount('specifications')->withCount('keySpecifications')
                 ->where('category_id', $request->category_id)
                 ->orderBy('make')
                 ->orderBy('model')

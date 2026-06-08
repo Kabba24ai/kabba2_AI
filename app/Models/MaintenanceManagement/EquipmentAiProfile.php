@@ -56,6 +56,12 @@ class EquipmentAiProfile extends Model
         return $this->hasMany(EquipmentAiSpecification::class, 'equipment_ai_profile_id');
     }
 
+    public function keySpecifications()
+    {
+        return $this->hasMany(EquipmentAiSpecification::class, 'equipment_ai_profile_id')
+            ->where('is_key_comparison', true);
+    }
+
     /* ------------------------------------------------------------------
      | Helpers
      ------------------------------------------------------------------ */

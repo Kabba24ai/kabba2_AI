@@ -232,6 +232,29 @@
             </h2>
         </div>
 
+        @php
+            $specSections = [
+                [
+                    'title' => 'Key Criteria',
+                    'description' => 'Critical comparison fields highlighted for this profile.',
+                    'items' => $keyCriteriaSpecs,
+                    'row_class' => 'bg-amber-50/70 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300',
+                ],
+                [
+                    'title' => 'Common Specifications',
+                    'description' => 'Category-based specs shared across similar equipment profiles.',
+                    'items' => $commonSpecs,
+                    'row_class' => 'bg-sky-50/70 text-sky-800 dark:bg-sky-900/20 dark:text-sky-300',
+                ],
+                [
+                    'title' => 'Unique Specifications',
+                    'description' => 'Profile-specific specs that are not part of the shared category catalog.',
+                    'items' => $uniqueSpecs,
+                    'row_class' => 'bg-emerald-50/70 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300',
+                ],
+            ];
+        @endphp
+
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-800">
@@ -246,117 +269,136 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-900">
-                    @forelse ($profile->specifications as $spec)
-                        {{-- View row --}}
-                        <tr x-show="editingId !== {{ $spec->id }}"
-                            class="{{ $spec->is_key_comparison ? 'bg-amber-50/40 dark:bg-amber-900/10' : '' }} hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                            {{-- Key Comparison checkbox ─────────────────────────── --}}
-                            <td class="px-5 py-3 text-center">
-                                <input type="checkbox"
-                                    id="kc_{{ $spec->id }}"
-                                    {{ $spec->is_key_comparison ? 'checked' : '' }}
-                                    :disabled="togglingId === {{ $spec->id }}"
-                                    @change="toggleKeyComparison({{ $spec->id }}, $event.target)"
-                                    class="h-4 w-4 cursor-pointer rounded border-gray-300 text-amber-500 focus:ring-amber-400 disabled:opacity-50">
-                            </td>
-                            <td class="px-5 py-3 text-gray-800 dark:text-gray-200">
-                                {{ $spec->spec_label }}
-                                @if ($spec->is_key_comparison)
-                                    <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">key</span>
-                                @endif
-                            </td>
-                            <td class="px-5 py-3 font-medium text-gray-900 dark:text-gray-100">{{ $spec->spec_value ?? '—' }}</td>
-                            <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->spec_unit ?? '—' }}</td>
-                            <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->source ?? '—' }}</td>
-                            <td class="px-5 py-3 text-center">
-                                @php $pct = round(($spec->confidence_score ?? 1) * 100); @endphp
-                                <span class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">
-                                    {{ $pct }}%
-                                </span>
-                            </td>
-                            <td class="px-5 py-3">
-                                <div class="flex items-center justify-end gap-2">
-                                    <button @click="editingId = {{ $spec->id }}"
-                                        class="inline-flex items-center justify-center rounded-md p-1.5 text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300"
-                                        title="Edit">
-                                        <x-heroicon-o-pencil-square class="h-4 w-4" />
-                                    </button>
-                                    <form method="POST"
-                                        action="{{ route('admin.maintenance-management.equipment-ai.specifications.delete', $spec->id) }}"
-                                        class="inline"
-                                        onsubmit="return confirm('Delete spec "{{ addslashes($spec->spec_key) }}"?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="inline-flex items-center justify-center rounded-md p-1.5 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                                            title="Delete">
-                                            <x-heroicon-o-trash class="h-4 w-4" />
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-
-                        {{-- Inline edit row --}}
-                        <tr x-show="editingId === {{ $spec->id }}" x-cloak
-                            class="bg-blue-50/50 dark:bg-blue-900/10">
-                            <td colspan="7" class="px-5 py-4">
-                                <form method="POST"
-                                      action="{{ route('admin.maintenance-management.equipment-ai.specifications.update', $spec->id) }}"
-                                      class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                                    @csrf
-                                    @method('PUT')
-
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label *</label>
-                                        <input type="text" name="spec_label" value="{{ $spec->spec_label }}" required
-                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Value</label>
-                                        <input type="text" name="spec_value" value="{{ $spec->spec_value }}"
-                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Unit</label>
-                                        <input type="text" name="spec_unit" value="{{ $spec->spec_unit }}"
-                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Source</label>
-                                        <select name="source"
-                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                            @foreach (['manual','manufacturer_pdf','manufacturer_website','ai_openai','ai_other'] as $src)
-                                                <option value="{{ $src }}" {{ $spec->source == $src ? 'selected' : '' }}>{{ ucwords(str_replace('_',' ',$src)) }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Confidence</label>
-                                        <input type="number" name="confidence_score" value="{{ $spec->confidence_score }}" min="0" max="1" step="0.01"
-                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    </div>
-                                    <div class="flex items-end gap-2">
-                                        <button type="submit"
-                                            class="rounded-md bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">
-                                            Save
-                                        </button>
-                                        <button type="button" @click="editingId = null"
-                                            class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
+                    @if ($profile->specifications->isEmpty())
                         <tr>
                             <td colspan="7" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
                                 No specifications yet. Click <strong>Research &amp; Create General Specification</strong> to generate with AI,
                                 or <strong>Add Specification</strong> to add manually.
                             </td>
                         </tr>
-                    @endforelse
+                    @else
+                        @foreach ($specSections as $section)
+                            @continue($section['items']->isEmpty())
+
+                            <tr class="{{ $section['row_class'] }}">
+                                <td colspan="7" class="px-5 py-3">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div>
+                                            <h3 class="text-sm font-semibold">{{ $section['title'] }}</h3>
+                                            <p class="mt-0.5 text-xs opacity-80">{{ $section['description'] }}</p>
+                                        </div>
+                                        <span class="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+                                            {{ $section['items']->count() }}
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            @foreach ($section['items'] as $spec)
+                                {{-- View row --}}
+                                <tr x-show="editingId !== {{ $spec->id }}"
+                                    class="{{ $spec->is_key_comparison ? 'bg-amber-50/40 dark:bg-amber-900/10' : '' }} hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                    <td class="px-5 py-3 text-center">
+                                        <input type="checkbox"
+                                            id="kc_{{ $spec->id }}"
+                                            {{ $spec->is_key_comparison ? 'checked' : '' }}
+                                            :disabled="togglingId === {{ $spec->id }}"
+                                            @change="toggleKeyComparison({{ $spec->id }}, $event.target)"
+                                            class="h-4 w-4 cursor-pointer rounded border-gray-300 text-amber-500 focus:ring-amber-400 disabled:opacity-50">
+                                    </td>
+                                    <td class="px-5 py-3 text-gray-800 dark:text-gray-200">
+                                        {{ $spec->spec_label }}
+                                        @if ($spec->is_key_comparison)
+                                            <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">key</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-5 py-3 font-medium text-gray-900 dark:text-gray-100">{{ $spec->spec_value ?? '—' }}</td>
+                                    <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->spec_unit ?? '—' }}</td>
+                                    <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->source ?? '—' }}</td>
+                                    <td class="px-5 py-3 text-center">
+                                        @php $pct = round(($spec->confidence_score ?? 1) * 100); @endphp
+                                        <span class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">
+                                            {{ $pct }}%
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button @click="editingId = {{ $spec->id }}"
+                                                class="inline-flex items-center justify-center rounded-md p-1.5 text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300"
+                                                title="Edit">
+                                                <x-heroicon-o-pencil-square class="h-4 w-4" />
+                                            </button>
+                                            <form method="POST"
+                                                action="{{ route('admin.maintenance-management.equipment-ai.specifications.delete', $spec->id) }}"
+                                                class="inline"
+                                                onsubmit="return confirm('Delete spec "{{ addslashes($spec->spec_key) }}"?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center justify-center rounded-md p-1.5 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                                                    title="Delete">
+                                                    <x-heroicon-o-trash class="h-4 w-4" />
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {{-- Inline edit row --}}
+                                <tr x-show="editingId === {{ $spec->id }}" x-cloak
+                                    class="bg-blue-50/50 dark:bg-blue-900/10">
+                                    <td colspan="7" class="px-5 py-4">
+                                        <form method="POST"
+                                              action="{{ route('admin.maintenance-management.equipment-ai.specifications.update', $spec->id) }}"
+                                              class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                            @csrf
+                                            @method('PUT')
+
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label *</label>
+                                                <input type="text" name="spec_label" value="{{ $spec->spec_label }}" required
+                                                    class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Value</label>
+                                                <input type="text" name="spec_value" value="{{ $spec->spec_value }}"
+                                                    class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Unit</label>
+                                                <input type="text" name="spec_unit" value="{{ $spec->spec_unit }}"
+                                                    class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Source</label>
+                                                <select name="source"
+                                                    class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                                    @foreach (['manual','manufacturer_pdf','manufacturer_website','ai_openai','ai_other'] as $src)
+                                                        <option value="{{ $src }}" {{ $spec->source == $src ? 'selected' : '' }}>{{ ucwords(str_replace('_',' ',$src)) }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Confidence</label>
+                                                <input type="number" name="confidence_score" value="{{ $spec->confidence_score }}" min="0" max="1" step="0.01"
+                                                    class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                            </div>
+                                            <div class="flex items-end gap-2">
+                                                <button type="submit"
+                                                    class="rounded-md bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">
+                                                    Save
+                                                </button>
+                                                <button type="button" @click="editingId = null"
+                                                    class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @endforeach
+                    @endif
                 </tbody>
             </table>
         </div>

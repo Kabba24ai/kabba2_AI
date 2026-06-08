@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifica
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\EquipmentAiProfile;
+use App\Models\MaintenanceManagement\EquipmentCriticalMatchingCriterion;
 
 class IndexController extends Controller
 {
@@ -13,6 +14,43 @@ class IndexController extends Controller
             ->where('unique_id', $uniqueId)
             ->firstOrFail();
 
-        return view('admin.maintenance_management.equipment_ai.specifications.index', compact('profile'));
+        $commonSpecKeys = EquipmentCriticalMatchingCriterion::query()
+            ->where('product_category_id', $profile->category_id)
+            ->where('is_active', true)
+            ->pluck('criteria_key')
+            ->filter(fn ($key) => filled($key))
+            ->map(fn ($key) => trim((string) $key))
+            ->flip();
+
+        $keyCriteriaSpecs = $profile->specifications
+            ->filter(fn ($spec) => (bool) $spec->is_key_comparison)
+            ->values();
+
+        $commonSpecs = $profile->specifications
+            ->filter(function ($spec) use ($commonSpecKeys) {
+                if ($spec->is_key_comparison) {
+                    return false;
+                }
+
+                return $commonSpecKeys->has(trim((string) $spec->spec_key));
+            })
+            ->values();
+
+        $uniqueSpecs = $profile->specifications
+            ->filter(function ($spec) use ($commonSpecKeys) {
+                if ($spec->is_key_comparison) {
+                    return false;
+                }
+
+                return ! $commonSpecKeys->has(trim((string) $spec->spec_key));
+            })
+            ->values();
+
+        return view('admin.maintenance_management.equipment_ai.specifications.index', compact(
+            'profile',
+            'keyCriteriaSpecs',
+            'commonSpecs',
+            'uniqueSpecs'
+        ));
     }
 }

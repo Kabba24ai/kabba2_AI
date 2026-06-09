@@ -313,50 +313,84 @@
                             </div>
                         </div>
 
-                        {{-- ── Comparable Equipment ─────────────────────────────── --}}
+                        {{-- ── Comparable AI Profiles ────────────────────────────── --}}
                         <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                             <div class="border-b border-gray-100 px-5 py-4">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <h3 class="text-sm font-semibold text-gray-900">Comparable Equipment</h3>
+                                    <h3 class="text-sm font-semibold text-gray-900">Comparable AI Profiles</h3>
                                     <div class="flex items-center gap-2">
-                                        <button type="button" id="kc-eq-select-all"
+                                        <button type="button" id="kc-profile-select-all"
                                             class="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap">
                                             Select All
                                         </button>
-                                        <span id="kc-eq-count"
+                                        <span id="kc-profile-count"
                                             class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 whitespace-nowrap">0
                                             selected</span>
                                     </div>
                                 </div>
-                                <p class="mt-0.5 text-xs text-gray-500">Select equipment from the same category that can
-                                    serve as substitutes</p>
+                                <p class="mt-0.5 text-xs text-gray-500">AI profiles from the same category that can serve as comparable substitution references.</p>
                             </div>
-                            <div class="px-5 py-4 space-y-3">
-
-                                {{-- table --}}
+                            <div class="px-5 py-4">
                                 <div class="rounded-lg border border-gray-200 overflow-hidden">
                                     <div class="overflow-x-auto">
                                         <table class="w-full table-fixed">
                                             <colgroup>
                                                 <col class="w-12">
                                                 <col>
-                                                <col class="w-40">
-                                                <col class="w-40">
+                                                <col class="w-44">
+                                                <col class="w-44">
+                                                <col class="w-28">
+                                                <col class="w-28">
+                                                <col class="w-32">
                                             </colgroup>
                                             <thead class="bg-gray-50">
                                                 <tr class="border-b border-gray-200 text-xs font-semibold text-gray-500">
                                                     <th scope="col" class="px-4 py-2 text-left"></th>
-                                                    <th scope="col" class="px-2 py-2 text-left">Equipment Name</th>
-                                                    <th scope="col" class="px-2 py-2 text-left">Brand</th>
+                                                    <th scope="col" class="px-4 py-2 text-left">Profile</th>
+                                                    <th scope="col" class="px-2 py-2 text-left">Make</th>
                                                     <th scope="col" class="px-2 py-2 text-left">Model</th>
+                                                    <th scope="col" class="px-2 py-2 text-left">Specs</th>
+                                                    <th scope="col" class="px-2 py-2 text-left">Key Specs</th>
+                                                    <th scope="col" class="px-2 py-2 text-left">Status</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="kc-eq-list" class="divide-y divide-gray-100 bg-white">
-
+                                            <tbody class="divide-y divide-gray-100 bg-white">
+                                                @forelse ($comparableAiProfiles as $profile)
+                                                    <tr class="hover:bg-gray-50 transition-colors">
+                                                        <td class="px-4 py-3 text-center align-middle">
+                                                            <input type="checkbox"
+                                                                name="comparable_ai_profile_ids[]"
+                                                                value="{{ $profile->id }}"
+                                                                @checked(in_array((string) $profile->id, $selectedComparableAiProfileIds, true))
+                                                                class="kc-profile-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                        </td>
+                                                        <td class="px-4 py-3">
+                                                            <div class="min-w-0">
+                                                                <p class="truncate text-sm font-semibold text-gray-900">{{ $profile->unique_id }}</p>
+                                                                <p class="truncate text-xs text-gray-500">{{ $profile->make }} {{ $profile->model }}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->make ?: '—' }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->model ?: '—' }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->specifications_count }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->key_specifications_count }}</td>
+                                                        <td class="px-2 py-3">
+                                                            <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                                                {{ $profile->statusLabel() }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="7" class="px-6 py-10 text-center text-sm text-gray-400">
+                                                            No comparable AI profiles found for this category.
+                                                        </td>
+                                                    </tr>
+                                                @endforelse
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>{{-- end wrapper --}}
+                                </div>
                             </div>
                         </div>
 
@@ -644,33 +678,38 @@
 
             /* ──────────────── KEY COMPARISON ──────────────── */
             (function() {
-                // ── Comparable Equipment select all ─────────────────────
-                const selectAllBtn = document.getElementById('kc-eq-select-all');
-                const countBadge = document.getElementById('kc-eq-count');
-                const eqList = document.getElementById('kc-eq-list');
+                // ── Criteria row toggles + sliders ──────────────────────
+                const profileSelectAllBtn = document.getElementById('kc-profile-select-all');
+                const profileCountBadge = document.getElementById('kc-profile-count');
+                const profileList = document.querySelectorAll('.kc-profile-checkbox');
+                const profileTotal = profileList.length;
 
-                function updateCount() {
-                    if (!countBadge || !eqList) return;
-                    const checked = eqList.querySelectorAll('.kc-eq-checkbox:checked').length;
-                    countBadge.textContent = checked + ' selected';
+                function updateProfileCount() {
+                    if (!profileCountBadge) return;
+                    const checked = document.querySelectorAll('.kc-profile-checkbox:checked').length;
+                    profileCountBadge.textContent = checked + ' selected';
+
+                    if (profileSelectAllBtn) {
+                        profileSelectAllBtn.textContent = profileTotal > 0 && checked === profileTotal
+                            ? 'Deselect All'
+                            : 'Select All';
+                    }
                 }
 
-                eqList?.addEventListener('change', updateCount);
-
-                let allSelected = false;
-                selectAllBtn?.addEventListener('click', function() {
-                    allSelected = !allSelected;
-                    eqList?.querySelectorAll('.kc-eq-item').forEach(item => {
-                        const cb = item.querySelector('.kc-eq-checkbox');
-                        if (cb) cb.checked = allSelected;
-                    });
-                    this.textContent = allSelected ? 'Deselect All' : 'Select All';
-                    updateCount();
+                profileList.forEach((checkbox) => {
+                    checkbox.addEventListener('change', updateProfileCount);
                 });
 
-                updateCount();
+                profileSelectAllBtn?.addEventListener('click', function() {
+                    const shouldSelectAll = document.querySelectorAll('.kc-profile-checkbox:checked').length !== profileTotal;
+                    document.querySelectorAll('.kc-profile-checkbox').forEach((checkbox) => {
+                        checkbox.checked = shouldSelectAll;
+                    });
+                    updateProfileCount();
+                });
 
-                // ── Criteria row toggles + sliders ──────────────────────
+                updateProfileCount();
+
                 function wireCriteriaRow(row) {
                     return row;
                 }

@@ -173,6 +173,22 @@ class EditController extends Controller
             }
         }
 
+        $comparableAiProfiles = EquipmentAiProfile::query()
+            ->withCount('specifications')
+            ->withCount('keySpecifications')
+            ->where('category_id', $equipment->product_category_id)
+            ->orderBy('make')
+            ->orderBy('model')
+            ->get();
+
+        $selectedComparableAiProfileIds = collect(old(
+            'comparable_ai_profile_ids',
+            $equipment->comparable_ai_profile_ids ?? []
+        ))
+            ->map(fn ($id) => (string) $id)
+            ->values()
+            ->all();
+
         $productAssignmentOptions = Product::query()
             ->whereHas('categories', function ($query) use ($equipment) {
                 $query->where('product_categories.id', $equipment->product_category_id);
@@ -198,7 +214,9 @@ class EditController extends Controller
             'selectedPartsListId',
             'similarEquipmentOptions',
             'defaultSimilarEquipmentIds',
+            'selectedComparableAiProfileIds',
             'criteriaRows',
+            'comparableAiProfiles',
             'productAssignmentOptions',
             'matchingAiProfile',
             'keyCriteriaSpecs',

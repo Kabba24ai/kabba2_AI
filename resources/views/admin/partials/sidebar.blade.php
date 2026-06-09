@@ -6,14 +6,12 @@
         class="sidebar-header flex items-center gap-2 pt-8 pb-7">
         <a href="{{ route('admin.dashboard.index') }}">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-                <img class="dark:hidden w-10" src="{{ $logo }}"
-                    alt="Logo" />
-                <img class="hidden dark:block w-10"
-                    src="{{ $logo }}" alt="Logo" />
+                <img class="dark:hidden w-10" src="{{ $logo }}" alt="Logo" />
+                <img class="hidden dark:block w-10" src="{{ $logo }}" alt="Logo" />
             </span>
 
-            <img class="logo-icon w-10" :class="sidebarToggle ? 'lg:block' : 'hidden'"
-                src="{{ $logo }}" alt="Logo" />
+            <img class="logo-icon w-10" :class="sidebarToggle ? 'lg:block' : 'hidden'" src="{{ $logo }}"
+                alt="Logo" />
         </a>
     </div>
     <!-- SIDEBAR HEADER -->
@@ -37,34 +35,34 @@
                 </h3>
 
                 @php
-                $ecommerceActive = Route::is([
-                'admin.product-management.products.*',
-                'admin.product-management.categories.*',
-                'admin.product-management.options.*',
-                'admin.product-management.equipment-assignments.*',
-                ]);
+                    $ecommerceActive = Route::is([
+                        'admin.product-management.products.*',
+                        'admin.product-management.categories.*',
+                        'admin.product-management.options.*',
+                        'admin.product-management.equipment-assignments.*',
+                    ]);
 
-                $ordersActive = Route::is([
-                    'admin.order-management.orders.*',
-                    'admin.order-management.schedules.*',
-                    'admin.order-management.dispatch.*',
-                    'admin.order-management.equipment-inventory.*',
-                    'admin.order-management.schedule-assignment.*',
-                    'admin.order-management.inventory-equipment.*',
-                ]);
+                    $ordersActive = Route::is([
+                        'admin.order-management.orders.*',
+                        'admin.order-management.schedules.*',
+                        'admin.order-management.dispatch.*',
+                        'admin.order-management.equipment-inventory.*',
+                        'admin.order-management.schedule-assignment.*',
+                        'admin.order-management.inventory-equipment.*',
+                    ]);
 
-                $customerChecklistActive = Route::is([
-                    // Add the correct route for customer checklist when ready
-                    'admin.checklist-management.customer_checklist.*',
-                ]);
+                    $customerChecklistActive = Route::is([
+                        // Add the correct route for customer checklist when ready
+                        'admin.checklist-management.customer_checklist.*',
+                    ]);
 
-                $crmActive = Route::is([
-                    'admin.crm.customers.*',
-                    'admin.crm.billing-summary.*',
-                    'admin.crm.funnels.*',
-                    'admin.crm.message-management.*',
-                    'admin.crm.sales-funnels.*',
-                ]);
+                    $crmActive = Route::is([
+                        'admin.crm.customers.*',
+                        'admin.crm.billing-summary.*',
+                        'admin.crm.funnels.*',
+                        'admin.crm.message-management.*',
+                        'admin.crm.sales-funnels.*',
+                    ]);
 
                 @endphp
 
@@ -294,8 +292,12 @@
                                     <a href="{{ route('admin.crm.message-management.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.crm.message-management.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"></path>
+                                        <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                            aria-hidden="true" data-slot="icon">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155">
+                                            </path>
                                         </svg> Message Management
                                     </a>
                                 </li>
@@ -313,11 +315,9 @@
                     </li>
 
                     @php
-                    // Add the correct route for reports
-                    $reportsActive = Route::is([
-                    'admin.reports.*',
-                    ]);
-                    // Add the correct route for reports
+                        // Add the correct route for reports
+                        $reportsActive = Route::is(['admin.reports.*']);
+                        // Add the correct route for reports
                     @endphp
 
                     <!-- reports -->
@@ -362,7 +362,8 @@
                                         // Use hash router for SSO (works without server config)
                                         if (auth()->check()) {
                                             $token = \App\Helpers\SsoHelper::generateToken(auth()->user()->email);
-                                            $ssoUrl = rtrim($salesReportUrl, '/') . '/auth/sso?token=' . urlencode($token);
+                                            $ssoUrl =
+                                                rtrim($salesReportUrl, '/') . '/auth/sso?token=' . urlencode($token);
                                         } else {
                                             $ssoUrl = rtrim($salesReportUrl, '/') . '/auth/sso';
                                         }
@@ -382,30 +383,29 @@
 
                     @php
 
-                    $maintenanceActive = Route::is([
-                        'admin.maintenance-management.equipment.*',
-                        'admin.maintenance-management.equipment-worksheet*',
-                        'admin.maintenance-management.equipment-service.*',
-                        'admin.maintenance-management.service-master.*',
-                        'admin.maintenance-management.parts.*',
-                        'admin.maintenance-management.suppliers.*',
-                        'admin.maintenance-management.key-comparisons.*',
-                        'admin.maintenance-management.equipment-ai.*',
+                        $maintenanceActive = Route::is([
+                            'admin.maintenance-management.equipment.*',
+                            'admin.maintenance-management.equipment-worksheet*',
+                            'admin.maintenance-management.equipment-service.*',
+                            'admin.maintenance-management.service-master.*',
+                            'admin.maintenance-management.parts.*',
+                            'admin.maintenance-management.suppliers.*',
+                            'admin.maintenance-management.equipment-ai.*',
                         ]);
 
-                    // Checklist Management
-                    $checklistManagementActive = Route::is(['admin.checklist-management.*']);
+                        // Checklist Management
+                        $checklistManagementActive = Route::is(['admin.checklist-management.*']);
 
-                    $rentalReadyActive = Route::is([
-                    'admin.checklist-management.rental-ready.question_and_categories.*',
-                    'admin.checklist-management.rental-ready.templates.*',
-                    ]);
+                        $rentalReadyActive = Route::is([
+                            'admin.checklist-management.rental-ready.question_and_categories.*',
+                            'admin.checklist-management.rental-ready.templates.*',
+                        ]);
 
-                    $rentalReadyquestion = Route::is([
-                    'admin.checklist-management.rental-ready.question_and_categories.*',
-                    ]);
+                        $rentalReadyquestion = Route::is([
+                            'admin.checklist-management.rental-ready.question_and_categories.*',
+                        ]);
 
-                    $rentalReadytemplates = Route::is(['admin.checklist-management.rental-ready.templates.*']);
+                        $rentalReadytemplates = Route::is(['admin.checklist-management.rental-ready.templates.*']);
 
                     @endphp
 
@@ -460,14 +460,6 @@
                                         {{ Route::is('admin.maintenance-management.equipment-worksheet*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
 
                                         <x-heroicon-o-table-cells class="h-5 w-5" /> Equipment Worksheet
-                                    </a>
-                                </li>
-
-                                <li>
-                                    <a href="{{ route('admin.maintenance-management.key-comparisons.index') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.maintenance-management.key-comparisons.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-adjustments-horizontal class="h-5 w-5" /> Key Comparisons
                                     </a>
                                 </li>
 
@@ -584,34 +576,34 @@
                         $showKabbaAiCustomersMenu = in_array(request()->getHost(), $kabbaAiAllowedHosts, true);
                     @endphp
                     @if ($showKabbaAiCustomersMenu)
-                    <li x-data="{ open: 'false' }">
-                        <a href="{{ route('admin.crm.kabba-ai-customers.index') }}"
-                            class="menu-item group flex items-center gap-3 {{ Route::is('admin.crm.kabba-ai-customers.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <x-heroicon-o-users class="w-6 h-6" />
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
-                                Kabba AI (Customers)
-                            </span>
-                        </a>
-                    </li>
+                        <li x-data="{ open: 'false' }">
+                            <a href="{{ route('admin.crm.kabba-ai-customers.index') }}"
+                                class="menu-item group flex items-center gap-3 {{ Route::is('admin.crm.kabba-ai-customers.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
+                                <x-heroicon-o-users class="w-6 h-6" />
+                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+                                    Kabba AI (Customers)
+                                </span>
+                            </a>
+                        </li>
                     @endif
 
 
 
 
                     @php
-                    $settingsActive = Route::is([
-                    'admin.terms-and-conditions.*',
-                    'admin.stores.*',
-                    'admin.configurations.*',
-                    ]);
+                        $settingsActive = Route::is([
+                            'admin.terms-and-conditions.*',
+                            'admin.stores.*',
+                            'admin.configurations.*',
+                        ]);
 
                     @endphp
 
                     @php
-                    $platformAdministration = Route::is('admin.hrm.*');
+                        $platformAdministration = Route::is('admin.hrm.*');
 
-                    $isUsers = Route::is('admin.hrm.users.*') || Route::is('admin.hrm.*');
-                    $isRoles = Route::is('admin.roles.manage.role') || Route::is('admin.roles.create.role');
+                        $isUsers = Route::is('admin.hrm.users.*') || Route::is('admin.hrm.*');
+                        $isRoles = Route::is('admin.roles.manage.role') || Route::is('admin.roles.create.role');
 
                     @endphp
 
@@ -653,18 +645,16 @@
                                 </li>
 
                                 <li>
-                                    <a href="{{ config('app.domains.timetrackerpro') }}/?logout=1"
-                                    target="_blank"
-                                    class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                    <a href="{{ config('app.domains.timetrackerpro') }}/?logout=1" target="_blank"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
                                         <x-heroicon-o-clock class="w-5 h-5" />
                                         Time Tracker Pro
                                     </a>
                                 </li>
 
                                 <li>
-                                    <a href="{{ route('admin.hrm.opportunities.login.token') }}"
-                                    target="_blank"
-                                    class="menu-dropdown-item group menu-dropdown-item-inactive">
+                                    <a href="{{ route('admin.hrm.opportunities.login.token') }}" target="_blank"
+                                        class="menu-dropdown-item group menu-dropdown-item-inactive">
                                         <x-heroicon-o-briefcase class="w-5 h-5" />
                                         Employment Opportunities
                                     </a>
@@ -677,8 +667,8 @@
 
 
 
-                <!-- Message Management -->
-                <?php /* <li>
+                    <!-- Message Management -->
+                    <?php /* <li>
                     <a href="{{ route('admin.message-management.index') }}"
                         class="menu-item group flex items-center gap-3
                             {{ Route::is('admin.message-management.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
@@ -693,19 +683,20 @@
                             Message Management
                         </span>
                     </a>
-                </li> */ ?>
+                </li> */
+                    ?>
 
 
 
                     @php
 
-                    // New logic for Website Management active state
-                    $websiteManagementActive =
-                    Route::is('admin.website-management.home-page.*') ||
-                    Route::is('admin.website-management.faq-page.*') ||
-                    Route::is('admin.website-management.contact-us.*') ||
-                    Route::is('admin.website-management.footer.*') ||
-                    Route::is('admin.website-management.branding.*');
+                        // New logic for Website Management active state
+                        $websiteManagementActive =
+                            Route::is('admin.website-management.home-page.*') ||
+                            Route::is('admin.website-management.faq-page.*') ||
+                            Route::is('admin.website-management.contact-us.*') ||
+                            Route::is('admin.website-management.footer.*') ||
+                            Route::is('admin.website-management.branding.*');
                     @endphp
 
 
@@ -716,7 +707,9 @@
                             <x-heroicon-o-globe-alt class="w-6 h-6" />
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Website Mgt</span>
                             <span class="menu-item-arrow"
-                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ? 'lg:hidden' : '']">
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
 
                                 <!-- Chevron Left (when open) -->
                                 <template x-if="!open">
@@ -810,9 +803,7 @@
                                 <li>
                                     <a href="{{ route('admin.configurations.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.configurations.*')
-                                            ? 'menu-dropdown-item-active'
-                                            : 'menu-dropdown-item-inactive' }} ">
+                                        {{ Route::is('admin.configurations.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }} ">
                                         <x-heroicon-o-cog-8-tooth class="h-5 w-5" /> Settings
                                     </a>
                                 </li>

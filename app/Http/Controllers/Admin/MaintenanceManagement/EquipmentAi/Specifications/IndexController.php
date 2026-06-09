@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifica
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\EquipmentAiProfile;
-use App\Models\MaintenanceManagement\EquipmentCriticalMatchingCriterion;
+use App\Models\MaintenanceManagement\EquipmentAiSpecification;
 
 class IndexController extends Controller
 {
@@ -14,10 +14,9 @@ class IndexController extends Controller
             ->where('unique_id', $uniqueId)
             ->firstOrFail();
 
-        $commonSpecKeys = EquipmentCriticalMatchingCriterion::query()
-            ->where('product_category_id', $profile->category_id)
-            ->where('is_active', true)
-            ->pluck('criteria_key')
+        $commonSpecKeys = EquipmentAiSpecification::query()
+            ->whereHas('profile', fn ($q) => $q->where('category_id', $profile->category_id))
+            ->pluck('spec_key')
             ->filter(fn ($key) => filled($key))
             ->map(fn ($key) => trim((string) $key))
             ->flip();

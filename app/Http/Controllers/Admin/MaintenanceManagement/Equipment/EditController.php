@@ -11,7 +11,7 @@ use App\Models\MaintenanceManagement\ServiceMaster\ServiceTemplate;
 use App\Models\MaintenanceManagement\PartsList;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\Specification\GenerateController as SpecFormatter;
-use App\Models\MaintenanceManagement\EquipmentCriticalMatchingCriterion;
+use App\Models\MaintenanceManagement\EquipmentAiProfile;
 use App\Models\ProductManagement\Product;
 
 class EditController extends Controller
@@ -97,10 +97,25 @@ class EditController extends Controller
             ->values()
             ->toArray();
 
-        $criteriaRows = EquipmentCriticalMatchingCriterion::where('product_category_id', $equipment->product_category_id)
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->get();
+        $criteriaRows = EquipmentAiProfile::query()
+            ->where('category_id', $equipment->product_category_id)
+            ->with(['specifications' => fn ($q) => $q->orderByDesc('is_key_comparison')->orderBy('spec_key')])
+            ->get()
+            ->map(function ($profile) {
+                return [
+                    'profile_id' => $profile->id,
+                    'profile_unique_id' => $profile->unique_id,
+                    'profile_name' => $profile->name,
+                    'specifications' => $profile->specifications->map(function ($spec) {
+                        return [
+                            'id' => $spec->id,
+                            'spec_key' => $spec->spec_key,
+                            'spec_value' => $spec->spec_value,
+                            'is_key_comparison' => (bool) $spec->is_key_comparison,
+                        ];
+                    }),
+                ];
+            });
 
         $productAssignmentOptions = Product::query()
             ->whereHas('categories', function ($query) use ($equipment) {
@@ -121,9 +136,6 @@ class EditController extends Controller
             'equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates',
             'partsLists', 'selectedPartsListId', 'similarEquipmentOptions', 'defaultSimilarEquipmentIds', 'criteriaRows', 'productAssignmentOptions'
         ) + [
-            'existingSpecs' => $equipment->specifications->map(fn ($s) => SpecFormatter::formatSpec($s))->values()->toJson(),
-            'specGenerateUrl' => route('admin.maintenance-management.equipment.specification.generate', $equipment->unique_id),
-            'specApproveBaseUrl' => Str::beforeLast(route('admin.maintenance-management.equipment.specification.generate', $equipment->unique_id), '/generate'),
             'equipmentLookupPayload' => json_encode([
                 'brand'          => $equipment->brand ?? '',
                 'model'          => $equipment->model ?? '',

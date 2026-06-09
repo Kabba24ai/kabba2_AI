@@ -216,7 +216,7 @@
                                                             {{ $spec->spec_label }}
                                                             @if ($spec->is_key_comparison)
                                                                 <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">key</span>
-                                                                <div class="mt-2 grid grid-cols-1 gap-1 text-[11px] text-gray-500">
+                                                                <div class="mt-2 grid grid-cols-1 gap-1 text-[11px] text-gray-500 ">
                                                                     <label class="inline-flex items-center gap-1.5">
                                                                         <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
                                                                         <span>Upgrade exceeds value</span>
@@ -429,6 +429,78 @@
                                         value and AI matching weight for each</p>
                                 </div>
                             </div>
+
+                            @if ($keyCriteriaSpecs->isNotEmpty())
+                                <div class="border-b border-gray-100">
+                                    <div class="px-5 py-4">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">AI Key Comparison Criteria</p>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="w-32 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Key Comparison</th>
+                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Label</th>
+                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Value</th>
+                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Unit</th>
+                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Source</th>
+                                                    <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Confidence</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-100 bg-white">
+                                                @foreach ($keyCriteriaSpecs as $spec)
+                                                    @php
+                                                        $criteriaFlags = $comparisonKeySettingsBySpecKey[trim((string) $spec->spec_key)] ?? [
+                                                            'upgrade_exceeds_value' => true,
+                                                            'caution_if_change_value' => true,
+                                                            'upgrade_is_below_value' => false,
+                                                            'caution_if_below_value' => false,
+                                                        ];
+                                                    @endphp
+                                                    <tr class="{{ $spec->is_key_comparison ? 'bg-amber-50/40' : '' }} hover:bg-gray-50 transition-colors">
+                                                        <td class="px-5 py-3 text-center">
+                                                            <span class="inline-flex h-4 w-4 items-center justify-center rounded border border-gray-300 bg-white text-[10px] font-semibold {{ $spec->is_key_comparison ? 'text-amber-600' : 'text-gray-300' }}">
+                                                                {{ $spec->is_key_comparison ? '✓' : '—' }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-5 py-3 text-gray-800">
+                                                            {{ $spec->spec_label }}
+                                                            @if ($spec->is_key_comparison)
+                                                                <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">key</span>
+                                                            @endif
+                                                            <div class="mt-2 grid grid-cols-1 gap-1 text-[11px] text-gray-500">
+                                                                <label class="inline-flex items-center gap-1.5">
+                                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
+                                                                    <span>Upgrade exceeds value</span>
+                                                                </label>
+                                                                <label class="inline-flex items-center gap-1.5">
+                                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['caution_if_change_value'] ? 'checked' : '' }}>
+                                                                    <span>Caution if change value</span>
+                                                                </label>
+                                                                <label class="inline-flex items-center gap-1.5">
+                                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}>
+                                                                    <span>Upgrade is below value</span>
+                                                                </label>
+                                                                <label class="inline-flex items-center gap-1.5">
+                                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}>
+                                                                    <span>Caution if below value</span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="px-5 py-3 font-medium text-gray-900">{{ $spec->spec_value ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->spec_unit ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->source ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-center">
+                                                            @php $pct = round(($spec->confidence_score ?? 1) * 100); @endphp
+                                                            <span class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">{{ $pct }}%</span>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            @endif
 
                             <div id="kc-criteria-rows" class="divide-y divide-gray-100">
 

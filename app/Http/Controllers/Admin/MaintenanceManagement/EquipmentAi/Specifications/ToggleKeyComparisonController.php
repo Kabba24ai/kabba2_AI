@@ -19,9 +19,19 @@ class ToggleKeyComparisonController extends Controller
      */
     public function __invoke(Request $request, int $id): JsonResponse
     {
+        $payload = $request->validate([
+            'is_key_comparison' => ['nullable', 'boolean'],
+            'upgrade_exceeds_value' => ['nullable', 'boolean'],
+            'caution_if_change_value' => ['nullable', 'boolean'],
+            'upgrade_is_below_value' => ['nullable', 'boolean'],
+            'caution_if_below_value' => ['nullable', 'boolean'],
+        ]);
+
         $spec = EquipmentAiSpecification::with('profile')->findOrFail($id);
 
-        $newValue   = ! $spec->is_key_comparison;
+        $newValue   = array_key_exists('is_key_comparison', $payload)
+            ? (bool) $payload['is_key_comparison']
+            : ! $spec->is_key_comparison;
         $categoryId = $spec->profile->category_id;
 
         $spec->update(['is_key_comparison' => $newValue]);
@@ -39,6 +49,10 @@ class ToggleKeyComparisonController extends Controller
                     'comparison_type'  => 'informational_only',
                     'sort_order'       => 0,
                     'is_required'      => false,
+                    'upgrade_exceeds_value' => (bool) ($payload['upgrade_exceeds_value'] ?? true),
+                    'caution_if_change_value' => (bool) ($payload['caution_if_change_value'] ?? true),
+                    'upgrade_is_below_value' => (bool) ($payload['upgrade_is_below_value'] ?? false),
+                    'caution_if_below_value' => (bool) ($payload['caution_if_below_value'] ?? false),
                 ]
             );
         } else {
@@ -51,6 +65,12 @@ class ToggleKeyComparisonController extends Controller
         return response()->json([
             'success'           => true,
             'is_key_comparison' => $newValue,
+            'flags' => [
+                'upgrade_exceeds_value' => (bool) ($payload['upgrade_exceeds_value'] ?? true),
+                'caution_if_change_value' => (bool) ($payload['caution_if_change_value'] ?? true),
+                'upgrade_is_below_value' => (bool) ($payload['upgrade_is_below_value'] ?? false),
+                'caution_if_below_value' => (bool) ($payload['caution_if_below_value'] ?? false),
+            ],
         ]);
     }
 }

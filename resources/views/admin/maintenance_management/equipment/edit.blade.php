@@ -90,13 +90,145 @@
                 </div>
 
                 <div data-tab-panel="specification" class="hidden">
-
-                    {{-- Display Cards --}}
                     <div class="space-y-5">
-                        {{--
-                            For each specification, display a card with the spec name, value, and source.
-                            If the spec is editable, show an edit button that opens a modal to edit the spec.
-                        --}}
+                        <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-900">Matching AI Profile</h3>
+                                    <p class="mt-0.5 text-xs text-gray-500">Specifications are shown from the profile that matches this equipment's category, brand, and model.</p>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+                                        {{ optional($equipment->productCategory)->title ?? 'Uncategorised' }}
+                                    </span>
+                                    @if ($matchingAiProfile)
+                                        <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                                            {{ $matchingAiProfile->make }} {{ $matchingAiProfile->model }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                                            No matching profile found
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="px-5 py-4 text-sm text-gray-600">
+                                @if ($matchingAiProfile)
+                                    <div class="grid gap-4 md:grid-cols-3">
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Profile</p>
+                                            <p class="mt-1 font-medium text-gray-900">{{ $matchingAiProfile->unique_id }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Make</p>
+                                            <p class="mt-1 font-medium text-gray-900">{{ $matchingAiProfile->make }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Model</p>
+                                            <p class="mt-1 font-medium text-gray-900">{{ $matchingAiProfile->model }}</p>
+                                        </div>
+                                    </div>
+                                @else
+                                    <p>No AI profile was found for this equipment yet. Run the AI scan/refresh flow after the brand and model are set to populate this tab.</p>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if ($matchingAiProfile && $matchingAiProfile->specifications->isNotEmpty())
+                            @php
+                                $specSections = [
+                                    [
+                                        'title' => 'Key Criteria',
+                                        'description' => 'Critical comparison fields highlighted for this profile.',
+                                        'items' => $keyCriteriaSpecs,
+                                        'row_class' => 'bg-amber-50/70 text-amber-800',
+                                    ],
+                                    [
+                                        'title' => 'Common Specifications',
+                                        'description' => 'Category-based specs shared across similar equipment profiles.',
+                                        'items' => $commonSpecs,
+                                        'row_class' => 'bg-sky-50/70 text-sky-800',
+                                    ],
+                                    [
+                                        'title' => 'Unique Specifications',
+                                        'description' => 'Profile-specific specs that are not part of the shared category catalog.',
+                                        'items' => $uniqueSpecs,
+                                        'row_class' => 'bg-emerald-50/70 text-emerald-800',
+                                    ],
+                                ];
+                            @endphp
+
+                            <div class="rounded-2xl border border-gray-100 bg-white shadow-sm">
+                                <div class="border-b border-gray-100 px-6 py-4">
+                                    <h2 class="text-base font-semibold text-gray-900">
+                                        Specifications
+                                        <span class="ml-1 text-sm font-normal text-gray-400">({{ $matchingAiProfile->specifications->count() }})</span>
+                                    </h2>
+                                </div>
+
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="w-32 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Key Comparison</th>
+                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Label</th>
+                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Value</th>
+                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Unit</th>
+                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Source</th>
+                                                <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Confidence</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 bg-white">
+                                            @foreach ($specSections as $section)
+                                                @continue($section['items']->isEmpty())
+
+                                                <tr class="{{ $section['row_class'] }}">
+                                                    <td colspan="6" class="px-5 py-3">
+                                                        <div class="flex items-center justify-between gap-3">
+                                                            <div>
+                                                                <h3 class="text-sm font-semibold">{{ $section['title'] }}</h3>
+                                                                <p class="mt-0.5 text-xs opacity-80">{{ $section['description'] }}</p>
+                                                            </div>
+                                                            <span class="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                                                {{ $section['items']->count() }}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+
+                                                @foreach ($section['items'] as $spec)
+                                                    <tr class="{{ $spec->is_key_comparison ? 'bg-amber-50/40' : '' }} hover:bg-gray-50 transition-colors">
+                                                        <td class="px-5 py-3 text-center">
+                                                            <span class="inline-flex h-4 w-4 items-center justify-center rounded border border-gray-300 bg-white text-[10px] font-semibold {{ $spec->is_key_comparison ? 'text-amber-600' : 'text-gray-300' }}">
+                                                                {{ $spec->is_key_comparison ? '✓' : '—' }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-5 py-3 text-gray-800">
+                                                            {{ $spec->spec_label }}
+                                                            @if ($spec->is_key_comparison)
+                                                                <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">key</span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="px-5 py-3 font-medium text-gray-900">{{ $spec->spec_value ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->spec_unit ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->source ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-center">
+                                                            @php $pct = round(($spec->confidence_score ?? 1) * 100); @endphp
+                                                            <span class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">{{ $pct }}%</span>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @elseif ($matchingAiProfile)
+                            <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center text-sm text-gray-500">
+                                The matching AI profile exists, but it does not have any specifications yet.
+                            </div>
+                        @endif
                     </div>
                 </div>
 

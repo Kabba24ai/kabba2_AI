@@ -37,6 +37,7 @@ class UpdateController extends Controller
         $data['allow_downgrades'] = filter_var($data['allow_downgrades'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
         $data['downgrade_requires_approval'] = filter_var($data['downgrade_requires_approval'] ?? true, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
         $data['similar_equipment_ids'] = array_values(array_map('intval', (array) ($data['similar_equipment_ids'] ?? [])));
+        $data['comparable_ai_profile_ids'] = array_values(array_map('intval', (array) ($data['comparable_ai_profile_ids'] ?? [])));
 
         $criteriaInput = (array) ($data['critical_matching_criteria'] ?? []);
         $normalizedCriteria = [];

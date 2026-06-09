@@ -16,6 +16,8 @@ class CustomerCallNeeded extends Model
         'notes',
         'status',
         'created_by',
+         'is_urgent',
+         'auth_by',
     ];
 
     public function customer()
@@ -23,8 +25,18 @@ class CustomerCallNeeded extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
+   public function creator()
+{
+    return $this->belongsTo(User::class, 'auth_by');
+}
+
+public function assignee()
+{
+    return $this->belongsTo(User::class, 'created_by');
+}
+
+public function notes()
+{
+    return $this->hasMany(CustomerNote::class, 'customer_call_needed_id');
+}
 }

@@ -213,6 +213,28 @@
                             </label>
                         </div>
 
+                        <div class="sm:col-span-2 lg:col-span-3 rounded-lg border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800/40">
+                            <p class="text-xs font-semibold text-gray-700 dark:text-gray-200">Key Criteria Flags</p>
+                            <div class="mt-2 grid gap-2 md:grid-cols-2">
+                                <label class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    <input type="checkbox" name="upgrade_exceeds_value" value="1" {{ old('upgrade_exceeds_value', true) ? 'checked' : '' }} class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                    upgrade_exceeds_value
+                                </label>
+                                <label class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    <input type="checkbox" name="caution_if_change_value" value="1" {{ old('caution_if_change_value', true) ? 'checked' : '' }} class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                    caution_if_change_value
+                                </label>
+                                <label class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    <input type="checkbox" name="upgrade_is_below_value" value="1" {{ old('upgrade_is_below_value', false) ? 'checked' : '' }} class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                    upgrade_is_below_value
+                                </label>
+                                <label class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    <input type="checkbox" name="caution_if_below_value" value="1" {{ old('caution_if_below_value', false) ? 'checked' : '' }} class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                    caution_if_below_value
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="sm:col-span-2 lg:col-span-3 flex justify-end gap-3">
                             <button type="button" @click="showAddKeyForm = false"
                                 class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
@@ -268,7 +290,27 @@
                                         <td class="px-5 py-3">
                                             <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $ck->spec_key }}</code>
                                         </td>
-                                        <td class="px-5 py-3 text-gray-800 dark:text-gray-200">{{ $ck->display_label }}</td>
+                                        <td class="px-5 py-3 text-gray-800 dark:text-gray-200">
+                                            <p>{{ $ck->display_label }}</p>
+                                            <div class="mt-2 grid grid-cols-1 gap-1 text-[11px] text-gray-500 dark:text-gray-400">
+                                                <label class="inline-flex items-center gap-1.5">
+                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-brand-500" disabled {{ $ck->upgrade_exceeds_value ? 'checked' : '' }}>
+                                                    <span>Upgrade exceeds value</span>
+                                                </label>
+                                                <label class="inline-flex items-center gap-1.5">
+                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-brand-500" disabled {{ $ck->caution_if_change_value ? 'checked' : '' }}>
+                                                    <span>Caution if change value</span>
+                                                </label>
+                                                <label class="inline-flex items-center gap-1.5">
+                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-brand-500" disabled {{ $ck->upgrade_is_below_value ? 'checked' : '' }}>
+                                                    <span>Upgrade is below value</span>
+                                                </label>
+                                                <label class="inline-flex items-center gap-1.5">
+                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-brand-500" disabled {{ $ck->caution_if_below_value ? 'checked' : '' }}>
+                                                    <span>Caution if below value</span>
+                                                </label>
+                                            </div>
+                                        </td>
                                         <td class="px-5 py-3">
                                             <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ $ck->importanceBadgeClass() }}">
                                                 {{ ucfirst($ck->importance_level) }}
@@ -311,7 +353,7 @@
                                         <td colspan="7" class="px-5 py-4">
                                             <form method="POST"
                                                   action="{{ route('admin.maintenance-management.equipment-ai.comparison-keys.update', $ck->id) }}"
-                                                  class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                                  class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
                                                 @csrf
                                                 @method('PUT')
                                                 <div>
@@ -348,6 +390,27 @@
                                                             class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
                                                         Required
                                                     </label>
+                                                </div>
+                                                <div class="sm:col-span-3 lg:col-span-2 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/40">
+                                                    <p class="text-xs font-semibold text-gray-700 dark:text-gray-200">Flags</p>
+                                                    <div class="mt-2 grid gap-1">
+                                                        <label class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="upgrade_exceeds_value" value="1" {{ $ck->upgrade_exceeds_value ? 'checked' : '' }} class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                                            <span>upgrade_exceeds_value</span>
+                                                        </label>
+                                                        <label class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="caution_if_change_value" value="1" {{ $ck->caution_if_change_value ? 'checked' : '' }} class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                                            <span>caution_if_change_value</span>
+                                                        </label>
+                                                        <label class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="upgrade_is_below_value" value="1" {{ $ck->upgrade_is_below_value ? 'checked' : '' }} class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                                            <span>upgrade_is_below_value</span>
+                                                        </label>
+                                                        <label class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="caution_if_below_value" value="1" {{ $ck->caution_if_below_value ? 'checked' : '' }} class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                                            <span>caution_if_below_value</span>
+                                                        </label>
+                                                    </div>
                                                 </div>
                                                 <div class="flex items-end gap-2">
                                                     <button type="submit"

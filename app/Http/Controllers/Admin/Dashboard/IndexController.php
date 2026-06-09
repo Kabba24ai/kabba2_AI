@@ -197,7 +197,7 @@ class IndexController extends Controller
 
         $chartData = $this->getMaintenanceChartData();
 
-        $users = User::active()->get();
+        $users = User::active()->orderBy('first_name')->get();
 
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
@@ -234,8 +234,10 @@ class IndexController extends Controller
             ],
         ];
 
-
-        $customers = Customer::whereIn('status', ['Active', 'Archived'])->get();
+        $customers = Customer::whereIn('status', ['Active', 'Archived'])
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
 
         return view('admin.dashboard.index', compact('salesData','customers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount'));
 

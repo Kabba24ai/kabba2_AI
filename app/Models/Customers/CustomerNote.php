@@ -17,6 +17,7 @@ class CustomerNote extends Model
         'unique_id',
         'description',
         'customer_id',
+         'customer_call_needed_id',
         'created_by',
         'created_date',
         'created_time',
@@ -33,6 +34,11 @@ class CustomerNote extends Model
             $model->created_time = $model->created_time ?? now()->format('H:i:s');
         });
     }
+
+    public function callNeeded()
+{
+    return $this->belongsTo(CustomerCallNeeded::class, 'customer_call_needed_id');
+}
 
     // Relationships
     public function customer()

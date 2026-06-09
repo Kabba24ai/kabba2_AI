@@ -282,14 +282,17 @@ class CustomHelper
             'rented' => 'bg-blue-100 text-blue-700 text-xs font-medium',
             'available' => 'bg-green-100 text-green-700 text-xs font-medium',
             'damaged' => 'bg-red-100 text-red-700 text-xs font-medium',
-            'maint. hold' => 'bg-yellow-100 text-yellow-700 text-xs font-medium'
+            'maint. hold' => 'bg-yellow-100 text-yellow-700 text-xs font-medium',
+            'accepted' => 'bg-green-100 text-green-800',
+            'declined' => 'bg-red-100 text-red-800',
+            'exempt' => 'bg-gray-100 text-gray-800',
         ];
 
         $class = $classes[$normalizedStatus] ?? 'bg-gray-200 text-gray-800';
 
          // default
     $extraClass = 'text-xs font-semibold';
-    $icon = '';     
+    $icon = '';
 
     if (in_array($normalizedStatus, ['rented', 'available', 'damaged', 'maint. hold'])) {
         $extraClass = 'text-xs font-medium';
@@ -329,7 +332,7 @@ class CustomHelper
     public static function updateCreditBalance(CustomerAccount $record, float $externalTaxAmount = 0.0): void
     {
 
-    
+
         $maxRetries = 5;
         $attempt = 0;
 
@@ -340,7 +343,7 @@ class CustomHelper
                     $customer = Customer::findOrFail($record->customer_id);
                     $currentBalance = $customer->available_credit_balance ?? 0;
 
-                 
+
 
                     $newBalance = $currentBalance;
 
@@ -376,9 +379,9 @@ class CustomHelper
                             break;
 
                         case 'discount':
-                           
+
                             if ($customer->getTaxStatus() === 'Taxable') {
-                                
+
                                 // $record->sales_tax = $salesTaxRate;
                                 // $amountWithTax = $record->amount + $record->amount * $record->sales_tax;
 
@@ -544,7 +547,7 @@ class CustomHelper
         DB::transaction(function () use ($customerId) {
 
             $customer = Customer::lockForUpdate()->findOrFail($customerId);
-    
+
             $creditLimit = (float) ($customer->credit_limit ?? 0);
             $availableCredit = (float) self::getAvailableCredit($customer);
 
@@ -608,7 +611,7 @@ class CustomHelper
                 $customer->available_credit_balance = $runningBalance;
                 $customer->save();
 
-                return; // 
+                return; //
             }
 
             // =========================
@@ -627,7 +630,7 @@ class CustomHelper
             if ($accounts->isEmpty()) {
                 return;
             }
-            
+
             $runningBalance = $currentBalance;
 
             foreach ($accounts as $account) {
@@ -781,7 +784,7 @@ class CustomHelper
                 $subtotal += $price;
                 $totalTax += $tax;
 
-    
+
             }
 
             // discount
@@ -789,7 +792,7 @@ class CustomHelper
                 $totalDiscount += abs($price);
                 $totalTax -= abs($tax);
 
-    
+
             }
 
             // refund
@@ -867,7 +870,37 @@ class CustomHelper
 
         $invoice->save();
 
-    
+
     }
 
+
+    public static function calculateSalesTaxRate(
+    float $subtotal,
+    float $taxAmount
+    ): float {
+
+        if ($subtotal <= 0) {
+            return 0;
+        }
+
+        return $taxAmount / $subtotal;
+    }
+
+   public static function calculateRefundSalesTax($refundAmount, $subtotal, $taxAmount)
+{
+    $refundAmount = (float) $refundAmount;
+    $subtotal     = (float) $subtotal;
+    $taxAmount    = (float) $taxAmount;
+
+    if ($refundAmount <= 0 || $subtotal <= 0 || $taxAmount <= 0) {
+        return 0;
+    }
+
+    $taxRate = $taxAmount / $subtotal;
+
+    return round(
+        $refundAmount - ($refundAmount / (1 + $taxRate)),
+        2
+    );
+}
 }

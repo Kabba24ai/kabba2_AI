@@ -90,92 +90,172 @@
                 </div>
 
                 <div data-tab-panel="specification" class="hidden">
-
-                    {{-- Top bar: last update + Update Data button --}}
-                    <div class="mb-4 flex items-center justify-between">
-                        <div class="flex items-center gap-1.5 text-xs text-gray-400">
-                            <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>Last AI update: <span
-                                    id="spec-last-update">{{ $equipment->specifications->max('updated_at') ? \Carbon\Carbon::parse($equipment->specifications->max('updated_at'))->format('M j, Y, g:i A') : '—' }}</span></span>
-                        </div>
-                        <button type="button" id="btn-spec-update"
-                            class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 transition-colors disabled:opacity-60">
-                            <svg id="spec-spinner" class="hidden h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                            </svg>
-                            <svg id="spec-bolt" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            <span id="spec-btn-label">Update Data</span>
-                        </button>
-                    </div>
-
-                    {{-- Display Cards --}}
                     <div class="space-y-5">
-                        <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                            <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-500">
-                                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M11.05 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.955a1 1 0 00.95.69h4.159c.969 0 1.371 1.24.588 1.81l-3.365 2.445a1 1 0 00-.364 1.118l1.286 3.955c.3.921-.755 1.688-1.54 1.118l-3.365-2.445a1 1 0 00-1.176 0L7.95 18.018c-.784.57-1.838-.197-1.539-1.118l1.286-3.955a1 1 0 00-.364-1.118L3.968 9.382c-.783-.57-.38-1.81.588-1.81h4.159a1 1 0 00.95-.69l1.286-3.955z" />
-                                        </svg>
+                        <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-900">Matching AI Profile</h3>
+                                    <p class="mt-0.5 text-xs text-gray-500">Specifications are shown from the profile that matches this equipment's category, brand, and model.</p>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+                                        {{ optional($equipment->productCategory)->title ?? 'Uncategorised' }}
                                     </span>
-                                    <div>
-                                        <h3 class="text-sm font-semibold text-gray-900">Key Comparison Data</h3>
-                                        <p class="text-xs text-gray-500">Critical specifications used for equipment matching</p>
-                                    </div>
+                                    @if ($matchingAiProfile)
+                                        <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                                            {{ $matchingAiProfile->make }} {{ $matchingAiProfile->model }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                                            No matching profile found
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
-                            <div id="spec-key-comparison-list" class="divide-y divide-gray-200">
-                                <div class="px-5 py-3 text-sm text-gray-500">No key comparison values available yet.</div>
+
+                            <div class="px-5 py-4 text-sm text-gray-600">
+                                @if ($matchingAiProfile)
+                                    <div class="grid gap-4 md:grid-cols-3">
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Profile</p>
+                                            <p class="mt-1 font-medium text-gray-900">{{ $matchingAiProfile->unique_id }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Make</p>
+                                            <p class="mt-1 font-medium text-gray-900">{{ $matchingAiProfile->make }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Model</p>
+                                            <p class="mt-1 font-medium text-gray-900">{{ $matchingAiProfile->model }}</p>
+                                        </div>
+                                    </div>
+                                @else
+                                    <p>No AI profile was found for this equipment yet. Run the AI scan/refresh flow after the brand and model are set to populate this tab.</p>
+                                @endif
                             </div>
                         </div>
 
-                        <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                            <div class="border-b border-gray-200 bg-gray-50 px-5 py-4">
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-cyan-100 text-cyan-600">
-                                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M20 7L12 3 4 7m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                        </svg>
-                                    </span>
-                                    <div>
-                                        <h3 class="text-sm font-semibold text-gray-900">Equipment Specifications</h3>
-                                        <p class="text-xs text-gray-500">Detailed technical data for this equipment</p>
-                                    </div>
+                        @if ($matchingAiProfile && $matchingAiProfile->specifications->isNotEmpty())
+                            @php
+                                $specSections = [
+                                    [
+                                        'title' => 'Key Criteria',
+                                        'description' => 'Critical comparison fields highlighted for this profile.',
+                                        'items' => $keyCriteriaSpecs,
+                                        'row_class' => 'bg-amber-50/70 text-amber-800',
+                                    ],
+                                    [
+                                        'title' => 'Common Specifications',
+                                        'description' => 'Category-based specs shared across similar equipment profiles.',
+                                        'items' => $commonSpecs,
+                                        'row_class' => 'bg-sky-50/70 text-sky-800',
+                                    ],
+                                    [
+                                        'title' => 'Unique Specifications',
+                                        'description' => 'Profile-specific specs that are not part of the shared category catalog.',
+                                        'items' => $uniqueSpecs,
+                                        'row_class' => 'bg-emerald-50/70 text-emerald-800',
+                                    ],
+                                ];
+                            @endphp
+
+                            <div class="rounded-2xl border border-gray-100 bg-white shadow-sm">
+                                <div class="border-b border-gray-100 px-6 py-4">
+                                    <h2 class="text-base font-semibold text-gray-900">
+                                        Specifications
+                                        <span class="ml-1 text-sm font-normal text-gray-400">({{ $matchingAiProfile->specifications->count() }})</span>
+                                    </h2>
+                                </div>
+
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="w-32 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Key Comparison</th>
+                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Label</th>
+                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Value</th>
+                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Unit</th>
+                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Source</th>
+                                                <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Confidence</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 bg-white">
+                                            @foreach ($specSections as $section)
+                                                @continue($section['items']->isEmpty())
+
+                                                <tr class="{{ $section['row_class'] }}">
+                                                    <td colspan="6" class="px-5 py-3">
+                                                        <div class="flex items-center justify-between gap-3">
+                                                            <div>
+                                                                <h3 class="text-sm font-semibold">{{ $section['title'] }}</h3>
+                                                                <p class="mt-0.5 text-xs opacity-80">{{ $section['description'] }}</p>
+                                                            </div>
+                                                            <span class="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                                                {{ $section['items']->count() }}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+
+                                                @foreach ($section['items'] as $spec)
+                                                    @php
+                                                        $criteriaFlags = $comparisonKeySettingsBySpecKey[trim((string) $spec->spec_key)] ?? [
+                                                            'upgrade_exceeds_value' => true,
+                                                            'caution_if_change_value' => true,
+                                                            'upgrade_is_below_value' => false,
+                                                            'caution_if_below_value' => false,
+                                                        ];
+                                                    @endphp
+                                                    <tr class="{{ $spec->is_key_comparison ? 'bg-amber-50/40' : '' }} hover:bg-gray-50 transition-colors">
+                                                        <td class="px-5 py-3 text-center">
+                                                            <span class="inline-flex h-4 w-4 items-center justify-center rounded border border-gray-300 bg-white text-[10px] font-semibold {{ $spec->is_key_comparison ? 'text-amber-600' : 'text-gray-300' }}">
+                                                                {{ $spec->is_key_comparison ? '✓' : '—' }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-5 py-3 text-gray-800">
+                                                            {{ $spec->spec_label }}
+                                                            @if ($spec->is_key_comparison)
+                                                                <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">key</span>
+                                                                <div class="mt-2 grid grid-cols-1 gap-1 text-[11px] text-gray-500">
+                                                                    <label class="inline-flex items-center gap-1.5">
+                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
+                                                                        <span>Upgrade exceeds value</span>
+                                                                    </label>
+                                                                    <label class="inline-flex items-center gap-1.5">
+                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['caution_if_change_value'] ? 'checked' : '' }}>
+                                                                        <span>Caution if change value</span>
+                                                                    </label>
+                                                                    <label class="inline-flex items-center gap-1.5">
+                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}>
+                                                                        <span>Upgrade is below value</span>
+                                                                    </label>
+                                                                    <label class="inline-flex items-center gap-1.5">
+                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}>
+                                                                        <span>Caution if below value</span>
+                                                                    </label>
+                                                                </div>
+                                                            @endif
+                                                        </td>
+                                                        <td class="px-5 py-3 font-medium text-gray-900">{{ $spec->spec_value ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->spec_unit ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->source ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-center">
+                                                            @php $pct = round(($spec->confidence_score ?? 1) * 100); @endphp
+                                                            <span class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">{{ $pct }}%</span>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                            <div
-                                class="grid grid-cols-1 divide-y divide-gray-200 md:grid-cols-2 md:divide-x md:divide-y-0">
-                                <div id="spec-equipment-col-left" class="divide-y divide-gray-200">
-                                    <div class="px-5 py-3 text-sm text-gray-500">No specification values available yet.
-                                    </div>
-                                </div>
-                                <div id="spec-equipment-col-right" class="divide-y divide-gray-200"></div>
+                        @elseif ($matchingAiProfile)
+                            <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center text-sm text-gray-500">
+                                The matching AI profile exists, but it does not have any specifications yet.
                             </div>
-                        </div>
+                        @endif
                     </div>
-
-                    {{-- Bottom disclaimer --}}
-                    <p class="mt-3 flex items-center gap-1.5 text-xs text-gray-400">
-                        <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Specification data is sourced via AI and may require verification
-                    </p>
-
                 </div>
 
                 <div data-tab-panel="key-comparison" class="hidden">
@@ -259,106 +339,84 @@
                             </div>
                         </div>
 
-                        {{-- ── Comparable Equipment ─────────────────────────────── --}}
+                        {{-- ── Comparable AI Profiles ────────────────────────────── --}}
                         <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                             <div class="border-b border-gray-100 px-5 py-4">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <h3 class="text-sm font-semibold text-gray-900">Comparable Equipment</h3>
+                                    <h3 class="text-sm font-semibold text-gray-900">Comparable AI Profiles</h3>
                                     <div class="flex items-center gap-2">
-                                        <button type="button" id="kc-eq-select-all"
+                                        <button type="button" id="kc-profile-select-all"
                                             class="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap">
                                             Select All
                                         </button>
-                                        <span id="kc-eq-count"
+                                        <span id="kc-profile-count"
                                             class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 whitespace-nowrap">0
                                             selected</span>
                                     </div>
                                 </div>
-                                <p class="mt-0.5 text-xs text-gray-500">Select equipment from the same category that can
-                                    serve as substitutes</p>
+                                <p class="mt-0.5 text-xs text-gray-500">AI profiles from the same category that can serve as comparable substitution references.</p>
                             </div>
-                            <div class="px-5 py-4 space-y-3">
-
-                                {{-- table --}}
+                            <div class="px-5 py-4">
                                 <div class="rounded-lg border border-gray-200 overflow-hidden">
                                     <div class="overflow-x-auto">
                                         <table class="w-full table-fixed">
                                             <colgroup>
                                                 <col class="w-12">
                                                 <col>
-                                                <col class="w-40">
-                                                <col class="w-40">
+                                                <col class="w-44">
+                                                <col class="w-44">
+                                                <col class="w-28">
+                                                <col class="w-28">
+                                                <col class="w-32">
                                             </colgroup>
                                             <thead class="bg-gray-50">
                                                 <tr class="border-b border-gray-200 text-xs font-semibold text-gray-500">
                                                     <th scope="col" class="px-4 py-2 text-left"></th>
-                                                    <th scope="col" class="px-2 py-2 text-left">Equipment Name</th>
-                                                    <th scope="col" class="px-2 py-2 text-left">Brand</th>
+                                                    <th scope="col" class="px-4 py-2 text-left">Profile</th>
+                                                    <th scope="col" class="px-2 py-2 text-left">Make</th>
                                                     <th scope="col" class="px-2 py-2 text-left">Model</th>
+                                                    <th scope="col" class="px-2 py-2 text-left">Specs</th>
+                                                    <th scope="col" class="px-2 py-2 text-left">Key Specs</th>
+                                                    <th scope="col" class="px-2 py-2 text-left">Status</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="kc-eq-list" class="divide-y divide-gray-100 bg-white">
-                                                @php
-                                                    $selectedSimilarEquipmentIds = array_map(
-                                                        'strval',
-                                                        old(
-                                                            'similar_equipment_ids',
-                                                            $equipment->similar_equipment_ids ??
-                                                                ($defaultSimilarEquipmentIds ?? []),
-                                                        ),
-                                                    );
-                                                    $criteriaState = old(
-                                                        'critical_matching_criteria',
-                                                        $equipment->critical_matching_criteria ?? [],
-                                                    );
-                                                    $criteriaRows = $criteriaRows
-                                                        ->sortByDesc(function ($row) use ($criteriaState) {
-                                                            return filter_var(
-                                                                $criteriaState[$row->criteria_key]['enabled'] ?? true,
-                                                                FILTER_VALIDATE_BOOLEAN,
-                                                            );
-                                                        })
-                                                        ->values();
-                                                @endphp
-                                                @forelse($similarEquipmentOptions as $eqId => $eqOption)
-                                                    @php
-                                                        $eqLabel = is_array($eqOption)
-                                                            ? $eqOption['label'] ?? ''
-                                                            : $eqOption;
-                                                        $eqBrand = is_array($eqOption)
-                                                            ? $eqOption['brand'] ?? null
-                                                            : null;
-                                                        $eqModel = is_array($eqOption)
-                                                            ? $eqOption['model'] ?? null
-                                                            : null;
-                                                    @endphp
-                                                    <tr class="kc-eq-item hover:bg-gray-50 transition-colors"
-                                                        data-label="{{ strtolower($eqLabel) }}">
-                                                        <td class="px-4 py-3 align-middle">
-                                                            <input type="checkbox" name="similar_equipment_ids[]"
-                                                                value="{{ $eqId }}"
-                                                                class="kc-eq-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                                @if (in_array((string) $eqId, $selectedSimilarEquipmentIds)) checked @endif>
+                                            <tbody class="divide-y divide-gray-100 bg-white">
+                                                @forelse ($comparableAiProfiles as $profile)
+                                                    <tr class="hover:bg-gray-50 transition-colors">
+                                                        <td class="px-4 py-3 text-center align-middle">
+                                                            <input type="checkbox"
+                                                                name="comparable_ai_profile_ids[]"
+                                                                value="{{ $profile->id }}"
+                                                                @checked(in_array((string) $profile->id, $selectedComparableAiProfileIds, true))
+                                                                class="kc-profile-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                                         </td>
-                                                        <td class="px-2 py-3 align-middle text-sm text-gray-800">
-                                                            {{ $eqLabel }}</td>
-                                                        <td class="px-2 py-3 align-middle text-xs text-gray-500">
-                                                            {{ $eqBrand ?: '' }}</td>
-                                                        <td class="px-2 py-3 align-middle text-xs text-gray-500">
-                                                            {{ $eqModel ?: '' }}</td>
+                                                        <td class="px-4 py-3">
+                                                            <div class="min-w-0">
+                                                                <p class="truncate text-sm font-semibold text-gray-900">{{ $profile->unique_id }}</p>
+                                                                <p class="truncate text-xs text-gray-500">{{ $profile->make }} {{ $profile->model }}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->make ?: '—' }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->model ?: '—' }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->specifications_count }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->key_specifications_count }}</td>
+                                                        <td class="px-2 py-3">
+                                                            <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                                                {{ $profile->statusLabel() }}
+                                                            </span>
+                                                        </td>
                                                     </tr>
                                                 @empty
                                                     <tr>
-                                                        <td colspan="4"
-                                                            class="px-4 py-6 text-center text-sm text-gray-500">
-                                                            No equipment found in this category.
+                                                        <td colspan="7" class="px-6 py-10 text-center text-sm text-gray-400">
+                                                            No comparable AI profiles found for this category.
                                                         </td>
                                                     </tr>
                                                 @endforelse
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>{{-- end wrapper --}}
+                                </div>
                             </div>
                         </div>
 
@@ -370,98 +428,10 @@
                                     <p class="mt-0.5 text-xs text-gray-500">Enable criteria and set both the threshold
                                         value and AI matching weight for each</p>
                                 </div>
-                                <button type="button" id="kc-criteria-edit-btn"
-                                    class="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-500 transition-colors">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    Add / Edit
-                                </button>
                             </div>
 
                             <div id="kc-criteria-rows" class="divide-y divide-gray-100">
-                                @forelse($criteriaRows as $row)
-                                    @php
-                                        $rowState = $criteriaState[$row->criteria_key] ?? [];
-                                        $rowEnabled = true;
-                                        $rowThreshold = $rowState['threshold'] ?? '';
-                                        $rowWeight = isset($rowState['weight'])
-                                            ? (int) $rowState['weight']
-                                            : (int) $row->default_weight;
-                                        $rowUpgradeExceeds = filter_var(
-                                            $rowState['upgrade_exceeds_value'] ?? ($row->upgrade_exceeds_value ?? true),
-                                            FILTER_VALIDATE_BOOLEAN,
-                                        );
-                                        $rowCautionIfChange = filter_var(
-                                            $rowState['caution_if_change_value'] ??
-                                                ($row->caution_if_change_value ?? true),
-                                            FILTER_VALIDATE_BOOLEAN,
-                                        );
-                                        $rowUpgradeBelow = filter_var(
-                                            $rowState['upgrade_is_below_value'] ??
-                                                ($row->upgrade_is_below_value ?? false),
-                                            FILTER_VALIDATE_BOOLEAN,
-                                        );
-                                        $rowCautionBelow = filter_var(
-                                            $rowState['caution_if_below_value'] ??
-                                                ($row->caution_if_below_value ?? false),
-                                            FILTER_VALIDATE_BOOLEAN,
-                                        );
-                                    @endphp
-                                    <div class="kc-criteria-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3"
-                                        data-key="{{ $row->criteria_key }}" data-threshold="{{ $rowThreshold }}">
-                                        <span
-                                            class="kc-criteria-label w-36 text-sm text-gray-700">{{ $row->name }}</span>
-                                        <span
-                                            class="kc-criteria-unit w-8 text-xs text-gray-500">{{ $row->unit ?? '' }}</span>
-                                        <span class="text-xs font-medium text-gray-500">Weight:</span>
-                                        <div
-                                            class="flex-1 min-w-[100px] h-1.5 bg-gray-200 rounded-full overflow-hidden relative">
-                                            <div class="absolute left-0 top-0 h-full bg-teal-400 rounded-full"
-                                                style="width: {{ $rowWeight }}%"></div>
-                                        </div>
-                                        <span
-                                            class="kc-weight-value w-6 text-right text-xs font-semibold text-gray-700">{{ $rowWeight }}</span>
-                                        <div class="w-full pt-1 space-y-2">
-                                            <div class="grid gap-2 md:grid-cols-2">
-                                                <label class="flex items-center gap-2 select-none">
-                                                    <input type="checkbox" disabled readonly tabindex="-1"
-                                                        data-flag="upgrade-exceeds"
-                                                        class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
-                                                        {{ $rowUpgradeExceeds ? 'checked' : '' }}>
-                                                    <span class="text-xs text-gray-600">Upgrade exceeds value</span>
-                                                </label>
-                                                <label class="flex items-center gap-2 select-none">
-                                                    <input type="checkbox" disabled readonly tabindex="-1"
-                                                        data-flag="caution-below"
-                                                        class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
-                                                        {{ $rowCautionBelow ? 'checked' : '' }}>
-                                                    <span class="text-xs text-gray-600">Caution if below value</span>
-                                                </label>
-                                            </div>
-                                            <div class="grid gap-2 md:grid-cols-2">
-                                                <label class="flex items-center gap-2 select-none">
-                                                    <input type="checkbox" disabled readonly tabindex="-1"
-                                                        data-flag="upgrade-below"
-                                                        class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
-                                                        {{ $rowUpgradeBelow ? 'checked' : '' }}>
-                                                    <span class="text-xs text-gray-600">Upgrade is below value</span>
-                                                </label>
-                                                <label class="flex items-center gap-2 select-none">
-                                                    <input type="checkbox" disabled readonly tabindex="-1"
-                                                        data-flag="caution-change"
-                                                        class="kc-row-exclusive h-3.5 w-3.5 rounded border-gray-300 text-teal-500 focus:ring-0"
-                                                        {{ $rowCautionIfChange ? 'checked' : '' }}>
-                                                    <span class="text-xs text-gray-600">Caution if exceeds value</span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <div class="px-5 py-6 text-center text-sm text-gray-400">No active criteria found for
-                                        this category.</div>
-                                @endforelse
+
                             </div>
                         </div>
 
@@ -734,63 +704,45 @@
 
             /* ──────────────── KEY COMPARISON ──────────────── */
             (function() {
-                // ── Comparable Equipment select all ─────────────────────
-                const selectAllBtn = document.getElementById('kc-eq-select-all');
-                const countBadge = document.getElementById('kc-eq-count');
-                const eqList = document.getElementById('kc-eq-list');
+                // ── Criteria row toggles + sliders ──────────────────────
+                const profileSelectAllBtn = document.getElementById('kc-profile-select-all');
+                const profileCountBadge = document.getElementById('kc-profile-count');
+                const profileList = document.querySelectorAll('.kc-profile-checkbox');
+                const profileTotal = profileList.length;
 
-                function updateCount() {
-                    if (!countBadge || !eqList) return;
-                    const checked = eqList.querySelectorAll('.kc-eq-checkbox:checked').length;
-                    countBadge.textContent = checked + ' selected';
+                function updateProfileCount() {
+                    if (!profileCountBadge) return;
+                    const checked = document.querySelectorAll('.kc-profile-checkbox:checked').length;
+                    profileCountBadge.textContent = checked + ' selected';
+
+                    if (profileSelectAllBtn) {
+                        profileSelectAllBtn.textContent = profileTotal > 0 && checked === profileTotal
+                            ? 'Deselect All'
+                            : 'Select All';
+                    }
                 }
 
-                eqList?.addEventListener('change', updateCount);
-
-                let allSelected = false;
-                selectAllBtn?.addEventListener('click', function() {
-                    allSelected = !allSelected;
-                    eqList?.querySelectorAll('.kc-eq-item').forEach(item => {
-                        const cb = item.querySelector('.kc-eq-checkbox');
-                        if (cb) cb.checked = allSelected;
-                    });
-                    this.textContent = allSelected ? 'Deselect All' : 'Select All';
-                    updateCount();
+                profileList.forEach((checkbox) => {
+                    checkbox.addEventListener('change', updateProfileCount);
                 });
 
-                updateCount();
+                profileSelectAllBtn?.addEventListener('click', function() {
+                    const shouldSelectAll = document.querySelectorAll('.kc-profile-checkbox:checked').length !== profileTotal;
+                    document.querySelectorAll('.kc-profile-checkbox').forEach((checkbox) => {
+                        checkbox.checked = shouldSelectAll;
+                    });
+                    updateProfileCount();
+                });
 
-                // ── Criteria row toggles + sliders ──────────────────────
+                updateProfileCount();
+
                 function wireCriteriaRow(row) {
                     return row;
                 }
 
                 document.querySelectorAll('.kc-criteria-row').forEach(wireCriteriaRow);
 
-                // ── Manage Criteria Modal ───────────────────────────────
-                const criteriaEditBtn = document.getElementById('kc-criteria-edit-btn');
-                const criteriaRowsWrap = document.getElementById('kc-criteria-rows');
-                const criteriaModal = document.getElementById('kc-criteria-modal');
-                const criteriaModalOverlay = document.getElementById('kc-criteria-modal-overlay');
-                const criteriaModalClose = document.getElementById('kc-criteria-modal-close');
-                const criteriaModalDone = document.getElementById('kc-modal-done');
-                const criteriaModalList = document.getElementById('kc-modal-criteria-list');
-                const criteriaModalForm = document.getElementById('kc-modal-form');
-                const criteriaModalShowFormBtn = document.getElementById('kc-modal-add-criterion');
-                const criteriaModalCancel = document.getElementById('kc-modal-cancel');
-                const criteriaModalSave = document.getElementById('kc-modal-add');
-                const criteriaModalName = document.getElementById('kc-modal-name');
-                const criteriaModalUnit = document.getElementById('kc-modal-unit');
-                const criteriaModalWeight = document.getElementById('kc-modal-weight');
-                const criteriaModalWeightLabel = document.getElementById('kc-modal-weight-label');
-                const criteriaModalUpgradeExceeds = document.getElementById('kc-modal-upgrade-exceeds');
-                const criteriaModalCautionIfChange = document.getElementById('kc-modal-caution-if-change');
-                const criteriaModalUpgradeBelow = document.getElementById('kc-modal-upgrade-below');
-                const criteriaModalCautionBelow = document.getElementById('kc-modal-caution-below');
 
-                const CRITERIA_LIST_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.index', $equipment->unique_id));
-                const CRITERIA_STORE_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.store', $equipment->unique_id));
-                const CRITERIA_BASE_URL = @json(route('admin.maintenance-management.equipment.critical-matching-criteria.index', $equipment->unique_id));
                 const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
                 const categorySelect = document.getElementById('product_category_id');
 
@@ -856,7 +808,7 @@
                     if (!criteriaLibrary.length) {
                         criteriaRowsWrap.innerHTML =
                             '<div class="px-5 py-6 text-center text-sm text-gray-400">No active criteria found for this category.</div>';
-                        renderKeyComparisonPreview();
+
                         return;
                     }
 
@@ -920,7 +872,7 @@
                     }).join('');
 
                     criteriaRowsWrap.querySelectorAll('.kc-criteria-row').forEach(wireCriteriaRow);
-                    renderKeyComparisonPreview();
+
                 }
 
                 function renderModalCriteriaList() {
@@ -984,19 +936,6 @@
                     }
                 }
 
-                function resetCriteriaForm() {
-                    editingCriteriaIndex = null;
-                    if (criteriaModalName) criteriaModalName.value = '';
-                    if (criteriaModalUnit) criteriaModalUnit.value = '';
-                    if (criteriaModalWeight) criteriaModalWeight.value = '50';
-                    if (criteriaModalWeightLabel) criteriaModalWeightLabel.textContent = 'Default Weight: 50';
-                    if (criteriaModalUpgradeExceeds) criteriaModalUpgradeExceeds.checked = true;
-                    if (criteriaModalCautionIfChange) criteriaModalCautionIfChange.checked = false;
-                    if (criteriaModalUpgradeBelow) criteriaModalUpgradeBelow.checked = false;
-                    if (criteriaModalCautionBelow) criteriaModalCautionBelow.checked = false;
-                    if (criteriaModalSave) criteriaModalSave.textContent = 'Add';
-                    criteriaModalForm?.classList.add('hidden');
-                }
 
                 async function openCriteriaModal() {
                     const loaded = await loadCriteriaFromServer();
@@ -1014,181 +953,6 @@
                     document.body.classList.remove('overflow-hidden');
                 }
 
-                criteriaEditBtn?.addEventListener('click', openCriteriaModal);
-                criteriaModalOverlay?.addEventListener('click', closeCriteriaModal);
-                criteriaModalClose?.addEventListener('click', closeCriteriaModal);
-                criteriaModalDone?.addEventListener('click', () => {
-                    renderCriteriaRowsFromLibrary();
-                    closeCriteriaModal();
-                });
-
-                criteriaModalShowFormBtn?.addEventListener('click', () => {
-                    resetCriteriaForm();
-                    criteriaModalForm?.classList.remove('hidden');
-                    criteriaModalName?.focus();
-                });
-
-                criteriaModalCancel?.addEventListener('click', resetCriteriaForm);
-
-                criteriaModalWeight?.addEventListener('input', function() {
-                    if (criteriaModalWeightLabel) {
-                        criteriaModalWeightLabel.textContent = `Default Weight: ${this.value}`;
-                    }
-                });
-
-                criteriaModalList?.addEventListener('click', async function(event) {
-                    const deleteBtn = event.target.closest('[data-delete-index]');
-                    if (deleteBtn) {
-                        const idx = Number(deleteBtn.dataset.deleteIndex);
-                        const item = criteriaLibrary[idx];
-                        if (!item?.id) return;
-                        const categoryId = currentCategoryId();
-                        if (!categoryId) return;
-
-                        const res = await fetch(`${CRITERIA_BASE_URL}/${item.id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': CSRF,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                category_id: categoryId
-                            }),
-                        });
-                        const data = await res.json();
-
-                        if (res.ok && data.success) {
-                            criteriaLibrary.splice(idx, 1);
-                            renderModalCriteriaList();
-                        }
-                        return;
-                    }
-
-                    const btn = event.target.closest('[data-criteria-index]');
-                    if (!btn) return;
-
-                    const idx = Number(btn.dataset.criteriaIndex);
-                    const item = criteriaLibrary[idx];
-                    if (!item) return;
-
-                    editingCriteriaIndex = idx;
-                    if (criteriaModalName) criteriaModalName.value = item.name || '';
-                    if (criteriaModalUnit) criteriaModalUnit.value = item.unit || '';
-                    if (criteriaModalWeight) criteriaModalWeight.value = String(item
-                        .defaultWeight ?? 50);
-                    if (criteriaModalWeightLabel) criteriaModalWeightLabel.textContent =
-                        `Default Weight: ${item.defaultWeight ?? 50}`;
-                    if (criteriaModalUpgradeExceeds) criteriaModalUpgradeExceeds.checked = item
-                        .upgradeExceedsValue !== false;
-                    if (criteriaModalCautionIfChange) criteriaModalCautionIfChange.checked = item
-                        .cautionIfChangeValue === true;
-                    if (criteriaModalUpgradeBelow) criteriaModalUpgradeBelow.checked = item
-                        .upgradeIsBelowValue === true;
-                    if (criteriaModalCautionBelow) criteriaModalCautionBelow.checked = item
-                        .cautionIfBelowValue === true;
-                    if (criteriaModalSave) criteriaModalSave.textContent = 'Save';
-                    criteriaModalForm?.classList.remove('hidden');
-                });
-
-                criteriaModalSave?.addEventListener('click', async () => {
-                    const name = (criteriaModalName?.value || '').trim();
-                    const unit = (criteriaModalUnit?.value || '').trim();
-                    const defaultWeight = Number(criteriaModalWeight?.value || 50);
-
-                    if (!name) {
-                        criteriaModalName?.focus();
-                        return;
-                    }
-
-                    const payload = {
-                        category_id: currentCategoryId(),
-                        name,
-                        unit,
-                        default_weight: defaultWeight,
-                        upgrade_exceeds_value: criteriaModalUpgradeExceeds?.checked ?? true,
-                        caution_if_change_value: criteriaModalCautionIfChange?.checked ?? false,
-                        upgrade_is_below_value: criteriaModalUpgradeBelow?.checked ?? false,
-                        caution_if_below_value: criteriaModalCautionBelow?.checked ?? false,
-                    };
-
-                    if (!payload.category_id) {
-                        categorySelect?.focus();
-                        return;
-                    }
-
-                    if (editingCriteriaIndex === null) {
-                        const res = await fetch(CRITERIA_STORE_URL, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': CSRF,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(payload),
-                        });
-                        const data = await res.json();
-
-                        if (res.ok && data.success && data.item) {
-                            criteriaLibrary.push({
-                                id: data.item.id,
-                                key: data.item.key,
-                                name: data.item.name,
-                                unit: data.item.unit || '',
-                                defaultWeight: Number(data.item.default_weight ?? 50),
-                                upgradeExceedsValue: data.item.upgrade_exceeds_value !==
-                                    false,
-                                cautionIfChangeValue: data.item.caution_if_change_value ===
-                                    true,
-                                upgradeIsBelowValue: data.item.upgrade_is_below_value ===
-                                    true,
-                                cautionIfBelowValue: data.item.caution_if_below_value ===
-                                    true,
-                            });
-                            criteriaValueState[data.item.key] = criteriaValueState[data.item.key] ||
-                            {
-                                threshold: '',
-                                weight: Number(data.item.default_weight ?? 50),
-                            };
-                        }
-                    } else {
-                        const item = criteriaLibrary[editingCriteriaIndex];
-                        if (!item?.id) return;
-
-                        const res = await fetch(`${CRITERIA_BASE_URL}/${item.id}`, {
-                            method: 'PUT',
-                            headers: {
-                                'X-CSRF-TOKEN': CSRF,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(payload),
-                        });
-                        const data = await res.json();
-
-                        if (res.ok && data.success && data.item) {
-                            criteriaLibrary[editingCriteriaIndex] = {
-                                id: data.item.id,
-                                key: data.item.key,
-                                name: data.item.name,
-                                unit: data.item.unit || '',
-                                defaultWeight: Number(data.item.default_weight ?? 50),
-                                upgradeExceedsValue: data.item.upgrade_exceeds_value !== false,
-                                cautionIfChangeValue: data.item.caution_if_change_value ===
-                                    true,
-                                upgradeIsBelowValue: data.item.upgrade_is_below_value === true,
-                                cautionIfBelowValue: data.item.caution_if_below_value === true,
-                            };
-                            criteriaValueState[data.item.key] = {
-                                threshold: criteriaValueState[data.item.key]?.threshold ?? '',
-                                weight: Number(data.item.default_weight ?? 50),
-                            };
-                        }
-                    }
-
-                    renderModalCriteriaList();
-                    resetCriteriaForm();
-                });
 
                 categorySelect?.addEventListener('change', async () => {
                     const loaded = await loadCriteriaFromServer();
@@ -1245,15 +1009,11 @@
             })();
 
             /* ──────────────── SPECIFICATION AI ──────────────── */
-            const GENERATE_URL = @json($specGenerateUrl);
-            const APPROVE_BASE_URL = @json($specApproveBaseUrl);
-            const KEY_COMPARISON_INDEX_URL = @json(route('admin.maintenance-management.equipment.key-comparisons.index', $equipment->unique_id));
-            const KEY_COMPARISON_STORE_URL = @json(route('admin.maintenance-management.equipment.key-comparisons.store', $equipment->unique_id));
-            const KEY_COMPARISON_DESTROY_URL = @json(route('admin.maintenance-management.equipment.key-comparisons.destroy', [$equipment->unique_id, ':id']));
-            const KEY_COMPARISON_REORDER_URL = @json(route('admin.maintenance-management.equipment.key-comparisons.reorder', $equipment->unique_id));
+
+
             const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
-            let specState = @json(json_decode($existingSpecs) ?? []); // array of spec objects
+
             let keyComparisonState = []; // array of key comparison objects
 
             const genBtn = document.getElementById('btn-spec-update');
@@ -1305,38 +1065,6 @@
                 return `<span class="font-semibold text-gray-800">${escHtml(cleanedValue)}</span> <span class="ml-1 text-xs text-gray-400">${escHtml(cleanedUnit)}</span>`;
             }
 
-            function renderKeyComparisonPreview() {
-                if (!keyComparisonPreview) return;
-
-                if (keyComparisonState.length === 0) {
-                    keyComparisonPreview.innerHTML =
-                        '<div class="px-5 py-3 text-sm text-gray-500">Click + on any specification below to add key comparison data.</div>';
-                    return;
-                }
-
-                keyComparisonPreview.innerHTML = keyComparisonState.map((item, idx) => {
-                    return `
-                    <div class="kc-spec-item flex items-center justify-between gap-3 px-5 py-3 text-sm bg-white" data-spec-id="${item.id}">
-                        <div class="flex flex-1 items-center gap-3">
-                            <button type="button" class="kc-remove-spec inline-flex h-7 w-7 items-center justify-center rounded-md border border-red-200 text-red-500 hover:bg-red-50" data-comparison-id="${item.id}" title="Delete" aria-label="Delete key comparison">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                            <span class="text-gray-600 block">${escHtml(item.spec_label || '-')}</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-right">${fmtSpecValue(item.spec_value, item.spec_unit)}</span>
-                        </div>
-                    </div>
-                `;
-                }).join('');
-
-                // Add remove listeners
-                keyComparisonPreview.querySelectorAll('.kc-remove-spec').forEach(btn => {
-                    btn.addEventListener('click', removeKeyComparison);
-                });
-            }
 
             async function addSpecToKeyComparisons(spec) {
                 if (!spec || !spec.spec_label) return;
@@ -1376,8 +1104,8 @@
                 } catch (err) {
                     console.error('Error adding key comparison:', err);
                 } finally {
-                    renderKeyComparisonPreview();
-                    renderEquipmentSpecsPreview(specState || []);
+
+
                 }
             }
 
@@ -1410,8 +1138,8 @@
 
                     if (res.ok && data.success) {
                         keyComparisonState = keyComparisonState.filter(kc => kc.id !== parseInt(comparisonId));
-                        renderKeyComparisonPreview();
-                        renderEquipmentSpecsPreview(specState || []);
+
+
                     }
                 } catch (err) {
                     console.error('Error removing key comparison:', err);
@@ -1424,21 +1152,6 @@
                 }
             }
 
-            async function loadKeyComparisons() {
-                try {
-                    const res = await fetch(KEY_COMPARISON_INDEX_URL, {
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    const data = await res.json();
-
-                    if (res.ok && data.success) {
-                        keyComparisonState = data.items || [];
-                        renderKeyComparisonPreview();
-                    }
-                } catch (err) {
-                    console.error('Error loading key comparisons:', err);
-                }
-            }
             // ...existing code...
             function renderEquipmentSpecsPreview(specs) {
                 if (!equipmentSpecsColLeft || !equipmentSpecsColRight) return;
@@ -1517,8 +1230,6 @@
                     }
                 });
 
-                renderCriteriaRowsFromLibrary();
-                renderKeyComparisonPreview();
             }
 
             /* ---- generate all ---- */
@@ -1572,11 +1283,6 @@
 
             genBtn?.addEventListener('click', () => generateSpecs());
 
-            // Load key comparisons from database
-            loadKeyComparisons().then(() => {
-                renderKeyComparisonPreview();
-                renderEquipmentSpecsPreview(specState || []);
-            });
         });
     </script>
 @endpush

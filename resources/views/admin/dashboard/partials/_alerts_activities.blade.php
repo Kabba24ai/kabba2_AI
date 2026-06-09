@@ -102,6 +102,33 @@
                         @foreach ($customers as $customer)
                             <option value="{{ $customer->id }}">
                                 {{ $customer->full_name }}
+                                @if($customer->phone)
+                                    | {{ App\Helpers\CustomHelper::formatPhone($customer->phone) ?? '' }} 
+                                @endif
+                                @if($customer->email)
+                                    | {{ $customer->email }}
+                                @endif
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="w-full">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">
+                        Assign To
+                    </label>
+
+                    <select
+                        name="assigned_to"
+                        id="call_assigned_to"
+                        class="choices-select w-full"
+                        required
+                    >
+                        <option value="">Select Assignee</option>
+
+                        @foreach ($users as $user)
+                            <option value="{{ $user->id }}">
+                                {{ $user->full_name ?? $user->name }}
                             </option>
                         @endforeach
                     </select>
@@ -115,19 +142,57 @@
 
                    {!! html()->select('reason', [
                         '' => 'Select Reason',
-                        'rental_inquiry' => 'Rental Inquiry',
+                        'contract_renewal'       => 'Contract Renewal',
+                        'delivery_pickup'        => 'Delivery / Pickup',
                         'equipment_availability' => 'Equipment Availability',
-                        'delivery_pickup' => 'Delivery / Pickup',
-                        'payment_followup' => 'Payment Follow-up',
-                        'equipment_return' => 'Equipment Return',
-                        'maintenance_request' => 'Maintenance Request',
-                        'contract_renewal' => 'Contract Renewal',
-                        'general_followup' => 'General Follow-up',
+                        'equipment_return'       => 'Equipment Return',
+                        'general_followup'       => 'General Follow-up',
+                        'maintenance_request'    => 'Maintenance Request',
+                        'order_review'           => 'Order Review',
+                        'payment_followup'       => 'Payment Follow-up',
+                        'rental_inquiry'         => 'Rental Inquiry',
+                        
                     ], old('reason'))
                     ->id('call_reason')
                     ->class('choices-select w-full')
                     ->required()
                     !!}
+                </div>
+
+                <div class="flex items-center rounded-lg border border-gray-200 p-3 bg-gray-50">
+
+                    <input
+                        type="checkbox"
+                        id="call_is_urgent"
+                        class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500">
+
+                    <label
+                            for="call_is_urgent"
+                            class="ml-3 text-sm font-medium text-gray-700">
+
+                            <span class="flex items-center gap-2">
+
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="2"
+                                    stroke="currentColor"
+                                    class="w-4 h-4 text-red-600">
+                                    <path stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M12 9v3.75m0 3.75h.007v.008H12v-.008zM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />
+                                </svg>
+
+                                <span>Mark as Urgent</span>
+
+                            </span>
+
+                            <span class="block text-xs text-gray-500 font-normal mt-1">
+                                High priority call reminder
+                            </span>
+
+                        </label>
+
                 </div>
 
                 {{-- Notes --}}
@@ -223,6 +288,12 @@
     window.callCustomerChoices.removeActiveItems();
 }
 
+document.getElementById('call_is_urgent').checked = false;
+
+if (window.callAssigneeChoices) {
+    window.callAssigneeChoices.removeActiveItems();
+}
+
 if (window.callReasonChoices) {
     window.callReasonChoices.removeActiveItems();
 }
@@ -244,6 +315,9 @@ if (window.callReasonChoices) {
         const customerId = document.getElementById('call_customer_id').value;
         const reason     = document.getElementById('call_reason').value;
         const notes      = document.getElementById('call_notes').value;
+        const assignedTo = document.getElementById('call_assigned_to').value;
+        const isUrgent =
+    document.getElementById('call_is_urgent').checked;
 
         if (!customerId) {
             notyf.error('Please select customer.');
@@ -252,6 +326,11 @@ if (window.callReasonChoices) {
 
         if (!reason) {
             notyf.error('Please select reason.');
+            return;
+        }
+
+        if (!assignedTo) {
+            notyf.error('Please select assignee.');
             return;
         }
 
@@ -282,8 +361,10 @@ if (window.callReasonChoices) {
             },
             body: JSON.stringify({
                 customer_id: customerId,
+                assigned_to: assignedTo,
                 reason: reason,
                 notes: notes,
+                  is_urgent: isUrgent ? 1 : 0,
             }),
         })
         .then(res => res.json())
@@ -364,47 +445,113 @@ function renderCallNeededList(calls)
     }
 
     container.innerHTML = calls.map(call => `
-        <div class="border border-red-100 rounded-xl p-4">
+       <div class="border border-gray-200 rounded-xl bg-white p-4 hover:shadow-md transition">
 
-            <div class="flex justify-between">
+    <div class="flex justify-between gap-4">
 
-                <div>
+        <div class="flex-1">
 
-                    <h3 class="text-sm font-semibold text-gray-900">
-                        ${call.customer.full_name}
-                    </h3>
+            <!-- Header -->
+            <div class="flex items-center gap-2 flex-wrap">
+ <span class="text-sm font-medium text-gray-500">
+        Customer:
+    </span>
+                <h3 class="text-sm font-semibold text-gray-900">
+                    ${call.customer.full_name}
+                </h3>
 
-                    <p class="text-sm text-gray-600 mt-1">
-                        ${formatReason(call.reason)}
-                    </p>
+                 ${call.customer.phone ? `
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-50 text-gray-600 text-xs">
+                        <x-heroicon-o-phone class="w-3.5 h-3.5" />
+                        ${call.customer.phone}
+                    </span>
+                ` : ''}
 
-                    <p class="text-xs text-gray-400 mt-2">
-                        ${call.created_at}
+                ${call.customer.email ? `
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-50 text-gray-600 text-xs">
+                        <x-heroicon-o-envelope class="w-3.5 h-3.5" />
+                        ${call.customer.email}
+                    </span>
+                ` : ''}
 
-                        
-                    </p>
+                ${call.is_urgent ? `
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-700 text-xs font-semibold border border-red-200">
+                        <x-heroicon-o-exclamation-triangle class="w-3.5 h-3.5" />
+                        Urgent
+                    </span>
+                ` : ''}
 
-                </div>
+            </div>
 
-                <div class="flex gap-2">
 
-                   
+         <div class="mt-3 border-l-4 border-blue-200 bg-blue-50/40 rounded-r-lg p-3">
 
-                    <button   onclick="viewCallNeeded(${call.id})" class="text-blue-600 hover:text-blue-800" title="View">
-                            <x-heroicon-o-eye class="w-5 h-5" />
-                        </button>
+    <div class="text-sm flex flex-wrap items-center gap-x-4 gap-y-1">
 
-                          <button    onclick="clearCallNeeded(${call.id})" class="text-red-600 hover:text-red-800">
-                             <x-heroicon-o-trash class="w-5 h-5" />
-                        </button>
+        <span>
+            <span class="font-semibold text-gray-700">Reason:</span>
+            <span class="text-gray-600">
+                ${formatReason(call.reason)}
+            </span>
+        </span>
 
-                    
+        ${call.notes ? `
+            <span>
+                <span class="font-semibold text-gray-700">Notes:</span>
+                <span class="text-gray-600">
+                    ${call.notes}
+                </span>
+            </span>
+        ` : ''}
 
-                </div>
+    </div>
+
+</div>
+
+            <!-- Footer -->
+           <div class="flex flex-wrap items-center gap-4 mt-4 text-xs text-gray-500">
+
+                <span class="inline-flex items-center gap-1">
+                    <x-heroicon-o-user class="w-3.5 h-3.5" />
+                    <span class="font-medium">Assigned To:</span>
+                    ${call.assignee?.full_name ?? '-'}
+                </span>
+
+                <span class="inline-flex items-center gap-1">
+                    <x-heroicon-o-user-plus class="w-3.5 h-3.5" />
+                    <span class="font-medium">Created By:</span>
+                    ${call.creator?.full_name ?? '-'}
+                </span>
+
+                <span class="inline-flex items-center gap-1">
+                    <x-heroicon-o-calendar-days class="w-3.5 h-3.5" />
+                    ${call.created_at}
+                </span>
 
             </div>
 
         </div>
+
+        <!-- Actions -->
+        <div class="flex items-start gap-2 border-l border-gray-100 pl-3">
+
+            <button
+                onclick="viewCallNeeded(${call.id})"
+                class="p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition">
+                <x-heroicon-o-pencil-square class="w-5 h-5" />
+            </button>
+
+            <button
+                onclick="clearCallNeeded(${call.id})"
+                class="p-2 rounded-lg text-green-600 hover:bg-green-50 transition">
+                <x-heroicon-o-check-circle class="w-5 h-5" />
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
     `).join('');
 }
 
@@ -478,12 +625,19 @@ function viewCallNeeded(id)
             String(call.customer_id)
         );
 
+        window.callAssigneeChoices.setChoiceByValue(
+    String(call.created_by)
+);
+
         window.callReasonChoices.setChoiceByValue(
             call.reason
         );
 
         document.getElementById('call_notes').value =
             call.notes ?? '';
+
+            document.getElementById('call_is_urgent').checked =
+    Boolean(call.is_urgent);
 
         document.getElementById('callModalTitle').innerText =
             'Edit Call Reminder';
@@ -500,6 +654,17 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!window.callCustomerChoices) {
     window.callCustomerChoices = new Choices(
         document.getElementById('call_customer_id'),
+        {
+            searchEnabled: true,
+            shouldSort: false,
+            itemSelectText: '',
+        }
+    );
+}
+
+if (!window.callAssigneeChoices) {
+    window.callAssigneeChoices = new Choices(
+        document.getElementById('call_assigned_to'),
         {
             searchEnabled: true,
             shouldSort: false,

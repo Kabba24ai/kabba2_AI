@@ -14,7 +14,7 @@ class RemoveMediaRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'order_media_unique_id' => 'required|string|exists:order_media,unique_id', // Required unique ID parameter
+            'customer_note_unique_id' => 'required|string|exists:customer_notes,unique_id', // Required unique ID parameter
         ];
     }
 
@@ -26,9 +26,9 @@ class RemoveMediaRequest extends ApiBaseFormRequest
     public function bodyParameters(): array
     {
         return [
-            'order_media_unique_id' => [
-                'description' => 'The unique ID of the order media.',
-                'example' => 'ORD-MED-6NO6-KQY3',
+            'customer_note_unique_id' => [
+                'description' => 'The unique ID of the customer note.',
+                'example' => 'CUST-NOTE-6NO6-KQY3',
                 'type' => 'string',
             ],
         ];

@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\Tests\IndexController;
 Route::prefix('test')->name('test.')
 ->group(function(){
 
+
+    Route::get('/terms-reminder', [IndexController::class, 'termDailyReminder'])->name('terms_reminder');
     Route::get('/sales-funnel-step-after-event', [IndexController::class, 'salesFunnelStepAfterEvent'])->name('sales_funnel_step_after_event');
 
     Route::get('/sales-test-email', [IndexController::class, 'sendTestEmail'])->name('sales_test_email');

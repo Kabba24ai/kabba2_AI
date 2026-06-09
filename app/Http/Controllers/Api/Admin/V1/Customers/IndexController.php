@@ -29,11 +29,32 @@ class IndexController extends BaseController
 
         $perPage = $validatedData['per_page'] ?? 10;
 
-        $customersQuery = Customer::query()
+        $customersQuery = Customer::query()->withCount('orders')
             ->with(['notes' => fn($q) => $q
                 ->with('user')
             , 'billingAddress.state', 'shippingAddress.state'])
-            ->orderByRaw("CONCAT(first_name, ' ', last_name)");
+            ->orderByRaw("
+                CASE
+                    -- BAD DEBT: credit rule
+                    WHEN (
+                        is_credit_account != 1
+                        AND (credit_limit IS NULL OR credit_limit = '')
+                        AND available_credit_balance > 0
+                    ) THEN 1
+
+                    -- BAD DEBT: payment rule (60+ days since last payment)
+                    WHEN (
+                        SELECT DATEDIFF(CURDATE(), MAX(date))
+                        FROM customer_accounts
+                        WHERE customer_accounts.customer_id = customers.id
+                        AND customer_accounts.type = 'payment'
+                    ) >= 60 THEN 1
+
+                    -- GOOD STANDING
+                    ELSE 0
+                END ASC,
+                CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+            ");
 
         if (!empty($validatedData['search_name'])) {
             $customersQuery->where(function ($query) use ($validatedData) {
@@ -61,7 +82,7 @@ class IndexController extends BaseController
             });
         }
 
-        $customers = $customersQuery->paginate($perPage);
+        $customers = $customersQuery->latest('id')->paginate($perPage);
 
         if ($customers->isEmpty()) {
             return response()->json([

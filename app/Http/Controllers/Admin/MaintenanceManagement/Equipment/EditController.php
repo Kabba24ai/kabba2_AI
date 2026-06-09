@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\Equipment;
 use App\Http\Controllers\Controller;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\MaintenanceManagement\EquipmentAiProfile;
+use App\Models\MaintenanceManagement\EquipmentCategoryComparisonKey;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
 use App\Models\MaintenanceManagement\ServiceMaster\ServiceTemplate;
 use App\Models\MaintenanceManagement\PartsList;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Admin\MaintenanceManagement\Equipment\Specification\GenerateController as SpecFormatter;
-use App\Models\MaintenanceManagement\EquipmentCriticalMatchingCriterion;
 use App\Models\ProductManagement\Product;
 
 class EditController extends Controller
@@ -66,7 +67,7 @@ class EditController extends Controller
             ->value();
 
         $currentKeywords = collect(explode(' ', $normalizedCurrentName))
-            ->filter(fn ($word) => strlen($word) >= 3)
+            ->filter(fn($word) => strlen($word) >= 3)
             ->values();
 
         $defaultSimilarEquipmentIds = $similarEquipmentCandidates
@@ -86,21 +87,128 @@ class EditController extends Controller
                 }
 
                 $candidateKeywords = collect(explode(' ', $normalizedCandidateName))
-                    ->filter(fn ($word) => strlen($word) >= 3);
+                    ->filter(fn($word) => strlen($word) >= 3);
 
                 $overlapCount = $currentKeywords->intersect($candidateKeywords)->count();
 
                 return $overlapCount >= 2 || ($currentKeywords->count() === 1 && $overlapCount === 1);
             })
             ->pluck('id')
-            ->map(fn ($id) => (string) $id)
+            ->map(fn($id) => (string) $id)
             ->values()
             ->toArray();
 
-        $criteriaRows = EquipmentCriticalMatchingCriterion::where('product_category_id', $equipment->product_category_id)
-            ->where('is_active', true)
-            ->orderBy('sort_order')
+        $criteriaRows = EquipmentAiProfile::query()
+            ->where('category_id', $equipment->product_category_id)
+            ->with(['specifications' => fn($q) => $q->orderByDesc('is_key_comparison')->orderBy('spec_key')])
+            ->get()
+            ->map(function ($profile) {
+                return [
+                    'profile_id' => $profile->id,
+                    'profile_unique_id' => $profile->unique_id,
+                    'profile_name' => $profile->name,
+                    'specifications' => $profile->specifications->map(function ($spec) {
+                        return [
+                            'id' => $spec->id,
+                            'spec_key' => $spec->spec_key,
+                            'spec_value' => $spec->spec_value,
+                            'is_key_comparison' => (bool) $spec->is_key_comparison,
+                        ];
+                    }),
+                ];
+            });
+
+        $matchingAiProfile = null;
+        $keyCriteriaSpecs = collect();
+        $commonSpecs = collect();
+        $uniqueSpecs = collect();
+
+        $equipmentMake = trim((string) $equipment->brand);
+        $equipmentModel = trim((string) $equipment->model);
+
+        if ($equipmentMake !== '') {
+            $normalizedMake = EquipmentAiProfile::normalize($equipmentMake);
+            $normalizedModel = EquipmentAiProfile::normalize($equipmentModel);
+
+            $matchingAiProfile = EquipmentAiProfile::with(['specifications' => fn($q) => $q->orderByDesc('is_key_comparison')->orderBy('spec_key')])
+                ->where('category_id', $equipment->product_category_id)
+                ->where('normalized_make', $normalizedMake)
+                ->where('normalized_model', $normalizedModel)
+                ->first();
+
+            if ($matchingAiProfile) {
+                $categorySpecKeys = EquipmentAiProfile::query()
+                    ->where('category_id', $equipment->product_category_id)
+                    ->with('specifications:id,equipment_ai_profile_id,spec_key')
+                    ->get()
+                    ->pluck('specifications')
+                    ->flatten()
+                    ->pluck('spec_key')
+                    ->filter(fn($key) => filled($key))
+                    ->map(fn($key) => trim((string) $key))
+                    ->flip();
+
+                $keyCriteriaSpecs = $matchingAiProfile->specifications
+                    ->filter(fn($spec) => (bool) $spec->is_key_comparison)
+                    ->values();
+
+                $commonSpecs = $matchingAiProfile->specifications
+                    ->filter(function ($spec) use ($categorySpecKeys) {
+                        if ($spec->is_key_comparison) {
+                            return false;
+                        }
+
+                        return $categorySpecKeys->has(trim((string) $spec->spec_key));
+                    })
+                    ->values();
+
+                $uniqueSpecs = $matchingAiProfile->specifications
+                    ->filter(function ($spec) use ($categorySpecKeys) {
+                        if ($spec->is_key_comparison) {
+                            return false;
+                        }
+
+                        return ! $categorySpecKeys->has(trim((string) $spec->spec_key));
+                    })
+                    ->values();
+            }
+        }
+
+        $comparableAiProfiles = EquipmentAiProfile::query()
+            ->withCount('specifications')
+            ->withCount('keySpecifications')
+            ->where('category_id', $equipment->product_category_id)
+            ->orderBy('make')
+            ->orderBy('model')
             ->get();
+
+        $comparisonKeySettingsBySpecKey = EquipmentCategoryComparisonKey::query()
+            ->where('category_id', $equipment->product_category_id)
+            ->get([
+                'spec_key',
+                'upgrade_exceeds_value',
+                'caution_if_change_value',
+                'upgrade_is_below_value',
+                'caution_if_below_value',
+            ])
+            ->mapWithKeys(function ($item) {
+                $key = trim((string) $item->spec_key);
+
+                return [$key => [
+                    'upgrade_exceeds_value' => (bool) $item->upgrade_exceeds_value,
+                    'caution_if_change_value' => (bool) $item->caution_if_change_value,
+                    'upgrade_is_below_value' => (bool) $item->upgrade_is_below_value,
+                    'caution_if_below_value' => (bool) $item->caution_if_below_value,
+                ]];
+            });
+
+        $selectedComparableAiProfileIds = collect(old(
+            'comparable_ai_profile_ids',
+            $equipment->comparable_ai_profile_ids ?? []
+        ))
+            ->map(fn ($id) => (string) $id)
+            ->values()
+            ->all();
 
         $productAssignmentOptions = Product::query()
             ->whereHas('categories', function ($query) use ($equipment) {
@@ -118,12 +226,25 @@ class EditController extends Controller
             ->toArray();
 
         return view('admin.maintenance_management.equipment.edit', compact(
-            'equipment', 'categories', 'checklistMasters', 'stores', 'serviceTemplates',
-            'partsLists', 'selectedPartsListId', 'similarEquipmentOptions', 'defaultSimilarEquipmentIds', 'criteriaRows', 'productAssignmentOptions'
+            'equipment',
+            'categories',
+            'checklistMasters',
+            'stores',
+            'serviceTemplates',
+            'partsLists',
+            'selectedPartsListId',
+            'similarEquipmentOptions',
+            'defaultSimilarEquipmentIds',
+            'selectedComparableAiProfileIds',
+            'criteriaRows',
+            'comparableAiProfiles',
+            'comparisonKeySettingsBySpecKey',
+            'productAssignmentOptions',
+            'matchingAiProfile',
+            'keyCriteriaSpecs',
+            'commonSpecs',
+            'uniqueSpecs'
         ) + [
-            'existingSpecs' => $equipment->specifications->map(fn ($s) => SpecFormatter::formatSpec($s))->values()->toJson(),
-            'specGenerateUrl' => route('admin.maintenance-management.equipment.specification.generate', $equipment->unique_id),
-            'specApproveBaseUrl' => Str::beforeLast(route('admin.maintenance-management.equipment.specification.generate', $equipment->unique_id), '/generate'),
             'equipmentLookupPayload' => json_encode([
                 'brand'          => $equipment->brand ?? '',
                 'model'          => $equipment->model ?? '',

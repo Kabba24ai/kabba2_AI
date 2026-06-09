@@ -109,207 +109,207 @@
          </div>
 
          <!-- Table -->
-         <table id="invoiceMainTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
-             <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
-                 <tr>
-                     <th class="py-4 px-6">Invoice</th>
-                     <th class="py-4 px-6">Customer</th>
-                     <th class="py-4 px-6 w-32">Created</th>
-                     <th class="py-4 px-6 w-32">Due Date</th>
-                     <th class="py-4 px-6 w-32 text-right">Amount</th>
-                     {{--<th class="py-4 px-6 w-32 text-right">Paid Amount</th>
-                     <th class="py-4 px-6 w-32 text-right">Open Amount</th>
-                     <th class="py-4 px-6 w-32 text-right">Payment Status</th>--}}
-                     <th class="py-4 px-6 w-32 text-right">Mail Date</th>
+         <div class="overflow-auto max-h-[600px]">
+            <table id="invoiceMainTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
+                <thead class="sticky top-0 z-20 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
+                    <tr>
+                        <th class="py-4 px-6">Invoice</th>
+                        <th class="py-4 px-6">Customer</th>
+                        <th class="py-4 px-6 w-32">Created</th>
+                        <th class="py-4 px-6 w-32">Due Date</th>
+                        <th class="py-4 px-6 w-32 text-right">Amount</th>
+                        {{--<th class="py-4 px-6 w-32 text-right">Paid Amount</th>
+                        <th class="py-4 px-6 w-32 text-right">Open Amount</th>
+                        <th class="py-4 px-6 w-32 text-right">Payment Status</th>--}}
+                        <th class="py-4 px-6 w-32 text-right">Mail Date</th>
 
-                     <th class="py-4 px-6 w-32 text-right">Email Status</th>
+                        <th class="py-4 px-6 w-32 text-right">Email Status</th>
 
-                     <th class="py-4 px-6 w-24 text-center">Action</th>
-                 </tr>
-             </thead>
+                        <th class="py-4 px-6 w-24 text-center">Action</th>
+                    </tr>
+                </thead>
 
-             <tbody id="invoiceTable" class="divide-y divide-gray-200">
-                 @forelse($customer->invoices as $invoice)
-                 <tr class="invoice-row" data-status="{{ $invoice->invoice_status }}" data-invoice-id="{{ $invoice->open_amount }}">
-                     <td class="py-4 px-6 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
-                     <td class="py-4 px-6 whitespace-nowrap  truncate min-w-3xs max-w-3xs">
-                         <div class="text-sm">
-                             <div class="font-medium text-gray-900">{{ $customer->company_name }}</div>
-                             <div class="text-gray-500">{{ $customer->full_name }}</div>
-                         </div>
-                     </td>
-                     <td class="py-4 px-6">
+                <tbody id="invoiceTable" class="divide-y divide-gray-200">
+                    @forelse($customer->invoices as $invoice)
+                    <tr class="invoice-row" data-status="{{ $invoice->invoice_status }}" data-invoice-id="{{ $invoice->open_amount }}">
+                        <td class="py-4 px-6 font-medium text-gray-900">{{ $invoice->invoice_number }}</td>
+                        <td class="py-4 px-6 whitespace-nowrap  truncate min-w-3xs max-w-3xs">
+                            <div class="text-sm">
+                                <div class="font-medium text-gray-900">{{ $customer->company_name }}</div>
+                                <div class="text-gray-500">{{ $customer->full_name }}</div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6">
 
-                         {{ App\Helpers\CustomHelper::formatDate($invoice->invoice_date) ?? '-' }}
+                            {{ App\Helpers\CustomHelper::formatDate($invoice->invoice_date) ?? '-' }}
 
-                     </td>
-                     <td class="py-4 px-6">
-                         {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
-                     </td>
-                     <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
+                        </td>
+                        <td class="py-4 px-6">
+                            {{ App\Helpers\CustomHelper::formatDate($invoice->due_date) ?? '-' }}
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">${{ number_format($invoice->total, 2) }}</td>
 
-                       {{-- Paid Amount --}}
-                    {{-- <td class="py-4 px-6 text-right text-green-600 font-semibold">
-                        ${{ number_format($invoice->paid_amount ?? 0, 2) }}
-                    </td> --}}
+                        {{-- Paid Amount --}}
+                        {{-- <td class="py-4 px-6 text-right text-green-600 font-semibold">
+                            ${{ number_format($invoice->paid_amount ?? 0, 2) }}
+                        </td> --}}
 
-                  {{-- Open Amount --}}
+                    {{-- Open Amount --}}
 
-                        {{-- <td class="py-4 px-6 text-right text-red-600 font-semibold"
-                            data-open-amount="{{
-                                $invoice->invoice_status === 'paid'
-                                    ? 0
-                                    : ($invoice->open_amount > 0
-                                        ? $invoice->open_amount
-                                        : ($invoice->total > 0 ? $invoice->total : 0))
-                            }}">
-                            $
-                            {{
-                                number_format(
+                            {{-- <td class="py-4 px-6 text-right text-red-600 font-semibold"
+                                data-open-amount="{{
                                     $invoice->invoice_status === 'paid'
                                         ? 0
                                         : ($invoice->open_amount > 0
                                             ? $invoice->open_amount
-                                            : ($invoice->total > 0 ? $invoice->total : 0)),
-                                    2
-                                )
-                            }}
+                                            : ($invoice->total > 0 ? $invoice->total : 0))
+                                }}">
+                                $
+                                {{
+                                    number_format(
+                                        $invoice->invoice_status === 'paid'
+                                            ? 0
+                                            : ($invoice->open_amount > 0
+                                                ? $invoice->open_amount
+                                                : ($invoice->total > 0 ? $invoice->total : 0)),
+                                        2
+                                    )
+                                }}
+                            </td> --}}
+
+                        {{-- <td class="py-4 px-6 text-right">
+                            @php
+                                $statusColors = [
+                                    'paid' => 'green',
+                                    'partial_paid' => 'blue',
+                                    'overdue' => 'red',
+                                    'pending' => 'yellow',
+                                ];
+
+                                $color = $statusColors[$invoice->invoice_status] ?? 'gray';
+
+                                $statusLabel = match ($invoice->invoice_status) {
+                                    'partial_paid' => 'Partial Paid',
+                                    'paid' => 'Paid',
+                                    'overdue' => 'Overdue',
+                                    'pending' => 'Pending',
+                                    default => ucfirst(str_replace('_', ' ', $invoice->invoice_status)),
+                                };
+                            @endphp
+
+                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                                {{ $statusLabel }}
+                            </span>
                         </td> --}}
 
-                     {{-- <td class="py-4 px-6 text-right">
-                        @php
-                            $statusColors = [
-                                'paid' => 'green',
-                                'partial_paid' => 'blue',
-                                'overdue' => 'red',
-                                'pending' => 'yellow',
-                            ];
-
-                            $color = $statusColors[$invoice->invoice_status] ?? 'gray';
-
-                            $statusLabel = match ($invoice->invoice_status) {
-                                'partial_paid' => 'Partial Paid',
-                                'paid' => 'Paid',
-                                'overdue' => 'Overdue',
-                                'pending' => 'Pending',
-                                default => ucfirst(str_replace('_', ' ', $invoice->invoice_status)),
-                            };
-                        @endphp
-
-                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
-                            {{ $statusLabel }}
-                        </span>
-                    </td> --}}
-
-                   <td class="py-4 px-6 text-right">
+                    <td class="py-4 px-6 text-right">
 
 
 
 
-                        @if($invoice->is_mail === 'yes' && $invoice->is_mail_date)
-                            <span class="ml-2 text-gray-600 text-[11px]">
-                                {{ App\Helpers\CustomHelper::formatDate($invoice->is_mail_date) ?? '-' }}
+                            @if($invoice->is_mail === 'yes' && $invoice->is_mail_date)
+                                <span class="ml-2 text-gray-600 text-[11px]">
+                                    {{ App\Helpers\CustomHelper::formatDate($invoice->is_mail_date) ?? '-' }}
+                                </span>
+
+                            @else
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                                Pending
                             </span>
-
-                        @else
-                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
-                            Pending
-                        </span>
-                        @endif
-
-                    </td>
-                     <td class="py-4 px-6 text-right">
-                         @php
-                         $mailstatusColors = [
-                         'send' => ['color' => 'green', 'label' => 'Sent'],
-                         'unsend' => ['color' => 'yellow', 'label' => 'Pending'],
-                         ];
-
-                         $statusKey = strtolower($invoice->is_email_send ?? '');
-                         $statusData = $mailstatusColors[$statusKey] ?? ['color' => 'gray', 'label' => ucfirst($statusKey) ?: 'N/A'];
-                         @endphp
-                         @if($invoice->is_email_send === 'send' && $invoice->mail_send_at)
-                         {{-- Show the date next to "Sent" --}}
-                         <span class="ml-2 text-gray-600 text-[11px]">
-                             {{ App\Helpers\CustomHelper::formatDateTime($invoice->mail_send_at) ?? '-' }}
-                         </span>
-                         @else
-
-                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $statusData['color'] }}-100 text-{{ $statusData['color'] }}-800">
-                             {{ $statusData['label'] }}
-                         </span>
-                         @endif
-                     </td>
-
-                     <td class="py-4 px-6 whitespace-nowrap">
-                         <div class="flex gap-2 items-center justify-end">
-
-                            @if($invoice->invoice_status !== 'paid')
-                                @php
-                                    $openAmt = $invoice->invoice_status === 'paid'
-                                        ? 0
-                                        : ($invoice->open_amount > 0
-                                            ? $invoice->open_amount
-                                            : ($invoice->total > 0 ? $invoice->total : 0));
-                                @endphp
-                                <button class="text-green-600 inline-flex items-center i_openPaymentModal"
-                                        data-invoice-id="{{ $invoice->id }}"
-                                        data-open-amount="{{ $openAmt }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
-                                        <line x1="12" x2="12" y1="2" y2="22"></line>
-                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                                    </svg>
-                                </button>
                             @endif
 
-                             <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}"  class="text-blue-600 inline-flex items-center">
-                                 <x-heroicon-o-eye class="w-4 h-4 mr-1" />
-                             </a>
-                             <a href="{{ route('admin.crm.customers.invoice.download',$invoice->unique_id ) }}" class=" text-green-600 inline-flex items-center">
-                                 <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
-                             </a>
-                             <a href="{{ route('admin.crm.customers.invoice.edit', $invoice->unique_id) }}"  class="text-green-600 inline-flex items-center">
-                                 <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
-                             </a>
-                             {{-- <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="text-purple-600 inline-flex items-center send-invoice-email">
-                                 <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                             </a> --}}
+                        </td>
+                        <td class="py-4 px-6 text-right">
+                            @php
+                            $mailstatusColors = [
+                            'send' => ['color' => 'green', 'label' => 'Sent'],
+                            'unsend' => ['color' => 'yellow', 'label' => 'Pending'],
+                            ];
 
-                             <a href="javascript:void(0);"
-                                class="text-purple-600 inline-flex items-center send-invoice-email"
-                                data-invoice-id="{{ $invoice->unique_id }}"
-                                data-billing-email="{{ optional($invoice->customer->billingAddress)->email }}"
-                                data-customer-email="{{ optional($invoice->customer)->email }}">
+                            $statusKey = strtolower($invoice->is_email_send ?? '');
+                            $statusData = $mailstatusColors[$statusKey] ?? ['color' => 'gray', 'label' => ucfirst($statusKey) ?: 'N/A'];
+                            @endphp
+                            @if($invoice->is_email_send === 'send' && $invoice->mail_send_at)
+                            {{-- Show the date next to "Sent" --}}
+                            <span class="ml-2 text-gray-600 text-[11px]">
+                                {{ App\Helpers\CustomHelper::formatDateTime($invoice->mail_send_at) ?? '-' }}
+                            </span>
+                            @else
+
+                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ $statusData['color'] }}-100 text-{{ $statusData['color'] }}-800">
+                                {{ $statusData['label'] }}
+                            </span>
+                            @endif
+                        </td>
+
+                        <td class="py-4 px-6 whitespace-nowrap">
+                            <div class="flex gap-2 items-center justify-end">
+
+                                @if($invoice->invoice_status !== 'paid')
+                                    @php
+                                        $openAmt = $invoice->invoice_status === 'paid'
+                                            ? 0
+                                            : ($invoice->open_amount > 0
+                                                ? $invoice->open_amount
+                                                : ($invoice->total > 0 ? $invoice->total : 0));
+                                    @endphp
+                                    <button class="text-green-600 inline-flex items-center i_openPaymentModal"
+                                            data-invoice-id="{{ $invoice->id }}"
+                                            data-open-amount="{{ $openAmt }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-4 h-4 mr-2">
+                                            <line x1="12" x2="12" y1="2" y2="22"></line>
+                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                        </svg>
+                                    </button>
+                                @endif
+
+                                <a href="{{ route('admin.crm.customers.invoice.show', $invoice->unique_id) }}"  class="text-blue-600 inline-flex items-center">
+                                    <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                                </a>
+                                <a href="{{ route('admin.crm.customers.invoice.download',$invoice->unique_id ) }}" class=" text-green-600 inline-flex items-center">
+                                    <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-green-600 mr-1" />
+                                </a>
+                                <a href="{{ route('admin.crm.customers.invoice.edit', $invoice->unique_id) }}"  class="text-green-600 inline-flex items-center">
+                                    <x-heroicon-o-pencil-square class="w-4 h-4 text-green-600 mr-1" />
+                                </a>
+                                {{-- <a href="{{ route('admin.crm.customers.invoice.sendemail', $invoice->unique_id) }}" class="text-purple-600 inline-flex items-center send-invoice-email">
                                     <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
-                            </a>
+                                </a> --}}
+
+                                <a href="javascript:void(0);"
+                                    class="text-purple-600 inline-flex items-center send-invoice-email"
+                                    data-invoice-id="{{ $invoice->unique_id }}"
+                                    data-billing-email="{{ optional($invoice->customer->billingAddress)->email }}"
+                                    data-customer-email="{{ optional($invoice->customer)->email }}">
+                                        <x-heroicon-o-envelope class="w-4 h-4 text-gray-500 mr-1" />
+                                </a>
 
 
-                             <!-- Transaction delete button -->
-                                    <form action="{{ route('admin.crm.customers.invoice.delete-invoice', $invoice->unique_id) }}"
-                                        method="POST"
-                                        class="flex delete-invoice-form"
-                                        data-InvoiceNumber="{{ $invoice->invoice_number }}">
-                                        @csrf
-                                        <button type="submit"
-                                                class="text-red-600 hover:text-red-800"
-                                                title="Delete">
-                                            <x-heroicon-o-trash class="w-4 h-4" />
-                                        </button>
-                                    </form>
+                                <!-- Transaction delete button -->
+                                        <form action="{{ route('admin.crm.customers.invoice.delete-invoice', $invoice->unique_id) }}"
+                                            method="POST"
+                                            class="flex delete-invoice-form"
+                                            data-InvoiceNumber="{{ $invoice->invoice_number }}">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="text-red-600 hover:text-red-800"
+                                                    title="Delete">
+                                                <x-heroicon-o-trash class="w-4 h-4" />
+                                            </button>
+                                        </form>
 
 
-                         </div>
-                     </td>
-                 </tr>
-                 @empty
-                 <tr>
-                     <td colspan="8" class="text-center py-4 px-6">No invoices found</td>
-                 </tr>
-                 @endforelse
-             </tbody>
-
-
-         </table>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-4 px-6">No invoices found</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+         </div>
      </div>
  </div>
 <div id="sendInvoiceModalWrapper"

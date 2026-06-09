@@ -20,10 +20,18 @@ class EquipmentCategoryComparisonKey extends Model
         'comparison_type',
         'sort_order',
         'is_required',
+        'upgrade_exceeds_value',
+        'caution_if_change_value',
+        'upgrade_is_below_value',
+        'caution_if_below_value',
     ];
 
     protected $casts = [
         'is_required' => 'boolean',
+        'upgrade_exceeds_value' => 'boolean',
+        'caution_if_change_value' => 'boolean',
+        'upgrade_is_below_value' => 'boolean',
+        'caution_if_below_value' => 'boolean',
         'sort_order'  => 'integer',
     ];
 

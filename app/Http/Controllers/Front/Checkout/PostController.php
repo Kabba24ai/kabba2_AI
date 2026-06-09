@@ -575,15 +575,6 @@ class PostController extends Controller
             if ($order->terms_status === OrderTermsStatus::Pending) {
                 SendTermsRequestJob::dispatch($order->id, 1)->delay(now()->addMinutes(15));
                 SendTermsRequestJob::dispatch($order->id, 2)->delay(now()->addHours(2));
-                foreach($order->products as $product) {
-                    if ($product->product_type == 'Rental' && !empty($product->delivery_date)) {
-                        // send final reminder at 6:45 AM on delivery date
-                        $deliveryDate = Carbon::parse($product->delivery_date)->setTime(6, 45, 0);
-                        if ($deliveryDate->isFuture()) {
-                            SendTermsRequestJob::dispatch($order->id, 3)->delay($deliveryDate);
-                        }
-                    }
-                }
             }
 
             // Success: redirect to signed thank you page with order id

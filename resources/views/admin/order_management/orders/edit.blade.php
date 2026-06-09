@@ -226,10 +226,41 @@
                     </svg>
                 </a>
             </div>
+             
 
+        </div>
+        <div class="flex justify-end">
+            <span
+                id="callNeededBtn"
+                data-customer-id="{{ $order->customer_id }}"
+                data-order-number="{{ $order->order_number }}"
+                class="inline-flex items-center px-4 py-2 text-sm font-semibold bg-red-100 text-red-700 rounded-full border border-red-200 cursor-pointer hover:bg-red-200">
+
+                <x-heroicon-o-phone class="w-4 h-4 mr-1 call-icon" />
+
+                <span class="call-text">CALL NEEDED</span>
+
+                <svg class="hidden w-4 h-4 ml-2 animate-spin call-loader"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"></circle>
+                    <path class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                    </path>
+                </svg>
+
+            </span>
         </div>
     </div>
 
+   
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
@@ -401,6 +432,8 @@
             </div>
         </div>
     </div>
+
+   
 
 
     <div class="bg-white rounded-xl shadow-sm p-6 mb-6 space-y-6">
@@ -1110,6 +1143,19 @@
             @endforeach
         </div>
 
+        @php
+    $refunds = $order->payments->filter(function ($payment) {
+        return in_array($payment->status?->value ?? $payment->status, [
+            \App\Enums\Orders\OrderPaymentStatus::PartialRefund->value,
+            \App\Enums\Orders\OrderPaymentStatus::Refund->value,
+        ]);
+    });
+
+    $totalRefunded = $refunds->sum('refund_amount');
+
+    $finalGrandTotal = max(0, $order->grand_total - $totalRefunded);
+@endphp
+
         {{-- Summary & Notes --}}
         <div class="grid md:grid-cols-2 gap-4">
             <div
@@ -1126,6 +1172,115 @@
                     <span>Grand Total:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</span>
                 </div>
+
+                @if($refunds->count())
+
+                    @php
+                        $totalRefundSalesTax = 0;
+                    @endphp
+
+                    <div class="border-t pt-2 space-y-3">
+
+                        @foreach($refunds as $refund)
+
+                            @php
+                                $refundTax =
+                                    \App\Helpers\CustomHelper::calculateRefundSalesTax(
+                                        $refund->refund_amount,
+                                        $order->subtotal,
+                                        $order->tax_amount
+                                    );
+
+                                $totalRefundSalesTax += $refundTax;
+                            @endphp
+
+                            <div class="flex justify-between items-start">
+
+                                <div>
+
+                                    <div class="font-medium text-green-700">
+                                        Refund
+                                    </div>
+
+                                    <div class="text-xs text-gray-500">
+                                        {{ \App\Helpers\CustomHelper::formatDateTime($refund->created_at) }}
+                                    </div>
+
+                                    @if($refund->refund_note)
+                                        <div class="text-xs text-gray-500">
+                                            {{ $refund->refund_note }}
+                                        </div>
+                                    @endif
+
+                                    @if($refund->payment_method)
+                                        <div class="text-xs text-gray-500">
+                                            Method:
+                                            {{ $refund->payment_method->label() }}
+                                        </div>
+                                    @endif
+
+                                </div>
+
+                                <div class="text-right">
+
+                                    @php
+                                        $refundSubtotal = $refund->refund_amount - $refundTax;
+                                    @endphp
+
+                                    <div class="font-semibold text-green-600">
+                                        -{{ \App\Helpers\CustomHelper::formatCurrency($refundSubtotal) }}
+                                    </div>
+
+                                    <div class="text-xs text-blue-600">
+                                        Tax:
+                                        -{{ \App\Helpers\CustomHelper::formatCurrency($refundTax) }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        @endforeach
+
+                    </div>
+
+                    @php
+                    $totalRefundSubtotal = $totalRefunded - $totalRefundSalesTax;
+                    @endphp
+
+                    <div class="flex justify-between font-bold text-gray-900 border-t pt-3">
+                        <span>Total Refunded:</span>
+
+                        <span class="text-green-600">
+                            -{{ \App\Helpers\CustomHelper::formatCurrency($totalRefundSubtotal) }}
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between font-bold text-gray-900">
+                        <span>Total Tax Refunded:</span>
+
+                        <span class="text-blue-600">
+                            -{{ \App\Helpers\CustomHelper::formatCurrency($totalRefundSalesTax) }}
+                        </span>
+                    </div>
+
+                    @php
+                        $finalGrandTotal = max(
+                            0,
+                            $order->grand_total - $totalRefunded
+                        );
+                    @endphp
+
+                    <div class="flex justify-between font-bold text-gray-900 border-t pt-3 text-base">
+                        <span>Final Grand Total:</span>
+
+                        <span>
+                            {{ \App\Helpers\CustomHelper::formatCurrency($finalGrandTotal) }}
+                        </span>
+                    </div>
+
+                @endif
+
             </div>
             <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col relative">
                 <!-- Title -->
@@ -3807,7 +3962,7 @@
                 refundPaymentBtn.addEventListener('click', openRefundModal);
             }
 
-            // ✅ attach to BOTH close buttons
+            //  attach to BOTH close buttons
             document.querySelectorAll('.close-refund-modal-btn').forEach(btn => btn.addEventListener('click',
                 closeRefundModal));
 
@@ -4493,6 +4648,10 @@
     </script>
 
     <script>
+    const currentUserId = {{ auth()->id() }};
+</script>
+
+    <script>
         document.addEventListener('click', function (e) {
 
             const btn = e.target.closest('.edit-po-btn');
@@ -4571,12 +4730,11 @@
                 document.getElementById('cancelChangeReturnDate'),
             ];
 
-            const calcDateDisplay = document.getElementById('returnCalcDateDisplay');
-            const manualDateInput = document.getElementById('returnManualDateInput');
-            const currentDateLabel = document.getElementById('returnCurrentDateLabel');
-
-            // Calendar days added per duration type × 1 qty
-            const DURATION_DAYS = { daily: 1, weekend: 1, weekly: 7, monthly: 28 };
+            let _orderProductId       = null;
+            let _currentReturnDateValue = null; // current return date string for calculation
+            let _deliveryDateValue    = null;   // fallback when current return date is unavailable
+            let _updateFn             = null;
+            let _returnDateEl         = null;   // DOM element to update on save
 
             // Calendar days added per duration type × 1 qty
             const DURATION_DAYS = { daily: 1, weekend: 1, weekly: 7, monthly: 28 };
@@ -4646,16 +4804,6 @@
                     manualDateInput.classList.add('hidden');
                     const newDate = calcReturnDate(getReturnDateCalcBase(), type, qty[type]);
                     calcDateDisplay.textContent = newDate || '—';
-                    // Warn if calculated date is not after the current return date
-                    const baseDate = parseScheduleDate(_newDateValue);
-                    const calcDate = parseScheduleDate(newDate);
-                    const isPast   = calcDate && baseDate && calcDate <= baseDate;
-                    calcDateDisplay.classList.toggle('text-red-700',    isPast);
-                    calcDateDisplay.classList.toggle('bg-red-50',       isPast);
-                    calcDateDisplay.classList.toggle('border-red-300',  isPast);
-                    calcDateDisplay.classList.toggle('text-blue-700',   !isPast);
-                    calcDateDisplay.classList.toggle('bg-blue-50',      !isPast);
-                    calcDateDisplay.classList.toggle('border-blue-200', !isPast);
                 }
             }
 
@@ -4750,14 +4898,6 @@
                     return;
                 }
 
-                // Block save if new date is not after the current return date
-                const baseDate    = parseScheduleDate(_newDateValue);
-                const newDateParsed = parseScheduleDate(dateValue);
-                if (!newDateParsed || (baseDate && newDateParsed <= baseDate)) {
-                    if (window.notyf) window.notyf.error('New return date must be after the current return date.');
-                    return;
-                }
-
                 closeModal();
 
                 // Update the return date field on screen
@@ -4780,15 +4920,24 @@
                 }
             });
 
-            // Public opener
-            window.openChangeReturnDateModal = function (orderProductId, newDate, updateScheduleField, currentAllocatedHours = 0, returnDateEl = null) {
-                _orderProductId = orderProductId;
-                _newDateValue   = newDate;
-                _updateFn       = updateScheduleField;
-                _returnDateEl   = returnDateEl;
+            // ── Public opener ─────────────────────────────────────────────────
+            window.openChangeReturnDateModal = function (
+                orderProductId,
+                currentReturnDate,
+                deliveryDate,
+                updateScheduleField,
+                currentAllocatedHours = 0,
+                returnDateEl = null
+            ) {
+                _orderProductId         = orderProductId;
+                _currentReturnDateValue = currentReturnDate;
+                _deliveryDateValue      = deliveryDate;
+                _updateFn               = updateScheduleField;
+                _returnDateEl           = returnDateEl;
 
+                // Show current date in summary bar
                 if (currentDateLabel) {
-                    currentDateLabel.textContent = _newDateValue || '—';
+                    currentDateLabel.textContent = currentReturnDate || '—';
                 }
                 if (currentAllocatedDisplay) {
                     currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;
@@ -4817,6 +4966,72 @@
                 modal.classList.remove('hidden');
             };
         })();
+
+
+       document.addEventListener('click', function(e) {
+
+        const btn = e.target.closest('#callNeededBtn');
+
+        if (!btn) return;
+
+        const customerId = btn.dataset.customerId;
+        const orderNumber = btn.dataset.orderNumber;
+
+        showConfirm(
+            'Create a call reminder for this order?',
+            'Call Needed'
+        ).then((result) => {
+
+            if (!result.isConfirmed) return;
+
+            const loader = btn.querySelector('.call-loader');
+            const text = btn.querySelector('.call-text');
+
+            btn.style.pointerEvents = 'none';
+            loader.classList.remove('hidden');
+            text.textContent = 'Creating...';
+
+            fetch("{{ route('admin.dashboard.call-needed.store') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document
+                        .querySelector('meta[name="csrf-token"]')
+                        .getAttribute('content'),
+                },
+                body: JSON.stringify({
+                    customer_id: customerId,
+                    reason: 'order_review',
+                    assigned_to: currentUserId,
+                    notes: `Order ${orderNumber} needs review.`
+                }),
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                if (data.success) {
+                    notyf.success(data.message || 'Call reminder created');
+
+                    text.textContent = 'CALL NEEDED';
+
+                } else {
+                    notyf.error(data.message || 'Something went wrong');
+                    text.textContent = 'CALL NEEDED';
+                }
+
+            })
+            .catch(() => {
+                notyf.error('Failed to create call reminder');
+                text.textContent = 'CALL NEEDED';
+            })
+            .finally(() => {
+                loader.classList.add('hidden');
+                btn.style.pointerEvents = 'auto';
+            });
+
+        });
+
+    });
 
     </script>
 

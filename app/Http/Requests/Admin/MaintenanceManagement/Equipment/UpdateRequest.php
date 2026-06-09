@@ -125,6 +125,9 @@ class UpdateRequest extends FormRequest
             'similar_equipment_ids' => 'nullable|array',
             'similar_equipment_ids.*' => 'integer|exists:equipment,id',
 
+            'comparable_ai_profile_ids' => 'nullable|array',
+            'comparable_ai_profile_ids.*' => 'integer|exists:equipment_ai_profiles,id',
+
             'critical_matching_criteria' => 'nullable|array',
             'critical_matching_criteria.*.enabled' => 'nullable|boolean',
             'critical_matching_criteria.*.threshold' => 'nullable|numeric|min:0',

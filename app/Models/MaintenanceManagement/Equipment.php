@@ -87,6 +87,7 @@ class Equipment extends Model
         'equipment_value',
         'coi_submitted',
         'similar_equipment_ids',
+        'comparable_ai_profile_ids',
         'critical_matching_criteria',
         'allow_upgrades',
         'allow_downgrades',
@@ -102,6 +103,7 @@ class Equipment extends Model
         'volts' => 'array',
         'amps'  => 'array',
         'similar_equipment_ids' => 'array',
+        'comparable_ai_profile_ids' => 'array',
         'critical_matching_criteria' => 'array',
         'allow_upgrades' => 'boolean',
         'allow_downgrades' => 'boolean',
@@ -217,11 +219,6 @@ class Equipment extends Model
         return $this->hasMany(EquipmentSpecification::class, 'equipment_id');
     }
 
-    public function keyComparisons()
-    {
-        return $this->hasMany(EquipmentKeyComparison::class, 'equipment_id')
-            ->orderBy('sort_order');
-    }
 
     public function customerAdminTemplates()
     {

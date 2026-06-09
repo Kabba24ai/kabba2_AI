@@ -227,17 +227,6 @@
                     <span class="text-sm font-medium text-gray-700">Show All</span>
                 </label>
 
-                <!-- View Mode toggle -->
-                <div class="flex rounded-lg border border-gray-300 overflow-hidden ml-auto">
-                    <button type="button" id="view-combined"
-                        class="px-3 py-2 text-xs font-semibold flex items-center gap-1.5 bg-blue-600 text-white">
-                        <x-heroicon-o-bars-3 class="w-3.5 h-3.5" /> Combined
-                    </button>
-                    <button type="button" id="view-split"
-                        class="px-3 py-2 text-xs font-semibold flex items-center gap-1.5 bg-white text-gray-600 hover:bg-gray-50 border-l border-gray-300">
-                        <x-heroicon-o-squares-2x2 class="w-3.5 h-3.5" /> Split
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -506,9 +495,6 @@
             const storeLocationInputs      = document.querySelectorAll('input[name="store_location[]"]');
             const scheduleTypeInputs       = document.querySelectorAll('input[name="schedule_type[]"]');
             const showAllInput             = document.getElementById('show_all');
-            const btnCombined              = document.getElementById('view-combined');
-            const btnSplit                 = document.getElementById('view-split');
-            let   viewMode                 = localStorage.getItem('dispatch_view_mode') || 'combined';
             const loadingIndicator         = document.querySelector('#dispatch-loading');
             const wrapper                  = document.querySelector('#dispatch-table-wrapper');
 
@@ -564,33 +550,6 @@
 
             // Apply saved card view mode on page load (after initial card render)
             setTimeout(() => applyDriverCardMode(localStorage.getItem('driver_card_view') || 'separate'), 0);
-
-            // View mode toggle
-            function applyViewMode() {
-                const isplit = viewMode === 'split';
-                btnCombined?.classList.toggle('bg-blue-600',  !isplit);
-                btnCombined?.classList.toggle('text-white',   !isplit);
-                btnCombined?.classList.toggle('bg-white',      isplit);
-                btnCombined?.classList.toggle('text-gray-600', isplit);
-                btnSplit?.classList.toggle('bg-blue-600',   isplit);
-                btnSplit?.classList.toggle('text-white',    isplit);
-                btnSplit?.classList.toggle('bg-white',     !isplit);
-                btnSplit?.classList.toggle('text-gray-600',!isplit);
-            }
-            applyViewMode();
-
-            btnCombined?.addEventListener('click', () => {
-                viewMode = 'combined';
-                localStorage.setItem('dispatch_view_mode', viewMode);
-                applyViewMode();
-                fetchDispatch();
-            });
-            btnSplit?.addEventListener('click', () => {
-                viewMode = 'split';
-                localStorage.setItem('dispatch_view_mode', viewMode);
-                applyViewMode();
-                fetchDispatch();
-            });
 
             // Refresh driver workload cards without reloading the page
             window.refreshDriverCards = function (targetMode) {
@@ -700,7 +659,6 @@
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
                 if (driverFilterInput && driverFilterInput.value) params.append('driver_id', driverFilterInput.value);
                 if (showAllInput?.checked) params.append('show_all', '1');
-                params.append('view_mode', viewMode);
                 if (perPage) params.append('per_page', perPage);
                 params.set('page', page);
 
@@ -1188,7 +1146,48 @@
     {{-- ===== Inline Priority Editor ===== --}}
     <script>
     (function () {
-        const priorityUrl = uid => '{{ rtrim(route("admin.order-management.dispatch.index"), "/") }}'.replace('/order-management/dispatch', '/order-management/dispatch/') + uid + '/priority';
+        const PRIORITY_URL_TEMPLATE = '{{ route("admin.order-management.dispatch.priority", ":uid") }}';
+
+        function savePriorityToServer(uid, type, priority) {
+            return fetch(PRIORITY_URL_TEMPLATE.replace(':uid', uid), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ type, priority }),
+            }).then(r => r.json());
+        }
+
+        function resortJobColumn(savedBadge) {
+            const jobEntry = savedBadge.parentElement;
+            if (!jobEntry) return;
+            const column = jobEntry.parentElement;
+            if (!column) return;
+
+            const entries = Array.from(column.children).filter(el => el.tagName === 'DIV');
+            if (entries.length < 2) return;
+
+            entries.sort((a, b) => {
+                const ba = a.querySelector('.dispatch-priority-badge');
+                const bb = b.querySelector('.dispatch-priority-badge');
+                const pa = ba && ba.dataset.priority ? parseInt(ba.dataset.priority) : 9999;
+                const pb = bb && bb.dataset.priority ? parseInt(bb.dataset.priority) : 9999;
+                return pa - pb;
+            });
+
+            entries.forEach(el => column.appendChild(el));
+        }
+
+        function applyBadgeValue(badge, p, isBlue) {
+            badge.dataset.priority = p ?? '';
+            badge.textContent      = p ?? '—';
+            if (p) {
+                badge.className = badge.className
+                    .replace('bg-gray-100 text-gray-400', isBlue ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700');
+            }
+        }
 
         // Replace a priority badge with a tiny input, save on blur/Enter
         document.addEventListener('click', function (e) {
@@ -1215,66 +1214,85 @@
             input.focus();
             input.select();
 
-            function resortJobColumn(savedBadge) {
-                // Walk up: badge → job-entry div → column div
-                const jobEntry = savedBadge.parentElement;
-                if (!jobEntry) return;
-                const column = jobEntry.parentElement;
-                if (!column) return;
-
-                // Job entries are DIV children; the header is a P — skip it
-                const entries = Array.from(column.children).filter(el => el.tagName === 'DIV');
-                if (entries.length < 2) return;
-
-                entries.sort((a, b) => {
-                    const ba = a.querySelector('.dispatch-priority-badge');
-                    const bb = b.querySelector('.dispatch-priority-badge');
-                    const pa = ba && ba.dataset.priority ? parseInt(ba.dataset.priority) : 9999;
-                    const pb = bb && bb.dataset.priority ? parseInt(bb.dataset.priority) : 9999;
-                    return pa - pb;
-                });
-
-                // Re-append after the header (P element stays first)
-                entries.forEach(el => column.appendChild(el));
-            }
+            let saving = false;
 
             function save() {
-                const val = input.value.trim();
+                if (saving) return;
+                saving = true;
+
+                const val      = input.value.trim();
                 const priority = val === '' ? null : parseInt(val, 10);
 
-                const prioritySaveUrl = '{{ route("admin.order-management.dispatch.priority", ":uid") }}'.replace(':uid', uid);
-                fetch(prioritySaveUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({ type, priority }),
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        const p = data.priority;
-                        badge.dataset.priority = p ?? '';
-                        badge.textContent      = p ?? '—';
-                        if (p) {
-                            badge.className = badge.className
-                                .replace('bg-gray-100 text-gray-400', isBlue ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700');
-                        }
-                        // Re-sort this column immediately so the list rearranges visually
-                        resortJobColumn(badge);
-                    } else {
+                // Clear priority — no collision possible
+                if (priority === null) {
+                    savePriorityToServer(uid, type, null)
+                        .then(data => {
+                            if (data.success) { applyBadgeValue(badge, null, isBlue); resortJobColumn(badge); }
+                            else              { badge.textContent = current || '—'; }
+                        })
+                        .catch(() => { badge.textContent = current || '—'; });
+                    return;
+                }
+
+                // Detect collision: any other badge across BOTH columns in this driver card
+                // badge → job-entry div → column div → driver-card-separate div (contains both columns)
+                const cardSeparate = badge.parentElement?.parentElement?.parentElement;
+                const siblings = cardSeparate
+                    ? Array.from(cardSeparate.querySelectorAll('.dispatch-priority-badge')).filter(b => b !== badge)
+                    : [];
+                const collision = siblings.some(b => b.dataset.priority !== '' && parseInt(b.dataset.priority) === priority);
+
+                if (collision) {
+                    // Show confirmation — must do synchronously before async kicks in
+                    const proceed = confirm(
+                        `There is already an assignment at position ${priority}.\n\nWould you like to place this here and shift all assignments at position ${priority} and after up by 1?`
+                    );
+                    if (!proceed) {
                         badge.textContent = current || '—';
+                        saving = false;
+                        return;
                     }
-                })
-                .catch(() => { badge.textContent = current || '—'; });
+
+                    // Collect all badges at >= new priority (excluding self), sort descending
+                    const toShift = siblings
+                        .filter(b => b.dataset.priority !== '' && parseInt(b.dataset.priority) >= priority)
+                        .sort((a, b) => parseInt(b.dataset.priority) - parseInt(a.dataset.priority));
+
+                    // Cascade-shift each one up by 1 on the server, highest first to avoid transient collisions
+                    const shiftChain = toShift.reduce((chain, b) => {
+                        return chain.then(() => {
+                            const newP = parseInt(b.dataset.priority) + 1;
+                            return savePriorityToServer(b.dataset.uid, b.dataset.type, newP)
+                                .then(data => {
+                                    if (data.success) {
+                                        b.dataset.priority = newP;
+                                        b.textContent      = newP;
+                                    }
+                                });
+                        });
+                    }, Promise.resolve());
+
+                    shiftChain.then(() => {
+                        return savePriorityToServer(uid, type, priority);
+                    }).then(data => {
+                        if (data.success) { applyBadgeValue(badge, data.priority, isBlue); resortJobColumn(badge); }
+                        else              { badge.textContent = current || '—'; }
+                    }).catch(() => { badge.textContent = current || '—'; });
+
+                } else {
+                    savePriorityToServer(uid, type, priority)
+                        .then(data => {
+                            if (data.success) { applyBadgeValue(badge, data.priority, isBlue); resortJobColumn(badge); }
+                            else              { badge.textContent = current || '—'; }
+                        })
+                        .catch(() => { badge.textContent = current || '—'; });
+                }
             }
 
             input.addEventListener('blur', save);
             input.addEventListener('keydown', e => {
                 if (e.key === 'Enter') { e.preventDefault(); save(); }
-                if (e.key === 'Escape') { badge.textContent = current || '—'; }
+                if (e.key === 'Escape') { badge.textContent = current || '—'; saving = true; }
             });
         });
     })();

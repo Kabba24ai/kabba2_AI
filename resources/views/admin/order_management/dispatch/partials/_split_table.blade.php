@@ -71,9 +71,6 @@
                     {{-- Actions --}}
                     <td class="py-3 px-3 text-center">
                         <div class="flex gap-2 justify-center">
-                            <a href="{{ route('admin.order-management.dispatch.show', $op->unique_id) }}" class="text-blue-600 hover:text-blue-800" title="Dispatch Checklist">
-                                <x-heroicon-o-clipboard-document-check class="w-4 h-4" />
-                            </a>
                             <a href="{{ route('admin.order-management.orders.edit', $op->order?->unique_id ?? 0) }}" class="text-sky-600 hover:text-sky-800" title="View Order">
                                 <x-heroicon-o-eye class="w-4 h-4" />
                             </a>
@@ -158,9 +155,6 @@
                     {{-- Actions --}}
                     <td class="py-3 px-3 text-center">
                         <div class="flex gap-2 justify-center">
-                            <a href="{{ route('admin.order-management.dispatch.show', $op->unique_id) }}" class="text-blue-600 hover:text-blue-800" title="Dispatch Checklist">
-                                <x-heroicon-o-clipboard-document-check class="w-4 h-4" />
-                            </a>
                             <a href="{{ route('admin.order-management.orders.edit', $op->order?->unique_id ?? 0) }}" class="text-sky-600 hover:text-sky-800" title="View Order">
                                 <x-heroicon-o-eye class="w-4 h-4" />
                             </a>

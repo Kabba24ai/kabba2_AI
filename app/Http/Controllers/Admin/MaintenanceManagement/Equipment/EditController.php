@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\MaintenanceManagement\EquipmentAiProfile;
+use App\Models\MaintenanceManagement\EquipmentCategoryComparisonKey;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
 use App\Models\MaintenanceManagement\ServiceMaster\ServiceTemplate;
@@ -181,6 +182,26 @@ class EditController extends Controller
             ->orderBy('model')
             ->get();
 
+        $comparisonKeySettingsBySpecKey = EquipmentCategoryComparisonKey::query()
+            ->where('category_id', $equipment->product_category_id)
+            ->get([
+                'spec_key',
+                'upgrade_exceeds_value',
+                'caution_if_change_value',
+                'upgrade_is_below_value',
+                'caution_if_below_value',
+            ])
+            ->mapWithKeys(function ($item) {
+                $key = trim((string) $item->spec_key);
+
+                return [$key => [
+                    'upgrade_exceeds_value' => (bool) $item->upgrade_exceeds_value,
+                    'caution_if_change_value' => (bool) $item->caution_if_change_value,
+                    'upgrade_is_below_value' => (bool) $item->upgrade_is_below_value,
+                    'caution_if_below_value' => (bool) $item->caution_if_below_value,
+                ]];
+            });
+
         $selectedComparableAiProfileIds = collect(old(
             'comparable_ai_profile_ids',
             $equipment->comparable_ai_profile_ids ?? []
@@ -217,6 +238,7 @@ class EditController extends Controller
             'selectedComparableAiProfileIds',
             'criteriaRows',
             'comparableAiProfiles',
+            'comparisonKeySettingsBySpecKey',
             'productAssignmentOptions',
             'matchingAiProfile',
             'keyCriteriaSpecs',

@@ -26,7 +26,7 @@ class CallNeededStoreRequest extends FormRequest
                 'required',
                 'exists:customers,id',
             ],
-
+'assigned_to' => ['required', 'exists:users,id'],
             'reason' => [
                 'required',
                 'string',
@@ -35,6 +35,11 @@ class CallNeededStoreRequest extends FormRequest
             'notes' => [
                 'nullable',
                 'string',
+            ],
+
+            'is_urgent' => [
+                'nullable',
+                'boolean',
             ],
         ];
     }

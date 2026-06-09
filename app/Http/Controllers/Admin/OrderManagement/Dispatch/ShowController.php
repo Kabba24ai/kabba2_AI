@@ -29,7 +29,7 @@ class ShowController extends Controller
         ])->where('unique_id', $unique_id)->firstOrFail();
 
         $stores    = Store::orderBy('store_name')->get();
-        $employees = User::active()->orderBy('first_name')->get();
+        $employees = User::active()->where('is_driver', true)->orderBy('first_name')->get();
 
         // All products in this order — primary product first, then the rest
         $orderProducts = $orderProduct->order?->products

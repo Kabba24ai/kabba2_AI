@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\Hrm\Users\CheckEmailController;
 use App\Http\Controllers\Admin\Hrm\Users\EditController;
 use App\Http\Controllers\Admin\Hrm\Users\UpdateController;
 use App\Http\Controllers\Admin\Hrm\Users\VerifySsnController;
+use App\Http\Controllers\Admin\Hrm\Users\ToggleDriverController;
 
 
 Route::prefix('users')
@@ -36,5 +37,7 @@ Route::prefix('users')
 
 
     Route::post('/{user}/verify-ssn', VerifySsnController::class)->name('verify-ssn');
+
+    Route::post('/{unique_id}/toggle-driver', ToggleDriverController::class)->name('toggle-driver');
 
 });

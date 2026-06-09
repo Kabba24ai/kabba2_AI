@@ -24,7 +24,7 @@
     @include('flash::message')
 
     <!-- Page Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-semibold flex items-center gap-2">
             <x-heroicon-o-truck class="w-6 h-6 text-blue-600" />
             Dispatch Management
@@ -35,6 +35,33 @@
             Reload
         </a>
     </div>
+
+    {{-- ===== Driver Workload Summary ===== --}}
+    <div id="driver-cards-wrapper" class="mb-4">
+        @include('admin.order_management.dispatch.partials._driver_cards', ['driverCards' => $driverCards])
+    </div>
+
+    <script>
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.dispatch-card-jump');
+        if (!btn) return;
+        const orderNumber = btn.dataset.orderNumber;
+        if (!orderNumber) return;
+
+        // Fill the order number search input and trigger a fetch
+        const orderInput = document.querySelector('input[name="order_number"]');
+        if (orderInput) {
+            orderInput.value = orderNumber;
+            orderInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        // Scroll to the table after a brief delay for the fetch to fire
+        setTimeout(() => {
+            const table = document.getElementById('dispatch-table-wrapper');
+            if (table) table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+    });
+    </script>
 
     <div class="bg-white p-4 rounded-xl shadow-sm space-y-4">
         <!-- Row 1: Search Inputs -->
@@ -129,6 +156,16 @@
                     <option value="month" @selected(request('date_filter') == 'month')>This Month</option>
                 </select>
             </div>
+
+            <div>
+                <select name="driver_id" id="driver_filter"
+                    class="border border-gray-300 rounded-md py-3 px-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    <option value="">All Drivers</option>
+                    @foreach ($driverEmployees as $driverId => $driverName)
+                        <option value="{{ $driverId }}">{{ $driverName }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
 
         @php
@@ -189,6 +226,18 @@
                         class="text-blue-600 focus:ring-blue-500 rounded border-gray-300 w-4 h-4">
                     <span class="text-sm font-medium text-gray-700">Show All</span>
                 </label>
+
+                <!-- View Mode toggle -->
+                <div class="flex rounded-lg border border-gray-300 overflow-hidden ml-auto">
+                    <button type="button" id="view-combined"
+                        class="px-3 py-2 text-xs font-semibold flex items-center gap-1.5 bg-blue-600 text-white">
+                        <x-heroicon-o-bars-3 class="w-3.5 h-3.5" /> Combined
+                    </button>
+                    <button type="button" id="view-split"
+                        class="px-3 py-2 text-xs font-semibold flex items-center gap-1.5 bg-white text-gray-600 hover:bg-gray-50 border-l border-gray-300">
+                        <x-heroicon-o-squares-2x2 class="w-3.5 h-3.5" /> Split
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -453,9 +502,13 @@
             const paymentStatusInput       = document.querySelector('select[name="payment_status"]');
             const paymentMethodInput       = document.querySelector('select[name="payment_method"]');
             const dateFilterInput          = document.querySelector('select[name="date_filter"]');
+            const driverFilterInput        = document.getElementById('driver_filter');
             const storeLocationInputs      = document.querySelectorAll('input[name="store_location[]"]');
             const scheduleTypeInputs       = document.querySelectorAll('input[name="schedule_type[]"]');
             const showAllInput             = document.getElementById('show_all');
+            const btnCombined              = document.getElementById('view-combined');
+            const btnSplit                 = document.getElementById('view-split');
+            let   viewMode                 = localStorage.getItem('dispatch_view_mode') || 'combined';
             const loadingIndicator         = document.querySelector('#dispatch-loading');
             const wrapper                  = document.querySelector('#dispatch-table-wrapper');
 
@@ -472,6 +525,7 @@
                 'payment_status':       paymentStatusInput,
                 'payment_method':       paymentMethodInput,
                 'date_filter':          dateFilterInput,
+                'driver_id':            driverFilterInput,
                 'store_location[]':     storeLocationInputs,
                 'schedule_type[]':      scheduleTypeInputs,
                 'show_all':             showAllInput,
@@ -486,6 +540,8 @@
                 if (dateFilterInput) dateFilterInput.value = 'today';
                 // Reset Show All to off (default — hide completed)
                 if (showAllInput) showAllInput.checked = false;
+                // Reset driver filter
+                if (driverFilterInput) driverFilterInput.value = '';
                 fetchDispatch();
             });
 
@@ -506,6 +562,127 @@
             // Expose globally so driver modal JS can call it after saving a driver
             window.fetchDispatch = fetchDispatch;
 
+            // Apply saved card view mode on page load (after initial card render)
+            setTimeout(() => applyDriverCardMode(localStorage.getItem('driver_card_view') || 'separate'), 0);
+
+            // View mode toggle
+            function applyViewMode() {
+                const isplit = viewMode === 'split';
+                btnCombined?.classList.toggle('bg-blue-600',  !isplit);
+                btnCombined?.classList.toggle('text-white',   !isplit);
+                btnCombined?.classList.toggle('bg-white',      isplit);
+                btnCombined?.classList.toggle('text-gray-600', isplit);
+                btnSplit?.classList.toggle('bg-blue-600',   isplit);
+                btnSplit?.classList.toggle('text-white',    isplit);
+                btnSplit?.classList.toggle('bg-white',     !isplit);
+                btnSplit?.classList.toggle('text-gray-600',!isplit);
+            }
+            applyViewMode();
+
+            btnCombined?.addEventListener('click', () => {
+                viewMode = 'combined';
+                localStorage.setItem('dispatch_view_mode', viewMode);
+                applyViewMode();
+                fetchDispatch();
+            });
+            btnSplit?.addEventListener('click', () => {
+                viewMode = 'split';
+                localStorage.setItem('dispatch_view_mode', viewMode);
+                applyViewMode();
+                fetchDispatch();
+            });
+
+            // Refresh driver workload cards without reloading the page
+            window.refreshDriverCards = function (targetMode) {
+                const wrapper = document.getElementById('driver-cards-wrapper');
+                if (!wrapper) return;
+                wrapper.classList.add('opacity-50');
+                apiFetch("{{ route('admin.order-management.dispatch.driver-cards') }}", {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(data => {
+                    if (data?.html) {
+                        wrapper.innerHTML = data.html;
+                        // Re-apply the current card view mode after the DOM is replaced
+                        const mode = targetMode || localStorage.getItem('driver_card_view') || 'separate';
+                        applyDriverCardMode(mode);
+                    }
+                })
+                .finally(() => wrapper.classList.remove('opacity-50'));
+            };
+
+            // Apply card view mode (separate/combined) — works on freshly injected DOM too
+            function applyDriverCardMode(mode) {
+                const container = document.getElementById('driver-cards-container');
+                const btnSep  = document.getElementById('dcv-separate');
+                const btnComb = document.getElementById('dcv-combined');
+                if (!container) return;
+
+                container.querySelectorAll('.driver-card-separate').forEach(el => el.classList.toggle('hidden', mode !== 'separate'));
+                container.querySelectorAll('.driver-card-combined').forEach(el => el.classList.toggle('hidden', mode !== 'combined'));
+
+                if (btnSep && btnComb) {
+                    const isSep = mode === 'separate';
+                    btnSep.classList.toggle('bg-blue-600', isSep);
+                    btnSep.classList.toggle('text-white',  isSep);
+                    btnSep.classList.toggle('bg-white',   !isSep);
+                    btnSep.classList.toggle('text-gray-600', !isSep);
+                    btnComb.classList.toggle('bg-blue-600', !isSep);
+                    btnComb.classList.toggle('text-white',  !isSep);
+                    btnComb.classList.toggle('bg-white',    isSep);
+                    btnComb.classList.toggle('text-gray-600', isSep);
+                }
+
+                localStorage.setItem('driver_card_view', mode);
+            }
+
+            // Persistent event delegation for the driver card view toggle (survives innerHTML replacement)
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('#dcv-separate')) {
+                    applyDriverCardMode('separate');
+                    return;
+                }
+                if (e.target.closest('#dcv-combined')) {
+                    window.refreshDriverCards('combined');
+                    return;
+                }
+
+                // Update button: sort both delivery and return columns of this card by priority
+                const updateBtn = e.target.closest('.dispatch-card-update-btn');
+                if (!updateBtn) return;
+
+                const card = updateBtn.closest('.bg-white.rounded-xl');
+                if (!card) return;
+
+                const separateView = card.querySelector('.driver-card-separate');
+                if (!separateView) return;
+
+                separateView.querySelectorAll('.flex-1.p-4').forEach(column => {
+                    // Job entries are DIV elements; the section header is a P
+                    const entries = Array.from(column.children).filter(el => el.tagName === 'DIV');
+                    if (entries.length < 2) return;
+
+                    entries.sort((a, b) => {
+                        const ba = a.querySelector('.dispatch-priority-badge');
+                        const bb = b.querySelector('.dispatch-priority-badge');
+                        const pa = (ba && ba.dataset.priority !== '') ? parseInt(ba.dataset.priority) : 9999;
+                        const pb = (bb && bb.dataset.priority !== '') ? parseInt(bb.dataset.priority) : 9999;
+                        return pa - pb;
+                    });
+
+                    entries.forEach(el => column.appendChild(el));
+                });
+
+                // Brief success feedback on the button
+                const orig = updateBtn.textContent;
+                updateBtn.textContent = '✓ Sorted';
+                updateBtn.classList.replace('bg-blue-600', 'bg-green-600');
+                setTimeout(() => {
+                    updateBtn.textContent = orig;
+                    updateBtn.classList.replace('bg-green-600', 'bg-blue-600');
+                }, 1500);
+            });
+
             function fetchDispatch(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
 
@@ -521,7 +698,9 @@
                 if (paymentStatusInput && paymentStatusInput.value) params.append('payment_status', paymentStatusInput.value);
                 if (paymentMethodInput && paymentMethodInput.value) params.append('payment_method', paymentMethodInput.value);
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
+                if (driverFilterInput && driverFilterInput.value) params.append('driver_id', driverFilterInput.value);
                 if (showAllInput?.checked) params.append('show_all', '1');
+                params.append('view_mode', viewMode);
                 if (perPage) params.append('per_page', perPage);
                 params.set('page', page);
 
@@ -576,6 +755,7 @@
             if (paymentStatusInput) paymentStatusInput.addEventListener('change', fetchDispatch);
             if (paymentMethodInput) paymentMethodInput.addEventListener('change', fetchDispatch);
             if (dateFilterInput) dateFilterInput.addEventListener('change', fetchDispatch);
+            if (driverFilterInput) driverFilterInput.addEventListener('change', fetchDispatch);
             if (showAllInput) showAllInput.addEventListener('change', fetchDispatch);
             storeLocationInputs.forEach(input => input.addEventListener('change', fetchDispatch));
 
@@ -987,8 +1167,9 @@
                     if (data?.success) {
                         closeDriverModal();
                         if (window.notyf) notyf.success('Driver updated.');
-                        // Re-fetch the dispatch table to reflect the new driver name
+                        // Re-fetch the dispatch table and driver workload cards
                         if (typeof window.fetchDispatch === 'function') window.fetchDispatch();
+                        if (typeof window.refreshDriverCards === 'function') window.refreshDriverCards();
                     } else {
                         if (window.notyf) notyf.error(data?.message || 'Failed to update driver.');
                     }
@@ -1002,5 +1183,100 @@
                 });
             });
         });
+    </script>
+
+    {{-- ===== Inline Priority Editor ===== --}}
+    <script>
+    (function () {
+        const priorityUrl = uid => '{{ rtrim(route("admin.order-management.dispatch.index"), "/") }}'.replace('/order-management/dispatch', '/order-management/dispatch/') + uid + '/priority';
+
+        // Replace a priority badge with a tiny input, save on blur/Enter
+        document.addEventListener('click', function (e) {
+            const badge = e.target.closest('.dispatch-priority-badge');
+            if (!badge || badge.querySelector('input')) return;
+
+            const uid      = badge.dataset.uid;
+            const type     = badge.dataset.type;
+            const current  = badge.dataset.priority;
+            const isBlue   = type === 'delivery';
+
+            const input = document.createElement('input');
+            input.type        = 'number';
+            input.min         = '1';
+            input.max         = '9999';
+            input.value       = current;
+            input.placeholder = '#';
+            input.className   = 'w-7 h-7 text-center text-xs border rounded-full p-0 focus:outline-none ' +
+                (isBlue ? 'border-blue-400 text-blue-700' : 'border-purple-400 text-purple-700');
+            input.style.cssText = 'width:28px;height:28px;border-radius:50%;padding:0;text-align:center;font-size:11px;';
+
+            badge.innerHTML = '';
+            badge.appendChild(input);
+            input.focus();
+            input.select();
+
+            function resortJobColumn(savedBadge) {
+                // Walk up: badge → job-entry div → column div
+                const jobEntry = savedBadge.parentElement;
+                if (!jobEntry) return;
+                const column = jobEntry.parentElement;
+                if (!column) return;
+
+                // Job entries are DIV children; the header is a P — skip it
+                const entries = Array.from(column.children).filter(el => el.tagName === 'DIV');
+                if (entries.length < 2) return;
+
+                entries.sort((a, b) => {
+                    const ba = a.querySelector('.dispatch-priority-badge');
+                    const bb = b.querySelector('.dispatch-priority-badge');
+                    const pa = ba && ba.dataset.priority ? parseInt(ba.dataset.priority) : 9999;
+                    const pb = bb && bb.dataset.priority ? parseInt(bb.dataset.priority) : 9999;
+                    return pa - pb;
+                });
+
+                // Re-append after the header (P element stays first)
+                entries.forEach(el => column.appendChild(el));
+            }
+
+            function save() {
+                const val = input.value.trim();
+                const priority = val === '' ? null : parseInt(val, 10);
+
+                const prioritySaveUrl = '{{ route("admin.order-management.dispatch.priority", ":uid") }}'.replace(':uid', uid);
+                fetch(prioritySaveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ type, priority }),
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const p = data.priority;
+                        badge.dataset.priority = p ?? '';
+                        badge.textContent      = p ?? '—';
+                        if (p) {
+                            badge.className = badge.className
+                                .replace('bg-gray-100 text-gray-400', isBlue ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700');
+                        }
+                        // Re-sort this column immediately so the list rearranges visually
+                        resortJobColumn(badge);
+                    } else {
+                        badge.textContent = current || '—';
+                    }
+                })
+                .catch(() => { badge.textContent = current || '—'; });
+            }
+
+            input.addEventListener('blur', save);
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Enter') { e.preventDefault(); save(); }
+                if (e.key === 'Escape') { badge.textContent = current || '—'; }
+            });
+        });
+    })();
     </script>
 @endpush

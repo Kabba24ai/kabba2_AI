@@ -64,6 +64,7 @@ class User extends Authenticatable
         'bonus_vacation_hours_end_date',
 
         'social_security',
+        'is_driver',
     ];
 
     protected $appends = ['full_name', 'role_short_names'];
@@ -85,6 +86,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_driver' => 'boolean',
         ];
     }
 

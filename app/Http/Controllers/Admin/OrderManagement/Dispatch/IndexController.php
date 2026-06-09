@@ -19,6 +19,58 @@ class IndexController extends Controller
      * Dispatch is a driver-focused view of the schedule — Truck deliveries/returns only.
      * In-Store transport mode, Rescheduled Pending, and Overdue filters are excluded.
      */
+    public function driverCards()
+    {
+        $driverCards = $this->buildDriverCards();
+        $html = view('admin.order_management.dispatch.partials._driver_cards', compact('driverCards'))->render();
+        return response()->json(['success' => true, 'html' => $html]);
+    }
+
+    private function buildDriverCards(): \Illuminate\Support\Collection
+    {
+        $drivers   = User::active()->where('is_driver', true)->orderBy('first_name')->get();
+        $driverIds = $drivers->pluck('id');
+
+        $deliveryJobs = OrderProduct::with(['order.customer', 'order.shippingAddress', 'deliveryStore', 'equipment', 'softAssignment.equipment'])
+            ->whereIn('delivery_by', $driverIds)
+            ->where('delivery_status', 'Pending')
+            ->where('delivery_transport_mode', 'Truck')
+            ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
+            ->orderBy('delivery_date')
+            ->get()
+            ->groupBy('delivery_by');
+
+        $returnJobs = OrderProduct::with(['order.customer', 'order.shippingAddress', 'pickupStore', 'equipment', 'softAssignment.equipment'])
+            ->whereIn('pickup_by', $driverIds)
+            ->where('pickup_status', 'Pending')
+            ->where('pickup_transport_mode', 'Truck')
+            ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
+            ->orderBy('pickup_date')
+            ->get()
+            ->groupBy('pickup_by');
+
+        return $drivers->map(function ($driver) use ($deliveryJobs, $returnJobs) {
+            $deliveries = $deliveryJobs->get($driver->id, collect());
+            $returns    = $returnJobs->get($driver->id, collect());
+
+            // Tag each job with its slot type so Blade knows how to render it in combined view
+            $deliveries->each(fn($j) => $j->setAttribute('_slot', 'delivery'));
+            $returns->each(fn($j)    => $j->setAttribute('_slot', 'return'));
+
+            // Combined: merge and sort by respective priority (nulls last), then by date
+            $combined = $deliveries->concat($returns)
+                ->sortBy(fn($job) => $job->getAttribute('_slot') === 'delivery'
+                    ? ($job->delivery_priority ?? 9999)
+                    : ($job->pickup_priority   ?? 9999))
+                ->values();
+
+            $driver->delivery_jobs = $deliveries;
+            $driver->return_jobs   = $returns;
+            $driver->combined_jobs = $combined;
+            return $driver;
+        })->values();
+    }
+
     public function __invoke(Request $request)
     {
         if ($request->ajax()) {
@@ -72,36 +124,34 @@ class IndexController extends Controller
             }
 
             // --- SCHEDULE TYPE + TRANSPORT MODE ---
-            // Dispatch is always Truck-only. In-Store is never included.
-            $scheduleTypes = [];
-            $orderByField  = 'delivery_date';
-            $orderBy       = 'asc';
-            $showAll       = $request->boolean('show_all'); // true → include completed rows
+            $scheduleTypes      = [];
+            $showAll            = $request->boolean('show_all');
 
             if ($request->filled('schedule_type')) {
                 $scheduleTypes = array_filter((array) $request->input('schedule_type', []), fn($v) => $v !== '' && $v !== 'false');
-                $isReturnOnly  = in_array('Return', $scheduleTypes) && !in_array('Delivery', $scheduleTypes);
-
-                // Default (show_all=false): hide completed rows — only show actionable items
-                if (!$showAll) {
-                    $query->where(function ($q) use ($scheduleTypes, $isReturnOnly) {
-                        if (in_array('Delivery', $scheduleTypes)) {
-                            $q->where('delivery_status', 'Pending');
-                        }
-                        if (in_array('Return', $scheduleTypes)) {
-                            if ($isReturnOnly) {
-                                $q->where('pickup_status', 'Pending')
-                                    ->where('delivery_status', 'Completed');
-                            } else {
-                                $q->orWhere('pickup_status', 'Pending');
-                            }
-                        }
-                    });
-                }
             }
 
-            if (in_array('Return', $scheduleTypes) && !in_array('Delivery', $scheduleTypes)) {
-                $orderByField = 'pickup_date';
+            $isDeliverySelected = in_array('Delivery', $scheduleTypes);
+            $isReturnSelected   = in_array('Return',   $scheduleTypes);
+            $isBothSelected     = $isDeliverySelected && $isReturnSelected;
+            $isReturnOnly       = $isReturnSelected  && !$isDeliverySelected;
+            $isDeliveryOnly     = $isDeliverySelected && !$isReturnSelected;
+
+            // Default (show_all=false): hide completed rows — only show actionable items
+            if (!empty($scheduleTypes) && !$showAll) {
+                $query->where(function ($q) use ($isDeliverySelected, $isReturnSelected, $isReturnOnly) {
+                    if ($isDeliverySelected) {
+                        $q->where('delivery_status', 'Pending');
+                    }
+                    if ($isReturnSelected) {
+                        if ($isReturnOnly) {
+                            $q->where('pickup_status', 'Pending')
+                              ->where('delivery_status', 'Completed');
+                        } else {
+                            $q->orWhere('pickup_status', 'Pending');
+                        }
+                    }
+                });
             }
 
             // Always restrict to Truck transport mode
@@ -110,7 +160,6 @@ class IndexController extends Controller
                     $q->where('delivery_transport_mode', 'Truck')
                       ->orWhere('pickup_transport_mode', 'Truck');
                 });
-                // When no schedule_type filter and show_all is off, exclude fully-completed rows
                 if (!$showAll) {
                     $query->where(function ($q) {
                         $q->where('delivery_status', '!=', 'Completed')
@@ -118,11 +167,11 @@ class IndexController extends Controller
                     });
                 }
             } else {
-                $query->where(function ($q) use ($scheduleTypes) {
-                    if (in_array('Delivery', $scheduleTypes)) {
+                $query->where(function ($q) use ($isDeliverySelected, $isReturnSelected) {
+                    if ($isDeliverySelected) {
                         $q->where('delivery_transport_mode', 'Truck');
                     }
-                    if (in_array('Return', $scheduleTypes)) {
+                    if ($isReturnSelected) {
                         $q->orWhere('pickup_transport_mode', 'Truck');
                     }
                 });
@@ -134,11 +183,11 @@ class IndexController extends Controller
 
                 if (!empty($storeLocations)) {
                     if (!empty($scheduleTypes)) {
-                        $query->where(function ($q) use ($scheduleTypes, $storeLocations) {
-                            if (in_array('Delivery', $scheduleTypes)) {
+                        $query->where(function ($q) use ($isDeliverySelected, $isReturnSelected, $storeLocations) {
+                            if ($isDeliverySelected) {
                                 $q->orWhereIn('delivery_store_id', $storeLocations);
                             }
-                            if (in_array('Return', $scheduleTypes)) {
+                            if ($isReturnSelected) {
                                 $q->orWhereIn('pickup_store_id', $storeLocations);
                             }
                         });
@@ -151,23 +200,102 @@ class IndexController extends Controller
                 }
             }
 
-            // Date filter
+            // Driver filter — scope by slot(s) matching the schedule type selection
+            if ($request->filled('driver_id') && $request->driver_id !== '') {
+                $driverId = (int) $request->driver_id;
+                $query->where(function ($q) use ($driverId, $isDeliveryOnly, $isReturnOnly) {
+                    if ($isDeliveryOnly) {
+                        $q->where('delivery_by', $driverId);
+                    } elseif ($isReturnOnly) {
+                        $q->where('pickup_by', $driverId);
+                    } else {
+                        $q->where('delivery_by', $driverId)->orWhere('pickup_by', $driverId);
+                    }
+                });
+            }
+
+            // Date filter — reference the correct date column(s) per schedule selection
             if ($request->filled('date_filter')) {
-                $dateFilter = $request->date_filter;
-                if ($dateFilter === 'today') {
-                    $query->whereDate($orderByField, '<=', today());
-                    $orderBy = 'desc';
-                } elseif ($dateFilter === 'week') {
-                    $query->whereBetween($orderByField, [now()->startOfWeek(), now()->endOfWeek()]);
-                } elseif ($dateFilter === 'month') {
-                    $query->whereMonth($orderByField, now()->month);
+                $dateFilter  = $request->date_filter;
+                $useBothDates = $isBothSelected || empty($scheduleTypes);
+                $dateField    = $isReturnOnly ? 'pickup_date' : 'delivery_date';
+
+                if ($useBothDates) {
+                    if ($dateFilter === 'today') {
+                        $query->where(function ($q) {
+                            $q->whereDate('delivery_date', '<=', today())
+                              ->orWhereDate('pickup_date', '<=', today());
+                        });
+                    } elseif ($dateFilter === 'week') {
+                        $query->where(function ($q) {
+                            $q->whereBetween('delivery_date', [now()->startOfWeek(), now()->endOfWeek()])
+                              ->orWhereBetween('pickup_date', [now()->startOfWeek(), now()->endOfWeek()]);
+                        });
+                    } elseif ($dateFilter === 'month') {
+                        $query->where(function ($q) {
+                            $q->whereMonth('delivery_date', now()->month)
+                              ->orWhereMonth('pickup_date', now()->month);
+                        });
+                    }
+                } else {
+                    if ($dateFilter === 'today') {
+                        $query->whereDate($dateField, '<=', today());
+                    } elseif ($dateFilter === 'week') {
+                        $query->whereBetween($dateField, [now()->startOfWeek(), now()->endOfWeek()]);
+                    } elseif ($dateFilter === 'month') {
+                        $query->whereMonth($dateField, now()->month);
+                    }
                 }
             }
 
-            $perPage    = $request->input('per_page', 30);
+            $viewMode = $request->input('view_mode', 'combined');
+            $perPage  = $request->input('per_page', 30);
+
+            // ---- SPLIT VIEW: two independent sorted lists side by side ----
+            if ($viewMode === 'split') {
+                $deliveries = (clone $query)
+                    ->where('delivery_transport_mode', 'Truck')
+                    ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
+                    ->orderBy('delivery_date', 'asc')
+                    ->get();
+
+                $returns = (clone $query)
+                    ->where('pickup_transport_mode', 'Truck')
+                    ->where('delivery_status', 'Completed')
+                    ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
+                    ->orderBy('pickup_date', 'asc')
+                    ->get();
+
+                $html = view('admin.order_management.dispatch.partials._split_table',
+                    compact('deliveries', 'returns'))->render();
+
+                return response()->json([
+                    'success' => true,
+                    'html'    => $html,
+                    'total'   => $deliveries->count() + $returns->count(),
+                ]);
+            }
+
+            // ---- COMBINED VIEW: single sorted list with priority column ----
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
 
-            $orderProducts = $query->orderBy($orderByField, $orderBy)->paginate($perPageVal)->withQueryString();
+            // Primary sort: priority (nulls last), secondary: date oldest first
+            if ($isBothSelected || empty($scheduleTypes)) {
+                $orderProducts = $query
+                    ->orderByRaw("LEAST(COALESCE(delivery_priority, 9999), COALESCE(pickup_priority, 9999)) ASC")
+                    ->orderByRaw("LEAST(COALESCE(delivery_date, '9999-12-31'), COALESCE(pickup_date, '9999-12-31')) ASC")
+                    ->paginate($perPageVal)->withQueryString();
+            } elseif ($isReturnOnly) {
+                $orderProducts = $query
+                    ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
+                    ->orderBy('pickup_date', 'asc')
+                    ->paginate($perPageVal)->withQueryString();
+            } else {
+                $orderProducts = $query
+                    ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
+                    ->orderBy('delivery_date', 'asc')
+                    ->paginate($perPageVal)->withQueryString();
+            }
 
             $html = view('admin.order_management.dispatch.partials._table', [
                 'orderProducts' => $orderProducts,
@@ -183,28 +311,33 @@ class IndexController extends Controller
         $categories = ProductCategory::getHierarchy();
         $stores     = Store::orderBy('store_name')->get();
 
-        $allUsers = User::active()->orderBy('first_name', 'asc')->get();
+        $allUsers    = User::active()->orderBy('first_name', 'asc')->get();
+        $driverUsers = $allUsers->where('is_driver', true);
 
-        // Equipment assign modal: uses unique_id (different endpoint)
+        // Equipment assign modal: uses unique_id (different endpoint) — all active employees
         $employees = $allUsers
             ->map(fn($u) => ['unique_id' => $u->unique_id, 'full_name' => $u->full_name])
             ->pluck('full_name', 'unique_id')
             ->prepend('Select Employee', '');
 
-        // Driver assign modal: uses numeric id (update-product-schedule endpoint validates delivery_by as integer)
-        $driverEmployees = $allUsers->pluck('full_name', 'id');
+        // Driver assign modal: uses numeric id — designated drivers only
+        $driverEmployees = $driverUsers->pluck('full_name', 'id');
 
-        // Driver phone map (id → phone) — shown in modal so dispatcher can contact the driver
-        $driverPhones = $allUsers->mapWithKeys(fn($u) => [
+        // Driver phone map (id → phone) — designated drivers only
+        $driverPhones = $driverUsers->mapWithKeys(fn($u) => [
             $u->id => $u->mobile_phone ?: $u->phone_number ?: '',
         ]);
+
+        // --- Driver workload cards (top of page) ---
+        $driverCards = $this->buildDriverCards();
 
         return view('admin.order_management.dispatch.index', [
             'categories'      => $categories,
             'stores'          => $stores,
-            'employees'       => $employees,        // for equipment assign modal (unique_id keys)
-            'driverEmployees' => $driverEmployees,  // for driver assign modal (numeric id keys)
-            'driverPhones'    => $driverPhones,     // for driver modal phone display (id keys)
+            'employees'       => $employees,
+            'driverEmployees' => $driverEmployees,
+            'driverPhones'    => $driverPhones,
+            'driverCards'     => $driverCards,
         ]);
     }
 }

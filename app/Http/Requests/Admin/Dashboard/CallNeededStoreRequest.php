@@ -22,11 +22,11 @@ class CallNeededStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_id' => [
-                'required',
-                'exists:customers,id',
-            ],
-'assigned_to' => ['required', 'exists:users,id'],
+           'customer_id' => [
+            'nullable',
+            'exists:customers,id',
+        ],
+            'assigned_to' => ['required', 'exists:users,id'],
             'reason' => [
                 'required',
                 'string',
@@ -41,6 +41,11 @@ class CallNeededStoreRequest extends FormRequest
                 'nullable',
                 'boolean',
             ],
+            'contact_name' => 'required_without:customer_id|nullable|string|max:255',
+            'contact_phone' => 'required_without:customer_id|nullable',
+            'contact_email' => 'nullable|email',
+            'customer_id.exists' =>
+            'Selected customer is invalid.',
         ];
     }
 
@@ -49,7 +54,7 @@ class CallNeededStoreRequest extends FormRequest
         return [
             'customer_id.required' => 'Please select a customer.',
             'customer_id.exists'   => 'Selected customer is invalid.',
-
+            
             'reason.required'      => 'Please select a reason.',
         ];
     }

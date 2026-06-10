@@ -593,11 +593,19 @@
                 .map(note => {
                     const isUpdated = note.updated_at && note.updated_at !== note.created_at;
 
+                    const noteText = note.text
+                    .replace(/\n/g, '<br>')
+                    .replace(/Reason:/g, '<strong>Reason:</strong>')
+                    .replace(/Priority:/g, '<strong>Priority:</strong>')
+                    .replace(/Notes:/g, '<strong>Notes:</strong>');
+
                     return `
                         <li class="list-disc border-b border-gray-200 pb-3" data-id="${note.id}">
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 pr-3">
-                                    <p class="text-sm text-gray-800 leading-relaxed font-semibold">${note.text}</p>
+                                    <p class="text-sm text-gray-800 leading-relaxed">
+                                        ${noteText}
+                                    </p>
                                     <div class="mt-1 text-xs text-gray-500 space-y-1">
 
                                         ${!isUpdated

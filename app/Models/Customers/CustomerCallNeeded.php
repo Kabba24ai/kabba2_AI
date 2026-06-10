@@ -16,8 +16,11 @@ class CustomerCallNeeded extends Model
         'notes',
         'status',
         'created_by',
-         'is_urgent',
-         'auth_by',
+        'is_urgent',
+        'auth_by',
+        'contact_name',
+        'contact_email',
+        'contact_phone'
     ];
 
     public function customer()

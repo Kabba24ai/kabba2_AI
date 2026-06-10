@@ -30,15 +30,25 @@ class CallNeededListController extends Controller
                     'is_urgent' => (bool) $call->is_urgent,
                     'created_at' => CustomHelper::formatDateTime($call->created_at),
 
-                   'customer' => [
-                            'id' => $call->customer->id,
-                            'full_name' => $call->customer->full_name,
-                            'company_name' => $call->customer->company_name,
-                            'phone' => $call->customer->phone
-                    ? CustomHelper::formatPhone($call->customer->phone)
-                    : null,
-                            'email' => $call->customer->email,
-                        ],
+                  'customer' => $call->customer
+                    ? [
+                        'id' => $call->customer->id,
+                        'full_name' => $call->customer->full_name,
+                        'company_name' => $call->customer->company_name,
+                        'phone' => $call->customer->phone
+                            ? CustomHelper::formatPhone($call->customer->phone)
+                            : null,
+                        'email' => $call->customer->email,
+                    ]
+                    : [
+                        'id' => null,
+                        'full_name' => $call->contact_name,
+                        'company_name' => null,
+                        'phone' => $call->contact_phone
+                            ? CustomHelper::formatPhone($call->contact_phone)
+                            : null,
+                        'email' => $call->contact_email,
+                    ],
 
                    'creator' => [
     'id' => $call->creator?->id,

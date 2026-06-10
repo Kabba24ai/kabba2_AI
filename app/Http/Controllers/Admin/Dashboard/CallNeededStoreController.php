@@ -13,40 +13,59 @@ class CallNeededStoreController extends Controller
     {
         try {
 
+            $customerId = $request->customer_id;
+
             $callNeeded = CustomerCallNeeded::create([
-                'customer_id' => $request->customer_id,
+                'customer_id'   => $customerId ?: null,
+
+                'contact_name'  => $customerId
+                    ? null
+                    : $request->contact_name,
+
+                'contact_email' => $customerId
+                    ? null
+                    : $request->contact_email,
+
+                'contact_phone' => $customerId
+                    ? null
+                    : $request->contact_phone,
+
                 'reason'      => $request->reason,
                 'notes'       => $request->notes,
                 'is_urgent'   => $request->boolean('is_urgent'),
                 'status'      => 'active',
                 'created_by'  => $request->assigned_to,
-                'auth_by' => auth()->id(),
+                'auth_by'     => auth()->id(),
             ]);
 
-
-            $customer = Customer::find($request->customer_id);
-
-            $description = "Call reminder created.";
+            $description = $customerId
+                ? 'Call reminder created.'
+                : 'Non-customer call reminder created.';
 
             if ($callNeeded->assignee) {
                 $description .= " Assigned to {$callNeeded->assignee->full_name}.";
             }
 
-            $description .= " Reason: " . ucwords(str_replace('_', ' ', $request->reason)) . ".";
+            $description .= ' Reason: ' .
+                ucwords(str_replace('_', ' ', $request->reason)) . '.';
 
             if ($request->boolean('is_urgent')) {
-                $description .= " Priority: Urgent.";
+                $description .= ' Priority: Urgent.';
             }
 
             if ($request->filled('notes')) {
                 $description .= " Notes: {$request->notes}";
             }
+            
+            if ($callNeeded->customer) {
 
-            $callNeeded->customer->notes()->create([
-                'customer_call_needed_id' => $callNeeded->id,
-                'description' => $description,
-                'created_by' => $request->assigned_to,
-            ]);
+                $callNeeded->customer->notes()->create([
+                    'customer_call_needed_id' => $callNeeded->id,
+                    'description'            => $description,
+                    'created_by'             => $request->assigned_to,
+                ]);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Call reminder created successfully.',

@@ -3,12 +3,11 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
-use App\Models\Iam\Personnel\User;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-   public function up(): void
+    public function up(): void
     {
         // Step 1: Add column nullable
         Schema::table('users', function (Blueprint $table) {
@@ -16,11 +15,20 @@ return new class extends Migration
             $table->dropColumn('clock_code');
         });
 
-        // Step 2: Fill existing rows with unique 6-digit codes
-        $users = User::all();
-        foreach ($users as $user) {
-            $user->employee_code = self::generateSixDigitCode();
-            $user->save();
+        // Step 2: Fill existing rows only if users exist
+        if (DB::table('users')->exists()) {
+            DB::table('users')
+                ->whereNull('employee_code')
+                ->orderBy('id')
+                ->chunk(100, function ($users) {
+                    foreach ($users as $user) {
+                        DB::table('users')
+                            ->where('id', $user->id)
+                            ->update([
+                                'employee_code' => self::generateSixDigitCode(),
+                            ]);
+                    }
+                });
         }
 
         // Step 3: Make it unique & NOT NULL
@@ -29,17 +37,12 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Generate a unique 6-digit numeric employee code (e.g., 365985)
-     */
-    private static function generateSixDigitCode()
+    private static function generateSixDigitCode(): string
     {
         do {
-            // Always produce 6 digits (padded with leading zeros if needed)
             $code = str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
-        } while (User::where('employee_code', $code)->exists());
+        } while (DB::table('users')->where('employee_code', $code)->exists());
 
         return $code;
     }
-
 };

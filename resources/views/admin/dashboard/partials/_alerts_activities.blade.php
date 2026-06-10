@@ -172,7 +172,7 @@
                                 type="text"
                                 id="contact_phone"
                                 name="contact_phone"
-                                placeholder="Enter Phone"
+                                placeholder="(xxx) xxx-xxxx"
                                 class="masked-phone w-full rounded-md border border-gray-300 px-3 py-3 text-sm">
                         </div>
 

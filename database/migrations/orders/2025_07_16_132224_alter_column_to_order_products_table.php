@@ -5,8 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 // Models
-use App\Helpers\ModelHelper;
-use App\Models\Orders\OrderProduct;
 
 return new class extends Migration {
     /**
@@ -42,11 +40,24 @@ return new class extends Migration {
             });
         });
 
-        // Step 2: Fill unique_id for all existing rows, using your ModelHelper method!
-        OrderProduct::whereNull('unique_id')->orWhere('unique_id', '')->get()->each(function($orderProduct) {
-            $orderProduct->unique_id = ModelHelper::generateUniqueID($orderProduct, 'ORD-SCH');
-            $orderProduct->save();
-        });
+        // Step 2: Fill unique_id only if old records exist
+        if (DB::table('order_products')->exists()) {
+            DB::table('order_products')
+                ->where(function ($query) {
+                    $query->whereNull('unique_id')
+                        ->orWhere('unique_id', '');
+                })
+                ->orderBy('id')
+                ->chunk(100, function ($rows) {
+                    foreach ($rows as $row) {
+                        DB::table('order_products')
+                            ->where('id', $row->id)
+                            ->update([
+                                'unique_id' => 'ORD-SCH-' . $row->id,
+                            ]);
+                    }
+                });
+        }
 
         // Step 3: Make unique_id NOT NULL and unique
         Schema::table('order_products', function (Blueprint $table) {

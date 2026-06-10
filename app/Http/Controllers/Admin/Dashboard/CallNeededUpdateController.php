@@ -12,13 +12,22 @@ class CallNeededUpdateController extends Controller
         CallNeededStoreRequest $request,
         CustomerCallNeeded $id
     ) {
-         $id->update([
-        'customer_id' => $request->customer_id,
-        'created_by'  => $request->assigned_to, // Assignee
-        'reason'      => $request->reason,
-          'is_urgent'   => $request->boolean('is_urgent'),
-        'notes'       => $request->notes,
-    ]);
+       $id->update([
+            'customer_id' => $request->customer_id ?: null,
+            'contact_name' => $request->customer_id
+                ? null
+                : $request->contact_name,
+            'contact_email' => $request->customer_id
+                ? null
+                : $request->contact_email,
+            'contact_phone' => $request->customer_id
+                ? null
+                : $request->contact_phone,
+            'created_by' => $request->assigned_to,
+            'reason' => $request->reason,
+            'is_urgent' => $request->boolean('is_urgent'),
+            'notes' => $request->notes,
+        ]);
 
         return response()->json([
             'success' => true,

@@ -441,6 +441,7 @@
                                                 <tr>
                                                     <th class="w-32 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Key Comparison</th>
                                                     <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Label</th>
+                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Logic</th>
                                                     <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Value</th>
                                                     <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Unit</th>
                                                     <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Source</th>
@@ -468,11 +469,13 @@
                                                             @if ($spec->is_key_comparison)
                                                                 <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">key</span>
                                                             @endif
+                                                        </td>
+                                                        <td class="px-5 py-3 row-span-2">
                                                             <div class="mt-2 grid grid-cols-1 gap-1 text-[11px] text-gray-500">
-                                                                <label class="inline-flex items-center gap-1.5">
-                                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
-                                                                    <span>Upgrade exceeds value</span>
-                                                                </label>
+                                                                    <label class="inline-flex items-center gap-1.5">
+                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
+                                                                        <span>Upgrade exceeds value</span>
+                                                                    </label>
                                                                 <label class="inline-flex items-center gap-1.5">
                                                                     <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['caution_if_change_value'] ? 'checked' : '' }}>
                                                                     <span>Caution if change value</span>

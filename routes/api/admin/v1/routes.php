@@ -45,5 +45,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         require base_path('routes/api/admin/v1/configurations/routes.php');
 
         require base_path('routes/api/admin/v1/user_notification/routes.php');
+
+        require base_path('routes/api/admin/v1/dispatch/routes.php');
     });
 });

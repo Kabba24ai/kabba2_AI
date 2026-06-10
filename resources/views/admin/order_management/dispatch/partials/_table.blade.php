@@ -6,9 +6,8 @@
                 <th class="py-4 px-6 text-center">Order</th>
                 <th class="py-4 px-6 text-left">Customer</th>
                 <th class="py-4 px-6 text-left">Delivery Address</th>
-                <th class="py-4 px-6 text-left">Phone</th>
+                <th class="py-4 px-3 text-left">Phone</th>
                 <th class="py-4 px-6 text-center">Equipment</th>
-                <th class="py-4 px-6 text-center">Equipment Id</th>
                 <th class="py-4 px-6 text-center">Location</th>
                 <th class="py-4 px-6 text-center">Delivery Date</th>
                 <th class="py-4 px-6 text-center text-blue-700">Driver</th>
@@ -78,35 +77,34 @@
                         {{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}
                     </td>
 
-                    <td class="py-4 px-6 text-left">
+                    <td class="py-4 px-3 text-left tabular-nums">
                         {{ $orderProduct->order?->shippingAddress?->phone ?? '-' }}
                     </td>
 
                     <td class="py-4 px-6 text-center">
                         @php $preferredCategoryId = $orderProduct->product?->categories?->first()?->id; @endphp
-                        <button type="button" class="text-blue-600 underline equipment-assign-btn"
-                            data-order-product-unique-id="{{ $orderProduct->unique_id }}"
-                            data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
-                            data-order-id="{{ $orderProduct?->order?->order_number }}"
-                            data-customer-name="{{ $orderProduct?->order?->customer_name }}"
-                            data-category-id="{{ $preferredCategoryId ?? '' }}"
-                            data-product-name="{{ $orderProduct->product_name }}">
-                            @if ($orderProduct?->equipment?->current_status?->isRented())
-                                {{ isset($orderProduct->equipment_details['equipment_name']) ? $orderProduct->equipment_details['equipment_name'] : 'Assign' }}
-                            @else
-                                {{ $orderProduct->softAssignment?->equipment?->equipment_name ?: 'Assign' }}
-                            @endif
-                        </button>
-                    </td>
-
-                    <td class="py-4 px-6 text-center">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
-                            @if ($orderProduct?->equipment?->current_status?->isRented())
-                                {{ isset($orderProduct->equipment_details['equipment_id']) ? $orderProduct->equipment_details['equipment_id'] : '-' }}
-                            @else
-                                {{ $orderProduct->softAssignment?->equipment?->equipment_id ?? '-' }}
-                            @endif
-                        </span>
+                        <div class="flex flex-col items-center gap-1">
+                            <button type="button" class="text-blue-600 underline equipment-assign-btn"
+                                data-order-product-unique-id="{{ $orderProduct->unique_id }}"
+                                data-order-unique-id="{{ $orderProduct?->order?->unique_id }}"
+                                data-order-id="{{ $orderProduct?->order?->order_number }}"
+                                data-customer-name="{{ $orderProduct?->order?->customer_name }}"
+                                data-category-id="{{ $preferredCategoryId ?? '' }}"
+                                data-product-name="{{ $orderProduct->product_name }}">
+                                @if ($orderProduct?->equipment?->current_status?->isRented())
+                                    {{ isset($orderProduct->equipment_details['equipment_name']) ? $orderProduct->equipment_details['equipment_name'] : 'Assign' }}
+                                @else
+                                    {{ $orderProduct->softAssignment?->equipment?->equipment_name ?: 'Assign' }}
+                                @endif
+                            </button>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-700 border">
+                                @if ($orderProduct?->equipment?->current_status?->isRented())
+                                    {{ isset($orderProduct->equipment_details['equipment_id']) ? $orderProduct->equipment_details['equipment_id'] : '-' }}
+                                @else
+                                    {{ $orderProduct->softAssignment?->equipment?->equipment_id ?? '-' }}
+                                @endif
+                            </span>
+                        </div>
                     </td>
 
                     <td class="py-4 px-6 text-center">
@@ -137,9 +135,6 @@
                             <span class="text-xs text-gray-500 mt-1">
                                 {{ $orderProduct->delivery_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->delivery_time) : ' ' }}
                             </span>
-                            @if ($orderProduct->delivery_status === 'Completed')
-                                <span class="text-xs text-green-600 font-semibold mt-0.5">✓ Done</span>
-                            @endif
                         </div>
                     </td>
 
@@ -194,9 +189,6 @@
                             <span class="text-xs text-gray-500 mt-1">
                                 {{ $orderProduct->pickup_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->pickup_time) : ' ' }}
                             </span>
-                            @if ($orderProduct->pickup_status === 'Completed')
-                                <span class="text-xs text-green-600 font-semibold mt-0.5">✓ Done</span>
-                            @endif
                         </div>
                     </td>
 
@@ -238,12 +230,6 @@
 
                     <td class="py-4 px-6">
                         <div class="flex gap-3 items-center justify-center">
-                            {{-- Dispatch detail / driver checklist --}}
-                            <a href="{{ route('admin.order-management.dispatch.show', $orderProduct->unique_id) }}"
-                                class="text-blue-600 hover:text-blue-800" title="Dispatch Checklist">
-                                <x-heroicon-o-clipboard-document-check class="w-4 h-4" />
-                            </a>
-                            {{-- Full order view --}}
                             <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order?->unique_id ?? 0) }}"
                                 class="text-sky-600 hover:text-sky-800" title="View Order">
                                 @if ($orderProduct?->order?->notes->isNotEmpty())
@@ -257,7 +243,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
+                    <td colspan="12" class="text-center text-sm text-gray-500 px-4 py-6">
                         @if ($orderProducts)
                             No dispatch records found.
                         @else

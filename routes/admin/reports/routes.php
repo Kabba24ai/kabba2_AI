@@ -20,4 +20,7 @@ Route::prefix('reports')
     // sales_reports
     require base_path('routes/admin/reports/sales_tax/routes.php');
 
+    // calls log
+    require base_path('routes/admin/reports/calls_log/routes.php');
+
 });

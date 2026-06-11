@@ -357,6 +357,14 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('admin.reports.calls-log.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.reports.calls-log.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-phone class="w-6 h-6" />
+                                        Calls Log
+                                    </a>
+                                </li>
+                                <li>
                                     @php
                                         $salesReportUrl = config('app.domains.sales_report');
                                         // Use hash router for SSO (works without server config)

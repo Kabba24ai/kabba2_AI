@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerCallNeeded;
 use App\Models\Iam\Personnel\User;
+use App\Models\Orders\OrderProduct;
 use Illuminate\Http\Request;
 
 class IndexController extends Controller
@@ -60,6 +61,21 @@ class IndexController extends Controller
 
         $users = User::orderBy('first_name')->get();
 
-        return view('admin.reports.calls_log.index', compact('calls', 'customers', 'users'));
+        $fuelRecords = OrderProduct::with(['order.customer', 'equipment', 'fuelChargeLogs'])
+            ->whereNotNull('fuel_total_charge')
+            ->where('fuel_total_charge', '>', 0)
+            ->whereHas('order')
+            ->latest('id')
+            ->paginate(20);
+
+        $damageRecords = OrderProduct::with(['order.customer', 'equipment', 'damageChargeLogs'])
+            ->where(function ($q) {
+                $q->where('damage_charge', '>', 0)->orWhereNotNull('damage_status');
+            })
+            ->whereHas('order')
+            ->latest('id')
+            ->paginate(20);
+
+        return view('admin.reports.calls_log.index', compact('calls', 'customers', 'users', 'fuelRecords', 'damageRecords'));
     }
 }

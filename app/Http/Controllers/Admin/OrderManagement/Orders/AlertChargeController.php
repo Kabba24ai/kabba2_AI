@@ -19,6 +19,7 @@ class AlertChargeController extends Controller
             'amount'             => ['required', 'numeric', 'min:0.01'],
             'notes'              => ['nullable', 'string', 'max:500'],
             'responsible_person' => ['required', 'exists:users,id'],
+            'sales_tax_type'     => ['nullable', 'in:add,free,reverse'],
         ]);
 
         $order = Order::where('unique_id', $uniqueId)->with('customer')->firstOrFail();
@@ -36,8 +37,10 @@ class AlertChargeController extends Controller
             $record->responsible_person_name = $user->full_name;
             $record->notes                   = $request->notes;
             $record->date                    = now();
+            $record->sales_tax_type          = $request->type === 'fuel'
+                ? ($request->sales_tax_type ?? 'free')
+                : 'free';
             $record->sales_tax               = 0;
-            $record->sales_tax_type          = 'free';
             $record->type                    = 'charge';
             $record->fuel_alert_status       = $request->type === 'fuel'   ? 'pending' : null;
             $record->damage_alert_status     = $request->type === 'damage' ? 'pending' : null;

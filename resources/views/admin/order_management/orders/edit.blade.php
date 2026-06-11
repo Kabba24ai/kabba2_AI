@@ -259,45 +259,99 @@
     </div>{{-- /Order Header Section --}}
 
     {{-- Fuel Charge Modal --}}
-    <div id="orderFuelChargeModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-200">
-            <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-100">
-                <div class="flex items-center justify-center w-9 h-9 rounded-full bg-orange-100">
-                    <svg fill="currentColor" class="w-5 h-5 text-orange-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128zM160 144L160 240C160 248.8 167.2 256 176 256L304 256C312.8 256 320 248.8 320 240L320 144C320 135.2 312.8 128 304 128L176 128C167.2 128 160 135.2 160 144z"/></svg>
+    <div id="orderFuelChargeModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-full">
+            {{-- Header --}}
+            <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <div class="text-red-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-medium text-gray-900">New Charge</h2>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">Add Fuel Charge Alert</h3>
+                <button type="button" onclick="document.getElementById('orderFuelChargeModal').classList.replace('flex','hidden')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
             </div>
-            <div class="px-6 py-4 space-y-4">
+
+            <div class="px-6 overflow-y-auto space-y-5 py-5">
+                {{-- Charge Amount --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">$</span>
-                        <input id="orderFuelAmount" type="number" step="0.01" min="0.01"
-                            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            placeholder="0.00">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-500 text-sm pointer-events-none">$</span>
+                        <input id="orderFuelAmount" type="number" step="0.01" min="0.01" placeholder="0.00"
+                            class="w-full pl-7 pr-3 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
+
+                {{-- Sales Tax Treatment --}}
+                @php $taxPercentage = \App\Helpers\CustomHelper::displayPercentage($sales_tax); @endphp
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
+                    <div class="space-y-2 text-sm text-gray-700">
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderFuelSalesTax" value="add" checked class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Add Sales Tax</p>
+                                <p class="text-gray-500">Add {{ $taxPercentage }}% sales tax to the entered amount</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderFuelSalesTax" value="free" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Tax Free</p>
+                                <p class="text-gray-500">No sales tax applied to this charge</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderFuelSalesTax" value="reverse" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Reverse Sales Tax</p>
+                                <p class="text-gray-500">Split entered amount proportionally between base amount and tax</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Charge Reason (fixed, read-only) --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason <span class="text-red-500">*</span></label>
+                    <p class="text-base font-semibold text-red-500">Fuel Charge</p>
+                </div>
+
+                {{-- Person Responsible --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
-                    <select id="orderFuelPerson" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        <option value="">-- Select person --</option>
+                    <select id="orderFuelPerson" class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select person responsible</option>
                         @foreach($employees as $emp)
                             <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
                         @endforeach
                     </select>
                 </div>
+
+                {{-- Notes --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                    <textarea id="orderFuelNotes" rows="2"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Additional notes..."></textarea>
+                    <textarea id="orderFuelNotes" rows="3"
+                        class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter any additional notes about this charge..."></textarea>
                 </div>
-            </div>
-            <div class="flex justify-end gap-2 px-6 pb-5 pt-4 border-t border-gray-100">
-                <button type="button" onclick="document.getElementById('orderFuelChargeModal').classList.replace('flex','hidden')"
-                    class="px-5 py-2.5 text-sm rounded-lg font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="button" id="orderFuelSubmitBtn"
-                    class="px-5 py-2.5 text-sm rounded-lg font-medium bg-orange-500 text-white hover:bg-orange-600">Add Alert</button>
+
+                {{-- Buttons --}}
+                <div class="flex justify-end gap-2 pb-2">
+                    <button type="button" onclick="document.getElementById('orderFuelChargeModal').classList.replace('flex','hidden')"
+                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Cancel</button>
+                    <button type="button" id="orderFuelSubmitBtn"
+                        class="px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2">
+                        <span id="orderFuelBtnText">Add Charge</span>
+                        <svg id="orderFuelSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -5245,15 +5299,25 @@
                 return;
             }
 
-            const btn = document.getElementById(btnId);
-            const orig = btn.textContent;
+            // Read sales_tax_type for fuel charges
+            let salesTaxType = 'free';
+            if (type === 'fuel') {
+                const taxRadio = document.querySelector('input[name="orderFuelSalesTax"]:checked');
+                salesTaxType = taxRadio ? taxRadio.value : 'free';
+            }
+
+            const btn     = document.getElementById(btnId);
+            const btnText = btn.querySelector('span') ?? btn;
+            const spinner = btn.querySelector('svg');
             btn.disabled = true;
-            btn.textContent = 'Saving...';
+            if (btnText instanceof HTMLSpanElement) btnText.textContent = 'Saving...';
+            else btn.textContent = 'Saving...';
+            if (spinner) spinner.classList.remove('hidden');
 
             fetch(alertChargeUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                body: JSON.stringify({ type, amount, responsible_person: person, notes }),
+                body: JSON.stringify({ type, amount, responsible_person: person, notes, sales_tax_type: salesTaxType }),
             })
             .then(r => r.json())
             .then(data => {
@@ -5263,12 +5327,21 @@
                     document.getElementById(amountId).value = '';
                     document.getElementById(personId).value = '';
                     document.getElementById(notesId).value = '';
+                    if (type === 'fuel') {
+                        const taxRadio = document.querySelector('input[name="orderFuelSalesTax"][value="add"]');
+                        if (taxRadio) taxRadio.checked = true;
+                    }
                 } else {
                     notyf.error(data.message || 'Something went wrong.');
                 }
             })
-            .catch(() => notyf.error('Request failed. Please try again.'))
-            .finally(() => { btn.disabled = false; btn.textContent = orig; });
+            .catch(err => { console.error('Alert charge error:', err); notyf.error('Request failed. Please try again.'); })
+            .finally(() => {
+                btn.disabled = false;
+                if (btnText instanceof HTMLSpanElement) btnText.textContent = type === 'fuel' ? 'Add Charge' : 'Add Alert';
+                else btn.textContent = type === 'fuel' ? 'Add Charge' : 'Add Alert';
+                if (spinner) spinner.classList.add('hidden');
+            });
         }
 
         document.getElementById('orderFuelChargeBtn').addEventListener('click', () => openModal('orderFuelChargeModal'));

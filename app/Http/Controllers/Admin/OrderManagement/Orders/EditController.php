@@ -35,6 +35,7 @@ class EditController extends Controller
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
         $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');
+        $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
         // Get categories with equipments for assignment modal
         $categories = ProductCategory::with(['equipments' => function ($query) {
@@ -46,6 +47,6 @@ class EditController extends Controller
 
         // dd($order->licenseMedia);
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings'));
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax'));
     }
 }

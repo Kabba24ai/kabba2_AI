@@ -10,10 +10,11 @@ class CallNeededListController extends Controller
 {
     public function __invoke()
     {
-        $calls = CustomerCallNeeded::with([
+       $calls = CustomerCallNeeded::with([
             'customer',
             'creator',
             'assignee',
+            'activities.user',
         ])
         ->where('status', 'active')
         ->latest()
@@ -59,6 +60,27 @@ class CallNeededListController extends Controller
     'id' => $call->assignee?->id,
     'full_name' => $call->assignee?->full_name ?? $call->assignee?->name,
 ],
+
+
+'activities' => $call->activities->map(function ($activity) {
+
+    return [
+        'id' => $activity->id,
+        'status' => $activity->status,
+        'notes' => $activity->notes,
+        'follow_up_date' => $activity->follow_up_date,
+        'created_at' => CustomHelper::formatDateTime(
+            $activity->created_at
+        ),
+
+        'user' => [
+            'id' => $activity->user?->id,
+            'full_name' => $activity->user?->full_name
+                ?? $activity->user?->name,
+        ],
+    ];
+}),
+
                 ];
             }),
         ]);

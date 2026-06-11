@@ -42,4 +42,24 @@ public function notes()
 {
     return $this->hasMany(CustomerNote::class, 'customer_call_needed_id');
 }
+
+
+
+public function activities()
+{
+    return $this->hasMany(
+        CustomerCallNeededActivity::class,
+        'customer_call_needed_id'
+    );
+}
+
+public function latestActivity()
+{
+    return $this->hasOne(
+        CustomerCallNeededActivity::class,
+        'customer_call_needed_id'
+    )->latestOfMany();
+}
+
+
 }

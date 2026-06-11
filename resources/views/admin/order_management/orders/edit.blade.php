@@ -231,7 +231,7 @@
                     data-customer-id="{{ $order->customer_id }}"
                     data-order-number="{{ $order->order_number }}"
                     title="Call Needed"
-                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-500 text-white cursor-pointer hover:bg-red-600 transition-colors shadow-sm">
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-purple-600 text-white cursor-pointer hover:bg-purple-700 transition-colors shadow-sm">
                     <x-heroicon-o-phone class="w-5 h-5 call-icon" />
                     <svg class="hidden w-4 h-4 animate-spin call-loader" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -249,7 +249,7 @@
 
                 {{-- Damage Alert --}}
                 <button id="orderDamageAlertBtn" type="button" title="Add Damage Alert"
-                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-700 text-white hover:bg-red-800 transition-colors shadow-sm">
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5 h-5">
                         <path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/>
                     </svg>

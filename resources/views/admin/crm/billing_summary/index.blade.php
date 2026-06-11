@@ -278,7 +278,6 @@
                 'balanceSortSelect': document.getElementById('balanceSortSelect'),
                 'invoice_month': document.getElementById('invoice_month'),
                 'payment_aging': document.getElementById('payment_aging'),
-                'balance_type': document.getElementById('balance_type'),
             };
 
             // Load saved filters on page load
@@ -288,8 +287,9 @@
             document.getElementById('clear-filters').addEventListener('click', function() {
                 window.clearFilters(fieldMap, screenKey);
 
-                // Restore defaults: both credit type checkboxes checked
+                // Restore defaults
                 creditCheckboxes.forEach(cb => { cb.checked = true; });
+                document.getElementById('balance_type').value = 'positive';
 
                 fetchCustomers();
             });
@@ -316,7 +316,7 @@
                 if (name.length >= 3 || name.length === 0) params.append('search_name', name);
                 if (invoiceMonth) params.append('invoice_month', invoiceMonth);
                 if (paymentAging) params.append('payment_aging', paymentAging);
-                if (balanceType) params.append('balance_type', balanceType);
+                params.append('balance_type', balanceType || 'positive');
                 if (phone.length >= 3 || phone.length === 0) params.append('search_phone', phone);
                 if (company.length >= 3 || company.length === 0) params.append('search_company_name', company);
                 if (alert_status.length > 0) params.append('alert_status', alert_status);

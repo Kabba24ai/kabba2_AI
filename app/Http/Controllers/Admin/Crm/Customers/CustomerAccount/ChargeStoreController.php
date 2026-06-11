@@ -41,6 +41,7 @@ class ChargeStoreController extends Controller
             $record->notes = $validated['notes'] ?? null;
             $record->date = now();
             $record->type = 'charge';
+            $record->fuel_alert_status = ($validated['reason'] === 'Fuel Charge') ? 'pending' : null;
 
             $record->save();
 

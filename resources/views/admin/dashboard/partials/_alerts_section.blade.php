@@ -425,8 +425,10 @@
 
                     <input type="hidden" name="customer_id" id="customer_id" value="">
                     <input type="hidden" name="order_id" id="order_id" value="">
-                     <input type="hidden" name="order_product_id" id="order_product_id" value="">
-                     <input type="hidden" name="type" id="type" value="">
+                    <input type="hidden" name="order_product_id" id="order_product_id" value="">
+                    <input type="hidden" name="type" id="type" value="">
+                    <input type="hidden" name="source" id="payment_source" value="order">
+                    <input type="hidden" name="customer_account_id" id="payment_customer_account_id" value="">
 
                    <!-- Payment Amount -->
                    <div class="mb-4">

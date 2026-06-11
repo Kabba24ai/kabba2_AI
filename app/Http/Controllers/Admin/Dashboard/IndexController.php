@@ -17,6 +17,7 @@ use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 use App\Models\Iam\Personnel\User;
 use App\Helpers\ConfigurationHelper;
 use App\Models\Customers\Customer;
+use App\Models\Customers\CustomerAccount;
 use App\Models\Dashboard\ResolutionNotePreset;
 
 
@@ -191,7 +192,42 @@ class IndexController extends Controller
             ];
         });
 
-        // dd($fuelChargeAlerts);
+        // Merge CRM-originated Fuel Charge alerts (CustomerAccount records)
+        $crmFuelCharges = CustomerAccount::with(['customer.cards'])
+            ->where('type', 'charge')
+            ->where('reason', 'Fuel Charge')
+            ->where('fuel_alert_status', 'pending')
+            ->latest()
+            ->get()
+            ->map(function ($account) {
+                return [
+                    'id'             => 10000 + $account->id,
+                    'source'         => 'crm',
+                    'customer'       => [
+                        'id'        => $account->customer_id,
+                        'full_name' => $account->customer?->full_name,
+                        'cards'     => $account->customer?->cards?->map(fn ($c) => [
+                            'id'    => $c->unique_id,
+                            'label' => $c->card_number,
+                        ])->values() ?? [],
+                    ],
+                    'customerName'   => $account->customer?->full_name ?? '—',
+                    'orderId'        => null,
+                    'order_number'   => 'CRM',
+                    'orderLink'      => $account->customer
+                        ? route('admin.crm.customers.view', $account->customer->unique_id)
+                        : null,
+                    'amountOwed'     => '$' . number_format((float) ($account->amount ?? 0), 2),
+                    'date'           => optional($account->date)->toDateString(),
+                    'type'           => 'fuel',
+                    'notes'          => [],
+                    'equipment'      => null,
+                    'order_product'  => null,
+                    'customer_account_id' => $account->unique_id,
+                ];
+            });
+
+        $fuelChargeAlerts = $fuelChargeAlerts->concat($crmFuelCharges)->values();
 
             // Get sales data for different periods
         $salesData = $this->getSalesData();

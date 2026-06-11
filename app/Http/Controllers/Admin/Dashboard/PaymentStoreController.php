@@ -31,33 +31,33 @@ class PaymentStoreController extends Controller
     public function __invoke(PaymentStoreRequest $request)
     {
 
-        //    dd($request->all());
+        $validated = $request->validated();
 
-         $validated = $request->validated();
+        // CRM-originated fuel charge payment — save to CustomerAccount, mark charge completed
+        if (($validated['source'] ?? 'order') === 'crm') {
+            return $this->handleCrmPayment($validated);
+        }
 
-        //  dd($validated);
-   $order = Order::where('unique_id', $validated['order_id'])->firstOrFail();
-   $orderProduct = OrderProduct::whereHas('order')
-       ->where('unique_id', $validated['order_product_id'])
-       ->firstOrFail();
-
+        $order = Order::where('unique_id', $validated['order_id'])->firstOrFail();
+        $orderProduct = OrderProduct::whereHas('order')
+            ->where('unique_id', $validated['order_product_id'])
+            ->firstOrFail();
 
         Log::debug('OrderExtraCharges validated data:', $validated);
 
         DB::beginTransaction();
 
-
         try {
             Log::debug('Creating new OrderExtraCharges record...');
             $record = new OrderExtraCharges();
             $record->customer_id = $validated['customer_id'];
-            $record->order_id = $order->id ?? null;
-             $record->amount = $validated['amount'];
+            $record->order_id    = $order->id ?? null;
+            $record->amount      = $validated['amount'];
 
             $record->order_product_id = $orderProduct->id ?? null;
-            $record->type = $validated['type'];
+            $record->type         = $validated['type'];
             $record->payment_type = $validated['payment_type'];
-            $record->notes = $validated['notes'] ?? null;
+            $record->notes        = $validated['notes'] ?? null;
 
 
 
@@ -279,6 +279,132 @@ if (
             ]);
         }
 
+    }
+
+    private function handleCrmPayment(array $validated)
+    {
+        $chargeAccount = CustomerAccount::where('unique_id', $validated['customer_account_id'])->firstOrFail();
+        $customer      = Customer::findOrFail($validated['customer_id']);
+
+        DB::beginTransaction();
+
+        try {
+            $user = User::findOrFail($validated['responsible_person']);
+
+            $payment = new CustomerAccount();
+            $payment->customer_id             = $validated['customer_id'];
+            $payment->amount                  = $validated['amount'];
+            $payment->payment_type            = $validated['payment_type'];
+            $payment->responsible_person_id   = $user->id;
+            $payment->responsible_person_name = $user->full_name;
+            $payment->notes                   = $validated['notes'] ?? null;
+            $payment->date                    = now();
+            $payment->payment_number_id       = $validated['cheque_number'] ?? null;
+            $payment->reason                  = 'Fuel Charge';
+            $payment->sales_tax               = 0;
+            $payment->type                    = 'payment';
+            $payment->save();
+
+            CustomHelper::updateCreditBalance($payment);
+
+            // Credit card processing — same pattern as the main flow
+            if (strtolower($validated['payment_type']) === 'creditcard') {
+                $amount = $validated['amount'];
+
+                if (!empty($validated['existing_card_id'])) {
+                    $cardDetail = $customer->cards()->where('unique_id', $validated['existing_card_id'])->first();
+                    if (!$cardDetail) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Saved card not found.');
+                    }
+
+                    $paymentProfileId  = $cardDetail->payment_profile_id;
+                    $customerProfileId = $customer->authorize_profile_id;
+
+                    if (!$customerProfileId) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Customer profile not found for saved card.');
+                    }
+
+                    $paymentResult = (new AuthorizeNetService())->chargeCustomerProfile(
+                        $customerProfileId, $paymentProfileId, $amount, ['customer' => $customer->toArray()]
+                    );
+
+                    if (($paymentResult['status'] ?? null) !== 'success') {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    }
+
+                    $payment->payment_number_id   = $paymentResult['transaction_id'] ?? null;
+                    $payment->auth_code           = $paymentResult['auth_code'] ?? null;
+                    $payment->customer_profile_id = $paymentResult['customer_profile_id'] ?? $customerProfileId;
+                    $payment->payment_profile_id  = $paymentResult['payment_profile_id'] ?? $paymentProfileId;
+                    $payment->save();
+                } else {
+                    $opaqueDataValue      = $validated['opaqueDataValue'] ?? null;
+                    $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
+
+                    if (!$opaqueDataValue || !$opaqueDataDescriptor) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Payment data missing or invalid.');
+                    }
+
+                    $svc = new AuthorizeNetService();
+                    if (!$svc->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Payment token invalid.');
+                    }
+
+                    $paymentResult = $svc->createOpaqueDataTransaction($opaqueDataValue, $amount, ['customer' => $customer->toArray()]);
+
+                    if (($paymentResult['status'] ?? null) !== 'success') {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    }
+
+                    $payment->payment_number_id   = $paymentResult['transaction_id'] ?? null;
+                    $payment->auth_code           = $paymentResult['auth_code'] ?? null;
+                    $payment->customer_profile_id = $paymentResult['customer_profile_id'] ?? null;
+                    $payment->payment_profile_id  = $paymentResult['payment_profile_id'] ?? null;
+                    $payment->save();
+
+                    if (empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
+                        $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
+                        $customer->saveQuietly();
+                    }
+
+                    if (!empty($paymentResult['payment_profile_id'])) {
+                        $customer->cards()->updateOrCreate(
+                            ['payment_profile_id' => $paymentResult['payment_profile_id']],
+                            [
+                                'first_name'  => $validated['firstName'] ?? null,
+                                'last_name'   => $validated['lastName'] ?? null,
+                                'card_number' => $paymentResult['card_number'] ?? null,
+                                'card_type'   => $paymentResult['card_type'] ?? null,
+                            ]
+                        );
+                    }
+                }
+            }
+
+            // Mark the original CRM fuel charge as completed so it disappears from alerts
+            $chargeAccount->fuel_alert_status = 'completed';
+            $chargeAccount->save();
+
+            flash('Payment recorded successfully.')->success();
+            DB::commit();
+
+            return redirect()->back();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('CRM fuel payment error:', ['message' => $e->getMessage()]);
+            report($e);
+
+            flash('Something went wrong while recording the payment.')->error();
+            return redirect()->back()->withInput()->withErrors([
+                'error' => 'An error occurred while recording the payment.',
+            ]);
+        }
     }
 
 }

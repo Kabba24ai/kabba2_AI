@@ -166,31 +166,34 @@ const salesDataFromServer = @json($salesData);
             list.forEach(alert => {
                 const item = document.importNode(template, true);
 
+                const isCrm = alert.source === 'crm';
+
                 item.querySelector("[data-customer]").textContent = alert.customerName;
-                item.querySelector("[data-order-id]").textContent = alert.order_number;
 
-                // Order click
-                // item.querySelector("[data-order-btn]").onclick = () => this.handleOrderClick(alert.orderId);
+                // Show order number or a "CRM" badge
+                const orderIdEl = item.querySelector("[data-order-id]");
+                if (isCrm) {
+                    orderIdEl.innerHTML = `<span class="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-1.5 py-0.5 rounded">CRM</span>`;
+                } else {
+                    orderIdEl.textContent = alert.order_number;
+                }
 
+                // Order / CRM profile click
                 item.querySelector("[data-order-btn]").onclick = () => {
-                    if (alert.orderLink) {
-                        // window.location.href = alert.orderLink;
-                        // window.open(alert.orderLink, "_blank");
-
-                                window.location.href = alert.orderLink;
-
-
-                    }
+                    if (alert.orderLink) window.location.href = alert.orderLink;
                 };
 
-                // Edit amount
-                item.querySelector("[data-edit-amount]").onclick = () => {
-                    this.editingAlert = alert;
-                    this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
-                    // this.showAmountModal = true;
-                    this.openAmountModal(alert);
-
-                };
+                // Edit amount — hide for CRM alerts (no order_product context)
+                const editAmountBtn = item.querySelector("[data-edit-amount]");
+                if (isCrm) {
+                    editAmountBtn.classList.add("hidden");
+                } else {
+                    editAmountBtn.onclick = () => {
+                        this.editingAlert = alert;
+                        this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
+                        this.openAmountModal(alert);
+                    };
+                }
 
                 // Status dropdown toggle
                 const dropdown = item.querySelector("[data-status-dropdown]");
@@ -201,12 +204,17 @@ const salesDataFromServer = @json($salesData);
                 // Status actions
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "paid");
 
-                item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
-
-                item.querySelector("[data-resolved]").onclick = () => {
-                    dropdown.classList.add("hidden");
-                    this.openResolvedModal(alert);
-                };
+                // Hide "Mark as Resolved" and "Mark as Uncollectable" for CRM-originated charges
+                if (isCrm) {
+                    item.querySelector("[data-resolved]")?.remove();
+                    item.querySelector("[data-uncollectible]")?.remove();
+                } else {
+                    item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
+                    item.querySelector("[data-resolved]").onclick = () => {
+                        dropdown.classList.add("hidden");
+                        this.openResolvedModal(alert);
+                    };
+                }
 
                 // Edit notes
                 // item.querySelector("[data-edit-notes]").onclick = () => {
@@ -1038,11 +1046,13 @@ if (status === "uncollectible") {
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
 
-        // Set customer ID
+        // Set hidden fields
         document.getElementById('customer_id').value = alert.customer.id;
-        document.getElementById('order_id').value = alert.orderId;
-        document.getElementById('order_product_id').value = alert.order_product.unique_id;
+        document.getElementById('order_id').value = alert.orderId ?? '';
+        document.getElementById('order_product_id').value = alert.order_product?.unique_id ?? '';
         document.getElementById('type').value = alert.type;
+        document.getElementById('payment_source').value = alert.source ?? 'order';
+        document.getElementById('payment_customer_account_id').value = alert.customer_account_id ?? '';
 
         // console.log(alert.customer.id);
         // Prefill amount

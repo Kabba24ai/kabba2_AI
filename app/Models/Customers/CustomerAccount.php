@@ -35,7 +35,8 @@ class CustomerAccount extends Model
         'type',
         'invoice_id',
         'invoice_item_id',
-        'customer_action_log'
+        'customer_action_log',
+        'fuel_alert_status',
     ];
 
     protected $casts = [

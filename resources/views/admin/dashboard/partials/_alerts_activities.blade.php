@@ -379,7 +379,9 @@
                     <option value="completed">Completed</option>
                     <option value="resolved">Resolved</option>
                     <option value="no_answer">No Answer</option>
+
                     <option value="no_answer_followed_up_text">No Answer, Followed Up With Text</option>
+
                     <option value="left_voicemail">Left Voicemail</option>
                     <option value="follow_up_needed">Follow-up Needed</option>
                     <option value="not_interested">Not Interested</option>
@@ -387,14 +389,17 @@
             </div>
 
             <div>
+
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Notes
+
                 </label>
 
                 <textarea
                     id="complete_call_description"
                     rows="4"
                     class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm"
+
                     placeholder="Write what happened during the call..."></textarea>
             </div>
 
@@ -968,6 +973,8 @@ function renderCallNeededList(calls, skipFilters = false)
 
         </div>
 
+        
+
         <!-- Actions -->
         <div class="flex flex-col items-center gap-1 border-l border-gray-100 pl-3">
 
@@ -984,6 +991,8 @@ function renderCallNeededList(calls, skipFilters = false)
                     <x-heroicon-o-check-circle class="w-5 h-5" />
                 </button>
             </div>
+
+            
 
             <button
                 onclick="toggleCallActivities(${call.id})"

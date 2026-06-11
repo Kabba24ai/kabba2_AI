@@ -42,7 +42,7 @@ class IndexController extends Controller
             ->orderBy('first_name')
             ->get();
 
-        $users = User::orderBy('full_name')->get();
+        $users = User::orderBy('first_name')->get();
 
         return view('admin.reports.calls_log.index', compact(
             'calls',

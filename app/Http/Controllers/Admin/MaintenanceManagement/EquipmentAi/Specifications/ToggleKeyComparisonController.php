@@ -33,6 +33,29 @@ class ToggleKeyComparisonController extends Controller
             ? (bool) $payload['is_key_comparison']
             : ! $spec->is_key_comparison;
         $categoryId = $spec->profile->category_id;
+        $normalizedSpecKey = mb_strtolower(trim((string) $spec->spec_key));
+
+        if ($newValue) {
+            $conflictingSpec = EquipmentAiSpecification::query()
+                ->join('equipment_ai_profiles', 'equipment_ai_profiles.id', '=', 'equipment_ai_specifications.equipment_ai_profile_id')
+                ->where('equipment_ai_profiles.category_id', $categoryId)
+                ->where('equipment_ai_specifications.is_key_comparison', true)
+                ->where('equipment_ai_specifications.id', '!=', $spec->id)
+                ->whereRaw('LOWER(TRIM(equipment_ai_specifications.spec_key)) = ?', [$normalizedSpecKey])
+                ->first([
+                    'equipment_ai_profiles.make',
+                    'equipment_ai_profiles.model',
+                ]);
+
+            if ($conflictingSpec) {
+                $profileLabel = trim(((string) $conflictingSpec->make) . ' ' . ((string) $conflictingSpec->model));
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This specification is already set as key comparison in category by ' . ($profileLabel !== '' ? $profileLabel : 'another profile') . '.',
+                ], 422);
+            }
+        }
 
         $spec->update(['is_key_comparison' => $newValue]);
 
@@ -56,10 +79,20 @@ class ToggleKeyComparisonController extends Controller
                 ]
             );
         } else {
-            // ── Unchecking: remove the category-level key ─────────────────────
-            EquipmentCategoryComparisonKey::where('category_id', $categoryId)
-                ->where('spec_key', $spec->spec_key)
-                ->delete();
+            // Remove category key only when no other profile still uses it as key.
+            $isUsedByAnotherProfile = EquipmentAiSpecification::query()
+                ->join('equipment_ai_profiles', 'equipment_ai_profiles.id', '=', 'equipment_ai_specifications.equipment_ai_profile_id')
+                ->where('equipment_ai_profiles.category_id', $categoryId)
+                ->where('equipment_ai_specifications.is_key_comparison', true)
+                ->where('equipment_ai_specifications.id', '!=', $spec->id)
+                ->whereRaw('LOWER(TRIM(equipment_ai_specifications.spec_key)) = ?', [$normalizedSpecKey])
+                ->exists();
+
+            if (! $isUsedByAnotherProfile) {
+                EquipmentCategoryComparisonKey::where('category_id', $categoryId)
+                    ->where('spec_key', $spec->spec_key)
+                    ->delete();
+            }
         }
 
         return response()->json([

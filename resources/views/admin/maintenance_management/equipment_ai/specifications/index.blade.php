@@ -97,12 +97,12 @@
                     },
                     body: JSON.stringify(payload),
                 });
-                const data = await res.json();
-                if (data.success) {
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
                     window.location.reload(); // refresh so sort order, badge & amber tint update
                 } else {
                     checkbox.checked = !checkbox.checked; // revert
-                    alert('Failed to update. Please try again.');
+                    alert(data.message || 'Failed to update. Please try again.');
                     this.togglingId = null;
                 }
             } catch (e) {
@@ -112,8 +112,32 @@
             } finally {
                 this.closeKeyCriteriaModal();
             }
-        }
-    }">
+        },
+    }" x-init="
+        $watch('keyCriteriaForm.upgrade_exceeds_value', value => {
+            if (value) {
+                keyCriteriaForm.upgrade_is_below_value = false;
+                keyCriteriaForm.caution_if_exceeds_value = false;
+            }
+        });
+        $watch('keyCriteriaForm.caution_if_below_value', value => {
+            if (value) {
+                keyCriteriaForm.upgrade_is_below_value = false;
+                keyCriteriaForm.caution_if_exceeds_value = false;
+            }
+        });
+        $watch('keyCriteriaForm.upgrade_is_below_value', value => {
+            if (value) {
+                keyCriteriaForm.upgrade_exceeds_value = false;
+                keyCriteriaForm.caution_if_below_value = false;
+            }
+        });
+        $watch('keyCriteriaForm.caution_if_exceeds_value', value => {
+            if (value) {
+                keyCriteriaForm.upgrade_exceeds_value = false;
+                keyCriteriaForm.caution_if_below_value = false;
+            }
+        })">
 
         {{-- ─── Breadcrumb / Back ───────────────────────────────────────── --}}
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -373,30 +397,48 @@
 
                                 @foreach ($section['items'] as $spec)
                                     @php
-                                        $criteriaFlags = $comparisonKeySettingsBySpecKey[
-                                            trim((string) $spec->spec_key)
-                                        ] ?? [
+                                        $normalizedSpecKey = mb_strtolower(trim((string) $spec->spec_key));
+                                        $criteriaFlags = $comparisonKeySettingsBySpecKey[$normalizedSpecKey] ?? [
                                             'upgrade_exceeds_value' => true,
-                                            'caution_if_exceeds_value' => true,
-                                            'upgrade_is_below_value' => false,
                                             'caution_if_below_value' => false,
+                                            'upgrade_is_below_value' => false,
+                                            'caution_if_exceeds_value' => true,
                                         ];
+                                        $keyOwner = $keyComparisonOwnersBySpecKey[$normalizedSpecKey] ?? null;
+                                        $isLockedByOtherProfile =
+                                            ! $spec->is_key_comparison &&
+                                            $keyOwner &&
+                                            (int) $keyOwner['profile_id'] !== (int) $profile->id;
+                                        $lockMessage = $isLockedByOtherProfile
+                                            ? 'Already selected as key criteria by ' .
+                                                trim(($keyOwner['make'] ?? '') . ' ' . ($keyOwner['model'] ?? ''))
+                                            : null;
                                     @endphp
                                     {{-- View row --}}
                                     <tr x-show="editingId !== {{ $spec->id }}"
-                                        class="{{ $spec->is_key_comparison ? 'bg-amber-50/40 dark:bg-amber-900/10' : '' }} hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                        class="{{ $spec->is_key_comparison ? 'bg-amber-50/40 dark:bg-amber-900/10' : '' }} {{ $isLockedByOtherProfile ? 'opacity-60' : '' }} hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                         <td class="px-5 py-3 text-center">
                                             <input type="checkbox" id="kc_{{ $spec->id }}"
                                                 {{ $spec->is_key_comparison ? 'checked' : '' }}
-                                                :disabled="togglingId === {{ $spec->id }}"
+                                                title="{{ $lockMessage ?? '' }}"
+                                                :disabled="togglingId === {{ $spec->id }} || {{ $isLockedByOtherProfile ? 'true' : 'false' }}"
                                                 @change="onKeyComparisonChange({{ $spec->id }}, $event.target, {{ \Illuminate\Support\Js::from($criteriaFlags) }})"
-                                                class="h-4 w-4 cursor-pointer rounded border-gray-300 text-amber-500 focus:ring-amber-400 disabled:opacity-50">
+                                                class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50 {{ $isLockedByOtherProfile ? 'cursor-not-allowed' : 'cursor-pointer' }}">
                                         </td>
                                         <td class="px-5 py-3 text-gray-800 dark:text-gray-200 ">
                                             {{ $spec->spec_label }}
                                             @if ($spec->is_key_comparison)
                                                 <span
                                                     class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">key</span>
+                                            @elseif($isLockedByOtherProfile)
+                                                <span
+                                                    class="ml-1.5 inline-flex items-center rounded-full bg-gray-200 px-1.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">locked</span>
+                                                <p class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                                                    {{ $lockMessage }}
+                                                </p>
+                                            @endif
+
+                                            @if ($spec->is_key_comparison)
                                                 <div
                                                     class="mt-2 grid grid-cols-2 gap-1 text-[11px] text-gray-500 dark:text-gray-400">
                                                     <label class="inline-flex items-center gap-1.5">
@@ -409,8 +451,8 @@
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox"
                                                             class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled
-                                                            {{ $criteriaFlags['caution_if_exceeds_value'] ? 'checked' : '' }}>
-                                                        <span>Caution if exceeds value</span>
+                                                            {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}>
+                                                        <span>Caution if below value</span>
                                                     </label>
 
                                                     <label class="inline-flex items-center gap-1.5">
@@ -423,9 +465,12 @@
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox"
                                                             class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled
-                                                            {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}>
-                                                        <span>Caution if below value</span>
+                                                            {{ $criteriaFlags['caution_if_exceeds_value'] ? 'checked' : '' }}>
+                                                        <span>Caution if exceeds value</span>
                                                     </label>
+
+
+
                                                 </div>
                                             @endif
                                         </td>
@@ -527,32 +572,36 @@
                                                             <input type="checkbox" name="upgrade_exceeds_value"
                                                                 value="1"
                                                                 {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}
-                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
                                                             <span>upgrade_exceeds_value</span>
-                                                        </label>
-                                                        <label
-                                                            class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
-                                                            <input type="checkbox" name="caution_if_exceeds_value"
-                                                                value="1"
-                                                                {{ $criteriaFlags['caution_if_exceeds_value'] ? 'checked' : '' }}
-                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                                            <span>caution_if_exceeds_value</span>
-                                                        </label>
-                                                        <label
-                                                            class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
-                                                            <input type="checkbox" name="upgrade_is_below_value"
-                                                                value="1"
-                                                                {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}
-                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                                            <span>upgrade_is_below_value</span>
                                                         </label>
                                                         <label
                                                             class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
                                                             <input type="checkbox" name="caution_if_below_value"
                                                                 value="1"
                                                                 {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}
-                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
                                                             <span>caution_if_below_value</span>
+                                                        </label>
+                                                        <label
+                                                            class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="upgrade_is_below_value"
+                                                                value="1"
+                                                                {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
+                                                            <span>upgrade_is_below_value</span>
+                                                        </label>
+                                                        <label
+                                                            class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="caution_if_exceeds_value"
+                                                                value="1"
+                                                                {{ $criteriaFlags['caution_if_exceeds_value'] ? 'checked' : '' }}
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
+                                                            <span>caution_if_exceeds_value</span>
                                                         </label>
                                                     </div>
                                                 </div>
@@ -593,19 +642,20 @@
                         <span>upgrade_exceeds_value</span>
                     </label>
                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                        <input type="checkbox" x-model="keyCriteriaForm.caution_if_exceeds_value"
+                        <input type="checkbox" x-model="keyCriteriaForm.caution_if_below_value"
                             class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
-                        <span>caution_if_exceeds_value</span>
+                        <span>caution_if_below_value</span>
                     </label>
+                    <hr class="my-2 border-gray-200 dark:border-gray-700" />
                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                         <input type="checkbox" x-model="keyCriteriaForm.upgrade_is_below_value"
                             class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
                         <span>upgrade_is_below_value</span>
                     </label>
                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                        <input type="checkbox" x-model="keyCriteriaForm.caution_if_below_value"
+                        <input type="checkbox" x-model="keyCriteriaForm.caution_if_exceeds_value"
                             class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
-                        <span>caution_if_below_value</span>
+                        <span>caution_if_exceeds_value</span>
                     </label>
                 </div>
 

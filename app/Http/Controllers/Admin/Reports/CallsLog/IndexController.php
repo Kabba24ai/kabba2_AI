@@ -34,7 +34,7 @@ class IndexController extends Controller
         }
 
         if ($request->filled('search_phone')) {
-            $phone = preg_replace('/\D/', '', $request->search_phone);
+            $phone = $request->search_phone;
             $query->where(function ($q) use ($phone) {
                 $q->whereHas('customer', function ($sub) use ($phone) {
                     $sub->where('phone', 'like', '%' . $phone . '%');

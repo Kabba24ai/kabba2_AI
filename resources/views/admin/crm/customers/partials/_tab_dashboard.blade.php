@@ -1,6 +1,6 @@
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
     <!-- Left Card -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 md:col-span-2">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
             <!-- Left: Customer Info -->
@@ -73,6 +73,21 @@
     </div>
 
 </div>
+
+    <!-- Tags -->
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 flex flex-col">
+        <div class="flex items-center justify-between mb-2">
+            <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
+            <button type="button" onclick="openTagModal()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add
+            </button>
+        </div>
+        <div class="flex flex-wrap gap-2 p-2 max-h-60 overflow-y-auto" id="customerTagsWrapper">
+        </div>
+    </div>
 </div>
 
 <div class="mx-auto mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -230,25 +245,8 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
-        <div class="flex items-center justify-between mb-2">
-            <label for="ContactTags" class="block text-sm font-medium text-gray-700">Tags</label>
-
-            <button type="button" onclick="openTagModal()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                    Add
-                                </button>
-        </div>
-        <div class="flex flex-wrap gap-2 p-2 max-h-60 overflow-y-auto" id="customerTagsWrapper">
-            <!-- show customer tags here (from JS, not from blade) -->
-        </div>
-
-    </div>
-
     <!-- Notes Section -->
-    <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col">
+    <div class="bg-white rounded-lg shadow border border-gray-200 p-6 flex flex-col md:col-span-2">
         <div class="flex items-center justify-between mb-2">
             <label class="block text-sm font-medium text-gray-700">Notes</label>
 

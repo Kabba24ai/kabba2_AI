@@ -1822,20 +1822,20 @@
                 <!-- Full / Partial Payment toggle -->
                 <div class="flex gap-3">
                     <label id="labelFullPayment"
-                        class="flex-1 flex items-center gap-3 p-3 border-2 border-teal-500 rounded-lg cursor-pointer transition-colors select-none">
+                        class="flex-1 flex items-center gap-3 p-3 border-2 border-teal-500 bg-teal-50 rounded-lg cursor-pointer transition-colors select-none">
                         <input type="radio" name="payment_mode" value="full" id="paymentModeFull" class="hidden" checked />
-                        <span class="w-4 h-4 rounded-full border-2 border-teal-500 flex items-center justify-center flex-shrink-0">
+                        <span id="radioFullOuter" class="w-4 h-4 rounded-full border-2 border-teal-500 flex items-center justify-center flex-shrink-0">
                             <span class="w-2 h-2 rounded-full bg-teal-500" id="radioFullDot"></span>
                         </span>
-                        <span class="text-sm font-semibold text-gray-700">Full Payment</span>
+                        <span class="text-sm font-semibold text-gray-800">Full Payment</span>
                     </label>
                     <label id="labelPartialPayment"
-                        class="flex-1 flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer transition-colors select-none">
+                        class="flex-1 flex items-center gap-3 p-3 border-2 border-gray-200 bg-white rounded-lg cursor-pointer transition-colors select-none">
                         <input type="radio" name="payment_mode" value="partial" id="paymentModePartial" class="hidden" />
-                        <span class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0">
+                        <span id="radioPartialOuter" class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0">
                             <span class="w-2 h-2 rounded-full bg-teal-500 hidden" id="radioPartialDot"></span>
                         </span>
-                        <span class="text-sm font-semibold text-gray-700">Partial Payment</span>
+                        <span class="text-sm font-semibold text-gray-500">Partial Payment</span>
                     </label>
                 </div>
 
@@ -4008,12 +4008,27 @@
 
             function updatePaymentModeUI() {
                 const isFull = paymentModeFull.checked;
+                // Full label
                 document.getElementById('labelFullPayment').classList.toggle('border-teal-500', isFull);
+                document.getElementById('labelFullPayment').classList.toggle('bg-teal-50', isFull);
                 document.getElementById('labelFullPayment').classList.toggle('border-gray-200', !isFull);
+                document.getElementById('labelFullPayment').classList.toggle('bg-white', !isFull);
+                document.getElementById('radioFullOuter').classList.toggle('border-teal-500', isFull);
+                document.getElementById('radioFullOuter').classList.toggle('border-gray-300', !isFull);
                 document.getElementById('radioFullDot').classList.toggle('hidden', !isFull);
+                document.getElementById('labelFullPayment').querySelector('span:last-child').className =
+                    'text-sm font-semibold ' + (isFull ? 'text-gray-800' : 'text-gray-500');
+                // Partial label
                 document.getElementById('labelPartialPayment').classList.toggle('border-teal-500', !isFull);
+                document.getElementById('labelPartialPayment').classList.toggle('bg-teal-50', !isFull);
                 document.getElementById('labelPartialPayment').classList.toggle('border-gray-200', isFull);
+                document.getElementById('labelPartialPayment').classList.toggle('bg-white', isFull);
+                document.getElementById('radioPartialOuter').classList.toggle('border-teal-500', !isFull);
+                document.getElementById('radioPartialOuter').classList.toggle('border-gray-300', isFull);
                 document.getElementById('radioPartialDot').classList.toggle('hidden', isFull);
+                document.getElementById('labelPartialPayment').querySelector('span:last-child').className =
+                    'text-sm font-semibold ' + (!isFull ? 'text-gray-800' : 'text-gray-500');
+                // Partial fields
                 partialPaymentFields.classList.toggle('hidden', isFull);
                 if (!isFull) {
                     amountOwedDisplay.textContent = fmtCurrency(modalBalanceDue);
@@ -4081,20 +4096,32 @@
             const chequeNumberField = document.getElementById('chequeNumberField');
 
             // ===== Show/hide card sections =====
+            function resetCreditCardFields() {
+                cardOption.value = '';
+                newCardFields.classList.add('hidden');
+                cardOnFileDropdown.classList.add('hidden');
+                document.getElementById('firstName').value = '';
+                document.getElementById('lastName').value = '';
+                cardNumberInput.value = '';
+                expiryInput.value = '';
+                cvcInput.value = '';
+                document.getElementById('opaqueDataValue').value = '';
+                document.getElementById('opaqueDataDescriptor').value = '';
+            }
+
             paymentType.addEventListener('change', function() {
                 if (this.value === 'CreditCard') {
+                    resetCreditCardFields();
                     creditCardOptions.classList.remove('hidden');
-                    cardOption.dispatchEvent(new Event('change'));
                     chequeNumberField.classList.add('hidden');
                 } else if (this.value === 'Cheque') {
-                    chequeNumberField.classList.remove('hidden');
+                    resetCreditCardFields();
                     creditCardOptions.classList.add('hidden');
+                    chequeNumberField.classList.remove('hidden');
                 } else {
+                    resetCreditCardFields();
                     creditCardOptions.classList.add('hidden');
                     chequeNumberField.classList.add('hidden');
-
-                    newCardFields.classList.add('hidden');
-                    cardOnFileDropdown.classList.add('hidden');
                 }
             });
 

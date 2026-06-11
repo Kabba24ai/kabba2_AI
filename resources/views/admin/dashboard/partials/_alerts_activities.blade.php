@@ -383,16 +383,15 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 required">
-                    Call Summary
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
                 </label>
 
                 <textarea
                     id="complete_call_description"
                     rows="4"
                     class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm"
-                    placeholder="Write what happened during the call..."
-                    required></textarea>
+                    placeholder="Write what happened during the call..."></textarea>
             </div>
 
             <div class="flex justify-end gap-2 pt-3">

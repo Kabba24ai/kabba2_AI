@@ -35,7 +35,7 @@ class CallNeededCompleteRequest extends FormRequest
             ],
 
             'completion_note' => [
-                'required',
+                'nullable',
                 'string',
                 'max:5000',
             ],

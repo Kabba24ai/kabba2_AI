@@ -210,9 +210,49 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1.5">
                     Resolution Note <span class="text-red-500">*</span>
                 </label>
-                <textarea id="resolved-note-input" rows="4"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Explain how this was resolved (e.g. customer paid cash in person, waived by management)..."></textarea>
+
+                <select id="resolved-note-select"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="">-- Select a resolution reason --</option>
+                    @foreach($resolutionPresets as $preset)
+                        <option value="{{ $preset->id }}" data-label="{{ $preset->label }}">{{ $preset->label }}</option>
+                    @endforeach
+                    <option value="other">Other</option>
+                </select>
+
+                <div id="resolved-other-wrapper" class="hidden mt-2">
+                    <textarea id="resolved-note-input" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Describe how this was resolved..."></textarea>
+                </div>
+
+                <div class="mt-2">
+                    <button type="button" id="toggleManagePresets"
+                        class="text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                        + Manage options
+                    </button>
+                    <div id="managePresetsPanel" class="hidden mt-2 border border-gray-200 rounded-md p-3 bg-gray-50 space-y-2">
+                        <div class="flex gap-2">
+                            <input id="newPresetInput" type="text" maxlength="100"
+                                placeholder="New option label..."
+                                class="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <button type="button" onclick="dashboardApp.addPreset()"
+                                class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap">
+                                Add
+                            </button>
+                        </div>
+                        <ul id="presetsList" class="space-y-1 max-h-36 overflow-y-auto">
+                            @foreach($resolutionPresets as $preset)
+                                <li class="flex items-center justify-between text-sm py-0.5" data-preset-id="{{ $preset->id }}">
+                                    <span class="text-gray-700">{{ $preset->label }}</span>
+                                    <button type="button"
+                                        onclick="dashboardApp.deletePreset({{ $preset->id }}, this)"
+                                        class="text-red-500 hover:text-red-700 text-base leading-none px-1">×</button>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
             </div>
 
             <div>

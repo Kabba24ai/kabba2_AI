@@ -494,7 +494,10 @@ if (isFuel) {
 
             const label = alert.type === 'fuel' ? 'Fuel Charge' : 'Damage Charge';
             document.getElementById("resolved-modal-title").textContent = `Mark ${label} as Resolved`;
+            document.getElementById("resolved-note-select").value = "";
             document.getElementById("resolved-note-input").value = "";
+            document.getElementById("resolved-other-wrapper").classList.add("hidden");
+            document.getElementById("managePresetsPanel").classList.add("hidden");
             document.getElementById("resolved-by-select").value = "";
 
             document.getElementById("resolved-modal").classList.remove("hidden");
@@ -512,9 +515,16 @@ if (isFuel) {
                 return;
             }
 
-            const note = document.getElementById("resolved-note-input").value.trim();
+            const select = document.getElementById("resolved-note-select");
+            const selectedOpt = select.options[select.selectedIndex];
+            let note = '';
+            if (select.value === 'other') {
+                note = document.getElementById("resolved-note-input").value.trim();
+            } else if (select.value) {
+                note = selectedOpt.dataset.label;
+            }
             if (!note) {
-                notyf.error("Please enter a resolution note.");
+                notyf.error("Please select or enter a resolution note.");
                 return;
             }
 
@@ -580,6 +590,95 @@ if (isFuel) {
                 saveBtn.disabled = false;
                 saveBtn.textContent = originalText;
             });
+        }
+
+        addPreset() {
+            const input = document.getElementById("newPresetInput");
+            const label = input.value.trim();
+            if (!label) { notyf.error("Please enter an option label."); return; }
+
+            fetch("{{ route('admin.dashboard.resolution-presets.store') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: JSON.stringify({ label }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) { notyf.error(data.message || 'Failed to add option.'); return; }
+
+                const preset = data.preset;
+
+                // Add to the <select> before "Other"
+                const select = document.getElementById("resolved-note-select");
+                const otherOpt = select.querySelector('option[value="other"]');
+                const newOpt = document.createElement('option');
+                newOpt.value = preset.id;
+                newOpt.dataset.label = preset.label;
+                newOpt.textContent = preset.label;
+
+                // Insert alphabetically before "Other"
+                let inserted = false;
+                for (let i = 1; i < select.options.length - 1; i++) {
+                    if (select.options[i].textContent.localeCompare(preset.label) > 0) {
+                        select.insertBefore(newOpt, select.options[i]);
+                        inserted = true;
+                        break;
+                    }
+                }
+                if (!inserted) select.insertBefore(newOpt, otherOpt);
+
+                // Add to manage list
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between text-sm py-0.5';
+                li.dataset.presetId = preset.id;
+                li.innerHTML = `<span class="text-gray-700">${preset.label}</span>
+                    <button type="button" onclick="dashboardApp.deletePreset(${preset.id}, this)"
+                        class="text-red-500 hover:text-red-700 text-base leading-none px-1">×</button>`;
+
+                // Insert alphabetically in list
+                const ul = document.getElementById("presetsList");
+                const items = [...ul.querySelectorAll('li')];
+                const after = items.find(el => el.querySelector('span').textContent.localeCompare(preset.label) > 0);
+                if (after) ul.insertBefore(li, after); else ul.appendChild(li);
+
+                input.value = '';
+                notyf.success('Option added.');
+            })
+            .catch(() => notyf.error('Failed to add option.'));
+        }
+
+        deletePreset(id, btn) {
+            if (!confirm('Remove this option from the list?')) return;
+
+            fetch("{{ route('admin.dashboard.resolution-presets.destroy', ':id') }}".replace(':id', id), {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) { notyf.error('Failed to remove option.'); return; }
+
+                // Remove from select
+                const select = document.getElementById("resolved-note-select");
+                const opt = select.querySelector(`option[value="${id}"]`);
+                if (opt) opt.remove();
+                if (select.value == id) {
+                    select.value = '';
+                    document.getElementById("resolved-other-wrapper").classList.add("hidden");
+                }
+
+                // Remove from manage list
+                const li = btn.closest('li');
+                if (li) li.remove();
+
+                notyf.success('Option removed.');
+            })
+            .catch(() => notyf.error('Failed to remove option.'));
         }
 
         openNotesModal(alert) {
@@ -1315,6 +1414,16 @@ document.addEventListener("DOMContentLoaded", () => {
     window.dashboardApp = new Dashboard(
         document.getElementById("dashboard")
     );
+
+    // Show/hide "Other" textarea based on dropdown selection
+    document.getElementById("resolved-note-select")?.addEventListener("change", function () {
+        document.getElementById("resolved-other-wrapper").classList.toggle("hidden", this.value !== "other");
+    });
+
+    // Toggle manage-options panel
+    document.getElementById("toggleManagePresets")?.addEventListener("click", function () {
+        document.getElementById("managePresetsPanel").classList.toggle("hidden");
+    });
 });
 
 // Close any open status dropdown when clicking outside it

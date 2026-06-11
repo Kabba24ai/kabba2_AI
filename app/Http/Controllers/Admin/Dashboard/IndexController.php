@@ -17,6 +17,7 @@ use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 use App\Models\Iam\Personnel\User;
 use App\Helpers\ConfigurationHelper;
 use App\Models\Customers\Customer;
+use App\Models\Dashboard\ResolutionNotePreset;
 
 
 use App\Helpers\CustomHelper;
@@ -239,7 +240,9 @@ class IndexController extends Controller
             ->orderBy('last_name')
             ->get();
 
-        return view('admin.dashboard.index', compact('salesData','customers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount'));
+        $resolutionPresets = ResolutionNotePreset::orderBy('label')->get();
+
+        return view('admin.dashboard.index', compact('salesData','customers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets'));
 
     }
 

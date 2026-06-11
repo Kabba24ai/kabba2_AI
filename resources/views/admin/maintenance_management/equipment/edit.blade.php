@@ -92,21 +92,26 @@
                 <div data-tab-panel="specification" class="hidden">
                     <div class="space-y-5">
                         <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
-                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+                            <div
+                                class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-900">Matching AI Profile</h3>
-                                    <p class="mt-0.5 text-xs text-gray-500">Specifications are shown from the profile that matches this equipment's category, brand, and model.</p>
+                                    <p class="mt-0.5 text-xs text-gray-500">Specifications are shown from the profile that
+                                        matches this equipment's category, brand, and model.</p>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+                                    <span
+                                        class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
                                         {{ optional($equipment->productCategory)->title ?? 'Uncategorised' }}
                                     </span>
                                     @if ($matchingAiProfile)
-                                        <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                                             {{ $matchingAiProfile->make }} {{ $matchingAiProfile->model }}
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
                                             No matching profile found
                                         </span>
                                     @endif
@@ -117,8 +122,10 @@
                                 @if ($matchingAiProfile)
                                     <div class="grid gap-4 md:grid-cols-3">
                                         <div>
-                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Profile</p>
-                                            <p class="mt-1 font-medium text-gray-900">{{ $matchingAiProfile->unique_id }}</p>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Profile
+                                            </p>
+                                            <p class="mt-1 font-medium text-gray-900">{{ $matchingAiProfile->unique_id }}
+                                            </p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Make</p>
@@ -130,7 +137,8 @@
                                         </div>
                                     </div>
                                 @else
-                                    <p>No AI profile was found for this equipment yet. Run the AI scan/refresh flow after the brand and model are set to populate this tab.</p>
+                                    <p>No AI profile was found for this equipment yet. Run the AI scan/refresh flow after
+                                        the brand and model are set to populate this tab.</p>
                                 @endif
                             </div>
                         </div>
@@ -146,13 +154,15 @@
                                     ],
                                     [
                                         'title' => 'Common Specifications',
-                                        'description' => 'Category-based specs shared across similar equipment profiles.',
+                                        'description' =>
+                                            'Category-based specs shared across similar equipment profiles.',
                                         'items' => $commonSpecs,
                                         'row_class' => 'bg-sky-50/70 text-sky-800',
                                     ],
                                     [
                                         'title' => 'Unique Specifications',
-                                        'description' => 'Profile-specific specs that are not part of the shared category catalog.',
+                                        'description' =>
+                                            'Profile-specific specs that are not part of the shared category catalog.',
                                         'items' => $uniqueSpecs,
                                         'row_class' => 'bg-emerald-50/70 text-emerald-800',
                                     ],
@@ -163,7 +173,8 @@
                                 <div class="border-b border-gray-100 px-6 py-4">
                                     <h2 class="text-base font-semibold text-gray-900">
                                         Specifications
-                                        <span class="ml-1 text-sm font-normal text-gray-400">({{ $matchingAiProfile->specifications->count() }})</span>
+                                        <span
+                                            class="ml-1 text-sm font-normal text-gray-400">({{ $matchingAiProfile->specifications->count() }})</span>
                                     </h2>
                                 </div>
 
@@ -171,12 +182,24 @@
                                     <table class="min-w-full divide-y divide-gray-100 text-sm">
                                         <thead class="bg-gray-50">
                                             <tr>
-                                                <th class="w-32 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Key Comparison</th>
-                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Label</th>
-                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Value</th>
-                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Unit</th>
-                                                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Source</th>
-                                                <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Confidence</th>
+                                                <th
+                                                    class="w-32 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Key Comparison</th>
+                                                <th
+                                                    class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Label</th>
+                                                <th
+                                                    class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Value</th>
+                                                <th
+                                                    class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Unit</th>
+                                                <th
+                                                    class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Source</th>
+                                                <th
+                                                    class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Confidence</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100 bg-white">
@@ -187,10 +210,13 @@
                                                     <td colspan="6" class="px-5 py-3">
                                                         <div class="flex items-center justify-between gap-3">
                                                             <div>
-                                                                <h3 class="text-sm font-semibold">{{ $section['title'] }}</h3>
-                                                                <p class="mt-0.5 text-xs opacity-80">{{ $section['description'] }}</p>
+                                                                <h3 class="text-sm font-semibold">{{ $section['title'] }}
+                                                                </h3>
+                                                                <p class="mt-0.5 text-xs opacity-80">
+                                                                    {{ $section['description'] }}</p>
                                                             </div>
-                                                            <span class="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                                            <span
+                                                                class="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold text-gray-700">
                                                                 {{ $section['items']->count() }}
                                                             </span>
                                                         </div>
@@ -199,49 +225,71 @@
 
                                                 @foreach ($section['items'] as $spec)
                                                     @php
-                                                        $criteriaFlags = $comparisonKeySettingsBySpecKey[trim((string) $spec->spec_key)] ?? [
+                                                        $criteriaFlags = $comparisonKeySettingsBySpecKey[
+                                                            trim((string) $spec->spec_key)
+                                                        ] ?? [
                                                             'upgrade_exceeds_value' => true,
-                                                            'caution_if_change_value' => true,
+                                                            'caution_if_exceeds_value' => true,
                                                             'upgrade_is_below_value' => false,
                                                             'caution_if_below_value' => false,
                                                         ];
                                                     @endphp
-                                                    <tr class="{{ $spec->is_key_comparison ? 'bg-amber-50/40' : '' }} hover:bg-gray-50 transition-colors">
+                                                    <tr
+                                                        class="{{ $spec->is_key_comparison ? 'bg-amber-50/40' : '' }} hover:bg-gray-50 transition-colors">
                                                         <td class="px-5 py-3 text-center">
-                                                            <span class="inline-flex h-4 w-4 items-center justify-center rounded border border-gray-300 bg-white text-[10px] font-semibold {{ $spec->is_key_comparison ? 'text-amber-600' : 'text-gray-300' }}">
+                                                            <span
+                                                                class="inline-flex h-4 w-4 items-center justify-center rounded border border-gray-300 bg-white text-[10px] font-semibold {{ $spec->is_key_comparison ? 'text-amber-600' : 'text-gray-300' }}">
                                                                 {{ $spec->is_key_comparison ? '✓' : '—' }}
                                                             </span>
                                                         </td>
                                                         <td class="px-5 py-3 text-gray-800">
                                                             {{ $spec->spec_label }}
                                                             @if ($spec->is_key_comparison)
-                                                                <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">key</span>
-                                                                <div class="mt-2 grid grid-cols-1 gap-1 text-[11px] text-gray-500 ">
+                                                                <span
+                                                                    class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">key</span>
+                                                                <div
+                                                                    class="mt-2 grid grid-cols-2 gap-1 text-[11px] text-gray-500 dark:text-gray-400">
                                                                     <label class="inline-flex items-center gap-1.5">
-                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
+                                                                        <input type="checkbox"
+                                                                            class="h-3 w-3 rounded border-gray-300 text-amber-500"
+                                                                            disabled
+                                                                            {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
                                                                         <span>Upgrade exceeds value</span>
                                                                     </label>
                                                                     <label class="inline-flex items-center gap-1.5">
-                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['caution_if_change_value'] ? 'checked' : '' }}>
-                                                                        <span>Caution if change value</span>
+                                                                        <input type="checkbox"
+                                                                            class="h-3 w-3 rounded border-gray-300 text-amber-500"
+                                                                            disabled
+                                                                            {{ $criteriaFlags['caution_if_exceeds_value'] ? 'checked' : '' }}>
+                                                                        <span>Caution if exceeds value</span>
                                                                     </label>
                                                                     <label class="inline-flex items-center gap-1.5">
-                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}>
+                                                                        <input type="checkbox"
+                                                                            class="h-3 w-3 rounded border-gray-300 text-amber-500"
+                                                                            disabled
+                                                                            {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}>
                                                                         <span>Upgrade is below value</span>
                                                                     </label>
                                                                     <label class="inline-flex items-center gap-1.5">
-                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}>
+                                                                        <input type="checkbox"
+                                                                            class="h-3 w-3 rounded border-gray-300 text-amber-500"
+                                                                            disabled
+                                                                            {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}>
                                                                         <span>Caution if below value</span>
                                                                     </label>
                                                                 </div>
                                                             @endif
                                                         </td>
-                                                        <td class="px-5 py-3 font-medium text-gray-900">{{ $spec->spec_value ?? '—' }}</td>
-                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->spec_unit ?? '—' }}</td>
-                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->source ?? '—' }}</td>
+                                                        <td class="px-5 py-3 font-medium text-gray-900">
+                                                            {{ $spec->spec_value ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->spec_unit ?? '—' }}
+                                                        </td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->source ?? '—' }}
+                                                        </td>
                                                         <td class="px-5 py-3 text-center">
                                                             @php $pct = round(($spec->confidence_score ?? 1) * 100); @endphp
-                                                            <span class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">{{ $pct }}%</span>
+                                                            <span
+                                                                class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">{{ $pct }}%</span>
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -251,7 +299,8 @@
                                 </div>
                             </div>
                         @elseif ($matchingAiProfile)
-                            <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center text-sm text-gray-500">
+                            <div
+                                class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center text-sm text-gray-500">
                                 The matching AI profile exists, but it does not have any specifications yet.
                             </div>
                         @endif
@@ -354,7 +403,8 @@
                                             selected</span>
                                     </div>
                                 </div>
-                                <p class="mt-0.5 text-xs text-gray-500">AI profiles from the same category that can serve as comparable substitution references.</p>
+                                <p class="mt-0.5 text-xs text-gray-500">AI profiles from the same category that can serve
+                                    as comparable substitution references.</p>
                             </div>
                             <div class="px-5 py-4">
                                 <div class="rounded-lg border border-gray-200 overflow-hidden">
@@ -384,31 +434,37 @@
                                                 @forelse ($comparableAiProfiles as $profile)
                                                     <tr class="hover:bg-gray-50 transition-colors">
                                                         <td class="px-4 py-3 text-center align-middle">
-                                                            <input type="checkbox"
-                                                                name="comparable_ai_profile_ids[]"
-                                                                value="{{ $profile->id }}"
-                                                                @checked(in_array((string) $profile->id, $selectedComparableAiProfileIds, true))
+                                                            <input type="checkbox" name="comparable_ai_profile_ids[]"
+                                                                value="{{ $profile->id }}" @checked(in_array((string) $profile->id, $selectedComparableAiProfileIds, true))
                                                                 class="kc-profile-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                                         </td>
                                                         <td class="px-4 py-3">
                                                             <div class="min-w-0">
-                                                                <p class="truncate text-sm font-semibold text-gray-900">{{ $profile->unique_id }}</p>
-                                                                <p class="truncate text-xs text-gray-500">{{ $profile->make }} {{ $profile->model }}</p>
+                                                                <p class="truncate text-sm font-semibold text-gray-900">
+                                                                    {{ $profile->unique_id }}</p>
+                                                                <p class="truncate text-xs text-gray-500">
+                                                                    {{ $profile->make }} {{ $profile->model }}</p>
                                                             </div>
                                                         </td>
-                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->make ?: '—' }}</td>
-                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->model ?: '—' }}</td>
-                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->specifications_count }}</td>
-                                                        <td class="px-2 py-3 text-sm text-gray-700">{{ $profile->key_specifications_count }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">
+                                                            {{ $profile->make ?: '—' }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">
+                                                            {{ $profile->model ?: '—' }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">
+                                                            {{ $profile->specifications_count }}</td>
+                                                        <td class="px-2 py-3 text-sm text-gray-700">
+                                                            {{ $profile->key_specifications_count }}</td>
                                                         <td class="px-2 py-3">
-                                                            <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                                            <span
+                                                                class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
                                                                 {{ $profile->statusLabel() }}
                                                             </span>
                                                         </td>
                                                     </tr>
                                                 @empty
                                                     <tr>
-                                                        <td colspan="7" class="px-6 py-10 text-center text-sm text-gray-400">
+                                                        <td colspan="7"
+                                                            class="px-6 py-10 text-center text-sm text-gray-400">
                                                             No comparable AI profiles found for this category.
                                                         </td>
                                                     </tr>
@@ -433,69 +489,106 @@
                             @if ($keyCriteriaSpecs->isNotEmpty())
                                 <div class="border-b border-gray-100">
                                     <div class="px-5 py-4">
-                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">AI Key Comparison Criteria</p>
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">AI Key
+                                            Comparison Criteria</p>
                                     </div>
                                     <div class="overflow-x-auto">
                                         <table class="min-w-full divide-y divide-gray-100 text-sm">
                                             <thead class="bg-gray-50">
                                                 <tr>
-                                                    <th class="w-32 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Key Comparison</th>
-                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Label</th>
-                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Logic</th>
-                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Value</th>
-                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Unit</th>
-                                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Source</th>
-                                                    <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Confidence</th>
+                                                    <th
+                                                        class="w-32 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                        Key Comparison</th>
+                                                    <th
+                                                        class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                        Label
+                                                    </th>
+                                                    <th
+                                                        class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                        Value
+                                                    </th>
+                                                    <th
+                                                        class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                        Unit
+                                                    </th>
+                                                    <th
+                                                        class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                        Source
+                                                    </th>
+                                                    <th
+                                                        class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                        Confidence
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody class="divide-y divide-gray-100 bg-white">
                                                 @foreach ($keyCriteriaSpecs as $spec)
                                                     @php
-                                                        $criteriaFlags = $comparisonKeySettingsBySpecKey[trim((string) $spec->spec_key)] ?? [
+                                                        $criteriaFlags = $comparisonKeySettingsBySpecKey[
+                                                            trim((string) $spec->spec_key)
+                                                        ] ?? [
                                                             'upgrade_exceeds_value' => true,
-                                                            'caution_if_change_value' => true,
+                                                            'caution_if_exceeds_value' => true,
                                                             'upgrade_is_below_value' => false,
                                                             'caution_if_below_value' => false,
                                                         ];
                                                     @endphp
-                                                    <tr class="{{ $spec->is_key_comparison ? 'bg-amber-50/40' : '' }} hover:bg-gray-50 transition-colors">
+                                                    <tr
+                                                        class="{{ $spec->is_key_comparison ? 'bg-amber-50/40' : '' }} hover:bg-gray-50 transition-colors">
                                                         <td class="px-5 py-3 text-center">
-                                                            <span class="inline-flex h-4 w-4 items-center justify-center rounded border border-gray-300 bg-white text-[10px] font-semibold {{ $spec->is_key_comparison ? 'text-amber-600' : 'text-gray-300' }}">
+                                                            <span
+                                                                class="inline-flex h-4 w-4 items-center justify-center rounded border border-gray-300 bg-white text-[10px] font-semibold {{ $spec->is_key_comparison ? 'text-amber-600' : 'text-gray-300' }}">
                                                                 {{ $spec->is_key_comparison ? '✓' : '—' }}
                                                             </span>
                                                         </td>
                                                         <td class="px-5 py-3 text-gray-800">
                                                             {{ $spec->spec_label }}
                                                             @if ($spec->is_key_comparison)
-                                                                <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">key</span>
+                                                                <span
+                                                                    class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">key</span>
                                                             @endif
-                                                        </td>
-                                                        <td class="px-5 py-3 row-span-2">
-                                                            <div class="mt-2 grid grid-cols-1 gap-1 text-[11px] text-gray-500">
-                                                                    <label class="inline-flex items-center gap-1.5">
-                                                                        <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
-                                                                        <span>Upgrade exceeds value</span>
-                                                                    </label>
+                                                            <div
+                                                                class="mt-2 grid grid-cols-2 gap-1 text-[11px] text-gray-500 dark:text-gray-400">
                                                                 <label class="inline-flex items-center gap-1.5">
-                                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['caution_if_change_value'] ? 'checked' : '' }}>
-                                                                    <span>Caution if change value</span>
+                                                                    <input type="checkbox"
+                                                                        class="h-3 w-3 rounded border-gray-300 text-amber-500"
+                                                                        disabled
+                                                                        {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
+                                                                    <span>Upgrade exceeds value</span>
                                                                 </label>
                                                                 <label class="inline-flex items-center gap-1.5">
-                                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}>
+                                                                    <input type="checkbox"
+                                                                        class="h-3 w-3 rounded border-gray-300 text-amber-500"
+                                                                        disabled
+                                                                        {{ $criteriaFlags['caution_if_exceeds_value'] ? 'checked' : '' }}>
+                                                                    <span>Caution if exceeds value</span>
+                                                                </label>
+                                                                <label class="inline-flex items-center gap-1.5">
+                                                                    <input type="checkbox"
+                                                                        class="h-3 w-3 rounded border-gray-300 text-amber-500"
+                                                                        disabled
+                                                                        {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}>
                                                                     <span>Upgrade is below value</span>
                                                                 </label>
                                                                 <label class="inline-flex items-center gap-1.5">
-                                                                    <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}>
+                                                                    <input type="checkbox"
+                                                                        class="h-3 w-3 rounded border-gray-300 text-amber-500"
+                                                                        disabled
+                                                                        {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}>
                                                                     <span>Caution if below value</span>
                                                                 </label>
                                                             </div>
                                                         </td>
-                                                        <td class="px-5 py-3 font-medium text-gray-900">{{ $spec->spec_value ?? '—' }}</td>
-                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->spec_unit ?? '—' }}</td>
-                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->source ?? '—' }}</td>
+                                                        <td class="px-5 py-3 font-medium text-gray-900">
+                                                            {{ $spec->spec_value ?? '—' }}</td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->spec_unit ?? '—' }}
+                                                        </td>
+                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->source ?? '—' }}
+                                                        </td>
                                                         <td class="px-5 py-3 text-center">
                                                             @php $pct = round(($spec->confidence_score ?? 1) * 100); @endphp
-                                                            <span class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">{{ $pct }}%</span>
+                                                            <span
+                                                                class="text-xs {{ $pct >= 80 ? 'text-green-600' : ($pct >= 50 ? 'text-yellow-600' : 'text-red-500') }}">{{ $pct }}%</span>
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -791,9 +884,9 @@
                     profileCountBadge.textContent = checked + ' selected';
 
                     if (profileSelectAllBtn) {
-                        profileSelectAllBtn.textContent = profileTotal > 0 && checked === profileTotal
-                            ? 'Deselect All'
-                            : 'Select All';
+                        profileSelectAllBtn.textContent = profileTotal > 0 && checked === profileTotal ?
+                            'Deselect All' :
+                            'Select All';
                     }
                 }
 
@@ -802,7 +895,8 @@
                 });
 
                 profileSelectAllBtn?.addEventListener('click', function() {
-                    const shouldSelectAll = document.querySelectorAll('.kc-profile-checkbox:checked').length !== profileTotal;
+                    const shouldSelectAll = document.querySelectorAll('.kc-profile-checkbox:checked')
+                        .length !== profileTotal;
                     document.querySelectorAll('.kc-profile-checkbox').forEach((checkbox) => {
                         checkbox.checked = shouldSelectAll;
                     });
@@ -1000,7 +1094,7 @@
                             unit: item.unit || '',
                             defaultWeight: Number(item.default_weight ?? 50),
                             upgradeExceedsValue: item.upgrade_exceeds_value !== false,
-                            cautionIfChangeValue: item.caution_if_change_value === true,
+                            cautionIfExceedsValue: item.caution_if_exceeds_value === true,
                             upgradeIsBelowValue: item.upgrade_is_below_value === true,
                             cautionIfBelowValue: item.caution_if_below_value === true,
                         }));
@@ -1136,7 +1230,7 @@
                 const cleanedUnit = String(unit ?? '').trim();
                 if (!cleanedValue) return '<span class="text-gray-400">-</span>';
                 if (!cleanedUnit)
-            return `<span class="font-semibold text-gray-800">${escHtml(cleanedValue)}</span>`;
+                    return `<span class="font-semibold text-gray-800">${escHtml(cleanedValue)}</span>`;
                 return `<span class="font-semibold text-gray-800">${escHtml(cleanedValue)}</span> <span class="ml-1 text-xs text-gray-400">${escHtml(cleanedUnit)}</span>`;
             }
 
@@ -1245,7 +1339,8 @@
 
                 const renderRows = (items) => {
                     return items.map((spec) => {
-                        const isAlreadyInKeyComparison = keyComparisonState.some(kc => kc.spec_label === spec.spec_label);
+                        const isAlreadyInKeyComparison = keyComparisonState.some(kc => kc.spec_label ===
+                            spec.spec_label);
                         const addButtonHtml = isAlreadyInKeyComparison ? '' : `
                                 <button type="button" class="kc-add-spec inline-flex h-7 w-7 items-center justify-center rounded-md border border-teal-200 text-teal-600 hover:bg-teal-50" data-spec-id="${spec.id}" title="Add to key comparison" aria-label="Add to key comparison">
                                     <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

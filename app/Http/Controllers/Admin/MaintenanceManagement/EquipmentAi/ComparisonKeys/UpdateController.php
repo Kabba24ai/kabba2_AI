@@ -19,7 +19,7 @@ class UpdateController extends Controller
             'sort_order'       => 'nullable|integer|min:0',
             'is_required'      => 'nullable|boolean',
             'upgrade_exceeds_value' => 'nullable|boolean',
-            'caution_if_change_value' => 'nullable|boolean',
+            'caution_if_exceeds_value' => 'nullable|boolean',
             'upgrade_is_below_value' => 'nullable|boolean',
             'caution_if_below_value' => 'nullable|boolean',
         ]);
@@ -27,7 +27,7 @@ class UpdateController extends Controller
         $data['sort_order']  = $data['sort_order'] ?? 0;
         $data['is_required'] = $request->boolean('is_required');
         $data['upgrade_exceeds_value'] = $request->boolean('upgrade_exceeds_value', false);
-        $data['caution_if_change_value'] = $request->boolean('caution_if_change_value', false);
+        $data['caution_if_exceeds_value'] = $request->boolean('caution_if_exceeds_value', false);
         $data['upgrade_is_below_value'] = $request->boolean('upgrade_is_below_value', false);
         $data['caution_if_below_value'] = $request->boolean('caution_if_below_value', false);
 

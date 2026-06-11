@@ -256,6 +256,7 @@
                 </button>
             </div>
         </div>
+    </div>{{-- /Order Header Section --}}
 
     {{-- Fuel Charge Modal --}}
     <div id="orderFuelChargeModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4">

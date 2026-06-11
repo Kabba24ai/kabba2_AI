@@ -16,7 +16,7 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         if ($request->ajax()) {
-            $query = Customer::with('orders.payments', 'addresses', 'accounts' ,'latestInvoice')->whereIn('status', ['Active', 'Archived'])->where('available_credit_balance', '>', 0);
+            $query = Customer::with('orders.payments', 'addresses', 'accounts' ,'latestInvoice')->whereIn('status', ['Active', 'Archived']);
 
             // Apply filters
             if ($request->filled('search_name')) {
@@ -103,13 +103,13 @@ class IndexController extends Controller
 
             switch ($request->input('balance_type', 'positive')) {
                 case 'negative':
-                    $query->where('available_credit_balance', '<', 0);
+                    $query->whereRaw('ROUND(CAST(available_credit_balance AS DECIMAL(10,2)), 2) < 0');
                     break;
                 case 'all':
-                    $query->where('available_credit_balance', '!=', 0);
+                    $query->whereRaw('ROUND(CAST(available_credit_balance AS DECIMAL(10,2)), 2) != 0');
                     break;
-                default: // 'positive' or missing — default behavior
-                    $query->where('available_credit_balance', '>', 0);
+                default: // 'positive' or missing
+                    $query->whereRaw('ROUND(CAST(available_credit_balance AS DECIMAL(10,2)), 2) > 0');
                     break;
             }
 

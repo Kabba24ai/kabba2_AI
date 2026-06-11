@@ -17,6 +17,8 @@ enum OrderPaymentStatus : string
     case InvoiceCheque = 'Invoice Cheque';
     case InvoiceOther = 'Invoice Other';
 
+    case PartialPayment = 'Partial Payment';
+
     public function label(): string
     {
        return match($this) {
@@ -26,6 +28,7 @@ enum OrderPaymentStatus : string
            self::PartialRefund => 'Partial Refund',
            self::Refund => 'Refunded',
            self::Failed => 'Failed',
+           self::PartialPayment => 'Partial Payment',
            self::InvoiceCard => 'Paid by CC on File',
            self::InvoiceCash => 'Paid at Front Desk',
            self::InvoiceOnline => 'Paid by Direct Bank',

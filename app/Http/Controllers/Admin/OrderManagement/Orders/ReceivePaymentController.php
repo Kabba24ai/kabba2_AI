@@ -38,7 +38,23 @@ class ReceivePaymentController extends Controller
             $order = Order::where('unique_id', $uniqueId)->with('customer')->firstOrFail();
             $customer = $order->customer;
             $customer->load('billingAddress', 'shippingAddress');
-            $amount = (float) $order->grand_total;
+
+            $isPartial = !empty($validated['partial_payment']);
+            if ($isPartial) {
+                $amount = (float) ($validated['payment_amount'] ?? 0);
+                if ($amount <= 0) {
+                    DB::rollBack();
+                    return response()->json(['success' => false, 'message' => 'Payment amount must be greater than zero.'], 422);
+                }
+                $alreadyPaid = $order->payments()
+                    ->whereIn('status', [OrderPaymentStatus::PartialPayment->value, OrderPaymentStatus::Paid->value])
+                    ->sum('amount');
+                $completesTotal = ($alreadyPaid + $amount) >= ((float) $order->grand_total - 0.005);
+                $targetStatus = $completesTotal ? OrderPaymentStatus::Paid : OrderPaymentStatus::PartialPayment;
+            } else {
+                $amount = (float) $order->grand_total;
+                $targetStatus = OrderPaymentStatus::Paid;
+            }
 
             $paymentMethod = $validated['payment_type'] ?? null;
             $paymentNote = $validated['payment_note'] ?? null;
@@ -78,9 +94,9 @@ class ReceivePaymentController extends Controller
                         'customer_profile_id' => $customerProfileId,
                         'payment_profile_id' => $paymentProfileId,
                         'card_number' => $paymentResult['card_number'] ?? null,
-                        'card_first_name' => $cardDetail->first_name ?? null, // optional
-                        'card_last_name' => $cardDetail->last_name ?? null, // optional
-                        'status' => $paymentResult['payment_status'] ?? 'Pending',
+                        'card_first_name' => $cardDetail->first_name ?? null,
+                        'card_last_name' => $cardDetail->last_name ?? null,
+                        'status' => ($paymentResult['payment_status'] ?? 'Pending') === 'Paid' ? $targetStatus->value : ($paymentResult['payment_status'] ?? 'Pending'),
                         'payment_note' => $paymentNote,
                         'created_by_id' => $user->id,
                         'created_by_type' => User::class,
@@ -121,7 +137,7 @@ class ReceivePaymentController extends Controller
                         'card_number' => $paymentResult['card_number'] ?? null,
                         'card_first_name' => $validated['firstName'] ?? null,
                         'card_last_name' => $validated['lastName'] ?? null,
-                        'status' => $paymentResult['payment_status'] ?? 'Pending',
+                        'status' => ($paymentResult['payment_status'] ?? 'Pending') === 'Paid' ? $targetStatus->value : ($paymentResult['payment_status'] ?? 'Pending'),
                         'payment_note' => $paymentNote,
                         'created_by_id' => $user->id,
                         'created_by_type' => User::class,
@@ -167,7 +183,7 @@ class ReceivePaymentController extends Controller
                     'card_number' => null,
                     'card_first_name' => null,
                     'card_last_name' => null,
-                    'status' => OrderPaymentStatus::Paid->value,
+                    'status' => $targetStatus->value,
                     'payment_note' => $paymentNote,
                     'cheque_number' => $validated['cheque_number'] ?? null,
                     'created_by_id' => $user->id,

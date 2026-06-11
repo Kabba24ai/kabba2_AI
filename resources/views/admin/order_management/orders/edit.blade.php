@@ -43,14 +43,25 @@
             </div>
 
             {{-- MIDDLE: Payment Status + Links (centered like screenshot) --}}
+            @php
+                $totalPartialPaid = $order->payments()
+                    ->where('status', \App\Enums\Orders\OrderPaymentStatus::PartialPayment->value)
+                    ->sum('amount');
+            @endphp
             <div class="flex-1 flex flex-col items-start lg:items-center gap-2">
                 <div class="flex flex-wrap items-center justify-start lg:justify-center gap-2">
-                    @if ($order->last_payment_status === 'Pending' || $order->last_payment_status === 'Failed')
+                    @if (!$order->is_paid && in_array($order->last_payment_status, ['Pending', 'Failed', 'Partial Payment']))
                         <button id="pendingPaymentBtn" type="button"
                             class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
                             PENDING PAYMENT
                         </button>
+                    @endif
+
+                    @if ($order->last_payment_status === 'Partial Payment' && $totalPartialPaid > 0)
+                        <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-orange-700 bg-orange-100 rounded-full">
+                            Partial Payment: {{ \App\Helpers\CustomHelper::formatCurrency($totalPartialPaid) }}
+                        </span>
                     @endif
 
                     @if ($order->last_payment_status === 'Pending' && $order->last_payment_type !== 'Card')
@@ -1789,7 +1800,9 @@
 
     <!-- Process Payment Modal -->
     <div id="processPaymentModal"
-        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center"
+        data-grand-total="{{ $order->grand_total }}"
+        data-total-paid="{{ $totalPartialPaid }}">
         <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b">
@@ -1805,6 +1818,48 @@
                 ])->open() }}
 
             <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+
+                <!-- Full / Partial Payment toggle -->
+                <div class="flex gap-3">
+                    <label id="labelFullPayment"
+                        class="flex-1 flex items-center gap-3 p-3 border-2 border-teal-500 rounded-lg cursor-pointer transition-colors select-none">
+                        <input type="radio" name="payment_mode" value="full" id="paymentModeFull" class="hidden" checked />
+                        <span class="w-4 h-4 rounded-full border-2 border-teal-500 flex items-center justify-center flex-shrink-0">
+                            <span class="w-2 h-2 rounded-full bg-teal-500" id="radioFullDot"></span>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-700">Full Payment</span>
+                    </label>
+                    <label id="labelPartialPayment"
+                        class="flex-1 flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer transition-colors select-none">
+                        <input type="radio" name="payment_mode" value="partial" id="paymentModePartial" class="hidden" />
+                        <span class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0">
+                            <span class="w-2 h-2 rounded-full bg-teal-500 hidden" id="radioPartialDot"></span>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-700">Partial Payment</span>
+                    </label>
+                </div>
+
+                <!-- Partial payment fields (hidden by default) -->
+                <div id="partialPaymentFields" class="hidden space-y-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div class="flex justify-between text-sm font-medium text-gray-700">
+                        <span>Amount Owed:</span>
+                        <span id="amountOwedDisplay" class="font-semibold text-gray-900"></span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
+                        <div class="flex items-center border border-gray-300 rounded-md px-3 py-2 bg-white focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
+                            <span class="text-gray-500 text-sm mr-1">$</span>
+                            <input type="number" id="partialPaymentAmount" step="0.01" min="0.01"
+                                   class="flex-1 text-sm focus:outline-none bg-transparent" placeholder="0.00" />
+                        </div>
+                        <p id="partialAmountError" class="text-red-500 text-xs mt-1 hidden"></p>
+                    </div>
+                    <div class="flex justify-between text-sm font-medium text-gray-700 border-t pt-2">
+                        <span>Remaining Balance:</span>
+                        <span id="remainingBalanceDisplay" class="font-semibold text-gray-500">—</span>
+                    </div>
+                </div>
+
                 <!-- Payment Method -->
                 <div class="space-y-4">
                     <div class="mb-4">
@@ -3926,7 +3981,73 @@
             function closeProcessPaymentModal() {
                 processPaymentModal.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
+                // Reset partial payment state
+                document.getElementById('paymentModeFull').checked = true;
+                updatePaymentModeUI();
+                document.getElementById('partialPaymentAmount').value = '';
+                document.getElementById('remainingBalanceDisplay').textContent = '—';
+                document.getElementById('partialAmountError').classList.add('hidden');
             }
+
+            // === Full / Partial Payment toggle ===
+            const paymentModeFull     = document.getElementById('paymentModeFull');
+            const paymentModePartial  = document.getElementById('paymentModePartial');
+            const partialPaymentFields = document.getElementById('partialPaymentFields');
+            const partialPaymentAmountInput = document.getElementById('partialPaymentAmount');
+            const amountOwedDisplay   = document.getElementById('amountOwedDisplay');
+            const remainingBalanceDisplay = document.getElementById('remainingBalanceDisplay');
+            const partialAmountError  = document.getElementById('partialAmountError');
+
+            const modalGrandTotal = parseFloat(processPaymentModal.dataset.grandTotal || '0');
+            const modalTotalPaid  = parseFloat(processPaymentModal.dataset.totalPaid  || '0');
+            const modalBalanceDue = Math.max(0, modalGrandTotal - modalTotalPaid);
+
+            function fmtCurrency(n) {
+                return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
+            function updatePaymentModeUI() {
+                const isFull = paymentModeFull.checked;
+                document.getElementById('labelFullPayment').classList.toggle('border-teal-500', isFull);
+                document.getElementById('labelFullPayment').classList.toggle('border-gray-200', !isFull);
+                document.getElementById('radioFullDot').classList.toggle('hidden', !isFull);
+                document.getElementById('labelPartialPayment').classList.toggle('border-teal-500', !isFull);
+                document.getElementById('labelPartialPayment').classList.toggle('border-gray-200', isFull);
+                document.getElementById('radioPartialDot').classList.toggle('hidden', isFull);
+                partialPaymentFields.classList.toggle('hidden', isFull);
+                if (!isFull) {
+                    amountOwedDisplay.textContent = fmtCurrency(modalBalanceDue);
+                    updateRemainingBalance();
+                }
+            }
+
+            function updateRemainingBalance() {
+                const payment   = parseFloat(partialPaymentAmountInput.value) || 0;
+                const remaining = Math.max(0, modalBalanceDue - payment);
+                remainingBalanceDisplay.textContent = fmtCurrency(remaining);
+                if (payment > modalBalanceDue + 0.005) {
+                    partialAmountError.textContent = 'Amount exceeds balance due (' + fmtCurrency(modalBalanceDue) + ')';
+                    partialAmountError.classList.remove('hidden');
+                } else if (payment <= 0 && partialPaymentAmountInput.value !== '') {
+                    partialAmountError.textContent = 'Amount must be greater than 0';
+                    partialAmountError.classList.remove('hidden');
+                } else {
+                    partialAmountError.classList.add('hidden');
+                }
+            }
+
+            document.getElementById('labelFullPayment').addEventListener('click', function() {
+                paymentModeFull.checked = true;
+                updatePaymentModeUI();
+            });
+            document.getElementById('labelPartialPayment').addEventListener('click', function() {
+                paymentModePartial.checked = true;
+                updatePaymentModeUI();
+            });
+            partialPaymentAmountInput.addEventListener('input', updateRemainingBalance);
+
+            // Initialize
+            updatePaymentModeUI();
 
             // 👉 Open the modal when clicking the Pending Payment pill
             if (pendingPaymentBtn) {
@@ -4143,6 +4264,29 @@
                     formData.delete('cardNumber');
                     formData.delete('expiry');
                     formData.delete('cvc');
+                    formData.delete('payment_mode'); // radio group — translated below
+
+                    // Partial payment injection
+                    if (paymentModePartial.checked) {
+                        const partialAmt = parseFloat(partialPaymentAmountInput.value);
+                        if (!partialAmt || partialAmt <= 0) {
+                            notyf.error('Please enter a valid payment amount.');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
+                            return;
+                        }
+                        if (partialAmt > modalBalanceDue + 0.005) {
+                            notyf.error('Payment amount cannot exceed balance due (' + fmtCurrency(modalBalanceDue) + ').');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
+                            return;
+                        }
+                        formData.set('partial_payment', '1');
+                        formData.set('payment_amount', partialAmt.toFixed(2));
+                    } else {
+                        formData.delete('partial_payment');
+                        formData.delete('payment_amount');
+                    }
                     if (!submitBtn.disabled) {
                         submitBtn.disabled = true;
                         submitBtn.textContent = 'Saving...';

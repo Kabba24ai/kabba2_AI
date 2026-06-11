@@ -31,6 +31,8 @@ class ReceivePaymentRequest extends ApiBaseFormRequest
             'payment_note' => ['nullable','max:255'],
             'card_number' => ['nullable','string','max:4'],
             'mm_yy' => ['nullable','string','max:6'],
+            'partial_payment' => ['nullable', 'boolean'],
+            'payment_amount' => ['nullable', 'numeric', 'min:0.01'],
         ];
     }
 }

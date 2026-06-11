@@ -281,6 +281,21 @@ class Order extends Model
         return $this->payments()->where('status', \App\Enums\Orders\OrderPaymentStatus::Paid)->exists();
     }
 
+    public function getTotalPaidAttribute(): float
+    {
+        return (float) $this->payments()
+            ->whereIn('status', [
+                \App\Enums\Orders\OrderPaymentStatus::PartialPayment->value,
+                \App\Enums\Orders\OrderPaymentStatus::Paid->value,
+            ])
+            ->sum('amount');
+    }
+
+    public function getBalanceDueAttribute(): float
+    {
+        return max(0.0, (float) $this->grand_total - $this->total_paid);
+    }
+
     public function getTotalRefundedAttribute()
     {
         return $this->payments()

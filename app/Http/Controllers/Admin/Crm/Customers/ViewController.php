@@ -22,7 +22,7 @@ class ViewController extends Controller
     {
         $customer = Customer::with([
             'orders.products', 'orders.payments',
-            'notes.user',
+            'notes' => fn ($q) => $q->with('user')->orderByDesc('created_at'),
             'invoices' => fn ($q) => $q->with('items')->orderByDesc('invoice_date'),
             'accountApprovedBy', 'taxStatusApprovedBy', 'addresses.state', 'billingAddress', 'shippingAddress', 'accounts.responsibleUser', 'media',
         ])

@@ -229,7 +229,24 @@
              
 
         </div>
-        <div class="flex justify-end">
+        <div class="flex justify-end items-center gap-2">
+
+            {{-- Fuel Charge Alert button --}}
+            <button id="orderFuelChargeBtn" type="button" title="Add Fuel Charge Alert"
+                class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-sm">
+                <svg fill="currentColor" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                    <path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128zM160 144L160 240C160 248.8 167.2 256 176 256L304 256C312.8 256 320 248.8 320 240L320 144C320 135.2 312.8 128 304 128L176 128C167.2 128 160 135.2 160 144z"/>
+                </svg>
+            </button>
+
+            {{-- Damage Alert button --}}
+            <button id="orderDamageAlertBtn" type="button" title="Add Damage Alert"
+                class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5 h-5">
+                    <path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/>
+                </svg>
+            </button>
+
             <span
                 id="callNeededBtn"
                 data-customer-id="{{ $order->customer_id }}"
@@ -260,7 +277,93 @@
         </div>
     </div>
 
-   
+    {{-- Fuel Charge Modal --}}
+    <div id="orderFuelChargeModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-200">
+            <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-100">
+                <div class="flex items-center justify-center w-9 h-9 rounded-full bg-orange-100">
+                    <svg fill="currentColor" class="w-5 h-5 text-orange-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128zM160 144L160 240C160 248.8 167.2 256 176 256L304 256C312.8 256 320 248.8 320 240L320 144C320 135.2 312.8 128 304 128L176 128C167.2 128 160 135.2 160 144z"/></svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Add Fuel Charge Alert</h3>
+            </div>
+            <div class="px-6 py-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">$</span>
+                        <input id="orderFuelAmount" type="number" step="0.01" min="0.01"
+                            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            placeholder="0.00">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
+                    <select id="orderFuelPerson" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="">-- Select person --</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <textarea id="orderFuelNotes" rows="2"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="Additional notes..."></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 px-6 pb-5 pt-4 border-t border-gray-100">
+                <button type="button" onclick="document.getElementById('orderFuelChargeModal').classList.replace('flex','hidden')"
+                    class="px-5 py-2.5 text-sm rounded-lg font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button type="button" id="orderFuelSubmitBtn"
+                    class="px-5 py-2.5 text-sm rounded-lg font-medium bg-orange-500 text-white hover:bg-orange-600">Add Alert</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Damage Alert Modal --}}
+    <div id="orderDamageAlertModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-200">
+            <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-100">
+                <div class="flex items-center justify-center w-9 h-9 rounded-full bg-red-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5 h-5 text-red-600"><path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/></svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Add Damage Alert</h3>
+            </div>
+            <div class="px-6 py-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">$</span>
+                        <input id="orderDamageAmount" type="number" step="0.01" min="0.01"
+                            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            placeholder="0.00">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
+                    <select id="orderDamagePerson" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="">-- Select person --</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <textarea id="orderDamageNotes" rows="2"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="Describe the damage..."></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 px-6 pb-5 pt-4 border-t border-gray-100">
+                <button type="button" onclick="document.getElementById('orderDamageAlertModal').classList.replace('flex','hidden')"
+                    class="px-5 py-2.5 text-sm rounded-lg font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button type="button" id="orderDamageSubmitBtn"
+                    class="px-5 py-2.5 text-sm rounded-lg font-medium bg-red-600 text-white hover:bg-red-700">Add Alert</button>
+            </div>
+        </div>
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
@@ -5032,6 +5135,72 @@
         });
 
     });
+
+    // ── Fuel Charge Alert from Order ─────────────────────────────────────────
+    (function () {
+        const alertChargeUrl = "{{ route('admin.order-management.orders.alert-charge', $order->unique_id) }}";
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        function openModal(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+        }
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('flex');
+            el.classList.add('hidden');
+        }
+
+        function submitAlertCharge(type, amountId, personId, notesId, btnId) {
+            const amount = document.getElementById(amountId).value.trim();
+            const person = document.getElementById(personId).value;
+            const notes  = document.getElementById(notesId).value.trim();
+
+            if (!amount || parseFloat(amount) <= 0) {
+                notyf.error('Please enter a valid amount.');
+                return;
+            }
+            if (!person) {
+                notyf.error('Please select a person responsible.');
+                return;
+            }
+
+            const btn = document.getElementById(btnId);
+            const orig = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            fetch(alertChargeUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ type, amount, responsible_person: person, notes }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    notyf.success(data.message);
+                    closeModal(type === 'fuel' ? 'orderFuelChargeModal' : 'orderDamageAlertModal');
+                    document.getElementById(amountId).value = '';
+                    document.getElementById(personId).value = '';
+                    document.getElementById(notesId).value = '';
+                } else {
+                    notyf.error(data.message || 'Something went wrong.');
+                }
+            })
+            .catch(() => notyf.error('Request failed. Please try again.'))
+            .finally(() => { btn.disabled = false; btn.textContent = orig; });
+        }
+
+        document.getElementById('orderFuelChargeBtn').addEventListener('click', () => openModal('orderFuelChargeModal'));
+        document.getElementById('orderDamageAlertBtn').addEventListener('click', () => openModal('orderDamageAlertModal'));
+
+        document.getElementById('orderFuelSubmitBtn').addEventListener('click', () =>
+            submitAlertCharge('fuel', 'orderFuelAmount', 'orderFuelPerson', 'orderFuelNotes', 'orderFuelSubmitBtn'));
+
+        document.getElementById('orderDamageSubmitBtn').addEventListener('click', () =>
+            submitAlertCharge('damage', 'orderDamageAmount', 'orderDamagePerson', 'orderDamageNotes', 'orderDamageSubmitBtn'));
+    })();
 
     </script>
 

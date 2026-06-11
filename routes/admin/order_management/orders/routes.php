@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\TransactionDetailsControll
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdatePoidController;
 
 use App\Http\Controllers\Admin\OrderManagement\Orders\RepairDeletedOrdersController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\AlertChargeController;
 
 
 Route::prefix('orders')
@@ -85,6 +86,8 @@ Route::prefix('orders')
 
 
         Route::post('/update-po', UpdatePoidController::class)->name('update-po-id');
+
+        Route::post('/{unique_id}/alert-charge', AlertChargeController::class)->name('alert-charge');
 
         // Route::get('repair-deleted-orders', RepairDeletedOrdersController::class)->name('repair-deleted-orders');
 

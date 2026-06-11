@@ -387,8 +387,13 @@ if (
                 }
             }
 
-            // Mark the original CRM fuel charge as completed so it disappears from alerts
-            $chargeAccount->fuel_alert_status = 'completed';
+            // Mark the original CRM charge as completed so it disappears from alerts
+            if ($chargeAccount->fuel_alert_status === 'pending') {
+                $chargeAccount->fuel_alert_status = 'completed';
+            }
+            if ($chargeAccount->damage_alert_status === 'pending') {
+                $chargeAccount->damage_alert_status = 'completed';
+            }
             $chargeAccount->save();
 
             flash('Payment recorded successfully.')->success();

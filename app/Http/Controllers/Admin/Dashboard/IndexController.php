@@ -192,6 +192,43 @@ class IndexController extends Controller
             ];
         });
 
+        // Merge CRM-originated Damage alerts (CustomerAccount records)
+        $crmDamageCharges = CustomerAccount::with(['customer.cards'])
+            ->where('type', 'charge')
+            ->where('reason', 'Damages')
+            ->where('damage_alert_status', 'pending')
+            ->latest()
+            ->get()
+            ->map(function ($account) {
+                return [
+                    'id'             => 20000 + $account->id,
+                    'source'         => 'crm',
+                    'customer'       => [
+                        'id'        => $account->customer_id,
+                        'full_name' => $account->customer?->full_name,
+                        'cards'     => $account->customer?->cards?->map(fn ($c) => [
+                            'id'    => $c->unique_id,
+                            'label' => $c->card_number,
+                        ])->values() ?? [],
+                    ],
+                    'customerName'   => $account->customer?->full_name ?? '—',
+                    'orderId'        => null,
+                    'order_number'   => 'CRM',
+                    'orderLink'      => $account->customer
+                        ? route('admin.crm.customers.view', $account->customer->unique_id)
+                        : null,
+                    'amountOwed'     => '$' . number_format((float) ($account->amount ?? 0), 2),
+                    'date'           => optional($account->date)->toDateString(),
+                    'type'           => 'damage',
+                    'notes'          => [],
+                    'equipment'      => null,
+                    'order_product'  => null,
+                    'customer_account_id' => $account->unique_id,
+                ];
+            });
+
+        $damagedOrderAlerts = $damagedOrderAlerts->concat($crmDamageCharges)->values();
+
         // Merge CRM-originated Fuel Charge alerts (CustomerAccount records)
         $crmFuelCharges = CustomerAccount::with(['customer.cards'])
             ->where('type', 'charge')

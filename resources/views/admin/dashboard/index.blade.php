@@ -379,61 +379,62 @@ if (isFuel) {
             list.forEach(alert => {
                 const item = document.importNode(template, true);
 
-                // Fill text
+                const isCrm = alert.source === 'crm';
+
                 item.querySelector("[data-customer]").textContent = alert.customerName;
-                item.querySelector("[data-order-id]").textContent = alert.order_number;
 
-                // Buttons
+                const orderIdEl = item.querySelector("[data-order-id]");
+                if (isCrm) {
+                    orderIdEl.innerHTML = `<span class="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-1.5 py-0.5 rounded">CRM</span>`;
+                } else {
+                    orderIdEl.textContent = alert.order_number;
+                }
+
                 item.querySelector("[data-order-btn]").onclick = () => {
-                    if (alert.orderLink) {
-                        // window.location.href = alert.orderLink;
-
-                        // window.open(alert.orderLink, "_blank");
-
-                        window.location.href = alert.orderLink;
-
-                    }
+                    if (alert.orderLink) window.location.href = alert.orderLink;
                 };
 
-
-                item.querySelector("[data-edit-amount]").onclick = () => {
-                    this.editingAlert = alert;
-                    this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
-                    // this.showAmountModal = true;
+                const editAmountBtn = item.querySelector("[data-edit-amount]");
+                if (isCrm) {
+                    editAmountBtn.classList.add("hidden");
+                } else {
+                    editAmountBtn.onclick = () => {
+                        this.editingAlert = alert;
+                        this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
                         this.openAmountModal(alert);
-
-                };
-
+                    };
+                }
 
                 const viewBtn = item.querySelector('[data-view-charges]');
-                    if (viewBtn) {
-                    viewBtn.addEventListener('click', () => {
-                        // pass the alert object
-                        this.openChargesModal(alert);
-                    });
+                if (viewBtn) {
+                    if (isCrm) {
+                        viewBtn.classList.add("hidden");
+                    } else {
+                        viewBtn.addEventListener('click', () => this.openChargesModal(alert));
                     }
-
-
+                }
 
                 const dropdown = item.querySelector("[data-status-dropdown]");
                 item.querySelector("[data-status-btn]").onclick = () => dropdown.classList.toggle("hidden");
 
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("damage", alert.id, "paid");
-                item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
 
-                item.querySelector("[data-resolved]").onclick = () => {
-                    dropdown.classList.add("hidden");
-                    this.openResolvedModal(alert);
-                };
+                if (isCrm) {
+                    item.querySelector("[data-resolved]")?.remove();
+                    item.querySelector("[data-uncollectible]")?.remove();
+                } else {
+                    item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("damage", alert.id, "uncollectible");
+                    item.querySelector("[data-resolved]").onclick = () => {
+                        dropdown.classList.add("hidden");
+                        this.openResolvedModal(alert);
+                    };
+                }
 
                 item.querySelector("[data-edit-notes]").onclick = () => {
                     this.editingAlert = alert;
                     this.tempNotes = "";
-                    // this.showNotesModal = true;
                     this.activeOrderUniqueId = alert.orderId;
-
                     this.openNotesModal(alert);
-
                 };
 
                 // Amount color

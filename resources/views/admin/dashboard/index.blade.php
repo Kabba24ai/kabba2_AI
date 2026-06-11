@@ -1317,6 +1317,13 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 });
 
+// Close any open status dropdown when clicking outside it
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('[data-status-dropdown]') && !e.target.closest('[data-status-btn]')) {
+        document.querySelectorAll('[data-status-dropdown]').forEach(d => d.classList.add('hidden'));
+    }
+});
+
 
 document.addEventListener('livewire:init', () => {
     Livewire.on('alerts-updated', ({ alerts , fuelAlerts  }) => {

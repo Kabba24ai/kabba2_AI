@@ -252,14 +252,21 @@
         <div class="flex items-center justify-between mb-2">
             <label class="block text-sm font-medium text-gray-700">Notes</label>
 
-            <button type="button" id="addNoteBtn2"
-                        class=" text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 " fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add
-            </button>
+            <div class="flex items-center gap-3">
+                <button type="button" id="viewAllNotesBtn"
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    View All
+                </button>
+
+                <button type="button" id="addNoteBtn2"
+                    class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add
+                </button>
+            </div>
 
         </div>
 
@@ -521,6 +528,31 @@
     </div>
 </div>
 
+{{-- Notes History Modal --}}
+<div id="notesHistoryModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="w-full max-w-4xl mx-auto bg-white rounded-lg shadow-xl flex flex-col max-h-[90vh] border border-gray-200">
+
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Notes History</h2>
+            <button type="button" id="closeNotesHistoryBtn" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="px-4 py-3 border-b border-gray-100">
+            <div class="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+                </svg>
+                <input type="text" id="notesHistorySearch" placeholder="Search notes by keyword..."
+                    class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring focus:border-blue-500" />
+            </div>
+        </div>
+
+        <div id="notesHistoryList" class="overflow-y-auto flex-1 p-4 space-y-3">
+        </div>
+
+    </div>
+</div>
+
 @push('js')
 
 <!-- this is for appear tags her form choice js  -->
@@ -674,6 +706,59 @@
 
         });
 
+
+        // ── View All Notes History Modal ──────────────────────────────────
+        const viewAllNotesBtn    = document.getElementById('viewAllNotesBtn');
+        const notesHistoryModal  = document.getElementById('notesHistoryModal');
+        const notesHistorySearch = document.getElementById('notesHistorySearch');
+        const notesHistoryList   = document.getElementById('notesHistoryList');
+        const closeHistoryBtn    = document.getElementById('closeNotesHistoryBtn');
+
+        function renderHistoryNotes(list) {
+            if (!list.length) {
+                notesHistoryList.innerHTML = '<p class="text-gray-400 text-sm text-center py-10">No notes found.</p>';
+                return;
+            }
+            notesHistoryList.innerHTML = list.map(note => {
+                const isUpdated = note.updated_at && note.updated_at !== note.created_at;
+                const formatted = note.text
+                    .replace(/\n/g, '<br>')
+                    .replace(/Reason:/g, '<strong>Reason:</strong>')
+                    .replace(/Priority:/g, '<strong>Priority:</strong>')
+                    .replace(/Notes:/g, '<strong>Notes:</strong>');
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-sm transition">
+                        <p class="text-sm text-gray-800 leading-relaxed">${formatted}</p>
+                        <div class="mt-2 text-xs text-gray-500">
+                            ${isUpdated ? note.updated_at : note.created_at}
+                            by <span class="font-semibold">${note.user_name}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        if (viewAllNotesBtn) {
+            viewAllNotesBtn.addEventListener('click', () => {
+                notesHistorySearch.value = '';
+                renderHistoryNotes(notes);
+                notesHistoryModal.classList.remove('hidden');
+            });
+        }
+
+        if (closeHistoryBtn) {
+            closeHistoryBtn.addEventListener('click', () => notesHistoryModal.classList.add('hidden'));
+        }
+
+        notesHistoryModal.addEventListener('click', e => {
+            if (e.target === notesHistoryModal) notesHistoryModal.classList.add('hidden');
+        });
+
+        notesHistorySearch.addEventListener('input', () => {
+            const q = notesHistorySearch.value.toLowerCase().trim();
+            const filtered = q ? notes.filter(n => n.text.toLowerCase().includes(q)) : notes;
+            renderHistoryNotes(filtered);
+        });
 
     });
 </script>

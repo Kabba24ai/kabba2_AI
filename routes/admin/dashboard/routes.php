@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\Dashboard\CallNeededCompleteController;
 use App\Http\Controllers\Admin\Dashboard\CallNeededUpdateController;
 use App\Http\Controllers\Admin\Dashboard\ResolutionPresetController;
 use App\Http\Controllers\Admin\Dashboard\FuelChargeStoreController;
+use App\Http\Controllers\Admin\Dashboard\DamageChargeStoreController;
 
 
 Route::prefix('dashboard')
@@ -59,5 +60,6 @@ Route::post(
 )->name('call-needed.update');
 
 Route::post('/fuel-charge/store', FuelChargeStoreController::class)->name('fuel-charge.store');
+Route::post('/damage-charge/store', DamageChargeStoreController::class)->name('damage-charge.store');
 
 });

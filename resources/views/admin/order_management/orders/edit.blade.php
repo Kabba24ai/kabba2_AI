@@ -357,45 +357,96 @@
     </div>
 
     {{-- Damage Alert Modal --}}
-    <div id="orderDamageAlertModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-200">
-            <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-100">
-                <div class="flex items-center justify-center w-9 h-9 rounded-full bg-red-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5 h-5 text-red-600"><path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/></svg>
+    <div id="orderDamageAlertModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-full">
+            {{-- Header --}}
+            <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <div class="p-1.5 rounded-md bg-red-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-4 h-4 text-red-600"><path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/></svg>
+                    </div>
+                    <h2 class="text-lg font-medium text-gray-900">Add Damage Alert</h2>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">Add Damage Alert</h3>
+                <button type="button" onclick="document.getElementById('orderDamageAlertModal').classList.replace('flex','hidden')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
             </div>
-            <div class="px-6 py-4 space-y-4">
+
+            <div class="px-6 overflow-y-auto space-y-5 py-5">
+                {{-- Charge Amount --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">$</span>
-                        <input id="orderDamageAmount" type="number" step="0.01" min="0.01"
-                            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                            placeholder="0.00">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-500 text-sm pointer-events-none">$</span>
+                        <input id="orderDamageAmount" type="number" step="0.01" min="0.01" placeholder="0.00"
+                            class="w-full pl-7 pr-3 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
+
+                {{-- Sales Tax Treatment --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
+                    <div class="space-y-2 text-sm text-gray-700">
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderDamageSalesTax" value="add" checked class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Add Sales Tax</p>
+                                <p class="text-gray-500">Add {{ $taxPercentage }}% sales tax to the entered amount</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderDamageSalesTax" value="free" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Tax Free</p>
+                                <p class="text-gray-500">No sales tax applied to this charge</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderDamageSalesTax" value="reverse" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Reverse Sales Tax</p>
+                                <p class="text-gray-500">Split entered amount proportionally between base amount and tax</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Charge Reason (fixed, read-only) --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason <span class="text-red-500">*</span></label>
+                    <p class="text-base font-semibold text-red-500">Damages</p>
+                </div>
+
+                {{-- Person Responsible --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
-                    <select id="orderDamagePerson" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500">
-                        <option value="">-- Select person --</option>
+                    <select id="orderDamagePerson" class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select person responsible</option>
                         @foreach($employees as $emp)
                             <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
                         @endforeach
                     </select>
                 </div>
+
+                {{-- Notes --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                    <textarea id="orderDamageNotes" rows="2"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    <textarea id="orderDamageNotes" rows="3"
+                        class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Describe the damage..."></textarea>
                 </div>
-            </div>
-            <div class="flex justify-end gap-2 px-6 pb-5 pt-4 border-t border-gray-100">
-                <button type="button" onclick="document.getElementById('orderDamageAlertModal').classList.replace('flex','hidden')"
-                    class="px-5 py-2.5 text-sm rounded-lg font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="button" id="orderDamageSubmitBtn"
-                    class="px-5 py-2.5 text-sm rounded-lg font-medium bg-red-600 text-white hover:bg-red-700">Add Alert</button>
+
+                {{-- Buttons --}}
+                <div class="flex justify-end gap-2 pb-2">
+                    <button type="button" onclick="document.getElementById('orderDamageAlertModal').classList.replace('flex','hidden')"
+                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Cancel</button>
+                    <button type="button" id="orderDamageSubmitBtn"
+                        class="px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2">
+                        <span id="orderDamageBtnText">Add Charge</span>
+                        <svg id="orderDamageSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -5299,12 +5350,9 @@
                 return;
             }
 
-            // Read sales_tax_type for fuel charges
-            let salesTaxType = 'free';
-            if (type === 'fuel') {
-                const taxRadio = document.querySelector('input[name="orderFuelSalesTax"]:checked');
-                salesTaxType = taxRadio ? taxRadio.value : 'free';
-            }
+            const radioName = type === 'fuel' ? 'orderFuelSalesTax' : 'orderDamageSalesTax';
+            const taxRadio = document.querySelector(`input[name="${radioName}"]:checked`);
+            const salesTaxType = taxRadio ? taxRadio.value : 'free';
 
             const btn     = document.getElementById(btnId);
             const btnText = btn.querySelector('span') ?? btn;
@@ -5327,10 +5375,9 @@
                     document.getElementById(amountId).value = '';
                     document.getElementById(personId).value = '';
                     document.getElementById(notesId).value = '';
-                    if (type === 'fuel') {
-                        const taxRadio = document.querySelector('input[name="orderFuelSalesTax"][value="add"]');
-                        if (taxRadio) taxRadio.checked = true;
-                    }
+                    const resetRadioName = type === 'fuel' ? 'orderFuelSalesTax' : 'orderDamageSalesTax';
+                    const resetRadio = document.querySelector(`input[name="${resetRadioName}"][value="add"]`);
+                    if (resetRadio) resetRadio.checked = true;
                 } else {
                     notyf.error(data.message || 'Something went wrong.');
                 }

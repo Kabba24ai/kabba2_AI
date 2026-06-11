@@ -112,7 +112,14 @@
                             <span id="damage-alert-badge"
                                 class="px-3 py-1 rounded-full text-sm font-medium">
                             </span>
-
+                            <button type="button" onclick="openDashDamageModal()"
+                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors"
+                                title="Add New Damage Alert">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add
+                            </button>
                         </div>
                     </div>
 
@@ -1000,6 +1007,222 @@
         </div>
     </div>
 </div>
+
+{{-- ===== Add New Damage Alert Modal ===== --}}
+<div id="dashDamageModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
+
+        {{-- Header --}}
+        <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+                <div class="p-1.5 rounded-md bg-red-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-4 h-4 text-red-600"><path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/></svg>
+                </div>
+                <h2 class="text-lg font-medium text-gray-900">Add New Damage Alert</h2>
+            </div>
+            <button type="button" onclick="closeDashDamageModal()" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+
+        <div class="px-6 overflow-y-auto space-y-5 py-5">
+
+            {{-- Customer --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
+                <select id="dashDamageCustomerSelect"
+                    class="choices-select-damage w-full rounded-md py-3 px-3 border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                    <option value="">Select Customer</option>
+                    @foreach ($customers as $customer)
+                        @php
+                            $fullName = trim((string) $customer->full_name);
+                            $phone    = trim((string) $customer->phone);
+                            $email    = trim((string) $customer->email);
+                        @endphp
+                        @if ($fullName || $phone)
+                            <option value="{{ $customer->id }}">
+                                {{ $fullName }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $phone ? \App\Helpers\CustomHelper::formatPhone($phone) : '' }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $email }}
+                            </option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Charge Amount --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-3 flex items-center text-gray-500 text-sm pointer-events-none">$</span>
+                    <input id="dashDamageAmount" type="number" step="0.01" min="0.01" placeholder="0.00"
+                        class="w-full pl-7 pr-3 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            {{-- Sales Tax Treatment --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
+                <div class="space-y-2 text-sm text-gray-700">
+                    <label class="flex items-start gap-2">
+                        <input type="radio" name="dashDamageSalesTax" value="add" checked class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                        <div>
+                            <p class="font-medium">Add Sales Tax</p>
+                            <p class="text-gray-500">Add {{ $dashTaxPct }}% sales tax to the entered amount</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-2">
+                        <input type="radio" name="dashDamageSalesTax" value="free" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                        <div>
+                            <p class="font-medium">Tax Free</p>
+                            <p class="text-gray-500">No sales tax applied to this charge</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-2">
+                        <input type="radio" name="dashDamageSalesTax" value="reverse" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                        <div>
+                            <p class="font-medium">Reverse Sales Tax</p>
+                            <p class="text-gray-500">Split entered amount proportionally between base amount and tax</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            {{-- Charge Reason (static) --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason</label>
+                <p class="text-base font-semibold text-red-500">Damages</p>
+            </div>
+
+            {{-- Person Responsible --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
+                <select id="dashDamagePerson" class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select person responsible</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Notes --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                <textarea id="dashDamageNotes" rows="3"
+                    class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter any additional notes about this damage..."></textarea>
+            </div>
+
+            {{-- Buttons --}}
+            <div class="flex justify-end gap-2 pb-2">
+                <button type="button" onclick="closeDashDamageModal()"
+                    class="px-6 py-3 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Cancel</button>
+                <button type="button" id="dashDamageSubmitBtn"
+                    class="px-6 py-3 text-sm rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2">
+                    <span id="dashDamageBtnText">Add Charge</span>
+                    <svg id="dashDamageSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@push('js')
+<script>
+(function () {
+    const dashDamageStoreUrl = "{{ route('admin.dashboard.damage-charge.store') }}";
+    const csrfTokenDmg       = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+    function openDashDamageModal() {
+        const modal = document.getElementById('dashDamageModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        if (!window.dashDamageCustomerChoices) {
+            window.dashDamageCustomerChoices = new Choices('#dashDamageCustomerSelect', {
+                searchEnabled: true,
+                searchPlaceholderValue: 'Search customer...',
+                itemSelectText: '',
+                shouldSort: false,
+            });
+        }
+    }
+    window.openDashDamageModal = openDashDamageModal;
+
+    function closeDashDamageModal() {
+        const modal = document.getElementById('dashDamageModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        resetDashDamageModal();
+    }
+    window.closeDashDamageModal = closeDashDamageModal;
+
+    function resetDashDamageModal() {
+        document.getElementById('dashDamageAmount').value = '';
+        document.getElementById('dashDamageNotes').value  = '';
+        document.getElementById('dashDamagePerson').value = '';
+
+        const addRadio = document.querySelector('input[name="dashDamageSalesTax"][value="add"]');
+        if (addRadio) addRadio.checked = true;
+
+        if (window.dashDamageCustomerChoices) {
+            window.dashDamageCustomerChoices.removeActiveItems();
+        }
+    }
+
+    document.getElementById('dashDamageSubmitBtn').addEventListener('click', function () {
+        const customerId = window.dashDamageCustomerChoices
+            ? window.dashDamageCustomerChoices.getValue(true)
+            : document.getElementById('dashDamageCustomerSelect').value;
+
+        const amount  = document.getElementById('dashDamageAmount').value.trim();
+        const person  = document.getElementById('dashDamagePerson').value;
+        const notes   = document.getElementById('dashDamageNotes').value.trim();
+        const taxRadio = document.querySelector('input[name="dashDamageSalesTax"]:checked');
+        const salesTaxType = taxRadio ? taxRadio.value : 'free';
+
+        if (!customerId) { notyf.error('Please select a customer.'); return; }
+        if (!amount || parseFloat(amount) <= 0) { notyf.error('Please enter a valid amount.'); return; }
+        if (!person) { notyf.error('Please select a person responsible.'); return; }
+
+        const btn     = document.getElementById('dashDamageSubmitBtn');
+        const btnText = document.getElementById('dashDamageBtnText');
+        const spinner = document.getElementById('dashDamageSpinner');
+        btn.disabled = true;
+        btnText.textContent = 'Saving...';
+        spinner.classList.remove('hidden');
+
+        fetch(dashDamageStoreUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfTokenDmg },
+            body: JSON.stringify({
+                customer_id: customerId,
+                amount,
+                responsible_person: person,
+                notes,
+                sales_tax_type: salesTaxType,
+            }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                notyf.success(data.message);
+                closeDashDamageModal();
+                window.location.reload();
+            } else {
+                notyf.error(data.message || 'Something went wrong.');
+            }
+        })
+        .catch(err => { console.error('Dash damage charge error:', err); notyf.error('Request failed. Please try again.'); })
+        .finally(() => {
+            btn.disabled = false;
+            btnText.textContent = 'Add Charge';
+            spinner.classList.add('hidden');
+        });
+    });
+})();
+</script>
+@endpush
 
 @push('js')
 <script>

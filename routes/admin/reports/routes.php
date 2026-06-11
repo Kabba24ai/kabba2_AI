@@ -23,4 +23,10 @@ Route::prefix('reports')
     // calls log
     require base_path('routes/admin/reports/calls_log/routes.php');
 
+    // fuel charge alerts
+    require base_path('routes/admin/reports/fuel_charge_alerts/routes.php');
+
+    // new damage alerts
+    require base_path('routes/admin/reports/new_damage_alerts/routes.php');
+
 });

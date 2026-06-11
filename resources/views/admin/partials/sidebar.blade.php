@@ -359,9 +359,9 @@
                                 <li>
                                     <a href="{{ route('admin.reports.calls-log.index') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.reports.calls-log.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-phone class="w-6 h-6" />
-                                        Calls Log
+                                        {{ Route::is('admin.reports.calls-log.*') || Route::is('admin.reports.fuel-charge-alerts.*') || Route::is('admin.reports.new-damage-alerts.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-bell-alert class="w-6 h-6" />
+                                        Dash Reports
                                     </a>
                                 </li>
                                 <li>

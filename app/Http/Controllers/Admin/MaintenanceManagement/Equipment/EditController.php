@@ -187,7 +187,7 @@ class EditController extends Controller
             ->get([
                 'spec_key',
                 'upgrade_exceeds_value',
-                'caution_if_change_value',
+                'caution_if_exceeds_value',
                 'upgrade_is_below_value',
                 'caution_if_below_value',
             ])
@@ -196,7 +196,7 @@ class EditController extends Controller
 
                 return [$key => [
                     'upgrade_exceeds_value' => (bool) $item->upgrade_exceeds_value,
-                    'caution_if_change_value' => (bool) $item->caution_if_change_value,
+                    'caution_if_exceeds_value' => (bool) $item->caution_if_exceeds_value,
                     'upgrade_is_below_value' => (bool) $item->upgrade_is_below_value,
                     'caution_if_below_value' => (bool) $item->caution_if_below_value,
                 ]];

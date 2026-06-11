@@ -60,7 +60,7 @@ class UpdateController extends Controller
                 'threshold' => $threshold,
                 'weight' => $weight,
                 'upgrade_exceeds_value' => filter_var($item['upgrade_exceeds_value'] ?? true, FILTER_VALIDATE_BOOLEAN),
-                'caution_if_change_value' => filter_var($item['caution_if_change_value'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'caution_if_exceeds_value' => filter_var($item['caution_if_exceeds_value'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'upgrade_is_below_value' => filter_var($item['upgrade_is_below_value'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'caution_if_below_value' => filter_var($item['caution_if_below_value'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ];

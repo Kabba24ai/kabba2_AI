@@ -534,9 +534,9 @@ function switchTab(tab) {
         fetch("{{ route('admin.reports.calls-log.index') }}?" + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(r => r.json())
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(data => { if (data.success) wrapper.innerHTML = data.html; })
-        .catch(() => {})
+        .catch(err => { wrapper.innerHTML = '<p class="text-center py-10 text-red-500 text-sm">Failed to load records. Please refresh and try again.</p>'; console.error('Calls fetch error:', err); })
         .finally(() => wrapper.classList.remove('opacity-50', 'pointer-events-none'));
     }
 

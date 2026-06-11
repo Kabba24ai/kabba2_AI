@@ -345,6 +345,7 @@
     </div>
 </div>
 
+
 <div id="CompleteCallModal"
     style="display:none;"
     class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 hidden">
@@ -360,7 +361,6 @@
                     Add call outcome and notes
                 </p>
             </div>
-
             <button type="button" onclick="closeCompleteCallModal()" class="text-gray-400 hover:text-gray-700 text-xl">
                 &times;
             </button>
@@ -387,6 +387,7 @@
             </div>
 
             <div>
+
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Notes
                 </label>
@@ -967,6 +968,8 @@ function renderCallNeededList(calls, skipFilters = false)
             </div>
 
         </div>
+
+        
 
         <!-- Actions -->
         <div class="flex flex-col items-center gap-1 border-l border-gray-100 pl-3">

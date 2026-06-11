@@ -15,6 +15,9 @@ use App\Http\Controllers\Admin\Dashboard\CallNeededStoreController;
 use App\Http\Controllers\Admin\Dashboard\CallNeededListController;
 use App\Http\Controllers\Admin\Dashboard\CallNeededShowController;
 use App\Http\Controllers\Admin\Dashboard\CallNeededClearController;
+
+use App\Http\Controllers\Admin\Dashboard\CallNeededCompleteController;
+
 use App\Http\Controllers\Admin\Dashboard\CallNeededUpdateController;
 
 
@@ -35,7 +38,10 @@ Route::prefix('dashboard')
 
       Route::get('/extra-charges/show/{unique_id}', ExtraChargesShowController::class)->name('extra-charges.show');
 
-
+        Route::post(
+            '/call-needed/{id}/complete',
+            CallNeededCompleteController::class
+        )->name('call-needed.complete');
 
       Route::post('/call-needed/store',CallNeededStoreController::class)->name('call-needed.store');
 

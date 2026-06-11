@@ -20,21 +20,21 @@ class UpdateController extends Controller
             'confidence_score'=> 'nullable|numeric|min:0|max:1',
             'source'          => 'nullable|string|max:100',
             'upgrade_exceeds_value' => 'nullable|boolean',
-            'caution_if_change_value' => 'nullable|boolean',
+            'caution_if_exceeds_value' => 'nullable|boolean',
             'upgrade_is_below_value' => 'nullable|boolean',
             'caution_if_below_value' => 'nullable|boolean',
         ]);
 
         $criteriaFlags = [
             'upgrade_exceeds_value' => $request->boolean('upgrade_exceeds_value', false),
-            'caution_if_change_value' => $request->boolean('caution_if_change_value', false),
+            'caution_if_exceeds_value' => $request->boolean('caution_if_exceeds_value', false),
             'upgrade_is_below_value' => $request->boolean('upgrade_is_below_value', false),
             'caution_if_below_value' => $request->boolean('caution_if_below_value', false),
         ];
 
         unset(
             $data['upgrade_exceeds_value'],
-            $data['caution_if_change_value'],
+            $data['caution_if_exceeds_value'],
             $data['upgrade_is_below_value'],
             $data['caution_if_below_value']
         );

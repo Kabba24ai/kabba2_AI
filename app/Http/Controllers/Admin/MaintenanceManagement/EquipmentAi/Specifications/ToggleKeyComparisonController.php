@@ -22,7 +22,7 @@ class ToggleKeyComparisonController extends Controller
         $payload = $request->validate([
             'is_key_comparison' => ['nullable', 'boolean'],
             'upgrade_exceeds_value' => ['nullable', 'boolean'],
-            'caution_if_change_value' => ['nullable', 'boolean'],
+            'caution_if_exceeds_value' => ['nullable', 'boolean'],
             'upgrade_is_below_value' => ['nullable', 'boolean'],
             'caution_if_below_value' => ['nullable', 'boolean'],
         ]);
@@ -50,7 +50,7 @@ class ToggleKeyComparisonController extends Controller
                     'sort_order'       => 0,
                     'is_required'      => false,
                     'upgrade_exceeds_value' => (bool) ($payload['upgrade_exceeds_value'] ?? true),
-                    'caution_if_change_value' => (bool) ($payload['caution_if_change_value'] ?? true),
+                    'caution_if_exceeds_value' => (bool) ($payload['caution_if_exceeds_value'] ?? true),
                     'upgrade_is_below_value' => (bool) ($payload['upgrade_is_below_value'] ?? false),
                     'caution_if_below_value' => (bool) ($payload['caution_if_below_value'] ?? false),
                 ]
@@ -67,7 +67,7 @@ class ToggleKeyComparisonController extends Controller
             'is_key_comparison' => $newValue,
             'flags' => [
                 'upgrade_exceeds_value' => (bool) ($payload['upgrade_exceeds_value'] ?? true),
-                'caution_if_change_value' => (bool) ($payload['caution_if_change_value'] ?? true),
+                'caution_if_exceeds_value' => (bool) ($payload['caution_if_exceeds_value'] ?? true),
                 'upgrade_is_below_value' => (bool) ($payload['upgrade_is_below_value'] ?? false),
                 'caution_if_below_value' => (bool) ($payload['caution_if_below_value'] ?? false),
             ],

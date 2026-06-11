@@ -35,11 +35,14 @@ class IndexController extends Controller
         }
 
         if ($request->filled('search_phone')) {
-            $phone = $request->search_phone;
-            $query->where(function ($q) use ($phone) {
-                $q->whereHas('customer', function ($sub) use ($phone) {
-                    $sub->where('phone', 'like', '%' . $phone . '%');
-                })->orWhere('contact_phone', 'like', '%' . $phone . '%');
+            $phone      = $request->search_phone;
+            $digitsOnly = preg_replace('/\D/', '', $phone);
+            $query->where(function ($q) use ($phone, $digitsOnly) {
+                $q->whereHas('customer', function ($sub) use ($phone, $digitsOnly) {
+                    $sub->where('phone', 'like', '%' . $phone . '%')
+                        ->orWhere('phone', 'like', '%' . $digitsOnly . '%');
+                })->orWhere('contact_phone', 'like', '%' . $phone . '%')
+                  ->orWhere('contact_phone', 'like', '%' . $digitsOnly . '%');
             });
         }
 

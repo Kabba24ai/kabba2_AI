@@ -35,22 +35,20 @@ class CallNeededCompleteController extends Controller
 
             if ($call->customer) {
 
-                    $note = $call->customer->notes()
-                        ->where('customer_call_needed_id', $call->id)
-                        ->latest('id')
-                        ->first();
+                $statusLabel = ucwords(str_replace('_', ' ', $request->call_status));
 
-                    if ($note) {
+                $description = "Call completed. Action: {$statusLabel}.";
 
-                        $note->update([
-                            'description' => $note->description .
-                                "\n\n-- Call Completed (" .
-                                now()->format('m/d/Y h:i A') .
-                                ")",
-                        ]);
-                    }
+                if ($request->filled('completion_note')) {
+                    $description .= " Notes: {$request->completion_note}";
                 }
 
+                $call->customer->notes()->create([
+                    'customer_call_needed_id' => $call->id,
+                    'description'             => $description,
+                    'created_by'              => auth()->id(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,

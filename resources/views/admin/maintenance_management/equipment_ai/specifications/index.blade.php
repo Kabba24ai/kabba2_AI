@@ -566,7 +566,7 @@
                                                     class="sm:col-span-3 lg:col-span-2 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/40">
                                                     <p class="text-xs font-semibold text-gray-700 dark:text-gray-200">Flags
                                                     </p>
-                                                    <div class="mt-2 grid gap-1">
+                                                    <div class="mt-2 grid gap-1 md:grid-cols-2">
                                                         <label
                                                             class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
                                                             <input type="checkbox" name="upgrade_exceeds_value"
@@ -574,7 +574,7 @@
                                                                 {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}
                                                                 class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                                                                 onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
-                                                            <span>upgrade_exceeds_value</span>
+                                                            <span>Upgrade Exceeds Value</span>
                                                         </label>
                                                         <label
                                                             class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
@@ -583,7 +583,7 @@
                                                                 {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}
                                                                 class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                                                                 onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
-                                                            <span>caution_if_below_value</span>
+                                                            <span>Caution If Below Value</span>
                                                         </label>
                                                         <label
                                                             class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
@@ -592,7 +592,7 @@
                                                                 {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}
                                                                 class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                                                                 onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
-                                                            <span>upgrade_is_below_value</span>
+                                                            <span>Upgrade Is Below Value</span>
                                                         </label>
                                                         <label
                                                             class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
@@ -601,7 +601,7 @@
                                                                 {{ $criteriaFlags['caution_if_exceeds_value'] ? 'checked' : '' }}
                                                                 class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                                                                 onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
-                                                            <span>caution_if_exceeds_value</span>
+                                                            <span>Caution If Exceeds Value</span>
                                                         </label>
                                                     </div>
                                                 </div>
@@ -635,27 +635,26 @@
                         treated in upgrade and caution logic.</p>
                 </div>
 
-                <div class="space-y-3 px-5 py-4">
+                <div class="space-y-3 px-5 py-4 grid gap-1 md:grid-cols-2">
                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                         <input type="checkbox" x-model="keyCriteriaForm.upgrade_exceeds_value"
                             class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
-                        <span>upgrade_exceeds_value</span>
+                        <span>Upgrade Exceeds Value</span>
                     </label>
                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                         <input type="checkbox" x-model="keyCriteriaForm.caution_if_below_value"
                             class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
-                        <span>caution_if_below_value</span>
+                        <span>Caution If Below Value</span>
                     </label>
-                    <hr class="my-2 border-gray-200 dark:border-gray-700" />
                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                         <input type="checkbox" x-model="keyCriteriaForm.upgrade_is_below_value"
                             class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
-                        <span>upgrade_is_below_value</span>
+                        <span>Upgrade Is Below Value</span>
                     </label>
                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                         <input type="checkbox" x-model="keyCriteriaForm.caution_if_exceeds_value"
                             class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
-                        <span>caution_if_exceeds_value</span>
+                        <span>Caution If Exceeds Value</span>
                     </label>
                 </div>
 

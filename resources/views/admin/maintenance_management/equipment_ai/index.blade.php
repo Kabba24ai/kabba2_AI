@@ -251,29 +251,33 @@
                                         class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
                                         <input type="checkbox" name="upgrade_exceeds_value" value="1"
                                             {{ old('upgrade_exceeds_value', true) ? 'checked' : '' }}
-                                            class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                        upgrade_exceeds_value
-                                    </label>
-                                    <label
-                                        class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
-                                        <input type="checkbox" name="caution_if_exceeds_value" value="1"
-                                            {{ old('caution_if_exceeds_value', true) ? 'checked' : '' }}
-                                            class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                        caution_if_exceeds_value
-                                    </label>
-                                    <label
-                                        class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
-                                        <input type="checkbox" name="upgrade_is_below_value" value="1"
-                                            {{ old('upgrade_is_below_value', false) ? 'checked' : '' }}
-                                            class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                        upgrade_is_below_value
+                                            class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                            onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
+                                        Upgrade exceeds value
                                     </label>
                                     <label
                                         class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
                                         <input type="checkbox" name="caution_if_below_value" value="1"
                                             {{ old('caution_if_below_value', false) ? 'checked' : '' }}
-                                            class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                        caution_if_below_value
+                                            class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                            onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
+                                        Caution If Below Value
+                                    </label>
+                                    <label
+                                        class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                                        <input type="checkbox" name="upgrade_is_below_value" value="1"
+                                            {{ old('upgrade_is_below_value', false) ? 'checked' : '' }}
+                                            class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                            onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
+                                        Upgrade Is Below Value
+                                    </label>
+                                    <label
+                                        class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                                        <input type="checkbox" name="caution_if_exceeds_value" value="1"
+                                            {{ old('caution_if_exceeds_value', true) ? 'checked' : '' }}
+                                            class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                            onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
+                                        Caution If Exceeds Value
                                     </label>
                                 </div>
                             </div>
@@ -366,8 +370,8 @@
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox"
                                                             class="h-3 w-3 rounded border-gray-300 text-brand-500" disabled
-                                                            {{ $ck->caution_if_exceeds_value ? 'checked' : '' }}>
-                                                        <span>Caution if exceeds value</span>
+                                                            {{ $ck->caution_if_below_value ? 'checked' : '' }}>
+                                                        <span>Caution if below value</span>
                                                     </label>
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox"
@@ -378,8 +382,8 @@
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox"
                                                             class="h-3 w-3 rounded border-gray-300 text-brand-500" disabled
-                                                            {{ $ck->caution_if_below_value ? 'checked' : '' }}>
-                                                        <span>Caution if below value</span>
+                                                            {{ $ck->caution_if_exceeds_value ? 'checked' : '' }}>
+                                                        <span>Caution if exceeds value</span>
                                                     </label>
                                                 </div>
                                             </td>
@@ -483,38 +487,42 @@
                                                         class="sm:col-span-3 lg:col-span-2 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/40">
                                                         <p class="text-xs font-semibold text-gray-700 dark:text-gray-200">
                                                             Flags</p>
-                                                        <div class="mt-2 grid gap-1">
+                                                        <div class="mt-2 grid gap-1 md:grid-cols-2">
                                                             <label
                                                                 class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
                                                                 <input type="checkbox" name="upgrade_exceeds_value"
                                                                     value="1"
                                                                     {{ $ck->upgrade_exceeds_value ? 'checked' : '' }}
-                                                                    class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                                                <span>upgrade_exceeds_value</span>
-                                                            </label>
-                                                            <label
-                                                                class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
-                                                                <input type="checkbox" name="caution_if_exceeds_value"
-                                                                    value="1"
-                                                                    {{ $ck->caution_if_exceeds_value ? 'checked' : '' }}
-                                                                    class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                                                <span>caution_if_exceeds_value</span>
-                                                            </label>
-                                                            <label
-                                                                class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
-                                                                <input type="checkbox" name="upgrade_is_below_value"
-                                                                    value="1"
-                                                                    {{ $ck->upgrade_is_below_value ? 'checked' : '' }}
-                                                                    class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                                                <span>upgrade_is_below_value</span>
+                                                                    class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                    onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
+                                                                <span>Upgrade Exceeds Value</span>
                                                             </label>
                                                             <label
                                                                 class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
                                                                 <input type="checkbox" name="caution_if_below_value"
                                                                     value="1"
                                                                     {{ $ck->caution_if_below_value ? 'checked' : '' }}
-                                                                    class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                                                <span>caution_if_below_value</span>
+                                                                    class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                    onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
+                                                                <span>Caution If Below Value</span>
+                                                            </label>
+                                                            <label
+                                                                class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                                <input type="checkbox" name="upgrade_is_below_value"
+                                                                    value="1"
+                                                                    {{ $ck->upgrade_is_below_value ? 'checked' : '' }}
+                                                                    class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                    onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
+                                                                <span>Upgrade Is Below Value</span>
+                                                            </label>
+                                                            <label
+                                                                class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                                <input type="checkbox" name="caution_if_exceeds_value"
+                                                                    value="1"
+                                                                    {{ $ck->caution_if_exceeds_value ? 'checked' : '' }}
+                                                                    class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                    onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
+                                                                <span>Caution If Exceeds Value</span>
                                                             </label>
                                                         </div>
                                                     </div>

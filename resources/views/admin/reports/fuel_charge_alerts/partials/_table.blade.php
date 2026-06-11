@@ -45,7 +45,7 @@
                             @if($customer?->phone)
                                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-50 text-gray-600 text-xs">
                                     <x-heroicon-o-phone class="w-3.5 h-3.5" />
-                                    {{ CustomHelper::formatPhone($customer->phone) }}
+                                    {{ \App\Helpers\CustomHelper::formatPhone($customer->phone) }}
                                 </span>
                             @endif
 
@@ -93,7 +93,7 @@
                         <div class="flex flex-wrap items-center gap-4 mt-4 text-xs text-gray-500">
                             <span class="inline-flex items-center gap-1">
                                 <x-heroicon-o-calendar-days class="w-3.5 h-3.5" />
-                                {{ CustomHelper::formatDateTime($record->created_at) }}
+                                {{ \App\Helpers\CustomHelper::formatDateTime($record->created_at) }}
                             </span>
                         </div>
 

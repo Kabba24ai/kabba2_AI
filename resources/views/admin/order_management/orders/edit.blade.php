@@ -225,57 +225,37 @@
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                     </svg>
                 </a>
+
+                {{-- Call Needed --}}
+                <span id="callNeededBtn"
+                    data-customer-id="{{ $order->customer_id }}"
+                    data-order-number="{{ $order->order_number }}"
+                    title="Call Needed"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-500 text-white cursor-pointer hover:bg-red-600 transition-colors shadow-sm">
+                    <x-heroicon-o-phone class="w-5 h-5 call-icon" />
+                    <svg class="hidden w-4 h-4 animate-spin call-loader" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </span>
+
+                {{-- Fuel Charge Alert --}}
+                <button id="orderFuelChargeBtn" type="button" title="Add Fuel Charge Alert"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-sm">
+                    <svg fill="currentColor" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                        <path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128zM160 144L160 240C160 248.8 167.2 256 176 256L304 256C312.8 256 320 248.8 320 240L320 144C320 135.2 312.8 128 304 128L176 128C167.2 128 160 135.2 160 144z"/>
+                    </svg>
+                </button>
+
+                {{-- Damage Alert --}}
+                <button id="orderDamageAlertBtn" type="button" title="Add Damage Alert"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-700 text-white hover:bg-red-800 transition-colors shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5 h-5">
+                        <path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/>
+                    </svg>
+                </button>
             </div>
-             
-
         </div>
-        <div class="flex justify-end items-center gap-2">
-
-            {{-- Fuel Charge Alert button --}}
-            <button id="orderFuelChargeBtn" type="button" title="Add Fuel Charge Alert"
-                class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-sm">
-                <svg fill="currentColor" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                    <path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128zM160 144L160 240C160 248.8 167.2 256 176 256L304 256C312.8 256 320 248.8 320 240L320 144C320 135.2 312.8 128 304 128L176 128C167.2 128 160 135.2 160 144z"/>
-                </svg>
-            </button>
-
-            {{-- Damage Alert button --}}
-            <button id="orderDamageAlertBtn" type="button" title="Add Damage Alert"
-                class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5 h-5">
-                    <path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/>
-                </svg>
-            </button>
-
-            <span
-                id="callNeededBtn"
-                data-customer-id="{{ $order->customer_id }}"
-                data-order-number="{{ $order->order_number }}"
-                class="inline-flex items-center px-4 py-2 text-sm font-semibold bg-red-100 text-red-700 rounded-full border border-red-200 cursor-pointer hover:bg-red-200">
-
-                <x-heroicon-o-phone class="w-4 h-4 mr-1 call-icon" />
-
-                <span class="call-text">CALL NEEDED</span>
-
-                <svg class="hidden w-4 h-4 ml-2 animate-spin call-loader"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24">
-                    <circle class="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        stroke-width="4"></circle>
-                    <path class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-                    </path>
-                </svg>
-
-            </span>
-        </div>
-    </div>
 
     {{-- Fuel Charge Modal --}}
     <div id="orderFuelChargeModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4">
@@ -5088,11 +5068,11 @@
             if (!result.isConfirmed) return;
 
             const loader = btn.querySelector('.call-loader');
-            const text = btn.querySelector('.call-text');
+            const icon  = btn.querySelector('.call-icon');
 
             btn.style.pointerEvents = 'none';
-            loader.classList.remove('hidden');
-            text.textContent = 'Creating...';
+            if (loader) { loader.classList.remove('hidden'); }
+            if (icon)   { icon.classList.add('hidden'); }
 
             fetch("{{ route('admin.dashboard.call-needed.store') }}", {
                 method: 'POST',
@@ -5114,21 +5094,17 @@
 
                 if (data.success) {
                     notyf.success(data.message || 'Call reminder created');
-
-                    text.textContent = 'CALL NEEDED';
-
                 } else {
                     notyf.error(data.message || 'Something went wrong');
-                    text.textContent = 'CALL NEEDED';
                 }
 
             })
             .catch(() => {
                 notyf.error('Failed to create call reminder');
-                text.textContent = 'CALL NEEDED';
             })
             .finally(() => {
-                loader.classList.add('hidden');
+                if (loader) loader.classList.add('hidden');
+                if (icon)   icon.classList.remove('hidden');
                 btn.style.pointerEvents = 'auto';
             });
 

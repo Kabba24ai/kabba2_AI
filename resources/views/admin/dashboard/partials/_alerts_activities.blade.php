@@ -1,7 +1,7 @@
 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-6">
 
                 {{-- Header --}}
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
 
             <div class="flex items-center gap-2">
 
@@ -20,6 +20,9 @@
                 </div>
 
             </div>
+
+            {{-- Assignee Filter Chips --}}
+            <div id="assignee-filters" class="flex items-center gap-2 flex-wrap"></div>
 
             {{-- Right Side --}}
             <div class="flex items-center gap-3">
@@ -376,6 +379,7 @@
                     <option value="completed">Completed</option>
                     <option value="resolved">Resolved</option>
                     <option value="no_answer">No Answer</option>
+                    <option value="no_answer_followed_up_text">No Answer, Followed Up With Text</option>
                     <option value="left_voicemail">Left Voicemail</option>
                     <option value="follow_up_needed">Follow-up Needed</option>
                     <option value="not_interested">Not Interested</option>
@@ -394,58 +398,49 @@
                     placeholder="Write what happened during the call..."></textarea>
             </div>
 
-            <div class="flex justify-end gap-2 pt-3">
+            <div class="flex items-center justify-between pt-3">
 
+                {{-- Close / Cancel --}}
                 <button
                     type="button"
                     onclick="closeCompleteCallModal()"
-                    class="px-5 py-2 rounded-lg border border-gray-300 bg-white text-gray-700">
-                    Cancel
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-800 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Close
                 </button>
 
-                <button
-    type="button"
-    id="call-action-save-btn"
-    onclick="submitCompleteCall('save')"
-    class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2">
+                <div class="flex items-center gap-2">
 
-    <span id="callActionBtnText">
-        Save 
-    </span>
+                    {{-- Update & Remain Open --}}
+                    <button
+                        type="button"
+                        id="call-action-save-btn"
+                        onclick="submitCompleteCall('save')"
+                        class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span id="callActionBtnText">Update &amp; Remain Open</span>
+                        <svg id="callActionBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
 
-    <svg
-        id="callActionBtnSpinner"
-        xmlns="http://www.w3.org/2000/svg"
-        class="hidden animate-spin h-4 w-4 text-white"
-        fill="none"
-        viewBox="0 0 24 24">
+                    {{-- Save & Close --}}
+                    <button
+                        type="button"
+                        onclick="submitCompleteCall('complete')"
+                        class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Save &amp; Close
+                    </button>
 
-        <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4">
-        </circle>
-
-        <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-        </path>
-
-    </svg>
-
-</button>
-
-                <button
-                    type="button"
-                    onclick="submitCompleteCall('complete')"
-                    class="px-5 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
-                     Save & Complete Call
-                </button>
-
+                </div>
             </div>
         </div>
     </div>
@@ -787,7 +782,10 @@ if (window.callReasonChoices) {
             return;
         }
 window.callNeededData = data.data;
-        renderCallNeededList(data.data);
+        const filtered = window.activeAssigneeFilter
+            ? data.data.filter(c => (c.assignee?.id ?? 'unassigned') == window.activeAssigneeFilter)
+            : data.data;
+        renderCallNeededList(filtered);
 
         document.getElementById('call-needed-count').innerText =
             data.count + ' New';
@@ -795,9 +793,75 @@ window.callNeededData = data.data;
 }
 
 
-function renderCallNeededList(calls)
+// Palette cycles through for each unique assignee
+const ASSIGNEE_PALETTE = [
+    { bg: '#DBEAFE', color: '#1D4ED8', border: '#BFDBFE', activeBg: '#2563EB', activeColor: '#FFFFFF' },
+    { bg: '#F3E8FF', color: '#6D28D9', border: '#DDD6FE', activeBg: '#7C3AED', activeColor: '#FFFFFF' },
+    { bg: '#FEF3C7', color: '#B45309', border: '#FDE68A', activeBg: '#D97706', activeColor: '#FFFFFF' },
+    { bg: '#DCFCE7', color: '#15803D', border: '#BBF7D0', activeBg: '#16A34A', activeColor: '#FFFFFF' },
+    { bg: '#FFE4E6', color: '#BE123C', border: '#FECDD3', activeBg: '#E11D48', activeColor: '#FFFFFF' },
+    { bg: '#E0F2FE', color: '#0369A1', border: '#BAE6FD', activeBg: '#0284C7', activeColor: '#FFFFFF' },
+];
+
+window.activeAssigneeFilter = null;
+
+function renderAssigneeFilters(calls) {
+    const container = document.getElementById('assignee-filters');
+    if (!container) return;
+
+    // Build unique assignee map: id → { name, count, colorIndex }
+    const assigneeMap = {};
+    let colorIndex = 0;
+    calls.forEach(call => {
+        const id = call.assignee?.id ?? 'unassigned';
+        const name = call.assignee?.full_name ?? 'Unassigned';
+        if (!assigneeMap[id]) {
+            assigneeMap[id] = { name, count: 0, colorIndex: colorIndex++ };
+        }
+        assigneeMap[id].count++;
+    });
+
+    if (!Object.keys(assigneeMap).length) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = Object.entries(assigneeMap).map(([id, info]) => {
+        const c = ASSIGNEE_PALETTE[info.colorIndex % ASSIGNEE_PALETTE.length];
+        const isActive = window.activeAssigneeFilter == id;
+        const bg    = isActive ? c.activeBg    : c.bg;
+        const color = isActive ? c.activeColor : c.color;
+        return `
+            <button
+                onclick="filterCallsByAssignee('${id}')"
+                style="background:${bg};color:${color};border:1px solid ${c.border};transition:all .15s"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer select-none"
+                data-assignee-id="${id}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A9 9 0 1118.88 6.196M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                ${info.name} (${info.count})
+            </button>`;
+    }).join('');
+}
+
+function filterCallsByAssignee(assigneeId) {
+    // Toggle: clicking the active filter clears it
+    window.activeAssigneeFilter = (window.activeAssigneeFilter == assigneeId) ? null : assigneeId;
+
+    const calls = window.callNeededData || [];
+    const filtered = window.activeAssigneeFilter
+        ? calls.filter(c => (c.assignee?.id ?? 'unassigned') == window.activeAssigneeFilter)
+        : calls;
+
+    renderAssigneeFilters(calls); // re-render chips to update active state
+    renderCallNeededList(filtered, true); // true = skip re-rendering filters
+}
+
+function renderCallNeededList(calls, skipFilters = false)
 {
     const container = document.getElementById('call-needed-list');
+    if (!skipFilters) renderAssigneeFilters(calls);
 
     if (!calls.length) {
 
@@ -896,14 +960,6 @@ function renderCallNeededList(calls)
 
            </div>
 
-           <div class="mt-3">
-                <button
-                    onclick="toggleCallActivities(${call.id})"
-                    class="text-xs font-medium text-blue-600 hover:text-blue-800">
-                    Show Call Activity (${call.activities.length})
-                </button>
-            </div>
-
            <div
                 id="call-activities-${call.id}"
                 class="hidden overflow-hidden transition-all duration-300 ease-in-out"
@@ -912,23 +968,27 @@ function renderCallNeededList(calls)
 
         </div>
 
-        
-
         <!-- Actions -->
-        <div class="flex items-start gap-2 border-l border-gray-100 pl-3">
+        <div class="flex flex-col items-center gap-1 border-l border-gray-100 pl-3">
+
+            <div class="flex items-center gap-1">
+                <button
+                    onclick="viewCallNeeded(${call.id})"
+                    class="p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition">
+                    <x-heroicon-o-pencil-square class="w-5 h-5" />
+                </button>
+
+                <button
+                    onclick="openCompleteCallModal(${call.id})"
+                    class="p-2 rounded-lg text-green-600 hover:bg-green-50 transition">
+                    <x-heroicon-o-check-circle class="w-5 h-5" />
+                </button>
+            </div>
 
             <button
-                onclick="viewCallNeeded(${call.id})"
-                class="p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition">
-                <x-heroicon-o-pencil-square class="w-5 h-5" />
-            </button>
-
-            
-
-            <button
-                onclick="openCompleteCallModal(${call.id})"
-                class="p-2 rounded-lg text-green-600 hover:bg-green-50 transition">
-                <x-heroicon-o-check-circle class="w-5 h-5" />
+                onclick="toggleCallActivities(${call.id})"
+                class="text-xs font-medium text-blue-600 hover:text-blue-800 whitespace-nowrap">
+                Activity (${call.activities.length})
             </button>
 
         </div>

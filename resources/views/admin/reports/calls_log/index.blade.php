@@ -23,38 +23,53 @@
         </div>
     </div>
 
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    {{-- Filters --}}
+    <div class="flex flex-wrap items-center gap-3 mb-6">
 
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-            <div class="bg-blue-100 text-blue-600 rounded-lg p-2 shrink-0">
-                <x-heroicon-o-phone class="w-6 h-6" />
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">Total Calls</p>
-                <p class="text-2xl font-semibold text-gray-900">{{ number_format($totalCalls) }}</p>
-            </div>
+        <button type="button" id="clear-filters"
+            class="text-sm text-gray-600 bg-white px-3 py-2 flex gap-2 items-center rounded-md border border-gray-300 hover:bg-gray-50 transition">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Clear
+        </button>
+
+        <div class="relative">
+            <input type="text" id="search_name" placeholder="Customer name"
+                value="{{ request('search_name') }}"
+                class="w-48 rounded-md border border-gray-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <svg class="absolute right-2.5 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+            </svg>
         </div>
 
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-            <div class="bg-orange-100 text-orange-600 rounded-lg p-2 shrink-0">
-                <x-heroicon-o-clock class="w-6 h-6" />
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">Active / Open</p>
-                <p class="text-2xl font-semibold text-gray-900">{{ number_format($activeCalls) }}</p>
-            </div>
+        <div class="relative">
+            <input type="text" id="search_company" placeholder="Customer company"
+                value="{{ request('search_company') }}"
+                class="w-48 rounded-md border border-gray-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <svg class="absolute right-2.5 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+            </svg>
         </div>
 
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-            <div class="bg-green-100 text-green-600 rounded-lg p-2 shrink-0">
-                <x-heroicon-o-check-circle class="w-6 h-6" />
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">Completed</p>
-                <p class="text-2xl font-semibold text-gray-900">{{ number_format($completedCalls) }}</p>
-            </div>
+        <div class="relative">
+            <input type="text" id="search_phone" placeholder="(xxx) xxx-xxxx"
+                value="{{ request('search_phone') }}"
+                class="w-40 rounded-md border border-gray-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <svg class="absolute right-2.5 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"/>
+            </svg>
         </div>
+
+        <select id="search_admin"
+            class="w-48 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <option value="">All Admins</option>
+            @foreach($users as $user)
+                <option value="{{ $user->id }}" @selected(request('search_admin') == $user->id)>
+                    {{ $user->full_name ?? $user->name }}
+                </option>
+            @endforeach
+        </select>
 
     </div>
 
@@ -310,6 +325,60 @@
 
 @push('js')
 <script>
+
+// ── Filters ──────────────────────────────────────────────────────────────────
+(function () {
+    const wrapper     = document.getElementById('calls-log-wrapper');
+    const nameInput   = document.getElementById('search_name');
+    const companyInput= document.getElementById('search_company');
+    const phoneInput  = document.getElementById('search_phone');
+    const adminSelect = document.getElementById('search_admin');
+    const clearBtn    = document.getElementById('clear-filters');
+    let debounceTimer = null;
+
+    function fetchCalls(page = 1) {
+        const params = new URLSearchParams();
+        if (nameInput.value)    params.set('search_name',    nameInput.value);
+        if (companyInput.value) params.set('search_company', companyInput.value);
+        if (phoneInput.value)   params.set('search_phone',   phoneInput.value);
+        if (adminSelect.value)  params.set('search_admin',   adminSelect.value);
+        params.set('page', page);
+
+        wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+        fetch("{{ route('admin.reports.calls-log.index') }}?" + params.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) wrapper.innerHTML = data.html;
+        })
+        .catch(() => {})
+        .finally(() => wrapper.classList.remove('opacity-50', 'pointer-events-none'));
+    }
+
+    function debounce(fn, ms = 350) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fn, ms);
+    }
+
+    [nameInput, companyInput, phoneInput].forEach(el =>
+        el.addEventListener('input', () => debounce(() => fetchCalls(1)))
+    );
+    adminSelect.addEventListener('change', () => fetchCalls(1));
+
+    clearBtn.addEventListener('click', function () {
+        nameInput.value    = '';
+        companyInput.value = '';
+        phoneInput.value   = '';
+        adminSelect.value  = '';
+        fetchCalls(1);
+    });
+
+    Paginator.init({ wrapper, fetchCallback: fetchCalls });
+
+    fetchCalls(1);
+})();
 
 // ── Activity toggle (server-rendered cards, no JS data needed) ───────────────
 function toggleCallActivities(id) {

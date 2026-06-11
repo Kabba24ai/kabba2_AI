@@ -327,7 +327,9 @@ class IndexController extends Controller
 
         $resolutionPresets = ResolutionNotePreset::orderBy('label')->get();
 
-        return view('admin.dashboard.index', compact('salesData','customers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets'));
+        $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
+
+        return view('admin.dashboard.index', compact('salesData','customers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets','sales_tax'));
 
     }
 

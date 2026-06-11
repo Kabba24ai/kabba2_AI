@@ -17,9 +17,15 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-
-                                  <span id="fuel-alert-badge" class="px-3 py-1 rounded-full text-sm font-medium"></span>
-
+                            <span id="fuel-alert-badge" class="px-3 py-1 rounded-full text-sm font-medium"></span>
+                            <button type="button" onclick="openDashFuelModal()"
+                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold transition-colors"
+                                title="Add New Fuel Charge">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add
+                            </button>
                         </div>
                     </div>
 
@@ -873,4 +879,224 @@
    </script>
 
 
+@endpush
+
+{{-- ===== Add New Fuel Charge Modal ===== --}}
+<div id="dashFuelModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
+
+        {{-- Header --}}
+        <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+                <div class="p-1.5 rounded-md bg-orange-100">
+                    <svg fill="currentColor" class="w-4 h-4 text-orange-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128zM160 144L160 240C160 248.8 167.2 256 176 256L304 256C312.8 256 320 248.8 320 240L320 144C320 135.2 312.8 128 304 128L176 128C167.2 128 160 135.2 160 144z"/></svg>
+                </div>
+                <h2 class="text-lg font-medium text-gray-900">Add New Fuel Charge</h2>
+            </div>
+            <button type="button" onclick="closeDashFuelModal()" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+
+        <div class="px-6 overflow-y-auto space-y-5 py-5">
+
+            {{-- Customer --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
+                <select id="dashFuelCustomerSelect"
+                    class="choices-select-fuel w-full rounded-md py-3 px-3 border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                    <option value="">Select Customer</option>
+                    @foreach ($customers as $customer)
+                        @php
+                            $fullName = trim((string) $customer->full_name);
+                            $phone    = trim((string) $customer->phone);
+                            $email    = trim((string) $customer->email);
+                        @endphp
+                        @if ($fullName || $phone)
+                            <option value="{{ $customer->id }}">
+                                {{ $fullName }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $phone ? \App\Helpers\CustomHelper::formatPhone($phone) : '' }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $email }}
+                            </option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Charge Amount --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-3 flex items-center text-gray-500 text-sm pointer-events-none">$</span>
+                    <input id="dashFuelAmount" type="number" step="0.01" min="0.01" placeholder="0.00"
+                        class="w-full pl-7 pr-3 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            {{-- Sales Tax Treatment --}}
+            @php $dashTaxPct = \App\Helpers\CustomHelper::displayPercentage($sales_tax); @endphp
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
+                <div class="space-y-2 text-sm text-gray-700">
+                    <label class="flex items-start gap-2">
+                        <input type="radio" name="dashFuelSalesTax" value="add" checked class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                        <div>
+                            <p class="font-medium">Add Sales Tax</p>
+                            <p class="text-gray-500">Add {{ $dashTaxPct }}% sales tax to the entered amount</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-2">
+                        <input type="radio" name="dashFuelSalesTax" value="free" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                        <div>
+                            <p class="font-medium">Tax Free</p>
+                            <p class="text-gray-500">No sales tax applied to this charge</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-2">
+                        <input type="radio" name="dashFuelSalesTax" value="reverse" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                        <div>
+                            <p class="font-medium">Reverse Sales Tax</p>
+                            <p class="text-gray-500">Split entered amount proportionally between base amount and tax</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            {{-- Charge Reason (static) --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason</label>
+                <p class="text-base font-semibold text-red-500">Fuel Charge</p>
+            </div>
+
+            {{-- Person Responsible --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
+                <select id="dashFuelPerson" class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select person responsible</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Notes --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                <textarea id="dashFuelNotes" rows="3"
+                    class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter any additional notes about this charge..."></textarea>
+            </div>
+
+            {{-- Buttons --}}
+            <div class="flex justify-end gap-2 pb-2">
+                <button type="button" onclick="closeDashFuelModal()"
+                    class="px-6 py-3 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Cancel</button>
+                <button type="button" id="dashFuelSubmitBtn"
+                    class="px-6 py-3 text-sm rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2">
+                    <span id="dashFuelBtnText">Add Charge</span>
+                    <svg id="dashFuelSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@push('js')
+<script>
+(function () {
+    const dashFuelStoreUrl = "{{ route('admin.dashboard.fuel-charge.store') }}";
+    const csrfToken        = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+    function openDashFuelModal() {
+        const modal = document.getElementById('dashFuelModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        if (!window.dashFuelCustomerChoices) {
+            window.dashFuelCustomerChoices = new Choices('#dashFuelCustomerSelect', {
+                searchEnabled: true,
+                searchPlaceholderValue: 'Search customer...',
+                itemSelectText: '',
+                shouldSort: false,
+            });
+        }
+    }
+    window.openDashFuelModal = openDashFuelModal;
+
+    function closeDashFuelModal() {
+        const modal = document.getElementById('dashFuelModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        resetDashFuelModal();
+    }
+    window.closeDashFuelModal = closeDashFuelModal;
+
+    function resetDashFuelModal() {
+        document.getElementById('dashFuelAmount').value = '';
+        document.getElementById('dashFuelNotes').value  = '';
+        document.getElementById('dashFuelPerson').value = '';
+
+        const addRadio = document.querySelector('input[name="dashFuelSalesTax"][value="add"]');
+        if (addRadio) addRadio.checked = true;
+
+        if (window.dashFuelCustomerChoices) {
+            window.dashFuelCustomerChoices.removeActiveItems();
+        }
+    }
+
+    document.getElementById('dashFuelSubmitBtn').addEventListener('click', function () {
+        const customerId = window.dashFuelCustomerChoices
+            ? window.dashFuelCustomerChoices.getValue(true)
+            : document.getElementById('dashFuelCustomerSelect').value;
+
+        const amount  = document.getElementById('dashFuelAmount').value.trim();
+        const person  = document.getElementById('dashFuelPerson').value;
+        const notes   = document.getElementById('dashFuelNotes').value.trim();
+        const taxRadio = document.querySelector('input[name="dashFuelSalesTax"]:checked');
+        const salesTaxType = taxRadio ? taxRadio.value : 'free';
+
+        if (!customerId) { notyf.error('Please select a customer.'); return; }
+        if (!amount || parseFloat(amount) <= 0) { notyf.error('Please enter a valid amount.'); return; }
+        if (!person) { notyf.error('Please select a person responsible.'); return; }
+
+        const btn     = document.getElementById('dashFuelSubmitBtn');
+        const btnText = document.getElementById('dashFuelBtnText');
+        const spinner = document.getElementById('dashFuelSpinner');
+        btn.disabled = true;
+        btnText.textContent = 'Saving...';
+        spinner.classList.remove('hidden');
+
+        fetch(dashFuelStoreUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({
+                customer_id: customerId,
+                amount,
+                responsible_person: person,
+                notes,
+                sales_tax_type: salesTaxType,
+            }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                notyf.success(data.message);
+                closeDashFuelModal();
+                // Refresh the fuel alerts list so the new charge appears immediately
+                if (typeof window.fuelAlerts !== 'undefined') {
+                    window.location.reload();
+                }
+            } else {
+                notyf.error(data.message || 'Something went wrong.');
+            }
+        })
+        .catch(err => { console.error('Dash fuel charge error:', err); notyf.error('Request failed. Please try again.'); })
+        .finally(() => {
+            btn.disabled = false;
+            btnText.textContent = 'Add Charge';
+            spinner.classList.add('hidden');
+        });
+    });
+})();
+</script>
 @endpush

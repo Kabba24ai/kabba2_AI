@@ -200,6 +200,12 @@ class IndexController extends Controller
             ->latest()
             ->get()
             ->map(function ($account) {
+                $base    = (float) ($account->amount ?? 0);
+                $taxRate = (float) ($account->sales_tax ?? 0);
+                $total   = ($account->sales_tax_type === 'add' && $taxRate > 0)
+                    ? $base + $base * $taxRate
+                    : $base;
+
                 return [
                     'id'             => 20000 + $account->id,
                     'source'         => 'crm',
@@ -217,7 +223,7 @@ class IndexController extends Controller
                     'orderLink'      => $account->customer
                         ? route('admin.crm.customers.view', $account->customer->unique_id)
                         : null,
-                    'amountOwed'     => '$' . number_format((float) ($account->amount ?? 0), 2),
+                    'amountOwed'     => '$' . number_format($total, 2),
                     'date'           => optional($account->date)->toDateString(),
                     'type'           => 'damage',
                     'notes'          => [],
@@ -237,6 +243,12 @@ class IndexController extends Controller
             ->latest()
             ->get()
             ->map(function ($account) {
+                $base    = (float) ($account->amount ?? 0);
+                $taxRate = (float) ($account->sales_tax ?? 0);
+                $total   = ($account->sales_tax_type === 'add' && $taxRate > 0)
+                    ? $base + $base * $taxRate
+                    : $base;
+
                 return [
                     'id'             => 10000 + $account->id,
                     'source'         => 'crm',
@@ -254,7 +266,7 @@ class IndexController extends Controller
                     'orderLink'      => $account->customer
                         ? route('admin.crm.customers.view', $account->customer->unique_id)
                         : null,
-                    'amountOwed'     => '$' . number_format((float) ($account->amount ?? 0), 2),
+                    'amountOwed'     => '$' . number_format($total, 2),
                     'date'           => optional($account->date)->toDateString(),
                     'type'           => 'fuel',
                     'notes'          => [],

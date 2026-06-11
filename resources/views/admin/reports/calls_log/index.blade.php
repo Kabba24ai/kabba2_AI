@@ -186,7 +186,7 @@
                 <span class="text-xs text-gray-400">Newest first</span>
             </div>
             <div id="fuel-alerts-wrapper">
-                <div class="text-center py-10 text-gray-400 text-sm">Loading...</div>
+                @include('admin.reports.fuel_charge_alerts.partials._table', ['records' => $fuelRecords])
             </div>
         </div>
 
@@ -247,7 +247,7 @@
                 <span class="text-xs text-gray-400">Newest first</span>
             </div>
             <div id="damage-alerts-wrapper">
-                <div class="text-center py-10 text-gray-400 text-sm">Loading...</div>
+                @include('admin.reports.new_damage_alerts.partials._table', ['records' => $damageRecords])
             </div>
         </div>
 
@@ -494,8 +494,6 @@
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
 const TABS = ['calls', 'fuel', 'damage'];
-let fuelLoaded   = false;
-let damageLoaded = false;
 
 function switchTab(tab) {
     TABS.forEach(t => {
@@ -511,16 +509,6 @@ function switchTab(tab) {
             btn.classList.add('bg-white', 'text-gray-600', 'border-gray-300', 'hover:bg-gray-50');
         }
     });
-
-    // Lazy load on first visit
-    if (tab === 'fuel' && !fuelLoaded) {
-        fuelLoaded = true;
-        fetchFuel(1);
-    }
-    if (tab === 'damage' && !damageLoaded) {
-        damageLoaded = true;
-        fetchDamage(1);
-    }
 }
 
 // ── Calls Log Filters ─────────────────────────────────────────────────────────

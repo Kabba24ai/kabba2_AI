@@ -252,27 +252,20 @@
         <div class="flex items-center justify-between mb-2">
             <label class="block text-sm font-medium text-gray-700">Notes</label>
 
-            <div class="flex items-center gap-3">
-                <button type="button" id="viewAllNotesBtn"
-                    class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    View All
-                </button>
-
-                <button type="button" id="addNoteBtn2"
-                    class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add
-                </button>
-            </div>
+            <button type="button" id="addNoteBtn2"
+                class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                Add
+            </button>
 
         </div>
 
         <!-- Notes List -->
         <div id="noteListContainer" class="p-2 max-h-60 overflow-y-auto">
-            <ul id="" class="list-disc text-sm text-gray-700 space-y-1 pl-3 ">
+            <ul class="list-disc text-sm text-gray-700 space-y-1 pl-3">
                 @foreach ($customer->notes as $note)
 
                 <li class="list-disc border-b border-gray-200 pb-3" data-id="5">
@@ -303,6 +296,12 @@
                 @endforeach
 
             </ul>
+        </div>
+        <div class="flex justify-end mt-2">
+            <button type="button" id="viewAllNotesBtn"
+                class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                View All
+            </button>
         </div>
     </div>
 </div>

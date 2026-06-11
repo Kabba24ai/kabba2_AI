@@ -1,14 +1,10 @@
 @php
-    use App\Helpers\CustomHelper;
-
-    function fuelStatusBadge(string|null $status): array {
-        return match($status) {
-            'resolved'      => ['label' => 'Resolved',      'class' => 'bg-green-50 text-green-700 border-green-200'],
-            'completed'     => ['label' => 'Completed',     'class' => 'bg-green-50 text-green-700 border-green-200'],
-            'uncollectible' => ['label' => 'Uncollectible', 'class' => 'bg-gray-100 text-gray-500 border-gray-200'],
-            default         => ['label' => 'Active',        'class' => 'bg-orange-50 text-orange-700 border-orange-200'],
-        };
-    }
+    $fuelStatusBadge = fn(?string $status): array => match($status) {
+        'resolved'      => ['label' => 'Resolved',      'class' => 'bg-green-50 text-green-700 border-green-200'],
+        'completed'     => ['label' => 'Completed',     'class' => 'bg-green-50 text-green-700 border-green-200'],
+        'uncollectible' => ['label' => 'Uncollectible', 'class' => 'bg-gray-100 text-gray-500 border-gray-200'],
+        default         => ['label' => 'Active',        'class' => 'bg-orange-50 text-orange-700 border-orange-200'],
+    };
 @endphp
 
 @if($records->isEmpty())
@@ -30,7 +26,7 @@
                 $fuelAdjustments = $record->fuelChargeLogs->sum('change_amount');
                 $currentFuel     = max(0, $baseFuel + $fuelAdjustments);
 
-                $badge = fuelStatusBadge($record->fuel_charge_status);
+                $badge = $fuelStatusBadge($record->fuel_charge_status);
             @endphp
 
             <div class="border border-gray-200 rounded-xl bg-white p-4 hover:shadow-md transition">

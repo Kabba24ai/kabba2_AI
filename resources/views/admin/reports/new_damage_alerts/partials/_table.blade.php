@@ -1,14 +1,10 @@
 @php
-    use App\Helpers\CustomHelper;
-
-    function damageStatusBadge(string|null $status): array {
-        return match($status) {
-            'resolved'      => ['label' => 'Resolved',      'class' => 'bg-green-50 text-green-700 border-green-200'],
-            'completed'     => ['label' => 'Completed',     'class' => 'bg-green-50 text-green-700 border-green-200'],
-            'uncollectible' => ['label' => 'Uncollectible', 'class' => 'bg-gray-100 text-gray-500 border-gray-200'],
-            default         => ['label' => 'Active',        'class' => 'bg-red-50 text-red-700 border-red-200'],
-        };
-    }
+    $damageStatusBadge = fn(?string $status): array => match($status) {
+        'resolved'      => ['label' => 'Resolved',      'class' => 'bg-green-50 text-green-700 border-green-200'],
+        'completed'     => ['label' => 'Completed',     'class' => 'bg-green-50 text-green-700 border-green-200'],
+        'uncollectible' => ['label' => 'Uncollectible', 'class' => 'bg-gray-100 text-gray-500 border-gray-200'],
+        default         => ['label' => 'Active',        'class' => 'bg-red-50 text-red-700 border-red-200'],
+    };
 @endphp
 
 @if($records->isEmpty())
@@ -30,7 +26,7 @@
                 $damageAdjustments = $record->damageChargeLogs->sum('change_amount');
                 $currentDamage     = max(0, $baseDamage + $damageAdjustments);
 
-                $badge = damageStatusBadge($record->damage_status);
+                $badge = $damageStatusBadge($record->damage_status);
             @endphp
 
             <div class="border border-gray-200 rounded-xl bg-white p-4 hover:shadow-md transition">

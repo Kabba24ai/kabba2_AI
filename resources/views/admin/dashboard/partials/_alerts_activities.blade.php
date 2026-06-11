@@ -43,6 +43,7 @@
 
         </div>
 
+        
                 {{-- Alerts List --}}
         <div id="call-needed-list"
             class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
@@ -110,7 +111,7 @@
                                 name="contact_type"
                                 value="manual"
                                 class="text-brand-600 focus:ring-brand-500">
-                            <span class="text-sm text-gray-700">Non-Customer</span>
+                            <span class="text-sm text-gray-700">Other-Customer</span>
                         </label>
                     </div>
                 </div>
@@ -136,7 +137,7 @@
                             @endphp
 
                             {{-- Skip customers where all 3 fields are empty --}}
-                            @if ($fullName || $phone || $email)
+                            @if ($fullName || $phone)
                                 <option value="{{ $customer->id }}">
                                     {{ $fullName }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $phone ? App\Helpers\CustomHelper::formatPhone($phone) : '' }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $email }}
                                 </option>
@@ -341,9 +342,254 @@
     </div>
 </div>
 
+<div id="CompleteCallModal"
+    style="display:none;"
+    class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 hidden">
+
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-200">
+
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                    Complete Call
+                </h2>
+                <p class="text-sm text-gray-500">
+                    Add call outcome and notes
+                </p>
+            </div>
+
+            <button type="button" onclick="closeCompleteCallModal()" class="text-gray-400 hover:text-gray-700 text-xl">
+                &times;
+            </button>
+        </div>
+
+        <div class="px-6 py-5 space-y-4">
+            <input type="hidden" id="complete_call_id">
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">
+                    Call Action
+                </label>
+
+                <select id="complete_call_status" class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm" required>
+                    <option value="">Select Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="no_answer">No Answer</option>
+                    <option value="left_voicemail">Left Voicemail</option>
+                    <option value="follow_up_needed">Follow-up Needed</option>
+                    <option value="not_interested">Not Interested</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">
+                    Call Summary
+                </label>
+
+                <textarea
+                    id="complete_call_description"
+                    rows="4"
+                    class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm"
+                    placeholder="Write what happened during the call..."
+                    required></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3">
+
+                <button
+                    type="button"
+                    onclick="closeCompleteCallModal()"
+                    class="px-5 py-2 rounded-lg border border-gray-300 bg-white text-gray-700">
+                    Cancel
+                </button>
+
+                <button
+    type="button"
+    id="call-action-save-btn"
+    onclick="submitCompleteCall('save')"
+    class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2">
+
+    <span id="callActionBtnText">
+        Save 
+    </span>
+
+    <svg
+        id="callActionBtnSpinner"
+        xmlns="http://www.w3.org/2000/svg"
+        class="hidden animate-spin h-4 w-4 text-white"
+        fill="none"
+        viewBox="0 0 24 24">
+
+        <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4">
+        </circle>
+
+        <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+        </path>
+
+    </svg>
+
+</button>
+
+                <button
+                    type="button"
+                    onclick="submitCompleteCall('complete')"
+                    class="px-5 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
+                     Save & Complete Call
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('js')
 
 <script>
+
+function openCompleteCallModal(id)
+{
+    document.getElementById('complete_call_id').value = id;
+    document.getElementById('complete_call_status').value = '';
+    document.getElementById('complete_call_description').value = '';
+
+    const modal = document.getElementById('CompleteCallModal');
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+}
+
+function closeCompleteCallModal()
+{
+    const modal = document.getElementById('CompleteCallModal');
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+}
+
+// function submitCompleteCall()
+// {
+//     const id = document.getElementById('complete_call_id').value;
+//     const status = document.getElementById('complete_call_status').value;
+//     const description = document.getElementById('complete_call_description').value.trim();
+
+//     if (!status) {
+//         notyf.error('Please select call status.');
+//         return;
+//     }
+
+//     if (!description) {
+//         notyf.error('Please enter call summary.');
+//         return;
+//     }
+
+//     fetch(
+//         "{{ route('admin.dashboard.call-needed.clear', ':id') }}".replace(':id', id),
+//         {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+//             },
+//             body: JSON.stringify({
+//                 call_status: status,
+//                 completion_note: description,
+//             }),
+//         }
+//     )
+//     .then(res => res.json())
+//     .then(data => {
+//         if (data.success) {
+//             notyf.success(data.message);
+//             closeCompleteCallModal();
+//             loadCallNeededList();
+//         } else {
+//             notyf.error(data.message || 'Something went wrong');
+//         }
+//     })
+//     .catch(() => {
+//         notyf.error('Failed to complete call reminder');
+//     });
+// }
+function submitCompleteCall(action)
+{
+    const id = document.getElementById('complete_call_id').value;
+    const status = document.getElementById('complete_call_status').value;
+    const description = document.getElementById('complete_call_description').value.trim();
+
+    if (!status) {
+        notyf.error('Please select call status.');
+        return;
+    }
+
+    if (!description) {
+        notyf.error('Please enter call summary.');
+        return;
+    }
+
+    const btn = document.getElementById('call-action-save-btn');
+    const btnText = document.getElementById('callActionBtnText');
+    const spinner = document.getElementById('callActionBtnSpinner');
+
+    btn.disabled = true;
+    btnText.textContent = 'Saving...';
+    spinner.classList.remove('hidden');
+
+    fetch(
+        "{{ route('admin.dashboard.call-needed.complete', ':id') }}"
+            .replace(':id', id),
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector(
+                    'meta[name="csrf-token"]'
+                ).content,
+            },
+            body: JSON.stringify({
+                action: action,
+                call_status: status,
+                completion_note: description,
+            }),
+        }
+    )
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.success) {
+
+            notyf.success(data.message);
+
+            closeCompleteCallModal();
+
+            loadCallNeededList();
+
+        } else {
+
+            notyf.error(data.message || 'Something went wrong');
+        }
+    })
+    .catch(() => {
+
+        notyf.error('Failed to save call action');
+
+    })
+    .finally(() => {
+
+        btn.disabled = false;
+        btnText.textContent = 'Save Action';
+        spinner.classList.add('hidden');
+
+    });
+}
+
    function openCallModalOnly()
 {
     const modal = document.getElementById('CallNeededModal');
@@ -541,7 +787,7 @@ if (window.callReasonChoices) {
         if (!data.success) {
             return;
         }
-
+window.callNeededData = data.data;
         renderCallNeededList(data.data);
 
         document.getElementById('call-needed-count').innerText =
@@ -605,29 +851,29 @@ function renderCallNeededList(calls)
             </div>
 
 
-         <div class="mt-3 border-l-4 border-blue-200 bg-blue-50/40 rounded-r-lg p-3">
+            <div class="mt-3 border-l-4 border-blue-200 bg-blue-50/40 rounded-r-lg p-3">
 
-    <div class="text-sm flex flex-wrap items-center gap-x-4 gap-y-1">
+                <div class="text-sm flex flex-wrap items-center gap-x-4 gap-y-1">
 
-        <span>
-            <span class="font-semibold text-gray-700">Reason:</span>
-            <span class="text-gray-600">
-                ${formatReason(call.reason)}
-            </span>
-        </span>
+                    <span>
+                        <span class="font-semibold text-gray-700">Reason:</span>
+                        <span class="text-gray-600">
+                            ${formatReason(call.reason)}
+                        </span>
+                    </span>
 
-        ${call.notes ? `
-            <span>
-                <span class="font-semibold text-gray-700">Notes:</span>
-                <span class="text-gray-600">
-                    ${call.notes}
-                </span>
-            </span>
-        ` : ''}
+                    ${call.notes ? `
+                        <span>
+                            <span class="font-semibold text-gray-700">Notes:</span>
+                            <span class="text-gray-600">
+                                ${call.notes}
+                            </span>
+                        </span>
+                    ` : ''}
 
-    </div>
+                </div>
 
-</div>
+            </div>
 
             <!-- Footer -->
            <div class="flex flex-wrap items-center gap-4 mt-4 text-xs text-gray-500">
@@ -649,9 +895,25 @@ function renderCallNeededList(calls)
                     ${call.created_at}
                 </span>
 
+           </div>
+
+           <div class="mt-3">
+                <button
+                    onclick="toggleCallActivities(${call.id})"
+                    class="text-xs font-medium text-blue-600 hover:text-blue-800">
+                    Show Call Activity (${call.activities.length})
+                </button>
+            </div>
+
+           <div
+                id="call-activities-${call.id}"
+                class="hidden overflow-hidden transition-all duration-300 ease-in-out"
+                style="max-height:0">
             </div>
 
         </div>
+
+        
 
         <!-- Actions -->
         <div class="flex items-start gap-2 border-l border-gray-100 pl-3">
@@ -662,8 +924,10 @@ function renderCallNeededList(calls)
                 <x-heroicon-o-pencil-square class="w-5 h-5" />
             </button>
 
+            
+
             <button
-                onclick="clearCallNeeded(${call.id})"
+                onclick="openCompleteCallModal(${call.id})"
                 class="p-2 rounded-lg text-green-600 hover:bg-green-50 transition">
                 <x-heroicon-o-check-circle class="w-5 h-5" />
             </button>
@@ -676,6 +940,86 @@ function renderCallNeededList(calls)
     `).join('');
 }
 
+function toggleCallActivities(id)
+{
+    const box = document.getElementById(
+        `call-activities-${id}`
+    );
+    
+
+    const call = window.callNeededData.find(
+        c => c.id == id
+    );
+
+    if (!call) return;
+
+  
+
+
+       box.innerHTML = `
+<div class="mt-4 ml-3 border-l-2 border-blue-200 pl-6">
+
+    ${call.activities.map(activity => `
+
+        <div class="relative pb-6">
+
+            <!-- Timeline Dot -->
+            <div class="absolute -left-[33px] top-1 w-5 h-5 rounded-full bg-blue-500 border-4 border-white shadow"></div>
+
+            <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+
+                <!-- Header -->
+                <div class="flex items-start justify-between gap-4">
+
+                    <div>
+
+                        <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                            ${formatReason(activity.status)}
+                        </span>
+
+                    </div>
+
+                 <div class="text-xs text-gray-500">
+    Updated by <span class="font-medium text-gray-700">${activity.user?.full_name ?? '-'}</span>
+    on ${activity.created_at}
+</div>
+
+                </div>
+
+                <!-- Notes -->
+                <div class="mt-3 rounded-lg bg-gray-50 border border-gray-100 p-3">
+
+                    <div class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">
+                        Notes
+                    </div>
+
+                    <p class="text-sm text-gray-700 leading-relaxed">
+                        ${activity.notes}
+                    </p>
+
+                </div>
+
+               
+
+            </div>
+
+        </div>
+
+    `).join('')}
+
+</div>
+`;
+    
+    if (box.classList.contains('hidden')) {
+        box.classList.remove('hidden');
+        box.style.maxHeight = box.scrollHeight + 'px';
+    } else {
+        box.style.maxHeight = '0px';
+        setTimeout(() => {
+            box.classList.add('hidden');
+        }, 250);
+    }
+}
 
 function clearCallNeeded(id)
 {
@@ -821,6 +1165,9 @@ document.addEventListener('DOMContentLoaded', function () {
             searchEnabled: true,
             shouldSort: false,
             itemSelectText: '',
+                    searchResultLimit: 1000,
+        renderChoiceLimit: -1,
+
         }
     );
 }
@@ -832,6 +1179,9 @@ if (!window.callAssigneeChoices) {
             searchEnabled: true,
             shouldSort: false,
             itemSelectText: '',
+
+        searchResultLimit: 1000,
+        renderChoiceLimit: -1,
         }
     );
 }
@@ -843,6 +1193,9 @@ if (!window.callReasonChoices) {
             searchEnabled: true,
             shouldSort: false,
             itemSelectText: '',
+                    searchResultLimit: 1000,
+        renderChoiceLimit: -1,
+
         }
     );
 }

@@ -39,6 +39,7 @@
 
                 <tbody class="text-gray-700">
                     @forelse($customers as $customer)
+                        
 
                         <tr class="border-t hover:bg-gray-50">
                             <td class="px-4 py-2 whitespace-nowrap">

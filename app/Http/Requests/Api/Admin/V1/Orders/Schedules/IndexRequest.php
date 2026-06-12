@@ -21,8 +21,8 @@ class IndexRequest extends ApiBaseFormRequest
             'page' => 'nullable|integer|min:1', // Optional page parameter
             'search' => 'nullable|string|max:255', // Optional search parameter
             'category_id' => 'nullable|integer|exists:product_categories,id',
-            'schedule_type'   => ['required', 'in:Delivery,Return'],
-            'schedule_status'  => ['required', 'in:Pending,Completed'],
+            'schedule_type'   => ['required', 'in:All,Delivery,Return'],
+            'schedule_status'  => ['required', 'in:All,Pending,Completed'],
             'transport_mode'   => ['required', 'in:All,Truck,Store'],
             'date_filter'   => ['nullable', 'in:All,Tomorrow,Today,This Week,This Month'],
         ];
@@ -57,12 +57,12 @@ class IndexRequest extends ApiBaseFormRequest
                 'type' => 'integer',
             ],
             'schedule_type' => [
-                'description' => 'The type of schedule, either "Delivery" or "Return".',
+                'description' => 'The type of schedule, either "All", "Delivery", or "Return".',
                 'example' => 'Delivery',
                 'type' => 'string',
             ],
             'schedule_status' => [
-                'description' => 'The status of the schedule, either "Pending" or "Completed".',
+                'description' => 'The status of the schedule, either "All", "Pending", or "Completed".',
                 'example' => 'Pending',
                 'type' => 'string',
             ],

@@ -105,6 +105,10 @@ class ListResource extends JsonResource
 
             'equipment_location' => $this->equipmentLocation() ?? '', // due to many relationships add last so above keys whenLoaded not load other data
 
+            'start_point' => $this->startPoint(),
+
+            'end_point' => $this->endPoint(),
+
             'customer_checklist_questions' => CustomerChecklistQuestionsListResource::collection($this->whenLoaded('checklistQA')),
 
             'rental_ready_checklist_questions' => RentalReadyChecklistQuestionsListResource::collection($this->whenLoaded('rentalReadyQA')),

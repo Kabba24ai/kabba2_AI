@@ -244,6 +244,20 @@ class OrderProduct extends Model
         return $this->belongsTo(Store::class, 'pickup_store_id');
     }
 
+    public function startPoint()
+    {
+        if ($this->is_delivered) {
+            return $this->order?->customer_name ?? '-';
+        }
+
+        return $this->deliveryStore?->store_name ?? '-';
+    }
+
+    public function endPoint()
+    {
+        return $this->pickupStore?->store_name ?? '-';
+    }
+
     public function softAssignment()
     {
         return $this->hasOne(EquipmentSoftAssign::class, 'order_product_id', 'id')->with('equipment');

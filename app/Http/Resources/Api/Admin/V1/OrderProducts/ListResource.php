@@ -99,6 +99,10 @@ class ListResource extends JsonResource
 
             'pickup_store' => new StoresListResource($this->whenLoaded('pickupStore')),
 
+            'delivery_employee' => $this->whenLoaded('deliveryEmployee') ? $this->deliveryEmployee . ' ' . $this->deliveryEmployee : '',
+
+            'pickup_employee' => $this->whenLoaded('pickupEmployee') ? $this->pickupEmployee . ' ' . $this->pickupEmployee : '',
+
             'equipment_location' => $this->equipmentLocation() ?? '', // due to many relationships add last so above keys whenLoaded not load other data
 
             'customer_checklist_questions' => CustomerChecklistQuestionsListResource::collection($this->whenLoaded('checklistQA')),

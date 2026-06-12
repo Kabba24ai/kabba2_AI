@@ -35,7 +35,7 @@ class IndexController extends BaseController
         $dateFilter = $validatedData['date_filter'] ?? null;
 
         $orders = OrderProduct::query()
-            ->with('order', 'order.customer', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'deliveryMedia', 'pickupMedia', 'equipment','deliveryStore','pickupStore')
+            ->with('order', 'order.customer', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'deliveryMedia', 'pickupMedia', 'equipment','deliveryStore','pickupStore','deliveryEmployee','pickupEmployee')
             ->where('product_data->product_type', 'Rental')
             ->whereHas('order')
             ->whereNotNull('delivery_date')

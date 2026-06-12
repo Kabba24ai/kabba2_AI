@@ -2,7 +2,7 @@
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm  text-left whitespace-nowrap">
         <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
             <tr>
-                <th class="py-4 px-6"><input type="checkbox" id="select-all-checkbox" /></th>
+                <th class="py-4 px-3"><input type="checkbox" id="select-all-checkbox" /></th>
                 <th class="py-4 px-6 text-left">Order ID</th>
                 <th class="py-4 px-6 text-left">Customer</th>
                 <th class="py-4 px-6 text-left">Company</th>
@@ -10,20 +10,20 @@
                 <th class="py-4 px-6 text-left">Billing Address</th>
                 <th class="py-4 px-6 text-left">Phone</th>
                 <th class="py-4 px-6 text-right">Amount</th>
-                <th class="py-4 px-6 text-center">Payment Type</th>
-                <th class="py-4 px-6 text-center">Payment</th>
-                <th class="py-4 px-6 text-center">Terms Status</th>
+                <th class="py-4 px-4 text-center">Payment Type</th>
+                <th class="py-4 px-3 text-center">Payment</th>
+                <th class="py-4 px-3 text-center">Terms Status</th>
                 {{-- <th class="py-4 px-6 text-center">Delivery</th>
                 <th class="py-4 px-6 text-center">Return</th> --}}
-                <th class="py-4 px-6 text-center">Created</th>
-                <th class="py-4 px-6 text-center">Actions</th>
+                <th class="py-4 px-4 text-center">Created</th>
+                <th class="py-4 px-3 text-center">Actions</th>
             </tr>
         </thead>
         <div id="order-loading" class="hidden"></div>
         <tbody class="divide-y">
             @forelse ($orders as $order)
                 <tr id="order-row-{{ $order->unique_id }}" class="hover:bg-gray-50">
-                    <td class="py-4 px-6">
+                    <td class="py-4 px-3">
                         <input type="checkbox" class="order-checkbox" value="{{ $order->unique_id }}" />
                     </td>
                     <td class="py-4 px-6 text-left">
@@ -60,21 +60,19 @@
                     <td class="py-4 px-6 font-semibold text-right">
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
                     </td>
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         {{ $order?->last_payment_type?->label() ?? '-' }}
                     </td>
 
-                    <td class="py-4 px-6 text-center">
-
+                    <td class="py-4 px-3 text-center">
                         {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
-
                     </td>
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-3 text-center">
                         {!! \App\Helpers\CustomHelper::statusBadge($order->terms_status->label() ?? '-') !!}
                     </td>
-                    <td class="py-4 px-6 text-center">{{ $order->created_at->format(config('app.date.date_format')) }}
+                    <td class="py-4 px-4 text-center">{{ $order->created_at->format(config('app.date.date_format')) }}
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-4 px-3">
                         <div class="flex gap-2 items-center justify-center">
                             <a href="{{ route('admin.order-management.orders.edit', $order->unique_id) }}"
                                 class="text-sky-600 hover:text-sky-800" title="View" >

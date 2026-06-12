@@ -46,7 +46,7 @@ class EditController extends Controller
         $payments = $order->extraCharges->sortByDesc('type');
 
         $relatedOrders = Order::where('reference_order_number', $order->order_number)
-            ->with('lastPayment')
+            ->with(['lastPayment', 'payments'])
             ->latest('id')
             ->get();
 

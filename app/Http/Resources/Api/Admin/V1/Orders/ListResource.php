@@ -46,7 +46,9 @@ class ListResource extends JsonResource
             'delivery_address' => new OrderAddressesListResource($this->whenLoaded('shippingAddress') ?? []),
             'billing_address' => new OrderAddressesListResource($this->whenLoaded('billingAddress') ?? []),
 
-            'is_same_as_billing' => $this->whenLoaded('shippingAddress')->isSameAs($this->whenLoaded('billingAddress') ?? null) ?? false,
+            'is_same_as_billing' => ($this->relationLoaded('shippingAddress') && $this->shippingAddress)
+                ? $this->shippingAddress->isSameAs($this->whenLoaded('billingAddress') ?? null)
+                : false,
 
             'license' => OrderMediasListResource::collection($this->whenLoaded('licenseMedia') ?? []),
             'order_products' => OrderProductsListResource::collection($this->whenLoaded('products')) ?? [],

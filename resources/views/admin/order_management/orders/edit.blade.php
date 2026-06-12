@@ -1629,43 +1629,58 @@
                                     <th class="pb-2 pr-4 text-right">Tax</th>
                                     <th class="pb-2 pr-4 text-right">Total</th>
                                     <th class="pb-2 pr-4">Status</th>
-                                    <th class="pb-2">Date</th>
+                                    <th class="pb-2 pr-4">Date</th>
+                                    <th class="pb-2"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($relatedOrders as $related)
+                                    @php
+                                        $extStatus = $related->last_payment_status ?? 'Pending';
+                                        $extStatusClass = $extStatus === 'Paid'
+                                            ? 'bg-green-100 text-green-700'
+                                            : ($extStatus === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
+                                        $extTotalPaid = $related->payments
+                                            ->whereIn('status', ['Paid', 'Partial Payment'])
+                                            ->sum('amount');
+                                        $extBalanceDue = max(0, (float) $related->grand_total - $extTotalPaid);
+                                        $extNeedsPayment = in_array($extStatus, ['Pending', 'Failed', 'Partial Payment']);
+                                    @endphp
                                     <tr>
-                                        <td class="py-2 pr-4">
+                                        <td class="py-3 pr-4">
                                             <a href="{{ route('admin.order-management.orders.edit', $related->unique_id) }}"
                                                class="text-blue-600 hover:underline font-semibold">
                                                 {{ $related->order_number }}
                                             </a>
                                         </td>
-                                        <td class="py-2 pr-4 text-gray-700 max-w-xs truncate">
+                                        <td class="py-3 pr-4 text-gray-700 max-w-xs truncate">
                                             {{ $related->order_note ?? '—' }}
                                         </td>
-                                        <td class="py-2 pr-4 text-right text-gray-600">
+                                        <td class="py-3 pr-4 text-right text-gray-600">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($related->subtotal) }}
                                         </td>
-                                        <td class="py-2 pr-4 text-right text-gray-600">
+                                        <td class="py-3 pr-4 text-right text-gray-600">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($related->tax_amount) }}
                                         </td>
-                                        <td class="py-2 pr-4 text-right font-semibold text-gray-800">
+                                        <td class="py-3 pr-4 text-right font-semibold text-gray-800">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($related->grand_total) }}
                                         </td>
-                                        <td class="py-2 pr-4">
-                                            @php
-                                                $extStatus = $related->last_payment_status ?? 'Pending';
-                                                $extStatusClass = $extStatus === 'Paid'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : ($extStatus === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
-                                            @endphp
+                                        <td class="py-3 pr-4">
                                             <span class="px-2 py-0.5 text-xs rounded-full font-medium {{ $extStatusClass }}">
                                                 {{ $extStatus }}
                                             </span>
                                         </td>
-                                        <td class="py-2 text-gray-500 text-xs whitespace-nowrap">
+                                        <td class="py-3 pr-4 text-gray-500 text-xs whitespace-nowrap">
                                             {{ \App\Helpers\CustomHelper::formatDateTime($related->created_at) }}
+                                        </td>
+                                        <td class="py-3 text-right">
+                                            @if ($extNeedsPayment)
+                                                <button type="button"
+                                                    onclick="openPaymentModalForExtension('{{ $related->unique_id }}', {{ (float) $related->grand_total }}, {{ (float) $extTotalPaid }}, '{{ $related->order_number }}')"
+                                                    class="inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-full whitespace-nowrap transition-colors">
+                                                    Process Payment Now
+                                                </button>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -1981,7 +1996,7 @@
         <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b">
-                <h2 id="addressModalTitle" class="text-lg font-semibold">Process Payment</h2>
+                <h2 id="processPaymentTitle" class="text-lg font-semibold">Process Payment</h2>
                 <button type="button"
                     class="close-process-payment-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
             </div>
@@ -4162,12 +4177,19 @@
             function closeProcessPaymentModal() {
                 processPaymentModal.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
-                // Reset partial payment state
+                // Reset partial payment UI
                 document.getElementById('paymentModeFull').checked = true;
-                updatePaymentModeUI();
                 document.getElementById('partialPaymentAmount').value = '';
                 document.getElementById('remainingBalanceDisplay').textContent = '—';
                 document.getElementById('partialAmountError').classList.add('hidden');
+                // Restore original order context
+                paymentTargetUniqueId = orderUniqueId;
+                modalGrandTotal = parseFloat(processPaymentModal.dataset.grandTotal || '0');
+                modalTotalPaid  = parseFloat(processPaymentModal.dataset.totalPaid  || '0');
+                modalBalanceDue = Math.max(0, modalGrandTotal - modalTotalPaid);
+                document.getElementById('balanceDueDisplay').textContent = fmtCurrency(modalBalanceDue);
+                document.getElementById('processPaymentTitle').textContent = 'Process Payment';
+                updatePaymentModeUI();
             }
 
             // === Full / Partial Payment toggle ===
@@ -4179,9 +4201,10 @@
             const remainingBalanceDisplay = document.getElementById('remainingBalanceDisplay');
             const partialAmountError  = document.getElementById('partialAmountError');
 
-            const modalGrandTotal = parseFloat(processPaymentModal.dataset.grandTotal || '0');
-            const modalTotalPaid  = parseFloat(processPaymentModal.dataset.totalPaid  || '0');
-            const modalBalanceDue = Math.max(0, modalGrandTotal - modalTotalPaid);
+            let modalGrandTotal = parseFloat(processPaymentModal.dataset.grandTotal || '0');
+            let modalTotalPaid  = parseFloat(processPaymentModal.dataset.totalPaid  || '0');
+            let modalBalanceDue = Math.max(0, modalGrandTotal - modalTotalPaid);
+            let paymentTargetUniqueId = orderUniqueId;
 
             function fmtCurrency(n) {
                 return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -4245,6 +4268,23 @@
             // Initialize
             updatePaymentModeUI();
             document.getElementById('balanceDueDisplay').textContent = fmtCurrency(modalBalanceDue);
+
+            // Open payment modal for an extension order (called from extension table buttons)
+            window.openPaymentModalForExtension = function(uniqueId, grandTotal, totalPaid, orderNumber) {
+                paymentTargetUniqueId = uniqueId;
+                modalGrandTotal = grandTotal;
+                modalTotalPaid  = totalPaid;
+                modalBalanceDue = Math.max(0, grandTotal - totalPaid);
+                document.getElementById('balanceDueDisplay').textContent = fmtCurrency(modalBalanceDue);
+                document.getElementById('processPaymentTitle').textContent = 'Process Payment — ' + orderNumber;
+                // Reset to Full Payment mode
+                document.getElementById('paymentModeFull').checked = true;
+                document.getElementById('partialPaymentAmount').value = '';
+                document.getElementById('remainingBalanceDisplay').textContent = '—';
+                document.getElementById('partialAmountError').classList.add('hidden');
+                updatePaymentModeUI();
+                openProcessPaymentModal();
+            };
 
             // 👉 Open the modal when clicking the Pending Payment pill
             if (pendingPaymentBtn) {
@@ -4358,7 +4398,7 @@
                     notyf.error('Please select a payment method.');
                     return;
                 }
-                endpoint = endpoint.replace(':unique_id', orderUniqueId);
+                endpoint = endpoint.replace(':unique_id', paymentTargetUniqueId);
 
                 if (selectedPaymentMethod === 'CreditCard') {
                     const selectedCardOption = document.getElementById('cardOption').value;

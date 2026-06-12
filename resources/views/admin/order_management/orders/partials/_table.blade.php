@@ -46,7 +46,15 @@
                             </a>
                         @endif
                     </td>
-                    <td class="py-4 px-6 truncate min-w-3xs max-w-3xs text-left">{!! $order->products->pluck('product_name')->join('<br> ') !!}</td>
+                    <td class="py-4 px-6 truncate min-w-3xs max-w-3xs text-left">
+                        @if ($order->products->isNotEmpty())
+                            {!! $order->products->pluck('product_name')->join('<br> ') !!}
+                        @elseif ($order->reference_order_number)
+                            <span class="text-gray-500 italic text-xs">Extension Charge</span>
+                        @else
+                            —
+                        @endif
+                    </td>
                     <td class="py-4 px-6 truncate min-w-xs max-w-xs ">{{ $order->billingAddress?->full_address ?? '—' }}</td>
                     <td class="py-4 px-6 text-left ">{{ $order->billingAddress?->phone ?? '—' }}</td>
                     <td class="py-4 px-6 font-semibold text-right">

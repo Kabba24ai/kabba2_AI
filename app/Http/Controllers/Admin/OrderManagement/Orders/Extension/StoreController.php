@@ -19,7 +19,7 @@ class StoreController extends Controller
     {
         $validated = $request->validated();
 
-        $order = Order::where('unique_id', $uniqueId)->firstOrFail();
+        $order = Order::where('unique_id', $uniqueId)->with('billingAddress')->firstOrFail();
         $user  = User::findOrFail($validated['responsible_person']);
 
         DB::beginTransaction();
@@ -55,6 +55,22 @@ class StoreController extends Controller
                 'is_tax_exempt'          => $validated['add_tax'] ? 'No' : 'Yes',
                 'order_note'             => $validated['description'] . ($validated['notes'] ? "\n" . $validated['notes'] : ''),
             ]);
+
+            // Copy billing address from original order so it appears in the Orders index table
+            if ($order->billingAddress) {
+                $extension->addresses()->create([
+                    'type'       => 'Billing',
+                    'first_name' => $order->billingAddress->first_name,
+                    'last_name'  => $order->billingAddress->last_name,
+                    'email'      => $order->billingAddress->email,
+                    'phone'      => $order->billingAddress->phone,
+                    'address'    => $order->billingAddress->address,
+                    'city'       => $order->billingAddress->city,
+                    'state'      => $order->billingAddress->state,
+                    'state_id'   => $order->billingAddress->state_id,
+                    'zip_code'   => $order->billingAddress->zip_code,
+                ]);
+            }
 
             // Pending payment placeholder so the order shows as "Pending" until paid
             $extension->payments()->create([

@@ -2642,7 +2642,7 @@
                                         @endphp
 
                                         {{-- @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0) --}}
-                                        @if (!is_null($product->fuel_initial_reading))
+                                        @if ($order->products->isNotEmpty() && !is_null($product->fuel_initial_reading))
 
                                             @php
                                                 $arrFuelDelivery = [

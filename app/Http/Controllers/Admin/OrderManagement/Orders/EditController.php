@@ -49,7 +49,7 @@ class EditController extends Controller
         // Reorders also set reference_order_number but get a new sequential number — exclude them.
         $relatedOrders = Order::where('reference_order_number', $order->order_number)
             ->where('order_number', 'like', $order->order_number . '-%')
-            ->with(['lastPayment', 'payments'])
+            ->with(['lastPayment', 'payments', 'notes'])
             ->latest('id')
             ->get();
 

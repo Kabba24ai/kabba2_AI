@@ -1625,6 +1625,7 @@
                                 <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
                                     <th class="pb-2 pr-4">Order #</th>
                                     <th class="pb-2 pr-4">Description</th>
+                                    <th class="pb-2 pr-4">Notes</th>
                                     <th class="pb-2 pr-4 text-right">Subtotal</th>
                                     <th class="pb-2 pr-4 text-right">Tax</th>
                                     <th class="pb-2 pr-4 text-right">Total</th>
@@ -1653,8 +1654,11 @@
                                                 {{ $related->order_number }}
                                             </a>
                                         </td>
-                                        <td class="py-3 pr-4 text-gray-700 max-w-xs truncate">
+                                        <td class="py-3 pr-4 text-gray-700 max-w-[180px] truncate">
                                             {{ $related->order_note ?? '—' }}
+                                        </td>
+                                        <td class="py-3 pr-4 text-gray-500 text-xs max-w-[180px] truncate">
+                                            {{ $related->notes->first()?->note ?? '—' }}
                                         </td>
                                         <td class="py-3 pr-4 text-right text-gray-600">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($related->subtotal) }}

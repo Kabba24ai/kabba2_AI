@@ -53,8 +53,18 @@ class StoreController extends Controller
                 'tax_amount'             => $taxAmount,
                 'grand_total'            => $grandTotal,
                 'is_tax_exempt'          => $validated['add_tax'] ? 'No' : 'Yes',
-                'order_note'             => $validated['description'] . ($validated['notes'] ? "\n" . $validated['notes'] : ''),
+                'order_note'             => $validated['description'],
             ]);
+
+            // Store notes as a separate OrderNote on the extension order
+            if (!empty($validated['notes'])) {
+                $extension->notes()->create([
+                    'note'            => $validated['notes'],
+                    'user_id'         => $user->id,
+                    'created_by_type' => User::class,
+                    'created_by_id'   => $user->id,
+                ]);
+            }
 
             // Copy billing address from original order so it appears in the Orders index table
             if ($order->billingAddress) {

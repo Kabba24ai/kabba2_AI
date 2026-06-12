@@ -52,7 +52,7 @@ class ReceivePaymentController extends Controller
                 $completesTotal = ($alreadyPaid + $amount) >= ((float) $order->grand_total - 0.005);
                 $targetStatus = $completesTotal ? OrderPaymentStatus::Paid : OrderPaymentStatus::PartialPayment;
             } else {
-                $amount = (float) $order->grand_total;
+                $amount = (float) $order->balance_due;
                 $targetStatus = OrderPaymentStatus::Paid;
             }
 

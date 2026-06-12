@@ -1819,6 +1819,12 @@
 
             <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
 
+                <!-- Balance Due banner (always visible) -->
+                <div class="flex justify-between items-center px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <span class="text-sm font-medium text-gray-600">Balance Due</span>
+                    <span id="balanceDueDisplay" class="text-lg font-bold text-blue-700"></span>
+                </div>
+
                 <!-- Full / Partial Payment toggle -->
                 <div class="flex gap-3">
                     <label id="labelFullPayment"
@@ -4063,6 +4069,7 @@
 
             // Initialize
             updatePaymentModeUI();
+            document.getElementById('balanceDueDisplay').textContent = fmtCurrency(modalBalanceDue);
 
             // 👉 Open the modal when clicking the Pending Payment pill
             if (pendingPaymentBtn) {

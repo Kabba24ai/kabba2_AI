@@ -58,16 +58,20 @@ class IndexController extends BaseController
                 }),
             )
             ->when(
-                $scheduleType && $scheduleStatus,
+                $scheduleType && $scheduleType !== 'All',
                 function ($query) use ($scheduleType, $scheduleStatus, $transportMode) {
                     if ($scheduleType === "Delivery") {
-                        $query->where('delivery_status', $scheduleStatus);
+                        if ($scheduleStatus && $scheduleStatus !== 'All') {
+                            $query->where('delivery_status', $scheduleStatus);
+                        }
                         if ($transportMode && $transportMode !== 'All') {
                             $query->where('delivery_transport_mode', $transportMode);
                         }
                     } elseif ($scheduleType === "Return") {
-                        $query->where('pickup_status', $scheduleStatus)
-                              ->where('delivery_status', 'Completed');
+                        if ($scheduleStatus && $scheduleStatus !== 'All') {
+                            $query->where('pickup_status', $scheduleStatus);
+                        }
+                        $query->where('delivery_status', 'Completed');
                         if ($transportMode && $transportMode !== 'All') {
                             $query->where('pickup_transport_mode', $transportMode);
                         }
@@ -77,27 +81,37 @@ class IndexController extends BaseController
             ->when(
                 $dateFilter && $dateFilter !== 'All',
                 function ($query) use ($dateFilter, $scheduleType) {
-                    if ($scheduleType === "Delivery") {
-                        if ($dateFilter === "Today") {
-                            $query->whereDate('delivery_date', "<=", today());
-                        } elseif ($dateFilter === "Tomorrow") {
-                            $query->whereDate('delivery_date', now()->addDay()->toDateString());
-                        } elseif ($dateFilter === "This Week") {
-                            $query->whereBetween('delivery_date', [now()->startOfWeek(), now()->endOfWeek()]);
-                        } elseif ($dateFilter === "This Month") {
-                            $query->whereBetween('delivery_date', [now()->startOfMonth(), now()->endOfMonth()]);
+                    $applyDelivery = in_array($scheduleType, ['Delivery', 'All']);
+                    $applyPickup   = in_array($scheduleType, ['Return', 'All']);
+
+                    $query->where(function ($q) use ($dateFilter, $applyDelivery, $applyPickup) {
+                        if ($applyDelivery) {
+                            $q->orWhere(function ($sub) use ($dateFilter) {
+                                if ($dateFilter === "Today") {
+                                    $sub->whereDate('delivery_date', '<=', today());
+                                } elseif ($dateFilter === "Tomorrow") {
+                                    $sub->whereDate('delivery_date', now()->addDay()->toDateString());
+                                } elseif ($dateFilter === "This Week") {
+                                    $sub->whereBetween('delivery_date', [now()->startOfWeek(), now()->endOfWeek()]);
+                                } elseif ($dateFilter === "This Month") {
+                                    $sub->whereBetween('delivery_date', [now()->startOfMonth(), now()->endOfMonth()]);
+                                }
+                            });
                         }
-                    } elseif ($scheduleType === "Return") {
-                        if ($dateFilter === "Today") {
-                            $query->whereDate('pickup_date', "<=", today());
-                        } elseif ($dateFilter === "Tomorrow") {
-                            $query->whereDate('pickup_date', now()->addDay()->toDateString());
-                        } elseif ($dateFilter === "This Week") {
-                            $query->whereBetween('pickup_date', [now()->startOfWeek(), now()->endOfWeek()]);
-                        } elseif ($dateFilter === "This Month") {
-                            $query->whereBetween('pickup_date', [now()->startOfMonth(), now()->endOfMonth()]);
+                        if ($applyPickup) {
+                            $q->orWhere(function ($sub) use ($dateFilter) {
+                                if ($dateFilter === "Today") {
+                                    $sub->whereDate('pickup_date', '<=', today());
+                                } elseif ($dateFilter === "Tomorrow") {
+                                    $sub->whereDate('pickup_date', now()->addDay()->toDateString());
+                                } elseif ($dateFilter === "This Week") {
+                                    $sub->whereBetween('pickup_date', [now()->startOfWeek(), now()->endOfWeek()]);
+                                } elseif ($dateFilter === "This Month") {
+                                    $sub->whereBetween('pickup_date', [now()->startOfMonth(), now()->endOfMonth()]);
+                                }
+                            });
                         }
-                    }
+                    });
                 }
             )
             ->when(

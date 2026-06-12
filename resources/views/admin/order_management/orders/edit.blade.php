@@ -650,7 +650,7 @@
                     data-zip-code="{{ $order->shippingAddress->zip_code ?? '' }}">
 
                 <div
-                    class="text-sm text-gray-700 space-y-1 shipping-address-section {{ $order->shippingAddress->isSameAs($order->billingAddress) ? 'hidden' : '' }}">
+                    class="text-sm text-gray-700 space-y-1 shipping-address-section {{ ($order->shippingAddress && $order->shippingAddress->isSameAs($order->billingAddress)) ? 'hidden' : '' }}">
                     <div class="grid grid-cols-3">
                         <span class="font-medium">Customer Name:</span>
                         <span class="col-span-2 text-right"
@@ -691,7 +691,7 @@
                         </div>
                     @endif
                 </div>
-                <p class="text-sm text-gray-600 shipping-address-section {{ $order->shippingAddress->isSameAs($order->billingAddress) ? '' : 'hidden' }}"
+                <p class="text-sm text-gray-600 shipping-address-section {{ ($order->shippingAddress && $order->shippingAddress->isSameAs($order->billingAddress)) ? '' : 'hidden' }}"
                     id="shipping_same_as_billing">Same as Billing</p>
 
             </div>

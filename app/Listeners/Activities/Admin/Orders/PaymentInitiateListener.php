@@ -7,6 +7,7 @@ use App\Events\Admin\Orders\PaymentInitiateEvent;
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentMethod;
+use App\Enums\Orders\OrderPaymentStatus;
 
 class PaymentInitiateListener
 {
@@ -19,13 +20,20 @@ class PaymentInitiateListener
         $user = $event->user;
         $payment = $event->payment;
 
-         // Determine payment action and description
-        if ($payment->payment_method === OrderPaymentMethod::Card && $payment->status->isPaid()) {
-            $action = OrderHistoryAction::OrderPaid;
+        $methodLabel   = $payment->payment_method?->label() ?? 'Unknown';
+        $amountDisplay = '$' . number_format((float) $payment->amount, 2);
+        $personName    = $user?->full_name ?? 'Unknown';
+
+        // Determine payment action and description
+        if ($payment->status === OrderPaymentStatus::PartialPayment) {
+            $action      = OrderHistoryAction::PartialPaymentReceived;
+            $description = "Partial Payment: {$methodLabel} | {$amountDisplay} | {$personName}";
+        } elseif ($payment->payment_method === OrderPaymentMethod::Card && $payment->status->isPaid()) {
+            $action      = OrderHistoryAction::OrderPaid;
             $description = "Paid In Full Via - Credit/Debit Card";
         } else {
-            $action = OrderHistoryAction::PaymentInitiated;
-            $description = "Payment initiated via {$payment->payment_method->label()}";
+            $action      = OrderHistoryAction::PaymentInitiated;
+            $description = "Payment initiated via {$methodLabel}";
         }
 
         $order->history()->create([

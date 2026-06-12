@@ -564,6 +564,12 @@ function submitCompleteCall(action)
 
             closeCompleteCallModal();
 
+            if (action === 'complete') {
+                // Immediately remove the card from the DOM for instant feedback
+                const card = document.querySelector(`[data-call-id="${id}"]`);
+                if (card) card.remove();
+            }
+
             loadCallNeededList();
 
         } else {
@@ -571,8 +577,9 @@ function submitCompleteCall(action)
             notyf.error(data.message || 'Something went wrong');
         }
     })
-    .catch(() => {
+    .catch(err => {
 
+        console.error('Complete call error:', err);
         notyf.error('Failed to save call action');
 
     })
@@ -876,7 +883,7 @@ function renderCallNeededList(calls, skipFilters = false)
     }
 
     container.innerHTML = calls.map(call => `
-       <div class="border border-gray-200 rounded-xl bg-white p-4 hover:shadow-md transition">
+       <div class="border border-gray-200 rounded-xl bg-white p-4 hover:shadow-md transition" data-call-id="${call.id}">
 
     <div class="flex justify-between gap-4">
 

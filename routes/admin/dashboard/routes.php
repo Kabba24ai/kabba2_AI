@@ -19,6 +19,9 @@ use App\Http\Controllers\Admin\Dashboard\CallNeededClearController;
 use App\Http\Controllers\Admin\Dashboard\CallNeededCompleteController;
 
 use App\Http\Controllers\Admin\Dashboard\CallNeededUpdateController;
+use App\Http\Controllers\Admin\Dashboard\ResolutionPresetController;
+use App\Http\Controllers\Admin\Dashboard\FuelChargeStoreController;
+use App\Http\Controllers\Admin\Dashboard\DamageChargeStoreController;
 
 
 Route::prefix('dashboard')
@@ -36,6 +39,9 @@ Route::prefix('dashboard')
 
       Route::post('/extra-charges/resolved/{id}', MarkResolvedController::class)->name('extra-charges.resolved');
 
+      Route::post('/resolution-presets', [ResolutionPresetController::class, 'store'])->name('resolution-presets.store');
+      Route::delete('/resolution-presets/{id}', [ResolutionPresetController::class, 'destroy'])->name('resolution-presets.destroy');
+
       Route::get('/extra-charges/show/{unique_id}', ExtraChargesShowController::class)->name('extra-charges.show');
 
         Route::post(
@@ -52,5 +58,8 @@ Route::post(
     '/call-needed/update/{id}',
     CallNeededUpdateController::class
 )->name('call-needed.update');
+
+Route::post('/fuel-charge/store', FuelChargeStoreController::class)->name('fuel-charge.store');
+Route::post('/damage-charge/store', DamageChargeStoreController::class)->name('damage-charge.store');
 
 });

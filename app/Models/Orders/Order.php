@@ -86,6 +86,11 @@ class Order extends Model
         return $this->belongsTo(Order::class, 'reference_order_number', 'order_number');
     }
 
+    public function relatedOrders()
+    {
+        return $this->hasMany(Order::class, 'reference_order_number', 'order_number');
+    }
+
     public function addresses()
     {
         return $this->hasMany(OrderAddress::class, 'order_id');
@@ -186,12 +191,15 @@ class Order extends Model
         static::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'ORD');
 
-            // Get latest order ID including soft deleted
-            $latestOrder = self::withTrashed()->latest('id')->first();
-            $nextId = $latestOrder ? $latestOrder->id + 1 : 1;
+            if (empty($model->order_number)) {
+                // Get latest order ID including soft deleted
+                $latestOrder = self::withTrashed()->latest('id')->first();
+                $nextId = $latestOrder ? $latestOrder->id + 1 : 1;
 
-            // Format: ORD-0001
-            $model->order_number = '#' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+                // Format: #001
+                $model->order_number = '#' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+            }
+
             // Set current date and time
             $currentDateTime = Carbon::now();
             $model->order_date = $currentDateTime->format(config('app.date.db_date_format'));
@@ -279,6 +287,21 @@ class Order extends Model
     public function getIsPaidAttribute()
     {
         return $this->payments()->where('status', \App\Enums\Orders\OrderPaymentStatus::Paid)->exists();
+    }
+
+    public function getTotalPaidAttribute(): float
+    {
+        return (float) $this->payments()
+            ->whereIn('status', [
+                \App\Enums\Orders\OrderPaymentStatus::PartialPayment->value,
+                \App\Enums\Orders\OrderPaymentStatus::Paid->value,
+            ])
+            ->sum('amount');
+    }
+
+    public function getBalanceDueAttribute(): float
+    {
+        return max(0.0, (float) $this->grand_total - $this->total_paid);
     }
 
     public function getTotalRefundedAttribute()

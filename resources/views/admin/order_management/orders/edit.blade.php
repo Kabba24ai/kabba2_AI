@@ -43,14 +43,25 @@
             </div>
 
             {{-- MIDDLE: Payment Status + Links (centered like screenshot) --}}
+            @php
+                $totalPartialPaid = $order->payments()
+                    ->where('status', \App\Enums\Orders\OrderPaymentStatus::PartialPayment->value)
+                    ->sum('amount');
+            @endphp
             <div class="flex-1 flex flex-col items-start lg:items-center gap-2">
                 <div class="flex flex-wrap items-center justify-start lg:justify-center gap-2">
-                    @if ($order->last_payment_status === 'Pending' || $order->last_payment_status === 'Failed')
+                    @if (!$order->is_paid && in_array($order->last_payment_status, ['Pending', 'Failed', 'Partial Payment']))
                         <button id="pendingPaymentBtn" type="button"
                             class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
                             PENDING PAYMENT
                         </button>
+                    @endif
+
+                    @if ($order->last_payment_status === 'Partial Payment' && $totalPartialPaid > 0)
+                        <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-orange-700 bg-orange-100 rounded-full">
+                            Partial Payment: {{ \App\Helpers\CustomHelper::formatCurrency($totalPartialPaid) }}
+                        </span>
                     @endif
 
                     @if ($order->last_payment_status === 'Pending' && $order->last_payment_type !== 'Card')
@@ -225,42 +236,323 @@
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                     </svg>
                 </a>
+
+                {{-- Call Needed --}}
+                <span id="callNeededBtn"
+                    data-customer-id="{{ $order->customer_id }}"
+                    data-order-number="{{ $order->order_number }}"
+                    title="Call Needed"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-purple-600 text-white cursor-pointer hover:bg-purple-700 transition-colors shadow-sm">
+                    <x-heroicon-o-phone class="w-5 h-5 call-icon" />
+                    <svg class="hidden w-4 h-4 animate-spin call-loader" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </span>
+
+                {{-- Fuel Charge Alert --}}
+                <button id="orderFuelChargeBtn" type="button" title="Add Fuel Charge Alert"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-sm">
+                    <svg fill="currentColor" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                        <path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128zM160 144L160 240C160 248.8 167.2 256 176 256L304 256C312.8 256 320 248.8 320 240L320 144C320 135.2 312.8 128 304 128L176 128C167.2 128 160 135.2 160 144z"/>
+                    </svg>
+                </button>
+
+                {{-- Damage Alert --}}
+                <button id="orderDamageAlertBtn" type="button" title="Add Damage Alert"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5 h-5">
+                        <path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/>
+                    </svg>
+                </button>
             </div>
-             
-
         </div>
-        <div class="flex justify-end">
-            <span
-                id="callNeededBtn"
-                data-customer-id="{{ $order->customer_id }}"
-                data-order-number="{{ $order->order_number }}"
-                class="inline-flex items-center px-4 py-2 text-sm font-semibold bg-red-100 text-red-700 rounded-full border border-red-200 cursor-pointer hover:bg-red-200">
+    </div>{{-- /Order Header Section --}}
 
-                <x-heroicon-o-phone class="w-4 h-4 mr-1 call-icon" />
+    {{-- Fuel Charge Modal --}}
+    <div id="orderFuelChargeModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-full">
+            {{-- Header --}}
+            <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <div class="text-red-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-medium text-gray-900">New Charge</h2>
+                </div>
+                <button type="button" onclick="document.getElementById('orderFuelChargeModal').classList.replace('flex','hidden')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+            </div>
 
-                <span class="call-text">CALL NEEDED</span>
+            <div class="px-6 overflow-y-auto space-y-5 py-5">
+                {{-- Charge Amount --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-500 text-sm pointer-events-none">$</span>
+                        <input id="orderFuelAmount" type="number" step="0.01" min="0.01" placeholder="0.00"
+                            class="w-full pl-7 pr-3 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
 
-                <svg class="hidden w-4 h-4 ml-2 animate-spin call-loader"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24">
-                    <circle class="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        stroke-width="4"></circle>
-                    <path class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-                    </path>
-                </svg>
+                {{-- Sales Tax Treatment --}}
+                @php $taxPercentage = \App\Helpers\CustomHelper::displayPercentage($sales_tax); @endphp
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
+                    <div class="space-y-2 text-sm text-gray-700">
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderFuelSalesTax" value="add" checked class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Add Sales Tax</p>
+                                <p class="text-gray-500">Add {{ $taxPercentage }}% sales tax to the entered amount</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderFuelSalesTax" value="free" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Tax Free</p>
+                                <p class="text-gray-500">No sales tax applied to this charge</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderFuelSalesTax" value="reverse" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Reverse Sales Tax</p>
+                                <p class="text-gray-500">Split entered amount proportionally between base amount and tax</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
 
-            </span>
+                {{-- Charge Reason (fixed, read-only) --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason <span class="text-red-500">*</span></label>
+                    <p class="text-base font-semibold text-red-500">Fuel Charge</p>
+                </div>
+
+                {{-- Person Responsible --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
+                    <select id="orderFuelPerson" class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select person responsible</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Notes --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <textarea id="orderFuelNotes" rows="3"
+                        class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter any additional notes about this charge..."></textarea>
+                </div>
+
+                {{-- Buttons --}}
+                <div class="flex justify-end gap-2 pb-2">
+                    <button type="button" onclick="document.getElementById('orderFuelChargeModal').classList.replace('flex','hidden')"
+                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Cancel</button>
+                    <button type="button" id="orderFuelSubmitBtn"
+                        class="px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2">
+                        <span id="orderFuelBtnText">Add Charge</span>
+                        <svg id="orderFuelSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-   
+    {{-- Damage Alert Modal --}}
+    <div id="orderDamageAlertModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-full">
+            {{-- Header --}}
+            <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <div class="p-1.5 rounded-md bg-red-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-4 h-4 text-red-600"><path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/></svg>
+                    </div>
+                    <h2 class="text-lg font-medium text-gray-900">Add Damage Alert</h2>
+                </div>
+                <button type="button" onclick="document.getElementById('orderDamageAlertModal').classList.replace('flex','hidden')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+            </div>
+
+            <div class="px-6 overflow-y-auto space-y-5 py-5">
+                {{-- Charge Amount --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-500 text-sm pointer-events-none">$</span>
+                        <input id="orderDamageAmount" type="number" step="0.01" min="0.01" placeholder="0.00"
+                            class="w-full pl-7 pr-3 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                {{-- Sales Tax Treatment --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
+                    <div class="space-y-2 text-sm text-gray-700">
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderDamageSalesTax" value="add" checked class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Add Sales Tax</p>
+                                <p class="text-gray-500">Add {{ $taxPercentage }}% sales tax to the entered amount</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderDamageSalesTax" value="free" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Tax Free</p>
+                                <p class="text-gray-500">No sales tax applied to this charge</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderDamageSalesTax" value="reverse" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Reverse Sales Tax</p>
+                                <p class="text-gray-500">Split entered amount proportionally between base amount and tax</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Charge Reason (fixed, read-only) --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason <span class="text-red-500">*</span></label>
+                    <p class="text-base font-semibold text-red-500">Damages</p>
+                </div>
+
+                {{-- Person Responsible --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
+                    <select id="orderDamagePerson" class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select person responsible</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Notes --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <textarea id="orderDamageNotes" rows="3"
+                        class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Describe the damage..."></textarea>
+                </div>
+
+                {{-- Buttons --}}
+                <div class="flex justify-end gap-2 pb-2">
+                    <button type="button" onclick="document.getElementById('orderDamageAlertModal').classList.replace('flex','hidden')"
+                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Cancel</button>
+                    <button type="button" id="orderDamageSubmitBtn"
+                        class="px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2">
+                        <span id="orderDamageBtnText">Add Charge</span>
+                        <svg id="orderDamageSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Order Call Reminder Modal --}}
+    <div id="orderCallReminderModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Add Call Reminder</h2>
+                    <p class="text-sm text-gray-500">Assign customer call reminder</p>
+                </div>
+                <button type="button" onclick="closeOrderCallModal()" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+            </div>
+            <div class="overflow-y-auto px-6 pt-6 pb-5 space-y-4">
+                {{-- Customer (pre-filled, read-only) --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+                    <div class="p-3 rounded-md bg-gray-50 border border-gray-200 text-sm text-gray-800">
+                        <div class="font-medium">{{ $order->customer_name }}</div>
+                        @if($order->customer?->phone)
+                            <div class="text-gray-500">{{ \App\Helpers\CustomHelper::formatPhone($order->customer->phone) }}</div>
+                        @endif
+                        @if($order->customer?->email)
+                            <div class="text-gray-500">{{ $order->customer->email }}</div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Assign To --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Assign To <span class="text-red-500">*</span></label>
+                    <select id="orderCallAssignedTo" class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        <option value="">Select Assignee</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Reason --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason <span class="text-red-500">*</span></label>
+                    <select id="orderCallReason" class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        <option value="">Select Reason</option>
+                        <option value="contract_renewal">Contract Renewal</option>
+                        <option value="delivery_pickup">Delivery / Pickup</option>
+                        <option value="equipment_availability">Equipment Availability</option>
+                        <option value="equipment_return">Equipment Return</option>
+                        <option value="general_followup">General Follow-up</option>
+                        <option value="maintenance_request">Maintenance Request</option>
+                        <option value="order_review">Order Review</option>
+                        <option value="payment_followup">Payment Follow-up</option>
+                        <option value="rental_inquiry">Rental Inquiry</option>
+                    </select>
+                </div>
+
+                {{-- Mark as Urgent --}}
+                <div class="flex items-center rounded-lg border border-gray-200 p-3 bg-gray-50">
+                    <input type="checkbox" id="orderCallIsUrgent" class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500">
+                    <label for="orderCallIsUrgent" class="ml-3 text-sm font-medium text-gray-700">
+                        <span class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-red-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.007v.008H12v-.008zM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />
+                            </svg>
+                            <span>Mark as Urgent</span>
+                        </span>
+                        <span class="block text-xs text-gray-500 font-normal mt-1">High priority call reminder</span>
+                    </label>
+                </div>
+
+                {{-- Notes --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea id="orderCallNotes" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        placeholder="Enter call notes..."></textarea>
+                </div>
+
+                {{-- Buttons --}}
+                <div class="flex justify-end gap-2 pt-1">
+                    <button type="button" onclick="closeOrderCallModal()"
+                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Cancel</button>
+                    <button type="button" id="orderCallSaveBtn" onclick="saveOrderCallReminder()"
+                        class="px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2">
+                        <span id="orderCallBtnText">Save</span>
+                        <svg id="orderCallSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
@@ -1314,7 +1606,197 @@
             </div>
         @endif
 
+        {{-- Extension Charges Section --}}
+        <div class="grid md:grid-cols-1 gap-4">
+            <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-black font-semibold text-lg">Extension Charges</h2>
+                    <button type="button" onclick="openExtensionModal()"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors">
+                        <x-heroicon-o-plus class="w-4 h-4" />
+                        Add Extension Charge
+                    </button>
+                </div>
 
+                @if ($relatedOrders->isNotEmpty())
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
+                                    <th class="pb-2 pr-4">Order #</th>
+                                    <th class="pb-2 pr-4">Description</th>
+                                    <th class="pb-2 pr-4 text-right">Subtotal</th>
+                                    <th class="pb-2 pr-4 text-right">Tax</th>
+                                    <th class="pb-2 pr-4 text-right">Total</th>
+                                    <th class="pb-2 pr-4">Status</th>
+                                    <th class="pb-2 pr-4">Date</th>
+                                    <th class="pb-2"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach ($relatedOrders as $related)
+                                    @php
+                                        $extStatus = $related->last_payment_status ?? 'Pending';
+                                        $extStatusClass = $extStatus === 'Paid'
+                                            ? 'bg-green-100 text-green-700'
+                                            : ($extStatus === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
+                                        $extTotalPaid = $related->payments
+                                            ->whereIn('status', ['Paid', 'Partial Payment'])
+                                            ->sum('amount');
+                                        $extBalanceDue = max(0, (float) $related->grand_total - $extTotalPaid);
+                                        $extNeedsPayment = in_array($extStatus, ['Pending', 'Failed', 'Partial Payment']);
+                                    @endphp
+                                    <tr>
+                                        <td class="py-3 pr-4">
+                                            <a href="{{ route('admin.order-management.orders.edit', $related->unique_id) }}"
+                                               class="text-blue-600 hover:underline font-semibold">
+                                                {{ $related->order_number }}
+                                            </a>
+                                        </td>
+                                        <td class="py-3 pr-4 text-gray-700 max-w-xs truncate">
+                                            {{ $related->order_note ?? '—' }}
+                                        </td>
+                                        <td class="py-3 pr-4 text-right text-gray-600">
+                                            {{ \App\Helpers\CustomHelper::formatCurrency($related->subtotal) }}
+                                        </td>
+                                        <td class="py-3 pr-4 text-right text-gray-600">
+                                            {{ \App\Helpers\CustomHelper::formatCurrency($related->tax_amount) }}
+                                        </td>
+                                        <td class="py-3 pr-4 text-right font-semibold text-gray-800">
+                                            {{ \App\Helpers\CustomHelper::formatCurrency($related->grand_total) }}
+                                        </td>
+                                        <td class="py-3 pr-4">
+                                            <span class="px-2 py-0.5 text-xs rounded-full font-medium {{ $extStatusClass }}">
+                                                {{ $extStatus }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3 pr-4 text-gray-500 text-xs whitespace-nowrap">
+                                            {{ \App\Helpers\CustomHelper::formatDateTime($related->created_at) }}
+                                        </td>
+                                        <td class="py-3 text-right">
+                                            @if ($extNeedsPayment)
+                                                <button type="button"
+                                                    onclick="openPaymentModalForExtension('{{ $related->unique_id }}', {{ (float) $related->grand_total }}, {{ (float) $extTotalPaid }}, '{{ $related->order_number }}')"
+                                                    class="inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-full whitespace-nowrap transition-colors">
+                                                    Process Payment Now
+                                                </button>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-sm text-gray-400 py-2">No extension charges yet.</p>
+                @endif
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Extension Charge Modal -->
+    <div id="extensionChargeModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-lg font-semibold text-gray-800">Add Extension Charge</h2>
+                <button type="button" id="closeExtensionModalX"
+                    class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                {{-- Description --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Description <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="extDescription"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                        placeholder="e.g. Rental extension — 7 days" maxlength="255" />
+                    <p id="extDescError" class="text-xs text-red-500 mt-1 hidden">Description is required.</p>
+                </div>
+
+                {{-- Base Amount --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Base Amount <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center border border-gray-300 rounded-md px-3 py-2 focus-within:ring-1 focus-within:ring-blue-500">
+                        <span class="text-gray-500 text-sm mr-1">$</span>
+                        <input type="number" id="extBaseAmount" step="0.01" min="0.01"
+                            class="flex-1 text-sm focus:outline-none" placeholder="0.00" />
+                    </div>
+                    <p id="extAmountError" class="text-xs text-red-500 mt-1 hidden">Please enter a valid amount.</p>
+                </div>
+
+                {{-- Sales Tax --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="extTaxTreatment" id="extTaxAdd" value="add" checked
+                                class="accent-teal-500" />
+                            <span class="text-sm text-gray-700">Add {{ $taxPercentage }}% Tax</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="extTaxTreatment" id="extTaxFree" value="free"
+                                class="accent-teal-500" />
+                            <span class="text-sm text-gray-700">No Tax</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Summary --}}
+                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 space-y-1 text-sm">
+                    <div class="flex justify-between text-gray-600">
+                        <span>Base Amount:</span>
+                        <span id="extSummaryBase">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                        <span>Sales Tax ({{ $taxPercentage }}%):</span>
+                        <span id="extSummaryTax">$0.00</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-gray-800 border-t border-gray-200 pt-2 mt-1">
+                        <span>Total:</span>
+                        <span id="extSummaryTotal">$0.00</span>
+                    </div>
+                </div>
+
+                {{-- Person Responsible --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Person Responsible <span class="text-red-500">*</span>
+                    </label>
+                    <select id="extPerson"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                        <option value="">Select Person</option>
+                        @foreach ($employees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
+                        @endforeach
+                    </select>
+                    <p id="extPersonError" class="text-xs text-red-500 mt-1 hidden">Please select a person responsible.</p>
+                </div>
+
+                {{-- Notes --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <textarea id="extNotes" rows="2"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none resize-none"
+                        placeholder="Any additional notes..." maxlength="1000"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 p-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button" id="closeExtensionModalBtn"
+                    class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm hover:bg-gray-100">
+                    Cancel
+                </button>
+                <button type="button" id="extSubmitBtn"
+                    class="px-6 py-2 rounded-md bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:opacity-60">
+                    <span id="extBtnText">Create Extension</span>
+                    <span id="extBtnSpinner" class="hidden">Creating…</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Add/Edit Note Modal -->
@@ -1508,11 +1990,13 @@
 
     <!-- Process Payment Modal -->
     <div id="processPaymentModal"
-        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center"
+        data-grand-total="{{ $order->grand_total }}"
+        data-total-paid="{{ $totalPartialPaid }}">
         <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b">
-                <h2 id="addressModalTitle" class="text-lg font-semibold">Process Payment</h2>
+                <h2 id="processPaymentTitle" class="text-lg font-semibold">Process Payment</h2>
                 <button type="button"
                     class="close-process-payment-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
             </div>
@@ -1524,6 +2008,54 @@
                 ])->open() }}
 
             <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+
+                <!-- Balance Due banner (always visible) -->
+                <div class="flex justify-between items-center px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <span class="text-sm font-medium text-gray-600">Balance Due</span>
+                    <span id="balanceDueDisplay" class="text-lg font-bold text-blue-700"></span>
+                </div>
+
+                <!-- Full / Partial Payment toggle -->
+                <div class="flex gap-3">
+                    <label id="labelFullPayment"
+                        class="flex-1 flex items-center gap-3 p-3 border-2 border-teal-500 bg-teal-50 rounded-lg cursor-pointer transition-colors select-none">
+                        <input type="radio" name="payment_mode" value="full" id="paymentModeFull" class="hidden" checked />
+                        <span id="radioFullOuter" class="w-4 h-4 rounded-full border-2 border-teal-500 flex items-center justify-center flex-shrink-0">
+                            <span class="w-2 h-2 rounded-full bg-teal-500" id="radioFullDot"></span>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-800">Full Payment</span>
+                    </label>
+                    <label id="labelPartialPayment"
+                        class="flex-1 flex items-center gap-3 p-3 border-2 border-gray-200 bg-white rounded-lg cursor-pointer transition-colors select-none">
+                        <input type="radio" name="payment_mode" value="partial" id="paymentModePartial" class="hidden" />
+                        <span id="radioPartialOuter" class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0">
+                            <span class="w-2 h-2 rounded-full bg-teal-500 hidden" id="radioPartialDot"></span>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-500">Partial Payment</span>
+                    </label>
+                </div>
+
+                <!-- Partial payment fields (hidden by default) -->
+                <div id="partialPaymentFields" class="hidden space-y-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div class="flex justify-between text-sm font-medium text-gray-700">
+                        <span>Amount Owed:</span>
+                        <span id="amountOwedDisplay" class="font-semibold text-gray-900"></span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
+                        <div class="flex items-center border border-gray-300 rounded-md px-3 py-2 bg-white focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
+                            <span class="text-gray-500 text-sm mr-1">$</span>
+                            <input type="number" id="partialPaymentAmount" step="0.01" min="0.01"
+                                   class="flex-1 text-sm focus:outline-none bg-transparent" placeholder="0.00" />
+                        </div>
+                        <p id="partialAmountError" class="text-red-500 text-xs mt-1 hidden"></p>
+                    </div>
+                    <div class="flex justify-between text-sm font-medium text-gray-700 border-t pt-2">
+                        <span>Remaining Balance:</span>
+                        <span id="remainingBalanceDisplay" class="font-semibold text-gray-500">—</span>
+                    </div>
+                </div>
+
                 <!-- Payment Method -->
                 <div class="space-y-4">
                     <div class="mb-4">
@@ -3645,7 +4177,114 @@
             function closeProcessPaymentModal() {
                 processPaymentModal.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
+                // Reset partial payment UI
+                document.getElementById('paymentModeFull').checked = true;
+                document.getElementById('partialPaymentAmount').value = '';
+                document.getElementById('remainingBalanceDisplay').textContent = '—';
+                document.getElementById('partialAmountError').classList.add('hidden');
+                // Restore original order context
+                paymentTargetUniqueId = orderUniqueId;
+                modalGrandTotal = parseFloat(processPaymentModal.dataset.grandTotal || '0');
+                modalTotalPaid  = parseFloat(processPaymentModal.dataset.totalPaid  || '0');
+                modalBalanceDue = Math.max(0, modalGrandTotal - modalTotalPaid);
+                document.getElementById('balanceDueDisplay').textContent = fmtCurrency(modalBalanceDue);
+                document.getElementById('processPaymentTitle').textContent = 'Process Payment';
+                updatePaymentModeUI();
             }
+
+            // === Full / Partial Payment toggle ===
+            const paymentModeFull     = document.getElementById('paymentModeFull');
+            const paymentModePartial  = document.getElementById('paymentModePartial');
+            const partialPaymentFields = document.getElementById('partialPaymentFields');
+            const partialPaymentAmountInput = document.getElementById('partialPaymentAmount');
+            const amountOwedDisplay   = document.getElementById('amountOwedDisplay');
+            const remainingBalanceDisplay = document.getElementById('remainingBalanceDisplay');
+            const partialAmountError  = document.getElementById('partialAmountError');
+
+            let modalGrandTotal = parseFloat(processPaymentModal.dataset.grandTotal || '0');
+            let modalTotalPaid  = parseFloat(processPaymentModal.dataset.totalPaid  || '0');
+            let modalBalanceDue = Math.max(0, modalGrandTotal - modalTotalPaid);
+            let paymentTargetUniqueId = orderUniqueId;
+
+            function fmtCurrency(n) {
+                return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
+            function updatePaymentModeUI() {
+                const isFull = paymentModeFull.checked;
+                // Full label
+                document.getElementById('labelFullPayment').classList.toggle('border-teal-500', isFull);
+                document.getElementById('labelFullPayment').classList.toggle('bg-teal-50', isFull);
+                document.getElementById('labelFullPayment').classList.toggle('border-gray-200', !isFull);
+                document.getElementById('labelFullPayment').classList.toggle('bg-white', !isFull);
+                document.getElementById('radioFullOuter').classList.toggle('border-teal-500', isFull);
+                document.getElementById('radioFullOuter').classList.toggle('border-gray-300', !isFull);
+                document.getElementById('radioFullDot').classList.toggle('hidden', !isFull);
+                document.getElementById('labelFullPayment').querySelector('span:last-child').className =
+                    'text-sm font-semibold ' + (isFull ? 'text-gray-800' : 'text-gray-500');
+                // Partial label
+                document.getElementById('labelPartialPayment').classList.toggle('border-teal-500', !isFull);
+                document.getElementById('labelPartialPayment').classList.toggle('bg-teal-50', !isFull);
+                document.getElementById('labelPartialPayment').classList.toggle('border-gray-200', isFull);
+                document.getElementById('labelPartialPayment').classList.toggle('bg-white', isFull);
+                document.getElementById('radioPartialOuter').classList.toggle('border-teal-500', !isFull);
+                document.getElementById('radioPartialOuter').classList.toggle('border-gray-300', isFull);
+                document.getElementById('radioPartialDot').classList.toggle('hidden', isFull);
+                document.getElementById('labelPartialPayment').querySelector('span:last-child').className =
+                    'text-sm font-semibold ' + (!isFull ? 'text-gray-800' : 'text-gray-500');
+                // Partial fields
+                partialPaymentFields.classList.toggle('hidden', isFull);
+                if (!isFull) {
+                    amountOwedDisplay.textContent = fmtCurrency(modalBalanceDue);
+                    updateRemainingBalance();
+                }
+            }
+
+            function updateRemainingBalance() {
+                const payment   = parseFloat(partialPaymentAmountInput.value) || 0;
+                const remaining = Math.max(0, modalBalanceDue - payment);
+                remainingBalanceDisplay.textContent = fmtCurrency(remaining);
+                if (payment > modalBalanceDue + 0.005) {
+                    partialAmountError.textContent = 'Amount exceeds balance due (' + fmtCurrency(modalBalanceDue) + ')';
+                    partialAmountError.classList.remove('hidden');
+                } else if (payment <= 0 && partialPaymentAmountInput.value !== '') {
+                    partialAmountError.textContent = 'Amount must be greater than 0';
+                    partialAmountError.classList.remove('hidden');
+                } else {
+                    partialAmountError.classList.add('hidden');
+                }
+            }
+
+            document.getElementById('labelFullPayment').addEventListener('click', function() {
+                paymentModeFull.checked = true;
+                updatePaymentModeUI();
+            });
+            document.getElementById('labelPartialPayment').addEventListener('click', function() {
+                paymentModePartial.checked = true;
+                updatePaymentModeUI();
+            });
+            partialPaymentAmountInput.addEventListener('input', updateRemainingBalance);
+
+            // Initialize
+            updatePaymentModeUI();
+            document.getElementById('balanceDueDisplay').textContent = fmtCurrency(modalBalanceDue);
+
+            // Open payment modal for an extension order (called from extension table buttons)
+            window.openPaymentModalForExtension = function(uniqueId, grandTotal, totalPaid, orderNumber) {
+                paymentTargetUniqueId = uniqueId;
+                modalGrandTotal = grandTotal;
+                modalTotalPaid  = totalPaid;
+                modalBalanceDue = Math.max(0, grandTotal - totalPaid);
+                document.getElementById('balanceDueDisplay').textContent = fmtCurrency(modalBalanceDue);
+                document.getElementById('processPaymentTitle').textContent = 'Process Payment — ' + orderNumber;
+                // Reset to Full Payment mode
+                document.getElementById('paymentModeFull').checked = true;
+                document.getElementById('partialPaymentAmount').value = '';
+                document.getElementById('remainingBalanceDisplay').textContent = '—';
+                document.getElementById('partialAmountError').classList.add('hidden');
+                updatePaymentModeUI();
+                openProcessPaymentModal();
+            };
 
             // 👉 Open the modal when clicking the Pending Payment pill
             if (pendingPaymentBtn) {
@@ -3679,20 +4318,32 @@
             const chequeNumberField = document.getElementById('chequeNumberField');
 
             // ===== Show/hide card sections =====
+            function resetCreditCardFields() {
+                cardOption.value = '';
+                newCardFields.classList.add('hidden');
+                cardOnFileDropdown.classList.add('hidden');
+                document.getElementById('firstName').value = '';
+                document.getElementById('lastName').value = '';
+                cardNumberInput.value = '';
+                expiryInput.value = '';
+                cvcInput.value = '';
+                document.getElementById('opaqueDataValue').value = '';
+                document.getElementById('opaqueDataDescriptor').value = '';
+            }
+
             paymentType.addEventListener('change', function() {
                 if (this.value === 'CreditCard') {
+                    resetCreditCardFields();
                     creditCardOptions.classList.remove('hidden');
-                    cardOption.dispatchEvent(new Event('change'));
                     chequeNumberField.classList.add('hidden');
                 } else if (this.value === 'Cheque') {
-                    chequeNumberField.classList.remove('hidden');
+                    resetCreditCardFields();
                     creditCardOptions.classList.add('hidden');
+                    chequeNumberField.classList.remove('hidden');
                 } else {
+                    resetCreditCardFields();
                     creditCardOptions.classList.add('hidden');
                     chequeNumberField.classList.add('hidden');
-
-                    newCardFields.classList.add('hidden');
-                    cardOnFileDropdown.classList.add('hidden');
                 }
             });
 
@@ -3747,7 +4398,7 @@
                     notyf.error('Please select a payment method.');
                     return;
                 }
-                endpoint = endpoint.replace(':unique_id', orderUniqueId);
+                endpoint = endpoint.replace(':unique_id', paymentTargetUniqueId);
 
                 if (selectedPaymentMethod === 'CreditCard') {
                     const selectedCardOption = document.getElementById('cardOption').value;
@@ -3862,6 +4513,29 @@
                     formData.delete('cardNumber');
                     formData.delete('expiry');
                     formData.delete('cvc');
+                    formData.delete('payment_mode'); // radio group — translated below
+
+                    // Partial payment injection
+                    if (paymentModePartial.checked) {
+                        const partialAmt = parseFloat(partialPaymentAmountInput.value);
+                        if (!partialAmt || partialAmt <= 0) {
+                            notyf.error('Please enter a valid payment amount.');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
+                            return;
+                        }
+                        if (partialAmt > modalBalanceDue + 0.005) {
+                            notyf.error('Payment amount cannot exceed balance due (' + fmtCurrency(modalBalanceDue) + ').');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
+                            return;
+                        }
+                        formData.set('partial_payment', '1');
+                        formData.set('payment_amount', partialAmt.toFixed(2));
+                    } else {
+                        formData.delete('partial_payment');
+                        formData.delete('payment_amount');
+                    }
                     if (!submitBtn.disabled) {
                         submitBtn.disabled = true;
                         submitBtn.textContent = 'Saving...';
@@ -4968,70 +5642,263 @@
         })();
 
 
-       document.addEventListener('click', function(e) {
+    function closeOrderCallModal() {
+        const modal = document.getElementById('orderCallReminderModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 
+    document.addEventListener('click', function(e) {
         const btn = e.target.closest('#callNeededBtn');
-
         if (!btn) return;
 
-        const customerId = btn.dataset.customerId;
-        const orderNumber = btn.dataset.orderNumber;
+        document.getElementById('orderCallAssignedTo').value = '';
+        document.getElementById('orderCallReason').value = '';
+        document.getElementById('orderCallIsUrgent').checked = false;
+        document.getElementById('orderCallNotes').value = '';
 
-        showConfirm(
-            'Create a call reminder for this order?',
-            'Call Needed'
-        ).then((result) => {
+        const modal = document.getElementById('orderCallReminderModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    });
 
-            if (!result.isConfirmed) return;
+    function saveOrderCallReminder() {
+        const assignedTo = document.getElementById('orderCallAssignedTo').value;
+        const reason     = document.getElementById('orderCallReason').value;
+        const isUrgent   = document.getElementById('orderCallIsUrgent').checked;
+        const notes      = document.getElementById('orderCallNotes').value;
 
-            const loader = btn.querySelector('.call-loader');
-            const text = btn.querySelector('.call-text');
+        if (!assignedTo) { notyf.error('Please select an assignee.'); return; }
+        if (!reason)     { notyf.error('Please select a reason.'); return; }
 
-            btn.style.pointerEvents = 'none';
-            loader.classList.remove('hidden');
-            text.textContent = 'Creating...';
+        const saveBtn = document.getElementById('orderCallSaveBtn');
+        const btnText = document.getElementById('orderCallBtnText');
+        const spinner = document.getElementById('orderCallSpinner');
 
-            fetch("{{ route('admin.dashboard.call-needed.store') }}", {
+        saveBtn.disabled = true;
+        btnText.textContent = 'Saving...';
+        spinner.classList.remove('hidden');
+
+        fetch("{{ route('admin.dashboard.call-needed.store') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            body: JSON.stringify({
+                customer_id: {{ $order->customer_id }},
+                assigned_to: assignedTo,
+                reason: reason,
+                notes: notes,
+                is_urgent: isUrgent ? 1 : 0,
+            }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                notyf.success(data.message || 'Call reminder created');
+                closeOrderCallModal();
+            } else {
+                notyf.error(data.message || 'Something went wrong');
+            }
+        })
+        .catch(err => {
+            console.error('Call reminder error:', err);
+            notyf.error('Failed to create call reminder');
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            btnText.textContent = 'Save';
+            spinner.classList.add('hidden');
+        });
+    }
+
+    // ── Fuel Charge Alert from Order ─────────────────────────────────────────
+    (function () {
+        const alertChargeUrl = "{{ route('admin.order-management.orders.alert-charge', $order->unique_id) }}";
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        function openModal(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+        }
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('flex');
+            el.classList.add('hidden');
+        }
+
+        function submitAlertCharge(type, amountId, personId, notesId, btnId) {
+            const amount = document.getElementById(amountId).value.trim();
+            const person = document.getElementById(personId).value;
+            const notes  = document.getElementById(notesId).value.trim();
+
+            if (!amount || parseFloat(amount) <= 0) {
+                notyf.error('Please enter a valid amount.');
+                return;
+            }
+            if (!person) {
+                notyf.error('Please select a person responsible.');
+                return;
+            }
+
+            const radioName = type === 'fuel' ? 'orderFuelSalesTax' : 'orderDamageSalesTax';
+            const taxRadio = document.querySelector(`input[name="${radioName}"]:checked`);
+            const salesTaxType = taxRadio ? taxRadio.value : 'free';
+
+            const btn     = document.getElementById(btnId);
+            const btnText = btn.querySelector('span') ?? btn;
+            const spinner = btn.querySelector('svg');
+            btn.disabled = true;
+            if (btnText instanceof HTMLSpanElement) btnText.textContent = 'Saving...';
+            else btn.textContent = 'Saving...';
+            if (spinner) spinner.classList.remove('hidden');
+
+            fetch(alertChargeUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ type, amount, responsible_person: person, notes, sales_tax_type: salesTaxType }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    notyf.success(data.message);
+                    closeModal(type === 'fuel' ? 'orderFuelChargeModal' : 'orderDamageAlertModal');
+                    document.getElementById(amountId).value = '';
+                    document.getElementById(personId).value = '';
+                    document.getElementById(notesId).value = '';
+                    const resetRadioName = type === 'fuel' ? 'orderFuelSalesTax' : 'orderDamageSalesTax';
+                    const resetRadio = document.querySelector(`input[name="${resetRadioName}"][value="add"]`);
+                    if (resetRadio) resetRadio.checked = true;
+                } else {
+                    notyf.error(data.message || 'Something went wrong.');
+                }
+            })
+            .catch(err => { console.error('Alert charge error:', err); notyf.error('Request failed. Please try again.'); })
+            .finally(() => {
+                btn.disabled = false;
+                if (btnText instanceof HTMLSpanElement) btnText.textContent = type === 'fuel' ? 'Add Charge' : 'Add Alert';
+                else btn.textContent = type === 'fuel' ? 'Add Charge' : 'Add Alert';
+                if (spinner) spinner.classList.add('hidden');
+            });
+        }
+
+        document.getElementById('orderFuelChargeBtn').addEventListener('click', () => openModal('orderFuelChargeModal'));
+        document.getElementById('orderDamageAlertBtn').addEventListener('click', () => openModal('orderDamageAlertModal'));
+
+        document.getElementById('orderFuelSubmitBtn').addEventListener('click', () =>
+            submitAlertCharge('fuel', 'orderFuelAmount', 'orderFuelPerson', 'orderFuelNotes', 'orderFuelSubmitBtn'));
+
+        document.getElementById('orderDamageSubmitBtn').addEventListener('click', () =>
+            submitAlertCharge('damage', 'orderDamageAmount', 'orderDamagePerson', 'orderDamageNotes', 'orderDamageSubmitBtn'));
+    })();
+
+    // ── Extension Charges ──────────────────────────────────────────────────────
+    (function () {
+        const extTaxRate = {{ (float) ($sales_tax ?? 0) }};
+        const extModal   = document.getElementById('extensionChargeModal');
+
+        function fmtExtCurrency(v) {
+            return '$' + Number(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function updateExtSummary() {
+            const base   = parseFloat(document.getElementById('extBaseAmount').value) || 0;
+            const addTax = document.getElementById('extTaxAdd').checked;
+            const tax    = addTax ? Math.round(base * extTaxRate * 100) / 100 : 0;
+            document.getElementById('extSummaryBase').textContent  = fmtExtCurrency(base);
+            document.getElementById('extSummaryTax').textContent   = fmtExtCurrency(tax);
+            document.getElementById('extSummaryTotal').textContent = fmtExtCurrency(base + tax);
+        }
+
+        function openExtensionModal() {
+            extModal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeExtensionModal() {
+            extModal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            document.getElementById('extDescription').value = '';
+            document.getElementById('extBaseAmount').value  = '';
+            document.getElementById('extTaxAdd').checked    = true;
+            document.getElementById('extNotes').value       = '';
+            document.getElementById('extPerson').value      = '';
+            ['extDescError','extAmountError','extPersonError'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            updateExtSummary();
+        }
+
+        window.openExtensionModal  = openExtensionModal;
+        window.closeExtensionModal = closeExtensionModal;
+
+        document.getElementById('extBaseAmount').addEventListener('input', updateExtSummary);
+        document.querySelectorAll('input[name="extTaxTreatment"]').forEach(r => r.addEventListener('change', updateExtSummary));
+        document.getElementById('closeExtensionModalX').addEventListener('click', closeExtensionModal);
+        document.getElementById('closeExtensionModalBtn').addEventListener('click', closeExtensionModal);
+
+        document.getElementById('extSubmitBtn').addEventListener('click', function () {
+            const description = document.getElementById('extDescription').value.trim();
+            const baseAmount  = parseFloat(document.getElementById('extBaseAmount').value);
+            const person      = document.getElementById('extPerson').value;
+            const addTax      = document.getElementById('extTaxAdd').checked;
+            const notes       = document.getElementById('extNotes').value.trim();
+
+            let valid = true;
+            document.getElementById('extDescError').classList.toggle('hidden', !!description);
+            if (!description) valid = false;
+            document.getElementById('extAmountError').classList.toggle('hidden', !!(baseAmount && baseAmount > 0));
+            if (!baseAmount || baseAmount <= 0) valid = false;
+            document.getElementById('extPersonError').classList.toggle('hidden', !!person);
+            if (!person) valid = false;
+            if (!valid) return;
+
+            const btn     = this;
+            const btnText = document.getElementById('extBtnText');
+            const spinner = document.getElementById('extBtnSpinner');
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            spinner.classList.remove('hidden');
+
+            fetch('{{ route("admin.order-management.orders.extension.store", $order->unique_id) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document
-                        .querySelector('meta[name="csrf-token"]')
-                        .getAttribute('content'),
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
                 body: JSON.stringify({
-                    customer_id: customerId,
-                    reason: 'order_review',
-                    assigned_to: currentUserId,
-                    notes: `Order ${orderNumber} needs review.`
+                    description:        description,
+                    base_amount:        baseAmount,
+                    add_tax:            addTax ? 1 : 0,
+                    responsible_person: person,
+                    notes:              notes || null,
                 }),
             })
             .then(res => res.json())
             .then(data => {
-
                 if (data.success) {
-                    notyf.success(data.message || 'Call reminder created');
-
-                    text.textContent = 'CALL NEEDED';
-
+                    notyf.success(data.message);
+                    closeExtensionModal();
+                    window.location.reload();
                 } else {
-                    notyf.error(data.message || 'Something went wrong');
-                    text.textContent = 'CALL NEEDED';
+                    notyf.error(data.message || 'Failed to create extension charge.');
                 }
-
             })
-            .catch(() => {
-                notyf.error('Failed to create call reminder');
-                text.textContent = 'CALL NEEDED';
+            .catch(err => {
+                console.error('Extension charge error:', err);
+                notyf.error('An error occurred. Please try again.');
             })
             .finally(() => {
-                loader.classList.add('hidden');
-                btn.style.pointerEvents = 'auto';
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                spinner.classList.add('hidden');
             });
-
         });
 
-    });
+        updateExtSummary();
+    })();
 
     </script>
 

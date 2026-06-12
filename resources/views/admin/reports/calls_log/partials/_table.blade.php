@@ -109,7 +109,25 @@
 
                         </div>
 
-                        {{-- Activity timeline (collapsible) --}}
+                        {{-- Action Taken (most recent activity, inline) --}}
+                        @if($call->activities->isNotEmpty())
+                            @php $latest = $call->activities->sortByDesc('created_at')->first(); @endphp
+                            <div class="mt-2 rounded-lg bg-green-50 border border-green-100 p-3">
+                                <div class="text-xs font-semibold text-green-700 mb-1 uppercase tracking-wide">Action Taken</div>
+                                <div class="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold">
+                                        {{ ucwords(str_replace('_', ' ', $latest->status)) }}
+                                    </span>
+                                    <span>by <strong>{{ $latest->user?->full_name ?? '—' }}</strong></span>
+                                    <span>on {{ \App\Helpers\CustomHelper::formatDateTime($latest->created_at) }}</span>
+                                </div>
+                                @if($latest->notes)
+                                    <p class="mt-1.5 text-sm text-gray-700 leading-relaxed">{{ $latest->notes }}</p>
+                                @endif
+                            </div>
+                        @endif
+
+                        {{-- Activity timeline (collapsible, for full history) --}}
                         <div
                             id="call-activities-{{ $call->id }}"
                             class="hidden overflow-hidden transition-all duration-300 ease-in-out"

@@ -67,6 +67,9 @@ class PaymentStoreRequest extends FormRequest
 
             // If you really require this in controller:
             'type' => ['nullable'],
+
+            'source'               => ['nullable', 'string', Rule::in(['order', 'crm'])],
+            'customer_account_id'  => ['nullable', 'string', 'exists:customer_accounts,unique_id'],
         ];
     }
 

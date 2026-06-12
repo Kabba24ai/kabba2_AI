@@ -18,6 +18,7 @@ class FetchController extends Controller
     {
        $notes = $customer->notes()
         ->with('user')
+        ->latest()
         ->get()
         ->map(fn($note) => [
             'id' => $note->id,

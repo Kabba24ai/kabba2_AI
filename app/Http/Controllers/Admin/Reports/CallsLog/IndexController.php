@@ -18,7 +18,17 @@ class IndexController extends Controller
             'creator',
             'assignee',
             'activities.user',
-        ])->latest();
+        ])
+        ->leftJoin('customer_call_needed_activities as latest_act', function ($join) {
+            $join->on('latest_act.customer_call_needed_id', '=', 'customer_call_neededs.id')
+                 ->whereRaw('latest_act.created_at = (
+                     select max(a2.created_at)
+                     from customer_call_needed_activities a2
+                     where a2.customer_call_needed_id = customer_call_neededs.id
+                 )');
+        })
+        ->orderByRaw('COALESCE(latest_act.created_at, customer_call_neededs.created_at) DESC')
+        ->select('customer_call_neededs.*');
 
         if ($request->filled('search_name')) {
             $query->where(function ($q) use ($request) {

@@ -45,7 +45,10 @@ class EditController extends Controller
         //  define payments from relationship
         $payments = $order->extraCharges->sortByDesc('type');
 
+        // Extension orders always have a suffixed order_number (e.g. #047-A, #047-B).
+        // Reorders also set reference_order_number but get a new sequential number — exclude them.
         $relatedOrders = Order::where('reference_order_number', $order->order_number)
+            ->where('order_number', 'like', $order->order_number . '-%')
             ->with(['lastPayment', 'payments'])
             ->latest('id')
             ->get();

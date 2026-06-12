@@ -17,6 +17,7 @@ class IndexRequest extends ApiBaseFormRequest
         return [
             'per_page' => 'nullable|integer|min:1', // Optional pagination parameter
             'page' => 'nullable|integer|min:1', // Optional page parameter
+            'is_driver' => 'nullable|boolean', // Optional filter for driver status
         ];
     }
 
@@ -37,6 +38,11 @@ class IndexRequest extends ApiBaseFormRequest
                 'description' => 'The page number for pagination.',
                 'example' => 1,
                 'type' => 'integer',
+            ],
+            'is_driver' => [
+                'description' => 'Filter users by driver status (true for drivers, false for non-drivers).',
+                'example' => true,
+                'type' => 'boolean',
             ],
         ];
     }

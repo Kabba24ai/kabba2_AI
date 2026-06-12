@@ -67,7 +67,7 @@ class IndexRequest extends ApiBaseFormRequest
                 'type' => 'string',
             ],
             'transport_mode' => [
-                'description' => 'The mode of transport, either "All", "Truck", or "In Store".',
+                'description' => 'The mode of transport, either "All", "Truck", or "Store".',
                 'example' => 'All',
                 'type' => 'string',
             ],

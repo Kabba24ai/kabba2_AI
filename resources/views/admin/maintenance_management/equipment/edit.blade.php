@@ -183,19 +183,19 @@
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 <th
-                                                    class="w-32 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                    Key Comparison</th>
+                                                    class="w-24 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Key</th>
                                                 <th
                                                     class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                     Label</th>
                                                 <th
-                                                    class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    class="w-36 px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                     Value</th>
                                                 <th
-                                                    class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    class="w-36 px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                     Source</th>
                                                 <th
-                                                    class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    class="w-36 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                     Confidence</th>
                                             </tr>
                                         </thead>

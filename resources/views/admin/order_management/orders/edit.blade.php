@@ -1625,6 +1625,7 @@
                                 <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
                                     <th class="pb-2 pr-4">Order #</th>
                                     <th class="pb-2 pr-4">Description</th>
+                                    <th class="pb-2 pr-4">Notes</th>
                                     <th class="pb-2 pr-4 text-right">Subtotal</th>
                                     <th class="pb-2 pr-4 text-right">Tax</th>
                                     <th class="pb-2 pr-4 text-right">Total</th>
@@ -1653,8 +1654,11 @@
                                                 {{ $related->order_number }}
                                             </a>
                                         </td>
-                                        <td class="py-3 pr-4 text-gray-700 max-w-xs truncate">
+                                        <td class="py-3 pr-4 text-gray-700 max-w-[180px] truncate">
                                             {{ $related->order_note ?? '—' }}
+                                        </td>
+                                        <td class="py-3 pr-4 text-gray-500 text-xs max-w-[180px] truncate">
+                                            {{ $related->notes->first()?->note ?? '—' }}
                                         </td>
                                         <td class="py-3 pr-4 text-right text-gray-600">
                                             {{ \App\Helpers\CustomHelper::formatCurrency($related->subtotal) }}
@@ -1710,9 +1714,28 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Description <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" id="extDescription"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                        placeholder="e.g. Rental extension — 7 days" maxlength="255" />
+                    <select id="extDescSelect"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none bg-white">
+                        <option value="">Select a description…</option>
+                        <option value="Rental Extension">Rental Extension</option>
+                        <option value="Delivery / Pickup Added">Delivery / Pickup Added</option>
+                        <option value="Chains / Binders / Straps">Chains / Binders / Straps</option>
+                        <option value="Retail Item(s)">Retail Item(s)</option>
+                        {{-- saved custom options injected by JS before this marker --}}
+                        <option value="__other__">Other…</option>
+                    </select>
+
+                    {{-- "Other" custom description input --}}
+                    <div id="extCustomDescGroup" class="hidden mt-2 space-y-2">
+                        <input type="text" id="extCustomDesc"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                            placeholder="Type your description…" maxlength="255" />
+                        <button type="button" id="extSaveDescBtn"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md border border-teal-500 text-teal-600 hover:bg-teal-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 3v4H7V3"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 12v6m-3-3h6"/></svg>
+                            Save to List
+                        </button>
+                    </div>
                     <p id="extDescError" class="text-xs text-red-500 mt-1 hidden">Description is required.</p>
                 </div>
 
@@ -5799,6 +5822,77 @@
         const extTaxRate = {{ (float) ($sales_tax ?? 0) }};
         const extModal   = document.getElementById('extensionChargeModal');
 
+        // ── Saved custom descriptions (localStorage) ──────────────────────────
+        const EXT_DESC_KEY     = 'kabba_ext_charge_descriptions';
+        const extDescSelect    = document.getElementById('extDescSelect');
+        const extCustomGroup   = document.getElementById('extCustomDescGroup');
+        const extCustomInput   = document.getElementById('extCustomDesc');
+        const extSaveDescBtn   = document.getElementById('extSaveDescBtn');
+
+        function getSavedDescs() {
+            try { return JSON.parse(localStorage.getItem(EXT_DESC_KEY) || '[]'); }
+            catch (e) { return []; }
+        }
+
+        function saveSavedDescs(arr) {
+            localStorage.setItem(EXT_DESC_KEY, JSON.stringify(arr));
+        }
+
+        function buildDescOptions() {
+            // Remove any previously injected custom options (before the "Other…" option)
+            Array.from(extDescSelect.options).forEach(opt => {
+                if (opt.dataset.custom === '1') opt.remove();
+            });
+            const saved = getSavedDescs();
+            const otherOpt = extDescSelect.querySelector('option[value="__other__"]');
+            saved.forEach(desc => {
+                const opt = document.createElement('option');
+                opt.value = desc;
+                opt.textContent = desc;
+                opt.dataset.custom = '1';
+                extDescSelect.insertBefore(opt, otherOpt);
+            });
+        }
+
+        // Initial population
+        buildDescOptions();
+
+        extDescSelect.addEventListener('change', function () {
+            const isOther = this.value === '__other__';
+            extCustomGroup.classList.toggle('hidden', !isOther);
+            if (isOther) extCustomInput.focus();
+            else extCustomInput.value = '';
+        });
+
+        extSaveDescBtn.addEventListener('click', function () {
+            const text = extCustomInput.value.trim();
+            if (!text) { notyf.error('Please type a description first.'); return; }
+
+            const saved = getSavedDescs();
+            if (saved.includes(text)) {
+                notyf.error('That description is already in the list.');
+                return;
+            }
+
+            saved.push(text);
+            saveSavedDescs(saved);
+            buildDescOptions();
+
+            // Select the newly saved option and hide the custom input area
+            extDescSelect.value = text;
+            extCustomGroup.classList.add('hidden');
+            extCustomInput.value = '';
+            notyf.success('Description saved to list.');
+        });
+
+        // Derive the final description string from the select/custom input
+        function getExtDescription() {
+            if (extDescSelect.value === '__other__') {
+                return extCustomInput.value.trim();
+            }
+            return extDescSelect.value.trim();
+        }
+
         function fmtExtCurrency(v) {
             return '$' + Number(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         }
@@ -5820,7 +5914,9 @@
         function closeExtensionModal() {
             extModal.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
-            document.getElementById('extDescription').value = '';
+            extDescSelect.value = '';
+            extCustomGroup.classList.add('hidden');
+            extCustomInput.value = '';
             document.getElementById('extBaseAmount').value  = '';
             document.getElementById('extTaxAdd').checked    = true;
             document.getElementById('extNotes').value       = '';
@@ -5840,7 +5936,7 @@
         document.getElementById('closeExtensionModalBtn').addEventListener('click', closeExtensionModal);
 
         document.getElementById('extSubmitBtn').addEventListener('click', function () {
-            const description = document.getElementById('extDescription').value.trim();
+            const description = getExtDescription();
             const baseAmount  = parseFloat(document.getElementById('extBaseAmount').value);
             const person      = document.getElementById('extPerson').value;
             const addTax      = document.getElementById('extTaxAdd').checked;

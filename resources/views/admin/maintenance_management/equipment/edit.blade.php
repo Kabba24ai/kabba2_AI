@@ -193,9 +193,6 @@
                                                     Value</th>
                                                 <th
                                                     class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                    Unit</th>
-                                                <th
-                                                    class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                     Source</th>
                                                 <th
                                                     class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -207,7 +204,7 @@
                                                 @continue($section['items']->isEmpty())
 
                                                 <tr class="{{ $section['row_class'] }}">
-                                                    <td colspan="6" class="px-5 py-3">
+                                                    <td colspan="5" class="px-5 py-3">
                                                         <div class="flex items-center justify-between gap-3">
                                                             <div>
                                                                 <h3 class="text-sm font-semibold">{{ $section['title'] }}
@@ -281,8 +278,10 @@
                                                             @endif
                                                         </td>
                                                         <td class="px-5 py-3 font-medium text-gray-900">
-                                                            {{ $spec->spec_value ?? '—' }}</td>
-                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->spec_unit ?? '—' }}
+                                                            {{ $spec->spec_value ?? '—' }}
+                                                            @if ($spec->spec_unit)
+                                                                <span class="font-normal text-gray-400">{{ $spec->spec_unit }}</span>
+                                                            @endif
                                                         </td>
                                                         <td class="px-5 py-3 text-gray-500">{{ $spec->source ?? '—' }}
                                                         </td>
@@ -509,10 +508,6 @@
                                                     </th>
                                                     <th
                                                         class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                        Unit
-                                                    </th>
-                                                    <th
-                                                        class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                         Source
                                                     </th>
                                                     <th
@@ -580,8 +575,10 @@
                                                             </div>
                                                         </td>
                                                         <td class="px-5 py-3 font-medium text-gray-900">
-                                                            {{ $spec->spec_value ?? '—' }}</td>
-                                                        <td class="px-5 py-3 text-gray-500">{{ $spec->spec_unit ?? '—' }}
+                                                            {{ $spec->spec_value ?? '—' }}
+                                                            @if ($spec->spec_unit)
+                                                                <span class="font-normal text-gray-400">{{ $spec->spec_unit }}</span>
+                                                            @endif
                                                         </td>
                                                         <td class="px-5 py-3 text-gray-500">{{ $spec->source ?? '—' }}
                                                         </td>
@@ -643,19 +640,11 @@
 
                                         <div id="kc-modal-form"
                                             class="mt-4 hidden rounded-xl border border-teal-200 bg-teal-50/30 p-4">
-                                            <div class="grid gap-3 md:grid-cols-2">
-                                                <div>
-                                                    <label
-                                                        class="mb-1 block text-xs font-semibold text-gray-600">Name</label>
-                                                    <input type="text" id="kc-modal-name" placeholder="e.g. Engine HP"
-                                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                                </div>
-                                                <div>
-                                                    <label
-                                                        class="mb-1 block text-xs font-semibold text-gray-600">Unit</label>
-                                                    <input type="text" id="kc-modal-unit" placeholder="e.g. HP, lbs"
-                                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                                </div>
+                                            <div>
+                                                <label
+                                                    class="mb-1 block text-xs font-semibold text-gray-600">Name</label>
+                                                <input type="text" id="kc-modal-name" placeholder="e.g. Engine HP"
+                                                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                                             </div>
 
                                             <div class="mt-3">

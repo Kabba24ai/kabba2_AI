@@ -345,32 +345,29 @@
                     <thead class="bg-gray-50 dark:bg-gray-800">
                         <tr>
                             <th
-                                class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 w-32">
-                                Key Comparison</th>
+                                class="w-20 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Key</th>
                             <th
                                 class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Label</th>
                             <th
-                                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                class="w-36 px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Value</th>
                             <th
-                                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                Unit</th>
-                            <th
-                                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                class="w-36 px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Source</th>
                             <th
-                                class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                class="w-36 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Confidence</th>
                             <th
-                                class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                class="w-24 px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-900">
                         @if ($profile->specifications->isEmpty())
                             <tr>
-                                <td colspan="7" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
+                                <td colspan="6" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
                                     No specifications yet. Click <strong>Research &amp; Create General
                                         Specification</strong> to generate with AI,
                                     or <strong>Add Specification</strong> to add manually.
@@ -381,7 +378,7 @@
                                 @continue($section['items']->isEmpty())
 
                                 <tr class="{{ $section['row_class'] }}">
-                                    <td colspan="7" class="px-5 py-3">
+                                    <td colspan="6" class="px-5 py-3">
                                         <div class="flex items-center justify-between gap-3">
                                             <div>
                                                 <h3 class="text-sm font-semibold">{{ $section['title'] }}</h3>
@@ -474,10 +471,9 @@
                                                 </div>
                                             @endif
                                         </td>
-                                        <td class="px-5 py-3 font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $spec->spec_value ?? '—' }}</td>
-                                        <td class="px-5 py-3 text-gray-500 dark:text-gray-400">
-                                            {{ $spec->spec_unit ?? '—' }}</td>
+                                        <td class="px-5 py-3">
+                                            <span class="font-medium text-gray-900 dark:text-gray-100">{{ $spec->spec_value ?? '—' }}</span>@if ($spec->spec_unit)<span class="ml-1 text-xs text-gray-400 dark:text-gray-500">{{ $spec->spec_unit }}</span>@endif
+                                        </td>
                                         <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->source ?? '—' }}
                                         </td>
                                         <td class="px-5 py-3 text-center">
@@ -513,7 +509,7 @@
                                     {{-- Inline edit row --}}
                                     <tr x-show="editingId === {{ $spec->id }}" x-cloak
                                         class="bg-blue-50/50 dark:bg-blue-900/10">
-                                        <td colspan="7" class="px-5 py-4">
+                                        <td colspan="6" class="px-5 py-4">
                                             <form method="POST"
                                                 action="{{ route('admin.maintenance-management.equipment-ai.specifications.update', $spec->id) }}"
                                                 class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">

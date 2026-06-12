@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\MaintenanceManagement\EquipmentAiProfile;
+use App\Models\MaintenanceManagement\EquipmentAiSpecification;
 use App\Models\MaintenanceManagement\EquipmentCategoryComparisonKey;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
@@ -119,7 +120,6 @@ class EditController extends Controller
             });
 
         $matchingAiProfile = null;
-        $keyCriteriaSpecs = collect();
         $commonSpecs = collect();
         $uniqueSpecs = collect();
 
@@ -148,10 +148,6 @@ class EditController extends Controller
                     ->map(fn($key) => trim((string) $key))
                     ->flip();
 
-                $keyCriteriaSpecs = $matchingAiProfile->specifications
-                    ->filter(fn($spec) => (bool) $spec->is_key_comparison)
-                    ->values();
-
                 $commonSpecs = $matchingAiProfile->specifications
                     ->filter(function ($spec) use ($categorySpecKeys) {
                         if ($spec->is_key_comparison) {
@@ -173,6 +169,43 @@ class EditController extends Controller
                     ->values();
             }
         }
+
+        // Build key criteria from the category definition table
+        $categoryComparisonKeys = EquipmentCategoryComparisonKey::query()
+            ->where('category_id', $equipment->product_category_id)
+            ->orderBy('sort_order')
+            ->orderBy('display_label')
+            ->get()
+            ->keyBy('spec_key');
+
+        // Get spec values from any AI profile in the category for those keys
+        $profileSpecValues = EquipmentAiSpecification::query()
+            ->whereHas('profile', fn($q) => $q->where('category_id', $equipment->product_category_id))
+            ->whereIn('spec_key', $categoryComparisonKeys->keys()->all())
+            ->orderByDesc('confidence_score')
+            ->get()
+            ->keyBy('spec_key');
+
+        // Overwrite with matching profile's values when available
+        if ($matchingAiProfile) {
+            $specKeys = $categoryComparisonKeys->keys()->all();
+            $matchingAiProfile->specifications
+                ->filter(fn($spec) => in_array($spec->spec_key, $specKeys))
+                ->each(fn($spec) => $profileSpecValues->put($spec->spec_key, $spec));
+        }
+
+        $keyCriteriaSpecs = $categoryComparisonKeys->map(function ($key) use ($profileSpecValues) {
+            $spec = $profileSpecValues->get($key->spec_key);
+            return (object) [
+                'spec_key'          => $key->spec_key,
+                'spec_label'        => $key->display_label ?: ($spec?->spec_label ?? $key->spec_key),
+                'spec_value'        => $spec?->spec_value ?? null,
+                'spec_unit'         => $spec?->spec_unit ?? null,
+                'source'            => $spec?->source ?? null,
+                'confidence_score'  => $spec?->confidence_score ?? null,
+                'is_key_comparison' => true,
+            ];
+        })->values();
 
         $comparableAiProfiles = EquipmentAiProfile::query()
             ->withCount('specifications')

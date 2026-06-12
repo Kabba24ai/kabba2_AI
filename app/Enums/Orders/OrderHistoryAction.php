@@ -31,6 +31,7 @@ enum OrderHistoryAction: string
 
     case PaymentCollected = 'payment_collected';
     case PaymentUncollectable = 'payment_uncollectable';
+    case PartialPaymentReceived = 'partial_payment_received';
 
     public function label(): string
     {
@@ -61,6 +62,7 @@ enum OrderHistoryAction: string
             self::TermsThirdRequest => 'Terms Third Request Sent',
             self::PaymentCollected => 'Payment Collected',
             self::PaymentUncollectable => 'Payment Marked Uncollectable',
+            self::PartialPaymentReceived => 'Partial Payment Received',
         };
     }
 }

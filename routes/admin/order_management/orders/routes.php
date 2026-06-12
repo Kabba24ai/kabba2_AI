@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\UpdatePoidController;
 
 use App\Http\Controllers\Admin\OrderManagement\Orders\RepairDeletedOrdersController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\AlertChargeController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\Extension\StoreController as ExtensionStoreController;
 
 
 Route::prefix('orders')
@@ -88,6 +89,9 @@ Route::prefix('orders')
         Route::post('/update-po', UpdatePoidController::class)->name('update-po-id');
 
         Route::post('/{unique_id}/alert-charge', AlertChargeController::class)->name('alert-charge');
+
+        // Extension Charges
+        Route::post('/{unique_id}/extension/store', ExtensionStoreController::class)->name('extension.store');
 
         // Route::get('repair-deleted-orders', RepairDeletedOrdersController::class)->name('repair-deleted-orders');
 

@@ -45,8 +45,11 @@ class EditController extends Controller
         //  define payments from relationship
         $payments = $order->extraCharges->sortByDesc('type');
 
-        // dd($order->licenseMedia);
+        $relatedOrders = Order::where('reference_order_number', $order->order_number)
+            ->with('lastPayment')
+            ->latest('id')
+            ->get();
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax'));
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders'));
     }
 }

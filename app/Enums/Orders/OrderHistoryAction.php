@@ -32,6 +32,7 @@ enum OrderHistoryAction: string
     case PaymentCollected = 'payment_collected';
     case PaymentUncollectable = 'payment_uncollectable';
     case PartialPaymentReceived = 'partial_payment_received';
+    case ExtensionChargeCreated = 'extension_charge_created';
 
     public function label(): string
     {
@@ -63,6 +64,7 @@ enum OrderHistoryAction: string
             self::PaymentCollected => 'Payment Collected',
             self::PaymentUncollectable => 'Payment Marked Uncollectable',
             self::PartialPaymentReceived => 'Partial Payment Received',
+            self::ExtensionChargeCreated => 'Extension Charge Created',
         };
     }
 }

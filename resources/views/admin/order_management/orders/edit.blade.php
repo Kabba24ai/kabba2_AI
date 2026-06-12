@@ -1606,7 +1606,182 @@
             </div>
         @endif
 
+        {{-- Extension Charges Section --}}
+        <div class="grid md:grid-cols-1 gap-4">
+            <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-black font-semibold text-lg">Extension Charges</h2>
+                    <button type="button" onclick="openExtensionModal()"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors">
+                        <x-heroicon-o-plus class="w-4 h-4" />
+                        Add Extension Charge
+                    </button>
+                </div>
 
+                @if ($relatedOrders->isNotEmpty())
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
+                                    <th class="pb-2 pr-4">Order #</th>
+                                    <th class="pb-2 pr-4">Description</th>
+                                    <th class="pb-2 pr-4 text-right">Subtotal</th>
+                                    <th class="pb-2 pr-4 text-right">Tax</th>
+                                    <th class="pb-2 pr-4 text-right">Total</th>
+                                    <th class="pb-2 pr-4">Status</th>
+                                    <th class="pb-2">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach ($relatedOrders as $related)
+                                    <tr>
+                                        <td class="py-2 pr-4">
+                                            <a href="{{ route('admin.order-management.orders.edit', $related->unique_id) }}"
+                                               class="text-blue-600 hover:underline font-semibold">
+                                                {{ $related->order_number }}
+                                            </a>
+                                        </td>
+                                        <td class="py-2 pr-4 text-gray-700 max-w-xs truncate">
+                                            {{ $related->order_note ?? '—' }}
+                                        </td>
+                                        <td class="py-2 pr-4 text-right text-gray-600">
+                                            {{ \App\Helpers\CustomHelper::formatCurrency($related->subtotal) }}
+                                        </td>
+                                        <td class="py-2 pr-4 text-right text-gray-600">
+                                            {{ \App\Helpers\CustomHelper::formatCurrency($related->tax_amount) }}
+                                        </td>
+                                        <td class="py-2 pr-4 text-right font-semibold text-gray-800">
+                                            {{ \App\Helpers\CustomHelper::formatCurrency($related->grand_total) }}
+                                        </td>
+                                        <td class="py-2 pr-4">
+                                            @php
+                                                $extStatus = $related->last_payment_status ?? 'Pending';
+                                                $extStatusClass = $extStatus === 'Paid'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : ($extStatus === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
+                                            @endphp
+                                            <span class="px-2 py-0.5 text-xs rounded-full font-medium {{ $extStatusClass }}">
+                                                {{ $extStatus }}
+                                            </span>
+                                        </td>
+                                        <td class="py-2 text-gray-500 text-xs whitespace-nowrap">
+                                            {{ \App\Helpers\CustomHelper::formatDateTime($related->created_at) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-sm text-gray-400 py-2">No extension charges yet.</p>
+                @endif
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Extension Charge Modal -->
+    <div id="extensionChargeModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-lg font-semibold text-gray-800">Add Extension Charge</h2>
+                <button type="button" id="closeExtensionModalX"
+                    class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                {{-- Description --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Description <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="extDescription"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                        placeholder="e.g. Rental extension — 7 days" maxlength="255" />
+                    <p id="extDescError" class="text-xs text-red-500 mt-1 hidden">Description is required.</p>
+                </div>
+
+                {{-- Base Amount --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Base Amount <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center border border-gray-300 rounded-md px-3 py-2 focus-within:ring-1 focus-within:ring-blue-500">
+                        <span class="text-gray-500 text-sm mr-1">$</span>
+                        <input type="number" id="extBaseAmount" step="0.01" min="0.01"
+                            class="flex-1 text-sm focus:outline-none" placeholder="0.00" />
+                    </div>
+                    <p id="extAmountError" class="text-xs text-red-500 mt-1 hidden">Please enter a valid amount.</p>
+                </div>
+
+                {{-- Sales Tax --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="extTaxTreatment" id="extTaxAdd" value="add" checked
+                                class="accent-teal-500" />
+                            <span class="text-sm text-gray-700">Add {{ $taxPercentage }}% Tax</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="extTaxTreatment" id="extTaxFree" value="free"
+                                class="accent-teal-500" />
+                            <span class="text-sm text-gray-700">No Tax</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Summary --}}
+                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 space-y-1 text-sm">
+                    <div class="flex justify-between text-gray-600">
+                        <span>Base Amount:</span>
+                        <span id="extSummaryBase">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                        <span>Sales Tax ({{ $taxPercentage }}%):</span>
+                        <span id="extSummaryTax">$0.00</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-gray-800 border-t border-gray-200 pt-2 mt-1">
+                        <span>Total:</span>
+                        <span id="extSummaryTotal">$0.00</span>
+                    </div>
+                </div>
+
+                {{-- Person Responsible --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Person Responsible <span class="text-red-500">*</span>
+                    </label>
+                    <select id="extPerson"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                        <option value="">Select Person</option>
+                        @foreach ($employees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
+                        @endforeach
+                    </select>
+                    <p id="extPersonError" class="text-xs text-red-500 mt-1 hidden">Please select a person responsible.</p>
+                </div>
+
+                {{-- Notes --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <textarea id="extNotes" rows="2"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none resize-none"
+                        placeholder="Any additional notes..." maxlength="1000"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 p-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button" id="closeExtensionModalBtn"
+                    class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm hover:bg-gray-100">
+                    Cancel
+                </button>
+                <button type="button" id="extSubmitBtn"
+                    class="px-6 py-2 rounded-md bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:opacity-60">
+                    <span id="extBtnText">Create Extension</span>
+                    <span id="extBtnSpinner" class="hidden">Creating…</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Add/Edit Note Modal -->
@@ -5577,6 +5752,112 @@
 
         document.getElementById('orderDamageSubmitBtn').addEventListener('click', () =>
             submitAlertCharge('damage', 'orderDamageAmount', 'orderDamagePerson', 'orderDamageNotes', 'orderDamageSubmitBtn'));
+    })();
+
+    // ── Extension Charges ──────────────────────────────────────────────────────
+    (function () {
+        const extTaxRate = {{ (float) ($sales_tax ?? 0) }};
+        const extModal   = document.getElementById('extensionChargeModal');
+
+        function fmtExtCurrency(v) {
+            return '$' + Number(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function updateExtSummary() {
+            const base   = parseFloat(document.getElementById('extBaseAmount').value) || 0;
+            const addTax = document.getElementById('extTaxAdd').checked;
+            const tax    = addTax ? Math.round(base * extTaxRate * 100) / 100 : 0;
+            document.getElementById('extSummaryBase').textContent  = fmtExtCurrency(base);
+            document.getElementById('extSummaryTax').textContent   = fmtExtCurrency(tax);
+            document.getElementById('extSummaryTotal').textContent = fmtExtCurrency(base + tax);
+        }
+
+        function openExtensionModal() {
+            extModal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeExtensionModal() {
+            extModal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            document.getElementById('extDescription').value = '';
+            document.getElementById('extBaseAmount').value  = '';
+            document.getElementById('extTaxAdd').checked    = true;
+            document.getElementById('extNotes').value       = '';
+            document.getElementById('extPerson').value      = '';
+            ['extDescError','extAmountError','extPersonError'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            updateExtSummary();
+        }
+
+        window.openExtensionModal  = openExtensionModal;
+        window.closeExtensionModal = closeExtensionModal;
+
+        document.getElementById('extBaseAmount').addEventListener('input', updateExtSummary);
+        document.querySelectorAll('input[name="extTaxTreatment"]').forEach(r => r.addEventListener('change', updateExtSummary));
+        document.getElementById('closeExtensionModalX').addEventListener('click', closeExtensionModal);
+        document.getElementById('closeExtensionModalBtn').addEventListener('click', closeExtensionModal);
+
+        document.getElementById('extSubmitBtn').addEventListener('click', function () {
+            const description = document.getElementById('extDescription').value.trim();
+            const baseAmount  = parseFloat(document.getElementById('extBaseAmount').value);
+            const person      = document.getElementById('extPerson').value;
+            const addTax      = document.getElementById('extTaxAdd').checked;
+            const notes       = document.getElementById('extNotes').value.trim();
+
+            let valid = true;
+            document.getElementById('extDescError').classList.toggle('hidden', !!description);
+            if (!description) valid = false;
+            document.getElementById('extAmountError').classList.toggle('hidden', !!(baseAmount && baseAmount > 0));
+            if (!baseAmount || baseAmount <= 0) valid = false;
+            document.getElementById('extPersonError').classList.toggle('hidden', !!person);
+            if (!person) valid = false;
+            if (!valid) return;
+
+            const btn     = this;
+            const btnText = document.getElementById('extBtnText');
+            const spinner = document.getElementById('extBtnSpinner');
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            spinner.classList.remove('hidden');
+
+            fetch('{{ route("admin.order-management.orders.extension.store", $order->unique_id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: JSON.stringify({
+                    description:        description,
+                    base_amount:        baseAmount,
+                    add_tax:            addTax ? 1 : 0,
+                    responsible_person: person,
+                    notes:              notes || null,
+                }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    notyf.success(data.message);
+                    closeExtensionModal();
+                    window.location.reload();
+                } else {
+                    notyf.error(data.message || 'Failed to create extension charge.');
+                }
+            })
+            .catch(err => {
+                console.error('Extension charge error:', err);
+                notyf.error('An error occurred. Please try again.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                spinner.classList.add('hidden');
+            });
+        });
+
+        updateExtSummary();
     })();
 
     </script>

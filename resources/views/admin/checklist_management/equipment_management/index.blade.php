@@ -921,6 +921,7 @@
                 //  Fetch checklist questions for this equipment
 
                 console.time("fetchChecklist");
+                    
                 fetch(`{{ route('admin.checklist-management.equipment-management.get-checklist-questions') }}`, {
                         method: "POST",
                         headers: {

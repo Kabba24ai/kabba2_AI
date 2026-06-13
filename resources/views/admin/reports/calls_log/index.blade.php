@@ -521,7 +521,7 @@ function switchTab(tab) {
     const clearBtn     = document.getElementById('clear-filters');
     let debounceTimer  = null;
 
-    function fetchCalls(page = 1) {
+    function fetchCalls(page = 1) { 
         const params = new URLSearchParams();
         if (nameInput.value)    params.set('search_name',    nameInput.value);
         if (companyInput.value) params.set('search_company', companyInput.value);

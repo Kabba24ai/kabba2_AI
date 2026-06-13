@@ -145,7 +145,7 @@ const salesDataFromServer = @json($salesData);
 
             wrapper.innerHTML = ""; // clear previous items
 
-            const list = this.fuelAlerts.slice(0, 10);
+            const list = this.fuelAlerts;
 
             if (list.length === 0) {
                 wrapper.innerHTML = `
@@ -360,7 +360,7 @@ if (isFuel) {
 
             wrapper.innerHTML = ""; // Clear previous
 
-            const list = this.damageAlerts.slice(0, 10);
+            const list = this.damageAlerts;
 
             if (list.length === 0) {
                 wrapper.innerHTML = `

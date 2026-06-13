@@ -29,7 +29,7 @@
                         </div>
                     </div>
 
-                    <div id="fuel-alert-list-wrapper" class="space-y-3 h-[180px] overflow-y-auto overflow-x-auto"></div>
+                    <div id="fuel-alert-list-wrapper" class="space-y-3 max-h-[420px] overflow-y-auto overflow-x-auto"></div>
 
                     <!-- Hidden template (used by JS to clone items) -->
                     <template id="fuel-alert-item-template">
@@ -124,7 +124,7 @@
                     </div>
 
 
-                    <div id="damage-alert-list-wrapper" class="space-y-3 h-[180px] overflow-y-auto overflow-x-auto"></div>
+                    <div id="damage-alert-list-wrapper" class="space-y-3 max-h-[420px] overflow-y-auto overflow-x-auto"></div>
 
                     <!-- Hidden VanillaJS Template -->
                     <template id="damage-alert-item-template">

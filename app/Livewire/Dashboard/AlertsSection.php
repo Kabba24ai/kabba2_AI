@@ -31,6 +31,7 @@ class AlertsSection extends Component
             $q->whereNotIn('damage_status', [
                 'completed',
                 'uncollectible',
+                'resolved',
             ]);
         })
         ->latest('id')
@@ -112,6 +113,7 @@ class AlertsSection extends Component
         ->whereNotIn('fuel_charge_status', [
             'completed',
             'uncollectible',
+            'resolved',
         ])
         ->whereHas('equipment', function ($q) {
             $q->where('not_for_rent', 0)

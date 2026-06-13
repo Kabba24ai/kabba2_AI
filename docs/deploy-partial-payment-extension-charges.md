@@ -51,23 +51,24 @@ composer install --no-dev --optimize-autoloader
 
 ---
 
-### Step 3 — Run the database migration
+### Step 3 — Run the database migrations
 
-**This is the only required schema change.**
+**There are 4 required schema changes.** Run them all with:
 
 ```bash
 php artisan migrate
 ```
 
-**What it does:**  
-Adds `'Partial Payment'` to the `order_payments.status` MySQL ENUM column.
+**What it does (all 4 migrations):**
 
-Migration file:
-```
-database/migrations/orders/2026_06_11_000001_add_partial_payment_status_to_order_payments_table.php
-```
+| Migration file | Change |
+|---|---|
+| `database/migrations/2026_06_11_000001_create_resolution_note_presets_table.php` | Creates `resolution_note_presets` table |
+| `database/migrations/2026_06_11_000002_add_fuel_alert_status_to_customer_accounts_table.php` | Adds `fuel_alert_status` column to `customer_accounts` |
+| `database/migrations/2026_06_11_000003_add_damage_alert_status_to_customer_accounts_table.php` | Adds `damage_alert_status` column to `customer_accounts` |
+| `database/migrations/orders/2026_06_11_000001_add_partial_payment_status_to_order_payments_table.php` | Adds `'Partial Payment'` to `order_payments.status` ENUM |
 
-> ⚠️ **Do not skip this step.** Without it, any attempt to save a partial payment will throw a database error.
+> ⚠️ **Do not skip this step.** If the `fuel_alert_status` and `damage_alert_status` columns do not exist, the Dashboard page will crash (SQL error) and Fuel Charge + Damage Alert features will not work at all.
 
 ---
 

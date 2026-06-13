@@ -10,6 +10,10 @@ use App\Models\Orders\OrderProduct;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistTemplate;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
 use Illuminate\Support\Facades\Log;
+use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistCategory;
+use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistQuestion;
+use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistQuestionAnswer;
+use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistTemplateQuestion;
 
 class ChecklistQuestionsController extends Controller
 {
@@ -109,7 +113,8 @@ class ChecklistQuestionsController extends Controller
         }
 
         $template = RentalReadyChecklistTemplate::with([
-            'questions.question.answers'
+            'questions.question.answers',
+            'questions.question.category',
         ])->find($checklist->rental_ready_template_id);
 
         if (!$template) {
@@ -118,6 +123,8 @@ class ChecklistQuestionsController extends Controller
                 'message' => 'Template not found'
             ], 404);
         }
+
+        $template = $this->ensureMiscellaneousQuestionInTemplate($template);
 
         $questions = $template->questions->map(function ($templateQuestion) {
             $q = $templateQuestion->question;
@@ -191,5 +198,224 @@ class ChecklistQuestionsController extends Controller
                 'existingTemplate' => $existingTemplate,
             ]
         ]);
+    }
+
+    private function ensureMiscellaneousQuestionInTemplate(
+        RentalReadyChecklistTemplate $template
+    ): RentalReadyChecklistTemplate {
+
+        // Log::info('Miscellaneous setup started', [
+        //     'template_id' => $template->id,
+        //     'template_name' => $template->template_name,
+        // ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 1 : Ensure Miscellaneous Category Exists
+        |--------------------------------------------------------------------------
+        */
+
+        $miscCategory = RentalReadyChecklistCategory::where(
+            'category_name',
+            'Miscellaneous'
+        )->first();
+
+        if (!$miscCategory) {
+
+            // Log::warning('Miscellaneous category not found. Creating category.');
+
+            $miscCategory = RentalReadyChecklistCategory::create([
+                'category_name' => 'Miscellaneous',
+                'description'   => 'System generated Miscellaneous category',
+            ]);
+
+            // Log::info('Miscellaneous category created', [
+            //     'category_id' => $miscCategory->id,
+            //     'category_name' => $miscCategory->category_name,
+            // ]);
+        } else {
+
+            // Log::info('Miscellaneous category already exists', [
+            //     'category_id' => $miscCategory->id,
+            //     'category_name' => $miscCategory->category_name,
+            // ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 2 : Ensure Miscellaneous Question Exists
+        |--------------------------------------------------------------------------
+        */
+
+        $miscQuestion = RentalReadyChecklistQuestion::with([
+            'answers',
+            'category'
+        ])
+        ->where('question_name', 'Miscellaneous')
+        ->first();
+
+        if (!$miscQuestion) {
+
+            // Log::warning('Global Miscellaneous question not found. Creating question.');
+
+            $miscQuestion = RentalReadyChecklistQuestion::create([
+                'question_name'     => 'Miscellaneous',
+                'category_id'       => $miscCategory->id,
+                'required_question' => 1,
+            ]);
+
+            // Log::info('Miscellaneous question created', [
+            //     'question_id' => $miscQuestion->id,
+            //     'category_id' => $miscQuestion->category_id,
+            // ]);
+
+            $defaultAnswers = [
+                [
+                    'answer_name'  => 'Inspection Required',
+                    'type'         => 'Maint. Hold',
+                    'index_number' => 1,
+                ],
+                [
+                    'answer_name'  => 'Operable',
+                    'type'         => 'Rental Ready',
+                    'index_number' => 2,
+                ],
+                [
+                    'answer_name'  => 'Miscellaneous Damage',
+                    'type'         => 'Damaged',
+                    'index_number' => 3,
+                ],
+            ];
+
+            foreach ($defaultAnswers as $answer) {
+
+                RentalReadyChecklistQuestionAnswer::create([
+                    'question_id'  => $miscQuestion->id,
+                    'answer_name'  => $answer['answer_name'],
+                    'type'         => $answer['type'],
+                    'index_number' => $answer['index_number'],
+                ]);
+            }
+
+            // Log::info('Default Miscellaneous answers created', [
+            //     'question_id' => $miscQuestion->id,
+            //     'answers_count' => count($defaultAnswers),
+            // ]);
+
+            $miscQuestion->load([
+                'answers',
+                'category'
+            ]);
+
+        } else {
+
+            // Log::info('Global Miscellaneous question found', [
+            //     'question_id' => $miscQuestion->id,
+            //     'question_name' => $miscQuestion->question_name,
+            //     'category_id' => $miscQuestion->category_id,
+            //     'answers_count' => $miscQuestion->answers->count(),
+            // ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Safety Check - Ensure answers exist
+            |--------------------------------------------------------------------------
+            */
+
+            if ($miscQuestion->answers->count() === 0) {
+
+                // Log::warning('Miscellaneous question exists but answers missing.');
+
+                $defaultAnswers = [
+                    [
+                        'answer_name'  => 'Inspection Required',
+                        'type'         => 'Maint. Hold',
+                        'index_number' => 1,
+                    ],
+                    [
+                        'answer_name'  => 'Operable',
+                        'type'         => 'Rental Ready',
+                        'index_number' => 2,
+                    ],
+                    [
+                        'answer_name'  => 'Miscellaneous Damage',
+                        'type'         => 'Damaged',
+                        'index_number' => 3,
+                    ],
+                ];
+
+                foreach ($defaultAnswers as $answer) {
+
+                    RentalReadyChecklistQuestionAnswer::create([
+                        'question_id'  => $miscQuestion->id,
+                        'answer_name'  => $answer['answer_name'],
+                        'type'         => $answer['type'],
+                        'index_number' => $answer['index_number'],
+                    ]);
+                }
+
+                $miscQuestion->load('answers');
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 3 : Check Template Mapping
+        |--------------------------------------------------------------------------
+        */
+
+        $existsInTemplate = $template->questions->contains(function ($templateQuestion) use ($miscQuestion) {
+
+            return (int) $templateQuestion->question_id === (int) $miscQuestion->id;
+        });
+
+        // Log::info('Template Miscellaneous check', [
+        //     'template_id' => $template->id,
+        //     'question_id' => $miscQuestion->id,
+        //     'exists_in_template' => $existsInTemplate,
+        // ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 4 : Add To Template If Missing
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$existsInTemplate) {
+
+            $nextIndex = ((int) $template->questions->max('index_number')) + 1;
+
+            RentalReadyChecklistTemplateQuestion::create([
+                'template_id'  => $template->id,
+                'question_id'  => $miscQuestion->id,
+                'index_number' => $nextIndex,
+                'required'     => $miscQuestion->required_question ?? 1,
+            ]);
+
+            // Log::info('Miscellaneous question added to template', [
+            //     'template_id' => $template->id,
+            //     'question_id' => $miscQuestion->id,
+            //     'index_number' => $nextIndex,
+            // ]);
+
+            $template->load([
+                'questions.question.answers',
+                'questions.question.category',
+            ]);
+
+        } else {
+
+            // Log::info('Miscellaneous already exists in template. No action required.', [
+            //     'template_id' => $template->id,
+            //     'question_id' => $miscQuestion->id,
+            // ]);
+        }
+
+        // Log::info('Miscellaneous setup completed', [
+        //     'template_id' => $template->id,
+        //     'total_questions' => $template->questions->count(),
+        // ]);
+
+        return $template;
     }
 }

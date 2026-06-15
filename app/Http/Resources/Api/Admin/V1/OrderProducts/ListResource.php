@@ -12,6 +12,7 @@ use App\Http\Resources\Api\Admin\V1\Orders\ListResource as OrdersListResource;
 use App\Http\Resources\Api\Admin\V1\Stores\ListResource as StoresListResource;
 use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource as CustomerChecklistQuestionsListResource;
 use App\Http\Resources\Api\Admin\V1\RentalReadyChecklistQuestions\ListResource as RentalReadyChecklistQuestionsListResource;
+use App\Http\Resources\Api\Admin\V1\Users\ListResource as UsersListResource;
 
 class ListResource extends JsonResource
 {
@@ -99,9 +100,9 @@ class ListResource extends JsonResource
 
             'pickup_store' => new StoresListResource($this->whenLoaded('pickupStore')),
 
-            'delivery_employee' => $this->whenLoaded('deliveryEmployee') ? $this->deliveryEmployee . ' ' . $this->deliveryEmployee : '',
+            'delivery_employee' => new UsersListResource($this->whenLoaded('deliveryEmployee')),
 
-            'pickup_employee' => $this->whenLoaded('pickupEmployee') ? $this->pickupEmployee . ' ' . $this->pickupEmployee : '',
+            'pickup_employee' => new UsersListResource($this->whenLoaded('pickupEmployee')),
 
             'equipment_location' => $this->equipmentLocation() ?? '', // due to many relationships add last so above keys whenLoaded not load other data
 

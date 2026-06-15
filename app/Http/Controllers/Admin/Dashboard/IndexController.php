@@ -231,7 +231,9 @@ class IndexController extends Controller
                     'amountOwed'     => '$' . number_format($total, 2),
                     'date'           => optional($account->date)->toDateString(),
                     'type'           => 'damage',
-                    'notes'          => [],
+                    'notes'          => $hasOrder
+                        ? $account->order->notes()->dashboard()->latest()->get(['id', 'note', 'created_at'])
+                        : collect(),
                     'equipment'      => null,
                     'order_product'  => null,
                     'customer_account_id' => $account->unique_id,
@@ -276,7 +278,9 @@ class IndexController extends Controller
                     'amountOwed'     => '$' . number_format($total, 2),
                     'date'           => optional($account->date)->toDateString(),
                     'type'           => 'fuel',
-                    'notes'          => [],
+                    'notes'          => $hasOrder
+                        ? $account->order->notes()->dashboard()->latest()->get(['id', 'note', 'created_at'])
+                        : collect(),
                     'equipment'      => null,
                     'order_product'  => null,
                     'customer_account_id' => $account->unique_id,

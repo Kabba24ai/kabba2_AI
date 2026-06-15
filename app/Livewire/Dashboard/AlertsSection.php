@@ -221,7 +221,9 @@ class AlertsSection extends Component
                     'date'                => optional($account->date)->toDateString(),
                     '_sort_ts'            => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                     'type'                => 'damage',
-                    'notes'               => [],
+                    'notes'               => $hasOrder
+                        ? $account->order->notes()->dashboard()->latest()->get(['id', 'note', 'created_at'])
+                        : collect(),
                     'equipment'           => null,
                     'order_product'       => null,
                     'customer_account_id' => $account->unique_id,
@@ -265,7 +267,9 @@ class AlertsSection extends Component
                     'date'                => optional($account->date)->toDateString(),
                     '_sort_ts'            => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                     'type'                => 'fuel',
-                    'notes'               => [],
+                    'notes'               => $hasOrder
+                        ? $account->order->notes()->dashboard()->latest()->get(['id', 'note', 'created_at'])
+                        : collect(),
                     'equipment'           => null,
                     'order_product'       => null,
                     'customer_account_id' => $account->unique_id,

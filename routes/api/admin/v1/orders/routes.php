@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\RemoveController
 use App\Http\Controllers\Api\Admin\V1\Orders\RentalReadyChecklists\SaveController;
 use App\Http\Controllers\Api\Admin\V1\Orders\PaymentController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\AssignDriverController;
+use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\DispatchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +42,7 @@ Route::group(['prefix' => 'orders'], function () {
 
     Route::group(['prefix' => 'schedules'], function () {
         Route::post('/', SchedulesIndexController::class);
+        Route::post('/dispatch', DispatchController::class);
         Route::post('/assign-driver', AssignDriverController::class)->name('assign-driver');
         Route::post('/update', SchedulesUpdateController::class);
     });

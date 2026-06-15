@@ -3,9 +3,11 @@
 namespace App\Livewire\Dashboard;
 
 use Livewire\Component;
+use App\Models\Customers\CustomerAccount;
 use App\Models\Orders\OrderProduct;
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\ConfigurationHelper;
 use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 
 class AlertsSection extends Component
@@ -182,8 +184,92 @@ class AlertsSection extends Component
         });
 
 
+        // Merge CRM-originated damage alerts so the poll doesn't drop them
+        $crmDamageCharges = CustomerAccount::with(['customer.cards'])
+            ->where('type', 'charge')
+            ->where('reason', 'Damages')
+            ->where('damage_alert_status', 'pending')
+            ->latest()
+            ->get()
+            ->map(function ($account) {
+                $base    = (float) ($account->amount ?? 0);
+                $taxRate = (float) ($account->sales_tax ?? 0);
+                $total   = ($account->sales_tax_type === 'add' && $taxRate > 0)
+                    ? $base + $base * $taxRate
+                    : $base;
+                return [
+                    'id'                  => 20000 + $account->id,
+                    'source'              => 'crm',
+                    'customer'            => [
+                        'id'        => $account->customer_id,
+                        'full_name' => $account->customer?->full_name,
+                        'cards'     => $account->customer?->cards?->map(fn ($c) => [
+                            'id'    => $c->unique_id,
+                            'label' => $c->card_number,
+                        ])->values() ?? [],
+                    ],
+                    'customerName'        => $account->customer?->full_name ?? '—',
+                    'orderId'             => null,
+                    'order_number'        => 'CRM',
+                    'orderLink'           => $account->customer
+                        ? route('admin.crm.customers.view', $account->customer->unique_id)
+                        : null,
+                    'amountOwed'          => '$' . number_format($total, 2),
+                    'date'                => optional($account->date)->toDateString(),
+                    'type'                => 'damage',
+                    'notes'               => [],
+                    'equipment'           => null,
+                    'order_product'       => null,
+                    'customer_account_id' => $account->unique_id,
+                ];
+            });
+
+        $alerts = $alerts->concat($crmDamageCharges)->values();
+
+        // Merge CRM-originated fuel alerts so the poll doesn't drop them
+        $crmFuelCharges = CustomerAccount::with(['customer.cards'])
+            ->where('type', 'charge')
+            ->where('reason', 'Fuel Charge')
+            ->where('fuel_alert_status', 'pending')
+            ->latest()
+            ->get()
+            ->map(function ($account) {
+                $base    = (float) ($account->amount ?? 0);
+                $taxRate = (float) ($account->sales_tax ?? 0);
+                $total   = ($account->sales_tax_type === 'add' && $taxRate > 0)
+                    ? $base + $base * $taxRate
+                    : $base;
+                return [
+                    'id'                  => 10000 + $account->id,
+                    'source'              => 'crm',
+                    'customer'            => [
+                        'id'        => $account->customer_id,
+                        'full_name' => $account->customer?->full_name,
+                        'cards'     => $account->customer?->cards?->map(fn ($c) => [
+                            'id'    => $c->unique_id,
+                            'label' => $c->card_number,
+                        ])->values() ?? [],
+                    ],
+                    'customerName'        => $account->customer?->full_name ?? '—',
+                    'orderId'             => null,
+                    'order_number'        => 'CRM',
+                    'orderLink'           => $account->customer
+                        ? route('admin.crm.customers.view', $account->customer->unique_id)
+                        : null,
+                    'amountOwed'          => '$' . number_format($total, 2),
+                    'date'                => optional($account->date)->toDateString(),
+                    'type'                => 'fuel',
+                    'notes'               => [],
+                    'equipment'           => null,
+                    'order_product'       => null,
+                    'customer_account_id' => $account->unique_id,
+                ];
+            });
+
+        $fuelChargeAlerts = $fuelChargeAlerts->concat($crmFuelCharges)->values();
+
         //  Send data to JS
-        $this->dispatch('alerts-updated', alerts: $alerts ,   fuelAlerts: $fuelChargeAlerts);
+        $this->dispatch('alerts-updated', alerts: $alerts, fuelAlerts: $fuelChargeAlerts);
     }
 
     public function mount()

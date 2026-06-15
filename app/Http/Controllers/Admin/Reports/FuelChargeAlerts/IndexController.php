@@ -35,8 +35,10 @@ class IndexController extends Controller
         if ($request->filled('search_status')) {
             $status = $request->search_status;
             if ($status === 'active') {
-                $query->whereNotIn('fuel_charge_status', ['resolved', 'completed', 'uncollectible'])
-                      ->whereNull('fuel_charge_status');
+                $query->where(function ($q) {
+                    $q->whereNull('fuel_charge_status')
+                      ->orWhereNotIn('fuel_charge_status', ['resolved', 'completed', 'uncollectible']);
+                });
             } else {
                 $query->where('fuel_charge_status', $status);
             }

@@ -51,7 +51,7 @@ class IndexController extends Controller
         $records = $query->paginate($request->input('per_page', 20))->withQueryString();
 
         // ── CRM / manually-added damage charges (from Dashboard or Order Edit) ─
-        $crmQuery = CustomerAccount::with(['customer'])
+        $crmQuery = CustomerAccount::with(['customer', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Damages');
 

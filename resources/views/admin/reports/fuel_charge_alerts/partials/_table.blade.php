@@ -158,18 +158,29 @@
                         <div class="mt-3 border-l-4 border-orange-200 bg-orange-50/40 rounded-r-lg p-3">
                             <div class="text-sm flex flex-wrap items-center gap-x-4 gap-y-1">
 
-                                <span>
-                                    <span class="font-semibold text-gray-700">Source:</span>
-                                    @if($crmCustomer)
-                                        <a href="{{ route('admin.crm.customers.view', $crmCustomer->unique_id) }}"
+                                @if($crm->order_id && $crm->order)
+                                    <span>
+                                        <span class="font-semibold text-gray-700">Order:</span>
+                                        <a href="{{ route('admin.order-management.orders.edit', $crm->order->unique_id) }}"
                                            target="_blank"
                                            class="text-blue-600 hover:underline font-medium">
-                                            CRM / Credit Balance
+                                            {{ $crm->order->order_number ?? $crm->order->unique_id }}
                                         </a>
-                                    @else
-                                        <span class="text-gray-500">CRM / Credit Balance</span>
-                                    @endif
-                                </span>
+                                    </span>
+                                @else
+                                    <span>
+                                        <span class="font-semibold text-gray-700">Source:</span>
+                                        @if($crmCustomer)
+                                            <a href="{{ route('admin.crm.customers.view', $crmCustomer->unique_id) }}"
+                                               target="_blank"
+                                               class="text-blue-600 hover:underline font-medium">
+                                                CRM / Credit Balance
+                                            </a>
+                                        @else
+                                            <span class="text-gray-500">CRM / Credit Balance</span>
+                                        @endif
+                                    </span>
+                                @endif
 
                                 <span>
                                     <span class="font-semibold text-gray-700">Fuel Charge:</span>
@@ -178,10 +189,10 @@
                                     </span>
                                 </span>
 
-                                @if($crm->description)
+                                @if($crm->notes)
                                     <span>
                                         <span class="font-semibold text-gray-700">Note:</span>
-                                        <span class="text-gray-600">{{ $crm->description }}</span>
+                                        <span class="text-gray-600">{{ $crm->notes }}</span>
                                     </span>
                                 @endif
 

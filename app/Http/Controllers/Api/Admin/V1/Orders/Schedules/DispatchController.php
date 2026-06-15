@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
 // Requests
-use App\Http\Requests\Api\Admin\V1\Orders\Schedules\IndexRequest;
+use App\Http\Requests\Api\Admin\V1\Orders\Schedules\DispatchRequest;
 
 // Resources
 use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource;
@@ -22,7 +22,7 @@ class DispatchController extends BaseController
      * @group Admin App
      * @authenticated
      */
-    public function __invoke(IndexRequest $request)
+    public function __invoke(DispatchRequest $request)
     {
         $validatedData = $request->validated();
 
@@ -32,7 +32,7 @@ class DispatchController extends BaseController
         $scheduleType = $validatedData['schedule_type'] ?? null;
         $dateFilter = $validatedData['date_filter'] ?? null;
 
-        $query = OrderProduct::query()->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee')->where('product_data->product_type', 'Rental')->whereHas('order')->whereNotNull('delivery_date');
+        $query = OrderProduct::query()->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee')->where('product_data->product_type', 'Rental')->whereHas('order')->whereNotNull('delivery_date');
 
         if ($search) {
             $query->whereHas('order.shippingAddress', function ($q) use ($search) {
@@ -138,7 +138,7 @@ class DispatchController extends BaseController
             return response()->json(
                 [
                     'success' => false,
-                    'message' => trans('messages.api.admin.v1.orders.schedules_not_found'),
+                    'message' => trans('messages.api.admin.v1.orders.dispatch_schedules_not_found'),
                 ],
                 JsonResponse::HTTP_NOT_FOUND,
             );
@@ -146,7 +146,7 @@ class DispatchController extends BaseController
 
         return response()->json([
             'success' => true,
-            'message' => trans('messages.api.admin.v1.orders.schedules_found'),
+            'message' => trans('messages.api.admin.v1.orders.dispatch_schedules_found'),
             'orders' => ListResource::collection($orders),
             'pagination' => [
                 'current_page' => $orders->currentPage(),

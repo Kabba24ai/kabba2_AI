@@ -27,5 +27,7 @@ return [
     'equipment_status' => 'Equipment Status is :status, it needs to be Rented',
     'checklist_removed_successfully' => 'Checklist removed successfully',
     'equipment_is_rented' => 'This item is currently Rented, so it can not be assigned to this Order',
+    'dispatch_schedules_found' => 'Dispatch schedules found successfully',
+    'dispatch_schedules_not_found' => 'No dispatch schedules found',
 ];
 

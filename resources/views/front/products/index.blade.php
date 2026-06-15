@@ -18,7 +18,7 @@
 @section('content')
 
     <!-- Page Title Section -->
-    <section class="md:mx-[30px] bg-gray-100">
+    <section class="md:mx-[30px] bg-gray-100" >
         <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto ">
             <div class="pt-[100px] pb-[20px] ">
                 <div class="w-full">

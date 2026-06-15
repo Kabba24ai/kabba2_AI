@@ -19,6 +19,7 @@ use App\Helpers\ConfigurationHelper;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAccount;
 use App\Models\Dashboard\ResolutionNotePreset;
+use App\Models\Dashboard\FuelNotePreset;
 
 
 use App\Helpers\CustomHelper;
@@ -332,10 +333,11 @@ class IndexController extends Controller
             ->get();
 
         $resolutionPresets = ResolutionNotePreset::orderBy('label')->get();
+        $fuelNotePresets   = FuelNotePreset::orderBy('label')->get();
 
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
-        return view('admin.dashboard.index', compact('salesData','customers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets','sales_tax'));
+        return view('admin.dashboard.index', compact('salesData','customers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets','fuelNotePresets','sales_tax'));
 
     }
 

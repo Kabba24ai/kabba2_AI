@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\Dashboard\CallNeededCompleteController;
 
 use App\Http\Controllers\Admin\Dashboard\CallNeededUpdateController;
 use App\Http\Controllers\Admin\Dashboard\ResolutionPresetController;
+use App\Http\Controllers\Admin\Dashboard\FuelNotePresetController;
 use App\Http\Controllers\Admin\Dashboard\FuelChargeStoreController;
 use App\Http\Controllers\Admin\Dashboard\DamageChargeStoreController;
 
@@ -41,6 +42,8 @@ Route::prefix('dashboard')
 
       Route::post('/resolution-presets', [ResolutionPresetController::class, 'store'])->name('resolution-presets.store');
       Route::delete('/resolution-presets/{id}', [ResolutionPresetController::class, 'destroy'])->name('resolution-presets.destroy');
+
+      Route::post('/fuel-note-presets', [FuelNotePresetController::class, 'store'])->name('fuel-note-presets.store');
 
       Route::get('/extra-charges/show/{unique_id}', ExtraChargesShowController::class)->name('extra-charges.show');
 

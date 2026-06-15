@@ -411,7 +411,6 @@
                                         <table class="w-full table-fixed">
                                             <colgroup>
                                                 <col class="w-12">
-                                                <col>
                                                 <col class="w-44">
                                                 <col class="w-44">
                                                 <col class="w-28">
@@ -421,12 +420,11 @@
                                             <thead class="bg-gray-50">
                                                 <tr class="border-b border-gray-200 text-xs font-semibold text-gray-500">
                                                     <th scope="col" class="px-4 py-2 text-left"></th>
-                                                    <th scope="col" class="px-4 py-2 text-left">Profile</th>
                                                     <th scope="col" class="px-2 py-2 text-left">Make</th>
                                                     <th scope="col" class="px-2 py-2 text-left">Model</th>
                                                     <th scope="col" class="px-2 py-2 text-left">Specs</th>
                                                     <th scope="col" class="px-2 py-2 text-left">Key Specs</th>
-                                                    <th scope="col" class="px-2 py-2 text-left">Status</th>
+                                                    <th scope="col" class="px-2 py-2 text-left">Specs</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="divide-y divide-gray-100 bg-white">
@@ -437,14 +435,6 @@
                                                                 value="{{ $profile->id }}" @checked(in_array((string) $profile->id, $selectedComparableAiProfileIds, true))
                                                                 class="kc-profile-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                                         </td>
-                                                        <td class="px-4 py-3">
-                                                            <div class="min-w-0">
-                                                                <p class="truncate text-sm font-semibold text-gray-900">
-                                                                    {{ $profile->unique_id }}</p>
-                                                                <p class="truncate text-xs text-gray-500">
-                                                                    {{ $profile->make }} {{ $profile->model }}</p>
-                                                            </div>
-                                                        </td>
                                                         <td class="px-2 py-3 text-sm text-gray-700">
                                                             {{ $profile->make ?: '—' }}</td>
                                                         <td class="px-2 py-3 text-sm text-gray-700">
@@ -454,15 +444,17 @@
                                                         <td class="px-2 py-3 text-sm text-gray-700">
                                                             {{ $profile->key_specifications_count }}</td>
                                                         <td class="px-2 py-3">
-                                                            <span
-                                                                class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
-                                                                {{ $profile->statusLabel() }}
-                                                            </span>
+                                                            <a href="{{ route('admin.maintenance-management.equipment-ai.profiles.specifications.index', $profile->unique_id) }}"
+                                                                target="_blank"
+                                                                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                                                                <x-heroicon-o-clipboard-document-list class="h-3.5 w-3.5" />
+                                                                Specs
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 @empty
                                                     <tr>
-                                                        <td colspan="7"
+                                                        <td colspan="6"
                                                             class="px-6 py-10 text-center text-sm text-gray-400">
                                                             No comparable AI profiles found for this category.
                                                         </td>

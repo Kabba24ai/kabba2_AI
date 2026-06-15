@@ -84,7 +84,8 @@ class AlertsSection extends Component
                 ? '$' . number_format($currentDamage, 2)
                 : 'Pending',
 
-            'date' => optional($order?->created_at)->toDateString(),
+            'date'      => optional($order?->created_at)->toDateString(),
+            '_sort_ts'  => $orderProduct?->created_at?->timestamp ?? $order?->created_at?->timestamp ?? 0,
             'type' => 'damage',
 
             'notes' => $latestNote,
@@ -94,7 +95,7 @@ class AlertsSection extends Component
                 'name' => $equipment?->equipment_name,
             ],
 
-        
+
             'order_product' => [
                 'id' => $orderProduct?->id,
                 'unique_id' => $orderProduct?->unique_id,
@@ -164,7 +165,8 @@ class AlertsSection extends Component
                         ? '$' . number_format($currentFuelCharge, 2)
                         : 'Pending',
 
-                'date' => optional($order?->created_at)->toDateString(),
+                'date'     => optional($order?->created_at)->toDateString(),
+                '_sort_ts' => $orderProduct->created_at?->timestamp ?? $order?->created_at?->timestamp ?? 0,
                 'type' => 'fuel',
 
                 'notes' => $latestNote,
@@ -217,6 +219,7 @@ class AlertsSection extends Component
                         : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
                     'amountOwed'          => '$' . number_format($total, 2),
                     'date'                => optional($account->date)->toDateString(),
+                    '_sort_ts'            => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                     'type'                => 'damage',
                     'notes'               => [],
                     'equipment'           => null,
@@ -225,7 +228,7 @@ class AlertsSection extends Component
                 ];
             });
 
-        $alerts = $alerts->concat($crmDamageCharges)->values();
+        $alerts = $alerts->concat($crmDamageCharges)->sortByDesc('_sort_ts')->values();
 
         // Merge CRM-originated fuel alerts so the poll doesn't drop them
         $crmFuelCharges = CustomerAccount::with(['customer.cards', 'order'])
@@ -260,6 +263,7 @@ class AlertsSection extends Component
                         : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
                     'amountOwed'          => '$' . number_format($total, 2),
                     'date'                => optional($account->date)->toDateString(),
+                    '_sort_ts'            => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                     'type'                => 'fuel',
                     'notes'               => [],
                     'equipment'           => null,
@@ -268,7 +272,7 @@ class AlertsSection extends Component
                 ];
             });
 
-        $fuelChargeAlerts = $fuelChargeAlerts->concat($crmFuelCharges)->values();
+        $fuelChargeAlerts = $fuelChargeAlerts->concat($crmFuelCharges)->sortByDesc('_sort_ts')->values();
 
         //  Send data to JS
         $this->dispatch('alerts-updated', alerts: $alerts, fuelAlerts: $fuelChargeAlerts);

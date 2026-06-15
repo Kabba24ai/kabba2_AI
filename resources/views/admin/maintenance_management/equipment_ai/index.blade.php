@@ -1,5 +1,4 @@
 @extends('admin.layouts.app')
-@extends('admin.layouts.app')
 
 @section('title', 'Equipment Management AI')
 

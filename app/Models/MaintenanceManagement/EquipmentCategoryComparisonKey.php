@@ -17,9 +17,7 @@ class EquipmentCategoryComparisonKey extends Model
         'spec_key',
         'display_label',
         'importance_level',
-        'comparison_type',
         'sort_order',
-        'is_required',
         'upgrade_exceeds_value',
         'caution_if_exceeds_value',
         'upgrade_is_below_value',
@@ -27,7 +25,6 @@ class EquipmentCategoryComparisonKey extends Model
     ];
 
     protected $casts = [
-        'is_required' => 'boolean',
         'upgrade_exceeds_value' => 'boolean',
         'caution_if_exceeds_value' => 'boolean',
         'upgrade_is_below_value' => 'boolean',
@@ -59,15 +56,4 @@ class EquipmentCategoryComparisonKey extends Model
         };
     }
 
-    public function comparisonTypeLabel(): string
-    {
-        return match ($this->comparison_type) {
-            'higher_is_better'   => 'Higher is Better',
-            'lower_is_better'    => 'Lower is Better',
-            'must_match'         => 'Must Match',
-            'range_acceptable'   => 'Range Acceptable',
-            'informational_only' => 'Info Only',
-            default              => ucfirst($this->comparison_type),
-        };
-    }
 }

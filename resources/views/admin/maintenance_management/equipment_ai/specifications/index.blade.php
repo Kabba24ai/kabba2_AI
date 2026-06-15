@@ -558,6 +558,7 @@
                                                         max="1" step="0.01"
                                                         class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                                 </div>
+                                                @if ($spec->is_key_comparison)
                                                 <div
                                                     class="sm:col-span-3 lg:col-span-2 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/40">
                                                     <p class="text-xs font-semibold text-gray-700 dark:text-gray-200">Flags
@@ -601,6 +602,7 @@
                                                         </label>
                                                     </div>
                                                 </div>
+                                                @endif
                                                 <div class="flex items-end gap-2">
                                                     <button type="submit"
                                                         class="rounded-md bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">

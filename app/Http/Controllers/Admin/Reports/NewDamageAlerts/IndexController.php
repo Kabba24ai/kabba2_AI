@@ -48,7 +48,7 @@ class IndexController extends Controller
             }
         }
 
-        $records = $query->paginate($request->input('per_page', 20))->withQueryString();
+        $records = $query->get();
 
         // ── CRM / manually-added damage charges (from Dashboard or Order Edit) ─
         $crmQuery = CustomerAccount::with(['customer', 'order'])
@@ -77,8 +77,17 @@ class IndexController extends Controller
 
         $crmDamageRecords = $crmQuery->latest()->get();
 
+        // ── Merge both sources into one sorted collection ────────────────────
+        $allDamageRecords = $records
+            ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
+            ->concat(
+                $crmDamageRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
+            )
+            ->sortByDesc('_sort_ts')
+            ->values();
+
         if ($request->ajax()) {
-            $html = view('admin.reports.new_damage_alerts.partials._table', compact('records', 'crmDamageRecords'))->render();
+            $html = view('admin.reports.new_damage_alerts.partials._table', compact('allDamageRecords'))->render();
             return response()->json(['success' => true, 'html' => $html]);
         }
 

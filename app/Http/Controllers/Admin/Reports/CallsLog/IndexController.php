@@ -75,33 +75,49 @@ class IndexController extends Controller
 
         $users = User::orderBy('first_name')->get();
 
-        $fuelRecords = OrderProduct::with(['order.customer', 'equipment', 'fuelChargeLogs'])
+        $fuelOpRecords = OrderProduct::with(['order.customer', 'equipment', 'fuelChargeLogs'])
             ->whereNotNull('fuel_total_charge')
             ->where('fuel_total_charge', '>', 0)
             ->whereHas('order')
             ->latest('id')
-            ->paginate(20);
+            ->get();
 
-        $crmFuelRecords = CustomerAccount::with(['customer', 'order'])
+        $fuelCrmRecords = CustomerAccount::with(['customer', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Fuel Charge')
             ->latest()
             ->get();
 
-        $damageRecords = OrderProduct::with(['order.customer', 'equipment', 'damageChargeLogs'])
+        $allFuelRecords = $fuelOpRecords
+            ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
+            ->concat(
+                $fuelCrmRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
+            )
+            ->sortByDesc('_sort_ts')
+            ->values();
+
+        $damageOpRecords = OrderProduct::with(['order.customer', 'equipment', 'damageChargeLogs'])
             ->where(function ($q) {
                 $q->where('damage_charge', '>', 0)->orWhereNotNull('damage_status');
             })
             ->whereHas('order')
             ->latest('id')
-            ->paginate(20);
+            ->get();
 
-        $crmDamageRecords = CustomerAccount::with(['customer', 'order'])
+        $damageCrmRecords = CustomerAccount::with(['customer', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Damages')
             ->latest()
             ->get();
 
-        return view('admin.reports.calls_log.index', compact('calls', 'customers', 'users', 'fuelRecords', 'crmFuelRecords', 'damageRecords', 'crmDamageRecords'));
+        $allDamageRecords = $damageOpRecords
+            ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
+            ->concat(
+                $damageCrmRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
+            )
+            ->sortByDesc('_sort_ts')
+            ->values();
+
+        return view('admin.reports.calls_log.index', compact('calls', 'customers', 'users', 'allFuelRecords', 'allDamageRecords'));
     }
 }

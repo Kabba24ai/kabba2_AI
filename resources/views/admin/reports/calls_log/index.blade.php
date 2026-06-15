@@ -186,7 +186,7 @@
                 <span class="text-xs text-gray-400">Newest first</span>
             </div>
             <div id="fuel-alerts-wrapper">
-                @include('admin.reports.fuel_charge_alerts.partials._table', ['records' => $fuelRecords])
+                @include('admin.reports.fuel_charge_alerts.partials._table', ['allFuelRecords' => $allFuelRecords])
             </div>
         </div>
 
@@ -247,7 +247,7 @@
                 <span class="text-xs text-gray-400">Newest first</span>
             </div>
             <div id="damage-alerts-wrapper">
-                @include('admin.reports.new_damage_alerts.partials._table', ['records' => $damageRecords])
+                @include('admin.reports.new_damage_alerts.partials._table', ['allDamageRecords' => $allDamageRecords])
             </div>
         </div>
 

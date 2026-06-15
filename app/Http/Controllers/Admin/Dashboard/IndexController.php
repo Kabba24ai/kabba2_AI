@@ -95,7 +95,8 @@ class IndexController extends Controller
                                     ? '$' . number_format($currentDamage, 2)
                                     : 'Pending',
 
-                                'date' => optional($order?->created_at)->toDateString(),
+                                'date'      => optional($order?->created_at)->toDateString(),
+                                '_sort_ts'  => $orderProduct?->created_at?->timestamp ?? $order?->created_at?->timestamp ?? 0,
                                 'type' => 'damage',
 
                                 'notes' => $latestNote,
@@ -173,7 +174,8 @@ class IndexController extends Controller
                         ? '$' . number_format($currentFuelCharge, 2)
                         : 'Pending',
 
-                'date' => optional($order?->created_at)->toDateString(),
+                'date'     => optional($order?->created_at)->toDateString(),
+                '_sort_ts' => $orderProduct->created_at?->timestamp ?? $order?->created_at?->timestamp ?? 0,
                 'type' => 'fuel',
 
                 'notes' => $latestNote,
@@ -187,28 +189,30 @@ class IndexController extends Controller
                 'id' => $orderProduct->id,
                 'unique_id' => $orderProduct->unique_id,
                 'base_fuel_charge' => $baseFuelCharge,
-                'current_fuel_charge' => $currentFuelCharge ,
+                'current_fuel_charge' => $currentFuelCharge,
             ],
             ];
         });
 
         // Merge CRM-originated Damage alerts (CustomerAccount records)
-        $crmDamageCharges = CustomerAccount::with(['customer.cards'])
+        $crmDamageCharges = CustomerAccount::with(['customer.cards', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Damages')
             ->where('damage_alert_status', 'pending')
             ->latest()
             ->get()
             ->map(function ($account) {
-                $base    = (float) ($account->amount ?? 0);
-                $taxRate = (float) ($account->sales_tax ?? 0);
-                $total   = ($account->sales_tax_type === 'add' && $taxRate > 0)
+                $base     = (float) ($account->amount ?? 0);
+                $taxRate  = (float) ($account->sales_tax ?? 0);
+                $total    = ($account->sales_tax_type === 'add' && $taxRate > 0)
                     ? $base + $base * $taxRate
                     : $base;
+                $hasOrder = $account->order !== null;
 
                 return [
                     'id'             => 20000 + $account->id,
                     'source'         => 'crm',
+                    '_sort_ts'       => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                     'customer'       => [
                         'id'        => $account->customer_id,
                         'full_name' => $account->customer?->full_name,
@@ -218,11 +222,11 @@ class IndexController extends Controller
                         ])->values() ?? [],
                     ],
                     'customerName'   => $account->customer?->full_name ?? '—',
-                    'orderId'        => null,
-                    'order_number'   => 'CRM',
-                    'orderLink'      => $account->customer
-                        ? route('admin.crm.customers.view', $account->customer->unique_id)
-                        : null,
+                    'orderId'        => $hasOrder ? $account->order->unique_id : null,
+                    'order_number'   => $hasOrder ? $account->order->order_number : null,
+                    'orderLink'      => $hasOrder
+                        ? route('admin.order-management.orders.edit', $account->order->unique_id)
+                        : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
                     'amountOwed'     => '$' . number_format($total, 2),
                     'date'           => optional($account->date)->toDateString(),
                     'type'           => 'damage',
@@ -233,25 +237,27 @@ class IndexController extends Controller
                 ];
             });
 
-        $damagedOrderAlerts = $damagedOrderAlerts->concat($crmDamageCharges)->values();
+        $damagedOrderAlerts = $damagedOrderAlerts->concat($crmDamageCharges)->sortByDesc('_sort_ts')->values();
 
         // Merge CRM-originated Fuel Charge alerts (CustomerAccount records)
-        $crmFuelCharges = CustomerAccount::with(['customer.cards'])
+        $crmFuelCharges = CustomerAccount::with(['customer.cards', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Fuel Charge')
             ->where('fuel_alert_status', 'pending')
             ->latest()
             ->get()
             ->map(function ($account) {
-                $base    = (float) ($account->amount ?? 0);
-                $taxRate = (float) ($account->sales_tax ?? 0);
-                $total   = ($account->sales_tax_type === 'add' && $taxRate > 0)
+                $base     = (float) ($account->amount ?? 0);
+                $taxRate  = (float) ($account->sales_tax ?? 0);
+                $total    = ($account->sales_tax_type === 'add' && $taxRate > 0)
                     ? $base + $base * $taxRate
                     : $base;
+                $hasOrder = $account->order !== null;
 
                 return [
                     'id'             => 10000 + $account->id,
                     'source'         => 'crm',
+                    '_sort_ts'       => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                     'customer'       => [
                         'id'        => $account->customer_id,
                         'full_name' => $account->customer?->full_name,
@@ -261,11 +267,11 @@ class IndexController extends Controller
                         ])->values() ?? [],
                     ],
                     'customerName'   => $account->customer?->full_name ?? '—',
-                    'orderId'        => null,
-                    'order_number'   => 'CRM',
-                    'orderLink'      => $account->customer
-                        ? route('admin.crm.customers.view', $account->customer->unique_id)
-                        : null,
+                    'orderId'        => $hasOrder ? $account->order->unique_id : null,
+                    'order_number'   => $hasOrder ? $account->order->order_number : null,
+                    'orderLink'      => $hasOrder
+                        ? route('admin.order-management.orders.edit', $account->order->unique_id)
+                        : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
                     'amountOwed'     => '$' . number_format($total, 2),
                     'date'           => optional($account->date)->toDateString(),
                     'type'           => 'fuel',
@@ -276,7 +282,7 @@ class IndexController extends Controller
                 ];
             });
 
-        $fuelChargeAlerts = $fuelChargeAlerts->concat($crmFuelCharges)->values();
+        $fuelChargeAlerts = $fuelChargeAlerts->concat($crmFuelCharges)->sortByDesc('_sort_ts')->values();
 
             // Get sales data for different periods
         $salesData = $this->getSalesData();

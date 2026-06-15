@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models\Orders;
 
 use App\Enums\Orders\OrderMediaType;
@@ -244,20 +245,6 @@ class OrderProduct extends Model
         return $this->belongsTo(Store::class, 'pickup_store_id');
     }
 
-    public function startPoint()
-    {
-        if ($this->is_delivered) {
-            return $this->order?->customer_name ?? '-';
-        }
-
-        return $this->deliveryStore?->store_name ?? '-';
-    }
-
-    public function endPoint()
-    {
-        return $this->pickupStore?->store_name ?? '-';
-    }
-
     public function softAssignment()
     {
         return $this->hasOne(EquipmentSoftAssign::class, 'order_product_id', 'id')->with('equipment');
@@ -305,28 +292,25 @@ class OrderProduct extends Model
             ->sum('change_amount');
 
         return max(0, $base + $adjustments);
-
     }
 
 
     public function fuelChargeLogs()
-{
-    return $this->hasMany(OrderProductFuelChargeLog::class)->latest();
-}
+    {
+        return $this->hasMany(OrderProductFuelChargeLog::class)->latest();
+    }
 
 
-/**
- * Current fuel owed (base + adjustments)
- */
-public function getCurrentFuelChargeAttribute(): float
-{
-    $base = (float) ($this->fuel_total_charge ?? 0);
+    /**
+     * Current fuel owed (base + adjustments)
+     */
+    public function getCurrentFuelChargeAttribute(): float
+    {
+        $base = (float) ($this->fuel_total_charge ?? 0);
 
-    $adjustments = (float) $this->fuelChargeLogs()
-        ->sum('change_amount');
+        $adjustments = (float) $this->fuelChargeLogs()
+            ->sum('change_amount');
 
-    return max(0, $base + $adjustments);
-}
-
-
+        return max(0, $base + $adjustments);
+    }
 }

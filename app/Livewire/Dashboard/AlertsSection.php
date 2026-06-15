@@ -185,7 +185,7 @@ class AlertsSection extends Component
 
 
         // Merge CRM-originated damage alerts so the poll doesn't drop them
-        $crmDamageCharges = CustomerAccount::with(['customer.cards'])
+        $crmDamageCharges = CustomerAccount::with(['customer.cards', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Damages')
             ->where('damage_alert_status', 'pending')
@@ -197,6 +197,7 @@ class AlertsSection extends Component
                 $total   = ($account->sales_tax_type === 'add' && $taxRate > 0)
                     ? $base + $base * $taxRate
                     : $base;
+                $hasOrder = $account->order !== null;
                 return [
                     'id'                  => 20000 + $account->id,
                     'source'              => 'crm',
@@ -209,11 +210,11 @@ class AlertsSection extends Component
                         ])->values() ?? [],
                     ],
                     'customerName'        => $account->customer?->full_name ?? '—',
-                    'orderId'             => null,
-                    'order_number'        => 'CRM',
-                    'orderLink'           => $account->customer
-                        ? route('admin.crm.customers.view', $account->customer->unique_id)
-                        : null,
+                    'orderId'             => $hasOrder ? $account->order->unique_id : null,
+                    'order_number'        => $hasOrder ? $account->order->order_number : null,
+                    'orderLink'           => $hasOrder
+                        ? route('admin.order-management.orders.edit', $account->order->unique_id)
+                        : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
                     'amountOwed'          => '$' . number_format($total, 2),
                     'date'                => optional($account->date)->toDateString(),
                     'type'                => 'damage',
@@ -227,7 +228,7 @@ class AlertsSection extends Component
         $alerts = $alerts->concat($crmDamageCharges)->values();
 
         // Merge CRM-originated fuel alerts so the poll doesn't drop them
-        $crmFuelCharges = CustomerAccount::with(['customer.cards'])
+        $crmFuelCharges = CustomerAccount::with(['customer.cards', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Fuel Charge')
             ->where('fuel_alert_status', 'pending')
@@ -239,6 +240,7 @@ class AlertsSection extends Component
                 $total   = ($account->sales_tax_type === 'add' && $taxRate > 0)
                     ? $base + $base * $taxRate
                     : $base;
+                $hasOrder = $account->order !== null;
                 return [
                     'id'                  => 10000 + $account->id,
                     'source'              => 'crm',
@@ -251,11 +253,11 @@ class AlertsSection extends Component
                         ])->values() ?? [],
                     ],
                     'customerName'        => $account->customer?->full_name ?? '—',
-                    'orderId'             => null,
-                    'order_number'        => 'CRM',
-                    'orderLink'           => $account->customer
-                        ? route('admin.crm.customers.view', $account->customer->unique_id)
-                        : null,
+                    'orderId'             => $hasOrder ? $account->order->unique_id : null,
+                    'order_number'        => $hasOrder ? $account->order->order_number : null,
+                    'orderLink'           => $hasOrder
+                        ? route('admin.order-management.orders.edit', $account->order->unique_id)
+                        : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
                     'amountOwed'          => '$' . number_format($total, 2),
                     'date'                => optional($account->date)->toDateString(),
                     'type'                => 'fuel',

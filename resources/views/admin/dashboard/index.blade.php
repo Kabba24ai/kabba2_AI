@@ -172,7 +172,7 @@ const salesDataFromServer = @json($salesData);
 
                 // Show order number or a "CRM" badge
                 const orderIdEl = item.querySelector("[data-order-id]");
-                if (isCrm) {
+                if (isCrm && !alert.orderId) {
                     orderIdEl.innerHTML = `<span class="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-1.5 py-0.5 rounded">CRM</span>`;
                 } else {
                     orderIdEl.textContent = alert.order_number;
@@ -384,7 +384,7 @@ if (isFuel) {
                 item.querySelector("[data-customer]").textContent = alert.customerName;
 
                 const orderIdEl = item.querySelector("[data-order-id]");
-                if (isCrm) {
+                if (isCrm && !alert.orderId) {
                     orderIdEl.innerHTML = `<span class="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-1.5 py-0.5 rounded">CRM</span>`;
                 } else {
                     orderIdEl.textContent = alert.order_number;

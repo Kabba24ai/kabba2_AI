@@ -82,7 +82,7 @@ class IndexController extends Controller
             ->latest('id')
             ->paginate(20);
 
-        $crmFuelRecords = CustomerAccount::with(['customer'])
+        $crmFuelRecords = CustomerAccount::with(['customer', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Fuel Charge')
             ->latest()
@@ -96,7 +96,7 @@ class IndexController extends Controller
             ->latest('id')
             ->paginate(20);
 
-        $crmDamageRecords = CustomerAccount::with(['customer'])
+        $crmDamageRecords = CustomerAccount::with(['customer', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Damages')
             ->latest()

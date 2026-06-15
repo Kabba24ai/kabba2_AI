@@ -187,7 +187,34 @@ class ChecklistQuestionsController extends Controller
                 'status'    => $qa['selected_answer']['type'] ?? null,
                 'notes'     => $q->general_notes,
             ];
-        })->toArray();
+        });
+// ->toArray();
+
+        $miscQuestion = RentalReadyChecklistQuestion::with(['answers', 'category'])
+    ->where('question_name', 'Miscellaneous')
+    ->first();
+
+if ($miscQuestion && !$qaData->contains('main_id', $miscQuestion->id)) {
+    $qaData->push([
+        'main_id'     => $miscQuestion->id,
+        'id'          => $miscQuestion->unique_id,
+        'title'       => $miscQuestion->question_name,
+        'category_id' => $miscQuestion->category->id ?? null,
+        'required'    => (bool) $miscQuestion->required_question,
+        'answers'     => $miscQuestion->answers->map(fn($answer) => [
+            'id'        => $answer->id,
+            'unique_id' => $answer->unique_id,
+            'label'     => $answer->answer_name,
+            'status'    => $answer->type,
+        ])->toArray(),
+        'answer_id'   => null,
+        'status'      => null,
+        'notes'       => null,
+    ]);
+}
+
+$qaData = $qaData->values()->toArray();
+
 
         return response()->json([
             'success' => true,
@@ -228,18 +255,7 @@ class ChecklistQuestionsController extends Controller
                 'category_name' => 'Miscellaneous',
                 'description'   => 'System generated Miscellaneous category',
             ]);
-
-            // Log::info('Miscellaneous category created', [
-            //     'category_id' => $miscCategory->id,
-            //     'category_name' => $miscCategory->category_name,
-            // ]);
-        } else {
-
-            // Log::info('Miscellaneous category already exists', [
-            //     'category_id' => $miscCategory->id,
-            //     'category_name' => $miscCategory->category_name,
-            // ]);
-        }
+        } 
 
         /*
         |--------------------------------------------------------------------------
@@ -263,11 +279,6 @@ class ChecklistQuestionsController extends Controller
                 'category_id'       => $miscCategory->id,
                 'required_question' => 1,
             ]);
-
-            // Log::info('Miscellaneous question created', [
-            //     'question_id' => $miscQuestion->id,
-            //     'category_id' => $miscQuestion->category_id,
-            // ]);
 
             $defaultAnswers = [
                 [
@@ -297,10 +308,6 @@ class ChecklistQuestionsController extends Controller
                 ]);
             }
 
-            // Log::info('Default Miscellaneous answers created', [
-            //     'question_id' => $miscQuestion->id,
-            //     'answers_count' => count($defaultAnswers),
-            // ]);
 
             $miscQuestion->load([
                 'answers',
@@ -309,13 +316,7 @@ class ChecklistQuestionsController extends Controller
 
         } else {
 
-            // Log::info('Global Miscellaneous question found', [
-            //     'question_id' => $miscQuestion->id,
-            //     'question_name' => $miscQuestion->question_name,
-            //     'category_id' => $miscQuestion->category_id,
-            //     'answers_count' => $miscQuestion->answers->count(),
-            // ]);
-
+          
             /*
             |--------------------------------------------------------------------------
             | Safety Check - Ensure answers exist
@@ -369,12 +370,7 @@ class ChecklistQuestionsController extends Controller
             return (int) $templateQuestion->question_id === (int) $miscQuestion->id;
         });
 
-        // Log::info('Template Miscellaneous check', [
-        //     'template_id' => $template->id,
-        //     'question_id' => $miscQuestion->id,
-        //     'exists_in_template' => $existsInTemplate,
-        // ]);
-
+       
         /*
         |--------------------------------------------------------------------------
         | STEP 4 : Add To Template If Missing
@@ -392,29 +388,14 @@ class ChecklistQuestionsController extends Controller
                 'required'     => $miscQuestion->required_question ?? 1,
             ]);
 
-            // Log::info('Miscellaneous question added to template', [
-            //     'template_id' => $template->id,
-            //     'question_id' => $miscQuestion->id,
-            //     'index_number' => $nextIndex,
-            // ]);
 
             $template->load([
                 'questions.question.answers',
                 'questions.question.category',
             ]);
 
-        } else {
-
-            // Log::info('Miscellaneous already exists in template. No action required.', [
-            //     'template_id' => $template->id,
-            //     'question_id' => $miscQuestion->id,
-            // ]);
-        }
-
-        // Log::info('Miscellaneous setup completed', [
-        //     'template_id' => $template->id,
-        //     'total_questions' => $template->questions->count(),
-        // ]);
+        } 
+       
 
         return $template;
     }

@@ -248,35 +248,15 @@ const salesDataFromServer = @json($salesData);
                         ? "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full"
                         : "text-sm font-semibold text-green-700";
 
-                           // Notes (multiple notes, same design, clean)
+                // Counter badge only — notes visible via modal, not inline
+                const notesCountEl = item.querySelector("[data-notes-count]");
                 if (Array.isArray(alert.notes) && alert.notes.length > 0) {
-                    const container = item.querySelector("[data-notes-container]");
-
-                    container.classList.remove("hidden");
-                    container.innerHTML = ""; // clear old notes
-
-                    alert.notes.forEach(note => {
-                        const noteEl = document.createElement("div");
-                        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
-                        noteEl.innerHTML = `
-                            <strong>Notes:</strong> ${note.note}
-                        `;
-
-                        container.appendChild(noteEl);
-                    });
+                    notesCountEl.textContent = `(${alert.notes.length})`;
+                    notesCountEl.classList.remove("hidden");
+                    notesCountEl.onclick = () => this.openViewNotesModal(alert);
+                } else {
+                    notesCountEl.classList.add("hidden");
                 }
-
-                // if (alert.amountOwed === "Pending") {
-                //     amountEl.className = "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full";
-                // } else {
-                //     amountEl.className = "text-sm font-semibold text-green-700";
-                // }
-
-                // // Notes
-                // if (alert.notes) {
-                //     item.querySelector("[data-notes-wrapper]").classList.remove("hidden");
-                //     item.querySelector("[data-notes]").textContent = alert.notes;
-                // }
 
                 wrapper.appendChild(item);
             });
@@ -447,26 +427,15 @@ if (isFuel) {
 
 
               
-                // Notes (multiple notes, same design, clean)
+                // Counter badge only — notes visible via modal, not inline
+                const dmgNotesCountEl = item.querySelector("[data-notes-count]");
                 if (Array.isArray(alert.notes) && alert.notes.length > 0) {
-                    const container = item.querySelector("[data-notes-container]");
-
-                    container.classList.remove("hidden");
-                    container.innerHTML = ""; // clear old notes
-
-                    alert.notes.forEach(note => {
-                        const noteEl = document.createElement("div");
-                        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
-                        noteEl.innerHTML = `
-                            <strong>Notes:</strong> ${note.note}
-                        `;
-
-                        container.appendChild(noteEl);
-                    });
+                    dmgNotesCountEl.textContent = `(${alert.notes.length})`;
+                    dmgNotesCountEl.classList.remove("hidden");
+                    dmgNotesCountEl.onclick = () => this.openViewNotesModal(alert);
+                } else {
+                    dmgNotesCountEl.classList.add("hidden");
                 }
-
-
-
 
                 wrapper.appendChild(item);
             });
@@ -706,6 +675,61 @@ if (isFuel) {
 
         closeNotesModal() {
             document.getElementById("notes-modal").classList.add("hidden");
+        }
+
+        openViewNotesModal(alert) {
+            this.editingAlert = alert;
+            this.activeOrderUniqueId = alert.orderId;
+
+            document.getElementById("view-notes-customer").textContent = alert.customerName || "";
+
+            const list = document.getElementById("view-notes-list");
+            list.innerHTML = "";
+
+            if (Array.isArray(alert.notes) && alert.notes.length > 0) {
+                alert.notes.forEach(note => {
+                    const div = document.createElement("div");
+                    div.className = "p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm";
+
+                    let dateStr = "";
+                    if (note.created_at) {
+                        try {
+                            dateStr = new Date(note.created_at).toLocaleString("en-US", {
+                                month: "short", day: "numeric", year: "numeric",
+                                hour: "numeric", minute: "2-digit"
+                            });
+                        } catch (e) {}
+                    }
+
+                    div.innerHTML = `<p class="text-blue-900">${this._escapeHtml(note.note)}</p>`
+                        + (dateStr ? `<p class="text-xs text-blue-500 mt-1">${dateStr}</p>` : "");
+
+                    list.appendChild(div);
+                });
+            } else {
+                list.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">No notes yet.</p>';
+            }
+
+            const modal = document.getElementById("view-notes-modal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
+
+        closeViewNotesModal() {
+            const modal = document.getElementById("view-notes-modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        openNoteFromViewer() {
+            this.closeViewNotesModal();
+            this.openNotesModal(this.editingAlert);
+        }
+
+        _escapeHtml(str) {
+            const div = document.createElement("div");
+            div.appendChild(document.createTextNode(String(str)));
+            return div.innerHTML;
         }
 
         onNoteSelectChange() {
@@ -1266,7 +1290,10 @@ if (status === "uncollectible") {
         .then((res) => {
             if (res && res.success) {
                 notyf.success(res.message || "Note added");
-                this.editingAlert.notes = note;
+                if (!Array.isArray(this.editingAlert.notes)) {
+                    this.editingAlert.notes = [];
+                }
+                this.editingAlert.notes.push({ id: null, note: note, created_at: new Date().toISOString() });
                 this.closeNotesModal();
                 this.renderDamageAlerts();
                 this.renderFuelAlerts();

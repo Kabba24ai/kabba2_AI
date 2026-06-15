@@ -64,27 +64,19 @@
                                     </div>
                                 </div>
 
-                                <div class="px-1">
-                                    <button data-edit-notes class="p-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors" title="Notes">
+                                <div class="px-1 flex items-center gap-0.5">
+                                    <button data-edit-notes class="p-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors" title="Add Note">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.966 8.966 0 0 0-6 2.292m0-14.25v14.25" />
                                         </svg>
                                     </button>
+                                    <span data-notes-count class="hidden text-xs font-semibold text-blue-600 hover:text-blue-800 cursor-pointer px-0.5" title="View notes"></span>
                                 </div>
 
                                 <div class="flex-shrink-0 text-sm text-right min-w-[80px]">
                                     <span data-amount></span>
                                 </div>
                             </div>
-
-                            <div data-notes-wrapper class="hidden px-3 pb-3">
-                                <div class="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                                    <strong>Notes:</strong> <span data-notes></span>
-                                </div>
-                            </div>
-
-                            
-                            <div data-notes-container class="px-3 pb-3 space-y-2 hidden"></div>
 
 
                         </div>
@@ -173,26 +165,19 @@
                                     </div>
                                 </div>
 
-                                <div class="px-1">
-                                    <button data-edit-notes class="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded" title="Notes">
+                                <div class="px-1 flex items-center gap-0.5">
+                                    <button data-edit-notes class="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded" title="Add Note">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.966 8.966 0 0 0-6 2.292m0-14.25v14.25" />
                                         </svg>
                                     </button>
+                                    <span data-notes-count class="hidden text-xs font-semibold text-blue-600 hover:text-blue-800 cursor-pointer px-0.5" title="View notes"></span>
                                 </div>
 
                                 <div class="flex-shrink-0 text-sm text-right min-w-[80px]">
                                     <span data-amount></span>
                                 </div>
                             </div>
-
-                            <div data-notes-wrapper class="hidden px-3 pb-3">
-                                <div class="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                                    <strong>Notes:</strong> <span data-notes></span>
-                                </div>
-                            </div>
-
-                            <div data-notes-container class="px-3 pb-3 space-y-2 hidden"></div>
 
 
                         </div>
@@ -348,6 +333,38 @@
                     Save Note
                 </button>
             </div>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- View Notes Modal -->
+<div id="view-notes-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-[80vh]">
+
+        <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-gray-100">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Notes</h3>
+                <p id="view-notes-customer" class="text-xs text-gray-500 mt-0.5"></p>
+            </div>
+            <button onclick="dashboardApp.closeViewNotesModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+
+        <div id="view-notes-list" class="px-6 py-4 space-y-3 overflow-y-auto flex-1 min-h-[80px]"></div>
+
+        <div class="flex justify-between items-center px-6 pb-5 pt-3 border-t border-gray-100">
+            <button onclick="dashboardApp.openNoteFromViewer()"
+                class="inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add Note
+            </button>
+            <button onclick="dashboardApp.closeViewNotesModal()"
+                class="px-4 py-2 text-sm rounded-lg font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                Close
+            </button>
         </div>
 
     </div>

@@ -295,27 +295,59 @@
     </div>
 </div>
 
-   <!-- Notes Modal -->
+<!-- Notes Modal -->
 <div id="notes-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg space-y-5 border border-gray-200 overflow-hidden flex flex-col max-h-full">
+    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-full">
 
-        <h3 id="notes-modal-title" class="text-lg font-semibold px-6 pt-4"></h3>
-
-        <div class="px-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-            <textarea id="notes-input" rows="4"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Add notes..."></textarea>
+        <div class="px-6 pt-5 pb-3 border-b border-gray-100">
+            <h3 id="notes-modal-title" class="text-lg font-semibold text-gray-800">Add Note</h3>
         </div>
 
-        <div class="flex justify-end gap-2 px-6 pb-4">
-            <button onclick="dashboardApp.closeNotesModal()"
-                class="px-6 py-3 text-md rounded-lg font-medium  border border-gray-300 bg-white text-gray-700">Cancel</button>
+        <div class="px-6 py-4 space-y-4">
 
-            <button onclick="dashboardApp.saveNotes()"
-                class="px-6 py-3 text-md rounded-lg font-medium  bg-blue-600 text-white hover:bg-blue-700">
-                Save
+            {{-- Pre-canned note selector --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Select a note</label>
+                <select id="notes-select"
+                    onchange="dashboardApp.onNoteSelectChange()"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">— choose a note —</option>
+                    @foreach($fuelNotePresets as $preset)
+                        <option value="{{ $preset->label }}">{{ $preset->label }}</option>
+                    @endforeach
+                    <option value="other">Other (type below)</option>
+                </select>
+            </div>
+
+            {{-- Freeform text (visible only when "Other" is selected) --}}
+            <div id="notes-other-section" class="hidden space-y-2">
+                <label class="block text-sm font-medium text-gray-700">Custom note</label>
+                <textarea id="notes-input" rows="4"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Type your note here..."></textarea>
+                <p class="text-xs text-gray-400">Use <strong>Save and Add to List</strong> to save this note for future use.</p>
+            </div>
+
+        </div>
+
+        <div class="flex justify-between items-center gap-2 px-6 pb-5">
+            <button id="notes-save-list-btn"
+                onclick="dashboardApp.saveNotesAndAddToList()"
+                class="hidden px-4 py-2 text-sm rounded-lg font-medium bg-green-600 text-white hover:bg-green-700">
+                Save and Add to List
             </button>
+
+            <div class="flex gap-2 ml-auto">
+                <button onclick="dashboardApp.closeNotesModal()"
+                    class="px-5 py-2 text-sm rounded-lg font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button id="notes-save-btn"
+                    onclick="dashboardApp.saveNotes()"
+                    class="px-5 py-2 text-sm rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700">
+                    Save Note
+                </button>
+            </div>
         </div>
 
     </div>

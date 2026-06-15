@@ -691,18 +691,44 @@ if (isFuel) {
         }
 
         openNotesModal(alert) {
-            // this.editingAlert = alert;
-            this.tempNotes =  "";
+            this.tempNotes = "";
 
-            document.getElementById("notes-input").value = this.tempNotes;
-            document.getElementById("notes-modal-title").textContent =
-                alert.notes ? "Add Notes" : "Add Notes";
+            // Reset select and hide freeform section
+            const select = document.getElementById("notes-select");
+            if (select) select.value = "";
+            document.getElementById("notes-other-section").classList.add("hidden");
+            document.getElementById("notes-save-list-btn").classList.add("hidden");
+            document.getElementById("notes-input").value = "";
 
+            document.getElementById("notes-modal-title").textContent = "Add Note";
             document.getElementById("notes-modal").classList.remove("hidden");
         }
 
         closeNotesModal() {
             document.getElementById("notes-modal").classList.add("hidden");
+        }
+
+        onNoteSelectChange() {
+            const select = document.getElementById("notes-select");
+            const otherSection = document.getElementById("notes-other-section");
+            const saveListBtn = document.getElementById("notes-save-list-btn");
+
+            if (select.value === "other") {
+                otherSection.classList.remove("hidden");
+                saveListBtn.classList.remove("hidden");
+            } else {
+                otherSection.classList.add("hidden");
+                saveListBtn.classList.add("hidden");
+            }
+        }
+
+        _getNoteText() {
+            const select = document.getElementById("notes-select");
+            if (!select || !select.value) return "";
+            if (select.value === "other") {
+                return document.getElementById("notes-input").value.trim();
+            }
+            return select.value;
         }
 
 
@@ -1204,17 +1230,21 @@ if (status === "uncollectible") {
             return;
         }
 
-        const note = document.getElementById("notes-input").value.trim();
+        const note = this._getNoteText();
         if (!note) {
-            notyf.error("Please enter a note.");
+            notyf.error("Please select or type a note.");
             return;
         }
 
+        this._doSaveNote(note);
+    }
+
+    _doSaveNote(note) {
         const url =
             "{{ route('admin.dashboard.notes.store', ':unique_id') }}"
             .replace(':unique_id', this.activeOrderUniqueId);
 
-        const saveBtn = document.querySelector("#notes-modal button.bg-blue-600");
+        const saveBtn = document.getElementById("notes-save-btn");
         const originalText = saveBtn.textContent;
 
         saveBtn.disabled = true;
@@ -1233,25 +1263,95 @@ if (status === "uncollectible") {
                 user_id: window.AUTH_USER_ID,
             }),
         })
-            .then((res) => {
-                if (res && res.success) {
-                    notyf.success(res.message || "Note added");
+        .then((res) => {
+            if (res && res.success) {
+                notyf.success(res.message || "Note added");
+                this.editingAlert.notes = note;
+                this.closeNotesModal();
+                this.renderDamageAlerts();
+                this.renderFuelAlerts();
+            } else {
+                notyf.error(res?.message || "Failed to save note");
+            }
+        })
+        .catch(err => {
+            console.error("Failed to save note:", err);
+            notyf.error("Failed to save note");
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+        });
+    }
 
-                    //  Update alert locally (UI sync)
-                    this.editingAlert.notes = note;
+    saveNotesAndAddToList() {
+        const noteText = document.getElementById("notes-input").value.trim();
+        if (!noteText) {
+            notyf.error("Please type a note before saving to the list.");
+            return;
+        }
 
-                    this.closeNotesModal();
-                    this.renderDamageAlerts();
-                    this.renderFuelAlerts();
-                } else {
-                    notyf.error(res?.message || "Failed to save note");
+        const saveListBtn = document.getElementById("notes-save-list-btn");
+        const originalText = saveListBtn.textContent;
+        saveListBtn.disabled = true;
+        saveListBtn.textContent = "Saving...";
+
+        apiFetch("{{ route('admin.dashboard.fuel-note-presets.store') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute("content"),
+            },
+            body: JSON.stringify({ label: noteText }),
+        })
+        .then((res) => {
+            if (res && res.success) {
+                // Insert new option alphabetically before the "Other" option
+                const select = document.getElementById("notes-select");
+                const otherOption = select.querySelector('option[value="other"]');
+                const newOption = document.createElement("option");
+                newOption.value = noteText;
+                newOption.textContent = noteText;
+
+                // Find correct alphabetical position among existing options
+                let inserted = false;
+                const options = Array.from(select.options);
+                for (const opt of options) {
+                    if (opt.value === "other" || opt.value === "") continue;
+                    if (noteText.toLowerCase() < opt.textContent.toLowerCase()) {
+                        select.insertBefore(newOption, opt);
+                        inserted = true;
+                        break;
+                    }
                 }
-            })
-            .finally(() => {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
-            });
-}
+                if (!inserted) {
+                    select.insertBefore(newOption, otherOption);
+                }
+
+                notyf.success("Note added to list");
+
+                // Now save the note itself
+                if (this.activeOrderUniqueId) {
+                    this._doSaveNote(noteText);
+                } else {
+                    saveListBtn.disabled = false;
+                    saveListBtn.textContent = originalText;
+                }
+            } else {
+                notyf.error(res?.message || "Failed to add note to list");
+                saveListBtn.disabled = false;
+                saveListBtn.textContent = originalText;
+            }
+        })
+        .catch(err => {
+            console.error("Failed to save preset:", err);
+            notyf.error("Failed to add note to list");
+            saveListBtn.disabled = false;
+            saveListBtn.textContent = originalText;
+        });
+    }
 
 
     /** ------------------------

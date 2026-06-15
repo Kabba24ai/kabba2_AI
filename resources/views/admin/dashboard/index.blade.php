@@ -248,20 +248,9 @@ const salesDataFromServer = @json($salesData);
                         ? "text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full"
                         : "text-sm font-semibold text-green-700";
 
-                // Notes container + counter badge
+                // Counter badge only — notes visible via modal, not inline
                 const notesCountEl = item.querySelector("[data-notes-count]");
                 if (Array.isArray(alert.notes) && alert.notes.length > 0) {
-                    const container = item.querySelector("[data-notes-container]");
-                    container.classList.remove("hidden");
-                    container.innerHTML = "";
-
-                    alert.notes.forEach(note => {
-                        const noteEl = document.createElement("div");
-                        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
-                        noteEl.innerHTML = `<strong>Notes:</strong> ${note.note}`;
-                        container.appendChild(noteEl);
-                    });
-
                     notesCountEl.textContent = `(${alert.notes.length})`;
                     notesCountEl.classList.remove("hidden");
                     notesCountEl.onclick = () => this.openViewNotesModal(alert);
@@ -438,20 +427,9 @@ if (isFuel) {
 
 
               
-                // Notes container + counter badge
+                // Counter badge only — notes visible via modal, not inline
                 const dmgNotesCountEl = item.querySelector("[data-notes-count]");
                 if (Array.isArray(alert.notes) && alert.notes.length > 0) {
-                    const container = item.querySelector("[data-notes-container]");
-                    container.classList.remove("hidden");
-                    container.innerHTML = "";
-
-                    alert.notes.forEach(note => {
-                        const noteEl = document.createElement("div");
-                        noteEl.className = "p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800";
-                        noteEl.innerHTML = `<strong>Notes:</strong> ${note.note}`;
-                        container.appendChild(noteEl);
-                    });
-
                     dmgNotesCountEl.textContent = `(${alert.notes.length})`;
                     dmgNotesCountEl.classList.remove("hidden");
                     dmgNotesCountEl.onclick = () => this.openViewNotesModal(alert);

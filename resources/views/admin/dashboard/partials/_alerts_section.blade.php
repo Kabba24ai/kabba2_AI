@@ -78,14 +78,6 @@
                                 </div>
                             </div>
 
-                            <div data-notes-wrapper class="hidden px-3 pb-3">
-                                <div class="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                                    <strong>Notes:</strong> <span data-notes></span>
-                                </div>
-                            </div>
-
-                            <div data-notes-container class="px-3 pb-3 space-y-2 hidden"></div>
-
 
                         </div>
                     </template>
@@ -186,14 +178,6 @@
                                     <span data-amount></span>
                                 </div>
                             </div>
-
-                            <div data-notes-wrapper class="hidden px-3 pb-3">
-                                <div class="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                                    <strong>Notes:</strong> <span data-notes></span>
-                                </div>
-                            </div>
-
-                            <div data-notes-container class="px-3 pb-3 space-y-2 hidden"></div>
 
 
                         </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Reports\NewDamageAlerts;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customers\CustomerAccount;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Http\Request;
 
@@ -10,6 +11,7 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
+        // ── OrderProduct-based damage charges (from rental checklist) ─────────
         $query = OrderProduct::with([
             'order.customer',
             'equipment',
@@ -48,8 +50,35 @@ class IndexController extends Controller
 
         $records = $query->paginate($request->input('per_page', 20))->withQueryString();
 
+        // ── CRM / manually-added damage charges (from Dashboard or Order Edit) ─
+        $crmQuery = CustomerAccount::with(['customer'])
+            ->where('type', 'charge')
+            ->where('reason', 'Damages');
+
+        if ($request->filled('search_name')) {
+            $crmQuery->whereHas('customer', function ($q) use ($request) {
+                $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$request->search_name}%"]);
+            });
+        }
+
+        if ($request->filled('search_status')) {
+            $status = $request->search_status;
+            if ($status === 'active') {
+                $crmQuery->where(function ($q) {
+                    $q->whereNull('damage_alert_status')
+                      ->orWhere('damage_alert_status', 'pending');
+                });
+            } elseif ($status === 'completed') {
+                $crmQuery->where('damage_alert_status', 'completed');
+            } else {
+                $crmQuery->whereRaw('0 = 1');
+            }
+        }
+
+        $crmDamageRecords = $crmQuery->latest()->get();
+
         if ($request->ajax()) {
-            $html = view('admin.reports.new_damage_alerts.partials._table', compact('records'))->render();
+            $html = view('admin.reports.new_damage_alerts.partials._table', compact('records', 'crmDamageRecords'))->render();
             return response()->json(['success' => true, 'html' => $html]);
         }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Reports\CallsLog;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customers\Customer;
+use App\Models\Customers\CustomerAccount;
 use App\Models\Customers\CustomerCallNeeded;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
@@ -81,6 +82,12 @@ class IndexController extends Controller
             ->latest('id')
             ->paginate(20);
 
+        $crmFuelRecords = CustomerAccount::with(['customer'])
+            ->where('type', 'charge')
+            ->where('reason', 'Fuel Charge')
+            ->latest()
+            ->get();
+
         $damageRecords = OrderProduct::with(['order.customer', 'equipment', 'damageChargeLogs'])
             ->where(function ($q) {
                 $q->where('damage_charge', '>', 0)->orWhereNotNull('damage_status');
@@ -89,6 +96,12 @@ class IndexController extends Controller
             ->latest('id')
             ->paginate(20);
 
-        return view('admin.reports.calls_log.index', compact('calls', 'customers', 'users', 'fuelRecords', 'damageRecords'));
+        $crmDamageRecords = CustomerAccount::with(['customer'])
+            ->where('type', 'charge')
+            ->where('reason', 'Damages')
+            ->latest()
+            ->get();
+
+        return view('admin.reports.calls_log.index', compact('calls', 'customers', 'users', 'fuelRecords', 'crmFuelRecords', 'damageRecords', 'crmDamageRecords'));
     }
 }

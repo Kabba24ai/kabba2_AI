@@ -35,15 +35,15 @@ class IndexController extends BaseController
         $dateFilter = $validatedData['date_filter'] ?? null;
 
         $orders = OrderProduct::query()
-            ->with('order', 'order.customer', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'deliveryMedia', 'pickupMedia', 'equipment','deliveryStore','pickupStore','deliveryEmployee','pickupEmployee')
+            ->with('order', 'order.customer', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'deliveryMedia', 'pickupMedia', 'equipment', 'deliveryStore', 'pickupStore', 'deliveryEmployee', 'pickupEmployee')
             ->where('product_data->product_type', 'Rental')
             ->whereHas('order')
             ->whereNotNull('delivery_date')
             ->where(function ($q) {
                 $q->where(function ($subQ) {
-                   $subQ->where('delivery_status', '!=', 'Completed')->orWhere('pickup_status', '!=', 'Completed');
+                    $subQ->where('delivery_status', '!=', 'Completed')->orWhere('pickup_status', '!=', 'Completed');
                 })->whereNot(function ($subQ) {
-                   $subQ->where('delivery_status', 'Completed')->where('pickup_status', 'Completed');
+                    $subQ->where('delivery_status', 'Completed')->where('pickup_status', 'Completed');
                 });
             })
             ->when($search, function ($query) use ($search) {
@@ -58,21 +58,27 @@ class IndexController extends BaseController
                 }),
             )
             ->when(
-                $scheduleType && $scheduleType !== 'All',
-                function ($query) use ($scheduleType, $scheduleStatus, $transportMode) {
+                $scheduleType && $scheduleStatus,
+                function ($query) use ($scheduleType, $scheduleStatus) {
                     if ($scheduleType === "Delivery") {
                         if ($scheduleStatus && $scheduleStatus !== 'All') {
                             $query->where('delivery_status', $scheduleStatus);
-                        }
-                        if ($transportMode && $transportMode !== 'All') {
-                            $query->where('delivery_transport_mode', $transportMode);
                         }
                     } elseif ($scheduleType === "Return") {
                         if ($scheduleStatus && $scheduleStatus !== 'All') {
                             $query->where('pickup_status', $scheduleStatus);
                         }
                         $query->where('delivery_status', 'Completed');
-                        if ($transportMode && $transportMode !== 'All') {
+                    }
+                }
+            )
+            ->when(
+                $scheduleType && $transportMode,
+                function ($query) use ($scheduleType, $transportMode) {
+                    if ($transportMode && $transportMode !== 'All') {
+                        if ($scheduleType === "Delivery" || $scheduleType === "All") {
+                            $query->where('delivery_transport_mode', $transportMode);
+                        } elseif ($scheduleType === "Return" || $scheduleType === "All") {
                             $query->where('pickup_transport_mode', $transportMode);
                         }
                     }
@@ -115,7 +121,7 @@ class IndexController extends BaseController
                 }
             )
             ->when(
-                $scheduleType === "Return",
+                $scheduleType === "Return" || $scheduleType === "All",
                 fn($query) => $query->orderBy('pickup_date', 'asc'),
                 fn($query) => $query->orderBy('delivery_date', $dateFilter === 'Today' ? 'desc' : 'asc')
             )

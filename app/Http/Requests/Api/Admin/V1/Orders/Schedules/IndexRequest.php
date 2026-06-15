@@ -48,7 +48,7 @@ class IndexRequest extends ApiBaseFormRequest
             ],
             'search' => [
                 'description' => 'The search term to filter orders upon the customer name.',
-                'example' => 'Raj',
+                'example' => '',
                 'type' => 'string',
             ],
             'category_id' => [

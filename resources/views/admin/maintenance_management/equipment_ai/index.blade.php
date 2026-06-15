@@ -1,4 +1,5 @@
 @extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Equipment Management AI')
 
@@ -324,23 +325,11 @@
                                 <thead class="bg-gray-50 dark:bg-gray-800">
                                     <tr>
                                         <th
-                                            class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 w-16">
-                                            Order</th>
-                                        <th
-                                            class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                            Spec Key</th>
-                                        <th
                                             class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                             Display Label</th>
                                         <th
                                             class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                             Importance</th>
-                                        <th
-                                            class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                            Comparison Type</th>
-                                        <th
-                                            class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                            Required</th>
                                         <th
                                             class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                             Actions</th>
@@ -351,12 +340,6 @@
                                         {{-- View row --}}
                                         <tr x-show="editingKeyId !== {{ $ck->id }}"
                                             class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                            <td class="px-5 py-3 text-gray-500 dark:text-gray-400 tabular-nums">
-                                                {{ $ck->sort_order }}</td>
-                                            <td class="px-5 py-3">
-                                                <code
-                                                    class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $ck->spec_key }}</code>
-                                            </td>
                                             <td class="px-5 py-3 text-gray-800 dark:text-gray-200">
                                                 <p>{{ $ck->display_label }}</p>
                                                 <div
@@ -393,15 +376,6 @@
                                                     {{ ucfirst($ck->importance_level) }}
                                                 </span>
                                             </td>
-                                            <td class="px-5 py-3 text-xs text-gray-600 dark:text-gray-400">
-                                                {{ $ck->comparisonTypeLabel() }}</td>
-                                            <td class="px-5 py-3 text-center">
-                                                @if ($ck->is_required)
-                                                    <x-heroicon-o-check-circle class="mx-auto h-4 w-4 text-green-500" />
-                                                @else
-                                                    <span class="text-gray-300 dark:text-gray-600">—</span>
-                                                @endif
-                                            </td>
                                             <td class="px-5 py-3">
                                                 <div class="flex items-center justify-end gap-2">
                                                     <button @click="editingKeyId = {{ $ck->id }}"
@@ -428,7 +402,7 @@
                                         {{-- Inline edit row --}}
                                         <tr x-show="editingKeyId === {{ $ck->id }}" x-cloak
                                             class="bg-blue-50/50 dark:bg-blue-900/10">
-                                            <td colspan="7" class="px-5 py-4">
+                                            <td colspan="3" class="px-5 py-4">
                                                 <form method="POST"
                                                     action="{{ route('admin.maintenance-management.equipment-ai.comparison-keys.update', $ck->id) }}"
                                                     class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
@@ -453,35 +427,6 @@
                                                                     {{ ucfirst($lvl) }}</option>
                                                             @endforeach
                                                         </select>
-                                                    </div>
-                                                    <div>
-                                                        <label
-                                                            class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Comparison</label>
-                                                        <select name="comparison_type"
-                                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                                            @foreach (['higher_is_better', 'lower_is_better', 'must_match', 'range_acceptable', 'informational_only'] as $ct)
-                                                                <option value="{{ $ct }}"
-                                                                    {{ $ck->comparison_type == $ct ? 'selected' : '' }}>
-                                                                    {{ ucwords(str_replace('_', ' ', $ct)) }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                    <div>
-                                                        <label
-                                                            class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Sort
-                                                            Order</label>
-                                                        <input type="number" name="sort_order"
-                                                            value="{{ $ck->sort_order }}" min="0"
-                                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                                    </div>
-                                                    <div class="flex items-center pt-4">
-                                                        <label
-                                                            class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
-                                                            <input type="checkbox" name="is_required" value="1"
-                                                                {{ $ck->is_required ? 'checked' : '' }}
-                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                                            Required
-                                                        </label>
                                                     </div>
                                                     <div
                                                         class="sm:col-span-3 lg:col-span-2 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/40">
@@ -537,7 +482,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="7"
+                                            <td colspan="3"
                                                 class="px-6 py-12 text-center text-gray-400 dark:text-gray-500">
                                                 <x-heroicon-o-adjustments-horizontal
                                                     class="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />

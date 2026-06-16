@@ -313,6 +313,25 @@ class ScheduleSection extends Component
             })
             ->count();
 
-        return $count + $damagedCount;
+        // Count distinct products with no direct-assignment equipment configured
+        $noDirectAssignmentCount = OrderProduct::query()
+            ->where('product_data->product_type', 'Rental')
+            ->whereHas('order')
+            ->whereNotNull('delivery_date')
+            ->whereNull('equipment_id')
+            ->where(function ($q) {
+                $q->where('is_returned', '!=', 1)->orWhereNull('is_returned');
+            })
+            ->whereNotNull('product_id')
+            ->whereNotExists(function ($q) {
+                $q->select(\Illuminate\Support\Facades\DB::raw(1))
+                    ->from('equipment')
+                    ->whereColumn('equipment.assigned_product_id', 'order_products.product_id')
+                    ->whereNull('equipment.deleted_at');
+            })
+            ->distinct('product_id')
+            ->count('product_id');
+
+        return $count + $damagedCount + $noDirectAssignmentCount;
     }
 }

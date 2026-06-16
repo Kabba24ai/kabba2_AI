@@ -2,7 +2,6 @@
 
 namespace App\Modules\SchedulingAssistant\Services;
 
-
 use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 use App\Models\Orders\OrderProduct;
 use App\Modules\SchedulingAssistant\Support\DateRangeHelper;
@@ -37,39 +36,50 @@ class ConflictDetectionService
             return collect();
         }
 
-        $assignments = EquipmentSoftAssign::query()
+        // 1. Soft assignments (pending/suggested — created by auto-assign)
+        $softAssignments = EquipmentSoftAssign::query()
             ->with('orderProduct')
             ->where('equipment_id', $equipmentId)
-            ->when($excludeOrderProductId, function ($query) use ($excludeOrderProductId) {
-                $query->where('order_product_id', '!=', $excludeOrderProductId);
-            })
+            ->when($excludeOrderProductId, fn ($q) => $q->where('order_product_id', '!=', $excludeOrderProductId))
             ->get();
 
-        return $assignments->filter(function ($assignment) use ($requestedStart, $requestedEnd) {
+        $softConflicts = $softAssignments->filter(function ($assignment) use ($requestedStart, $requestedEnd) {
             if (!$assignment->orderProduct) {
                 return false;
             }
-
             $existingStart = DateRangeHelper::combine(
                 $assignment->orderProduct->delivery_date,
                 $assignment->orderProduct->delivery_time
             );
-
             $existingEnd = DateRangeHelper::combine(
                 $assignment->orderProduct->pickup_date,
                 $assignment->orderProduct->pickup_time
             );
-
             if (!$existingStart || !$existingEnd) {
                 return false;
             }
+            return DateRangeHelper::overlaps($requestedStart, $requestedEnd, $existingStart, $existingEnd);
+        });
 
-            return DateRangeHelper::overlaps(
-                $requestedStart,
-                $requestedEnd,
-                $existingStart,
-                $existingEnd
-            );
-        })->values();
+        // 2. Hard assignments (equipment_id set directly on order_products — confirmed/rented)
+        $hardAssignedOps = OrderProduct::query()
+            ->where('equipment_id', $equipmentId)
+            ->whereNotNull('delivery_date')
+            ->whereNotNull('pickup_date')
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->whereHas('order')
+            ->when($excludeOrderProductId, fn ($q) => $q->where('id', '!=', $excludeOrderProductId))
+            ->get();
+
+        $hardConflicts = $hardAssignedOps->filter(function ($op) use ($requestedStart, $requestedEnd) {
+            $existingStart = DateRangeHelper::combine($op->delivery_date, $op->delivery_time);
+            $existingEnd   = DateRangeHelper::combine($op->pickup_date,   $op->pickup_time);
+            if (!$existingStart || !$existingEnd) {
+                return false;
+            }
+            return DateRangeHelper::overlaps($requestedStart, $requestedEnd, $existingStart, $existingEnd);
+        });
+
+        return $softConflicts->values()->concat($hardConflicts->values());
     }
 }

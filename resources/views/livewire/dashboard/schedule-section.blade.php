@@ -5,5 +5,6 @@
         'pendingCount' => $pendingCount,
         'overdueCount' => $overdueCount,
         'overdueOrderCount' => $overdueOrderCount,
+        'scheduleConflictCount' => $scheduleConflictCount,
     ])
 </div>

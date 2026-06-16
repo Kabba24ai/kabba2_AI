@@ -39,6 +39,62 @@
         @endif
     </div>
 
+    {{-- Filter bar --}}
+    <form method="GET" action="{{ route('admin.order-management.schedule-conflicts.index') }}" class="mb-6">
+        <div class="flex flex-wrap items-center gap-3">
+
+            {{-- Clear --}}
+            <a href="{{ route('admin.order-management.schedule-conflicts.index') }}"
+               class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm text-gray-600 hover:bg-gray-50 transition shrink-0">
+                <x-heroicon-o-x-mark class="w-4 h-4" />
+                Clear
+            </a>
+
+            {{-- Search --}}
+            <div class="relative flex-1 min-w-[200px] max-w-xs">
+                <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input type="text" name="search" value="{{ $search }}"
+                    placeholder="Search name, equipment ID, order…"
+                    class="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring focus:border-blue-400 outline-none" />
+            </div>
+
+            {{-- Category --}}
+            <select name="category" onchange="this.form.submit()"
+                class="py-2 pl-3 pr-8 text-sm border border-gray-300 rounded-lg bg-white focus:ring focus:border-blue-400 outline-none min-w-[160px]">
+                <option value="">All categories</option>
+                @foreach($categories as $catId => $catTitle)
+                    <option value="{{ $catId }}" @selected($category == $catId)>{{ $catTitle }}</option>
+                @endforeach
+            </select>
+
+            {{-- Store --}}
+            <select name="store" onchange="this.form.submit()"
+                class="py-2 pl-3 pr-8 text-sm border border-gray-300 rounded-lg bg-white focus:ring focus:border-blue-400 outline-none min-w-[140px]">
+                <option value="">All stores</option>
+                @foreach($stores as $storeId => $storeName)
+                    <option value="{{ $storeId }}" @selected($store == $storeId)>{{ $storeName }}</option>
+                @endforeach
+            </select>
+
+            {{-- Section / Status --}}
+            <select name="section" onchange="this.form.submit()"
+                class="py-2 pl-3 pr-8 text-sm border border-gray-300 rounded-lg bg-white focus:ring focus:border-blue-400 outline-none min-w-[180px]">
+                <option value="">All conflict types</option>
+                <option value="double_bookings"      @selected($section === 'double_bookings')>Double Bookings</option>
+                <option value="damaged"              @selected($section === 'damaged')>Damaged Equipment</option>
+                <option value="overdue"              @selected($section === 'overdue')>Overdue Equipment</option>
+                <option value="no_direct_assignment" @selected($section === 'no_direct_assignment')>No Direct Assignment</option>
+            </select>
+
+            {{-- Search submit --}}
+            <button type="submit"
+                class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition shrink-0">
+                Search
+            </button>
+
+        </div>
+    </form>
+
     @if($totalConflicts === 0)
         <div class="text-center py-20 text-gray-400">
             <x-heroicon-o-check-badge class="mx-auto w-12 h-12 mb-3 opacity-40" />
@@ -849,8 +905,13 @@
                                 </span>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
-                                <a href="{{ route('admin.maintenance-management.equipment.index') }}"
-                                   title="Go to Equipment Management to configure a Direct Assignment for this product"
+                                @php
+                                    $ndaCategoryId = $group['product']?->categories?->first()?->id;
+                                    $worksheetUrl  = route('admin.maintenance-management.equipment-worksheet.index')
+                                        . ($ndaCategoryId ? '?category=' . $ndaCategoryId : '');
+                                @endphp
+                                <a href="{{ $worksheetUrl }}"
+                                   title="Go to Equipment Worksheet — configure Direct Assignment for this product category"
                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm">
                                     <x-heroicon-o-wrench-screwdriver class="w-3.5 h-3.5" />
                                     Configure Direct Assignment

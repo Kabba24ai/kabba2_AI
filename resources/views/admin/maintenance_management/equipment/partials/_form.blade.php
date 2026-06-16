@@ -604,15 +604,6 @@
                     @enderror
                 </div>
 
-                <div class="items-center space-x-2">
-                    <label for="not_for_rent" class="block text-sm font-medium text-gray-700 mb-1">
-                        Not for Rent
-                    </label>
-                    <input type="checkbox" name="not_for_rent" id="not_for_rent" value="1"
-                        class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        @checked(old('not_for_rent', $equipment->not_for_rent ?? false))>
-                </div>
-
                 <div>
                     <label for="equipment_hours" class="block text-sm font-medium text-gray-700 mb-1">
                         Equipment Hours
@@ -631,6 +622,15 @@
                     @error('equipment_hours')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
+                </div>
+
+                <div class="items-center space-x-2">
+                    <label for="not_for_rent" class="block text-sm font-medium text-gray-700 mb-1">
+                        Not for Rent
+                    </label>
+                    <input type="checkbox" name="not_for_rent" id="not_for_rent" value="1"
+                        class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        @checked(old('not_for_rent', $equipment->not_for_rent ?? false))>
                 </div>
 
             </div>

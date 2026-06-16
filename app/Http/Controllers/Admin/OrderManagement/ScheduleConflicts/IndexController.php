@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\OrderManagement\ScheduleConflicts;
 
 use App\Http\Controllers\Controller;
+use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -15,7 +16,13 @@ class IndexController extends Controller
         // "Active" = order not soft-deleted, equipment not yet returned/completed.
         $orderProducts = OrderProduct::with([
             'order.customer',
+            'order.shippingAddress',
+            'order.lastPayment',
+            'order.notes',
+            'product.categories',
             'equipment.productCategory',
+            'equipment.store',
+            'softAssignment.equipment.store',
         ])
         ->whereNotNull('equipment_id')
         ->whereNotNull('delivery_date')
@@ -72,6 +79,11 @@ class IndexController extends Controller
 
         $totalConflicts = count($doubleBookings);
 
-        return view('admin.order_management.schedule_conflicts.index', compact('doubleBookings', 'totalConflicts'));
+        $employees = User::active()
+            ->orderBy('first_name')
+            ->get()
+            ->pluck('full_name', 'unique_id');
+
+        return view('admin.order_management.schedule_conflicts.index', compact('doubleBookings', 'totalConflicts', 'employees'));
     }
 }

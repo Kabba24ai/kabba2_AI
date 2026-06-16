@@ -186,7 +186,10 @@
                 <span class="text-xs text-gray-400">Newest first</span>
             </div>
             <div id="fuel-alerts-wrapper">
-                @include('admin.reports.fuel_charge_alerts.partials._table', ['allFuelRecords' => $allFuelRecords])
+                {{-- @include('admin.reports.fuel_charge_alerts.partials._table', ['allFuelRecords' => [$allFuelRecords]]) --}}
+                @include('admin.reports.fuel_charge_alerts.partials._table', [
+    'allFuelRecords' => $allFuelRecords
+])
             </div>
         </div>
 
@@ -246,9 +249,16 @@
                 <h4 class="text-sm font-semibold text-gray-700">All Damage Alert Records</h4>
                 <span class="text-xs text-gray-400">Newest first</span>
             </div>
-            <div id="damage-alerts-wrapper">
-                @include('admin.reports.new_damage_alerts.partials._table', ['allDamageRecords' => $allDamageRecords])
-            </div>
+            {{-- <div id="damage-alerts-wrapper">
+                @include('admin.reports.new_damage_alerts.partials._table', ['allDamageRecords' => []])
+                
+            </div> --}}
+
+           <div id="damage-alerts-wrapper">
+            @include('admin.reports.new_damage_alerts.partials._table', [
+                'allDamageRecords' => $allDamageRecords
+            ])
+        </div>
         </div>
 
     </div>
@@ -492,6 +502,7 @@
 @push('js')
 <script>
 
+    
 // ── Tab switching ─────────────────────────────────────────────────────────────
 const TABS = ['calls', 'fuel', 'damage'];
 
@@ -511,6 +522,8 @@ function switchTab(tab) {
     });
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+
 // ── Calls Log Filters ─────────────────────────────────────────────────────────
 (function () {
     const wrapper      = document.getElementById('calls-log-wrapper');
@@ -521,13 +534,18 @@ function switchTab(tab) {
     const clearBtn     = document.getElementById('clear-filters');
     let debounceTimer  = null;
 
-    function fetchCalls(page = 1) { 
+    function fetchCalls(page = 1) {
         const params = new URLSearchParams();
         if (nameInput.value)    params.set('search_name',    nameInput.value);
         if (companyInput.value) params.set('search_company', companyInput.value);
         if (phoneInput.value)   params.set('search_phone',   phoneInput.value);
         if (adminSelect.value)  params.set('search_admin',   adminSelect.value);
         params.set('page', page);
+
+        
+        const perPage = wrapper.querySelector('[name="per_page"]')?.value || 20;
+        params.set('per_page', perPage);
+
 
         wrapper.classList.add('opacity-50', 'pointer-events-none');
 
@@ -578,6 +596,12 @@ function switchTab(tab) {
         if (statusSel.value)  params.set('search_status', statusSel.value);
         params.set('page', page);
 
+        const perPage = wrapper.querySelector('[name="per_page"]')?.value || 20;
+        params.set('per_page', perPage);
+
+        // console.log('perPage', perPage);
+        // console.log(params.toString());
+
         wrapper.classList.add('opacity-50', 'pointer-events-none');
 
         fetch("{{ route('admin.reports.fuel-charge-alerts.index') }}?" + params.toString(), {
@@ -625,6 +649,14 @@ function switchTab(tab) {
         if (statusSel.value)  params.set('search_status', statusSel.value);
         params.set('page', page);
 
+
+         const perPage = wrapper.querySelector('[name="per_page"]')?.value || 20;
+        params.set('per_page', perPage);
+
+        console.log('perPage', perPage);
+        console.log(params.toString());
+
+
         wrapper.classList.add('opacity-50', 'pointer-events-none');
 
         fetch("{{ route('admin.reports.new-damage-alerts.index') }}?" + params.toString(), {
@@ -655,6 +687,9 @@ function switchTab(tab) {
 
     Paginator.init({ wrapper, fetchCallback: fetchDamage });
 })();
+
+});
+
 
 // ── Activity toggle ───────────────────────────────────────────────────────────
 function toggleCallActivities(id) {
@@ -846,7 +881,6 @@ function viewCallNeeded(id) {
         openCallModalOnly();
     });
 }
-
 // ── Choices.js init ───────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
     window.callCustomerChoices = new Choices(

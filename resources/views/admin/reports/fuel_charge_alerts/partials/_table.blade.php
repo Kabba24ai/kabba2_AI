@@ -198,4 +198,9 @@
             @endif
         @endforeach
     </div>
+
+    <div class="mt-6">
+        {{ $allFuelRecords->links() }}
+    </div>
+
 @endif

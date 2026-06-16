@@ -119,7 +119,7 @@
                 <label class="{{ $lbl }}">
                     <input type="checkbox" name="hide_unassigned" value="1" id="hide_unassigned"
                         class="{{ $chk }}" {{ request('hide_unassigned') ? 'checked' : '' }}>
-                    Hide Unassigned
+                    Hide Unassigned <span id="hideUnassignedCount" class="font-semibold text-red-500"></span>
                 </label>
             </div>
 
@@ -849,7 +849,10 @@
                     })
                     .then(response => {
                         scheduleTableWrapper.innerHTML = response.html;
-                        unassignedOrderCount.textContent = `(${response.total})`;
+                        const total = response.total ?? 0;
+                        unassignedOrderCount.textContent = `(${total})`;
+                        const hideCount = document.getElementById('hideUnassignedCount');
+                        if (hideCount) hideCount.textContent = total > 0 ? `(${total})` : '';
                     })
                     .finally(() => {
                         loadingIndicator.classList.add('hidden');

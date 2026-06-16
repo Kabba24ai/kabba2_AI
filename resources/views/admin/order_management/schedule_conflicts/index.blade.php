@@ -554,6 +554,253 @@
 
     @endif
 
+    {{-- ── Overdue Equipment section ──────────────────────────────────────────────── --}}
+    @if(count($overdueEquipmentConflicts) > 0)
+
+    <div class="mt-8 mb-4 flex items-center gap-2">
+        <x-heroicon-o-clock class="w-5 h-5 text-amber-500" />
+        <h2 class="text-base font-semibold text-gray-800">Overdue Equipment</h2>
+        <span class="text-xs text-gray-400">(equipment past return date with a new order due within 3 days)</span>
+    </div>
+
+    <div class="bg-white shadow-sm rounded-lg overflow-x-auto">
+        <table class="min-w-full text-sm text-left whitespace-nowrap">
+            <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
+                <tr>
+                    <th class="py-4 px-6 text-left">Product</th>
+                    <th class="py-4 px-6 text-center">Order</th>
+                    <th class="py-4 px-6 text-left">Customer</th>
+                    <th class="py-4 px-6 text-left">Delivery Address</th>
+                    <th class="py-4 px-6 text-left">Phone</th>
+                    <th class="py-4 px-6 text-center">Equipment</th>
+                    <th class="py-4 px-6 text-center">Equipment Id</th>
+                    <th class="py-4 px-6 text-center">Location</th>
+                    <th class="py-4 px-6 text-center">Delivery Date</th>
+                    <th class="py-4 px-6 text-center">Return Date</th>
+                    <th class="py-4 px-6 text-center">Payment</th>
+                    <th class="py-4 px-6 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+
+            @foreach($overdueEquipmentConflicts as $ovdIndex => $ovdGroup)
+                @php
+                    $ovdEquipment = $ovdGroup['equipment'];
+                    $daysOverdue  = \Carbon\Carbon::parse($ovdGroup['overdue_orders']->min('pickup_date'))->diffInDays(\Carbon\Carbon::today());
+                @endphp
+
+                {{-- Group header row --}}
+                <tr class="bg-amber-50 border-y border-amber-200">
+                    <td colspan="12" class="px-6 py-2.5">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <x-heroicon-o-clock class="w-4 h-4 text-amber-500 shrink-0" />
+                                <span class="font-semibold text-gray-900 text-sm">
+                                    {{ $ovdEquipment?->equipment_name ?? 'Unknown Equipment' }}
+                                </span>
+                                @if($ovdEquipment?->equipment_id)
+                                    <span class="text-xs font-mono text-gray-600 bg-white border border-gray-200 rounded px-1.5 py-0.5">
+                                        ID: {{ $ovdEquipment->equipment_id }}
+                                    </span>
+                                @endif
+                                @if($ovdEquipment?->productCategory?->title)
+                                    <span class="text-xs text-gray-400">{{ $ovdEquipment->productCategory->title }}</span>
+                                @endif
+                                <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2.5 py-0.5">
+                                    <x-heroicon-o-clock class="w-3 h-3" />
+                                    {{ $daysOverdue }} {{ Str::plural('day', $daysOverdue) }} overdue
+                                </span>
+                                <span class="inline-flex items-center gap-1 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-full px-2.5 py-0.5">
+                                    {{ $ovdGroup['upcoming_orders']->count() }} upcoming {{ Str::plural('order', $ovdGroup['upcoming_orders']->count()) }} within 3 days
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <a href="{{ route('admin.order-management.orders.edit', $ovdGroup['overdue_orders']->first()->order?->unique_id ?? 0) }}"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 transition shadow-sm">
+                                    <x-heroicon-o-arrow-right class="w-3.5 h-3.5" />
+                                    View Overdue Order
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                {{-- OVERDUE order rows (past due, not returned) --}}
+                @foreach($ovdGroup['overdue_orders'] as $op)
+                @php
+                    $order    = $op->order;
+                    $customer = $order?->customer;
+                    $deliveryIconColor = 'text-green-600';
+                    $pickupIconColor   = 'text-red-500';
+                @endphp
+                <tr class="hover:bg-amber-50/40 bg-amber-25">
+                    <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
+                        {{ $op->product_name }}
+                        @if($op->product?->categories?->count() === 1)
+                            <div class="text-xs text-gray-500 mt-1">{{ $op->product->categories->first()->title }}</div>
+                        @endif
+                        <div class="mt-1">
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200 tracking-wide">OVERDUE</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-center">{!! $order?->view_link ?? '-' !!}</td>
+                    <td class="py-4 px-6 text-left">
+                        <div class="font-medium">{{ $order?->customer_name ?? '-' }}</div>
+                        @if($customer?->company_name)
+                            <div class="text-xs text-gray-500 mt-1">{{ $customer->company_name }}</div>
+                        @endif
+                    </td>
+                    <td class="py-4 px-6 truncate min-w-[180px] max-w-[240px]">{{ $order?->shippingAddress?->full_address ?? '-' }}</td>
+                    <td class="py-4 px-6 text-left">{{ $order?->shippingAddress?->phone ?? '-' }}</td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="text-gray-700">{{ $op->equipment?->equipment_name ?? '-' }}</span>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                            {{ $op->equipment?->equipment_id ?? '-' }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-center">{{ $op->equipment?->store?->store_name ?? '-' }}</td>
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
+                                <span>{{ $op->delivery_date ? \App\Helpers\CustomHelper::formatDate($op->delivery_date, 'M d, y') : 'N/A' }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <x-heroicon-o-exclamation-circle class="w-4 h-4 text-red-500" />
+                                <span class="text-red-600 font-medium">{{ $op->pickup_date ? \App\Helpers\CustomHelper::formatDate($op->pickup_date, 'M d, y') : 'N/A' }}</span>
+                            </div>
+                            <span class="text-xs text-red-400 mt-1">Was due</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-center">{!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}</td>
+                    <td class="py-4 px-6">
+                        <div class="flex gap-2 items-center justify-center">
+                            <a href="{{ route('admin.order-management.orders.edit', $order?->unique_id ?? 0) }}"
+                               class="text-sky-600 hover:text-sky-800" title="Edit Order">
+                                @if($order?->notes?->isNotEmpty())
+                                    <x-heroicon-o-book-open class="w-4 h-4" />
+                                @else
+                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                @endif
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+
+                {{-- UPCOMING order rows (at risk — delivery within 3 days) --}}
+                @foreach($ovdGroup['upcoming_orders'] as $op)
+                @php
+                    $order    = $op->order;
+                    $customer = $order?->customer;
+                    $preferredCategoryId = $op->product?->categories?->first()?->id
+                        ?? $op->equipment?->product_category_id
+                        ?? $op->softAssignment?->equipment?->product_category_id;
+                    $deliveryIconColor = 'text-yellow-600';
+                    $pickupIconColor   = 'text-yellow-600';
+                    $assignedEq = $op->equipment ?? $op->softAssignment?->equipment;
+                @endphp
+                <tr class="hover:bg-gray-50 border-t border-dashed border-amber-200">
+                    <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
+                        {{ $op->product_name }}
+                        @if($op->product?->categories?->count() === 1)
+                            <div class="text-xs text-gray-500 mt-1">{{ $op->product->categories->first()->title }}</div>
+                        @endif
+                        <div class="mt-1">
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 tracking-wide">UPCOMING</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-center">{!! $order?->view_link ?? '-' !!}</td>
+                    <td class="py-4 px-6 text-left">
+                        <div class="font-medium">{{ $order?->customer_name ?? '-' }}</div>
+                        @if($customer?->company_name)
+                            <div class="text-xs text-gray-500 mt-1">{{ $customer->company_name }}</div>
+                        @endif
+                    </td>
+                    <td class="py-4 px-6 truncate min-w-[180px] max-w-[240px]">{{ $order?->shippingAddress?->full_address ?? '-' }}</td>
+                    <td class="py-4 px-6 text-left">{{ $order?->shippingAddress?->phone ?? '-' }}</td>
+                    <td class="py-4 px-6 text-center">
+                        <button type="button"
+                            class="text-blue-600 underline equipment-assign-btn"
+                            data-order-product-unique-id="{{ $op->unique_id }}"
+                            data-order-unique-id="{{ $order?->unique_id }}"
+                            data-order-id="{{ $order?->order_number }}"
+                            data-customer-name="{{ $order?->customer_name }}"
+                            data-category-id="{{ $preferredCategoryId ?? '' }}"
+                            data-product-name="{{ $op->product_name }}">
+                            {{ $assignedEq?->equipment_name ?: 'Assign' }}
+                        </button>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                            {{ $assignedEq?->equipment_id ?? '-' }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-center">{{ $assignedEq?->store?->store_name ?? '-' }}</td>
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center justify-center gap-1">
+                                @if(!empty($op->delivery_transport_mode))
+                                    @if($op->delivery_transport_mode === 'Truck')
+                                        <x-heroicon-o-truck class="w-4 h-4 {{ $deliveryIconColor }}" />
+                                    @else
+                                        <x-heroicon-o-building-storefront class="w-4 h-4 {{ $deliveryIconColor }}" />
+                                    @endif
+                                @endif
+                                <span>{{ $op->delivery_date ? \App\Helpers\CustomHelper::formatDate($op->delivery_date, 'M d, y') : 'N/A' }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500 mt-1">
+                                {{ $op->delivery_time ? \App\Helpers\CustomHelper::formatTime($op->delivery_time) : '' }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center justify-center gap-1">
+                                @if(!empty($op->pickup_transport_mode))
+                                    @if($op->pickup_transport_mode === 'Truck')
+                                        <x-heroicon-o-truck class="w-4 h-4 {{ $pickupIconColor }}" />
+                                    @else
+                                        <x-heroicon-o-building-storefront class="w-4 h-4 {{ $pickupIconColor }}" />
+                                    @endif
+                                @endif
+                                <span>{{ $op->pickup_date ? \App\Helpers\CustomHelper::formatDate($op->pickup_date, 'M d, y') : 'N/A' }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500 mt-1">
+                                {{ $op->pickup_time ? \App\Helpers\CustomHelper::formatTime($op->pickup_time) : '' }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-center">{!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}</td>
+                    <td class="py-4 px-6">
+                        <div class="flex gap-2 items-center justify-center">
+                            <a href="{{ route('admin.order-management.orders.edit', $order?->unique_id ?? 0) }}"
+                               class="text-sky-600 hover:text-sky-800" title="Edit Order">
+                                @if($order?->notes?->isNotEmpty())
+                                    <x-heroicon-o-book-open class="w-4 h-4" />
+                                @else
+                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                @endif
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+
+            @endforeach
+
+            </tbody>
+        </table>
+    </div>
+
+    @endif
+
     {{-- ── No Direct Assignment section ─────────────────────────────────────────── --}}
     @if(count($noDirectAssignmentGroups) > 0)
 

@@ -109,6 +109,78 @@ class IndexController extends Controller
         }
 
         // Orders whose product has no Direct Assignment equipment configured at all.
+        // Rule 3: Overdue Equipment — orders that are past their pickup date (not returned)
+        // AND have an upcoming assignment on the same equipment within 3 days.
+        $today          = Carbon::today();
+        $threeDaysAhead = $today->copy()->addDays(3);
+
+        $overdueHardOps = OrderProduct::with([
+            'order.customer',
+            'order.shippingAddress',
+            'order.lastPayment',
+            'order.notes',
+            'product.categories',
+            'equipment.productCategory',
+            'equipment.store',
+        ])
+        ->whereNotNull('equipment_id')
+        ->where('delivery_status', 'Completed')
+        ->where('pickup_status', 'Pending')
+        ->whereNotNull('pickup_date')
+        ->whereDate('pickup_date', '<', $today)
+        ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+        ->whereHas('order')
+        ->get();
+
+        $overdueEquipmentConflicts = [];
+
+        if ($overdueHardOps->isNotEmpty()) {
+            $overdueEquipmentIds = $overdueHardOps->pluck('equipment_id')->unique()->values()->toArray();
+
+            // Upcoming orders on the same equipment (hard assigned) within 3 days
+            $upcomingHard = OrderProduct::with([
+                'order.customer', 'order.shippingAddress', 'order.lastPayment', 'order.notes',
+                'product.categories', 'equipment.productCategory', 'equipment.store', 'softAssignment.equipment',
+            ])
+            ->whereIn('equipment_id', $overdueEquipmentIds)
+            ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '>=', $today)
+            ->whereDate('delivery_date', '<=', $threeDaysAhead)
+            ->whereHas('order')
+            ->whereNotIn('id', $overdueHardOps->pluck('id')->toArray())
+            ->get();
+
+            // Upcoming orders on the same equipment (soft assigned) within 3 days
+            $upcomingSoft = OrderProduct::with([
+                'order.customer', 'order.shippingAddress', 'order.lastPayment', 'order.notes',
+                'product.categories', 'softAssignment.equipment.store',
+            ])
+            ->whereHas('softAssignment', fn ($q) => $q->whereIn('equipment_id', $overdueEquipmentIds))
+            ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '>=', $today)
+            ->whereDate('delivery_date', '<=', $threeDaysAhead)
+            ->whereHas('order')
+            ->get();
+
+            foreach ($overdueHardOps->groupBy('equipment_id') as $equipmentId => $overdueGroup) {
+                $upcomingForEquipment = $upcomingHard
+                    ->where('equipment_id', $equipmentId)
+                    ->concat(
+                        $upcomingSoft->filter(fn ($op) => (int) $op->softAssignment?->equipment_id === (int) $equipmentId)
+                    )
+                    ->unique('id')
+                    ->values();
+
+                if ($upcomingForEquipment->isNotEmpty()) {
+                    $overdueEquipmentConflicts[] = [
+                        'equipment'       => $overdueGroup->first()->equipment,
+                        'overdue_orders'  => $overdueGroup,
+                        'upcoming_orders' => $upcomingForEquipment,
+                    ];
+                }
+            }
+        }
+
         $noDirectAssignmentOps = OrderProduct::with([
             'order.customer',
             'order.shippingAddress',
@@ -142,7 +214,10 @@ class IndexController extends Controller
             ];
         }
 
-        $totalConflicts = count($doubleBookings) + count($damagedBookings) + count($noDirectAssignmentGroups);
+        $totalConflicts = count($doubleBookings)
+            + count($damagedBookings)
+            + count($noDirectAssignmentGroups)
+            + count($overdueEquipmentConflicts);
 
         $employees = User::active()
             ->orderBy('first_name')
@@ -153,6 +228,7 @@ class IndexController extends Controller
             'doubleBookings',
             'damagedBookings',
             'noDirectAssignmentGroups',
+            'overdueEquipmentConflicts',
             'totalConflicts',
             'employees',
         ));

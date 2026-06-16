@@ -450,7 +450,8 @@
                     $order    = $op->order;
                     $customer = $order?->customer;
                     $preferredCategoryId = $op->product?->categories?->first()?->id
-                        ?? $op->equipment?->product_category_id;
+                        ?? $op->equipment?->product_category_id
+                        ?? $op->softAssignment?->equipment?->product_category_id;
                     $deliveryIconColor = $op->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                     $pickupIconColor   = $op->pickup_status   === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                 @endphp
@@ -509,14 +510,14 @@
                             data-customer-name="{{ $order?->customer_name }}"
                             data-category-id="{{ $preferredCategoryId ?? '' }}"
                             data-product-name="{{ $op->product_name }}">
-                            {{ $op->equipment?->equipment_name ?: 'Assign' }}
+                            {{ $op->equipment?->equipment_name ?: ($op->softAssignment?->equipment?->equipment_name ?: 'Assign') }}
                         </button>
                     </td>
 
                     {{-- Equipment ID + DAMAGED badge (always shown since this section is damaged) --}}
                     <td class="py-4 px-6 text-center">
                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
-                            {{ $op->equipment?->equipment_id ?? '-' }}
+                            {{ $op->equipment?->equipment_id ?? ($op->softAssignment?->equipment?->equipment_id ?? '-') }}
                         </span>
                         <div class="mt-1">
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200 tracking-wide">DAMAGED</span>
@@ -524,7 +525,7 @@
                     </td>
 
                     <td class="py-4 px-6 text-center">
-                        {{ $op->equipment?->store?->store_name ?? '-' }}
+                        {{ $op->equipment?->store?->store_name ?? ($op->softAssignment?->equipment?->store?->store_name ?? '-') }}
                     </td>
 
                     <td class="py-4 px-6 text-center">

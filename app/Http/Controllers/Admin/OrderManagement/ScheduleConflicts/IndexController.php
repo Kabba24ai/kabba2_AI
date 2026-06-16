@@ -62,6 +62,7 @@ class IndexController extends Controller
             ->whereNotNull('delivery_date')
             ->whereNotNull('pickup_date')
             ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->where(fn ($q) => $q->where('pickup_status', '!=', 'Completed')->orWhereNull('pickup_status'))
             ->whereHas('order')
             ->tap($applyEquipmentFilters)
             ->get();
@@ -105,24 +106,80 @@ class IndexController extends Controller
         $damagedBookings = [];
 
         if (!$section || $section === 'damaged') {
-            $damagedOrderProducts = OrderProduct::with([
+            // Hard-assigned (equipment_id set) orders on damaged equipment, excluding fully returned
+            $hardDamagedOps = OrderProduct::with([
                 'order.customer', 'order.shippingAddress', 'order.lastPayment', 'order.notes',
                 'product.categories', 'equipment.productCategory', 'equipment.store',
                 'softAssignment.equipment.store',
             ])
             ->whereNotNull('equipment_id')
             ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->where(fn ($q) => $q->where('pickup_status', '!=', 'Completed')->orWhereNull('pickup_status'))
             ->whereHas('order')
             ->whereHas('equipment', fn ($q) => $q->where('current_status', EquipmentCurrentStatus::Damaged->value))
             ->tap($applyEquipmentFilters)
             ->get();
 
-            foreach ($damagedOrderProducts->groupBy('equipment_id') as $ops) {
-                $damagedBookings[] = [
+            // Soft-assigned (auto-assigned but not yet confirmed) orders on damaged equipment
+            $softDamagedQuery = OrderProduct::with([
+                'order.customer', 'order.shippingAddress', 'order.lastPayment', 'order.notes',
+                'product.categories', 'softAssignment.equipment.productCategory', 'softAssignment.equipment.store',
+            ])
+            ->whereNull('equipment_id')
+            ->whereHas('order')
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->where(fn ($q) => $q->where('pickup_status', '!=', 'Completed')->orWhereNull('pickup_status'))
+            ->whereHas('softAssignment.equipment', fn ($eq) => $eq->where('current_status', EquipmentCurrentStatus::Damaged->value));
+
+            if ($category) {
+                $softDamagedQuery->whereHas('softAssignment.equipment', fn ($q) => $q->where('product_category_id', $category));
+            }
+            if ($store) {
+                $softDamagedQuery->whereHas('softAssignment.equipment', fn ($q) => $q->where('store_id', $store));
+            }
+            if ($search) {
+                $softDamagedQuery->where(fn ($q) => $q
+                    ->where('product_name', 'like', "%{$search}%")
+                    ->orWhereHas('softAssignment.equipment', fn ($eq) => $eq
+                        ->where('equipment_name', 'like', "%{$search}%")
+                        ->orWhere('equipment_id', 'like', "%{$search}%"))
+                    ->orWhereHas('order', fn ($o) => $o
+                        ->where('order_number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', fn ($c) => $c
+                            ->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('company_name', 'like', "%{$search}%")))
+                );
+            }
+
+            $softDamagedOps = $softDamagedQuery->get();
+
+            // Merge hard and soft into groups keyed by equipment_id
+            $damagedMap = [];
+
+            foreach ($hardDamagedOps->groupBy('equipment_id') as $equipmentId => $ops) {
+                $damagedMap[$equipmentId] = [
                     'equipment' => $ops->first()->equipment,
-                    'orders'    => $ops,
+                    'orders'    => $ops->values(),
                 ];
             }
+
+            foreach ($softDamagedOps->groupBy(fn ($op) => $op->softAssignment?->equipment_id) as $equipmentId => $ops) {
+                if (!$equipmentId) continue;
+                if (isset($damagedMap[$equipmentId])) {
+                    $damagedMap[$equipmentId]['orders'] = $damagedMap[$equipmentId]['orders']
+                        ->concat($ops->values())
+                        ->unique('id')
+                        ->values();
+                } else {
+                    $damagedMap[$equipmentId] = [
+                        'equipment' => $ops->first()->softAssignment?->equipment,
+                        'orders'    => $ops->values(),
+                    ];
+                }
+            }
+
+            $damagedBookings = array_values($damagedMap);
         }
 
         // ── Overdue Equipment ─────────────────────────────────────────────────

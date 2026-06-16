@@ -302,16 +302,23 @@ class ScheduleSection extends Component
                 }
             }
         }
-        // Also count orders assigned to damaged equipment
+        // Hard-assigned orders on damaged equipment, excluding fully returned
         $damagedCount = OrderProduct::whereNotNull('equipment_id')
-            ->where(function ($q) {
-                $q->where('is_returned', '!=', 1)->orWhereNull('is_returned');
-            })
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->where(fn ($q) => $q->where('pickup_status', '!=', 'Completed')->orWhereNull('pickup_status'))
             ->whereHas('order')
-            ->whereHas('equipment', function ($q) {
-                $q->where('current_status', 'damaged');
-            })
+            ->whereHas('equipment', fn ($q) => $q->where('current_status', 'damaged'))
             ->count();
+
+        // Soft-assigned orders on damaged equipment (auto-assigned, not yet hard-confirmed)
+        $softDamagedCount = OrderProduct::whereNull('equipment_id')
+            ->whereHas('order')
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->where(fn ($q) => $q->where('pickup_status', '!=', 'Completed')->orWhereNull('pickup_status'))
+            ->whereHas('softAssignment.equipment', fn ($q) => $q->where('current_status', 'damaged'))
+            ->count();
+
+        $damagedCount += $softDamagedCount;
 
         // Count distinct products with no direct-assignment equipment configured
         $noDirectAssignmentCount = OrderProduct::query()

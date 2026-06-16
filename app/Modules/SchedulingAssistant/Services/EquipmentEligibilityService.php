@@ -8,7 +8,6 @@ use App\Models\Orders\OrderProduct;
 use App\Modules\SchedulingAssistant\DTOs\AssignmentCandidateData;
 use App\Modules\SchedulingAssistant\Enums\EligibilityStatus;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 class EquipmentEligibilityService
 {
@@ -125,19 +124,15 @@ class EquipmentEligibilityService
 
     protected function normalizeStatus(Equipment $equipment): string
     {
-        $raw = strtolower((string) (
-            $equipment->status
-            ?? $equipment->equipment_status
-            ?? $equipment->availability_status
-            ?? ''
-        ));
+        // current_status is cast to the EquipmentCurrentStatus enum; read its string value directly.
+        $raw = strtolower((string) ($equipment->current_status?->value ?? ''));
 
-        return match (true) {
-            Str::contains($raw, 'damage') => 'damaged',
-            Str::contains($raw, 'maint') => 'maintenance_hold',
-            Str::contains($raw, 'rent') => 'rented',
-            Str::contains($raw, 'avail') => 'available',
-            default => $raw ?: 'unknown',
+        return match ($raw) {
+            'damaged'     => 'damaged',
+            'maintenance' => 'maintenance_hold',
+            'rented'      => 'rented',
+            'available'   => 'available',
+            default       => $raw ?: 'unknown',
         };
     }
 

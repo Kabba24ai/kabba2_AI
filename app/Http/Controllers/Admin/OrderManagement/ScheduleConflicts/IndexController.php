@@ -259,8 +259,10 @@ class IndexController extends Controller
             ->where('product_data->product_type', 'Rental')
             ->whereHas('order')
             ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '>=', $today)
             ->whereNull('equipment_id')
             ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->where(fn ($q) => $q->where('pickup_status', '!=', 'Completed')->orWhereNull('pickup_status'))
             ->whereNotNull('product_id')
             ->whereNotExists(fn ($q) => $q
                 ->select(DB::raw(1))

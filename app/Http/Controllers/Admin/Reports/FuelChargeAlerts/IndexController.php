@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customers\CustomerAccount;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class IndexController extends Controller
 {
@@ -79,13 +80,24 @@ class IndexController extends Controller
         $crmFuelRecords = $crmQuery->latest()->get();
 
         // ── Merge both sources into one sorted collection ────────────────────
-        $allFuelRecords = $records
+        $perPage = 25;
+        $page    = max(1, (int) $request->input('page', 1));
+
+        $merged = $records
             ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
             ->concat(
                 $crmFuelRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
             )
             ->sortByDesc('_sort_ts')
             ->values();
+
+        $total  = $merged->count();
+        $items  = $merged->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $allFuelRecords = new LengthAwarePaginator($items, $total, $perPage, $page, [
+            'path'  => $request->url(),
+            'query' => $request->except('page'),
+        ]);
 
         if ($request->ajax()) {
             $html = view('admin.reports.fuel_charge_alerts.partials._table', compact('allFuelRecords'))->render();

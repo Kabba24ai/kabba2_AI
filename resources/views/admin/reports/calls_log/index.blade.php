@@ -494,6 +494,7 @@
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
 const TABS = ['calls', 'fuel', 'damage'];
+const tabLoaded = { calls: true, fuel: false, damage: false };
 
 function switchTab(tab) {
     TABS.forEach(t => {
@@ -509,6 +510,12 @@ function switchTab(tab) {
             btn.classList.add('bg-white', 'text-gray-600', 'border-gray-300', 'hover:bg-gray-50');
         }
     });
+
+    if (!tabLoaded[tab]) {
+        tabLoaded[tab] = true;
+        if (tab === 'fuel')   window.fetchFuel(1);
+        if (tab === 'damage') window.fetchDamage(1);
+    }
 }
 
 // ── Calls Log Filters ─────────────────────────────────────────────────────────

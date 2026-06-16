@@ -7,6 +7,7 @@
     };
 
     $allDamageRecords = $allDamageRecords ?? collect();
+    $damagePage = $allDamageRecords instanceof \Illuminate\Pagination\LengthAwarePaginator ? $allDamageRecords : null;
 @endphp
 
 @if($allDamageRecords->isEmpty())
@@ -198,4 +199,10 @@
             @endif
         @endforeach
     </div>
+
+    @if($damagePage && $damagePage->hasPages())
+        <div class="mt-6">
+            {{ $damagePage->links() }}
+        </div>
+    @endif
 @endif

@@ -18,19 +18,13 @@
 @endpush
 
 @section('content')
-<div class="mx-auto max-w-screen-2xl px-4 py-6 md:px-6 2xl:px-11">
 
     {{-- Page Header --}}
     <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-3">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-red-100">
-                <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-                <h1 class="text-xl font-bold text-gray-900">Schedule Conflicts</h1>
-                <p class="text-sm text-gray-500">Equipment assigned to overlapping orders</p>
-            </div>
-        </div>
+        <h1 class="text-2xl font-semibold flex items-center gap-2">
+            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-600" />
+            Schedule Conflicts
+        </h1>
 
         @if($totalConflicts > 0)
             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-red-100 text-red-700 border border-red-200">
@@ -45,21 +39,24 @@
         @endif
     </div>
 
-    {{-- Double Bookings section header --}}
+    @if($totalConflicts === 0)
+        <div class="text-center py-20 text-gray-400">
+            <x-heroicon-o-check-badge class="mx-auto w-12 h-12 mb-3 opacity-40" />
+            <p class="text-sm font-medium">All clear — no schedule conflicts detected.</p>
+            <p class="text-xs mt-1">No double bookings and no orders assigned to damaged equipment.</p>
+        </div>
+    @endif
+
+    {{-- Double Bookings section --}}
+    @if(count($doubleBookings) > 0)
+
     <div class="mb-4 flex items-center gap-2">
         <x-heroicon-o-calendar-days class="w-5 h-5 text-orange-500" />
         <h2 class="text-base font-semibold text-gray-800">Double Bookings</h2>
         <span class="text-xs text-gray-400">(same equipment, overlapping rental dates)</span>
     </div>
 
-    @if($totalConflicts === 0)
-        <div class="text-center py-20 text-gray-400">
-            <x-heroicon-o-check-badge class="mx-auto w-12 h-12 mb-3 opacity-40" />
-            <p class="text-sm font-medium">All clear — no double bookings detected.</p>
-            <p class="text-xs mt-1">The schedule is clean. No equipment is assigned to overlapping orders.</p>
-        </div>
-    @else
-        <div class="bg-white shadow-sm rounded-lg overflow-x-auto">
+    <div class="bg-white shadow-sm rounded-lg overflow-x-auto">
             <table class="min-w-full text-sm text-left whitespace-nowrap">
                 <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
                     <tr>
@@ -556,8 +553,6 @@
     </div>
 
     @endif
-
-</div>
 
 {{-- Equipment Assign Modal (same as Schedule page) --}}
 <div id="equipmentAssignModal"

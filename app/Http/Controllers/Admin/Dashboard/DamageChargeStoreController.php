@@ -42,6 +42,26 @@ class DamageChargeStoreController extends Controller
 
             CustomHelper::updateCreditBalance($record);
 
+
+            $description = "Damage charge added.";
+            $description .= " Amount: $" . number_format($record->amount, 2) . ".";
+
+            if ($record->responsible_person_name) {
+                $description .= " Responsible person: {$record->responsible_person_name}.";
+            }
+
+            if ($request->filled('notes')) {
+                $description .= " Notes: {$request->notes}";
+            }
+
+            if ($record->customer) {
+                $record->customer->notes()->create([
+                    'customer_account_id' => $record->id,
+                    'description'         => $description,
+                    'created_by'          => auth()->id(),
+                ]);
+            }
+
             DB::commit();
 
             return response()->json([

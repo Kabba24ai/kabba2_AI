@@ -9,6 +9,7 @@ use App\Models\Customers\CustomerCallNeeded;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class IndexController extends Controller
 {
@@ -82,13 +83,44 @@ class IndexController extends Controller
             ->latest()
             ->get();
 
+        // $allFuelRecords = $fuelOpRecords
+        //     ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
+        //     ->concat(
+        //         $fuelCrmRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
+        //     )
+        //     ->sortByDesc('_sort_ts')
+        //     ->values();
+
+
         $allFuelRecords = $fuelOpRecords
-            ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
-            ->concat(
-                $fuelCrmRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
-            )
-            ->sortByDesc('_sort_ts')
-            ->values();
+    ->map(fn ($r) => [
+        '_source' => 'op',
+        '_sort_ts' => $r->created_at?->timestamp ?? 0,
+        '_model' => $r,
+    ])
+    ->concat(
+        $fuelCrmRecords->map(fn ($r) => [
+            '_source' => 'crm',
+            '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0,
+            '_model' => $r,
+        ])
+    )
+    ->sortByDesc('_sort_ts')
+    ->values();
+
+$page = request()->get('page', 1);
+$perPage = $request->input('per_page', 20);
+
+$allFuelRecords = new LengthAwarePaginator(
+    $allFuelRecords->forPage($page, $perPage),
+    $allFuelRecords->count(),
+    $perPage,
+    $page,
+    [
+        'path' => request()->url(),
+        'query' => request()->query(),
+    ]
+);
 
         $damageOpRecords = OrderProduct::with(['order.customer', 'equipment', 'damageChargeLogs'])
             ->where(function ($q) {
@@ -111,6 +143,24 @@ class IndexController extends Controller
             )
             ->sortByDesc('_sort_ts')
             ->values();
+
+
+
+            $page = request()->get('damage_page', 1);
+$perPage = $request->input('per_page', 20);
+
+$allDamageRecords = new LengthAwarePaginator(
+    $allDamageRecords->forPage($page, $perPage),
+    $allDamageRecords->count(),
+    $perPage,
+    $page,
+    [
+        'path' => request()->url(),
+        'query' => request()->query(),
+        'pageName' => 'damage_page',
+    ]
+);
+
 
         return view('admin.reports.calls_log.index', compact('calls', 'customers', 'users', 'allFuelRecords', 'allDamageRecords'));
     }

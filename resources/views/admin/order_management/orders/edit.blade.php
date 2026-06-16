@@ -156,7 +156,7 @@
             </div>
 
             {{-- RIGHT: Action Buttons --}}
-            <div class="flex flex-wrap justify-start lg:justify-end gap-2">
+            <div class="flex flex-wrap justify-start lg:justify-end gap-2 items-start">
                 <button id="reorderBtn" type="button"
                     class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white hover:bg-orange-600 focus:outline-none">
                     <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder

@@ -48,6 +48,7 @@
                         'admin.order-management.dispatch.*',
                         'admin.order-management.equipment-inventory.*',
                         'admin.order-management.schedule-assignment.*',
+                        'admin.order-management.schedule-conflicts.*',
                         'admin.order-management.inventory-equipment.*',
                     ]);
 
@@ -134,6 +135,15 @@
                                         {{ Route::is('admin.order-management.schedule-assignment.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-calendar-days class="h-5 w-5" />
                                         Schedule Assignment
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('admin.order-management.schedule-conflicts.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.order-management.schedule-conflicts.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-exclamation-triangle class="h-5 w-5" />
+                                        Schedule Conflicts
                                     </a>
                                 </li>
 

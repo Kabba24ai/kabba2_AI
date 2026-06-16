@@ -82,7 +82,7 @@
                         </div>
 
                         <div class="flex items-center gap-3">
-                            {{-- Resolve button: opens Schedule Assignment pre-filtered to this equipment category --}}
+                            {{-- Resolve button → Schedule Assignment pre-filtered to this equipment category --}}
                             <a href="{{ $scheduleAssignUrl }}"
                                title="View all {{ $equipment?->productCategory?->title ?? 'equipment' }} in Schedule Assignment to find alternatives or adjust dates"
                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm">

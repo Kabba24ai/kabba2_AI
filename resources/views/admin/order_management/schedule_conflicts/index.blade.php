@@ -45,15 +45,18 @@
         <div class="space-y-4">
             @foreach($doubleBookings as $conflict)
                 @php
-                    $equipment = $conflict['equipment'];
-                    $a         = $conflict['a'];
-                    $b         = $conflict['b'];
-                    $orderA    = $a->order;
-                    $orderB    = $b->order;
-                    $custA     = $orderA?->customer;
-                    $custB     = $orderB?->customer;
+                    $equipment    = $conflict['equipment'];
+                    $a            = $conflict['a'];
+                    $b            = $conflict['b'];
+                    $orderA       = $a->order;
+                    $orderB       = $b->order;
+                    $custA        = $orderA?->customer;
+                    $custB        = $orderB?->customer;
                     $overlapStart = $conflict['overlap_start'];
                     $overlapEnd   = $conflict['overlap_end'];
+                    $categoryId   = $equipment?->product_category_id;
+                    $scheduleAssignUrl = route('admin.order-management.schedule-assignment.index')
+                        . ($categoryId ? '?category=' . $categoryId : '');
                 @endphp
 
                 <div class="bg-white border border-red-200 rounded-xl shadow-sm overflow-hidden">
@@ -72,17 +75,30 @@
                                 @if($equipment?->serial_number)
                                     <span class="ml-2 text-xs text-gray-500">S/N: {{ $equipment->serial_number }}</span>
                                 @endif
+                                @if($equipment?->productCategory?->title)
+                                    <span class="ml-2 text-xs text-gray-400">{{ $equipment->productCategory->title }}</span>
+                                @endif
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-full px-3 py-1">
-                            <x-heroicon-o-calendar class="w-3.5 h-3.5" />
-                            Overlap: {{ \App\Helpers\CustomHelper::formatDate($overlapStart) }}
-                            @if(!$overlapStart->isSameDay($overlapEnd))
-                                – {{ \App\Helpers\CustomHelper::formatDate($overlapEnd) }}
-                            @endif
-                        </div>
-                    </div>
+                        <div class="flex items-center gap-3">
+                            {{-- Resolve button: opens Schedule Assignment pre-filtered to this equipment category --}}
+                            <a href="{{ $scheduleAssignUrl }}"
+                               title="View all {{ $equipment?->productCategory?->title ?? 'equipment' }} in Schedule Assignment to find alternatives or adjust dates"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm">
+                                <x-heroicon-o-calendar-days class="w-3.5 h-3.5" />
+                                Resolve Double Booking
+                            </a>
+
+                            <div class="flex items-center gap-2 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-full px-3 py-1">
+                                <x-heroicon-o-calendar class="w-3.5 h-3.5" />
+                                Overlap: {{ \App\Helpers\CustomHelper::formatDate($overlapStart) }}
+                                @if(!$overlapStart->isSameDay($overlapEnd))
+                                    – {{ \App\Helpers\CustomHelper::formatDate($overlapEnd) }}
+                                @endif
+                            </div>
+                        </div>{{-- end right-side --}}
+                    </div>{{-- end header bar --}}
 
                     {{-- Two conflicting orders side by side --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\DeleteController as SpecDeleteController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\GenerateController as SpecGenerateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\ToggleKeyComparisonController as SpecToggleKeyComparisonController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\DeepResearchController as SpecDeepResearchController;
 
 // Controllers — Commonize (Compare & Commonize)
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\AnalyzeController as CommonizeAnalyzeController;
@@ -75,6 +76,7 @@ Route::prefix('equipment-ai')
         Route::put('/specifications/{id}', SpecUpdateController::class)->name('specifications.update');
         Route::delete('/specifications/{id}', SpecDeleteController::class)->name('specifications.delete');
         Route::post('/specifications/{id}/toggle-key-comparison', SpecToggleKeyComparisonController::class)->name('specifications.toggle-key-comparison');
+        Route::post('/specifications/{id}/deep-research', SpecDeepResearchController::class)->name('specifications.deep-research');
 
         /*
         |-----------------------------------------------------------

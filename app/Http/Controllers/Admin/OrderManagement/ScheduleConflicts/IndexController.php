@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\ScheduleConflicts;
 
+use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
@@ -77,13 +78,42 @@ class IndexController extends Controller
         // Stable sort: conflicts involving the soonest overlap first.
         usort($doubleBookings, fn ($x, $y) => $x['overlap_start']->timestamp <=> $y['overlap_start']->timestamp);
 
-        $totalConflicts = count($doubleBookings);
+        // Orders assigned to damaged equipment — cannot be fulfilled until equipment is cleared.
+        $damagedOrderProducts = OrderProduct::with([
+            'order.customer',
+            'order.shippingAddress',
+            'order.lastPayment',
+            'order.notes',
+            'product.categories',
+            'equipment.productCategory',
+            'equipment.store',
+            'softAssignment.equipment.store',
+        ])
+        ->whereNotNull('equipment_id')
+        ->where(function ($q) {
+            $q->where('is_returned', '!=', 1)->orWhereNull('is_returned');
+        })
+        ->whereHas('order')
+        ->whereHas('equipment', function ($q) {
+            $q->where('current_status', EquipmentCurrentStatus::Damaged->value);
+        })
+        ->get();
+
+        $damagedBookings = [];
+        foreach ($damagedOrderProducts->groupBy('equipment_id') as $ops) {
+            $damagedBookings[] = [
+                'equipment' => $ops->first()->equipment,
+                'orders'    => $ops,
+            ];
+        }
+
+        $totalConflicts = count($doubleBookings) + count($damagedBookings);
 
         $employees = User::active()
             ->orderBy('first_name')
             ->get()
             ->pluck('full_name', 'unique_id');
 
-        return view('admin.order_management.schedule_conflicts.index', compact('doubleBookings', 'totalConflicts', 'employees'));
+        return view('admin.order_management.schedule_conflicts.index', compact('doubleBookings', 'totalConflicts', 'employees', 'damagedBookings'));
     }
 }

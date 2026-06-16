@@ -314,6 +314,249 @@
         </div>
     @endif
 
+    {{-- ── Damaged Equipment section ──────────────────────────────────────────── --}}
+    @if(count($damagedBookings) > 0)
+
+    <div class="mt-8 mb-4 flex items-center gap-2">
+        <x-heroicon-o-wrench-screwdriver class="w-5 h-5 text-red-500" />
+        <h2 class="text-base font-semibold text-gray-800">Damaged Equipment</h2>
+        <span class="text-xs text-gray-400">(active orders assigned to equipment with Damaged status)</span>
+    </div>
+
+    <div class="bg-white shadow-sm rounded-lg overflow-x-auto">
+        <table class="min-w-full text-sm text-left whitespace-nowrap">
+            <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
+                <tr>
+                    <th class="py-4 px-6 text-left">Product</th>
+                    <th class="py-4 px-6 text-center">Order</th>
+                    <th class="py-4 px-6 text-left">Customer</th>
+                    <th class="py-4 px-6 text-left">Delivery Address</th>
+                    <th class="py-4 px-6 text-left">Phone</th>
+                    <th class="py-4 px-6 text-center">Equipment</th>
+                    <th class="py-4 px-6 text-center">Equipment Id</th>
+                    <th class="py-4 px-6 text-center">Location</th>
+                    <th class="py-4 px-6 text-center">Delivery Date</th>
+                    <th class="py-4 px-6 text-center">Return Date</th>
+                    <th class="py-4 px-6 text-center">Payment</th>
+                    <th class="py-4 px-6 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+
+            @foreach($damagedBookings as $dLoopIndex => $damage)
+                @php
+                    $dEquipment   = $damage['equipment'];
+                    $resolveUrl   = $dEquipment?->unique_id
+                        ? route('admin.maintenance-management.equipment.edit', $dEquipment->unique_id)
+                        : '#';
+                    $dPrimaryOpId = $damage['orders']->first()?->id;
+                @endphp
+
+                {{-- Damaged group header row --}}
+                <tr class="bg-red-50 border-y border-red-200">
+                    <td colspan="12" class="px-6 py-2.5">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white tracking-wide">DAMAGED</span>
+                                <span class="font-semibold text-gray-900 text-sm">
+                                    {{ $dEquipment?->equipment_name ?? 'Unknown Equipment' }}
+                                </span>
+                                @if($dEquipment?->equipment_id)
+                                    <span class="text-xs font-mono text-gray-600 bg-white border border-gray-200 rounded px-1.5 py-0.5">
+                                        ID: {{ $dEquipment->equipment_id }}
+                                    </span>
+                                @endif
+                                @if($dEquipment?->productCategory?->title)
+                                    <span class="text-xs text-gray-400">{{ $dEquipment->productCategory->title }}</span>
+                                @endif
+                                <span class="text-xs text-red-600 font-medium">Order Assigned to Damaged Equipment</span>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button type="button"
+                                    class="ai-suggest-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-white hover:bg-cyan-600 transition shadow-sm"
+                                    data-conflict-index="d{{ $dLoopIndex }}"
+                                    data-order-product-id="{{ $dPrimaryOpId }}"
+                                    data-equipment-name="{{ $dEquipment?->equipment_name }}">
+                                    <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
+                                    Ai Suggest!
+                                </button>
+                                <a href="{{ $resolveUrl }}"
+                                   title="Update equipment status in Maintenance Management"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition shadow-sm">
+                                    <x-heroicon-o-wrench-screwdriver class="w-3.5 h-3.5" />
+                                    Resolve Damaged Booking
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                {{-- Order rows for this damaged equipment --}}
+                @foreach($damage['orders'] as $op)
+                @php
+                    $order    = $op->order;
+                    $customer = $order?->customer;
+                    $preferredCategoryId = $op->product?->categories?->first()?->id
+                        ?? $op->equipment?->product_category_id;
+                    $deliveryIconColor = $op->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
+                    $pickupIconColor   = $op->pickup_status   === 'Completed' ? 'text-green-600' : 'text-yellow-600';
+                @endphp
+                <tr class="hover:bg-gray-50">
+
+                    <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
+                        {{ $op->product_name }}
+                        @php
+                            $cats     = $op->product?->categories ?? collect();
+                            $catCount = $cats->count();
+                        @endphp
+                        @if($catCount === 1)
+                            <div class="text-xs text-gray-500 mt-1">{{ $cats->first()->title }}</div>
+                        @elseif($catCount > 1)
+                            @php
+                                $tooltipHtml = '<div class="font-semibold mb-2">Categories:</div>';
+                                foreach ($cats as $cat) {
+                                    $tooltipHtml .= '<div class="flex gap-2"><span>•</span><span>' . e($cat->title) . '</span></div>';
+                                }
+                            @endphp
+                            <span class="tooltip-trigger block text-blue-600 cursor-pointer text-xs"
+                                  data-tooltip-html="{{ $tooltipHtml }}">
+                                Categories ({{ $catCount }})
+                            </span>
+                        @endif
+                    </td>
+
+                    <td class="py-4 px-6 text-center">{!! $order?->view_link ?? '-' !!}</td>
+
+                    <td class="py-4 px-6 text-left">
+                        <div class="font-medium">{{ $order?->customer_name ?? '-' }}</div>
+                        @if($customer?->company_name)
+                            <div class="text-xs text-gray-500 mt-1">
+                                @if(!empty($customer->company_website))
+                                    <a href="{{ $customer->company_website }}" class="underline">{{ $customer->company_name }}</a>
+                                @else
+                                    {{ $customer->company_name }}
+                                @endif
+                            </div>
+                        @endif
+                    </td>
+
+                    <td class="py-4 px-6 truncate min-w-[180px] max-w-[240px]">
+                        {{ $order?->shippingAddress?->full_address ?? '-' }}
+                    </td>
+
+                    <td class="py-4 px-6 text-left">{{ $order?->shippingAddress?->phone ?? '-' }}</td>
+
+                    {{-- Equipment assign --}}
+                    <td class="py-4 px-6 text-center">
+                        <button type="button"
+                            class="text-blue-600 underline equipment-assign-btn"
+                            data-order-product-unique-id="{{ $op->unique_id }}"
+                            data-order-unique-id="{{ $order?->unique_id }}"
+                            data-order-id="{{ $order?->order_number }}"
+                            data-customer-name="{{ $order?->customer_name }}"
+                            data-category-id="{{ $preferredCategoryId ?? '' }}"
+                            data-product-name="{{ $op->product_name }}">
+                            {{ $op->equipment?->equipment_name ?: 'Assign' }}
+                        </button>
+                    </td>
+
+                    {{-- Equipment ID + DAMAGED badge (always shown since this section is damaged) --}}
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                            {{ $op->equipment?->equipment_id ?? '-' }}
+                        </span>
+                        <div class="mt-1">
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200 tracking-wide">DAMAGED</span>
+                        </div>
+                    </td>
+
+                    <td class="py-4 px-6 text-center">
+                        {{ $op->equipment?->store?->store_name ?? '-' }}
+                    </td>
+
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center justify-center gap-1">
+                                @if(!empty($op->delivery_transport_mode))
+                                    @if($op->delivery_transport_mode === 'Truck')
+                                        <x-heroicon-o-truck class="w-4 h-4 {{ $deliveryIconColor }}" />
+                                    @else
+                                        <x-heroicon-o-building-storefront class="w-4 h-4 {{ $deliveryIconColor }}" />
+                                    @endif
+                                @endif
+                                <span>{{ $op->delivery_date ? \App\Helpers\CustomHelper::formatDate($op->delivery_date, 'M d, y') : 'N/A' }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500 mt-1">
+                                {{ $op->delivery_time ? \App\Helpers\CustomHelper::formatTime($op->delivery_time) : '' }}
+                            </span>
+                        </div>
+                    </td>
+
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center justify-center gap-1">
+                                @if(!empty($op->pickup_transport_mode))
+                                    @if($op->pickup_transport_mode === 'Truck')
+                                        <x-heroicon-o-truck class="w-4 h-4 {{ $pickupIconColor }}" />
+                                    @else
+                                        <x-heroicon-o-building-storefront class="w-4 h-4 {{ $pickupIconColor }}" />
+                                    @endif
+                                @endif
+                                <span>{{ $op->pickup_date ? \App\Helpers\CustomHelper::formatDate($op->pickup_date, 'M d, y') : 'N/A' }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500 mt-1">
+                                {{ $op->pickup_time ? \App\Helpers\CustomHelper::formatTime($op->pickup_time) : '' }}
+                            </span>
+                        </div>
+                    </td>
+
+                    <td class="py-4 px-6 text-center">
+                        {!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}
+                    </td>
+
+                    <td class="py-4 px-6">
+                        <div class="flex gap-2 items-center justify-center">
+                            <a href="{{ route('admin.order-management.orders.edit', $order?->unique_id ?? 0) }}"
+                               class="text-sky-600 hover:text-sky-800" title="Edit Order">
+                                @if($order?->notes?->isNotEmpty())
+                                    <x-heroicon-o-book-open class="w-4 h-4" />
+                                @else
+                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                @endif
+                            </a>
+                        </div>
+                    </td>
+
+                </tr>
+                @endforeach
+
+                {{-- AI panel for this damaged equipment group --}}
+                <tr id="ai-panel-d{{ $dLoopIndex }}" class="hidden">
+                    <td colspan="12" class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                        <div class="flex items-center gap-2 mb-3">
+                            <x-heroicon-o-sparkles class="w-4 h-4 text-cyan-500" />
+                            <span class="text-sm font-semibold text-gray-800">AI Scheduling Suggestions</span>
+                            <span class="text-xs text-gray-400">— {{ $dEquipment?->equipment_name }}</span>
+                            <button type="button"
+                                class="ml-auto text-xs text-gray-400 hover:text-gray-600 close-ai-panel"
+                                data-conflict-index="d{{ $dLoopIndex }}">
+                                ✕ Close
+                            </button>
+                        </div>
+                        <div id="ai-content-d{{ $dLoopIndex }}" class="text-sm text-gray-600">
+                            <p class="text-gray-400 italic">Loading AI suggestions…</p>
+                        </div>
+                    </td>
+                </tr>
+
+            @endforeach
+
+            </tbody>
+        </table>
+    </div>
+
+    @endif
+
 </div>
 
 {{-- Equipment Assign Modal (same as Schedule page) --}}

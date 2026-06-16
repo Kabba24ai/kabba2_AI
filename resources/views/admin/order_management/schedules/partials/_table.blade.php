@@ -116,13 +116,20 @@
                     </td>
                     <td class="py-4 px-6 text-center">
                         @if ($orderProduct?->equipment?->current_status?->isRented())
-                            <span
-                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
                                 {{ isset($orderProduct->equipment_details['equipment_id']) ? $orderProduct->equipment_details['equipment_id'] : '-' }}
                             </span>
+                        @elseif ($orderProduct?->equipment_id && $orderProduct?->equipment)
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                                {{ $orderProduct->equipment->equipment_id ?? '-' }}
+                            </span>
+                            @if ($orderProduct->equipment->current_status?->isDamaged())
+                                <div class="mt-1">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200 tracking-wide">DAMAGED</span>
+                                </div>
+                            @endif
                         @else
-                            <span
-                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
                                 {{ $orderProduct->softAssignment?->equipment?->equipment_id ?? '-' }}
                             </span>
                         @endif

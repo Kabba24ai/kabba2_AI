@@ -46,32 +46,22 @@
                     @enderror
                 </div>
 
-                <div>
-                    <div class="flex justify-between items-center ">
-                        <div>
-                            <label for="equipment_hours" class="block text-sm font-medium text-gray-700 mb-1">
-                                Equipment Hours
-                            </label>
-                        </div>
-
-                    </div>
-
-                    {!! html()->text('equipment_hours')->class([
-                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-                            'border-gray-300' => !$errors->has('equipment_hours'),
-                            'border-red-500' => $errors->has('equipment_hours'),
-                        ])->attributes([
-                            'data-numeric-input' => 'true',
-                            'data-parsley-maxlength' => 8,
-                            'maxlength' => 8,
-                            'placeholder' => 'Enter Equipment Hours',
-                            'autocomplete' => 'off',
-                        ]) !!}
-                    @error('equipment_hours')
+                <div class="sm:col-span-2">
+                    <label for="assigned_product_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        Direct Assignment
+                    </label>
+                    <select name="assigned_product_id" id="assigned_product_id"
+                        class="w-full px-3 py-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white {{ $errors->has('assigned_product_id') ? 'border-red-500' : '' }}">
+                        <option value="">— None —</option>
+                        @foreach ($productAssignmentOptions as $option)
+                            <option value="{{ $option['id'] }}"
+                                @selected(old('assigned_product_id', $equipment->assigned_product_id ?? '') == $option['id'])>
+                                {{ $option['label'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('assigned_product_id')
                         <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                    @error('is_tracked')
-                        <span id="is-tracked-error" class="text-xs text-red-500 block mt-1">{{ $message }}</span>
                     @enderror
                 </div>
 
@@ -558,13 +548,7 @@
                     </div>
                 </div>
 
-                <div class="sm:col-span-2">
-                    <p class="text-xs text-gray-500 @if (isset($equipment) && $equipment?->imei) text-purple-600 @endif">
-                        GPS tracker ID for location tracking
-                    </p>
-                </div>
-
-                 <div>
+                <div>
                     <label for="warranty_duration_months" class="block text-sm font-medium text-gray-700 mb-1">
                         Warranty Duration (Months)
                     </label>
@@ -629,6 +613,25 @@
                         @checked(old('not_for_rent', $equipment->not_for_rent ?? false))>
                 </div>
 
+                <div>
+                    <label for="equipment_hours" class="block text-sm font-medium text-gray-700 mb-1">
+                        Equipment Hours
+                    </label>
+                    {!! html()->text('equipment_hours')->class([
+                            'w-full px-3 py-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has('equipment_hours'),
+                            'border-red-500' => $errors->has('equipment_hours'),
+                        ])->attributes([
+                            'data-numeric-input' => 'true',
+                            'data-parsley-maxlength' => 8,
+                            'maxlength' => 8,
+                            'placeholder' => 'Enter Equipment Hours',
+                            'autocomplete' => 'off',
+                        ]) !!}
+                    @error('equipment_hours')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
 
             </div>
         </div>

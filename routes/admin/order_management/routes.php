@@ -32,6 +32,9 @@ Route::prefix('order-management')
     // equipment inventory
     require base_path('routes/admin/order_management/equipment_inventory/routes.php');
 
+    // schedule conflicts
+    require base_path('routes/admin/order_management/schedule_conflicts/routes.php');
+
 
     require base_path('routes/admin/order_management/invoice/routes.php');
 

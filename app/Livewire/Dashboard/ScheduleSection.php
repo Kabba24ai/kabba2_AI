@@ -18,6 +18,7 @@ class ScheduleSection extends Component
     public int $pendingCount = 0;
     public int $overdueCount = 0;
     public int $overdueOrderCount = 0;
+    public int $scheduleConflictCount = 0;
 
     public function mount()
     {
@@ -86,6 +87,8 @@ class ScheduleSection extends Component
             ->whereNotNull('pickup_date')
             ->whereDate('pickup_date', '<', Carbon::today())
             ->count();
+
+        $this->scheduleConflictCount = $this->getScheduleConflictCount();
     }
 
     public function render()
@@ -270,5 +273,35 @@ class ScheduleSection extends Component
             'pending' => $pendingCount,
             'overdue' => $overdueCount,
         ];
+    }
+
+    private function getScheduleConflictCount(): int
+    {
+        $products = OrderProduct::whereNotNull('equipment_id')
+            ->whereNotNull('delivery_date')
+            ->whereNotNull('pickup_date')
+            ->where(function ($q) {
+                $q->where('is_returned', '!=', 1)->orWhereNull('is_returned');
+            })
+            ->whereHas('order')
+            ->get(['id', 'equipment_id', 'delivery_date', 'pickup_date']);
+
+        $count = 0;
+        foreach ($products->groupBy('equipment_id') as $group) {
+            if ($group->count() < 2) continue;
+            $list = $group->values();
+            for ($i = 0; $i < $list->count(); $i++) {
+                for ($j = $i + 1; $j < $list->count(); $j++) {
+                    $aStart = Carbon::parse($list[$i]->delivery_date)->startOfDay();
+                    $aEnd   = Carbon::parse($list[$i]->pickup_date)->endOfDay();
+                    $bStart = Carbon::parse($list[$j]->delivery_date)->startOfDay();
+                    $bEnd   = Carbon::parse($list[$j]->pickup_date)->endOfDay();
+                    if ($aStart->lte($bEnd) && $bStart->lte($aEnd)) {
+                        $count++;
+                    }
+                }
+            }
+        }
+        return $count;
     }
 }

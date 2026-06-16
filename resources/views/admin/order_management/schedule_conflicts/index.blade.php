@@ -88,7 +88,7 @@
                         @endphp
 
                         {{-- Conflict group header row --}}
-                        <tr class="bg-red-50 border-y border-red-200">
+                        <tr class="bg-yellow-50 border-y border-yellow-200">
                             <td colspan="12" class="px-6 py-2.5">
                                 <div class="flex items-center justify-between gap-4">
                                     <div class="flex items-center gap-3 flex-wrap">
@@ -366,7 +366,7 @@
                                 @if($dEquipment?->productCategory?->title)
                                     <span class="text-xs text-gray-400">{{ $dEquipment->productCategory->title }}</span>
                                 @endif
-                                <span class="text-xs text-red-600 font-medium">Order Assigned to Damaged Equipment</span>
+                                <span class="text-xs text-gray-500">Order Assigned to Damaged Equipment</span>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
                                 <button type="button"

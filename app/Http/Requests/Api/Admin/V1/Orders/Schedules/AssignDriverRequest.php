@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Admin\V1\Orders\Schedules;
 
 // Helpers
 use App\Http\Requests\ApiBaseFormRequest;
+use Illuminate\Validation\Validator;
 
 class AssignDriverRequest extends ApiBaseFormRequest
 {
@@ -15,10 +16,19 @@ class AssignDriverRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'user_unique_id' => ['required', 'exists:users,unique_id'],
+            'user_delivery_id' => ['nullable', 'exists:users,id'],
+            'user_pickup_id' => ['nullable', 'exists:users,id'],
             'order_product_unique_id' => ['required', 'exists:order_products,unique_id'],
-            'schedule_type' => ['required', 'in:Delivery,Pickup'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            if (empty($this->user_delivery_id) && empty($this->user_pickup_id)) {
+                $validator->errors()->add('user_delivery_id', 'At least one of user_delivery_id or user_pickup_id is required.');
+            }
+        });
     }
 
     /**
@@ -29,20 +39,17 @@ class AssignDriverRequest extends ApiBaseFormRequest
     public function bodyParameters(): array
     {
         return [
-            'user_unique_id' => [
-                'description' => 'The unique ID of the user to be assigned as driver.',
-                'example' => '',
-                'type' => 'string',
+            'user_delivery_id' => [
+                'description' => 'The ID of the user responsible for delivery.',
+                'example' => 1,
+            ],
+            'user_pickup_id' => [
+                'description' => 'The ID of the user responsible for pickup.',
+                'example' => 2,
             ],
             'order_product_unique_id' => [
-                'description' => 'The unique ID of the order product for which the driver is being assigned.',
-                'example' => '',
-                'type' => 'string',
-            ],
-            'schedule_type' => [
-                'description' => 'The type of schedule, either "Delivery" or "Pickup".',
-                'example' => 'Delivery',
-                'type' => 'string',
+                'description' => 'The unique ID of the order product to be assigned.',
+                'example' => 'abc123def456',
             ],
         ];
     }

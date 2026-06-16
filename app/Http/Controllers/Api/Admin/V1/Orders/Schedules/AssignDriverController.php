@@ -23,26 +23,23 @@ class AssignDriverController extends Controller
     {
         $validated = $request->validated();
 
-        $scheduleType = $validated['schedule_type'];
 
         $orderProduct = OrderProduct::whereHas('order')
             ->where('unique_id', $validated['order_product_unique_id'])
             ->first();
 
-        $user = User::where('unique_id', $validated['user_unique_id'])->first();
-
-
-        if (!$orderProduct || !$user) {
+        if (!$orderProduct) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid Order Product or User selected.'
+                'message' => 'Invalid Order Product selected.'
             ], 404);
         }
 
-        if ($scheduleType === 'Delivery') {
-            $orderProduct->delivery_by = $user->id;
-        } else if ($scheduleType === 'Pickup') {
-            $orderProduct->pickup_by = $user->id;
+        if (!empty($validated['user_delivery_id'])) {
+            $orderProduct->delivery_by = $validated['user_delivery_id'];
+        }
+        if (!empty($validated['user_pickup_id'])) {
+            $orderProduct->pickup_by = $validated['user_pickup_id'];
         }
 
         $orderProduct->save();

@@ -1697,6 +1697,16 @@
             </div>
         </div>
 
+        {{-- Delete Order --}}
+        <div class="flex justify-end mt-6">
+            <button type="button" id="delete-order-btn"
+                data-unique-id="{{ $order->unique_id }}"
+                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-sm transition">
+                <x-heroicon-o-trash class="w-4 h-4" />
+                Delete Order
+            </button>
+        </div>
+
     </div>
 
     <!-- Extension Charge Modal -->
@@ -3146,6 +3156,39 @@
 @endsection
 
 @push('js')
+
+    <script>
+        // ── Delete Order ──────────────────────────────────────────────────────────
+        document.getElementById('delete-order-btn')?.addEventListener('click', function () {
+            const uniqueId = this.dataset.uniqueId;
+            window.showConfirm(
+                'Are you sure you want to delete this order? Deleted orders cannot be recovered.',
+                'Delete Order'
+            ).then(function (result) {
+                if (!result.isConfirmed) return;
+                apiFetch('{{ route('admin.order-management.orders.bulk-delete') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: JSON.stringify({ unique_ids: [uniqueId] }),
+                }).then(function (data) {
+                    if (data && (data.success || (data.message && data.message.toLowerCase().includes('deleted')))) {
+                        if (window.notyf) notyf.success(data.message || 'Order deleted.');
+                        setTimeout(function () {
+                            window.location.href = '{{ route('admin.order-management.orders.index') }}';
+                        }, 800);
+                    } else {
+                        if (window.notyf) notyf.error(data?.message || 'Failed to delete order.');
+                    }
+                }).catch(function (err) {
+                    console.error('Delete order error:', err);
+                    if (window.notyf) notyf.error('Request failed. Please try again.');
+                });
+            });
+        });
+    </script>
 
     <script>
         const modalEl = document.getElementById('checklistModal');

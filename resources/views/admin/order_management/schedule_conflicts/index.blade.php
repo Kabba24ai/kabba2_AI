@@ -114,7 +114,7 @@
                                     </div>
                                     <div class="flex items-center gap-2 shrink-0">
                                         <button type="button"
-                                            class="ai-suggest-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-white hover:bg-cyan-600 transition shadow-sm"
+                                            class="ai-suggest-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 transition shadow-sm"
                                             data-conflict-index="{{ $loopIndex }}"
                                             data-order-product-id="{{ $primaryOpId }}"
                                             data-equipment-name="{{ $equipment?->equipment_name }}">
@@ -370,7 +370,7 @@
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
                                 <button type="button"
-                                    class="ai-suggest-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-white hover:bg-cyan-600 transition shadow-sm"
+                                    class="ai-suggest-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 transition shadow-sm"
                                     data-conflict-index="d{{ $dLoopIndex }}"
                                     data-order-product-id="{{ $dPrimaryOpId }}"
                                     data-equipment-name="{{ $dEquipment?->equipment_name }}">

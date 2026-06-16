@@ -80,46 +80,24 @@ class IndexController extends Controller
         $crmFuelRecords = $crmQuery->latest()->get();
 
         // ── Merge both sources into one sorted collection ────────────────────
+        $perPage = 25;
+        $page    = max(1, (int) $request->input('page', 1));
 
-        // $allFuelRecords = $records
-        //     ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
-        //     ->concat(
-        //         $crmFuelRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
-        //     )
-        //     ->sortByDesc('_sort_ts')
-        //     ->values();
+        $merged = $records
+            ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
+            ->concat(
+                $crmFuelRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
+            )
+            ->sortByDesc('_sort_ts')
+            ->values();
 
+        $total  = $merged->count();
+        $items  = $merged->slice(($page - 1) * $perPage, $perPage)->values();
 
-        $allFuelRecords = $records
-    ->map(fn ($r) => [
-        '_source' => 'op',
-        '_sort_ts' => $r->created_at?->timestamp ?? 0,
-        '_model' => $r,
-    ])
-    ->concat(
-        $crmFuelRecords->map(fn ($r) => [
-            '_source' => 'crm',
-            '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0,
-            '_model' => $r,
-        ])
-    )
-    ->sortByDesc('_sort_ts')
-    ->values();
-
-$page = $request->get('page', 1);
-$perPage = $request->input('per_page', 20);
-
-$allFuelRecords = new LengthAwarePaginator(
-    $allFuelRecords->forPage($page, $perPage),
-    $allFuelRecords->count(),
-    $perPage,
-    $page,
-    [
-        'path' => $request->url(),
-        'query' => $request->query(),
-    ]
-);
-
+        $allFuelRecords = new LengthAwarePaginator($items, $total, $perPage, $page, [
+            'path'  => $request->url(),
+            'query' => $request->except('page'),
+        ]);
 
         if ($request->ajax()) {
             $html = view('admin.reports.fuel_charge_alerts.partials._table', compact('allFuelRecords'))->render();

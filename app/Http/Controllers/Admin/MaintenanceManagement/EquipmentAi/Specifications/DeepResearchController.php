@@ -13,62 +13,47 @@ class DeepResearchController extends Controller
     public function __invoke(Request $request, int $id, OpenAIService $openAI): JsonResponse
     {
         $request->validate([
-            'prompt' => 'required|string|max:1000',
+            'prompt' => 'required|string|max:5000',
         ]);
 
-        $spec    = EquipmentAiSpecification::with('profile.category')->findOrFail($id);
+        $spec    = EquipmentAiSpecification::with('profile')->findOrFail($id);
         $profile = $spec->profile;
 
-        $make       = trim($profile->make  ?? '');
-        $model      = trim($profile->model ?? '');
-        $category   = trim(optional($profile->category)->title ?? '');
         $label      = $spec->spec_label;
-        $key        = $spec->spec_key;
         $current    = $spec->spec_value ?? 'unknown';
         $unit       = $spec->spec_unit  ?? '';
         $userPrompt = trim($request->input('prompt'));
 
-        $prompt = <<<PROMPT
-You are a technical equipment specification expert for rental equipment.
-
-Equipment Make:     {$make}
-Equipment Model:    {$model}
-Equipment Category: {$category}
-
-Specification: {$label} (key: {$key})
-Current Recorded Value: {$current} {$unit}
-
-The user wants you to research and verify/correct this specific specification value.
-User's research instruction: {$userPrompt}
-
-Return ONLY a valid JSON object with this exact structure:
+        $jsonInstruction = <<<JSON
+Return ONLY a valid JSON object with this exact structure — no markdown, no preamble, no trailing text:
 {
+  "label": "{$label}",
   "value": "...",
   "unit": "...",
-  "confidence": 0.95,
-  "notes": "Brief explanation of source and confidence"
+  "confidence": 85,
+  "source_type": "manufacturer",
+  "reasoning": "Brief explanation of why this value is correct or uncertain.",
+  "source_notes": "Key sources used or description of where the value was found."
 }
 
 Rules:
 1. value must be only the numeric or text value — never include the unit inside the value field.
 2. unit should use US-based units (ft, in, lbs, hp, mph, gal, psi, etc.).
-3. confidence must be 0.0–1.0:
-   - 0.90–1.00 → confirmed from manufacturer spec sheet
-   - 0.70–0.89 → dealer listing or secondary source
-   - Below 0.70 → estimated or inferred
-4. notes should be 1–2 sentences explaining the source and reasoning.
-5. Return ONLY the JSON object. No markdown, no preamble, no trailing text.
-PROMPT;
+3. confidence is an integer 0–100: 90–100 = manufacturer spec sheet; 70–89 = dealer/secondary source; below 70 = estimated or conflicting.
+4. source_type must be one of: manufacturer / dealer / manual / third-party / unclear
+5. reasoning: 1–3 sentences on why this value is correct or uncertain.
+6. source_notes: list the key sources or describe where the value was found.
+JSON;
 
         try {
             $response = $openAI->chatCompletion([
                 [
                     'role'    => 'system',
-                    'content' => 'You are a heavy equipment specification expert. Return ONLY valid JSON with no markdown or extra text.',
+                    'content' => 'You are verifying a single equipment specification for a rental/equipment comparison database. Return ONLY valid JSON with no markdown or extra text.',
                 ],
                 [
                     'role'    => 'user',
-                    'content' => $prompt,
+                    'content' => $userPrompt . "\n\n" . $jsonInstruction,
                 ],
             ]);
 
@@ -85,14 +70,21 @@ PROMPT;
                 ], 422);
             }
 
+            $rawConfidence = isset($result['confidence']) ? (float) $result['confidence'] : null;
+            // Normalise: accept either 0–100 integer or 0.0–1.0 float
+            if ($rawConfidence !== null && $rawConfidence <= 1.0) {
+                $rawConfidence = $rawConfidence * 100;
+            }
+            $confidence = $rawConfidence !== null ? min(100, max(0, (int) round($rawConfidence))) : null;
+
             return response()->json([
-                'success'    => true,
-                'value'      => (string) ($result['value'] ?? ''),
-                'unit'       => (string) ($result['unit']  ?? ''),
-                'confidence' => isset($result['confidence'])
-                    ? min(1.0, max(0.0, (float) $result['confidence']))
-                    : null,
-                'notes'      => (string) ($result['notes'] ?? ''),
+                'success'      => true,
+                'value'        => (string) ($result['value']        ?? ''),
+                'unit'         => (string) ($result['unit']         ?? ''),
+                'confidence'   => $confidence,
+                'source_type'  => (string) ($result['source_type']  ?? 'unclear'),
+                'reasoning'    => (string) ($result['reasoning']    ?? ''),
+                'source_notes' => (string) ($result['source_notes'] ?? ''),
             ]);
 
         } catch (\Throwable $e) {

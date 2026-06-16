@@ -24,9 +24,12 @@
         deepResearchSpecKey: '',
         deepResearchCurrentValue: '',
         deepResearchCurrentUnit: '',
+        deepResearchMake: '{{ addslashes($profile->make) }}',
+        deepResearchModel: '{{ addslashes($profile->model) }}',
         deepResearchPrompt: '',
         deepResearching: false,
         deepResearchResult: null,
+        applyingResearch: false,
 
         openDeepResearchModal(specId, specLabel, specKey, currentValue, currentUnit) {
             this.deepResearchSpecId = specId;
@@ -34,7 +37,7 @@
             this.deepResearchSpecKey = specKey;
             this.deepResearchCurrentValue = currentValue;
             this.deepResearchCurrentUnit = currentUnit;
-            this.deepResearchPrompt = '';
+            this.deepResearchPrompt = `You are verifying a single equipment specification for a rental/equipment comparison database.\n\nEquipment Make: ${this.deepResearchMake}\nEquipment Model: ${this.deepResearchModel}\nSpecification to Verify: ${specLabel}\nCurrent Value: ${currentValue}\nCurrent Unit: ${currentUnit}\n\nYour task is to perform a deep research review of this one specification only.\n\nResearch Requirements:\n1. Verify the correct value for the specified make and model.\n2. Prioritize manufacturer manuals, official spec sheets, parts/service manuals, dealer literature, and credible equipment databases.\n3. Check for model-year differences, configuration differences, optional packages, regional variations, or attachment-dependent values that may affect the specification.\n4. Do not assume the current value is correct.\n5. If sources conflict, explain the conflict and identify the most reliable value.\n6. If the specification cannot be confidently verified, say so clearly.\n\nImportant:\nOnly research this one specification. Do not return a full equipment specification sheet.`;
             this.deepResearchResult = null;
             this.deepResearching = false;
             this.showDeepResearchModal = true;
@@ -73,19 +76,32 @@
             }
         },
 
-        applyResearchResult() {
-            const form = document.querySelector(`form[data-spec-id='${this.deepResearchSpecId}']`);
-            if (form && this.deepResearchResult) {
-                const valueInput = form.querySelector('[name=spec_value]');
-                if (valueInput && this.deepResearchResult.value !== '') valueInput.value = this.deepResearchResult.value;
-                const unitInput = form.querySelector('[name=spec_unit]');
-                if (unitInput && this.deepResearchResult.unit !== '') unitInput.value = this.deepResearchResult.unit;
-                const confInput = form.querySelector('[name=confidence_score]');
-                if (confInput && this.deepResearchResult.confidence !== null) confInput.value = this.deepResearchResult.confidence;
-                const sourceSelect = form.querySelector('[name=source]');
-                if (sourceSelect) sourceSelect.value = 'ai_openai';
+        async applyResearchResult() {
+            if (!this.deepResearchResult || !this.deepResearchSpecId) return;
+            this.applyingResearch = true;
+            try {
+                const url = `/maintenance-management/equipment-ai/specifications/${this.deepResearchSpecId}`;
+                const body = new FormData();
+                body.append('_method', 'PUT');
+                body.append('_token', '{{ csrf_token() }}');
+                body.append('spec_label', this.deepResearchSpecLabel);
+                if (this.deepResearchResult.value !== '') body.append('spec_value', this.deepResearchResult.value);
+                if (this.deepResearchResult.unit  !== '') body.append('spec_unit',  this.deepResearchResult.unit);
+                if (this.deepResearchResult.confidence !== null) body.append('confidence_score', (this.deepResearchResult.confidence / 100).toFixed(2));
+                body.append('source', 'ai_openai');
+                const res = await fetch(url, { method: 'POST', body });
+                if (res.ok) {
+                    this.closeDeepResearchModal();
+                    window.location.reload();
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.message || 'Failed to save. Please try again.');
+                }
+            } catch (e) {
+                alert('Request failed. Please check your connection.');
+            } finally {
+                this.applyingResearch = false;
             }
-            this.closeDeepResearchModal();
         },
 
         async generateSpecs() {
@@ -430,6 +446,9 @@
                                 class="w-36 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Confidence</th>
                             <th
+                                class="w-24 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Research</th>
+                            <th
                                 class="w-24 px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Actions</th>
                         </tr>
@@ -437,7 +456,7 @@
                     <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-900">
                         @if ($profile->specifications->isEmpty())
                             <tr>
-                                <td colspan="6" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
+                                <td colspan="7" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
                                     No specifications yet. Click <strong>Research &amp; Create General
                                         Specification</strong> to generate with AI,
                                     or <strong>Add Specification</strong> to add manually.
@@ -448,7 +467,7 @@
                                 @continue($section['items']->isEmpty())
 
                                 <tr class="{{ $section['row_class'] }}">
-                                    <td colspan="6" class="px-5 py-3">
+                                    <td colspan="7" class="px-5 py-3">
                                         <div class="flex items-center justify-between gap-3">
                                             <div>
                                                 <h3 class="text-sm font-semibold">{{ $section['title'] }}</h3>
@@ -553,6 +572,17 @@
                                                 {{ $pct }}%
                                             </span>
                                         </td>
+                                        <td class="px-5 py-3 text-center">
+                                            @unless ($spec->is_key_comparison)
+                                            <button type="button"
+                                                @click="openDeepResearchModal({{ $spec->id }}, '{{ addslashes($spec->spec_label) }}', '{{ addslashes($spec->spec_key) }}', '{{ addslashes($spec->spec_value ?? '') }}', '{{ addslashes($spec->spec_unit ?? '') }}')"
+                                                class="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40"
+                                                title="Deep Research">
+                                                <x-heroicon-o-magnifying-glass class="h-3.5 w-3.5" />
+                                                Research
+                                            </button>
+                                            @endunless
+                                        </td>
                                         <td class="px-5 py-3">
                                             <div class="flex items-center justify-end gap-2">
                                                 <button @click="editingId = {{ $spec->id }}"
@@ -579,7 +609,7 @@
                                     {{-- Inline edit row --}}
                                     <tr x-show="editingId === {{ $spec->id }}" x-cloak
                                         class="bg-blue-50/50 dark:bg-blue-900/10">
-                                        <td colspan="6" class="px-5 py-4">
+                                        <td colspan="7" class="px-5 py-4">
                                             <form method="POST"
                                                 action="{{ route('admin.maintenance-management.equipment-ai.specifications.update', $spec->id) }}"
                                                 data-spec-id="{{ $spec->id }}">
@@ -672,6 +702,7 @@
                                                         class="rounded-md border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
                                                         Cancel
                                                     </button>
+                                                    @unless ($spec->is_key_comparison)
                                                     <div class="ml-auto">
                                                         <button type="button"
                                                             @click="openDeepResearchModal({{ $spec->id }}, '{{ addslashes($spec->spec_label) }}', '{{ addslashes($spec->spec_key) }}', '{{ addslashes($spec->spec_value ?? '') }}', '{{ addslashes($spec->spec_unit ?? '') }}')"
@@ -680,6 +711,7 @@
                                                             Deep Research
                                                         </button>
                                                     </div>
+                                                    @endunless
                                                 </div>
                                             </form>
                                         </td>
@@ -740,45 +772,36 @@
         {{-- ─── Deep Research Modal ─────────────────────────────────────────── --}}
         <div x-show="showDeepResearchModal" x-cloak class="fixed inset-0 z-9999 flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-gray-900/50" @click="closeDeepResearchModal()"></div>
-            <div class="relative w-full max-w-lg rounded-xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="relative w-full max-w-2xl rounded-xl bg-white shadow-2xl dark:bg-gray-900 max-h-[90vh] flex flex-col">
 
                 {{-- Header --}}
-                <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-700">
-                    <div class="flex items-center gap-2">
-                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+                <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-700 shrink-0">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
                             <x-heroicon-o-magnifying-glass class="h-4 w-4 text-amber-600 dark:text-amber-400" />
                         </span>
                         <div>
-                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Deep Research</h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400" x-text="deepResearchSpecLabel + ' (' + deepResearchSpecKey + ')'"></p>
+                            <p class="text-[11px] font-medium uppercase tracking-wide text-amber-600 dark:text-amber-400">Deep Research</p>
+                            <h3 class="text-base font-bold text-gray-900 dark:text-white leading-tight" x-text="deepResearchMake + ' ' + deepResearchModel"></h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="deepResearchSpecLabel + ' · ' + deepResearchSpecKey"></p>
                         </div>
                     </div>
                 </div>
 
-                {{-- Current value info --}}
-                <div class="px-5 pt-4">
-                    <div class="rounded-md bg-gray-50 px-3 py-2 text-xs dark:bg-gray-800">
-                        <span class="text-gray-500 dark:text-gray-400">Current value: </span>
-                        <span class="font-medium text-gray-800 dark:text-gray-100" x-text="deepResearchCurrentValue || '—'"></span>
-                        <span class="text-gray-500 dark:text-gray-400 ml-1" x-text="deepResearchCurrentUnit"></span>
-                    </div>
-                </div>
-
                 {{-- Prompt input --}}
-                <div class="px-5 py-4">
+                <div class="px-5 py-4 overflow-y-auto flex-1">
                     <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                         Research prompt <span class="text-red-500">*</span>
                     </label>
-                    <textarea x-model="deepResearchPrompt" rows="4"
-                        placeholder="e.g. Check the manufacturer spec sheet and verify the correct operating weight for this model. Cross-reference with dealer listings if needed."
-                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-xs focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 resize-none"></textarea>
-                    <p class="mt-1 text-[11px] text-gray-400 dark:text-gray-500">Tell ChatGPT what to check and why — it will research this specific specification for you.</p>
+                    <textarea x-model="deepResearchPrompt" rows="14"
+                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-xs font-mono leading-relaxed focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 resize-y"></textarea>
+                    <p class="mt-1 text-[11px] text-gray-400 dark:text-gray-500">Review and edit the prompt above before submitting.</p>
                 </div>
 
                 {{-- Result area --}}
                 <div x-show="deepResearchResult" class="mx-5 mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-700/50 dark:bg-emerald-900/20">
-                    <p class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 mb-2">Research Result</p>
-                    <div class="grid grid-cols-3 gap-2 text-xs mb-2">
+                    <p class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 mb-2">Verified Specification</p>
+                    <div class="grid grid-cols-4 gap-2 text-xs mb-3">
                         <div>
                             <span class="block text-gray-500 dark:text-gray-400">Value</span>
                             <span class="font-medium text-gray-900 dark:text-white" x-text="deepResearchResult?.value || '—'"></span>
@@ -789,10 +812,21 @@
                         </div>
                         <div>
                             <span class="block text-gray-500 dark:text-gray-400">Confidence</span>
-                            <span class="font-medium text-gray-900 dark:text-white" x-text="deepResearchResult?.confidence ? Math.round(deepResearchResult.confidence * 100) + '%' : '—'"></span>
+                            <span class="font-medium text-gray-900 dark:text-white" x-text="deepResearchResult?.confidence !== null ? deepResearchResult.confidence + '%' : '—'"></span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-500 dark:text-gray-400">Source Type</span>
+                            <span class="font-medium text-gray-900 dark:text-white capitalize" x-text="deepResearchResult?.source_type || '—'"></span>
                         </div>
                     </div>
-                    <p class="text-[11px] text-gray-600 dark:text-gray-300 italic" x-text="deepResearchResult?.notes"></p>
+                    <div x-show="deepResearchResult?.reasoning" class="mb-2">
+                        <span class="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Reasoning</span>
+                        <p class="text-[11px] text-gray-700 dark:text-gray-200" x-text="deepResearchResult?.reasoning"></p>
+                    </div>
+                    <div x-show="deepResearchResult?.source_notes">
+                        <span class="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Source Notes</span>
+                        <p class="text-[11px] text-gray-600 dark:text-gray-300 italic" x-text="deepResearchResult?.source_notes"></p>
+                    </div>
                 </div>
 
                 {{-- Footer --}}
@@ -810,9 +844,11 @@
                     </button>
                     <button type="button" @click="applyResearchResult()"
                         x-show="deepResearchResult"
-                        class="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-600">
-                        <x-heroicon-o-check class="h-3.5 w-3.5" />
-                        Apply to Form
+                        :disabled="applyingResearch"
+                        class="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="applyingResearch" class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                        <x-heroicon-o-check x-show="!applyingResearch" class="h-3.5 w-3.5" />
+                        <span x-text="applyingResearch ? 'Saving…' : 'Apply & Save'"></span>
                     </button>
                 </div>
             </div>

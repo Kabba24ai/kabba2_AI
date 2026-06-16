@@ -46,7 +46,7 @@
                     @enderror
                 </div>
 
-                <div class="sm:col-span-2">
+                <div>
                     <label for="assigned_product_id" class="block text-sm font-medium text-gray-700 mb-1">
                         Direct Assignment
                     </label>

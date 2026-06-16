@@ -185,6 +185,24 @@
                 </label>
             </div>
 
+            {{-- Auto Assign All Orders toggle --}}
+            <button type="button" id="autoAssignToggleBtn"
+                onclick="toggleAutoAssign()"
+                class="inline-flex items-center h-10 gap-2 rounded-md border px-3 text-sm font-medium shadow-sm whitespace-nowrap transition-colors
+                    {{ $autoAssignEnabled
+                        ? 'bg-green-50 border-green-400 text-green-700'
+                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">
+                <input type="checkbox" id="autoAssignCheckbox"
+                    class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 pointer-events-none"
+                    {{ $autoAssignEnabled ? 'checked' : '' }}>
+                <svg class="w-4 h-4 {{ $autoAssignEnabled ? 'text-green-600' : 'text-gray-400' }}"
+                    fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/>
+                </svg>
+                Auto Assign All Orders
+            </button>
+
         </div>
 
     </div>
@@ -522,6 +540,45 @@
 
     function closeScheduleAssistantModal() {
         document.getElementById('scheduleAssistantModal').classList.add('hidden');
+    }
+
+    function toggleAutoAssign() {
+        const btn      = document.getElementById('autoAssignToggleBtn');
+        const checkbox = document.getElementById('autoAssignCheckbox');
+        const icon     = btn.querySelector('svg');
+
+        btn.disabled = true;
+
+        apiFetch('{{ route('admin.order-management.schedule-assignment.toggle-auto-assign') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                'Accept': 'application/json',
+            },
+        })
+        .then(data => {
+            checkbox.checked = data.enabled;
+
+            if (data.enabled) {
+                btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700', 'hover:bg-gray-50');
+                btn.classList.add('bg-green-50', 'border-green-400', 'text-green-700');
+                icon.classList.remove('text-gray-400');
+                icon.classList.add('text-green-600');
+                notyf.success('Auto Assign enabled — new rentals will be automatically assigned.');
+            } else {
+                btn.classList.remove('bg-green-50', 'border-green-400', 'text-green-700');
+                btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700', 'hover:bg-gray-50');
+                icon.classList.remove('text-green-600');
+                icon.classList.add('text-gray-400');
+                notyf.success('Auto Assign disabled.');
+            }
+        })
+        .catch(error => {
+            console.error('toggleAutoAssign error:', error);
+        })
+        .finally(() => {
+            btn.disabled = false;
+        });
     }
 </script>
     <script>

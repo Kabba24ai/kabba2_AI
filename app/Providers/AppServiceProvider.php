@@ -10,6 +10,9 @@ use App\Observers\EquipmentObserver;
 use App\Models\Iam\Personnel\TimeEntry;
 use App\Observers\TimeEntryObserver;
 
+use App\Models\Orders\OrderProduct;
+use App\Observers\OrderProductObserver;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -35,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         //  REGISTER OBSERVER
         Equipment::observe(EquipmentObserver::class);
         TimeEntry::observe(TimeEntryObserver::class);
+        OrderProduct::observe(OrderProductObserver::class);
     }
 
     private function enableHttps(): void

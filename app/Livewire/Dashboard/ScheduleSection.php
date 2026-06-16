@@ -321,14 +321,16 @@ class ScheduleSection extends Component
         $damagedCount += $softDamagedCount;
 
         // Count distinct products with no direct-assignment equipment configured
+        // Only count upcoming orders — NDA orders never get a pickup_status of Completed
+        // (no equipment = never dispatched), so they'd accumulate forever without this gate.
         $noDirectAssignmentCount = OrderProduct::query()
             ->where('product_data->product_type', 'Rental')
             ->whereHas('order')
             ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '>=', Carbon::today())
             ->whereNull('equipment_id')
-            ->where(function ($q) {
-                $q->where('is_returned', '!=', 1)->orWhereNull('is_returned');
-            })
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->where(fn ($q) => $q->where('pickup_status', '!=', 'Completed')->orWhereNull('pickup_status'))
             ->whereNotNull('product_id')
             ->whereNotExists(function ($q) {
                 $q->select(\Illuminate\Support\Facades\DB::raw(1))

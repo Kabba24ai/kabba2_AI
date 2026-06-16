@@ -15,7 +15,7 @@ class IndexController extends Controller
         // "Active" = order not soft-deleted, equipment not yet returned/completed.
         $orderProducts = OrderProduct::with([
             'order.customer',
-            'equipment',
+            'equipment.productCategory',
         ])
         ->whereNotNull('equipment_id')
         ->whereNotNull('delivery_date')

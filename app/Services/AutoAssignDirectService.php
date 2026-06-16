@@ -86,7 +86,8 @@ class AutoAssignDirectService
         }
 
         foreach ($query->get() as $equipment) {
-            if (!$this->conflictDetectionService->hasConflict($equipment->id, $orderProduct)) {
+            // Rule 2: existing soft assignments must not block a new soft assignment.
+            if (!$this->conflictDetectionService->hasConflict($equipment->id, $orderProduct, null, ignoreSoftConflicts: true)) {
                 return $equipment;
             }
         }

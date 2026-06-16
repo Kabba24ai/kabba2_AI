@@ -19,6 +19,7 @@ class DispatchRequest extends ApiBaseFormRequest
             'page' => 'nullable|integer|min:1', // Optional page parameter
             'search' => 'nullable|string|max:255', // Optional search parameter
             'category_id' => 'nullable|integer|exists:product_categories,id',
+            'driver_id' => 'nullable|integer|exists:users,id',
             'schedule_type'   => ['required', 'in:All,Delivery,Return'],
             'date_filter'   => ['nullable', 'in:All,Tomorrow,Today,This Week,This Month'],
         ];
@@ -49,12 +50,17 @@ class DispatchRequest extends ApiBaseFormRequest
             ],
             'category_id' => [
                 'description' => 'The ID of the category to filter orders.',
+                'example' => " ",
+                'type' => 'integer',
+            ],
+            'driver_id' => [
+                'description' => 'The ID of the driver to filter orders.',
                 'example' => 1,
                 'type' => 'integer',
             ],
             'schedule_type' => [
                 'description' => 'The type of schedule, either "All", "Delivery", or "Return".',
-                'example' => 'Delivery',
+                'example' => 'All',
                 'type' => 'string',
             ],
             'date_filter' => [

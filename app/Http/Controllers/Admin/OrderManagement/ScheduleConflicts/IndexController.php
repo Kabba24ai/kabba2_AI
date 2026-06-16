@@ -8,6 +8,7 @@ use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class IndexController extends Controller
 {
@@ -107,13 +108,53 @@ class IndexController extends Controller
             ];
         }
 
-        $totalConflicts = count($doubleBookings) + count($damagedBookings);
+        // Orders whose product has no Direct Assignment equipment configured at all.
+        $noDirectAssignmentOps = OrderProduct::with([
+            'order.customer',
+            'order.shippingAddress',
+            'order.lastPayment',
+            'order.notes',
+            'product.categories',
+            'softAssignment.equipment.store',
+        ])
+        ->where('product_data->product_type', 'Rental')
+        ->whereHas('order')
+        ->whereNotNull('delivery_date')
+        ->whereNull('equipment_id')
+        ->where(function ($q) {
+            $q->where('is_returned', '!=', 1)->orWhereNull('is_returned');
+        })
+        ->whereNotNull('product_id')
+        ->whereNotExists(function ($q) {
+            $q->select(\DB::raw(1))
+                ->from('equipment')
+                ->whereColumn('equipment.assigned_product_id', 'order_products.product_id')
+                ->whereNull('equipment.deleted_at');
+        })
+        ->get();
+
+        $noDirectAssignmentGroups = [];
+        foreach ($noDirectAssignmentOps->groupBy('product_id') as $ops) {
+            $noDirectAssignmentGroups[] = [
+                'product_name' => $ops->first()->product_name,
+                'product'      => $ops->first()->product,
+                'orders'       => $ops,
+            ];
+        }
+
+        $totalConflicts = count($doubleBookings) + count($damagedBookings) + count($noDirectAssignmentGroups);
 
         $employees = User::active()
             ->orderBy('first_name')
             ->get()
             ->pluck('full_name', 'unique_id');
 
-        return view('admin.order_management.schedule_conflicts.index', compact('doubleBookings', 'totalConflicts', 'employees', 'damagedBookings'));
+        return view('admin.order_management.schedule_conflicts.index', compact(
+            'doubleBookings',
+            'damagedBookings',
+            'noDirectAssignmentGroups',
+            'totalConflicts',
+            'employees',
+        ));
     }
 }

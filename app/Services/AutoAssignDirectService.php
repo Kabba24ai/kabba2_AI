@@ -24,49 +24,90 @@ class AutoAssignDirectService
             ];
         }
 
-        $candidates = Equipment::query()
-            ->where('assigned_product_id', $productId)
-            ->whereIn('current_status', [
-                EquipmentCurrentStatus::Available->value,
-                EquipmentCurrentStatus::Maintenance->value,
-            ])
-            ->orderByRaw("FIELD(current_status, 'available', 'maintenance')")
-            ->orderBy('id')
-            ->get();
+        // Check whether any direct-assignment equipment exists for this product at all.
+        $hasDirectAssignment = Equipment::where('assigned_product_id', $productId)->exists();
 
-        if ($candidates->isEmpty()) {
+        if (!$hasDirectAssignment) {
             return [
-                'status' => 'skipped',
-                'reason' => 'No direct-assignment equipment is Available or Maint. Hold',
+                'status' => 'no_direct_assignment',
+                'reason' => 'No equipment has a Direct Assignment for this product',
             ];
         }
 
-        $eligible = null;
-        foreach ($candidates as $equipment) {
+        // Priority 1 & 2: Available, then Maint. Hold — prefer conflict-free units first.
+        $eligible = $this->findEligible($productId, $orderProduct, [
+            EquipmentCurrentStatus::Available->value,
+            EquipmentCurrentStatus::Maintenance->value,
+        ], "FIELD(current_status, 'available', 'maintenance')");
+
+        if ($eligible) {
+            return $this->doAssign($orderProduct, $eligible, 'available_or_maintenance');
+        }
+
+        // Priority 3: Rented — only valid if dates don't overlap (new delivery after existing return).
+        // ConflictDetectionService now checks hard assignments, so a Rented unit with a
+        // date overlap will be correctly blocked here.
+        $eligible = $this->findEligible($productId, $orderProduct, [
+            EquipmentCurrentStatus::Rented->value,
+        ], null);
+
+        if ($eligible) {
+            return $this->doAssign($orderProduct, $eligible, 'rented_no_overlap');
+        }
+
+        // Priority 4: Damaged — last resort.
+        $eligible = $this->findEligible($productId, $orderProduct, [
+            EquipmentCurrentStatus::Damaged->value,
+        ], null);
+
+        if ($eligible) {
+            return $this->doAssign($orderProduct, $eligible, 'damaged_last_resort');
+        }
+
+        return [
+            'status' => 'skipped',
+            'reason' => 'All direct-assignment equipment has a scheduling conflict across all statuses',
+        ];
+    }
+
+    private function findEligible(
+        int $productId,
+        OrderProduct $orderProduct,
+        array $statuses,
+        ?string $orderByRaw
+    ): ?Equipment {
+        $query = Equipment::query()
+            ->where('assigned_product_id', $productId)
+            ->whereIn('current_status', $statuses)
+            ->orderBy('id');
+
+        if ($orderByRaw) {
+            $query->orderByRaw($orderByRaw);
+        }
+
+        foreach ($query->get() as $equipment) {
             if (!$this->conflictDetectionService->hasConflict($equipment->id, $orderProduct)) {
-                $eligible = $equipment;
-                break;
+                return $equipment;
             }
         }
 
-        if (!$eligible) {
-            return [
-                'status' => 'skipped',
-                'reason' => 'All direct-assignment equipment has a scheduling conflict',
-            ];
-        }
+        return null;
+    }
 
+    private function doAssign(OrderProduct $orderProduct, Equipment $equipment, string $priority): array
+    {
         $orderProduct->softAssignment()->delete();
         $orderProduct->softAssignment()->create([
-            'equipment_id' => $eligible->id,
+            'equipment_id' => $equipment->id,
             'order_id'     => $orderProduct->order_id,
             'assigned_by'  => auth()->id(),
         ]);
 
         return [
             'status'         => 'assigned',
-            'equipment_name' => $eligible->equipment_name,
-            'equipment_id'   => $eligible->equipment_id,
+            'priority'       => $priority,
+            'equipment_name' => $equipment->equipment_name,
+            'equipment_id'   => $equipment->equipment_id,
         ];
     }
 }

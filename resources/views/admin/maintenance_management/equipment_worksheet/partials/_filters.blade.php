@@ -58,5 +58,14 @@
                 <option value="damaged" @selected(request('status') === 'damaged')>Damaged</option>
             </select>
         </div>
+
+        <div class="w-full sm:w-48">
+            <select name="direct_assignment"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">All Direct Assignments</option>
+                <option value="assigned" @selected(request('direct_assignment') === 'assigned')>Assigned</option>
+                <option value="not_assigned" @selected(request('direct_assignment') === 'not_assigned')>Not Assigned</option>
+            </select>
+        </div>
     </form>
 </div>

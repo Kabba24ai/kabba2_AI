@@ -57,6 +57,7 @@
             const categorySelect = document.querySelector('select[name="category"]');
             const storeSelect = document.querySelector('select[name="store"]');
             const statusSelect = document.querySelector('select[name="status"]');
+            const directAssignmentSelect = document.querySelector('select[name="direct_assignment"]');
             const wrapper = document.querySelector('#equipment-worksheet-table-wrapper');
             const updateUrl = "{{ route('admin.maintenance-management.equipment-worksheet.update') }}";
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -70,6 +71,7 @@
                 category: categorySelect,
                 store: storeSelect,
                 status: statusSelect,
+                direct_assignment: directAssignmentSelect,
             };
 
             FilterFreezer.loadFilters(screenKey, fieldMap);
@@ -83,10 +85,13 @@
                 const status = statusSelect.value;
 
                 const params = new URLSearchParams();
+                const directAssignment = directAssignmentSelect?.value || '';
+
                 if (search.length >= 3 || search.length === 0) params.append('search', search);
                 if (category) params.append('category', category);
                 if (store) params.append('store', store);
                 if (status) params.append('status', status);
+                if (directAssignment) params.append('direct_assignment', directAssignment);
                 if (perPage) params.append('per_page', perPage);
                 params.append('page', page);
 
@@ -210,6 +215,8 @@
             storeSelect.addEventListener('change', () => fetchWorksheet(1, document.getElementById('per_page_sm')
                 ?.value || perPageParam));
             statusSelect.addEventListener('change', () => fetchWorksheet(1, document.getElementById('per_page_sm')
+                ?.value || perPageParam));
+            directAssignmentSelect?.addEventListener('change', () => fetchWorksheet(1, document.getElementById('per_page_sm')
                 ?.value || perPageParam));
 
             fetchWorksheet(pageParam, perPageParam);

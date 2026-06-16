@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\OrderManagement\ScheduleAssignment;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ConfigurationHelper;
 use Illuminate\Http\Request;
 use App\Models\MaintenanceManagement\Equipment;
 
@@ -219,6 +220,8 @@ class IndexController extends Controller
 
         $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
 
-        return view('admin.order_management.schedule_assignment.index', compact('categories', 'stores', 'dates', 'statuses', 'employees'));
+        $autoAssignEnabled = ConfigurationHelper::getSettings('Schedule Assignment', 'auto_assign_enabled') === '1';
+
+        return view('admin.order_management.schedule_assignment.index', compact('categories', 'stores', 'dates', 'statuses', 'employees', 'autoAssignEnabled'));
     }
 }

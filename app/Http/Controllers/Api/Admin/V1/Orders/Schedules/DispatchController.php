@@ -92,6 +92,20 @@ class DispatchController extends BaseController
             });
         }
 
+        // Driver filter — scope by slot(s) matching the schedule type selection
+        if (isset($validatedData['driver_id']) && !empty($validatedData['driver_id'])) {
+            $driverId = (int) $validatedData['driver_id'];
+            $query->where(function ($q) use ($driverId, $isDeliveryOnly, $isReturnOnly) {
+                if ($isDeliveryOnly) {
+                    $q->where('delivery_by', $driverId);
+                } elseif ($isReturnOnly) {
+                    $q->where('pickup_by', $driverId);
+                } else {
+                    $q->where('delivery_by', $driverId)->orWhere('pickup_by', $driverId);
+                }
+            });
+        }
+
          // Date filter — reference the correct date column(s) per schedule selection
         if ($dateFilter && $dateFilter !== 'All') {
             $useBothDates = $isBothSelected || empty($scheduleTypes);

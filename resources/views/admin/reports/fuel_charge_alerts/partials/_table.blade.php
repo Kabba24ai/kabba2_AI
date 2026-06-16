@@ -9,6 +9,8 @@
     $allFuelRecords = $allFuelRecords ?? collect();
 @endphp
 
+@php $fuelPage = $allFuelRecords instanceof \Illuminate\Pagination\LengthAwarePaginator ? $allFuelRecords : null; @endphp
+
 @if($allFuelRecords->isEmpty())
     <div class="text-center py-16 text-gray-400">
         <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto w-10 h-10 mb-3 opacity-40" fill="currentColor" viewBox="0 0 640 640">
@@ -199,8 +201,9 @@
         @endforeach
     </div>
 
-    <div class="mt-6">
-        {{ $allFuelRecords->links() }}
-    </div>
-
+    @if($fuelPage && $fuelPage->hasPages())
+        <div class="mt-6">
+            {{ $fuelPage->links() }}
+        </div>
+    @endif
 @endif

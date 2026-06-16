@@ -10,11 +10,14 @@ use App\Observers\EquipmentObserver;
 use App\Models\Iam\Personnel\TimeEntry;
 use App\Observers\TimeEntryObserver;
 
+
 use App\Models\ProductManagement\Product;
 use App\Observers\ProductObserver;
 
 use App\Models\ProductManagement\ProductCategory;
 use App\Observers\ProductCategoryObserver;
+use App\Models\Orders\OrderProduct;
+use App\Observers\OrderProductObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -45,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         // AI Visibility Layer — auto-generate schema on product/category save
         Product::observe(ProductObserver::class);
         ProductCategory::observe(ProductCategoryObserver::class);
+        OrderProduct::observe(OrderProductObserver::class);
     }
 
     private function enableHttps(): void

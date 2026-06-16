@@ -39,6 +39,14 @@ class IndexController extends Controller
             $q->where('current_status', $request->input('status'));
         });
 
+        $query->when($request->filled('direct_assignment'), function ($q) use ($request) {
+            if ($request->input('direct_assignment') === 'assigned') {
+                $q->whereNotNull('assigned_product_id');
+            } elseif ($request->input('direct_assignment') === 'not_assigned') {
+                $q->whereNull('assigned_product_id');
+            }
+        });
+
         $perPage = $request->input('per_page', 30);
         $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
 

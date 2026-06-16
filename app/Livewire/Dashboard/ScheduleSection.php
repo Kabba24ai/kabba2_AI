@@ -332,6 +332,45 @@ class ScheduleSection extends Component
             ->distinct('product_id')
             ->count('product_id');
 
-        return $count + $damagedCount + $noDirectAssignmentCount;
+        // Count equipment pieces that are overdue AND have an upcoming assignment within 3 days
+        $today          = Carbon::today();
+        $threeDaysAhead = $today->copy()->addDays(3);
+
+        $overdueEquipmentIds = OrderProduct::whereNotNull('equipment_id')
+            ->where('delivery_status', 'Completed')
+            ->where('pickup_status', 'Pending')
+            ->whereNotNull('pickup_date')
+            ->whereDate('pickup_date', '<', $today)
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->whereHas('order')
+            ->pluck('equipment_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $overdueConflictCount = 0;
+        if (!empty($overdueEquipmentIds)) {
+            $hasUpcomingHard = OrderProduct::whereIn('equipment_id', $overdueEquipmentIds)
+                ->whereNotNull('delivery_date')
+                ->whereDate('delivery_date', '>=', $today)
+                ->whereDate('delivery_date', '<=', $threeDaysAhead)
+                ->whereHas('order')
+                ->distinct('equipment_id')
+                ->count('equipment_id');
+
+            $hasUpcomingSoft = \App\Models\MaintenanceManagement\EquipmentSoftAssign::whereIn('equipment_id', $overdueEquipmentIds)
+                ->whereHas('orderProduct', fn ($q) => $q
+                    ->whereNotNull('delivery_date')
+                    ->whereDate('delivery_date', '>=', $today)
+                    ->whereDate('delivery_date', '<=', $threeDaysAhead)
+                    ->whereHas('order')
+                )
+                ->distinct('equipment_id')
+                ->count('equipment_id');
+
+            $overdueConflictCount = min(count($overdueEquipmentIds), $hasUpcomingHard + $hasUpcomingSoft);
+        }
+
+        return $count + $damagedCount + $noDirectAssignmentCount + $overdueConflictCount;
     }
 }

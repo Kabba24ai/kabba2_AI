@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Admin\Reports\NewDamageAlerts;
 use App\Http\Controllers\Controller;
 use App\Models\Customers\CustomerAccount;
 use App\Models\Orders\OrderProduct;
-use Illuminate\Support\Facades\Log;
-
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -81,60 +79,25 @@ class IndexController extends Controller
         $crmDamageRecords = $crmQuery->latest()->get();
 
         // ── Merge both sources into one sorted collection ────────────────────
-        // $allDamageRecords = $records
-        //     ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
-        //     ->concat(
-        //         $crmDamageRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
-        //     )
-        //     ->sortByDesc('_sort_ts')
-        //     ->values();
-        
-        $allDamageRecords = $records
-            ->map(fn ($r) => [
-                '_source' => 'op',
-                '_sort_ts' => $r->created_at?->timestamp ?? 0,
-                '_model' => $r,
-            ])
+        $perPage = 25;
+        $page    = max(1, (int) $request->input('page', 1));
+
+        $merged = $records
+            ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
             ->concat(
-                $crmDamageRecords->map(fn ($r) => [
-                    '_source' => 'crm',
-                    '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0,
-                    '_model' => $r,
-                ])
+                $crmDamageRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
             )
             ->sortByDesc('_sort_ts')
             ->values();
 
-        $page = $request->get('page', 1);
-        $perPage = $request->input('per_page', 20);
+        $total  = $merged->count();
+        $items  = $merged->slice(($page - 1) * $perPage, $perPage)->values();
 
-        Log::info('Damage Alerts Pagination', [
-    'page' => $page,
-    'per_page' => $perPage,
-    'search_name' => $request->search_name,
-    'search_order' => $request->search_order,
-    'search_status' => $request->search_status,
-    'total_records_before_pagination' => $allDamageRecords->count(),
-    'query_params' => $request->query(),
-]);
+        $allDamageRecords = new LengthAwarePaginator($items, $total, $perPage, $page, [
+            'path'  => $request->url(),
+            'query' => $request->except('page'),
+        ]);
 
-Log::info('Damage Alerts Current Page Records', [
-    'page' => $page,
-    'record_count' => $allDamageRecords->forPage($page, $perPage)->count(),
-]);
-
-        $allDamageRecords = new LengthAwarePaginator(
-            $allDamageRecords->forPage($page, $perPage),
-            $allDamageRecords->count(),
-            $perPage,
-            $page,
-            [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ]
-        );
-
-        
         if ($request->ajax()) {
             $html = view('admin.reports.new_damage_alerts.partials._table', compact('allDamageRecords'))->render();
             return response()->json(['success' => true, 'html' => $html]);

@@ -15,6 +15,13 @@
     @endif
 @endpush
 
+@push('schema')
+    @include('front.partials.ai-page-metadata', [
+        'pageType'  => 'product',
+        'pageModel' => $productDetail,
+    ])
+@endpush
+
 @section('content')
 
     <!-- Page Title Section -->

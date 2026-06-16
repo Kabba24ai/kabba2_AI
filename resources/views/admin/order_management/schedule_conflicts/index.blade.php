@@ -79,7 +79,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
 
-                    @foreach($doubleBookings as $conflict)
+                    @foreach($doubleBookings as $loopIndex => $conflict)
                         @php
                             $equipment    = $conflict['equipment'];
                             $overlapStart = $conflict['overlap_start'];
@@ -87,6 +87,7 @@
                             $categoryId   = $equipment?->product_category_id;
                             $scheduleAssignUrl = route('admin.order-management.schedule-assignment.index')
                                 . ($categoryId ? '?category=' . $categoryId : '');
+                            $primaryOpId = $conflict['a']->id;
                         @endphp
 
                         {{-- Conflict group header row --}}
@@ -114,12 +115,22 @@
                                             @endif
                                         </span>
                                     </div>
-                                    <a href="{{ $scheduleAssignUrl }}"
-                                       title="View all {{ $equipment?->productCategory?->title ?? 'equipment' }} in Schedule Assignment"
-                                       class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm">
-                                        <x-heroicon-o-calendar-days class="w-3.5 h-3.5" />
-                                        Resolve Double Booking
-                                    </a>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <button type="button"
+                                            class="ai-suggest-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-white hover:bg-cyan-600 transition shadow-sm"
+                                            data-conflict-index="{{ $loopIndex }}"
+                                            data-order-product-id="{{ $primaryOpId }}"
+                                            data-equipment-name="{{ $equipment?->equipment_name }}">
+                                            <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
+                                            Ai Suggest!
+                                        </button>
+                                        <a href="{{ $scheduleAssignUrl }}"
+                                           title="View all {{ $equipment?->productCategory?->title ?? 'equipment' }} in Schedule Assignment"
+                                           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm">
+                                            <x-heroicon-o-calendar-days class="w-3.5 h-3.5" />
+                                            Resolve Double Booking
+                                        </a>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -134,7 +145,7 @@
                             $deliveryIconColor = $op->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                             $pickupIconColor   = $op->pickup_status   === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                         @endphp
-                        <tr class="hover:bg-red-50/40 bg-white">
+                        <tr class="hover:bg-gray-50">
 
                             {{-- Product --}}
                             <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
@@ -277,6 +288,25 @@
                         </tr>
                         @endforeach
 
+                        {{-- AI Suggestions panel — hidden until "Ai Suggest!" is clicked --}}
+                        <tr id="ai-panel-{{ $loopIndex }}" class="hidden">
+                            <td colspan="12" class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <x-heroicon-o-sparkles class="w-4 h-4 text-cyan-500" />
+                                    <span class="text-sm font-semibold text-gray-800">AI Scheduling Suggestions</span>
+                                    <span class="text-xs text-gray-400">— {{ $equipment?->equipment_name }}</span>
+                                    <button type="button"
+                                        class="ml-auto text-xs text-gray-400 hover:text-gray-600 close-ai-panel"
+                                        data-conflict-index="{{ $loopIndex }}">
+                                        ✕ Close
+                                    </button>
+                                </div>
+                                <div id="ai-content-{{ $loopIndex }}" class="text-sm text-gray-600">
+                                    <p class="text-gray-400 italic">Loading AI suggestions…</p>
+                                </div>
+                            </td>
+                        </tr>
+
                     @endforeach
 
                 </tbody>
@@ -397,6 +427,106 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('pointerout',  e => { const t = getTrigger(e.target); if (!t || t.contains(e.relatedTarget)) return; scheduleHide(t); });
         ['scroll','resize'].forEach(ev => window.addEventListener(ev, () => { if (activeTrigger && !tooltip.classList.contains('hidden')) requestAnimationFrame(() => position(activeTrigger)); }, { passive: true }));
     }
+
+    // ── AI Suggest ───────────────────────────────────────────────────────────
+    const aiAdvisorUrlTemplate = '{{ route('admin.order-management.schedules.ai.show', ['orderProductId' => '__OP_ID__']) }}';
+
+    function escapeHtml(v) {
+        return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    document.addEventListener('click', function (e) {
+        // Toggle AI panel open
+        const aiBtn = e.target.closest('.ai-suggest-btn');
+        if (aiBtn) {
+            const idx     = aiBtn.dataset.conflictIndex;
+            const opId    = aiBtn.dataset.orderProductId;
+            const panel   = document.getElementById('ai-panel-' + idx);
+            const content = document.getElementById('ai-content-' + idx);
+            if (!panel || !content) return;
+
+            if (!panel.classList.contains('hidden')) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            panel.classList.remove('hidden');
+            content.innerHTML = '<p class="text-gray-400 italic text-sm">Loading AI suggestions…</p>';
+
+            const url = aiAdvisorUrlTemplate.replace('__OP_ID__', opId);
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+                .then(r => r.json().catch(() => null).then(d => ({ ok: r.ok, data: d })))
+                .then(({ ok, data }) => {
+                    if (!ok || !data?.success) {
+                        content.innerHTML = `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">${escapeHtml(data?.message || 'AI advisor returned an error.')}</div>`;
+                        return;
+                    }
+                    const assistant = data.data?.assistant || {};
+                    const ai        = data.data?.ai || {};
+                    const rec       = ai.recommendation || {};
+
+                    const issuesHtml = (assistant.issues || []).map(i =>
+                        `<div class="mb-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3"><div class="font-medium text-yellow-800">${escapeHtml(i.code)}</div><div class="text-sm text-yellow-700">${escapeHtml(i.message)}</div></div>`
+                    ).join('');
+
+                    const reasoningHtml = (rec.reasoning || []).map(r => `<li>${escapeHtml(r)}</li>`).join('');
+                    const actionsHtml   = (rec.actions_required || []).map(a =>
+                        `<span class="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">${escapeHtml(a)}</span>`
+                    ).join('');
+                    const warningsHtml  = (rec.warnings || []).map(w => `<li>${escapeHtml(w)}</li>`).join('');
+                    const altsHtml = (rec.alternatives || []).map(opt => `
+                        <div class="rounded-xl border p-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <span class="font-semibold text-sm">${escapeHtml(opt.equipment_name || 'No equipment')}</span>
+                                    <span class="ml-2 text-xs text-gray-500">#${escapeHtml(opt.equipment_id ?? '-')}</span>
+                                </div>
+                                <span class="text-xs uppercase tracking-wide text-gray-500">${escapeHtml(opt.relationship_type)}</span>
+                            </div>
+                            <p class="mt-2 text-sm text-gray-700">${escapeHtml(opt.summary)}</p>
+                            ${(opt.actions_required||[]).length ? `<div class="mt-2 flex flex-wrap gap-2">${opt.actions_required.map(a=>`<span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">${escapeHtml(a)}</span>`).join('')}</div>` : ''}
+                        </div>`
+                    ).join('');
+
+                    content.innerHTML = `<div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="rounded-lg bg-gray-100 p-3"><div class="text-xs uppercase tracking-wide text-gray-500">Delivery</div><div class="font-medium text-sm">${escapeHtml(assistant.order_window?.delivery||'-')}</div></div>
+                            <div class="rounded-lg bg-gray-100 p-3"><div class="text-xs uppercase tracking-wide text-gray-500">Pickup</div><div class="font-medium text-sm">${escapeHtml(assistant.order_window?.pickup||'-')}</div></div>
+                        </div>
+                        ${issuesHtml ? `<div><h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Operational Issues</h3>${issuesHtml}</div>` : ''}
+                        <div class="rounded-xl border border-sky-200 bg-sky-50 p-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <div class="text-xs uppercase tracking-wide text-sky-600">AI Decision</div>
+                                    <div class="mt-1 font-semibold text-sky-900">${escapeHtml(rec.decision||'No decision')}</div>
+                                    <div class="text-sm text-sky-800 mt-0.5">${escapeHtml(rec.recommended_equipment_name||'No equipment recommended')}</div>
+                                </div>
+                                <div class="text-right text-xs text-sky-700 shrink-0">
+                                    <div>ID: ${escapeHtml(rec.recommended_equipment_id??'-')}</div>
+                                    <div>${escapeHtml(rec.relationship_type||'')}</div>
+                                </div>
+                            </div>
+                            ${actionsHtml ? `<div class="mt-3 flex flex-wrap gap-2">${actionsHtml}</div>` : ''}
+                        </div>
+                        ${reasoningHtml ? `<div><h3 class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Reasoning</h3><ul class="list-disc space-y-1 pl-5 text-sm text-gray-700">${reasoningHtml}</ul></div>` : ''}
+                        ${warningsHtml ? `<div><h3 class="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-700">Warnings</h3><ul class="list-disc space-y-1 pl-5 text-sm text-amber-700">${warningsHtml}</ul></div>` : ''}
+                        ${altsHtml ? `<div><h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Alternatives</h3><div class="space-y-2">${altsHtml}</div></div>` : ''}
+                        ${ai.error ? `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">${escapeHtml(ai.error)}</div>` : ''}
+                    </div>`;
+                })
+                .catch(err => {
+                    console.error('AI Suggest fetch error:', err);
+                    content.innerHTML = '<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">Request failed. Please try again.</div>';
+                });
+        }
+
+        // Close AI panel
+        const closeAiBtn = e.target.closest('.close-ai-panel');
+        if (closeAiBtn) {
+            const idx = closeAiBtn.dataset.conflictIndex;
+            document.getElementById('ai-panel-' + idx)?.classList.add('hidden');
+        }
+    });
 
     // ── Equipment Assign Modal ───────────────────────────────────────────────
     const modal               = document.getElementById('equipmentAssignModal');

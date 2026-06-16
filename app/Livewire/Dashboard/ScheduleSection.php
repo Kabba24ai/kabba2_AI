@@ -302,6 +302,17 @@ class ScheduleSection extends Component
                 }
             }
         }
-        return $count;
+        // Also count orders assigned to damaged equipment
+        $damagedCount = OrderProduct::whereNotNull('equipment_id')
+            ->where(function ($q) {
+                $q->where('is_returned', '!=', 1)->orWhereNull('is_returned');
+            })
+            ->whereHas('order')
+            ->whereHas('equipment', function ($q) {
+                $q->where('current_status', 'damaged');
+            })
+            ->count();
+
+        return $count + $damagedCount;
     }
 }

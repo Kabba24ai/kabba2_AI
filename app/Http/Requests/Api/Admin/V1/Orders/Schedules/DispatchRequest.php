@@ -50,12 +50,12 @@ class DispatchRequest extends ApiBaseFormRequest
             ],
             'category_id' => [
                 'description' => 'The ID of the category to filter orders.',
-                'example' => " ",
+                'example' => null,
                 'type' => 'integer',
             ],
             'driver_id' => [
                 'description' => 'The ID of the driver to filter orders.',
-                'example' => 1,
+                'example' => null,
                 'type' => 'integer',
             ],
             'schedule_type' => [

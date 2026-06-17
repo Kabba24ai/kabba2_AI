@@ -7,64 +7,58 @@
         </div>
     </div>
 
+    <div class="grid grid-cols-3 gap-4">
     @forelse ($drivers as $driver)
         @php $cap = $driverCapabilities->get($driver->id); @endphp
-        <div class="bg-white rounded-xl shadow-sm border">
-            <div class="flex items-center gap-3 px-5 py-3 border-b bg-gray-50 rounded-t-xl">
-                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-sm border flex flex-col">
+
+            {{-- Card header --}}
+            <div class="flex items-center gap-3 px-4 py-3 border-b bg-gray-50 rounded-t-xl">
+                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center shrink-0">
                     {{ strtoupper(substr($driver->first_name, 0, 1) . substr($driver->last_name, 0, 1)) }}
                 </div>
-                <span class="font-semibold text-sm">{{ $driver->full_name }}</span>
+                <span class="font-semibold text-sm truncate min-w-0">{{ $driver->full_name }}</span>
                 @if ($cap)
-                    <span class="ml-auto text-xs text-green-600 font-medium bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Configured</span>
+                    <span class="ml-auto shrink-0 text-xs text-green-600 font-medium bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Configured</span>
                 @else
-                    <span class="ml-auto text-xs text-gray-400 font-medium bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">Not configured</span>
+                    <span class="ml-auto shrink-0 text-xs text-gray-400 font-medium bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">Not configured</span>
                 @endif
             </div>
 
-            <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.driver-capability.save') }}" class="p-5">
+            <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.driver-capability.save') }}" class="p-4 flex flex-col flex-1">
                 @csrf
                 <input type="hidden" name="user_id" value="{{ $driver->id }}">
 
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-
-                    {{-- CDL --}}
+                {{-- Capability checkboxes --}}
+                <div class="grid grid-cols-2 gap-3">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="cdl_license" value="1"
                             class="rounded border-gray-300 text-indigo-600"
                             {{ $cap?->cdl_license ? 'checked' : '' }}>
                         <span class="text-sm">CDL License</span>
                     </label>
-
-                    {{-- Can tow equipment trailer --}}
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="can_tow_equipment_trailer" value="1"
                             class="rounded border-gray-300 text-indigo-600"
                             {{ $cap?->can_tow_equipment_trailer ? 'checked' : '' }}>
-                        <span class="text-sm">Can Tow Equipment Trailer</span>
+                        <span class="text-sm">Can Tow Trailer</span>
                     </label>
-
-                    {{-- Can tow gooseneck --}}
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="can_tow_gooseneck" value="1"
                             class="rounded border-gray-300 text-indigo-600"
                             {{ $cap?->can_tow_gooseneck ? 'checked' : '' }}>
                         <span class="text-sm">Can Tow Gooseneck</span>
                     </label>
-
-                    {{-- Can operate CDL truck --}}
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="can_operate_cdl_truck" value="1"
                             class="rounded border-gray-300 text-indigo-600"
                             {{ $cap?->can_operate_cdl_truck ? 'checked' : '' }}>
                         <span class="text-sm">Can Operate CDL Truck</span>
                     </label>
-
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-
-                    {{-- Max GVWR --}}
+                {{-- Numeric / select fields --}}
+                <div class="grid grid-cols-2 gap-3 mt-4">
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Max GVWR (lbs)</label>
                         <input type="number" name="max_gvwr" min="0" step="100"
@@ -72,17 +66,13 @@
                             class="w-full border border-gray-300 rounded-md py-1.5 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                             placeholder="e.g. 26000">
                     </div>
-
-                    {{-- Max trailer weight --}}
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Max Trailer Weight (lbs)</label>
+                        <label class="block text-xs text-gray-500 mb-1">Max Trailer Wt (lbs)</label>
                         <input type="number" name="max_trailer_weight" min="0" step="100"
                             value="{{ $cap?->max_trailer_weight }}"
                             class="w-full border border-gray-300 rounded-md py-1.5 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                             placeholder="e.g. 14000">
                     </div>
-
-                    {{-- Home store --}}
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Home Store</label>
                         <select name="home_store_id"
@@ -95,8 +85,6 @@
                             @endforeach
                         </select>
                     </div>
-
-                    {{-- Skill rating --}}
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Skill Rating (1–5)</label>
                         <select name="skill_rating"
@@ -106,10 +94,10 @@
                             @endfor
                         </select>
                     </div>
-
                 </div>
 
-                <div class="mt-4">
+                {{-- Notes --}}
+                <div class="mt-3">
                     <label class="block text-xs text-gray-500 mb-1">Notes</label>
                     <textarea name="notes" rows="2"
                         class="w-full border border-gray-300 rounded-md py-1.5 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -125,9 +113,10 @@
             </form>
         </div>
     @empty
-        <div class="bg-white rounded-xl shadow-sm p-8 text-center text-gray-400 text-sm italic">
+        <div class="col-span-3 bg-white rounded-xl shadow-sm p-8 text-center text-gray-400 text-sm italic">
             No active drivers found. Mark users as drivers in HRM first.
         </div>
     @endforelse
+    </div>
 
 </div>

@@ -5,6 +5,7 @@ namespace App\Services\AIVisibility;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
+use App\Models\Stores\StoreServiceArea;
 use App\Models\Configurations\Setting;
 use Illuminate\Support\Collection;
 
@@ -240,15 +241,10 @@ class SchemaBuilder
             $schema['telephone'] = $settings['top_phone'];
         }
 
-        // Primary store address
+        // Primary store address — geo belongs on LocalBusiness/Place, not Organization
         $primary = Store::active()->where('is_primary', 'Yes')->first();
         if ($primary) {
             $schema['address'] = $this->buildPostalAddress($primary);
-            $schema['geo']     = [
-                '@type'     => 'GeoCoordinates',
-                'latitude'  => $primary->latitude,
-                'longitude' => $primary->longitude,
-            ];
         }
 
         return $schema;
@@ -289,6 +285,12 @@ class SchemaBuilder
             $schema['openingHoursSpecification'] = $hours;
         }
 
+        // Combined service area across all active stores
+        $areaServed = $this->buildAreaServed();
+        if (!empty($areaServed)) {
+            $schema['areaServed'] = $areaServed;
+        }
+
         return $schema;
     }
 
@@ -316,6 +318,78 @@ class SchemaBuilder
             '@type'      => 'FAQPage',
             'mainEntity' => $entities,
         ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Combined areaServed — total across ALL active stores
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function buildAreaServed(): array
+    {
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+
+        // Pull all active included service-area rows across all active stores
+        $areas = StoreServiceArea::whereHas('store', fn($q) => $q->active())
+            ->where('area_group', 'included')
+            ->where('is_active', true)
+            ->get();
+
+        // Fallback: if no explicit included areas are defined, use each store's city/state/zip
+        if ($areas->isEmpty()) {
+            $cache = Store::active()->get()->map(fn($s) => array_filter([
+                '@type'           => 'City',
+                'name'            => trim(($s->city ?? '') . ', ' . ($s->state?->name ?? '')),
+                'containedInPlace' => $s->state?->name ? ['@type' => 'State', 'name' => $s->state->name] : null,
+            ]))->filter()->values()->all();
+
+            return $cache;
+        }
+
+        $cache = $areas->map(function ($area) {
+            $node = [];
+
+            switch ($area->area_type) {
+                case 'city':
+                    $node = array_filter([
+                        '@type' => 'City',
+                        'name'  => $area->city ?: $area->name,
+                        'containedInPlace' => $area->state ? ['@type' => 'State', 'name' => $area->state] : null,
+                    ]);
+                    break;
+
+                case 'county':
+                    $node = array_filter([
+                        '@type' => 'AdministrativeArea',
+                        'name'  => $area->county ?: $area->name,
+                        'containedInPlace' => $area->state ? ['@type' => 'State', 'name' => $area->state] : null,
+                    ]);
+                    break;
+
+                case 'zip':
+                    $node = array_filter([
+                        '@type'      => 'PostalAddress',
+                        'postalCode' => $area->zip_code,
+                        'addressRegion' => $area->state ?? null,
+                    ]);
+                    break;
+
+                case 'custom_area':
+                default:
+                    $node = array_filter([
+                        '@type' => 'AdministrativeArea',
+                        'name'  => $area->name ?: $area->city,
+                        'containedInPlace' => $area->state ? ['@type' => 'State', 'name' => $area->state] : null,
+                    ]);
+                    break;
+            }
+
+            return $node ?: null;
+        })->filter()->values()->all();
+
+        return $cache;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -362,13 +436,17 @@ class SchemaBuilder
 
     private function buildPostalAddress(Store $store): array
     {
+        // Normalise "USA" → "US" (ISO 3166-1 alpha-2 required by Schema.org)
+        $rawCountry     = $store->country ?? 'US';
+        $addressCountry = $rawCountry === 'USA' ? 'US' : $rawCountry;
+
         return [
             '@type'           => 'PostalAddress',
             'streetAddress'   => $store->address ?? '',
             'addressLocality' => $store->city ?? '',
             'addressRegion'   => $store->state?->code ?? $store->state?->name ?? '',
             'postalCode'      => $store->zip_code ?? '',
-            'addressCountry'  => $store->country ?? 'US',
+            'addressCountry'  => $addressCountry,
         ];
     }
 
@@ -378,12 +456,15 @@ class SchemaBuilder
             return [];
         }
 
-        return $store->hoursOfOperation->map(fn($h) => [
-            '@type'     => 'OpeningHoursSpecification',
-            'dayOfWeek' => 'https://schema.org/' . ucfirst(strtolower($h->day_of_week ?? '')),
-            'opens'     => $h->open_time ?? '09:00',
-            'closes'    => $h->close_time ?? '17:00',
-        ])->values()->all();
+        return $store->hoursOfOperation
+            ->reject(fn($h) => (bool) $h->is_closed)
+            ->filter(fn($h) => $h->start_time && $h->end_time)
+            ->map(fn($h) => [
+                '@type'     => 'OpeningHoursSpecification',
+                'dayOfWeek' => 'https://schema.org/' . ucfirst(strtolower($h->day_name ?? '')),
+                'opens'     => substr($h->start_time, 0, 5),
+                'closes'    => substr($h->end_time, 0, 5),
+            ])->values()->all();
     }
 
     private function buildOrganizationNode(): array

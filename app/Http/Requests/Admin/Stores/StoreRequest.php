@@ -23,18 +23,21 @@ class StoreRequest extends FormRequest
         // Convert checkboxes ("on" or missing) into real booleans
         foreach ($days as $day) {
             $cleaned["{$day}_closed"] = $this->boolean("{$day}_closed");
-
-            $cleaned["{$day}_lunch"] = $this->boolean("{$day}_lunch");
+            $cleaned["{$day}_lunch"]  = $this->boolean("{$day}_lunch");
         }
 
-         if (!empty($cleaned['lunch_start_time'])) {
+        if (!empty($cleaned['lunch_start_time'])) {
             try {
-                $cleaned['lunch_start_time'] = \Carbon\Carbon::parse($cleaned['lunch_start_time'])
-                    ->format('H:i:s'); //  13:00:00
+                $cleaned['lunch_start_time'] = \Carbon\Carbon::parse($cleaned['lunch_start_time'])->format('H:i:s');
             } catch (\Exception $e) {
                 $cleaned['lunch_start_time'] = null;
             }
-    }
+        }
+
+        // Normalise service area boolean fields
+        $cleaned['service_area_enable_radius']    = (int) $this->boolean('service_area_enable_radius');
+        $cleaned['service_area_delivery_allowed'] = (int) $this->boolean('service_area_delivery_allowed');
+        $cleaned['service_area_pickup_allowed']   = (int) $this->boolean('service_area_pickup_allowed');
 
         $this->merge($cleaned);
     }
@@ -51,7 +54,7 @@ class StoreRequest extends FormRequest
             'city' => ['required', 'string', 'max:100'],
             'address' => ['required', 'string', 'max:500'],
             'zip_code' => ['required', 'string', 'max:20'],
-            'country' => ['required', 'string', 'max:100'],
+            'country' => ['nullable', 'string', 'max:100'],
             'latitude' => ['required', 'string'],
             'longitude' => ['required', 'string'],
             'details' => ['nullable', 'string', 'max:255'],
@@ -79,15 +82,31 @@ class StoreRequest extends FormRequest
         $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
         foreach ($days as $day) {
-
-            // Closed input REQUIRED + boolean
             $rules["{$day}_closed"] = ['required', 'boolean'];
+            $rules["{$day}_lunch"]  = ['nullable', 'boolean'];
+            $rules["{$day}_start"]  = ['nullable', 'string'];
+            $rules["{$day}_end"]    = ['nullable', 'string'];
+        }
 
-            $rules["{$day}_lunch"] = ['nullable', 'boolean'];
+        // Service area — radius
+        $rules['service_area_enable_radius']    = ['nullable', 'boolean'];
+        $rules['service_area_radius_miles']     = ['nullable', 'numeric', 'min:0.1'];
+        $rules['service_area_delivery_allowed'] = ['nullable', 'boolean'];
+        $rules['service_area_pickup_allowed']   = ['nullable', 'boolean'];
 
-            // Time fields optional
-            $rules["{$day}_start"] = ['nullable', 'string'];
-            $rules["{$day}_end"] = ['nullable', 'string'];
+        // Service area — included/excluded rows (wildcard)
+        foreach (['included', 'excluded'] as $group) {
+            $rules["service_areas_{$group}"]                    = ['nullable', 'array'];
+            $rules["service_areas_{$group}.*.area_type"]        = ['required', 'in:city,county,zip,custom_area'];
+            $rules["service_areas_{$group}.*.name"]             = ['nullable', 'string', 'max:255'];
+            $rules["service_areas_{$group}.*.city"]             = ['nullable', 'string', 'max:100'];
+            $rules["service_areas_{$group}.*.county"]           = ['nullable', 'string', 'max:100'];
+            $rules["service_areas_{$group}.*.state"]            = ['nullable', 'string', 'max:100'];
+            $rules["service_areas_{$group}.*.zip_code"]         = ['nullable', 'string', 'max:20'];
+            $rules["service_areas_{$group}.*.notes"]            = ['nullable', 'string', 'max:1000'];
+            $rules["service_areas_{$group}.*.delivery_allowed"] = ['nullable', 'in:0,1'];
+            $rules["service_areas_{$group}.*.pickup_allowed"]   = ['nullable', 'in:0,1'];
+            $rules["service_areas_{$group}.*.is_active"]        = ['nullable', 'in:0,1'];
         }
 
         return $rules;

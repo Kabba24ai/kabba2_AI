@@ -286,6 +286,15 @@ class AIPageMetadataGenerator
 
     private function resolveAreaServed(): array
     {
+        // Use the SchemaBuilder's combined area-served list (service area rows take
+        // precedence; falls back to store city/state/zip when no areas are defined)
+        $nodes = $this->schema->buildAreaServed();
+
+        if (!empty($nodes)) {
+            return $nodes;
+        }
+
+        // Absolute fallback: all active store addresses
         return Store::active()->get()->map(fn($s) => array_filter([
             'city'    => $s->city,
             'state'   => $s->state?->name,

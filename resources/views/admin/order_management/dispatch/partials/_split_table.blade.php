@@ -14,7 +14,7 @@
                     <th class="py-3 px-4 text-left">Address</th>
                     <th class="py-3 px-4 text-center">Date</th>
                     <th class="py-3 px-4 text-center text-blue-700">Driver</th>
-                    <th class="py-3 px-3 text-center">Act.</th>
+                    <th class="py-3 px-1 text-center"></th>
                 </tr>
             </thead>
             <tbody class="divide-y">
@@ -78,12 +78,10 @@
                         @endif
                     </td>
                     {{-- Actions --}}
-                    <td class="py-3 px-3 text-center">
-                        <div class="flex gap-2 justify-center">
-                            <a href="{{ route('admin.order-management.orders.edit', $op->order?->unique_id ?? 0) }}" class="text-sky-600 hover:text-sky-800" title="View Order">
-                                <x-heroicon-o-eye class="w-4 h-4" />
-                            </a>
-                        </div>
+                    <td class="py-3 px-1 text-center">
+                        <a href="{{ route('admin.order-management.orders.edit', $op->order?->unique_id ?? 0) }}" class="text-sky-600 hover:text-sky-800" title="View Order">
+                            <x-heroicon-o-eye class="w-4 h-4" />
+                        </a>
                     </td>
                 </tr>
                 @empty
@@ -107,7 +105,7 @@
                     <th class="py-3 px-4 text-left">Address</th>
                     <th class="py-3 px-4 text-center">Date</th>
                     <th class="py-3 px-4 text-center text-purple-700">Driver</th>
-                    <th class="py-3 px-3 text-center">Act.</th>
+                    <th class="py-3 px-1 text-center"></th>
                 </tr>
             </thead>
             <tbody class="divide-y">
@@ -171,12 +169,10 @@
                         @endif
                     </td>
                     {{-- Actions --}}
-                    <td class="py-3 px-3 text-center">
-                        <div class="flex gap-2 justify-center">
-                            <a href="{{ route('admin.order-management.orders.edit', $op->order?->unique_id ?? 0) }}" class="text-sky-600 hover:text-sky-800" title="View Order">
-                                <x-heroicon-o-eye class="w-4 h-4" />
-                            </a>
-                        </div>
+                    <td class="py-3 px-1 text-center">
+                        <a href="{{ route('admin.order-management.orders.edit', $op->order?->unique_id ?? 0) }}" class="text-sky-600 hover:text-sky-800" title="View Order">
+                            <x-heroicon-o-eye class="w-4 h-4" />
+                        </a>
                     </td>
                 </tr>
                 @empty

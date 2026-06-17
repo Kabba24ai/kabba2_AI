@@ -11,6 +11,7 @@ use App\Models\Dispatch\DispatchAiTruck;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Stores\Store;
+use App\Services\DispatchAI\DispatchAIService;
 
 class AiRulesController extends Controller
 {
@@ -98,6 +99,34 @@ class AiRulesController extends Controller
         $trailerTypes     = self::TRAILER_TYPES;
         $hitchTypes       = self::TRAILER_TYPES; // alias used by trailer fields partial
 
+        // AI Policy tab data
+        $settingsArr = [
+            'prefer_same_driver_for_returns' => $settings->prefer_same_driver_for_returns,
+            'allow_early_delivery'           => $settings->allow_early_delivery,
+            'route_minimize_miles'           => $settings->route_minimize_miles,
+            'route_batch_nearby_deliveries'  => $settings->route_batch_nearby_deliveries,
+            'route_batch_nearby_pickups'     => $settings->route_batch_nearby_pickups,
+            'route_keep_driver_near_home'    => $settings->route_keep_driver_near_home,
+        ];
+        $defaultPolicy = DispatchAIService::defaultPolicy($settingsArr);
+
+        // Build the merged (overrides applied) policy for the preview pane
+        $mergedPolicy = $defaultPolicy;
+        foreach ($settings->policy_overrides ?? [] as $key => $override) {
+            if (!isset($mergedPolicy[$key])) {
+                continue;
+            }
+            if (!empty($override['detail'])) {
+                $mergedPolicy[$key]['detail'] = $override['detail'];
+            }
+            foreach (['driver_lock', 'priority_lock', 'no_double_book', 'fabrication'] as $sub) {
+                if (!empty($override[$sub])) {
+                    $mergedPolicy[$key][$sub] = $override[$sub];
+                }
+            }
+        }
+        $policyPreviewJson = json_encode($mergedPolicy, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
         return view('admin.order_management.dispatch.ai_rules.index', compact(
             'settings',
             'drivers',
@@ -111,6 +140,8 @@ class AiRulesController extends Controller
             'activeTruckTypes',
             'trailerTypes',
             'hitchTypes',
+            'defaultPolicy',
+            'policyPreviewJson',
         ));
     }
 }

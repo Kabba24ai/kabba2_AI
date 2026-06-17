@@ -6,7 +6,7 @@ use App\Services\OpenAIService;
 
 class DispatchAIService
 {
-    private const DRIVER_CONTINUITY_BONUS = 25;
+    public const DRIVER_CONTINUITY_BONUS = 25;
 
     public function __construct(private readonly OpenAIService $openAI) {}
 
@@ -57,12 +57,16 @@ class DispatchAIService
         ];
     }
 
-    private function buildSystemPrompt(array $ctx): string
+    /**
+     * Returns the default policy rule set. Pass current settings so that
+     * boolean-driven rules (DRIVER_CONTINUITY, EARLY_DELIVERY, ROUTING) reflect live state.
+     * Exposed as public static so the AI Policy UI can render and preview the rules.
+     */
+    public static function defaultPolicy(array $settings = []): array
     {
-        $settings = $ctx['settings'] ?? [];
-        $continuityBonus = self::DRIVER_CONTINUITY_BONUS;
+        $bonus = self::DRIVER_CONTINUITY_BONUS;
 
-        $policy = [
+        return [
             'PRIMARY_PRIORITY_RULE' => [
                 'rule'   => 'Deliveries take absolute priority over pickups.',
                 'detail' => 'Always assign the best available driver, truck, and trailer to deliveries first. '
@@ -95,34 +99,56 @@ class DispatchAIService
                           . 'Batch optional pickups geographically with nearby deliveries when possible.',
             ],
             'DRIVER_CONTINUITY_RULE' => [
-                'rule'   => 'Prefer assigning the same driver for a return as made the original delivery.',
-                'enabled'=> (bool) ($settings['prefer_same_driver_for_returns'] ?? false),
-                'detail' => "Add a +" . $continuityBonus . " continuity bonus score to the same driver when evaluating return assignments. "
-                          . 'Only override if the driver is locked on another job at the same time, at capacity, or lacks the required equipment capabilities.',
+                'rule'    => 'Prefer assigning the same driver for a return as made the original delivery.',
+                'enabled' => (bool) ($settings['prefer_same_driver_for_returns'] ?? false),
+                'detail'  => "Add a +{$bonus} continuity bonus score to the same driver when evaluating return assignments. "
+                           . 'Only override if the driver is locked on another job at the same time, at capacity, or lacks the required equipment capabilities.',
             ],
             'EARLY_DELIVERY_RULE' => [
-                'rule'   => 'Recommend early delivery for weekend jobs that can be completed Thursday or Friday.',
-                'enabled'=> (bool) ($settings['allow_early_delivery'] ?? false),
-                'detail' => 'If a delivery is scheduled for Saturday or Sunday and the customer would accept early delivery, '
-                          . 'flag is_early_delivery = true and set suggested_delivery_date to the preceding Thursday or Friday. '
-                          . 'This balances driver workload across the week.',
+                'rule'    => 'Recommend early delivery for weekend jobs that can be completed Thursday or Friday.',
+                'enabled' => (bool) ($settings['allow_early_delivery'] ?? false),
+                'detail'  => 'If a delivery is scheduled for Saturday or Sunday and the customer would accept early delivery, '
+                           . 'flag is_early_delivery = true and set suggested_delivery_date to the preceding Thursday or Friday. '
+                           . 'This balances driver workload across the week.',
             ],
             'ROUTING_OPTIMIZATION_RULES' => [
-                'minimize_miles'       => (bool) ($settings['route_minimize_miles'] ?? false),
+                'minimize_miles'          => (bool) ($settings['route_minimize_miles'] ?? false),
                 'batch_nearby_deliveries' => (bool) ($settings['route_batch_nearby_deliveries'] ?? false),
-                'batch_nearby_pickups' => (bool) ($settings['route_batch_nearby_pickups'] ?? false),
-                'keep_driver_near_home'=> (bool) ($settings['route_keep_driver_near_home'] ?? false),
-                'detail' => 'Use latitude/longitude on each order to cluster nearby jobs. '
-                          . 'Assign priorities so that drivers travel in logical geographic sequences. '
-                          . 'When keep_driver_near_home is true, prefer assigning drivers to jobs close to their home_store_id.',
+                'batch_nearby_pickups'    => (bool) ($settings['route_batch_nearby_pickups'] ?? false),
+                'keep_driver_near_home'   => (bool) ($settings['route_keep_driver_near_home'] ?? false),
+                'detail'                  => 'Use latitude/longitude on each order to cluster nearby jobs. '
+                                           . 'Assign priorities so that drivers travel in logical geographic sequences. '
+                                           . 'When keep_driver_near_home is true, prefer assigning drivers to jobs close to their home_store_id.',
             ],
             'HARD_CONSTRAINTS' => [
-                'driver_lock'   => 'NEVER change any assignment where driver_locked = true. Preserve the existing assigned_driver_id.',
-                'priority_lock' => 'NEVER change any priority where priority_locked = true. Preserve the existing priority value.',
-                'no_double_book'=> 'NEVER assign the same driver to two jobs on the same date unless jobs are in clearly different time windows.',
-                'fabrication'   => 'Return ONLY order_product_ids provided in the context. Never fabricate IDs.',
+                'driver_lock'    => 'NEVER change any assignment where driver_locked = true. Preserve the existing assigned_driver_id.',
+                'priority_lock'  => 'NEVER change any priority where priority_locked = true. Preserve the existing priority value.',
+                'no_double_book' => 'NEVER assign the same driver to two jobs on the same date unless jobs are in clearly different time windows.',
+                'fabrication'    => 'Return ONLY order_product_ids provided in the context. Never fabricate IDs.',
             ],
         ];
+    }
+
+    private function buildSystemPrompt(array $ctx): string
+    {
+        $settings = $ctx['settings'] ?? [];
+        $policy   = static::defaultPolicy($settings);
+
+        // Merge any saved overrides from the AI Policy editor
+        foreach ($settings['policy_overrides'] ?? [] as $key => $override) {
+            if (!isset($policy[$key])) {
+                continue;
+            }
+            if (!empty($override['detail'])) {
+                $policy[$key]['detail'] = $override['detail'];
+            }
+            // HARD_CONSTRAINTS stores its text in named sub-keys instead of 'detail'
+            foreach (['driver_lock', 'priority_lock', 'no_double_book', 'fabrication'] as $sub) {
+                if (!empty($override[$sub])) {
+                    $policy[$key][$sub] = $override[$sub];
+                }
+            }
+        }
 
         $policyJson  = json_encode($policy, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $contextJson = json_encode($ctx, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);

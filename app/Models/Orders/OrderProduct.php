@@ -2,15 +2,19 @@
 
 namespace App\Models\Orders;
 
-use App\Enums\Orders\OrderMediaType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
+// Enums
+use App\Enums\Orders\EquipmentDriverStatus;
+use App\Enums\Orders\OrderMediaType;
 
 // Helpers
 use App\Helpers\ModelHelper;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate;
 use App\Models\Global\Media;
 use App\Models\MaintenanceManagement\Equipment;
+
 // Models
 use App\Models\ProductManagement\Product;
 use App\Models\Stores\Store;
@@ -82,17 +86,22 @@ class OrderProduct extends Model
         'assigned_at',
 
         'dispatch_checklist',   // JSON: driver pre-delivery checklist state
+
+        'equipment_fuel',
+        'equipment_key_location',
+        'equipment_driver_status',
     ];
 
     // In your OrderProduct.php model
     protected $casts = [
-        'product_data'             => 'array',
-        'equipment_details'        => 'array',
-        'dispatch_checklist'       => 'array',
+        'product_data'       => 'array',
+        'equipment_details'  => 'array',
+        'dispatch_checklist' => 'array',
         'delivery_driver_locked'   => 'boolean',
         'delivery_priority_locked' => 'boolean',
         'pickup_driver_locked'     => 'boolean',
         'pickup_priority_locked'   => 'boolean',
+        'equipment_driver_status' => EquipmentDriverStatus::class,
     ];
 
     // Relationships

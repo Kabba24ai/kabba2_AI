@@ -23,11 +23,18 @@
                 <div class="font-medium text-sm text-indigo-800">Enable Nightly AI Dispatch</div>
                 <div class="text-xs text-indigo-600 mt-0.5">AI will run automatically each night at the configured time and build a draft dispatch plan.</div>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer mt-0.5">
-                <input type="checkbox" name="ai_enabled" value="1" class="sr-only peer"
+            <div class="shrink-0 mt-0.5">
+                <button type="button" role="switch"
+                    class="dispatch-ai-toggle relative inline-block w-11 h-6 rounded-full cursor-pointer"
+                    style="background-color:{{ $settings->ai_enabled ? '#4f46e5' : '#d1d5db' }};transition:background-color .2s"
+                    data-target="chk-ai-enabled"
+                    aria-checked="{{ $settings->ai_enabled ? 'true' : 'false' }}">
+                    <span class="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+                        style="transform:translateX({{ $settings->ai_enabled ? '24px' : '4px' }});transition:transform .2s"></span>
+                </button>
+                <input type="checkbox" id="chk-ai-enabled" name="ai_enabled" value="1" class="sr-only"
                     {{ $settings->ai_enabled ? 'checked' : '' }}>
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-            </label>
+            </div>
         </div>
 
         {{-- Cron schedule --}}
@@ -67,11 +74,18 @@
                     as made the original delivery. A +25 continuity bonus score is applied during driver selection.
                 </div>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer mt-0.5">
-                <input type="checkbox" name="prefer_same_driver_for_returns" value="1" class="sr-only peer"
+            <div class="shrink-0 mt-0.5">
+                <button type="button" role="switch"
+                    class="dispatch-ai-toggle relative inline-block w-11 h-6 rounded-full cursor-pointer"
+                    style="background-color:{{ $settings->prefer_same_driver_for_returns ? '#4f46e5' : '#d1d5db' }};transition:background-color .2s"
+                    data-target="chk-prefer-same-driver"
+                    aria-checked="{{ $settings->prefer_same_driver_for_returns ? 'true' : 'false' }}">
+                    <span class="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+                        style="transform:translateX({{ $settings->prefer_same_driver_for_returns ? '24px' : '4px' }});transition:transform .2s"></span>
+                </button>
+                <input type="checkbox" id="chk-prefer-same-driver" name="prefer_same_driver_for_returns" value="1" class="sr-only"
                     {{ $settings->prefer_same_driver_for_returns ? 'checked' : '' }}>
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-            </label>
+            </div>
         </div>
 
         {{-- Allow toggles --}}
@@ -113,3 +127,18 @@
         </div>
     </div>
 </form>
+
+<script>
+(function () {
+    document.querySelectorAll('.dispatch-ai-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var input = document.getElementById(this.dataset.target);
+            input.checked = !input.checked;
+            var on = input.checked;
+            this.style.backgroundColor = on ? '#4f46e5' : '#d1d5db';
+            this.querySelector('span').style.transform = on ? 'translateX(24px)' : 'translateX(4px)';
+            this.setAttribute('aria-checked', String(on));
+        });
+    });
+})();
+</script>

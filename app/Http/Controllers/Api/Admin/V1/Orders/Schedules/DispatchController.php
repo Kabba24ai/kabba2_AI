@@ -30,7 +30,8 @@ class DispatchController extends BaseController
         $search = $validatedData['search'] ?? null;
         $categoryId = $validatedData['category_id'] ?? null;
         $scheduleType = $validatedData['schedule_type'] ?? null;
-        $dateFilter = $validatedData['date_filter'] ?? null;
+        $dateFilter = $validatedData['date_filter'] ?? null;+
+        $driverId = $validatedData['driver_id'] ?? null;
 
         $query = OrderProduct::query()->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee')->where('product_data->product_type', 'Rental')->whereHas('order')->whereNotNull('delivery_date');
 
@@ -93,8 +94,8 @@ class DispatchController extends BaseController
         }
 
         // Driver filter — scope by slot(s) matching the schedule type selection
-        if (isset($validatedData['driver_id']) && !empty($validatedData['driver_id'])) {
-            $driverId = (int) $validatedData['driver_id'];
+        if ($driverId) {
+            $driverId = (int) $driverId;
             $query->where(function ($q) use ($driverId, $isDeliveryOnly, $isReturnOnly) {
                 if ($isDeliveryOnly) {
                     $q->where('delivery_by', $driverId);
@@ -106,7 +107,7 @@ class DispatchController extends BaseController
             });
         }
 
-         // Date filter — reference the correct date column(s) per schedule selection
+        // Date filter — reference the correct date column(s) per schedule selection
         if ($dateFilter && $dateFilter !== 'All') {
             $useBothDates = $isBothSelected || empty($scheduleTypes);
             $dateField    = $isReturnOnly ? 'pickup_date' : 'delivery_date';
@@ -146,9 +147,24 @@ class DispatchController extends BaseController
             }
         }
 
-        $orders = $query->paginate($perPage);
+        if ($isBothSelected || empty($scheduleTypes)) {
+            $orderProducts = $query
+                ->orderByRaw("LEAST(COALESCE(delivery_priority, 9999), COALESCE(pickup_priority, 9999)) ASC")
+                ->orderByRaw("LEAST(COALESCE(delivery_date, '9999-12-31'), COALESCE(pickup_date, '9999-12-31')) ASC")
+                ->paginate($perPage)->withQueryString();
+        } elseif ($isReturnOnly) {
+            $orderProducts = $query
+                ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
+                ->orderBy('pickup_date', 'asc')
+                ->paginate($perPage)->withQueryString();
+        } else {
+            $orderProducts = $query
+                ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
+                ->orderBy('delivery_date', 'asc')
+                ->paginate($perPage)->withQueryString();
+        }
 
-        if ($orders->isEmpty()) {
+        if ($orderProducts->isEmpty()) {
             return response()->json(
                 [
                     'success' => false,
@@ -161,12 +177,12 @@ class DispatchController extends BaseController
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.orders.dispatch_schedules_found'),
-            'orders' => ListResource::collection($orders),
+            'orders' => ListResource::collection($orderProducts),
             'pagination' => [
-                'current_page' => $orders->currentPage(),
-                'last_page' => $orders->lastPage(),
-                'per_page' => $orders->perPage(),
-                'total' => $orders->total(),
+                'current_page' => $orderProducts->currentPage(),
+                'last_page' => $orderProducts->lastPage(),
+                'per_page' => $orderProducts->perPage(),
+                'total' => $orderProducts->total(),
             ],
         ]);
     }

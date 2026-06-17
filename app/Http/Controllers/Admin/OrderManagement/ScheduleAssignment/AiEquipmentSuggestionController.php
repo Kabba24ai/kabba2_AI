@@ -9,13 +9,12 @@ use App\Models\MaintenanceManagement\EquipmentCategoryComparisonKey;
 use App\Models\Orders\OrderProduct;
 use App\Services\AiEquipmentSuggestionService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class AiEquipmentSuggestionController extends Controller
 {
     public function __construct(private AiEquipmentSuggestionService $aiService) {}
 
-    public function __invoke(Request $request, int $orderProductId): JsonResponse
+    public function __invoke(int $orderProductId): JsonResponse
     {
         // ── 1. Load order product ─────────────────────────────────────────────
         $orderProduct = OrderProduct::with([
@@ -45,7 +44,10 @@ class AiEquipmentSuggestionController extends Controller
         // ── 3. Candidate equipment ────────────────────────────────────────────
         $deliveryDate    = $orderProduct->delivery_date;
         $pickupDate      = $orderProduct->pickup_date;
-        $currentAssignId = $orderProduct->softAssignment?->equipment_id;
+        // Match the same priority the UI uses: hard-assigned equipment_id first (committed),
+        // then soft assignment (planning step only).
+        $currentAssignId = $orderProduct->equipment_id
+            ?? $orderProduct->softAssignment?->equipment_id;
 
         $candidates = Equipment::with(['productCategory', 'store'])
             ->where('not_for_rent', 0)

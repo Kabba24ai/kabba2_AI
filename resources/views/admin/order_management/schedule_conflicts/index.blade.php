@@ -169,14 +169,6 @@
                                         </span>
                                     </div>
                                     <div class="flex items-center gap-2 shrink-0">
-                                        <button type="button"
-                                            class="ai-suggest-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 transition shadow-sm"
-                                            data-conflict-index="{{ $loopIndex }}"
-                                            data-order-product-id="{{ $primaryOpId }}"
-                                            data-equipment-name="{{ $equipment?->equipment_name }}">
-                                            <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
-                                            Ai Suggest!
-                                        </button>
                                         <a href="{{ $scheduleAssignUrl }}"
                                            title="View all {{ $equipment?->productCategory?->title ?? 'equipment' }} in Schedule Assignment"
                                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm">
@@ -335,6 +327,14 @@
                                             <x-heroicon-o-eye class="w-4 h-4" />
                                         @endif
                                     </a>
+                                    <button type="button"
+                                        class="ai-suggest-btn inline-flex items-center gap-1 rounded-md border border-purple-300 bg-purple-50 px-2 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-100"
+                                        data-order-product-id="{{ $op->id }}"
+                                        data-equipment-name="{{ $op->product_name }}"
+                                        title="AI Equipment Suggestion">
+                                        <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
+                                        AI
+                                    </button>
                                 </div>
                             </td>
 
@@ -406,14 +406,6 @@
                                 <span class="text-xs text-gray-500">Order Assigned to Damaged Equipment</span>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
-                                <button type="button"
-                                    class="ai-suggest-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 transition shadow-sm"
-                                    data-conflict-index="d{{ $dLoopIndex }}"
-                                    data-order-product-id="{{ $dPrimaryOpId }}"
-                                    data-equipment-name="{{ $dEquipment?->equipment_name }}">
-                                    <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
-                                    Ai Suggest!
-                                </button>
                                 <a href="{{ $resolveUrl }}"
                                    title="Update equipment status in Maintenance Management"
                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition shadow-sm">
@@ -559,6 +551,14 @@
                                     <x-heroicon-o-eye class="w-4 h-4" />
                                 @endif
                             </a>
+                            <button type="button"
+                                class="ai-suggest-btn inline-flex items-center gap-1 rounded-md border border-purple-300 bg-purple-50 px-2 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-100"
+                                data-order-product-id="{{ $op->id }}"
+                                data-equipment-name="{{ $op->product_name }}"
+                                title="AI Equipment Suggestion">
+                                <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
+                                AI
+                            </button>
                         </div>
                     </td>
 
@@ -807,6 +807,14 @@
                                     <x-heroicon-o-eye class="w-4 h-4" />
                                 @endif
                             </a>
+                            <button type="button"
+                                class="ai-suggest-btn inline-flex items-center gap-1 rounded-md border border-purple-300 bg-purple-50 px-2 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-100"
+                                data-order-product-id="{{ $op->id }}"
+                                data-equipment-name="{{ $op->product_name }}"
+                                title="AI Equipment Suggestion">
+                                <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
+                                AI
+                            </button>
                         </div>
                     </td>
                 </tr>

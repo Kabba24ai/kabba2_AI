@@ -31,38 +31,46 @@
     </div>
 
     {{-- Existing Trailers --}}
+    <div class="grid grid-cols-3 gap-4">
     @forelse ($trailers as $trailer)
-        <div class="bg-white rounded-xl shadow-sm border">
-            <div class="flex items-center gap-3 px-5 py-3 border-b bg-gray-50 rounded-t-xl">
-                <x-heroicon-o-rectangle-stack class="w-4 h-4 text-purple-600" />
-                <span class="font-semibold text-sm">{{ $trailer->trailer_name }}</span>
+        <div class="bg-white rounded-xl shadow-sm border flex flex-col">
+            <div class="flex items-center gap-3 px-4 py-3 border-b bg-gray-50 rounded-t-xl">
+                <x-heroicon-o-rectangle-stack class="w-4 h-4 text-purple-600 shrink-0" />
+                <div class="flex flex-col min-w-0">
+                    <span class="font-semibold text-sm truncate">{{ $trailer->trailer_name }}</span>
+                </div>
                 @if ($trailer->trailer_number)
-                    <span class="text-xs text-gray-400">#{{ $trailer->trailer_number }}</span>
+                    <span class="text-xs text-gray-400 shrink-0">#{{ $trailer->trailer_number }}</span>
                 @endif
-                <span class="ml-auto text-xs {{ $trailer->is_active ? 'text-green-600 bg-green-50 border-green-200' : 'text-gray-400 bg-gray-100 border-gray-200' }} border px-2 py-0.5 rounded-full">
+                <span class="ml-auto shrink-0 text-xs {{ $trailer->is_active ? 'text-green-600 bg-green-50 border-green-200' : 'text-gray-400 bg-gray-100 border-gray-200' }} border px-2 py-0.5 rounded-full">
                     {{ $trailer->is_active ? 'Active' : 'Inactive' }}
                 </span>
             </div>
-            <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.trailer.save') }}" class="p-5">
+            {{-- Save form — closed before footer so delete form is not nested --}}
+            <form id="save-trailer-{{ $trailer->id }}" method="POST"
+                action="{{ route('admin.order-management.dispatch.ai-rules.trailer.save') }}" class="p-4 flex flex-col flex-1">
                 @csrf
                 <input type="hidden" name="id" value="{{ $trailer->id }}">
                 @include('admin.order_management.dispatch.ai_rules.partials._trailer_fields', ['trailer' => $trailer])
-                <div class="mt-4 flex justify-between items-center">
-                    <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.trailer.delete', $trailer->id) }}" onsubmit="return confirm('Remove this trailer?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="text-xs text-red-600 hover:underline">Remove</button>
-                    </form>
-                    <button type="submit"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-medium">
-                        Save
-                    </button>
-                </div>
             </form>
+            {{-- Footer: delete form + save button as siblings (not nested) --}}
+            <div class="px-4 pb-4 flex justify-between items-center">
+                <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.trailer.delete', $trailer->id) }}"
+                    onsubmit="return confirm('Remove this trailer?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="text-xs text-red-600 hover:underline">Remove</button>
+                </form>
+                <button type="submit" form="save-trailer-{{ $trailer->id }}"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-medium">
+                    Save
+                </button>
+            </div>
         </div>
     @empty
-        <div class="bg-white rounded-xl shadow-sm p-8 text-center text-gray-400 text-sm italic">
+        <div class="col-span-3 bg-white rounded-xl shadow-sm p-8 text-center text-gray-400 text-sm italic">
             No trailers added yet. Click "Add Trailer" to get started.
         </div>
     @endforelse
+    </div>
 
 </div>

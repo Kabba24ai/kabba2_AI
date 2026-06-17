@@ -127,7 +127,13 @@
                         @endphp
                         <div class="flex flex-col items-center">
                             <div class="flex items-center justify-center gap-1">
-                                <x-heroicon-o-truck class="w-4 h-4 {{ $iconColor }}" />
+                                @if (!empty($orderProduct->delivery_transport_mode))
+                                    @if ($orderProduct->delivery_transport_mode === 'Truck')
+                                        <x-heroicon-o-truck class="w-4 h-4 {{ $iconColor }}" />
+                                    @else
+                                        <x-heroicon-o-building-storefront class="w-4 h-4 {{ $iconColor }}" />
+                                    @endif
+                                @endif
                                 <span>
                                     {{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date, 'M d, y') : 'N/A' }}
                                 </span>
@@ -168,7 +174,11 @@
                                 data-delivery-date="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date, 'M d, y') : '' }}"
                                 data-current-driver-id=""
                                 data-current-driver-name="">
-                                <x-heroicon-o-truck class="w-3.5 h-3.5" />
+                                @if ($orderProduct->delivery_transport_mode === 'Truck')
+                                    <x-heroicon-o-truck class="w-3.5 h-3.5" />
+                                @else
+                                    <x-heroicon-o-building-storefront class="w-3.5 h-3.5" />
+                                @endif
                                 Assign
                             </button>
                         @endif
@@ -181,7 +191,13 @@
                         @endphp
                         <div class="flex flex-col items-center">
                             <div class="flex items-center justify-center gap-1">
-                                <x-heroicon-o-arrow-uturn-left class="w-4 h-4 {{ $iconColor }}" />
+                                @if (!empty($orderProduct->pickup_transport_mode))
+                                    @if ($orderProduct->pickup_transport_mode === 'Truck')
+                                        <x-heroicon-o-truck class="w-4 h-4 {{ $iconColor }}" />
+                                    @else
+                                        <x-heroicon-o-building-storefront class="w-4 h-4 {{ $iconColor }}" />
+                                    @endif
+                                @endif
                                 <span>
                                     {{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date, 'M d, y') : 'N/A' }}
                                 </span>
@@ -222,7 +238,11 @@
                                 data-delivery-date="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date, 'M d, y') : '' }}"
                                 data-current-driver-id=""
                                 data-current-driver-name="">
-                                <x-heroicon-o-arrow-uturn-left class="w-3.5 h-3.5" />
+                                @if ($orderProduct->pickup_transport_mode === 'Truck')
+                                    <x-heroicon-o-truck class="w-3.5 h-3.5" />
+                                @else
+                                    <x-heroicon-o-building-storefront class="w-3.5 h-3.5" />
+                                @endif
                                 Assign
                             </button>
                         @endif

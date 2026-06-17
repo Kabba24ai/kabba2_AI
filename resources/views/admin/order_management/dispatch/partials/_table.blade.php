@@ -6,13 +6,13 @@
                 <th class="py-4 px-6 text-center">Order</th>
                 <th class="py-4 px-6 text-left">Customer</th>
                 <th class="py-4 px-6 text-left">Delivery Address</th>
-                <th class="py-4 px-3 text-left">Phone</th>
+                <th class="py-4 px-1 text-left">Phone</th>
                 <th class="py-4 px-6 text-center">Equipment</th>
-                <th class="py-4 px-6 text-center">Location</th>
-                <th class="py-4 px-6 text-center">Delivery Date</th>
-                <th class="py-4 px-6 text-center text-blue-700">Driver</th>
-                <th class="py-4 px-6 text-center">Return Date</th>
-                <th class="py-4 px-6 text-center text-purple-700">Driver</th>
+                <th class="py-4 px-[19px] text-center">Location</th>
+                <th class="py-4 px-[22px] text-center">Delivery Date</th>
+                <th class="py-4 px-[22px] text-center text-blue-700">Driver</th>
+                <th class="py-4 px-[22px] text-center">Return Date</th>
+                <th class="py-4 px-[22px] text-center text-purple-700">Driver</th>
                 <th class="py-4 px-2 text-center"></th>
             </tr>
         </thead>
@@ -57,7 +57,7 @@
                         {!! $orderProduct->order?->view_link ?? '-' !!}
                     </td>
 
-                    <td class="py-4 px-6 text-left max-w-0 w-36 overflow-hidden">
+                    <td class="py-4 px-6 text-left max-w-0 w-[186px] overflow-hidden">
                         <div class="font-medium truncate">
                             {{ $orderProduct->order?->customer_name ?? '-' }}
                         </div>
@@ -77,7 +77,7 @@
                         {{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}
                     </td>
 
-                    <td class="py-4 px-3 text-left tabular-nums">
+                    <td class="py-4 px-1 text-left tabular-nums">
                         {{ $orderProduct->order?->shippingAddress?->phone ?? '-' }}
                     </td>
 
@@ -107,7 +107,7 @@
                         </div>
                     </td>
 
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-[19px] text-center">
                         <div class="inline-flex items-center gap-1">
                             @if ($orderProduct?->equipment?->current_status?->isRented())
                                 <a href="{{ route('admin.crm.customers.view', $orderProduct?->order?->customer?->unique_id ?? 0) }}"
@@ -121,7 +121,7 @@
                     </td>
 
                     {{-- Delivery Date --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-[22px] text-center">
                         @php
                             $iconColor = $orderProduct->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                         @endphp
@@ -145,7 +145,7 @@
                     </td>
 
                     {{-- Delivery Driver --}}
-                    <td class="py-4 px-6 text-center min-w-[8rem]">
+                    <td class="py-4 px-[22px] text-center min-w-[8rem]">
                         @if ($orderProduct->deliveryEmployee)
                             <button type="button"
                                 class="assign-driver-btn text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
@@ -185,7 +185,7 @@
                     </td>
 
                     {{-- Return Date --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-[22px] text-center">
                         @php
                             $iconColor = $orderProduct->pickup_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                         @endphp
@@ -209,7 +209,7 @@
                     </td>
 
                     {{-- Return Driver --}}
-                    <td class="py-4 px-6 text-center min-w-[8rem]">
+                    <td class="py-4 px-[22px] text-center min-w-[8rem]">
                         @if ($orderProduct->pickupEmployee)
                             <button type="button"
                                 class="assign-driver-btn text-xs font-semibold text-purple-700 hover:text-purple-900 hover:underline cursor-pointer"

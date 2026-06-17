@@ -29,17 +29,27 @@
             <x-heroicon-o-truck class="w-6 h-6 text-blue-600" />
             Dispatch Management
         </h1>
-        <a href="{{ route('admin.order-management.dispatch.index') }}"
-            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2">
-            <x-heroicon-o-arrow-path class="w-5 h-5" />
-            Reload
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.order-management.dispatch.ai-rules.index') }}"
+                class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm">
+                <x-heroicon-o-cpu-chip class="w-4 h-4" />
+                Dispatch AI Rules
+            </a>
+            <a href="{{ route('admin.order-management.dispatch.index') }}"
+                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-md flex items-center gap-2">
+                <x-heroicon-o-arrow-path class="w-5 h-5" />
+                Reload
+            </a>
+        </div>
     </div>
 
     {{-- ===== Driver Workload Summary ===== --}}
     <div id="driver-cards-wrapper" class="mb-4">
         @include('admin.order_management.dispatch.partials._driver_cards', ['driverCards' => $driverCards])
     </div>
+
+    {{-- ===== AI Draft Panel ===== --}}
+    @include('admin.order_management.dispatch.partials._ai_draft', ['latestDraft' => $latestDraft ?? null])
 
     <script>
     document.addEventListener('click', function (e) {

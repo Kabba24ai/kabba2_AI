@@ -17,9 +17,17 @@ class PriorityController extends Controller
 
         $orderProduct = OrderProduct::where('unique_id', $unique_id)->firstOrFail();
 
-        $field = $request->type === 'delivery' ? 'delivery_priority' : 'pickup_priority';
-        $orderProduct->update([$field => $request->priority ?: null]);
+        $isDelivery    = $request->type === 'delivery';
+        $priorityField = $isDelivery ? 'delivery_priority' : 'pickup_priority';
+        $lockField     = $isDelivery ? 'delivery_priority_locked' : 'pickup_priority_locked';
 
-        return response()->json(['success' => true, 'priority' => $orderProduct->$field]);
+        $newPriority = $request->priority ?: null;
+
+        $orderProduct->update([
+            $priorityField => $newPriority,
+            $lockField     => $newPriority !== null,  // lock when set, release when cleared
+        ]);
+
+        return response()->json(['success' => true, 'priority' => $orderProduct->$priorityField]);
     }
 }

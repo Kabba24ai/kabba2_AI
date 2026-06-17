@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\OrderManagement\Dispatch;
 
 use App\Http\Controllers\Controller;
+use App\Models\Dispatch\DispatchAiDraft;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use Illuminate\Http\Request;
@@ -331,6 +332,11 @@ class IndexController extends Controller
         // --- Driver workload cards (top of page) ---
         $driverCards = $this->buildDriverCards();
 
+        // --- Latest AI draft (today or most recent) ---
+        $latestDraft = DispatchAiDraft::with(['assignments.orderProduct.order', 'assignments.recommendedDriver'])
+            ->latest()
+            ->first();
+
         return view('admin.order_management.dispatch.index', [
             'categories'      => $categories,
             'stores'          => $stores,
@@ -338,6 +344,7 @@ class IndexController extends Controller
             'driverEmployees' => $driverEmployees,
             'driverPhones'    => $driverPhones,
             'driverCards'     => $driverCards,
+            'latestDraft'     => $latestDraft,
         ]);
     }
 }

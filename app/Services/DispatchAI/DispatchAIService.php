@@ -6,6 +6,8 @@ use App\Services\OpenAIService;
 
 class DispatchAIService
 {
+    private const DRIVER_CONTINUITY_BONUS = 25;
+
     public function __construct(private readonly OpenAIService $openAI) {}
 
     public function generateDraft(array $context): array
@@ -40,37 +42,101 @@ class DispatchAIService
         }
 
         return [
-            'assignments'      => $decoded['assignments'],
-            'overall_reasoning'=> $decoded['overall_reasoning'] ?? '',
-            'confidence_score' => $decoded['confidence_score'] ?? null,
-            'prompt_tokens'    => $response['usage']['prompt_tokens'] ?? null,
-            'completion_tokens'=> $response['usage']['completion_tokens'] ?? null,
-            'model'            => $response['model'] ?? null,
+            'assignments'                   => $decoded['assignments'],
+            'overall_reasoning'             => $decoded['overall_reasoning'] ?? '',
+            'confidence_score'              => $decoded['confidence_score'] ?? null,
+            'delivery_priority_summary'     => $decoded['delivery_priority_summary'] ?? null,
+            'pickup_decisions'              => $decoded['pickup_decisions'] ?? [],
+            'driver_assignments'            => $decoded['driver_assignments'] ?? [],
+            'early_delivery_recommendations'=> $decoded['early_delivery_recommendations'] ?? [],
+            'manager_review_items'          => $decoded['manager_review_items'] ?? [],
+            'warnings'                      => $decoded['warnings'] ?? [],
+            'prompt_tokens'                 => $response['usage']['prompt_tokens'] ?? null,
+            'completion_tokens'             => $response['usage']['completion_tokens'] ?? null,
+            'model'                         => $response['model'] ?? null,
         ];
     }
 
     private function buildSystemPrompt(array $ctx): string
     {
+        $settings = $ctx['settings'] ?? [];
+        $continuityBonus = self::DRIVER_CONTINUITY_BONUS;
+
+        $policy = [
+            'PRIMARY_PRIORITY_RULE' => [
+                'rule'   => 'Deliveries take absolute priority over pickups.',
+                'detail' => 'Always assign the best available driver, truck, and trailer to deliveries first. '
+                          . 'Pickups are secondary and should only use remaining capacity after all deliveries are scheduled.',
+            ],
+            'DELIVERY_MAXIMIZATION_RULE' => [
+                'rule'   => 'Maximize the number of deliveries completed per day.',
+                'detail' => 'Pack as many deliveries as possible into each driver\'s day before assigning any pickup. '
+                          . 'An idle driver with no delivery should not be assigned a pickup if doing so would conflict with a future delivery.',
+            ],
+            'MISSION_CRITICAL_PICKUP_RULE' => [
+                'rule'   => 'Classify each pickup as mission_critical, optional, or deferred.',
+                'detail' => 'mission_critical: customer equipment issue reported, overdue, or at a job site that needs the equipment recovered urgently. '
+                          . 'optional: normal end-of-rental with no urgency. '
+                          . 'deferred: can wait without impact. '
+                          . 'Only mission_critical pickups compete for driver time on heavy delivery days.',
+            ],
+            'CUSTOMER_TO_CUSTOMER_TRANSFER_RULE' => [
+                'rule'   => 'When equipment is going from one customer directly to another, treat the pickup leg as mission_critical.',
+                'detail' => 'If an order_product has an incoming delivery whose equipment is currently on rent elsewhere, '
+                          . 'flag the pickup of that equipment as mission_critical and attempt to schedule it the day before the outgoing delivery.',
+            ],
+            'SHOP_RETURN_RULE' => [
+                'rule'   => 'Equipment returning to the shop (no next customer) is optional unless flagged otherwise.',
+                'detail' => 'These pickups can be batched with nearby deliveries or deferred to low-volume days.',
+            ],
+            'OPTIONAL_PICKUP_RULE' => [
+                'rule'   => 'Optional pickups must not displace deliveries.',
+                'detail' => 'Only schedule optional pickups when a driver has remaining capacity after all deliveries in the window are covered. '
+                          . 'Batch optional pickups geographically with nearby deliveries when possible.',
+            ],
+            'DRIVER_CONTINUITY_RULE' => [
+                'rule'   => 'Prefer assigning the same driver for a return as made the original delivery.',
+                'enabled'=> (bool) ($settings['prefer_same_driver_for_returns'] ?? false),
+                'detail' => "Add a +" . $continuityBonus . " continuity bonus score to the same driver when evaluating return assignments. "
+                          . 'Only override if the driver is locked on another job at the same time, at capacity, or lacks the required equipment capabilities.',
+            ],
+            'EARLY_DELIVERY_RULE' => [
+                'rule'   => 'Recommend early delivery for weekend jobs that can be completed Thursday or Friday.',
+                'enabled'=> (bool) ($settings['allow_early_delivery'] ?? false),
+                'detail' => 'If a delivery is scheduled for Saturday or Sunday and the customer would accept early delivery, '
+                          . 'flag is_early_delivery = true and set suggested_delivery_date to the preceding Thursday or Friday. '
+                          . 'This balances driver workload across the week.',
+            ],
+            'ROUTING_OPTIMIZATION_RULES' => [
+                'minimize_miles'       => (bool) ($settings['route_minimize_miles'] ?? false),
+                'batch_nearby_deliveries' => (bool) ($settings['route_batch_nearby_deliveries'] ?? false),
+                'batch_nearby_pickups' => (bool) ($settings['route_batch_nearby_pickups'] ?? false),
+                'keep_driver_near_home'=> (bool) ($settings['route_keep_driver_near_home'] ?? false),
+                'detail' => 'Use latitude/longitude on each order to cluster nearby jobs. '
+                          . 'Assign priorities so that drivers travel in logical geographic sequences. '
+                          . 'When keep_driver_near_home is true, prefer assigning drivers to jobs close to their home_store_id.',
+            ],
+            'HARD_CONSTRAINTS' => [
+                'driver_lock'   => 'NEVER change any assignment where driver_locked = true. Preserve the existing assigned_driver_id.',
+                'priority_lock' => 'NEVER change any priority where priority_locked = true. Preserve the existing priority value.',
+                'no_double_book'=> 'NEVER assign the same driver to two jobs on the same date unless jobs are in clearly different time windows.',
+                'fabrication'   => 'Return ONLY order_product_ids provided in the context. Never fabricate IDs.',
+            ],
+        ];
+
+        $policyJson  = json_encode($policy, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $contextJson = json_encode($ctx, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
         return <<<PROMPT
 You are an expert dispatch planner for a heavy equipment rental company.
 
-Your job is to assign drivers, trucks, trailers, and priorities to delivery and return orders.
+Your job is to assign drivers, trucks, trailers, and priorities to delivery and pickup/return orders
+while following the business policy below exactly.
 
-## Rules
-1. NEVER change any assignment where driver_locked = true. Keep the existing assigned_driver_id for that slot.
-2. NEVER change the priority where priority_locked = true. Keep the existing priority value.
-3. If prefer_same_driver_for_returns = true, try to assign the same driver for a return as made the original delivery (delivery_driver_id field), unless that driver is unavailable or locked on another job at the same time.
-4. Do not double-book a driver on the same date unless jobs are in different time windows.
-5. Assign trucks and trailers based on equipment_rules (category requirements, payload capacity, hitch type, CDL requirements).
-6. If allow_early_delivery = true and early_delivery_enabled = true, recommend early_delivery = true for weekend jobs that could be done on Thursday/Friday to balance driver workload.
-7. Assign priorities to minimize total route miles where possible (route_minimize_miles setting).
-8. Batch nearby deliveries for the same driver on the same day (route_batch_nearby_deliveries).
-9. Prefer keeping drivers close to their home_store_id.
-10. Return ONLY the orders provided — do not fabricate order_product_ids.
+## Business Policy
+{$policyJson}
 
-## Context
+## Dispatch Context
 {$contextJson}
 PROMPT;
     }
@@ -78,10 +144,22 @@ PROMPT;
     private function responseSchema(): array
     {
         return [
-            'type'                  => 'object',
-            'required'              => ['assignments', 'overall_reasoning', 'confidence_score'],
-            'additionalProperties'  => false,
-            'properties'            => [
+            'type'                 => 'object',
+            'required'             => [
+                'assignments',
+                'overall_reasoning',
+                'confidence_score',
+                'delivery_priority_summary',
+                'pickup_decisions',
+                'driver_assignments',
+                'early_delivery_recommendations',
+                'manager_review_items',
+                'warnings',
+            ],
+            'additionalProperties' => false,
+            'properties'           => [
+
+                // ── Per-order assignment array ────────────────────────────────
                 'assignments' => [
                     'type'  => 'array',
                     'items' => [
@@ -94,20 +172,91 @@ PROMPT;
                         ],
                         'additionalProperties' => false,
                         'properties'           => [
-                            'order_product_id'       => ['type' => 'integer'],
-                            'slot'                   => ['type' => 'string', 'enum' => ['delivery', 'return']],
-                            'recommended_driver_id'  => ['type' => ['integer', 'null']],
-                            'recommended_truck_id'   => ['type' => ['integer', 'null']],
-                            'recommended_trailer_id' => ['type' => ['integer', 'null']],
-                            'recommended_priority'   => ['type' => ['integer', 'null']],
-                            'is_early_delivery'      => ['type' => 'boolean'],
-                            'suggested_delivery_date'=> ['type' => ['string', 'null']],
-                            'ai_reasoning'           => ['type' => 'string'],
+                            'order_product_id'        => ['type' => 'integer'],
+                            'slot'                    => ['type' => 'string', 'enum' => ['delivery', 'return']],
+                            'recommended_driver_id'   => ['type' => ['integer', 'null']],
+                            'recommended_truck_id'    => ['type' => ['integer', 'null']],
+                            'recommended_trailer_id'  => ['type' => ['integer', 'null']],
+                            'recommended_priority'    => ['type' => ['integer', 'null']],
+                            'is_early_delivery'       => ['type' => 'boolean'],
+                            'suggested_delivery_date' => ['type' => ['string', 'null']],
+                            'ai_reasoning'            => ['type' => 'string'],
                         ],
                     ],
                 ],
-                'overall_reasoning' => ['type' => 'string'],
-                'confidence_score'  => ['type' => ['number', 'null']],
+
+                // ── Top-level summaries ───────────────────────────────────────
+                'overall_reasoning'          => ['type' => 'string'],
+                'confidence_score'           => ['type' => ['number', 'null']],
+                'delivery_priority_summary'  => ['type' => 'string'],
+
+                // ── Pickup classification ─────────────────────────────────────
+                'pickup_decisions' => [
+                    'type'  => 'array',
+                    'items' => [
+                        'type'                 => 'object',
+                        'required'             => ['order_product_id', 'decision', 'reasoning'],
+                        'additionalProperties' => false,
+                        'properties'           => [
+                            'order_product_id' => ['type' => 'integer'],
+                            'decision'         => ['type' => 'string', 'enum' => ['mission_critical', 'optional', 'deferred']],
+                            'reasoning'        => ['type' => 'string'],
+                        ],
+                    ],
+                ],
+
+                // ── Per-driver load summary ───────────────────────────────────
+                'driver_assignments' => [
+                    'type'  => 'array',
+                    'items' => [
+                        'type'                 => 'object',
+                        'required'             => ['driver_id', 'driver_name', 'delivery_count', 'pickup_count', 'continuity_applied', 'load_summary'],
+                        'additionalProperties' => false,
+                        'properties'           => [
+                            'driver_id'          => ['type' => 'integer'],
+                            'driver_name'        => ['type' => 'string'],
+                            'delivery_count'     => ['type' => 'integer'],
+                            'pickup_count'       => ['type' => 'integer'],
+                            'continuity_applied' => ['type' => 'boolean'],
+                            'load_summary'       => ['type' => 'string'],
+                        ],
+                    ],
+                ],
+
+                // ── Early delivery recommendations ────────────────────────────
+                'early_delivery_recommendations' => [
+                    'type'  => 'array',
+                    'items' => [
+                        'type'                 => 'object',
+                        'required'             => ['order_product_id', 'suggested_date', 'reasoning'],
+                        'additionalProperties' => false,
+                        'properties'           => [
+                            'order_product_id' => ['type' => 'integer'],
+                            'suggested_date'   => ['type' => 'string'],
+                            'reasoning'        => ['type' => 'string'],
+                        ],
+                    ],
+                ],
+
+                // ── Manager review flags ──────────────────────────────────────
+                'manager_review_items' => [
+                    'type'  => 'array',
+                    'items' => [
+                        'type'                 => 'object',
+                        'required'             => ['order_product_id', 'issue'],
+                        'additionalProperties' => false,
+                        'properties'           => [
+                            'order_product_id' => ['type' => ['integer', 'null']],
+                            'issue'            => ['type' => 'string'],
+                        ],
+                    ],
+                ],
+
+                // ── Warnings ─────────────────────────────────────────────────
+                'warnings' => [
+                    'type'  => 'array',
+                    'items' => ['type' => 'string'],
+                ],
             ],
         ];
     }

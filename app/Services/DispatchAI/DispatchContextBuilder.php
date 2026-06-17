@@ -80,7 +80,7 @@ class DispatchContextBuilder
             'store_id'     => $t->store_id,
             'gvwr'         => $t->gvwr,
             'tow_rating'   => $t->tow_rating,
-            'hitch_type'   => $t->hitch_type,
+            'hitch_types'  => $t->hitch_types,
             'cdl_required' => $t->cdl_required,
         ])->values()->toArray();
 
@@ -98,8 +98,10 @@ class DispatchContextBuilder
         ])->values()->toArray();
 
         // ── Equipment rules ───────────────────────────────────────────────────
-        $equipmentRules = DispatchAiEquipmentRule::with('productCategory')->get()->map(fn ($r) => [
-            'category'             => $r->productCategory?->title,
+        $equipmentRules = DispatchAiEquipmentRule::with('equipment.productCategory')->get()->map(fn ($r) => [
+            'equipment_id'         => $r->equipment_id,
+            'equipment_name'       => $r->equipment?->equipment_name,
+            'category'             => $r->equipment?->productCategory?->title,
             'min_trailer_capacity' => $r->min_trailer_capacity,
             'allowed_trailer_types'=> $r->allowed_trailer_types,
             'allowed_truck_types'  => $r->allowed_truck_types,

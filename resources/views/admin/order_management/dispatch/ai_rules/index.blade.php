@@ -27,14 +27,13 @@
         </button>
     </div>
 
-    @php $activeTab = request('tab', 'general'); @endphp
+    @php $activeTab = request('tab', 'drivers'); @endphp
 
     {{-- Tabs --}}
     <div class="border-b border-gray-200 mb-6">
         <nav class="flex gap-1 overflow-x-auto" aria-label="Tabs">
             @php
                 $tabs = [
-                    'general'       => ['label' => 'General Rules',   'icon' => 'heroicon-o-adjustments-horizontal'],
                     'drivers'       => ['label' => 'Drivers',          'icon' => 'heroicon-o-user-group'],
                     'trucks'        => ['label' => 'Trucks',           'icon' => 'heroicon-o-truck'],
                     'trailers'      => ['label' => 'Trailers',         'icon' => 'heroicon-o-rectangle-stack'],
@@ -58,9 +57,7 @@
     </div>
 
     {{-- Tab Content --}}
-    @if ($activeTab === 'general')
-        @include('admin.order_management.dispatch.ai_rules.partials._general')
-    @elseif ($activeTab === 'drivers')
+    @if ($activeTab === 'drivers')
         @include('admin.order_management.dispatch.ai_rules.partials._drivers')
     @elseif ($activeTab === 'trucks')
         @include('admin.order_management.dispatch.ai_rules.partials._trucks')

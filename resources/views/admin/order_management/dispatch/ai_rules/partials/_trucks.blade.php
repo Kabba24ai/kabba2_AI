@@ -72,24 +72,25 @@
     </div>
 
     {{-- Existing Trucks --}}
+    <div class="grid grid-cols-3 gap-4">
     @forelse ($trucks as $truck)
-        <div class="bg-white rounded-xl shadow-sm border">
-            <div class="flex items-center gap-3 px-5 py-3 border-b bg-gray-50 rounded-t-xl">
-                <x-heroicon-o-truck class="w-4 h-4 text-blue-600" />
+        <div class="bg-white rounded-xl shadow-sm border flex flex-col">
+            <div class="flex items-center gap-3 px-4 py-3 border-b bg-gray-50 rounded-t-xl">
+                <x-heroicon-o-truck class="w-4 h-4 text-blue-600 shrink-0" />
                 <div class="flex flex-col min-w-0">
-                    <span class="font-semibold text-sm">{{ $truck->truck_name }}</span>
+                    <span class="font-semibold text-sm truncate">{{ $truck->truck_name }}</span>
                     @if ($truck->truck_type)
                         <span class="text-xs text-blue-600 font-medium">{{ $truck->truck_type }}</span>
                     @endif
                 </div>
                 @if ($truck->truck_number)
-                    <span class="text-xs text-gray-400">#{{ $truck->truck_number }}</span>
+                    <span class="text-xs text-gray-400 shrink-0">#{{ $truck->truck_number }}</span>
                 @endif
-                <span class="ml-auto text-xs {{ $truck->is_active ? 'text-green-600 bg-green-50 border-green-200' : 'text-gray-400 bg-gray-100 border-gray-200' }} border px-2 py-0.5 rounded-full">
+                <span class="ml-auto shrink-0 text-xs {{ $truck->is_active ? 'text-green-600 bg-green-50 border-green-200' : 'text-gray-400 bg-gray-100 border-gray-200' }} border px-2 py-0.5 rounded-full">
                     {{ $truck->is_active ? 'Active' : 'Inactive' }}
                 </span>
             </div>
-            <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.truck.save') }}" class="p-5">
+            <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.truck.save') }}" class="p-4 flex flex-col flex-1">
                 @csrf
                 <input type="hidden" name="id" value="{{ $truck->id }}">
                 @include('admin.order_management.dispatch.ai_rules.partials._truck_fields', ['truck' => $truck, 'fieldPrefix' => 'truck-'.$truck->id])
@@ -107,10 +108,11 @@
             </form>
         </div>
     @empty
-        <div class="bg-white rounded-xl shadow-sm p-8 text-center text-gray-400 text-sm italic">
+        <div class="col-span-3 bg-white rounded-xl shadow-sm p-8 text-center text-gray-400 text-sm italic">
             No trucks added yet. Click "Add Truck" to get started.
         </div>
     @endforelse
+    </div>
 
 </div>
 

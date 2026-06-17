@@ -9,10 +9,10 @@
                 <th class="py-4 px-3 text-left">Phone</th>
                 <th class="py-4 px-6 text-center">Equipment</th>
                 <th class="py-4 px-6 text-center">Location</th>
-                <th class="py-4 px-3 text-center">Delivery Date</th>
-                <th class="py-4 px-3 text-center text-blue-700">Driver</th>
-                <th class="py-4 px-3 text-center">Return Date</th>
-                <th class="py-4 px-3 text-center text-purple-700">Driver</th>
+                <th class="py-4 px-6 text-center">Delivery Date</th>
+                <th class="py-4 px-6 text-center text-blue-700">Driver</th>
+                <th class="py-4 px-6 text-center">Return Date</th>
+                <th class="py-4 px-6 text-center text-purple-700">Driver</th>
                 <th class="py-4 px-2 text-center"></th>
             </tr>
         </thead>
@@ -57,13 +57,13 @@
                         {!! $orderProduct->order?->view_link ?? '-' !!}
                     </td>
 
-                    <td class="py-4 px-6 text-left">
-                        <div class="font-medium">
+                    <td class="py-4 px-6 text-left max-w-[9rem] overflow-hidden">
+                        <div class="font-medium truncate">
                             {{ $orderProduct->order?->customer_name ?? '-' }}
                         </div>
                         @php $customer = $orderProduct->order?->customer; @endphp
                         @if ($customer && $customer->company_name)
-                            <div class="text-xs text-gray-500 mt-1">
+                            <div class="text-xs text-gray-500 mt-1 truncate">
                                 @if (!empty($customer->company_website))
                                     <a href="{{ $customer->company_website }}" class="underline">{{ $customer->company_name }}</a>
                                 @else
@@ -121,7 +121,7 @@
                     </td>
 
                     {{-- Delivery Date --}}
-                    <td class="py-4 px-3 text-center">
+                    <td class="py-4 px-6 text-center">
                         @php
                             $iconColor = $orderProduct->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                         @endphp
@@ -145,7 +145,7 @@
                     </td>
 
                     {{-- Delivery Driver --}}
-                    <td class="py-4 px-3 text-center min-w-[6rem]">
+                    <td class="py-4 px-6 text-center min-w-[8rem]">
                         @if ($orderProduct->deliveryEmployee)
                             <button type="button"
                                 class="assign-driver-btn text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
@@ -185,7 +185,7 @@
                     </td>
 
                     {{-- Return Date --}}
-                    <td class="py-4 px-3 text-center">
+                    <td class="py-4 px-6 text-center">
                         @php
                             $iconColor = $orderProduct->pickup_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                         @endphp
@@ -209,7 +209,7 @@
                     </td>
 
                     {{-- Return Driver --}}
-                    <td class="py-4 px-3 text-center min-w-[6rem]">
+                    <td class="py-4 px-6 text-center min-w-[8rem]">
                         @if ($orderProduct->pickupEmployee)
                             <button type="button"
                                 class="assign-driver-btn text-xs font-semibold text-purple-700 hover:text-purple-900 hover:underline cursor-pointer"

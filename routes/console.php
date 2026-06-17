@@ -100,25 +100,31 @@ Schedule::job(new \App\Jobs\SendDailyPendingTermsReminderJob())
     ->onOneServer()
     ->name('send-daily-pending-terms-reminder-job');
 
-// Dispatch AI — nightly draft build (runs only when ai_enabled = true, time from settings)
+// Dispatch AI — 2:00 AM draft (pre-day planning)
 Schedule::call(function () {
     $settings = \App\Models\Dispatch\DispatchAiSettings::instance();
     if (!$settings->ai_enabled) {
         return;
     }
-    $now = now()->timezone('America/Chicago');
-    if ((int) $now->hour !== (int) $settings->cron_hour || (int) $now->minute !== (int) $settings->cron_minute) {
+    \App\Jobs\BuildDispatchDraftJob::dispatch(0, 'cron', (int) $settings->look_ahead_days);
+})
+->dailyAt('02:00')
+->timezone('America/Chicago')
+->name('dispatch-ai-draft-2am')
+->withoutOverlapping()
+->onOneServer();
+
+// Dispatch AI — 6:30 AM draft (pre-shift refresh)
+Schedule::call(function () {
+    $settings = \App\Models\Dispatch\DispatchAiSettings::instance();
+    if (!$settings->ai_enabled) {
         return;
     }
-    \App\Jobs\BuildDispatchDraftJob::dispatch(
-        0,  // system-triggered, no user
-        'cron',
-        (int) $settings->look_ahead_days,
-    );
+    \App\Jobs\BuildDispatchDraftJob::dispatch(0, 'cron', (int) $settings->look_ahead_days);
 })
-->everyMinute()
+->dailyAt('06:30')
 ->timezone('America/Chicago')
-->name('dispatch-ai-nightly-draft')
+->name('dispatch-ai-draft-630am')
 ->withoutOverlapping()
 ->onOneServer();
 

@@ -79,10 +79,10 @@ class AiRulesController extends Controller
         $equipmentByCategory = Equipment::with('productCategory')
             ->whereNotNull('product_category_id')
             ->whereNull('deleted_at')
-            ->orderBy('product_category_id')
             ->orderBy('equipment_name')
             ->get()
-            ->groupBy('product_category_id');
+            ->groupBy('product_category_id')
+            ->sortBy(fn ($group) => strtolower($group->first()->productCategory?->title ?? 'zzz'));
 
         $equipmentIds = Equipment::whereNotNull('product_category_id')
             ->whereNull('deleted_at')

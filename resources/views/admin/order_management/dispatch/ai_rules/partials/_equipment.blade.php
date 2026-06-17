@@ -21,12 +21,24 @@
 @endphp
 
 <div class="space-y-1">
-    <div class="mb-4">
-        <h2 class="text-lg font-semibold">Equipment Transport Rules</h2>
-        <p class="text-sm text-gray-500">
-            Define transport requirements per piece of equipment. AI uses these rules to match trailers and trucks to orders.
-            Scroll the table horizontally to see all columns.
-        </p>
+    <div class="flex items-start justify-between gap-4 mb-4 flex-wrap">
+        <div>
+            <h2 class="text-lg font-semibold">Equipment Transport Rules</h2>
+            <p class="text-sm text-gray-500">
+                Define transport requirements per piece of equipment. AI uses these rules to match trailers and trucks to orders.
+                Scroll the table horizontally to see all columns.
+            </p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0 mt-1">
+            <label class="text-xs text-gray-500 font-medium whitespace-nowrap">Filter by Category:</label>
+            <select id="eq-category-filter"
+                class="border border-gray-300 rounded-lg py-1.5 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="all">All Categories</option>
+                @foreach ($equipmentByCategory as $catId => $catGroup)
+                    <option value="{{ $catId }}">{{ $catGroup->first()->productCategory?->title ?? 'Uncategorized' }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
 
     @forelse ($equipmentByCategory as $categoryId => $equipmentGroup)
@@ -477,6 +489,14 @@
     // Close modal on backdrop click
     document.getElementById('eq-notes-modal').addEventListener('click', function (e) {
         if (e.target === this) closeEqNotesModal();
+    });
+
+    // ── category filter ───────────────────────────────────────────
+    document.getElementById('eq-category-filter').addEventListener('change', function () {
+        const val = this.value;
+        document.querySelectorAll('[data-category-id]').forEach(block => {
+            block.style.display = (val === 'all' || block.dataset.categoryId === val) ? '' : 'none';
+        });
     });
 })();
 </script>

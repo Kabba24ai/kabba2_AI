@@ -3,6 +3,21 @@
     $truckCols   = $activeTruckTypes;   // only truck types with ≥1 active truck registered
     $saveUrl     = route('admin.order-management.dispatch.ai-rules.equipment-rule.save');
     $csrfToken   = csrf_token();
+
+    // Short labels for truck type columns — full value stored in title attr
+    $truckColLabel = [
+        'Any'                => 'Any',
+        '1/2 Ton'            => '½ Ton',
+        '3/4 Ton'            => '¾ Ton',
+        '1 Ton'              => '1 Ton',
+        '1 Ton Dually'       => '1T Dually',
+        '2 Ton Dually'       => '2T Dually',
+        'Medium Duty'        => 'Med Duty',
+        '26K Rollback'       => '26K R/B',
+        '30 Series Rollback' => '30S R/B',
+        '40 Series Rollback' => '40S R/B',
+        'Lowboy'             => 'Lowboy',
+    ];
 @endphp
 
 <div class="space-y-1">
@@ -50,81 +65,63 @@
                         <col style="width:50px">   {{-- min cap --}}
                         {{-- trailer cols --}}
                         @foreach ($trailerCols as $t)
-                            <col style="width:34px">
+                            <col style="width:75px">
                         @endforeach
                         {{-- truck type cols --}}
                         @foreach ($truckCols as $tc)
-                            <col style="width:34px">
+                            <col style="width:68px">
                         @endforeach
-                        {{-- conditions --}}
-                        <col style="width:38px">  {{-- CDL --}}
-                        <col style="width:44px">  {{-- Share --}}
-                        <col style="width:44px">  {{-- Alone --}}
-                        <col style="width:38px">  {{-- Notes --}}
-                        <col style="width:56px">  {{-- Save --}}
+                        {{-- conditions: CDL + Share only --}}
+                        <col style="width:45px">   {{-- CDL --}}
+                        <col style="width:68px">   {{-- Share Trailer --}}
+                        <col style="width:38px">   {{-- Notes --}}
+                        <col style="width:56px">   {{-- Save --}}
                     </colgroup>
                     <thead>
-                        <tr class="bg-gray-50 border-b">
-                            {{-- Select all --}}
+                        {{-- Row 1: group spans --}}
+                        <tr class="bg-gray-50 border-b border-gray-200">
                             <th class="px-0 py-2 text-center border-r border-gray-200">
                                 <input type="checkbox" class="select-all-cat rounded border-gray-300 text-indigo-600"
-                                    data-category="{{ $categoryId }}"
-                                    title="Select all in category">
+                                    data-category="{{ $categoryId }}" title="Select all in category">
                             </th>
-                            <th class="px-2 py-2 text-left text-gray-600 font-semibold border-r border-gray-200">Equipment Name</th>
-                            <th class="px-2 py-2 text-left text-gray-600 font-semibold border-r border-gray-200">Brand</th>
-                            <th class="px-2 py-2 text-left text-gray-600 font-semibold border-r border-gray-200">Model</th>
-                            <th class="px-2 py-2 text-left text-gray-600 font-semibold border-r border-gray-200">
-                                <span title="Minimum Trailer Capacity (lbs)">Min Cap (lbs)</span>
-                            </th>
-                            {{-- Trailer types group header --}}
-                            <th colspan="{{ count($trailerCols) }}" class="px-1 py-1 text-center text-indigo-700 bg-indigo-50 font-semibold border-r border-indigo-200 text-xs">
+                            <th class="px-2 py-2 text-left text-gray-600 font-semibold border-r border-gray-200 text-xs">Equipment Name</th>
+                            <th class="px-2 py-2 text-left text-gray-600 font-semibold border-r border-gray-200 text-xs">Brand</th>
+                            <th class="px-2 py-2 text-left text-gray-600 font-semibold border-r border-gray-200 text-xs">Model</th>
+                            <th class="px-2 py-2 text-left text-gray-600 font-semibold border-r border-gray-200 text-xs" title="Minimum Trailer Capacity (lbs)">Min Cap (lbs)</th>
+                            <th colspan="{{ count($trailerCols) }}" class="px-1 py-1.5 text-center text-indigo-700 bg-indigo-50 font-semibold border-r border-indigo-200 text-xs">
                                 Allowed Trailer Types
                             </th>
-                            {{-- Truck types group header --}}
-                            <th colspan="{{ count($truckCols) }}" class="px-1 py-1 text-center text-blue-700 bg-blue-50 font-semibold border-r border-blue-200 text-xs">
+                            <th colspan="{{ count($truckCols) }}" class="px-1 py-1.5 text-center text-blue-700 bg-blue-50 font-semibold border-r border-blue-200 text-xs">
                                 Allowed Truck Types
                             </th>
-                            {{-- Conditions header --}}
-                            <th colspan="3" class="px-1 py-1 text-center text-gray-700 bg-gray-50 font-semibold border-r border-gray-200 text-xs">
+                            <th colspan="2" class="px-1 py-1.5 text-center text-gray-700 bg-gray-50 font-semibold border-r border-gray-200 text-xs">
                                 Special Conditions
                             </th>
-                            <th class="px-1 py-1 text-center text-gray-500 border-r border-gray-200 text-xs">Notes</th>
-                            <th class="px-1 py-1 text-center text-gray-500 text-xs">Save</th>
+                            <th class="px-1 py-1.5 text-center text-gray-500 border-r border-gray-200 text-xs">Notes</th>
+                            <th class="px-1 py-1.5 text-center text-gray-500 text-xs">Save</th>
                         </tr>
-                        {{-- Sub-header for checkboxes --}}
-                        <tr class="bg-gray-50 border-b border-gray-200 text-gray-500">
+                        {{-- Row 2: individual column labels — horizontal text --}}
+                        <tr class="bg-gray-50 border-b border-gray-200 text-gray-500" style="font-size:10px;">
                             <th class="border-r border-gray-200"></th>
                             <th class="border-r border-gray-200"></th>
                             <th class="border-r border-gray-200"></th>
                             <th class="border-r border-gray-200"></th>
                             <th class="border-r border-gray-200"></th>
-                            {{-- Trailer sub-headers --}}
+                            {{-- Trailer col labels --}}
                             @foreach ($trailerCols as $t)
-                                <th class="py-1 px-0 border-r border-indigo-100">
-                                    <div class="flex justify-center" style="writing-mode: vertical-rl; transform: rotate(180deg); height: 72px; font-size: 10px; font-weight: 500; padding: 2px 0; white-space: nowrap;" title="{{ $t }}">
-                                        {{ $t }}
-                                    </div>
+                                <th class="py-1 px-1 text-center font-medium text-indigo-600 border-r border-indigo-100 leading-tight" title="{{ $t }}">
+                                    {{ $t }}
                                 </th>
                             @endforeach
-                            {{-- Truck sub-headers --}}
+                            {{-- Truck col labels --}}
                             @foreach ($truckCols as $tc)
-                                <th class="py-1 px-0 border-r border-blue-100">
-                                    <div class="flex justify-center" style="writing-mode: vertical-rl; transform: rotate(180deg); height: 72px; font-size: 10px; font-weight: 500; padding: 2px 0; white-space: nowrap;" title="{{ $tc }}">
-                                        {{ $tc }}
-                                    </div>
+                                <th class="py-1 px-1 text-center font-medium text-blue-600 border-r border-blue-100 leading-tight" title="{{ $tc }}">
+                                    {{ $truckColLabel[$tc] ?? $tc }}
                                 </th>
                             @endforeach
-                            {{-- Condition sub-headers --}}
-                            <th class="py-1 px-0 border-r border-gray-200">
-                                <div class="flex justify-center" style="writing-mode: vertical-rl; transform: rotate(180deg); height: 72px; font-size: 10px; font-weight: 500; padding: 2px 0; white-space: nowrap;" title="CDL Required">CDL Req.</div>
-                            </th>
-                            <th class="py-1 px-0 border-r border-gray-200">
-                                <div class="flex justify-center" style="writing-mode: vertical-rl; transform: rotate(180deg); height: 72px; font-size: 10px; font-weight: 500; padding: 2px 0; white-space: nowrap;" title="Can Share Trailer">Share Trailer</div>
-                            </th>
-                            <th class="py-1 px-0 border-r border-gray-200">
-                                <div class="flex justify-center" style="writing-mode: vertical-rl; transform: rotate(180deg); height: 72px; font-size: 10px; font-weight: 500; padding: 2px 0; white-space: nowrap;" title="Must Haul Alone">Haul Alone</div>
-                            </th>
+                            {{-- Condition labels --}}
+                            <th class="py-1 px-1 text-center font-medium text-gray-600 border-r border-gray-200 leading-tight" title="CDL Required">CDL Req.</th>
+                            <th class="py-1 px-1 text-center font-medium text-gray-600 border-r border-gray-200 leading-tight" title="Can Share Trailer">Share Trailer</th>
                             <th class="border-r border-gray-200"></th>
                             <th></th>
                         </tr>
@@ -195,13 +192,6 @@
                                         {{ $rule?->can_share_trailer ? 'checked' : '' }}>
                                 </td>
 
-                                {{-- Must Haul Alone --}}
-                                <td class="px-0 py-1.5 text-center border-r border-gray-100">
-                                    <input type="checkbox" name="must_haul_alone" value="1"
-                                        class="eq-field rounded border-gray-300 text-orange-600"
-                                        {{ $rule?->must_haul_alone ? 'checked' : '' }}>
-                                </td>
-
                                 {{-- Notes icon --}}
                                 <td class="px-0 py-1.5 text-center border-r border-gray-100">
                                     <button type="button"
@@ -257,9 +247,6 @@
                             </td>
                             <td class="px-0 py-1.5 text-center border-r border-amber-100">
                                 <input type="checkbox" name="bulk_share" class="bulk-field rounded border-gray-300 text-green-600">
-                            </td>
-                            <td class="px-0 py-1.5 text-center border-r border-amber-100">
-                                <input type="checkbox" name="bulk_alone" class="bulk-field rounded border-gray-300 text-orange-600">
                             </td>
                             <td class="px-1 py-1.5 text-center border-r border-amber-100"></td>
                             <td class="px-1 py-1.5 text-center">
@@ -362,7 +349,6 @@
             allowed_truck_types:    [...row.querySelectorAll('[name="allowed_truck_types[]"]:checked')].map(c => c.value),
             cdl_required:           row.querySelector('[name="cdl_required"]')?.checked ? 1 : 0,
             can_share_trailer:      row.querySelector('[name="can_share_trailer"]')?.checked ? 1 : 0,
-            must_haul_alone:        row.querySelector('[name="must_haul_alone"]')?.checked ? 1 : 0,
             special_notes:          row.dataset.notes || null,
         };
     }
@@ -393,7 +379,6 @@
             const bulkTrucks     = [...bulkRow.querySelectorAll('[name="bulk_truck[]"]:checked')].map(c => c.value);
             const bulkCdl        = bulkRow.querySelector('[name="bulk_cdl"]')?.checked;
             const bulkShare      = bulkRow.querySelector('[name="bulk_share"]')?.checked;
-            const bulkAlone      = bulkRow.querySelector('[name="bulk_alone"]')?.checked;
 
             selected.forEach(row => {
                 // Apply trailer types
@@ -404,9 +389,8 @@
                 row.querySelectorAll('[name="allowed_truck_types[]"]').forEach(cb => {
                     cb.checked = bulkTrucks.includes(cb.value);
                 });
-                if (bulkCdl !== undefined)   row.querySelector('[name="cdl_required"]').checked   = bulkCdl;
+                if (bulkCdl !== undefined)   row.querySelector('[name="cdl_required"]').checked     = bulkCdl;
                 if (bulkShare !== undefined) row.querySelector('[name="can_share_trailer"]').checked = bulkShare;
-                if (bulkAlone !== undefined) row.querySelector('[name="must_haul_alone"]').checked   = bulkAlone;
             });
 
             // Auto-save all selected rows
@@ -419,7 +403,6 @@
                 allowed_truck_types:    bulkTrucks,
                 cdl_required:           bulkCdl  ? 1 : 0,
                 can_share_trailer:      bulkShare ? 1 : 0,
-                must_haul_alone:        bulkAlone ? 1 : 0,
             };
 
             btn.textContent = '…';

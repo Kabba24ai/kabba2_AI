@@ -7,6 +7,7 @@ use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
 use App\Models\Stores\StoreServiceArea;
 use App\Models\Configurations\Setting;
+use App\Helpers\ConfigurationHelper;
 use Illuminate\Support\Collection;
 
 class SchemaBuilder
@@ -234,8 +235,13 @@ class SchemaBuilder
             'url'      => url('/'),
         ];
 
-        if (!empty($settings['site_logo'])) {
-            $schema['logo'] = $settings['site_logo'];
+        // site_logo stores a media ID — resolve to a full URL for Schema.org
+        $logoUrl = ConfigurationHelper::getBrandingLogo();
+        if ($logoUrl) {
+            $schema['logo'] = [
+                '@type' => 'ImageObject',
+                'url'   => $logoUrl,
+            ];
         }
         if (!empty($settings['top_phone'])) {
             $schema['telephone'] = $settings['top_phone'];
@@ -353,34 +359,41 @@ class SchemaBuilder
 
             switch ($area->area_type) {
                 case 'city':
+                    $label = $area->city ?: $area->name;
+                    if (!$label) return null;
                     $node = array_filter([
                         '@type' => 'City',
-                        'name'  => $area->city ?: $area->name,
+                        'name'  => $label,
                         'containedInPlace' => $area->state ? ['@type' => 'State', 'name' => $area->state] : null,
                     ]);
                     break;
 
                 case 'county':
+                    $label = $area->county ?: $area->name;
+                    if (!$label) return null;
                     $node = array_filter([
                         '@type' => 'AdministrativeArea',
-                        'name'  => $area->county ?: $area->name,
+                        'name'  => $label,
                         'containedInPlace' => $area->state ? ['@type' => 'State', 'name' => $area->state] : null,
                     ]);
                     break;
 
                 case 'zip':
+                    if (!$area->zip_code) return null;
                     $node = array_filter([
-                        '@type'      => 'PostalAddress',
-                        'postalCode' => $area->zip_code,
+                        '@type'         => 'PostalAddress',
+                        'postalCode'    => $area->zip_code,
                         'addressRegion' => $area->state ?? null,
                     ]);
                     break;
 
                 case 'custom_area':
                 default:
+                    $label = $area->name ?: $area->city;
+                    if (!$label) return null;
                     $node = array_filter([
                         '@type' => 'AdministrativeArea',
-                        'name'  => $area->name ?: $area->city,
+                        'name'  => $label,
                         'containedInPlace' => $area->state ? ['@type' => 'State', 'name' => $area->state] : null,
                     ]);
                     break;

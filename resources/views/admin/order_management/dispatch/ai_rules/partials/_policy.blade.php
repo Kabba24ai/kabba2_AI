@@ -6,166 +6,199 @@
             <h2 class="text-lg font-semibold">AI Policy Rules</h2>
             <p class="text-sm text-gray-500 mt-0.5">
                 These are the business rules sent to ChatGPT with every dispatch request.
-                Edit the <span class="font-medium">Detail</span> text to refine how the AI interprets each rule.
-                The <span class="font-medium">Rule</span> line is the core directive and is shown for reference only.
+                Edit the <strong>Detail</strong> text to refine how the AI interprets each rule.
+                Leave a field blank to keep the built-in default.
             </p>
         </div>
         <button type="button" id="policy-preview-toggle"
-            class="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg">
+            class="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg whitespace-nowrap">
             <x-heroicon-o-code-bracket class="w-4 h-4" />
             Preview Prompt JSON
         </button>
     </div>
 
-    {{-- JSON Preview --}}
+    {{-- JSON Preview (collapsed by default) --}}
     <div id="policy-preview-panel" class="hidden">
         <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Full Policy JSON sent to ChatGPT</span>
-            <span class="text-xs text-gray-400">This reflects your current settings + any saved overrides</span>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Full Policy JSON — exactly what ChatGPT receives</span>
+            <span class="text-xs text-gray-400">Reflects current settings + any saved overrides</span>
         </div>
         <div class="bg-gray-900 rounded-xl border border-gray-700 p-4 overflow-auto max-h-96">
             <pre class="text-xs text-green-300 whitespace-pre-wrap leading-relaxed font-mono">{{ $policyPreviewJson }}</pre>
         </div>
     </div>
 
-    {{-- Policy Editor Form --}}
-    <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.policy.save') }}" id="policy-form">
+    @php
+        $overrides = $settings->policy_overrides ?? [];
+
+        $ruleIcons = [
+            'PRIMARY_PRIORITY_RULE'              => 'heroicon-o-arrow-up-circle',
+            'DELIVERY_MAXIMIZATION_RULE'         => 'heroicon-o-chart-bar',
+            'MISSION_CRITICAL_PICKUP_RULE'       => 'heroicon-o-exclamation-triangle',
+            'CUSTOMER_TO_CUSTOMER_TRANSFER_RULE' => 'heroicon-o-arrows-right-left',
+            'SHOP_RETURN_RULE'                   => 'heroicon-o-building-storefront',
+            'OPTIONAL_PICKUP_RULE'               => 'heroicon-o-calendar',
+            'DRIVER_CONTINUITY_RULE'             => 'heroicon-o-user-group',
+            'EARLY_DELIVERY_RULE'                => 'heroicon-o-clock',
+            'ROUTING_OPTIMIZATION_RULES'         => 'heroicon-o-map',
+            'HARD_CONSTRAINTS'                   => 'heroicon-o-shield-check',
+        ];
+
+        $ruleLabels = [
+            'PRIMARY_PRIORITY_RULE'              => 'Primary Priority',
+            'DELIVERY_MAXIMIZATION_RULE'         => 'Delivery Maximization',
+            'MISSION_CRITICAL_PICKUP_RULE'       => 'Mission Critical Pickup',
+            'CUSTOMER_TO_CUSTOMER_TRANSFER_RULE' => 'Customer-to-Customer Transfer',
+            'SHOP_RETURN_RULE'                   => 'Shop Return',
+            'OPTIONAL_PICKUP_RULE'               => 'Optional Pickup',
+            'DRIVER_CONTINUITY_RULE'             => 'Driver Continuity',
+            'EARLY_DELIVERY_RULE'                => 'Early Delivery',
+            'ROUTING_OPTIMIZATION_RULES'         => 'Routing Optimization',
+            'HARD_CONSTRAINTS'                   => 'Hard Constraints',
+        ];
+
+        $constraintLabels = [
+            'driver_lock'    => 'Driver Lock',
+            'priority_lock'  => 'Priority Lock',
+            'no_double_book' => 'No Double-Booking',
+            'fabrication'    => 'No Fabrication',
+        ];
+    @endphp
+
+    <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.policy.save') }}">
         @csrf
 
-        @php
-            $overrides = $settings->policy_overrides ?? [];
-
-            $ruleLabels = [
-                'PRIMARY_PRIORITY_RULE'              => 'Primary Priority Rule',
-                'DELIVERY_MAXIMIZATION_RULE'         => 'Delivery Maximization Rule',
-                'MISSION_CRITICAL_PICKUP_RULE'       => 'Mission Critical Pickup Rule',
-                'CUSTOMER_TO_CUSTOMER_TRANSFER_RULE' => 'Customer-to-Customer Transfer Rule',
-                'SHOP_RETURN_RULE'                   => 'Shop Return Rule',
-                'OPTIONAL_PICKUP_RULE'               => 'Optional Pickup Rule',
-                'DRIVER_CONTINUITY_RULE'             => 'Driver Continuity Rule',
-                'EARLY_DELIVERY_RULE'                => 'Early Delivery Rule',
-                'ROUTING_OPTIMIZATION_RULES'         => 'Routing Optimization Rules',
-                'HARD_CONSTRAINTS'                   => 'Hard Constraints',
-            ];
-
-            $constraintLabels = [
-                'driver_lock'    => 'Driver Lock Constraint',
-                'priority_lock'  => 'Priority Lock Constraint',
-                'no_double_book' => 'No Double-Booking Constraint',
-                'fabrication'    => 'No Fabrication Constraint',
-            ];
-        @endphp
-
-        <div class="space-y-4">
+        <div class="grid grid-cols-3 gap-4">
         @foreach ($defaultPolicy as $key => $rule)
-
             @php
                 $hasOverride = isset($overrides[$key]);
                 $label       = $ruleLabels[$key] ?? $key;
+                $icon        = $ruleIcons[$key] ?? 'heroicon-o-document-text';
+                $spanClass   = $key === 'HARD_CONSTRAINTS' ? 'col-span-3' : '';
             @endphp
 
-            <div class="bg-white rounded-xl shadow-sm border {{ $hasOverride ? 'border-amber-300' : 'border-gray-200' }} overflow-hidden">
+            <div class="{{ $spanClass }} bg-white rounded-xl shadow-sm border {{ $hasOverride ? 'border-amber-300' : 'border-gray-200' }} flex flex-col">
 
                 {{-- Card header --}}
-                <div class="flex items-center gap-3 px-5 py-3 bg-gray-50 border-b {{ $hasOverride ? 'border-amber-200' : 'border-gray-200' }}">
-                    <span class="font-mono text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200">{{ $key }}</span>
-                    <span class="text-sm font-semibold text-gray-800">{{ $label }}</span>
+                <div class="flex items-center gap-3 px-4 py-3 border-b {{ $hasOverride ? 'border-amber-200 bg-amber-50' : 'border-gray-200 bg-gray-50' }} rounded-t-xl">
+                    <x-dynamic-component :component="$icon" class="w-4 h-4 {{ $hasOverride ? 'text-amber-600' : 'text-indigo-600' }} shrink-0" />
+                    <div class="flex flex-col min-w-0">
+                        <span class="font-semibold text-sm truncate">{{ $label }}</span>
+                        <span class="font-mono text-xs text-gray-400 truncate">{{ $key }}</span>
+                    </div>
                     @if ($hasOverride)
-                        <span class="ml-auto text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Custom Override</span>
+                        <span class="ml-auto shrink-0 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full">Modified</span>
                     @endif
                 </div>
 
-                <div class="p-5 space-y-4">
-
-                    {{-- ── HARD_CONSTRAINTS: 4 sub-keys ─────────────────────────────── --}}
-                    @if ($key === 'HARD_CONSTRAINTS')
-                        <p class="text-xs text-gray-500">These are absolute rules — the AI must never violate them. Edit carefully.</p>
+                {{-- ── HARD_CONSTRAINTS: 4 sub-fields in 2×2 grid ─────────────── --}}
+                @if ($key === 'HARD_CONSTRAINTS')
+                    <div class="p-4 grid grid-cols-2 gap-4 flex-1">
                         @foreach ($constraintLabels as $subKey => $subLabel)
                             @php
-                                $defaultVal  = $rule[$subKey] ?? '';
-                                $savedVal    = $overrides[$key][$subKey] ?? '';
-                                $displayVal  = $savedVal ?: $defaultVal;
+                                $defaultVal   = $rule[$subKey] ?? '';
+                                $savedVal     = $overrides[$key][$subKey] ?? '';
                                 $isOverridden = $savedVal !== '' && $savedVal !== $defaultVal;
                             @endphp
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-1.5 mb-1">
                                     <label class="text-xs font-semibold text-gray-700">{{ $subLabel }}</label>
                                     @if ($isOverridden)
-                                        <span class="text-xs text-amber-600">overridden</span>
+                                        <span class="text-xs text-amber-600 font-medium">• modified</span>
                                     @endif
                                 </div>
-                                <div class="text-xs text-gray-400 mb-1">Default: <em>{{ $defaultVal }}</em></div>
-                                <textarea name="policy_overrides[{{ $key }}][{{ $subKey }}]" rows="2"
+                                <details class="mb-1">
+                                    <summary class="text-xs text-gray-400 cursor-pointer hover:text-gray-600">View default</summary>
+                                    <p class="text-xs text-gray-400 mt-1 leading-relaxed">{{ $defaultVal }}</p>
+                                </details>
+                                <textarea name="policy_overrides[{{ $key }}][{{ $subKey }}]" rows="3"
                                     placeholder="Leave blank to use default"
-                                    class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">{{ $savedVal }}</textarea>
+                                    class="w-full border border-gray-300 rounded-md py-1.5 px-3 text-xs focus:ring-indigo-500 focus:border-indigo-500 flex-1 resize-none">{{ $savedVal }}</textarea>
                             </div>
                         @endforeach
+                    </div>
 
-                    {{-- ── ROUTING_OPTIMIZATION_RULES: flags + detail ───────────────── --}}
-                    @elseif ($key === 'ROUTING_OPTIMIZATION_RULES')
-                        <div class="flex flex-wrap gap-2 mb-1">
-                            @foreach (['minimize_miles' => 'Minimize Miles', 'batch_nearby_deliveries' => 'Batch Nearby Deliveries', 'batch_nearby_pickups' => 'Batch Nearby Pickups', 'keep_driver_near_home' => 'Keep Near Home Store'] as $flag => $flagLabel)
+                {{-- ── ROUTING_OPTIMIZATION_RULES ──────────────────────────────── --}}
+                @elseif ($key === 'ROUTING_OPTIMIZATION_RULES')
+                    <div class="p-4 flex flex-col flex-1 gap-3">
+                        {{-- Live flag badges (read-only, driven by Routing tab) --}}
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach (['minimize_miles' => 'Min Miles', 'batch_nearby_deliveries' => 'Batch Deliveries', 'batch_nearby_pickups' => 'Batch Pickups', 'keep_driver_near_home' => 'Near Home'] as $flag => $flagLabel)
                                 <span class="text-xs px-2 py-0.5 rounded-full border font-medium
                                     {{ $rule[$flag] ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-400 border-gray-200' }}">
                                     {{ $rule[$flag] ? '✓' : '✗' }} {{ $flagLabel }}
                                 </span>
                             @endforeach
-                            <span class="text-xs text-gray-400 self-center">(flags controlled by Routing tab)</span>
                         </div>
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <label class="text-xs font-semibold text-gray-700">Detail / Instructions</label>
-                                @if (!empty($overrides[$key]['detail']))
-                                    <span class="text-xs text-amber-600">overridden</span>
-                                @endif
-                            </div>
-                            <div class="text-xs text-gray-400 mb-1">Default: <em>{{ $rule['detail'] }}</em></div>
-                            <textarea name="policy_overrides[{{ $key }}][detail]" rows="3"
+                        <p class="text-xs text-gray-400">Flags controlled by Routing tab</p>
+                        <div class="flex flex-col flex-1">
+                            @if (!empty($overrides[$key]['detail']))
+                                <div class="flex items-center gap-1 mb-1">
+                                    <label class="text-xs font-semibold text-gray-700">Detail / Instructions</label>
+                                    <span class="text-xs text-amber-600 font-medium">• modified</span>
+                                </div>
+                            @else
+                                <label class="text-xs font-semibold text-gray-700 mb-1">Detail / Instructions</label>
+                            @endif
+                            <details class="mb-1">
+                                <summary class="text-xs text-gray-400 cursor-pointer hover:text-gray-600">View default</summary>
+                                <p class="text-xs text-gray-400 mt-1 leading-relaxed">{{ $rule['detail'] }}</p>
+                            </details>
+                            <textarea name="policy_overrides[{{ $key }}][detail]" rows="4"
                                 placeholder="Leave blank to use default"
-                                class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">{{ $overrides[$key]['detail'] ?? '' }}</textarea>
+                                class="w-full border border-gray-300 rounded-md py-1.5 px-3 text-xs focus:ring-indigo-500 focus:border-indigo-500 resize-none flex-1">{{ $overrides[$key]['detail'] ?? '' }}</textarea>
                         </div>
+                    </div>
 
-                    {{-- ── Regular rules: rule (read-only) + detail (editable) ──────── --}}
-                    @else
-                        {{-- Rule text — read-only reference --}}
-                        <div class="bg-blue-50 border border-blue-100 rounded-lg px-4 py-2.5 text-sm text-blue-900 font-medium">
+                {{-- ── Regular rules ───────────────────────────────────────────── --}}
+                @else
+                    <div class="p-4 flex flex-col flex-1 gap-3">
+                        {{-- Core rule directive --}}
+                        <div class="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-xs text-blue-900 font-medium leading-relaxed">
                             {{ $rule['rule'] }}
                         </div>
 
+                        {{-- Enabled indicator for setting-driven rules --}}
                         @if (isset($rule['enabled']))
-                            <div class="text-xs text-gray-500 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full inline-block {{ $rule['enabled'] ? 'bg-green-500' : 'bg-gray-300' }}"></span>
-                                Currently <strong>{{ $rule['enabled'] ? 'enabled' : 'disabled' }}</strong>
-                                — controlled by
-                                @if ($key === 'DRIVER_CONTINUITY_RULE') AI Automation tab → "Prefer Same Driver for Returns"
-                                @else AI Automation tab → "Allow Early Delivery Recommendations"
-                                @endif
+                            <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                                <span class="w-2 h-2 rounded-full shrink-0 {{ $rule['enabled'] ? 'bg-green-500' : 'bg-gray-300' }}"></span>
+                                <span>
+                                    {{ $rule['enabled'] ? 'Enabled' : 'Disabled' }} —
+                                    @if ($key === 'DRIVER_CONTINUITY_RULE') controlled by <em>Prefer Same Driver for Returns</em>
+                                    @else controlled by <em>Allow Early Delivery</em>
+                                    @endif
+                                </span>
                             </div>
                         @endif
 
-                        {{-- Detail — editable --}}
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <label class="text-xs font-semibold text-gray-700">Detail / Instructions</label>
-                                @if (!empty($overrides[$key]['detail']))
-                                    <span class="text-xs text-amber-600">overridden</span>
-                                @endif
-                            </div>
-                            <div class="text-xs text-gray-400 mb-1 leading-relaxed">Default: <em>{{ $rule['detail'] }}</em></div>
-                            <textarea name="policy_overrides[{{ $key }}][detail]" rows="3"
-                                placeholder="Leave blank to use the default text above"
-                                class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">{{ $overrides[$key]['detail'] ?? '' }}</textarea>
+                        {{-- Editable detail --}}
+                        <div class="flex flex-col flex-1">
+                            @if (!empty($overrides[$key]['detail']))
+                                <div class="flex items-center gap-1 mb-1">
+                                    <label class="text-xs font-semibold text-gray-700">Detail / Instructions</label>
+                                    <span class="text-xs text-amber-600 font-medium">• modified</span>
+                                </div>
+                            @else
+                                <label class="text-xs font-semibold text-gray-700 mb-1">Detail / Instructions</label>
+                            @endif
+                            <details class="mb-1">
+                                <summary class="text-xs text-gray-400 cursor-pointer hover:text-gray-600">View default</summary>
+                                <p class="text-xs text-gray-400 mt-1 leading-relaxed">{{ $rule['detail'] }}</p>
+                            </details>
+                            <textarea name="policy_overrides[{{ $key }}][detail]" rows="4"
+                                placeholder="Leave blank to use default"
+                                class="w-full border border-gray-300 rounded-md py-1.5 px-3 text-xs focus:ring-indigo-500 focus:border-indigo-500 resize-none flex-1">{{ $overrides[$key]['detail'] ?? '' }}</textarea>
                         </div>
-                    @endif
+                    </div>
+                @endif
 
-                </div>
             </div>
 
         @endforeach
         </div>
 
-        {{-- Footer actions --}}
-        <div class="flex items-center justify-between pt-2">
+        {{-- Footer --}}
+        <div class="flex items-center justify-between mt-6">
             <button type="submit" name="reset_policy" value="1"
                 onclick="return confirm('Reset all policy rules to defaults? All custom overrides will be lost.')"
                 class="text-sm text-red-600 hover:text-red-800 font-medium">
@@ -186,8 +219,8 @@
     const panel = document.getElementById('policy-preview-panel');
     if (btn && panel) {
         btn.addEventListener('click', function () {
-            panel.classList.toggle('hidden');
-            this.textContent = panel.classList.contains('hidden') ? 'Preview Prompt JSON' : 'Hide Preview';
+            const hidden = panel.classList.toggle('hidden');
+            this.querySelector('span') || (this.lastChild.textContent = hidden ? ' Preview Prompt JSON' : ' Hide Preview');
         });
     }
 })();

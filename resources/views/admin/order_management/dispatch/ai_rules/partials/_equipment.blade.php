@@ -43,11 +43,11 @@
             <div class="overflow-x-auto">
                 <table class="w-max min-w-full border-collapse text-xs" style="table-layout: fixed;">
                     <colgroup>
-                        <col style="width:36px">   {{-- checkbox --}}
-                        <col style="width:200px">  {{-- name --}}
-                        <col style="width:110px">  {{-- brand --}}
-                        <col style="width:80px">   {{-- model --}}
-                        <col style="width:90px">   {{-- min cap --}}
+                        <col style="width:18px">   {{-- checkbox --}}
+                        <col style="width:110px">  {{-- name --}}
+                        <col style="width:55px">   {{-- brand --}}
+                        <col style="width:48px">   {{-- model --}}
+                        <col style="width:50px">   {{-- min cap --}}
                         {{-- trailer cols --}}
                         @foreach ($trailerCols as $t)
                             <col style="width:34px">
@@ -66,7 +66,7 @@
                     <thead>
                         <tr class="bg-gray-50 border-b">
                             {{-- Select all --}}
-                            <th class="px-1 py-2 text-center border-r border-gray-200">
+                            <th class="px-0 py-2 text-center border-r border-gray-200">
                                 <input type="checkbox" class="select-all-cat rounded border-gray-300 text-indigo-600"
                                     data-category="{{ $categoryId }}"
                                     title="Select all in category">
@@ -134,7 +134,7 @@
                             @php $rule = $equipmentRules[$eq->id] ?? null; @endphp
                             <tr class="hover:bg-gray-50 eq-row" data-equipment-id="{{ $eq->id }}" data-category="{{ $categoryId }}">
                                 {{-- Select checkbox --}}
-                                <td class="px-1 py-1.5 text-center border-r border-gray-100">
+                                <td class="px-0 py-1.5 text-center border-r border-gray-100">
                                     <input type="checkbox" class="row-select rounded border-gray-300 text-indigo-600"
                                         data-equipment-id="{{ $eq->id }}" data-category="{{ $categoryId }}">
                                 </td>
@@ -231,7 +231,7 @@
 
                         {{-- Bulk Update Row --}}
                         <tr class="bulk-row bg-amber-50 border-t-2 border-amber-200" data-category="{{ $categoryId }}">
-                            <td class="px-1 py-1.5 text-center border-r border-amber-200" colspan="5">
+                            <td class="px-0 py-1.5 text-center border-r border-amber-200" colspan="5">
                                 <span class="text-xs font-semibold text-amber-700 flex items-center gap-1 px-2">
                                     <x-heroicon-o-squares-2x2 class="w-3.5 h-3.5" />
                                     Bulk Update

@@ -35,7 +35,11 @@
                         @php $iconColor = $op->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-500'; @endphp
                         <div class="flex flex-col items-center">
                             <div class="flex items-center gap-1">
-                                <x-heroicon-o-truck class="w-3.5 h-3.5 {{ $iconColor }}" />
+                                @if ($op->delivery_transport_mode === 'Truck')
+                                    <x-heroicon-o-truck class="w-3.5 h-3.5 {{ $iconColor }}" />
+                                @else
+                                    <x-heroicon-o-building-storefront class="w-3.5 h-3.5 {{ $iconColor }}" />
+                                @endif
                                 <span>{{ $op->delivery_date ? \App\Helpers\CustomHelper::formatDate($op->delivery_date, 'M d, y') : 'N/A' }}</span>
                             </div>
                             <span class="text-gray-400">{{ $op->delivery_time ? \App\Helpers\CustomHelper::formatTime($op->delivery_time) : '' }}</span>
@@ -64,7 +68,12 @@
                                 data-product-name="{{ $op->product_name }}"
                                 data-delivery-date="{{ $op->delivery_date ? \App\Helpers\CustomHelper::formatDate($op->delivery_date, 'M d, y') : '' }}"
                                 data-current-driver-id="" data-current-driver-name="">
-                                <x-heroicon-o-truck class="w-3 h-3 inline" /> Assign
+                                @if ($op->delivery_transport_mode === 'Truck')
+                                    <x-heroicon-o-truck class="w-3 h-3 inline" />
+                                @else
+                                    <x-heroicon-o-building-storefront class="w-3 h-3 inline" />
+                                @endif
+                                Assign
                             </button>
                         @endif
                     </td>
@@ -119,7 +128,11 @@
                         @php $iconColor = $op->pickup_status === 'Completed' ? 'text-green-600' : 'text-yellow-500'; @endphp
                         <div class="flex flex-col items-center">
                             <div class="flex items-center gap-1">
-                                <x-heroicon-o-arrow-uturn-left class="w-3.5 h-3.5 {{ $iconColor }}" />
+                                @if ($op->pickup_transport_mode === 'Truck')
+                                    <x-heroicon-o-truck class="w-3.5 h-3.5 {{ $iconColor }}" />
+                                @else
+                                    <x-heroicon-o-building-storefront class="w-3.5 h-3.5 {{ $iconColor }}" />
+                                @endif
                                 <span>{{ $op->pickup_date ? \App\Helpers\CustomHelper::formatDate($op->pickup_date, 'M d, y') : 'N/A' }}</span>
                             </div>
                             <span class="text-gray-400">{{ $op->pickup_time ? \App\Helpers\CustomHelper::formatTime($op->pickup_time) : '' }}</span>
@@ -148,7 +161,12 @@
                                 data-product-name="{{ $op->product_name }}"
                                 data-delivery-date="{{ $op->pickup_date ? \App\Helpers\CustomHelper::formatDate($op->pickup_date, 'M d, y') : '' }}"
                                 data-current-driver-id="" data-current-driver-name="">
-                                <x-heroicon-o-arrow-uturn-left class="w-3 h-3 inline" /> Assign
+                                @if ($op->pickup_transport_mode === 'Truck')
+                                    <x-heroicon-o-truck class="w-3 h-3 inline" />
+                                @else
+                                    <x-heroicon-o-building-storefront class="w-3 h-3 inline" />
+                                @endif
+                                Assign
                             </button>
                         @endif
                     </td>

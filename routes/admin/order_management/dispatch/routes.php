@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\SaveTruckControl
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\SaveTrailerController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\SaveEquipmentRuleController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\RunDraftController;
+use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\SavePolicyController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\DeleteTruckController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\DeleteTrailerController;
 
@@ -33,6 +34,7 @@ Route::prefix('dispatch')
     Route::post('/ai-rules/trailer', SaveTrailerController::class)->name('ai-rules.trailer.save');
     Route::delete('/ai-rules/trailer/{id}', DeleteTrailerController::class)->name('ai-rules.trailer.delete');
     Route::post('/ai-rules/equipment-rule', SaveEquipmentRuleController::class)->name('ai-rules.equipment-rule.save');
+    Route::post('/ai-rules/policy', SavePolicyController::class)->name('ai-rules.policy.save');
     Route::post('/ai-rules/run-draft', RunDraftController::class)->name('ai-rules.run-draft');
 
     // Dispatch detail / driver checklist for one order product

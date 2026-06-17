@@ -36,6 +36,7 @@ class DispatchAiSettings extends Model
         'route_batch_nearby_pickups',
         'route_keep_driver_near_home',
         'route_respect_delivery_windows',
+        'policy_overrides',
     ];
 
     protected function casts(): array
@@ -59,6 +60,7 @@ class DispatchAiSettings extends Model
             'route_batch_nearby_pickups'                  => 'boolean',
             'route_keep_driver_near_home'                 => 'boolean',
             'route_respect_delivery_windows'              => 'boolean',
+            'policy_overrides'                            => 'array',
         ];
     }
 

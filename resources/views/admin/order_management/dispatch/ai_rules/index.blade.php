@@ -41,6 +41,7 @@
                     'routing'       => ['label' => 'Routing',          'icon' => 'heroicon-o-map'],
                     'early_delivery'=> ['label' => 'Early Delivery',   'icon' => 'heroicon-o-clock'],
                     'automation'    => ['label' => 'AI Automation',    'icon' => 'heroicon-o-cpu-chip'],
+                    'policy'        => ['label' => 'AI Policy',        'icon' => 'heroicon-o-document-text'],
                 ];
             @endphp
             @foreach ($tabs as $key => $tab)
@@ -71,6 +72,8 @@
         @include('admin.order_management.dispatch.ai_rules.partials._early_delivery')
     @elseif ($activeTab === 'automation')
         @include('admin.order_management.dispatch.ai_rules.partials._automation')
+    @elseif ($activeTab === 'policy')
+        @include('admin.order_management.dispatch.ai_rules.partials._policy')
     @endif
 
     {{-- Run AI Draft Modal --}}

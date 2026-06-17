@@ -131,6 +131,7 @@ class DispatchContextBuilder
                 'route_batch_nearby_deliveries'              => $settings->route_batch_nearby_deliveries,
                 'route_batch_nearby_pickups'                 => $settings->route_batch_nearby_pickups,
                 'route_keep_driver_near_home'                => $settings->route_keep_driver_near_home,
+                'policy_overrides'                           => $settings->policy_overrides ?? [],
             ],
             'drivers'           => $driverPayload,
             'trucks'            => $trucks,

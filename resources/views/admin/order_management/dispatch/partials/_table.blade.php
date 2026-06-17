@@ -27,7 +27,7 @@
                     class="hover:bg-gray-50 {{ $fullyDone ? 'bg-green-50/60' : '' }}">
 
                     {{-- Product --}}
-                    <td class="py-4 px-6 text-left min-w-[14rem] max-w-[14rem] {{ $fullyDone ? 'opacity-60' : '' }}">
+                    <td class="py-4 px-6 text-left min-w-[210px] max-w-[210px] {{ $fullyDone ? 'opacity-60' : '' }}">
                         {{ $orderProduct->product_name }}
 
                         @php
@@ -57,7 +57,7 @@
                         {!! $orderProduct->order?->view_link ?? '-' !!}
                     </td>
 
-                    <td class="py-4 px-6 text-left max-w-0 w-[186px] overflow-hidden">
+                    <td class="py-4 px-6 text-left max-w-0 w-[200px] overflow-hidden">
                         <div class="font-medium truncate">
                             {{ $orderProduct->order?->customer_name ?? '-' }}
                         </div>

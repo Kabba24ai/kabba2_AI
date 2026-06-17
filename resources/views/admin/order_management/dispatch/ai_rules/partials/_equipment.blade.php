@@ -3,6 +3,25 @@
     $truckCols   = $activeTruckTypes;   // only truck types with ≥1 active truck registered
     $saveUrl     = route('admin.order-management.dispatch.ai-rules.equipment-rule.save');
     $csrfToken   = csrf_token();
+@endphp
+
+<style>
+/* Single source of truth for Equipment tab column widths.
+   All category tables share these classes → columns stay identical. */
+.eq-col-check   { width: 36px;  }
+.eq-col-name    { width: 220px; }
+.eq-col-brand   { width: 90px;  }
+.eq-col-model   { width: 90px;  }
+.eq-col-mincap  { width: 90px;  }
+.eq-col-trailer { width: 95px;  }
+.eq-col-truck   { width: 95px;  }
+.eq-col-cdl     { width: 80px;  }
+.eq-col-share   { width: 90px;  }
+.eq-col-notes   { width: 80px;  }
+.eq-col-save    { width: 70px;  }
+</style>
+
+@php
 
     // Short labels for truck type columns — full value stored in title attr
     $truckColLabel = [
@@ -68,26 +87,23 @@
 
             {{-- Scrollable Table --}}
             <div class="overflow-x-auto">
-                <table class="w-max min-w-full border-collapse text-xs" style="table-layout: fixed;">
+                <table class="border-collapse text-xs" style="table-layout: fixed;">
                     <colgroup>
-                        <col style="width:18px">   {{-- checkbox --}}
-                        <col style="width:110px">  {{-- name --}}
-                        <col style="width:55px">   {{-- brand --}}
-                        <col style="width:48px">   {{-- model --}}
-                        <col style="width:50px">   {{-- min cap --}}
-                        {{-- trailer cols --}}
+                        <col class="eq-col-check">
+                        <col class="eq-col-name">
+                        <col class="eq-col-brand">
+                        <col class="eq-col-model">
+                        <col class="eq-col-mincap">
                         @foreach ($trailerCols as $t)
-                            <col style="width:75px">
+                            <col class="eq-col-trailer">
                         @endforeach
-                        {{-- truck type cols --}}
                         @foreach ($truckCols as $tc)
-                            <col style="width:68px">
+                            <col class="eq-col-truck">
                         @endforeach
-                        {{-- conditions: CDL + Share only --}}
-                        <col style="width:45px">   {{-- CDL --}}
-                        <col style="width:68px">   {{-- Share Trailer --}}
-                        <col style="width:38px">   {{-- Notes --}}
-                        <col style="width:56px">   {{-- Save --}}
+                        <col class="eq-col-cdl">
+                        <col class="eq-col-share">
+                        <col class="eq-col-notes">
+                        <col class="eq-col-save">
                     </colgroup>
                     <thead>
                         {{-- Row 1: group spans --}}
@@ -167,7 +183,8 @@
                                 {{-- Min Trailer Capacity --}}
                                 <td class="px-1 py-1.5 border-r border-gray-100">
                                     <input type="number" min="0" step="100"
-                                        class="eq-field w-full border border-gray-200 rounded px-1.5 py-0.5 text-xs focus:ring-indigo-500 focus:border-indigo-500"
+                                        class="eq-field border border-gray-200 rounded px-1.5 py-0.5 text-xs focus:ring-indigo-500 focus:border-indigo-500"
+                                        style="width:72px;"
                                         name="min_trailer_capacity" value="{{ $rule?->min_trailer_capacity ? (int)$rule->min_trailer_capacity : '' }}"
                                         placeholder="lbs">
                                 </td>

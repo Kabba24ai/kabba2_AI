@@ -72,7 +72,7 @@
     </div>
 
     {{-- Existing Trucks --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div class="grid grid-cols-3 gap-4">
     @forelse ($trucks as $truck)
         <div class="bg-white rounded-xl shadow-sm border flex flex-col">
             <div class="flex items-center gap-3 px-4 py-3 border-b bg-gray-50 rounded-t-xl">

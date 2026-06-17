@@ -46,6 +46,8 @@ class OrderProduct extends Model
         'delivery_time',
         'delivery_by',
         'delivery_priority',
+        'delivery_driver_locked',
+        'delivery_priority_locked',
         'delivery_signature_media_id',
         'delivery_notes',
         'is_delivered',
@@ -57,6 +59,8 @@ class OrderProduct extends Model
         'pickup_time',
         'pickup_by',
         'pickup_priority',
+        'pickup_driver_locked',
+        'pickup_priority_locked',
         'pickup_signature_media_id',
         'pickup_notes',
         'is_returned',
@@ -81,9 +85,13 @@ class OrderProduct extends Model
 
     // In your OrderProduct.php model
     protected $casts = [
-        'product_data'       => 'array',
-        'equipment_details'  => 'array',
-        'dispatch_checklist' => 'array',
+        'product_data'             => 'array',
+        'equipment_details'        => 'array',
+        'dispatch_checklist'       => 'array',
+        'delivery_driver_locked'   => 'boolean',
+        'delivery_priority_locked' => 'boolean',
+        'pickup_driver_locked'     => 'boolean',
+        'pickup_priority_locked'   => 'boolean',
     ];
 
     // Relationships

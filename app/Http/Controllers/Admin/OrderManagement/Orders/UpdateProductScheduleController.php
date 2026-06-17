@@ -57,6 +57,20 @@ class UpdateProductScheduleController extends Controller
                     if ($field === 'delivery_status') {
                         $deliveryStatusChanged = true;
                     }
+
+                    // Lock logic for delivery_by
+                    if ($field === 'delivery_by') {
+                        if (empty($validatedData[$field])) {
+                            // Cleared — release all delivery locks
+                            $orderProduct->delivery_driver_locked   = false;
+                            $orderProduct->delivery_priority_locked = false;
+                        } else {
+                            // Assigned (new or reassigned) — clear then lock driver
+                            $orderProduct->delivery_driver_locked   = true;
+                            $orderProduct->delivery_priority_locked = false;
+                        }
+                    }
+
                     break;
                 }
             }
@@ -81,6 +95,20 @@ class UpdateProductScheduleController extends Controller
                     if ($field === 'pickup_status') {
                         $pickupStatusChanged = true;
                     }
+
+                    // Lock logic for pickup_by
+                    if ($field === 'pickup_by') {
+                        if (empty($validatedData[$field])) {
+                            // Cleared — release all return locks
+                            $orderProduct->pickup_driver_locked   = false;
+                            $orderProduct->pickup_priority_locked = false;
+                        } else {
+                            // Assigned (new or reassigned) — clear then lock driver
+                            $orderProduct->pickup_driver_locked   = true;
+                            $orderProduct->pickup_priority_locked = false;
+                        }
+                    }
+
                     break;
                 }
             }

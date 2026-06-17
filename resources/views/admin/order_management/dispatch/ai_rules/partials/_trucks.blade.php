@@ -90,22 +90,24 @@
                     {{ $truck->is_active ? 'Active' : 'Inactive' }}
                 </span>
             </div>
-            <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.truck.save') }}" class="p-4 flex flex-col flex-1">
+            <form id="save-truck-{{ $truck->id }}" method="POST"
+                action="{{ route('admin.order-management.dispatch.ai-rules.truck.save') }}" class="p-4 flex flex-col flex-1">
                 @csrf
                 <input type="hidden" name="id" value="{{ $truck->id }}">
                 @include('admin.order_management.dispatch.ai_rules.partials._truck_fields', ['truck' => $truck, 'fieldPrefix' => 'truck-'.$truck->id])
-                <div class="mt-4 flex justify-between items-center">
-                    <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.truck.delete', $truck->id) }}"
-                        onsubmit="return confirm('Remove this truck?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="text-xs text-red-600 hover:underline">Remove</button>
-                    </form>
-                    <button type="submit"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-medium">
-                        Save
-                    </button>
-                </div>
             </form>
+            {{-- Footer row: delete form + save button as siblings (not nested) --}}
+            <div class="px-4 pb-4 flex justify-between items-center">
+                <form method="POST" action="{{ route('admin.order-management.dispatch.ai-rules.truck.delete', $truck->id) }}"
+                    onsubmit="return confirm('Remove this truck?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="text-xs text-red-600 hover:underline">Remove</button>
+                </form>
+                <button type="submit" form="save-truck-{{ $truck->id }}"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-medium">
+                    Save
+                </button>
+            </div>
         </div>
     @empty
         <div class="col-span-3 bg-white rounded-xl shadow-sm p-8 text-center text-gray-400 text-sm italic">

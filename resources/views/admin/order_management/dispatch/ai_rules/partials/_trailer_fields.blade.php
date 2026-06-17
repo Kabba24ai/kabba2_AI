@@ -1,4 +1,4 @@
-<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+<div class="grid grid-cols-2 gap-4">
     <div>
         <label class="block text-xs text-gray-500 mb-1">Trailer Name <span class="text-red-500">*</span></label>
         <input type="text" name="trailer_name" required value="{{ $trailer?->trailer_name }}"

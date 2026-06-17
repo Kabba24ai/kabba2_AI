@@ -13,7 +13,7 @@
                 <th class="py-4 px-6 text-center text-blue-700">Driver</th>
                 <th class="py-4 px-6 text-center">Return Date</th>
                 <th class="py-4 px-6 text-center text-purple-700">Driver</th>
-                <th class="py-4 px-6 text-center">Actions</th>
+                <th class="py-4 px-2 text-center"></th>
             </tr>
         </thead>
         <div id="dispatch-loading" class="hidden"></div>
@@ -27,7 +27,7 @@
                     class="hover:bg-gray-50 {{ $fullyDone ? 'bg-green-50/60' : '' }}">
 
                     {{-- Product --}}
-                    <td class="py-4 px-6 text-left min-w-[9.5rem] max-w-[9.5rem] {{ $fullyDone ? 'opacity-60' : '' }}">
+                    <td class="py-4 px-6 text-left min-w-[14rem] max-w-[14rem] {{ $fullyDone ? 'opacity-60' : '' }}">
                         {{ $orderProduct->product_name }}
 
                         @php
@@ -248,17 +248,15 @@
                         @endif
                     </td>
 
-                    <td class="py-4 px-6">
-                        <div class="flex gap-3 items-center justify-center">
-                            <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order?->unique_id ?? 0) }}"
-                                class="text-sky-600 hover:text-sky-800" title="View Order">
-                                @if ($orderProduct?->order?->notes->isNotEmpty())
-                                    <x-heroicon-o-book-open class="w-4 h-4" />
-                                @else
-                                    <x-heroicon-o-eye class="w-4 h-4" />
-                                @endif
-                            </a>
-                        </div>
+                    <td class="py-4 px-2 text-center">
+                        <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order?->unique_id ?? 0) }}"
+                            class="text-sky-600 hover:text-sky-800" title="View Order">
+                            @if ($orderProduct?->order?->notes->isNotEmpty())
+                                <x-heroicon-o-book-open class="w-4 h-4" />
+                            @else
+                                <x-heroicon-o-eye class="w-4 h-4" />
+                            @endif
+                        </a>
                     </td>
                 </tr>
             @empty

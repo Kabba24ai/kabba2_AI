@@ -18,12 +18,14 @@ class SaveTruckController extends Controller
             'store_id'     => 'nullable|exists:stores,id',
             'gvwr'         => 'nullable|numeric|min:0',
             'tow_rating'   => 'nullable|numeric|min:0',
-            'hitch_type'   => 'nullable|string|max:100',
+            'hitch_types'    => 'nullable|array',
+            'hitch_types.*'  => 'string|max:100',
             'cdl_required' => 'boolean',
             'notes'        => 'nullable|string|max:2000',
             'is_active'    => 'boolean',
         ]);
 
+        $validated['hitch_types']  = $validated['hitch_types'] ?? [];
         $validated['cdl_required'] = $request->boolean('cdl_required');
         $validated['is_active']    = $request->boolean('is_active', true);
 

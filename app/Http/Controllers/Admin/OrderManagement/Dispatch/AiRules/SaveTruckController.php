@@ -12,6 +12,7 @@ class SaveTruckController extends Controller
     {
         $validated = $request->validate([
             'id'           => 'nullable|exists:dispatch_ai_trucks,id',
+            'truck_type'   => 'nullable|string|max:100',
             'truck_name'   => 'required|string|max:255',
             'truck_number' => 'nullable|string|max:100',
             'store_id'     => 'nullable|exists:stores,id',

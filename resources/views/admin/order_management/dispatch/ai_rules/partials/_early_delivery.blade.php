@@ -31,7 +31,7 @@
                     style="background-color:{{ $settings->early_delivery_enabled ? '#4f46e5' : '#d1d5db' }};transition:background-color .2s"
                     data-target="chk-early-delivery-enabled"
                     aria-checked="{{ $settings->early_delivery_enabled ? 'true' : 'false' }}">
-                    <span class="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+                    <span class="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm"
                         style="transform:translateX({{ $settings->early_delivery_enabled ? '24px' : '4px' }});transition:transform .2s"></span>
                 </button>
                 <input type="checkbox" id="chk-early-delivery-enabled" name="early_delivery_enabled" value="1" class="sr-only"

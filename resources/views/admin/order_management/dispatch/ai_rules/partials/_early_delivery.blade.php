@@ -25,11 +25,18 @@
                 <div class="font-medium text-sm">Enable AI Early Delivery Recommendations</div>
                 <div class="text-xs text-gray-500 mt-0.5">When enabled, AI may suggest delivering earlier than the scheduled date to balance driver workload.</div>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer mt-0.5">
-                <input type="checkbox" name="early_delivery_enabled" value="1" class="sr-only peer"
+            <div class="shrink-0 mt-0.5">
+                <button type="button" role="switch"
+                    class="dispatch-ai-toggle relative inline-block w-11 h-6 rounded-full cursor-pointer"
+                    style="background-color:{{ $settings->early_delivery_enabled ? '#4f46e5' : '#d1d5db' }};transition:background-color .2s"
+                    data-target="chk-early-delivery-enabled"
+                    aria-checked="{{ $settings->early_delivery_enabled ? 'true' : 'false' }}">
+                    <span class="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+                        style="transform:translateX({{ $settings->early_delivery_enabled ? '24px' : '4px' }});transition:transform .2s"></span>
+                </button>
+                <input type="checkbox" id="chk-early-delivery-enabled" name="early_delivery_enabled" value="1" class="sr-only"
                     {{ $settings->early_delivery_enabled ? 'checked' : '' }}>
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-            </label>
+            </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -93,3 +100,18 @@
         </div>
     </div>
 </form>
+
+<script>
+(function () {
+    document.querySelectorAll('.dispatch-ai-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var input = document.getElementById(this.dataset.target);
+            input.checked = !input.checked;
+            var on = input.checked;
+            this.style.backgroundColor = on ? '#4f46e5' : '#d1d5db';
+            this.querySelector('span').style.transform = on ? 'translateX(24px)' : 'translateX(4px)';
+            this.setAttribute('aria-checked', String(on));
+        });
+    });
+})();
+</script>

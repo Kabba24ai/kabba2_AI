@@ -20,7 +20,7 @@ class DispatchAiTruck extends Model
         'store_id',
         'gvwr',
         'tow_rating',
-        'hitch_type',
+        'hitch_types',
         'cdl_required',
         'notes',
         'is_active',
@@ -29,6 +29,7 @@ class DispatchAiTruck extends Model
     protected function casts(): array
     {
         return [
+            'hitch_types'  => 'array',
             'cdl_required' => 'boolean',
             'is_active'    => 'boolean',
             'gvwr'         => 'decimal:2',

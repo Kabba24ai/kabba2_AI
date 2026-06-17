@@ -48,13 +48,17 @@
             placeholder="e.g. 18000">
     </div>
     <div>
-        <label class="block text-xs text-gray-500 mb-1">Hitch Type</label>
-        <select name="hitch_type" class="w-full border border-gray-300 rounded-md py-1.5 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">— None —</option>
+        <label class="block text-xs text-gray-500 mb-2">Hitch Types</label>
+        <div class="flex flex-wrap gap-3">
             @foreach ($trailerTypes as $hitch)
-                <option value="{{ $hitch }}" {{ $truck?->hitch_type === $hitch ? 'selected' : '' }}>{{ $hitch }}</option>
+                <label class="flex items-center gap-1.5 cursor-pointer text-sm">
+                    <input type="checkbox" name="hitch_types[]" value="{{ $hitch }}"
+                        class="rounded border-gray-300 text-indigo-600"
+                        {{ in_array($hitch, $truck?->hitch_types ?? []) ? 'checked' : '' }}>
+                    {{ $hitch }}
+                </label>
             @endforeach
-        </select>
+        </div>
     </div>
 </div>
 <div class="flex items-center gap-6 mt-4">

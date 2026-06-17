@@ -32,7 +32,6 @@ class AiRulesController extends Controller
         'Bumper Pull',
         'Pintle Hitch',
         'Gooseneck',
-        '5th Wheel',
     ];
 
     public function __invoke()

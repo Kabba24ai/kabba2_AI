@@ -29,7 +29,7 @@
                     style="background-color:{{ $settings->ai_enabled ? '#4f46e5' : '#d1d5db' }};transition:background-color .2s"
                     data-target="chk-ai-enabled"
                     aria-checked="{{ $settings->ai_enabled ? 'true' : 'false' }}">
-                    <span class="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+                    <span class="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm"
                         style="transform:translateX({{ $settings->ai_enabled ? '24px' : '4px' }});transition:transform .2s"></span>
                 </button>
                 <input type="checkbox" id="chk-ai-enabled" name="ai_enabled" value="1" class="sr-only"
@@ -80,7 +80,7 @@
                     style="background-color:{{ $settings->prefer_same_driver_for_returns ? '#4f46e5' : '#d1d5db' }};transition:background-color .2s"
                     data-target="chk-prefer-same-driver"
                     aria-checked="{{ $settings->prefer_same_driver_for_returns ? 'true' : 'false' }}">
-                    <span class="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+                    <span class="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm"
                         style="transform:translateX({{ $settings->prefer_same_driver_for_returns ? '24px' : '4px' }});transition:transform .2s"></span>
                 </button>
                 <input type="checkbox" id="chk-prefer-same-driver" name="prefer_same_driver_for_returns" value="1" class="sr-only"

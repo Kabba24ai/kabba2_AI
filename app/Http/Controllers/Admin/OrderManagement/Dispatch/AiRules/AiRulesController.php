@@ -9,11 +9,32 @@ use App\Models\Dispatch\DispatchAiSettings;
 use App\Models\Dispatch\DispatchAiTrailer;
 use App\Models\Dispatch\DispatchAiTruck;
 use App\Models\Iam\Personnel\User;
-use App\Models\ProductManagement\ProductCategory;
+use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Stores\Store;
 
 class AiRulesController extends Controller
 {
+    public const TRUCK_TYPES = [
+        'Any',
+        '1/2 Ton',
+        '3/4 Ton',
+        '1 Ton',
+        '1 Ton Dually',
+        '2 Ton Dually',
+        'Medium Duty',
+        '26K Rollback',
+        '30 Series Rollback',
+        '40 Series Rollback',
+        'Lowboy',
+    ];
+
+    public const TRAILER_TYPES = [
+        'Bumper Pull',
+        'Pintle Hitch',
+        'Gooseneck',
+        '5th Wheel',
+    ];
+
     public function __invoke()
     {
         $settings = DispatchAiSettings::instance();
@@ -29,24 +50,37 @@ class AiRulesController extends Controller
             ->keyBy('user_id');
 
         $trucks = DispatchAiTruck::with('store')
-            ->where('is_active', true)
+            ->orderBy('is_active', 'desc')
             ->orderBy('truck_name')
             ->get();
 
         $trailers = DispatchAiTrailer::with('store')
-            ->where('is_active', true)
+            ->orderBy('is_active', 'desc')
             ->orderBy('trailer_name')
             ->get();
 
-        $categories = ProductCategory::orderBy('title')->get();
-
-        $equipmentRules = DispatchAiEquipmentRule::with('productCategory')
+        // Equipment grouped by category for the Equipment tab
+        $equipmentByCategory = Equipment::with('productCategory')
+            ->whereNotNull('product_category_id')
+            ->whereNull('deleted_at')
+            ->orderBy('product_category_id')
+            ->orderBy('equipment_name')
             ->get()
-            ->keyBy('product_category_id');
+            ->groupBy('product_category_id');
+
+        $equipmentIds = Equipment::whereNotNull('product_category_id')
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        $equipmentRules = DispatchAiEquipmentRule::whereIn('equipment_id', $equipmentIds)
+            ->get()
+            ->keyBy('equipment_id');
 
         $stores = Store::active()->orderBy('store_name')->get();
 
-        $hitchTypes = ['Bumper Pull', 'Gooseneck', '5th Wheel', 'Pintle Hitch'];
+        $truckTypes   = self::TRUCK_TYPES;
+        $trailerTypes = self::TRAILER_TYPES;
+        $hitchTypes   = self::TRAILER_TYPES; // alias used by trailer fields partial
 
         return view('admin.order_management.dispatch.ai_rules.index', compact(
             'settings',
@@ -54,9 +88,11 @@ class AiRulesController extends Controller
             'driverCapabilities',
             'trucks',
             'trailers',
-            'categories',
+            'equipmentByCategory',
             'equipmentRules',
             'stores',
+            'truckTypes',
+            'trailerTypes',
             'hitchTypes',
         ));
     }

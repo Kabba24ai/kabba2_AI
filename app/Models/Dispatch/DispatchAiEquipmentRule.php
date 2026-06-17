@@ -2,7 +2,7 @@
 
 namespace App\Models\Dispatch;
 
-use App\Models\ProductManagement\ProductCategory;
+use App\Models\MaintenanceManagement\Equipment;
 use Illuminate\Database\Eloquent\Model;
 
 class DispatchAiEquipmentRule extends Model
@@ -10,7 +10,7 @@ class DispatchAiEquipmentRule extends Model
     protected $table = 'dispatch_ai_equipment_rules';
 
     protected $fillable = [
-        'product_category_id',
+        'equipment_id',
         'min_trailer_capacity',
         'allowed_trailer_types',
         'allowed_truck_types',
@@ -32,8 +32,8 @@ class DispatchAiEquipmentRule extends Model
         ];
     }
 
-    public function productCategory(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function equipment(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(ProductCategory::class, 'product_category_id');
+        return $this->belongsTo(Equipment::class, 'equipment_id');
     }
 }

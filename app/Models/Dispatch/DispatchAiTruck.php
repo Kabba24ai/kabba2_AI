@@ -14,6 +14,7 @@ class DispatchAiTruck extends Model
 
     protected $fillable = [
         'unique_id',
+        'truck_type',
         'truck_name',
         'truck_number',
         'store_id',

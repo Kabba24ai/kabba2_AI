@@ -422,44 +422,51 @@
                             </div>
                         </a>
 
-                        <!-- Right column: Service Due + Service OverDue stacked 50/50 -->
-                        <div class="flex flex-col gap-[14px] h-full">
-
-                            <!-- Service Due -->
-                            <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
-                               class="flex-1 bg-white rounded-xl shadow-sm border border-gray-300 p-5 flex items-center justify-between hover:shadow-lg hover:border-blue-400 transition-all">
-                                <div>
-                                    <div class="p-2.5 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 mb-3 w-fit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                        </svg>
+                        <!-- Schedule Conflicts — full height, links to conflict detail page -->
+                        @php $conflictCount = $scheduleConflictCount ?? 0; @endphp
+                        <a href="{{ route('admin.order-management.schedule-conflicts.index') }}"
+                           class="bg-white rounded-xl shadow-sm border {{ $conflictCount > 0 ? 'border-red-300' : 'border-gray-300' }} p-5 flex flex-col hover:shadow-lg {{ $conflictCount > 0 ? 'hover:border-red-400' : 'hover:border-blue-400' }} transition-all">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2.5 rounded-lg bg-gradient-to-br {{ $conflictCount > 0 ? 'from-red-500 to-red-600' : 'from-green-500 to-green-600' }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <h3 class="text-sm font-bold {{ $conflictCount > 0 ? 'text-red-600' : 'text-gray-800' }} mb-4 leading-tight">Schedule Conflicts</h3>
+                            <div class="flex items-center flex-1">
+                                <div class="flex-1 flex flex-col items-center justify-center">
+                                    <div class="text-2xl font-bold {{ $conflictCount > 0 ? 'text-red-600' : 'text-green-600' }} mb-1">{{ $conflictCount }}</div>
+                                    <div class="text-xs text-gray-500 font-medium tracking-wide text-center">CONFLICTS</div>
+                                </div>
+                                <div class="h-12 w-px bg-gray-300"></div>
+                                <div class="flex-1 flex flex-col items-center justify-center">
+                                    @if($conflictCount === 0)
+                                        <div class="text-2xl font-bold text-green-600 mb-1">&#10003;</div>
+                                        <div class="text-xs text-gray-500 font-medium tracking-wide text-center">ALL CLEAR</div>
+                                    @else
+                                        <div class="text-xs text-red-500 font-semibold text-center leading-tight">Action<br>Required</div>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-gray-300">
+                                @if($conflictCount === 0)
+                                    <div class="flex items-center justify-center">
+                                        <div class="flex items-center bg-gradient-to-r from-green-400 to-green-500 px-3 py-1.5 rounded-full shadow-sm">
+                                            <span class="text-white font-semibold text-xs tracking-wide">No Double Bookings</span>
+                                        </div>
                                     </div>
-                                    <h3 class="text-sm font-semibold text-gray-800 leading-tight">Service Due</h3>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <div class="text-2xl font-bold text-yellow-600 mb-1">{{ $pendingCount ?? 0 }}</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide">EQUIPMENT</div>
-                                </div>
-                            </a>
-
-                            <!-- Service Overdue -->
-                            <a href="{{ route('admin.maintenance-management.equipment-service.index') }}"
-                               class="flex-1 bg-white rounded-xl shadow-sm border border-gray-300 p-5 flex items-center justify-between hover:shadow-lg hover:border-blue-400 transition-all">
-                                <div>
-                                    <div class="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 mb-3 w-fit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                                        </svg>
+                                @else
+                                    <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                        <span>Double Bookings</span>
+                                        <span class="text-red-600 font-semibold">View All →</span>
                                     </div>
-                                    <h3 class="text-sm font-semibold text-gray-800 leading-tight">Service Overdue</h3>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <div class="text-2xl font-bold text-red-600 mb-1">{{ $overdueCount ?? 0 }}</div>
-                                    <div class="text-xs text-gray-500 font-medium tracking-wide">EQUIPMENT</div>
-                                </div>
-                            </a>
-
-                        </div>{{-- end right column --}}
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                        <div class="h-1.5 rounded-full bg-gradient-to-r from-red-400 to-red-500" style="width: 100%"></div>
+                                    </div>
+                                @endif
+                            </div>
+                        </a>{{-- end Schedule Conflicts --}}
 
                     </div>
                 </div>

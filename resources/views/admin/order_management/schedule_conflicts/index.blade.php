@@ -341,25 +341,6 @@
                         </tr>
                         @endforeach
 
-                        {{-- AI Suggestions panel — hidden until "Ai Suggest!" is clicked --}}
-                        <tr id="ai-panel-{{ $loopIndex }}" class="hidden">
-                            <td colspan="12" class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                                <div class="flex items-center gap-2 mb-3">
-                                    <x-heroicon-o-sparkles class="w-4 h-4 text-cyan-500" />
-                                    <span class="text-sm font-semibold text-gray-800">AI Scheduling Suggestions</span>
-                                    <span class="text-xs text-gray-400">— {{ $equipment?->equipment_name }}</span>
-                                    <button type="button"
-                                        class="ml-auto text-xs text-gray-400 hover:text-gray-600 close-ai-panel"
-                                        data-conflict-index="{{ $loopIndex }}">
-                                        ✕ Close
-                                    </button>
-                                </div>
-                                <div id="ai-content-{{ $loopIndex }}" class="text-sm text-gray-600">
-                                    <p class="text-gray-400 italic">Loading AI suggestions…</p>
-                                </div>
-                            </td>
-                        </tr>
-
                     @endforeach
 
                 </tbody>
@@ -583,25 +564,6 @@
 
                 </tr>
                 @endforeach
-
-                {{-- AI panel for this damaged equipment group --}}
-                <tr id="ai-panel-d{{ $dLoopIndex }}" class="hidden">
-                    <td colspan="12" class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                        <div class="flex items-center gap-2 mb-3">
-                            <x-heroicon-o-sparkles class="w-4 h-4 text-cyan-500" />
-                            <span class="text-sm font-semibold text-gray-800">AI Scheduling Suggestions</span>
-                            <span class="text-xs text-gray-400">— {{ $dEquipment?->equipment_name }}</span>
-                            <button type="button"
-                                class="ml-auto text-xs text-gray-400 hover:text-gray-600 close-ai-panel"
-                                data-conflict-index="d{{ $dLoopIndex }}">
-                                ✕ Close
-                            </button>
-                        </div>
-                        <div id="ai-content-d{{ $dLoopIndex }}" class="text-sm text-gray-600">
-                            <p class="text-gray-400 italic">Loading AI suggestions…</p>
-                        </div>
-                    </td>
-                </tr>
 
             @endforeach
 
@@ -1064,6 +1026,52 @@
 
     @endif
 
+{{-- ── AI Equipment Suggestion Modal ──────────────────────────────────── --}}
+<div id="aiSuggestModal" class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 flex justify-center items-start px-4 py-10">
+    <div class="bg-white rounded-xl w-full max-w-3xl shadow-2xl flex flex-col">
+
+        {{-- Header --}}
+        <div class="flex items-center justify-between border-b px-6 py-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100">
+                    <x-heroicon-o-sparkles class="h-4 w-4 text-purple-600" />
+                </span>
+                <div>
+                    <h2 class="text-base font-semibold text-gray-900">AI Equipment Suggestion</h2>
+                    <p id="aiSuggestProductName" class="text-xs text-gray-500 mt-0.5"></p>
+                </div>
+            </div>
+            <button type="button" id="closeAiSuggestModal" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+
+        {{-- User select --}}
+        <div class="px-6 pt-4 pb-2">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Assign As (Employee)</label>
+            <select id="aiSuggestUserSelect"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-700 focus:ring focus:border-purple-400">
+                <option value="">Select Employee</option>
+                @foreach ($employees as $employeeId => $employeeName)
+                    <option value="{{ $employeeId }}">{{ $employeeName }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- Body --}}
+        <div id="aiSuggestBody" class="px-6 py-4 overflow-y-auto max-h-[65vh] space-y-3">
+            <p class="text-sm text-gray-400">Loading suggestions…</p>
+        </div>
+
+        {{-- Footer --}}
+        <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-xl">
+            <button type="button" id="closeAiSuggestModalFooter"
+                class="px-5 py-2 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 hover:bg-gray-100">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+{{-- ── End AI Equipment Suggestion Modal ───────────────────────────────── --}}
+
 {{-- Equipment Assign Modal (same as Schedule page) --}}
 <div id="equipmentAssignModal"
     class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center px-4">
@@ -1176,105 +1184,200 @@ document.addEventListener('DOMContentLoaded', function () {
         ['scroll','resize'].forEach(ev => window.addEventListener(ev, () => { if (activeTrigger && !tooltip.classList.contains('hidden')) requestAnimationFrame(() => position(activeTrigger)); }, { passive: true }));
     }
 
-    // ── AI Suggest ───────────────────────────────────────────────────────────
-    const aiAdvisorUrlTemplate = '{{ route('admin.order-management.schedules.ai.show', ['orderProductId' => '__OP_ID__']) }}';
+    // ── AI Equipment Suggestion ──────────────────────────────────────────────
+    (function () {
+        const modal       = document.getElementById('aiSuggestModal');
+        const body        = document.getElementById('aiSuggestBody');
+        const productName = document.getElementById('aiSuggestProductName');
+        const userSelect  = document.getElementById('aiSuggestUserSelect');
+        const aiSuggestUrl = '{{ route("admin.order-management.schedule-assignment.ai-suggest", ["orderProductId" => "__OP_ID__"]) }}';
+        const assignUrl    = '{{ route("admin.order-management.schedules.assign-equipment") }}';
 
-    function escapeHtml(v) {
-        return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-    }
+        let pendingOrderProductUniqueId = '';
 
-    document.addEventListener('click', function (e) {
-        // Toggle AI panel open
-        const aiBtn = e.target.closest('.ai-suggest-btn');
-        if (aiBtn) {
-            const idx     = aiBtn.dataset.conflictIndex;
-            const opId    = aiBtn.dataset.orderProductId;
-            const panel   = document.getElementById('ai-panel-' + idx);
-            const content = document.getElementById('ai-content-' + idx);
-            if (!panel || !content) return;
+        function escapeHtml(v) {
+            return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+        }
 
-            if (!panel.classList.contains('hidden')) {
-                panel.classList.add('hidden');
-                return;
-            }
+        function openModal(orderProductId, equipmentName) {
+            pendingOrderProductUniqueId = '';
+            productName.textContent = equipmentName || '';
+            body.innerHTML = '<p class="text-sm text-gray-400 py-4 text-center">Loading suggestions…</p>';
+            modal.classList.remove('hidden');
 
-            panel.classList.remove('hidden');
-            content.innerHTML = '<p class="text-gray-400 italic text-sm">Loading AI suggestions…</p>';
+            const url = aiSuggestUrl.replace('__OP_ID__', orderProductId);
 
-            const url = aiAdvisorUrlTemplate.replace('__OP_ID__', opId);
             fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
-                .then(r => r.json().catch(() => null).then(d => ({ ok: r.ok, data: d })))
-                .then(({ ok, data }) => {
-                    if (!ok || !data?.success) {
-                        content.innerHTML = `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">${escapeHtml(data?.message || 'AI advisor returned an error.')}</div>`;
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        body.innerHTML = `<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">${escapeHtml(data.message || 'Failed to load suggestions.')}</div>`;
                         return;
                     }
-                    const assistant = data.data?.assistant || {};
-                    const ai        = data.data?.ai || {};
-                    const rec       = ai.recommendation || {};
 
-                    const issuesHtml = (assistant.issues || []).map(i =>
-                        `<div class="mb-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3"><div class="font-medium text-yellow-800">${escapeHtml(i.code)}</div><div class="text-sm text-yellow-700">${escapeHtml(i.message)}</div></div>`
-                    ).join('');
+                    pendingOrderProductUniqueId = data.order_product.unique_id;
 
-                    const reasoningHtml = (rec.reasoning || []).map(r => `<li>${escapeHtml(r)}</li>`).join('');
-                    const actionsHtml   = (rec.actions_required || []).map(a =>
-                        `<span class="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">${escapeHtml(a)}</span>`
-                    ).join('');
-                    const warningsHtml  = (rec.warnings || []).map(w => `<li>${escapeHtml(w)}</li>`).join('');
-                    const altsHtml = (rec.alternatives || []).map(opt => `
-                        <div class="rounded-xl border p-3">
-                            <div class="flex items-center justify-between gap-3">
-                                <div>
-                                    <span class="font-semibold text-sm">${escapeHtml(opt.equipment_name || 'No equipment')}</span>
-                                    <span class="ml-2 text-xs text-gray-500">#${escapeHtml(opt.equipment_id ?? '-')}</span>
+                    const keys    = data.comparison_keys || [];
+                    const suggs   = data.suggestions || [];
+                    const total   = data.total_candidates ?? 0;
+                    const summary = data.overall_summary || '';
+
+                    if (suggs.length === 0) {
+                        body.innerHTML = '<p class="text-sm text-gray-500 py-4 text-center">No suitable equipment found for this order product.</p>';
+                        return;
+                    }
+
+                    const summaryHtml = summary
+                        ? `<div class="mb-4 rounded-md border border-purple-100 bg-purple-50 px-3 py-2.5 text-sm text-purple-800">${escapeHtml(summary)}</div>`
+                        : '';
+
+                    const keyChips = keys.map(k => {
+                        const color = { critical: 'bg-red-100 text-red-700', high: 'bg-orange-100 text-orange-700', medium: 'bg-blue-100 text-blue-700', low: 'bg-gray-100 text-gray-500' }[k.importance] || 'bg-gray-100 text-gray-500';
+                        return `<span class="rounded-full px-2 py-0.5 text-[11px] font-medium ${color}">${escapeHtml(k.label)}</span>`;
+                    }).join('');
+
+                    const keysHtml = keys.length
+                        ? `<div class="mb-4 rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Comparison Criteria</p>
+                            <div class="flex flex-wrap gap-1.5">${keyChips}</div>
+                           </div>`
+                        : '';
+
+                    const recTypeLabel = { best_match: 'Best Match', suitable: 'Suitable', conditional: 'Conditional', not_recommended: 'Not Recommended' };
+                    const recTypeColor = { best_match: 'bg-green-100 text-green-700', suitable: 'bg-blue-100 text-blue-700', conditional: 'bg-amber-100 text-amber-700', not_recommended: 'bg-red-100 text-red-600' };
+
+                    const cards = suggs.map((s, i) => {
+                        const statusColor = { Available: 'bg-green-100 text-green-700', Maintenance: 'bg-yellow-100 text-yellow-700', Rented: 'bg-blue-100 text-blue-700' }[s.status] || 'bg-gray-100 text-gray-500';
+                        const topPick = i === 0 ? '<span class="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">Top Pick</span>' : '';
+                        const border  = i === 0 ? 'border-purple-200 bg-purple-50/30' : 'border-gray-200';
+
+                        const recType  = s.recommendation_type || '';
+                        const recBadge = recType
+                            ? `<span class="rounded-full px-2 py-0.5 text-[10px] font-semibold ${recTypeColor[recType] || 'bg-gray-100 text-gray-500'}">${recTypeLabel[recType] || recType}</span>`
+                            : '';
+
+                        const score = typeof s.suitability_score === 'number'
+                            ? `<div class="flex items-center gap-1 text-xs text-gray-500"><span class="font-semibold text-gray-700">${s.suitability_score}</span><span>/100</span></div>`
+                            : '';
+
+                        const matchedChips = (s.matched_specs || []).map(mk => {
+                            const impColor = { critical: 'bg-red-50 text-red-600 border-red-200', high: 'bg-orange-50 text-orange-600 border-orange-200', medium: 'bg-blue-50 text-blue-600 border-blue-200', low: 'bg-gray-50 text-gray-500 border-gray-200' }[mk.importance] || 'bg-gray-50 text-gray-500 border-gray-200';
+                            return `<span class="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] ${impColor}">
+                                ${escapeHtml(mk.label)}: <strong>${escapeHtml(mk.value ?? '—')}${mk.unit ? ' ' + escapeHtml(mk.unit) : ''}</strong>
+                                <span class="opacity-60">${mk.confidence_pct ?? 0}%</span>
+                            </span>`;
+                        }).join('');
+
+                        const reasoningHtml = s.reasoning ? `<p class="mt-2 text-xs text-gray-600">${escapeHtml(s.reasoning)}</p>` : '';
+                        const actionsHtml   = (s.actions_required || []).length ? `<div class="mt-2 flex flex-wrap gap-1">${s.actions_required.map(a => `<span class="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] text-blue-700">${escapeHtml(a)}</span>`).join('')}</div>` : '';
+                        const warningsHtml  = (s.warnings || []).length ? `<div class="mt-2 flex flex-wrap gap-1">${s.warnings.map(w => `<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-700">⚠ ${escapeHtml(w)}</span>`).join('')}</div>` : '';
+                        const noProfile     = !s.has_ai_profile ? '<p class="text-[11px] text-gray-400 italic mt-1">No AI profile linked.</p>' : '';
+
+                        const assignedBtn = s.is_currently_assigned
+                            ? '<span class="text-xs text-green-600 font-medium">Currently Assigned</span>'
+                            : `<button type="button"
+                                    class="ai-assign-btn inline-flex items-center gap-1.5 rounded-md bg-purple-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                                    data-equipment-unique-id="${escapeHtml(s.equipment_unique_id)}"
+                                    data-equipment-name="${escapeHtml(s.equipment_name)}">
+                                    Assign
+                               </button>`;
+
+                        return `<div class="rounded-lg border ${border} p-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="font-semibold text-gray-900">${escapeHtml(s.equipment_name)}</span>
+                                        ${topPick}${recBadge}
+                                        <span class="rounded-full px-2 py-0.5 text-xs font-medium ${statusColor}">${escapeHtml(s.status_label || s.status)}</span>
+                                        ${s.is_currently_assigned ? '<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Assigned</span>' : ''}
+                                    </div>
+                                    <p class="mt-0.5 text-xs text-gray-500">#${escapeHtml(s.equipment_number ?? '—')} &nbsp;·&nbsp; ${escapeHtml(s.store ?? '—')}</p>
                                 </div>
-                                <span class="text-xs uppercase tracking-wide text-gray-500">${escapeHtml(opt.relationship_type)}</span>
+                                <div class="flex shrink-0 flex-col items-end gap-2">
+                                    ${score}
+                                    <span class="text-xs text-gray-400">${s.matched_spec_count}/${s.total_comparison_keys} criteria</span>
+                                    ${assignedBtn}
+                                </div>
                             </div>
-                            <p class="mt-2 text-sm text-gray-700">${escapeHtml(opt.summary)}</p>
-                            ${(opt.actions_required||[]).length ? `<div class="mt-2 flex flex-wrap gap-2">${opt.actions_required.map(a=>`<span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">${escapeHtml(a)}</span>`).join('')}</div>` : ''}
-                        </div>`
-                    ).join('');
+                            ${matchedChips ? `<div class="mt-2.5 flex flex-wrap gap-1.5">${matchedChips}</div>` : ''}
+                            ${reasoningHtml}${actionsHtml}${warningsHtml}${noProfile}
+                        </div>`;
+                    }).join('');
 
-                    content.innerHTML = `<div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="rounded-lg bg-gray-100 p-3"><div class="text-xs uppercase tracking-wide text-gray-500">Delivery</div><div class="font-medium text-sm">${escapeHtml(assistant.order_window?.delivery||'-')}</div></div>
-                            <div class="rounded-lg bg-gray-100 p-3"><div class="text-xs uppercase tracking-wide text-gray-500">Pickup</div><div class="font-medium text-sm">${escapeHtml(assistant.order_window?.pickup||'-')}</div></div>
-                        </div>
-                        ${issuesHtml ? `<div><h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Operational Issues</h3>${issuesHtml}</div>` : ''}
-                        <div class="rounded-xl border border-sky-200 bg-sky-50 p-4">
-                            <div class="flex items-start justify-between gap-4">
-                                <div>
-                                    <div class="text-xs uppercase tracking-wide text-sky-600">AI Decision</div>
-                                    <div class="mt-1 font-semibold text-sky-900">${escapeHtml(rec.decision||'No decision')}</div>
-                                    <div class="text-sm text-sky-800 mt-0.5">${escapeHtml(rec.recommended_equipment_name||'No equipment recommended')}</div>
-                                </div>
-                                <div class="text-right text-xs text-sky-700 shrink-0">
-                                    <div>ID: ${escapeHtml(rec.recommended_equipment_id??'-')}</div>
-                                    <div>${escapeHtml(rec.relationship_type||'')}</div>
-                                </div>
-                            </div>
-                            ${actionsHtml ? `<div class="mt-3 flex flex-wrap gap-2">${actionsHtml}</div>` : ''}
-                        </div>
-                        ${reasoningHtml ? `<div><h3 class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Reasoning</h3><ul class="list-disc space-y-1 pl-5 text-sm text-gray-700">${reasoningHtml}</ul></div>` : ''}
-                        ${warningsHtml ? `<div><h3 class="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-700">Warnings</h3><ul class="list-disc space-y-1 pl-5 text-sm text-amber-700">${warningsHtml}</ul></div>` : ''}
-                        ${altsHtml ? `<div><h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Alternatives</h3><div class="space-y-2">${altsHtml}</div></div>` : ''}
-                        ${ai.error ? `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">${escapeHtml(ai.error)}</div>` : ''}
-                    </div>`;
+                    body.innerHTML = summaryHtml + keysHtml + cards + `<p class="text-center text-xs text-gray-400 pt-2">${total} candidate${total !== 1 ? 's' : ''} evaluated.</p>`;
                 })
-                .catch(err => {
-                    console.error('AI Suggest fetch error:', err);
-                    content.innerHTML = '<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">Request failed. Please try again.</div>';
+                .catch(() => {
+                    body.innerHTML = '<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">Failed to load suggestions. Please try again.</div>';
                 });
         }
 
-        // Close AI panel
-        const closeAiBtn = e.target.closest('.close-ai-panel');
-        if (closeAiBtn) {
-            const idx = closeAiBtn.dataset.conflictIndex;
-            document.getElementById('ai-panel-' + idx)?.classList.add('hidden');
+        function closeModal() {
+            modal.classList.add('hidden');
+            pendingOrderProductUniqueId = '';
         }
-    });
+
+        document.getElementById('closeAiSuggestModal').addEventListener('click', closeModal);
+        document.getElementById('closeAiSuggestModalFooter').addEventListener('click', closeModal);
+        modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+        // Open on AI button click
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.ai-suggest-btn');
+            if (!btn) return;
+            openModal(btn.dataset.orderProductId, btn.dataset.equipmentName || btn.dataset.productName);
+        });
+
+        // Assign from suggestion card — on success, reload page so conflict list updates
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.ai-assign-btn');
+            if (!btn) return;
+
+            const userUniqueId = userSelect.value;
+            if (!userUniqueId) { notyf.error('Please select an employee before assigning.'); return; }
+            if (!pendingOrderProductUniqueId) { notyf.error('Order product reference lost. Please close and reopen.'); return; }
+
+            const equipmentUniqueId = btn.dataset.equipmentUniqueId;
+            const equipmentName     = btn.dataset.equipmentName;
+
+            btn.disabled = true;
+            btn.textContent = 'Assigning…';
+
+            const params = new URLSearchParams({
+                order_product_unique_id: pendingOrderProductUniqueId,
+                equipment_unique_id:     equipmentUniqueId,
+                user_unique_id:          userUniqueId,
+            });
+
+            fetch(assignUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN':     document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                    'Content-Type':     'application/x-www-form-urlencoded',
+                    'Accept':           'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: params.toString(),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    notyf.success(`Assigned: ${equipmentName}`);
+                    closeModal();
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    notyf.error(data.message || 'Assignment failed.');
+                    btn.disabled = false;
+                    btn.textContent = 'Assign';
+                }
+            })
+            .catch(() => {
+                notyf.error('Request failed. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Assign';
+            });
+        });
+    })();
+    // ── End AI Equipment Suggestion ──────────────────────────────────────────
 
     // ── Equipment Assign Modal ───────────────────────────────────────────────
     const modal               = document.getElementById('equipmentAssignModal');

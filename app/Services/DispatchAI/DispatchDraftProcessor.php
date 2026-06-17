@@ -20,6 +20,14 @@ class DispatchDraftProcessor
             'response_time_ms'     => $aiResult['response_time_ms'] ?? null,
             'ai_reasoning'         => $aiResult['overall_reasoning'] ?? null,
             'confidence_score'     => $aiResult['confidence_score'] ?? null,
+            'ai_metadata'          => array_filter([
+                'delivery_priority_summary'      => $aiResult['delivery_priority_summary'] ?? null,
+                'pickup_decisions'               => $aiResult['pickup_decisions'] ?? [],
+                'driver_assignments'             => $aiResult['driver_assignments'] ?? [],
+                'early_delivery_recommendations' => $aiResult['early_delivery_recommendations'] ?? [],
+                'manager_review_items'           => $aiResult['manager_review_items'] ?? [],
+                'warnings'                       => $aiResult['warnings'] ?? [],
+            ]),
             'triggered_by'         => $triggeredBy,
             'triggered_by_user_id' => $triggeredByUserId,
         ]);

@@ -2,7 +2,7 @@
     @csrf
     <input type="hidden" name="tab" value="automation">
     {{-- preserve non-automation settings --}}
-    <input type="hidden" name="prefer_same_driver_for_returns" value="{{ $settings->prefer_same_driver_for_returns ? '1' : '0' }}">
+    {{-- prefer_same_driver_for_returns is managed below as a visible toggle --}}
     <input type="hidden" name="route_efficiency_weight" value="{{ $settings->route_efficiency_weight }}">
     <input type="hidden" name="delivery_priority_weight" value="{{ $settings->delivery_priority_weight }}">
     <input type="hidden" name="driver_utilization_weight" value="{{ $settings->driver_utilization_weight }}">
@@ -56,6 +56,22 @@
                     @endforeach
                 </select>
             </div>
+        </div>
+
+        {{-- Driver continuity --}}
+        <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="flex-1">
+                <div class="font-medium text-sm text-gray-800">Prefer Same Driver for Returns</div>
+                <div class="text-xs text-gray-500 mt-0.5">
+                    When enabled, the AI will attempt to assign the same driver for a pickup/return
+                    as made the original delivery. A +25 continuity bonus score is applied during driver selection.
+                </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer mt-0.5">
+                <input type="checkbox" name="prefer_same_driver_for_returns" value="1" class="sr-only peer"
+                    {{ $settings->prefer_same_driver_for_returns ? 'checked' : '' }}>
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+            </label>
         </div>
 
         {{-- Allow toggles --}}

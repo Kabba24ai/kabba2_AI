@@ -19,6 +19,7 @@ class DispatchAiDraft extends Model
         'response_time_ms',
         'ai_reasoning',
         'confidence_score',
+        'ai_metadata',
         'triggered_by',
         'triggered_by_user_id',
     ];
@@ -28,6 +29,7 @@ class DispatchAiDraft extends Model
         return [
             'draft_date'       => 'date',
             'confidence_score' => 'decimal:2',
+            'ai_metadata'      => 'array',
         ];
     }
 

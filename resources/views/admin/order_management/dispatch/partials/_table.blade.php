@@ -57,20 +57,22 @@
                         {!! $orderProduct->order?->view_link ?? '-' !!}
                     </td>
 
-                    <td class="py-4 px-6 text-left max-w-[9rem] overflow-hidden">
-                        <div class="font-medium truncate">
-                            {{ $orderProduct->order?->customer_name ?? '-' }}
-                        </div>
-                        @php $customer = $orderProduct->order?->customer; @endphp
-                        @if ($customer && $customer->company_name)
-                            <div class="text-xs text-gray-500 mt-1 truncate">
-                                @if (!empty($customer->company_website))
-                                    <a href="{{ $customer->company_website }}" class="underline">{{ $customer->company_name }}</a>
-                                @else
-                                    <span>{{ $customer->company_name }}</span>
-                                @endif
+                    <td class="py-4 px-6 text-left">
+                        <div class="w-[9rem] overflow-hidden">
+                            <div class="font-medium truncate">
+                                {{ $orderProduct->order?->customer_name ?? '-' }}
                             </div>
-                        @endif
+                            @php $customer = $orderProduct->order?->customer; @endphp
+                            @if ($customer && $customer->company_name)
+                                <div class="text-xs text-gray-500 mt-1 truncate">
+                                    @if (!empty($customer->company_website))
+                                        <a href="{{ $customer->company_website }}" class="underline">{{ $customer->company_name }}</a>
+                                    @else
+                                        <span>{{ $customer->company_name }}</span>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
                     </td>
 
                     <td class="py-4 px-6 truncate min-w-xs max-w-xs">

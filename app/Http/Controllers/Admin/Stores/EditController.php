@@ -20,8 +20,7 @@ class EditController extends Controller
 
     public function __invoke($unique_id, Request $request)
     {
-		$store = Store::where('unique_id', $unique_id)->firstOrFail();
-
+        $store = Store::with('serviceAreas')->where('unique_id', $unique_id)->firstOrFail();
 
         $hours = $store->hours()->get()->keyBy('day_name');
 

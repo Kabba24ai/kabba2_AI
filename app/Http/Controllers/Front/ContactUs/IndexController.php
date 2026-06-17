@@ -19,8 +19,8 @@ class IndexController extends Controller
         $contact_settings = Setting::where('setting_type', 'Website Management Contact Us Section')->pluck('setting_value', 'setting_name')->toArray();
 
         return view('front.contact_us.index', [
-            'title' => 'Contact',
-            'stores' => $stores,
+            'title'            => 'Contact',
+            'stores'           => $stores,
             'contact_settings' => $contact_settings,
         ]);
     }

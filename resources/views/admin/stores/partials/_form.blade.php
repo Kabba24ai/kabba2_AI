@@ -174,23 +174,11 @@
                 @enderror
             </div>
 
-            <div>
-                <label for="country"
-                    class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 required">Country</label>
-                {!! html()->text('country', old('country', $store->country ?? "USA"))->class([
-                'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                'border-gray-300' => !$errors->has('country'),
-                'border-red-500' => $errors->has('country'),
-                ])->attributes([
-                'maxlength' => 240,
-                'data-parsley-maxlength' => 240,
-                'placeholder' => 'Enter country',
-                'autocomplete' => 'address-level2',
-                'id' => 'country',
-                ])->required() !!}
-                @error('country')
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
+            {{-- Country: hidden from UI, always USA — used only by AI/schema layer --}}
+            <div class="hidden">
+                <select name="country" id="country">
+                    <option value="USA" selected>United States (USA)</option>
+                </select>
             </div>
 
             {{-- Latitude --}}
@@ -344,6 +332,227 @@
 
               
             </div>
+
+    {{-- ═══════════════════════════════════════════════════════ Service Area Settings ══ --}}
+    <div>
+        <h3 class="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">Service Area Settings</h3>
+        <hr class="mb-6 border-gray-300 dark:border-gray-700">
+
+        @php
+            $storeServiceAreas  = $store->serviceAreas ?? collect();
+            $existingRadius     = $storeServiceAreas->where('area_group', 'radius')->first();
+
+            $includedAreas = old('service_areas_included')
+                ? collect(old('service_areas_included'))->map(fn($a) => (object) $a)
+                : $storeServiceAreas->where('area_group', 'included')->values();
+
+            $excludedAreas = old('service_areas_excluded')
+                ? collect(old('service_areas_excluded'))->map(fn($a) => (object) $a)
+                : $storeServiceAreas->where('area_group', 'excluded')->values();
+
+            $radiusEnabled  = old('service_area_enable_radius',   $existingRadius ? '1' : '0');
+            $radiusMiles    = old('service_area_radius_miles',     $existingRadius?->radius_miles ?? '');
+            $radiusDelivery = old('service_area_delivery_allowed', $existingRadius ? ($existingRadius->delivery_allowed ? '1' : '0') : '1');
+            $radiusPickup   = old('service_area_pickup_allowed',   $existingRadius ? ($existingRadius->pickup_allowed   ? '1' : '0') : '1');
+        @endphp
+
+        {{-- 1. Default Service Radius --}}
+        <div class="p-6 bg-white rounded-lg shadow border mb-6"
+             x-data="{ radiusOn: @js($radiusEnabled === '1') }">
+            <h4 class="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-200">Default Service Radius</h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Enable Service Radius</label>
+                    <div class="flex items-center gap-3">
+                        <button type="button"
+                            @click="radiusOn = !radiusOn; $refs.radiusEnable.value = radiusOn ? '1' : '0'"
+                            :aria-pressed="radiusOn"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition bg-gray-200 data-[on=true]:bg-green-500"
+                            :data-on="radiusOn">
+                            <span class="inline-block h-5 w-5 transform rounded-full bg-white transition"
+                                  :class="radiusOn ? 'translate-x-5' : 'translate-x-1'"></span>
+                        </button>
+                        <span class="text-sm text-gray-700 dark:text-gray-300" x-text="radiusOn ? 'Enabled' : 'Disabled'"></span>
+                        <input type="hidden" name="service_area_enable_radius" x-ref="radiusEnable" value="{{ $radiusEnabled }}">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="service_area_radius_miles"
+                           class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Radius Miles</label>
+                    <input type="number"
+                           name="service_area_radius_miles"
+                           id="service_area_radius_miles"
+                           value="{{ $radiusMiles }}"
+                           step="0.1" min="0.1"
+                           :disabled="!radiusOn"
+                           class="w-full md:w-40 border rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 bg-white text-gray-700 border-gray-300 disabled:opacity-40"
+                           placeholder="e.g. 25">
+                    @error('service_area_radius_miles')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                    <p class="mt-1 text-xs text-gray-500">Based on store latitude / longitude</p>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Allowed Inside Radius</label>
+                    <div x-data="{ on: @js($radiusDelivery === '1') }" class="flex items-center gap-3">
+                        <button type="button"
+                            @click="on = !on; $refs.deliveryAllowed.value = on ? '1' : '0'"
+                            :aria-pressed="on"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition bg-gray-200 data-[on=true]:bg-green-500"
+                            :data-on="on">
+                            <span class="inline-block h-5 w-5 transform rounded-full bg-white transition"
+                                  :class="on ? 'translate-x-5' : 'translate-x-1'"></span>
+                        </button>
+                        <span class="text-sm text-gray-700 dark:text-gray-300" x-text="on ? 'Yes' : 'No'"></span>
+                        <input type="hidden" name="service_area_delivery_allowed" x-ref="deliveryAllowed" value="{{ $radiusDelivery }}">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Pickup Allowed Inside Radius</label>
+                    <div x-data="{ on: @js($radiusPickup === '1') }" class="flex items-center gap-3">
+                        <button type="button"
+                            @click="on = !on; $refs.pickupAllowed.value = on ? '1' : '0'"
+                            :aria-pressed="on"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition bg-gray-200 data-[on=true]:bg-green-500"
+                            :data-on="on">
+                            <span class="inline-block h-5 w-5 transform rounded-full bg-white transition"
+                                  :class="on ? 'translate-x-5' : 'translate-x-1'"></span>
+                        </button>
+                        <span class="text-sm text-gray-700 dark:text-gray-300" x-text="on ? 'Yes' : 'No'"></span>
+                        <input type="hidden" name="service_area_pickup_allowed" x-ref="pickupAllowed" value="{{ $radiusPickup }}">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- 2. Additional Covered Areas --}}
+        <div class="p-6 bg-white rounded-lg shadow border mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Additional Covered Areas</h4>
+                <button type="button" onclick="addServiceAreaRow('included')"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    + Add Covered Area
+                </button>
+            </div>
+            <p class="mb-4 text-xs text-gray-500">These locations are serviced even if they fall outside the default radius.</p>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-gray-600 border-b">
+                        <tr>
+                            <th class="pb-2 pr-3">Area Type</th>
+                            <th class="pb-2 pr-3">Name</th>
+                            <th class="pb-2 pr-3">City</th>
+                            <th class="pb-2 pr-3">County</th>
+                            <th class="pb-2 pr-3">State</th>
+                            <th class="pb-2 pr-3">ZIP</th>
+                            <th class="pb-2 pr-3 text-center">Delivery</th>
+                            <th class="pb-2 pr-3 text-center">Pickup</th>
+                            <th class="pb-2 pr-3">Notes</th>
+                            <th class="pb-2 pr-3 text-center">Status</th>
+                            <th class="pb-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="sa-included-rows">
+                        @foreach ($includedAreas as $i => $area)
+                            <tr class="sa-row border-b border-gray-100 align-top">
+                                @include('admin.stores.partials._service_area_row', [
+                                    'group'  => 'included',
+                                    'i'      => $i,
+                                    'area'   => $area,
+                                    'states' => $states,
+                                ])
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <div id="sa-included-empty" class="py-4 text-center text-sm text-gray-400 {{ $includedAreas->isNotEmpty() ? 'hidden' : '' }}">
+                    No covered areas added yet.
+                </div>
+            </div>
+
+            {{-- Hidden JS template --}}
+            <table class="hidden" id="sa-included-template">
+                <tbody>
+                    <tr class="sa-row border-b border-gray-100 align-top">
+                        @include('admin.stores.partials._service_area_row', [
+                            'group'  => 'included',
+                            'i'      => '__IDX__',
+                            'area'   => null,
+                            'states' => $states,
+                        ])
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        {{-- 3. Excluded Areas --}}
+        <div class="p-6 bg-white rounded-lg shadow border mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Excluded Areas</h4>
+                <button type="button" onclick="addServiceAreaRow('excluded')"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    + Add Excluded Area
+                </button>
+            </div>
+            <p class="mb-4 text-xs text-gray-500">These locations are blocked even if they fall inside the default radius or covered areas. Excluded areas always win.</p>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-gray-600 border-b">
+                        <tr>
+                            <th class="pb-2 pr-3">Area Type</th>
+                            <th class="pb-2 pr-3">Name</th>
+                            <th class="pb-2 pr-3">City</th>
+                            <th class="pb-2 pr-3">County</th>
+                            <th class="pb-2 pr-3">State</th>
+                            <th class="pb-2 pr-3">ZIP</th>
+                            <th class="pb-2 pr-3">Reason / Notes</th>
+                            <th class="pb-2 pr-3 text-center">Status</th>
+                            <th class="pb-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="sa-excluded-rows">
+                        @foreach ($excludedAreas as $i => $area)
+                            <tr class="sa-row border-b border-gray-100 align-top">
+                                @include('admin.stores.partials._service_area_row', [
+                                    'group'  => 'excluded',
+                                    'i'      => $i,
+                                    'area'   => $area,
+                                    'states' => $states,
+                                ])
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <div id="sa-excluded-empty" class="py-4 text-center text-sm text-gray-400 {{ $excludedAreas->isNotEmpty() ? 'hidden' : '' }}">
+                    No excluded areas added yet.
+                </div>
+            </div>
+
+            {{-- Hidden JS template --}}
+            <table class="hidden" id="sa-excluded-template">
+                <tbody>
+                    <tr class="sa-row border-b border-gray-100 align-top">
+                        @include('admin.stores.partials._service_area_row', [
+                            'group'  => 'excluded',
+                            'i'      => '__IDX__',
+                            'area'   => null,
+                            'states' => $states,
+                        ])
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+    {{-- ══════════════════════════════════════════════════════════════════════════════════ --}}
 
     <div class="p-6 bg-white rounded-lg shadow border">
         <h3 class="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -667,5 +876,39 @@ $lunch = old(strtolower($day).'_lunch', $record->is_lunch_required ?? false);
 
         updatePreview();
     });
+</script>
+
+<script>
+    // ── Service Area dynamic rows ────────────────────────────────────────────
+    (function () {
+        const counters = {
+            included: document.querySelectorAll('#sa-included-rows tr.sa-row').length,
+            excluded: document.querySelectorAll('#sa-excluded-rows tr.sa-row').length,
+        };
+
+        window.addServiceAreaRow = function (group) {
+            const template = document.getElementById(`sa-${group}-template`);
+            const tbody    = document.getElementById(`sa-${group}-rows`);
+            const empty    = document.getElementById(`sa-${group}-empty`);
+
+            const idx      = counters[group]++;
+            const clone    = template.querySelector('tr').cloneNode(true);
+
+            clone.innerHTML = clone.innerHTML.replaceAll('__IDX__', idx);
+            tbody.appendChild(clone);
+            empty.classList.add('hidden');
+        };
+
+        window.removeServiceAreaRow = function (btn, group) {
+            const row   = btn.closest('tr.sa-row');
+            const tbody = document.getElementById(`sa-${group}-rows`);
+            row.remove();
+
+            const empty = document.getElementById(`sa-${group}-empty`);
+            if (!tbody.querySelector('tr.sa-row')) {
+                empty.classList.remove('hidden');
+            }
+        };
+    })();
 </script>
 @endpush

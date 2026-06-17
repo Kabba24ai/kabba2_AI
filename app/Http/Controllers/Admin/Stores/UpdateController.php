@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Stores;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 // Request
 use App\Http\Requests\Admin\Stores\UpdateRequest;
@@ -10,6 +11,7 @@ use App\Http\Requests\Admin\Stores\UpdateRequest;
 // Models
 use App\Models\Stores\Store;
 use App\Models\Stores\HoursOfOperation;
+use App\Models\Stores\StoreServiceArea;
 
 class UpdateController extends Controller
 {
@@ -33,11 +35,16 @@ class UpdateController extends Controller
             Store::where('id', '!=', $store->id)->update(['is_primary' => 'No']);
         }
 
-        // Update main store fields
-        $store->fill($validatedData)->save();
+        DB::transaction(function () use ($store, $validatedData) {
+            // Update main store fields
+            $store->fill($validatedData)->save();
 
-        // Update hours
-        $this->updateHours($store->id, $validatedData);
+            // Update hours
+            $this->updateHours($store->id, $validatedData);
+
+            // Update service areas
+            $this->saveServiceAreas($store->id, $validatedData);
+        });
 
         flash('Store updated successfully.')->success();
 
@@ -93,6 +100,63 @@ class UpdateController extends Controller
         }
     }
 
+
+    private function saveServiceAreas(int $storeId, array $data): void
+    {
+        // Remove all existing service areas for this store and replace
+        StoreServiceArea::where('store_id', $storeId)->delete();
+
+        // Radius row
+        if (!empty($data['service_area_enable_radius'])) {
+            StoreServiceArea::create([
+                'store_id'         => $storeId,
+                'area_group'       => 'radius',
+                'area_type'        => 'radius',
+                'radius_miles'     => $data['service_area_radius_miles'] ?? null,
+                'delivery_allowed' => (bool) ($data['service_area_delivery_allowed'] ?? true),
+                'pickup_allowed'   => (bool) ($data['service_area_pickup_allowed']   ?? true),
+                'is_active'        => true,
+            ]);
+        }
+
+        // Included areas
+        foreach ($data['service_areas_included'] ?? [] as $sort => $row) {
+            if (empty($row['area_type'])) continue;
+            StoreServiceArea::create([
+                'store_id'         => $storeId,
+                'area_group'       => 'included',
+                'area_type'        => $row['area_type'],
+                'name'             => $row['name']     ?? null,
+                'city'             => $row['city']     ?? null,
+                'county'           => $row['county']   ?? null,
+                'state'            => $row['state']    ?? null,
+                'zip_code'         => $row['zip_code'] ?? null,
+                'delivery_allowed' => (bool) ($row['delivery_allowed'] ?? true),
+                'pickup_allowed'   => (bool) ($row['pickup_allowed']   ?? true),
+                'notes'            => $row['notes']    ?? null,
+                'sort_order'       => (int) $sort,
+                'is_active'        => (bool) ($row['is_active'] ?? true),
+            ]);
+        }
+
+        // Excluded areas
+        foreach ($data['service_areas_excluded'] ?? [] as $sort => $row) {
+            if (empty($row['area_type'])) continue;
+            StoreServiceArea::create([
+                'store_id'   => $storeId,
+                'area_group' => 'excluded',
+                'area_type'  => $row['area_type'],
+                'name'       => $row['name']     ?? null,
+                'city'       => $row['city']     ?? null,
+                'county'     => $row['county']   ?? null,
+                'state'      => $row['state']    ?? null,
+                'zip_code'   => $row['zip_code'] ?? null,
+                'notes'      => $row['notes']    ?? null,
+                'sort_order' => (int) $sort,
+                'is_active'  => (bool) ($row['is_active'] ?? true),
+            ]);
+        }
+    }
 
     private function convertTo24Hour(?string $time)
     {

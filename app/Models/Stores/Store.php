@@ -99,8 +99,17 @@ class Store extends Model
         return $this->hasMany(HoursOfOperation::class);
     }
     public function users()
-{
-    return $this->hasMany(User::class);
-}
+    {
+        return $this->hasMany(User::class);
+    }
 
+    public function serviceAreas()
+    {
+        return $this->hasMany(StoreServiceArea::class)->orderBy('sort_order');
+    }
+
+    public function serviceAreaRadius()
+    {
+        return $this->hasOne(StoreServiceArea::class)->where('area_group', 'radius');
+    }
 }

@@ -12,30 +12,37 @@ class GeneratePageMetadata extends Command
     protected $signature = 'ai:generate-page-metadata
                             {--type=        : Filter by page type: product or category}
                             {--id=          : Generate for a specific record ID}
-                            {--all          : Generate for all published products and categories}
+                            {--all          : Generate for all pages: home, products, and categories}
+                            {--home         : Regenerate home page schema (Organization + LocalBusiness)}
                             {--force        : Regenerate even if source hash is unchanged}';
 
-    protected $description = 'Generate or regenerate AI page metadata (JSON-LD schema) for products and categories.';
+    protected $description = 'Generate or regenerate AI page metadata (JSON-LD schema) for home, products, and categories.';
 
     public function handle(AIPageMetadataGenerator $generator): int
     {
         $type  = $this->option('type');
         $id    = $this->option('id');
         $all   = $this->option('all');
+        $home  = $this->option('home');
         $force = $this->option('force');
 
-        if (!$type && !$all) {
-            $this->error('Provide --type=product|category or --all');
+        if (!$type && !$all && !$home) {
+            $this->error('Provide --type=product|category, --home, or --all');
             return self::FAILURE;
         }
 
         if ($force) {
-            $this->clearHashes($type, $id);
+            $this->clearHashes($type, $id, $home || $all);
         }
 
         $generated = 0;
         $skipped   = 0;
         $failed    = 0;
+
+        if ($all || $home) {
+            [$g, $s, $f] = $this->runHome($generator);
+            $generated += $g; $skipped += $s; $failed += $f;
+        }
 
         if ($all || $type === 'product') {
             [$g, $s, $f] = $this->runProducts($generator, $id);
@@ -54,6 +61,21 @@ class GeneratePageMetadata extends Command
         );
 
         return $failed > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function runHome(AIPageMetadataGenerator $generator): array
+    {
+        $this->info('Generating home page metadata (Organization + LocalBusiness schema)...');
+
+        $result = $generator->generateForHome();
+
+        if ($result) {
+            $this->line('  ✓ Home page schema generated.');
+            return [1, 0, 0];
+        }
+
+        $this->warn('  ✗ Home page schema failed — check logs.');
+        return [0, 0, 1];
     }
 
     private function runProducts(AIPageMetadataGenerator $generator, ?string $id): array
@@ -134,18 +156,27 @@ class GeneratePageMetadata extends Command
         return [$generated, $skipped, $failed];
     }
 
-    private function clearHashes(?string $type, ?string $id): void
+    private function clearHashes(?string $type, ?string $id, bool $includeHome = false): void
     {
         $query = \App\Models\AIVisibility\AiPageMetadata::query();
 
         if ($type) {
             $query->where('page_type', $type);
+        } elseif ($includeHome) {
+            // Clear everything (home + products + categories)
         }
+
         if ($id) {
             $query->where('page_id', $id);
         }
 
-        $query->update(['generated_from_hash' => null]);
+        if ($includeHome && !$type && !$id) {
+            // Clear all including home
+            \App\Models\AIVisibility\AiPageMetadata::query()->update(['generated_from_hash' => null]);
+        } else {
+            $query->update(['generated_from_hash' => null]);
+        }
+
         $this->line('Hashes cleared — full regeneration will run.');
     }
 }

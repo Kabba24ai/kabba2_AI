@@ -53,6 +53,23 @@ class AiRulesController extends Controller
             ->orderBy('truck_name')
             ->get();
 
+        // Equipment tab: only show columns for truck types that have at least one active truck.
+        // Maintain canonical TRUCK_TYPES order. Fall back to full list if none registered yet.
+        $activeTruckTypeSet = DispatchAiTruck::where('is_active', true)
+            ->whereNotNull('truck_type')
+            ->pluck('truck_type')
+            ->unique()
+            ->all();
+
+        $activeTruckTypes = array_values(array_filter(
+            self::TRUCK_TYPES,
+            fn ($t) => in_array($t, $activeTruckTypeSet),
+        ));
+
+        if (empty($activeTruckTypes)) {
+            $activeTruckTypes = self::TRUCK_TYPES;
+        }
+
         $trailers = DispatchAiTrailer::with('store')
             ->orderBy('is_active', 'desc')
             ->orderBy('trailer_name')
@@ -77,9 +94,9 @@ class AiRulesController extends Controller
 
         $stores = Store::active()->orderBy('store_name')->get();
 
-        $truckTypes   = self::TRUCK_TYPES;
-        $trailerTypes = self::TRAILER_TYPES;
-        $hitchTypes   = self::TRAILER_TYPES; // alias used by trailer fields partial
+        $truckTypes       = self::TRUCK_TYPES;
+        $trailerTypes     = self::TRAILER_TYPES;
+        $hitchTypes       = self::TRAILER_TYPES; // alias used by trailer fields partial
 
         return view('admin.order_management.dispatch.ai_rules.index', compact(
             'settings',
@@ -91,6 +108,7 @@ class AiRulesController extends Controller
             'equipmentRules',
             'stores',
             'truckTypes',
+            'activeTruckTypes',
             'trailerTypes',
             'hitchTypes',
         ));

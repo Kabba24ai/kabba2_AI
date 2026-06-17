@@ -1,6 +1,6 @@
 @php
     $trailerCols = $trailerTypes;
-    $truckCols   = $truckTypes;
+    $truckCols   = $activeTruckTypes;   // only truck types with ≥1 active truck registered
     $saveUrl     = route('admin.order-management.dispatch.ai-rules.equipment-rule.save');
     $csrfToken   = csrf_token();
 @endphp

@@ -119,6 +119,8 @@ class IndexController extends Controller
             'average_ticket'            => CustomHelper::formatCurrency($kpis['average_ticket']),
             'account_payments_received' => CustomHelper::formatCurrency($kpis['account_payments_received']),
             'payment_status'            => $kpis['payment_status'],
+            'refunds'                   => CustomHelper::formatCurrency($kpis['refunds']),
+            'total_realized_revenue'    => CustomHelper::formatCurrency($kpis['total_realized_revenue']),
             // raw values for JS
             'raw'                       => $kpis,
         ];

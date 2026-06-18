@@ -75,4 +75,41 @@
     </div>
     @endif
 
+    {{-- Refunds --}}
+    @if (($kpis['raw']['refunds'] ?? 0) > 0)
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Refunds</p>
+        <p class="text-xl font-semibold text-red-600 dark:text-red-400">- {{ $kpis['refunds'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Against period orders</p>
+    </div>
+    @endif
+
+</div>
+
+{{-- ── Total Realized Revenue banner — cross-checks against Dashboard 30-day total ── --}}
+<div class="flex items-center justify-between bg-gradient-to-r from-brand-600 to-brand-500 dark:from-brand-700 dark:to-brand-600 rounded-xl p-5 mb-6 shadow">
+    <div>
+        <p class="text-xs font-semibold text-brand-100 uppercase tracking-wider mb-1">Total Realized Revenue</p>
+        <p class="text-3xl font-bold text-white">{{ $kpis['total_realized_revenue'] }}</p>
+        <p class="text-xs text-brand-200 mt-1">Net Sales + Tax + Account Payments − Refunds · matches Dashboard 30-day figure</p>
+    </div>
+    <div class="hidden sm:grid grid-cols-3 gap-6 text-right text-xs text-brand-100">
+        <div>
+            <p class="font-semibold text-white text-base">{{ $kpis['net_sales'] }}</p>
+            <p>Net Sales</p>
+        </div>
+        <div>
+            <p class="font-semibold text-white text-base">{{ $kpis['tax_collected'] }}</p>
+            <p>+ Tax</p>
+        </div>
+        <div>
+            @if (in_array($kpis['payment_status'] ?? 'paid', ['paid', 'all', 'account']))
+            <p class="font-semibold text-white text-base">{{ $kpis['account_payments_received'] }}</p>
+            <p>+ Acct Pmts</p>
+            @else
+            <p class="font-semibold text-white text-base">—</p>
+            <p>+ Acct Pmts</p>
+            @endif
+        </div>
+    </div>
 </div>

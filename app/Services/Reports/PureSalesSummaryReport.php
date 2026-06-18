@@ -77,9 +77,16 @@ class PureSalesSummaryReport
             $accountPaymentsReceived = $this->accountPaymentsTotal($filters);
         }
 
+        // ── Query 5: refunds against the in-scope orders ─────────────────────
+        $refunds = $this->refundsTotal($filters);
+
         // ── Derived metrics ──────────────────────────────────────────────────
         $netSales      = max(0, $grossSales - $discounts);
         $averageTicket = $transactionCount > 0 ? $netSales / $transactionCount : 0;
+
+        // Matches dashboard formula: SUM(grand_total) + account_payments - refunds
+        // grand_total = subtotal - discount + tax  →  net_sales + tax_collected
+        $totalRealizedRevenue = max(0, $netSales + $taxCollected + $accountPaymentsReceived - $refunds);
 
         return [
             'gross_sales'               => $grossSales,
@@ -94,6 +101,8 @@ class PureSalesSummaryReport
             'average_ticket'            => $averageTicket,
             'account_payments_received' => $accountPaymentsReceived,
             'payment_status'            => $paymentStatus,
+            'refunds'                   => $refunds,
+            'total_realized_revenue'    => $totalRealizedRevenue,
         ];
     }
 
@@ -189,6 +198,26 @@ class PureSalesSummaryReport
         }
 
         return (float) $query->sum('amount');
+    }
+
+    /**
+     * Sum of refund_amount for Refunded / Partial Refund payments on in-scope orders.
+     * Uses order_date as the anchor (matches sales period, not refund-processed date).
+     */
+    public function refundsTotal(array $filters): float
+    {
+        $orderIds = $this->reporting->baseQuery($filters)
+            ->selectRaw('DISTINCT orders.id')
+            ->pluck('id');
+
+        if ($orderIds->isEmpty()) {
+            return 0.0;
+        }
+
+        return (float) DB::table('order_payments')
+            ->whereIn('order_id', $orderIds)
+            ->whereIn('status', ['Refunded', 'Partial Refund'])
+            ->sum('refund_amount');
     }
 
     // ─── Filter Helpers ──────────────────────────────────────────────────────

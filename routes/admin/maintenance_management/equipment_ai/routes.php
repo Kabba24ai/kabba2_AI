@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\Custo
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\UpdateStatusController as CustomSpecUpdateStatusController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\UpdateValueController as CustomSpecUpdateValueController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\ResearchController as CustomSpecResearchController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\Spec\UpdateStatusController as SpecUpdateStatusController;
 
 // Controllers — Category Comparison Keys
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\IndexController as KeyIndexController;
@@ -72,6 +73,9 @@ Route::prefix('equipment-ai')
                 Route::patch('/custom-specs/{id}/status',              CustomSpecUpdateStatusController::class)->name('custom-specs.update-status');
                 Route::patch('/custom-spec-values/{id}',               CustomSpecUpdateValueController::class)->name('custom-spec-values.update');
                 Route::post('/custom-specs/{id}/research',             CustomSpecResearchController::class)->name('custom-specs.research');
+
+                // Extracted spec status (instant persist — no Save Framework needed)
+                Route::patch('/specs/status', SpecUpdateStatusController::class)->name('specs.update-status');
             });
 
         /*

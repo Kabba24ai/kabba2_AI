@@ -40,27 +40,31 @@
     {{-- ─── Toolbar ─────────────────────────────────────────────────────── --}}
     <div class="flex flex-wrap items-center gap-3">
 
-        <button type="button"
-                @click="openGroupModal()"
-                :disabled="selected.length < 2"
-                class="inline-flex items-center gap-2 rounded-lg border border-indigo-400 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-900/20">
-            <x-heroicon-o-arrows-right-left class="h-4 w-4" />
-            Group Selected
-            <span x-show="selected.length >= 2" x-cloak x-text="'(' + selected.length + ')'" class="text-xs font-normal"></span>
-        </button>
+        <div class="hidden">
+            <button type="button"
+                    @click="openGroupModal()"
+                    :disabled="selected.length < 2"
+                    class="inline-flex items-center gap-2 rounded-lg border border-indigo-400 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-900/20">
+                <x-heroicon-o-arrows-right-left class="h-4 w-4" />
+                Group Selected
+                <span x-show="selected.length >= 2" x-cloak x-text="'(' + selected.length + ')'" class="text-xs font-normal"></span>
+            </button>
+        </div>
 
-        <button type="button"
-                @click="selected = []"
-                x-show="selected.length > 0"
-                x-cloak
-                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
-            <x-heroicon-o-x-mark class="h-4 w-4" />
-            Clear (<span x-text="selected.length"></span>)
-        </button>
+        <div class="hidden">
+            <button type="button"
+                    @click="selected = []"
+                    x-show="selected.length > 0"
+                    x-cloak
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
+                <x-heroicon-o-x-mark class="h-4 w-4" />
+                Clear (<span x-text="selected.length"></span>)
+            </button>
+        </div>
 
         <form method="POST"
               action="{{ route('admin.maintenance-management.equipment-ai.commonize.analyze') }}"
-              class="inline">
+              class="hidden">
             @csrf
             <input type="hidden" name="category_id" value="{{ $category->id }}">
             <button type="submit"
@@ -98,7 +102,8 @@
 
         <form method="POST"
               action="{{ route('admin.maintenance-management.equipment-ai.commonize.save-framework') }}"
-              @submit.prevent="submitFramework($el)">
+              @submit.prevent="submitFramework($el)"
+              class="hidden">
             @csrf
             <input type="hidden" name="category_id" value="{{ $category->id }}">
             <input type="hidden" name="framework" :value="frameworkJson">
@@ -181,7 +186,7 @@
                                     <input type="checkbox"
                                            :checked="isSelected(item.row.spec_key)"
                                            @change="toggleSelected(item.row.spec_key)"
-                                           class="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600">
+                                           class="hidden h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600">
                                 </template>
                             </td>
 
@@ -827,7 +832,11 @@ function specMatrix() {
             if (target.is_key_comparison) {
                 // Toggle OFF — no modal needed
                 target.is_key_comparison = false;
-                if (target.custom_spec_id) this.persistCustomSpecStatus(target);
+                if (target.custom_spec_id) {
+                    this.persistCustomSpecStatus(target);
+                } else {
+                    this.persistExtractedSpecStatus(target);
+                }
             } else {
                 // Toggle ON — open criteria modal first
                 this.pendingKeyTarget = target;
@@ -849,7 +858,11 @@ function specMatrix() {
             target.criteria_flags    = { ...this.keyCriteriaForm };
             this.showKeyCriteriaModal = false;
             this.pendingKeyTarget     = null;
-            if (target.custom_spec_id) this.persistCustomSpecStatus(target);
+            if (target.custom_spec_id) {
+                this.persistCustomSpecStatus(target);
+            } else {
+                this.persistExtractedSpecStatus(target);
+            }
         },
 
         cancelKeyModal() {
@@ -860,11 +873,13 @@ function specMatrix() {
             if (target.is_ignored) {
                 target.is_ignored = false;
             } else {
-                target.is_ignored = true;
+                target.is_ignored        = true;
                 target.is_key_comparison = false;
             }
             if (target.custom_spec_id) {
                 this.persistCustomSpecStatus(target);
+            } else {
+                this.persistExtractedSpecStatus(target);
             }
         },
         persistCustomSpecStatus(row) {
@@ -872,6 +887,20 @@ function specMatrix() {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                 body: JSON.stringify({
+                    is_key_comparison: row.is_key_comparison,
+                    is_ignored:        row.is_ignored,
+                    ...(row.is_key_comparison && row.criteria_flags ? row.criteria_flags : {}),
+                }),
+            });
+        },
+
+        persistExtractedSpecStatus(row) {
+            fetch('/maintenance-management/equipment-ai/commonize/specs/status', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                body: JSON.stringify({
+                    category_id:       this.categoryId,
+                    spec_key:          row.spec_key,
                     is_key_comparison: row.is_key_comparison,
                     is_ignored:        row.is_ignored,
                     ...(row.is_key_comparison && row.criteria_flags ? row.criteria_flags : {}),

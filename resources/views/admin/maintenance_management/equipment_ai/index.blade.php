@@ -108,7 +108,7 @@
             </div>
         </div>
 
-        {{-- ─── Two-Tab Content (profiles + comparison keys) ──────────────── --}}
+        {{-- ─── Three-Tab Content (profiles + comparison keys + matrix) ─────── --}}
         @if ($selectedCategory)
 
             <div x-data="{ activeTab: '{{ request('tab', 'profiles') }}' }">
@@ -117,28 +117,35 @@
                 <div class="flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800 gap-1">
                     <button @click="activeTab = 'profiles'"
                         :class="activeTab === 'profiles'
-                            ?
-                            'bg-white shadow text-gray-900 dark:bg-gray-700 dark:text-white' :
-                            'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                            ? 'bg-white shadow text-gray-900 dark:bg-gray-700 dark:text-white'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
                         class="flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all">
                         <x-heroicon-o-cpu-chip class="h-4 w-4" />
                         Make / Models
-                        <span
-                            class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                        <span class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-600 dark:text-gray-300">
                             {{ $profiles->count() }}
                         </span>
                     </button>
                     <button @click="activeTab = 'comparison'"
                         :class="activeTab === 'comparison'
-                            ?
-                            'bg-white shadow text-gray-900 dark:bg-gray-700 dark:text-white' :
-                            'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                            ? 'bg-white shadow text-gray-900 dark:bg-gray-700 dark:text-white'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
                         class="flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all">
                         <x-heroicon-o-adjustments-horizontal class="h-4 w-4" />
                         Key Comparison Criteria
-                        <span
-                            class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                        <span class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-600 dark:text-gray-300">
                             {{ $comparisonKeys->count() }}
+                        </span>
+                    </button>
+                    <button @click="activeTab = 'matrix'"
+                        :class="activeTab === 'matrix'
+                            ? 'bg-white shadow text-gray-900 dark:bg-gray-700 dark:text-white'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                        class="flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all">
+                        <x-heroicon-o-table-cells class="h-4 w-4" />
+                        Matrix Framework
+                        <span class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                            {{ $profiles->count() }}
                         </span>
                     </button>
                 </div>
@@ -491,6 +498,159 @@
                     </div>
 
                 </div>{{-- end comparison tab --}}
+
+                {{-- ── Tab 3: Matrix Framework ──────────────────────────── --}}
+                <div x-show="activeTab === 'matrix'" x-cloak>
+                    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+
+                        {{-- Header --}}
+                        <div class="border-b border-gray-100 px-6 py-4 dark:border-gray-700 flex items-center justify-between">
+                            <div>
+                                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Matrix Framework</h2>
+                                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                    {{ count($matrix) }} specification(s) &nbsp;·&nbsp; {{ $matrixProfiles->count() }} profile(s) &nbsp;·&nbsp; <strong>{{ $selectedCategory->title }}</strong>
+                                </p>
+                            </div>
+                            <a href="{{ route('admin.maintenance-management.equipment-ai.commonize.matrix', ['category_id' => $selectedCategory->id]) }}"
+                               class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-purple-400 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-50 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-900/20">
+                                <x-heroicon-o-table-cells class="h-3.5 w-3.5" />
+                                Open Full Matrix
+                            </a>
+                        </div>
+
+                        @if ($matrixProfiles->isEmpty())
+                            <div class="px-6 py-12 text-center text-gray-400 dark:text-gray-500">
+                                <x-heroicon-o-table-cells class="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />
+                                <p class="font-medium">No profiles with specifications yet.</p>
+                                <p class="mt-1 text-xs">Run AI research on at least one profile first.</p>
+                            </div>
+                        @else
+                            @php
+                                $keyRows     = array_filter($matrix, fn($r) => $r['is_key_comparison']);
+                                $normalRows  = array_filter($matrix, fn($r) => !$r['is_key_comparison'] && !$r['is_ignored']);
+                                $ignoredRows = array_filter($matrix, fn($r) => !$r['is_key_comparison'] && $r['is_ignored']);
+                                $sections    = [];
+                                if (!empty($keyRows))     $sections[] = ['label' => 'Key Comparison',        'type' => 'key',     'rows' => $keyRows,     'count' => count($keyRows)];
+                                if (!empty($normalRows))  $sections[] = ['label' => 'Normal Specifications',  'type' => 'normal',  'rows' => $normalRows,  'count' => count($normalRows)];
+                                if (!empty($ignoredRows)) $sections[] = ['label' => 'Ignored',               'type' => 'ignored', 'rows' => $ignoredRows, 'count' => count($ignoredRows)];
+                            @endphp
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"
+                                       style="min-width: {{ 40 + 288 + 64 + ($matrixProfiles->count() * 112) }}px; width: 100%;">
+                                    {{-- Thead --}}
+                                    <thead class="bg-gray-50 dark:bg-gray-800/60">
+                                        <tr>
+                                            <th scope="col" class="sticky left-0 top-0 z-40 w-10 bg-gray-50 px-3 py-3 dark:bg-gray-800/60"></th>
+                                            <th scope="col"
+                                                class="sticky left-10 top-0 z-40 w-72 border-r border-gray-200 bg-gray-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-400">
+                                                Specification Label
+                                            </th>
+                                            <th scope="col"
+                                                class="sticky top-0 z-30 w-16 bg-gray-50 px-1 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
+                                                Status
+                                            </th>
+                                            @foreach ($matrixProfiles as $mp)
+                                                <th scope="col" class="sticky top-0 z-30 w-28 bg-gray-50 px-3 py-3 text-center dark:bg-gray-800/60">
+                                                    <div class="mx-auto max-w-[100px] truncate text-xs font-semibold text-gray-700 dark:text-gray-300"
+                                                         title="{{ $mp->make }} {{ $mp->model }}">
+                                                        {{ $mp->model ?: $mp->make }}
+                                                    </div>
+                                                    <div class="mx-auto mt-0.5 max-w-[100px] truncate text-[10px] font-normal text-gray-400 dark:text-gray-500">
+                                                        {{ $mp->make }}
+                                                    </div>
+                                                </th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
+                                        @foreach ($sections as $section)
+                                            {{-- Section header row --}}
+                                            <tr class="{{ $section['type'] === 'key' ? 'bg-amber-50/60 dark:bg-amber-900/10' : ($section['type'] === 'ignored' ? 'bg-gray-50/80 dark:bg-gray-800/40' : 'bg-gray-50/40 dark:bg-gray-800/20') }}">
+                                                <td class="sticky left-0 z-10 w-10 px-3 py-2 {{ $section['type'] === 'key' ? 'bg-amber-50/60 dark:bg-amber-900/10' : 'bg-gray-50/80 dark:bg-gray-800/40' }}"></td>
+                                                <td colspan="{{ 2 + $matrixProfiles->count() }}"
+                                                    class="sticky left-10 z-10 px-4 py-2 {{ $section['type'] === 'key' ? 'bg-amber-50/60 dark:bg-amber-900/10' : 'bg-gray-50/80 dark:bg-gray-800/40' }}">
+                                                    <div class="flex items-center gap-2">
+                                                        @if ($section['type'] === 'key')
+                                                            <svg class="h-3.5 w-3.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354l-4.502 2.826c-.995.608-2.23-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"/></svg>
+                                                            <span class="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-500">{{ $section['label'] }}</span>
+                                                            <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">{{ $section['count'] }}</span>
+                                                        @elseif ($section['type'] === 'ignored')
+                                                            <svg class="h-3.5 w-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="5" y1="5" x2="19" y2="19" stroke-linecap="round"/></svg>
+                                                            <span class="text-xs font-semibold uppercase tracking-wider text-red-400 dark:text-red-500">{{ $section['label'] }}</span>
+                                                            <span class="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-400 dark:bg-red-900/20 dark:text-red-500">{{ $section['count'] }}</span>
+                                                            <span class="text-[10px] text-gray-400 dark:text-gray-600">— not sent to AI</span>
+                                                        @else
+                                                            <span class="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-500"></span>
+                                                            <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $section['label'] }}</span>
+                                                            <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-400">{{ $section['count'] }}</span>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            {{-- Spec rows --}}
+                                            @foreach ($section['rows'] as $row)
+                                                @php
+                                                    $isKey     = $row['is_key_comparison'];
+                                                    $isIgnored = $row['is_ignored'];
+                                                    $cellBg    = $isKey ? 'bg-amber-50/40 dark:bg-amber-900/10' : 'bg-white dark:bg-gray-900';
+                                                @endphp
+                                                <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors {{ $isIgnored ? '' : '' }}">
+                                                    {{-- Col 1: status icon --}}
+                                                    <td class="sticky left-0 z-10 w-10 px-3 py-2.5 {{ $cellBg }}">
+                                                        @if ($isKey)
+                                                            <svg class="h-4 w-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354l-4.502 2.826c-.995.608-2.23-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"/></svg>
+                                                        @elseif ($isIgnored)
+                                                            <svg class="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="5" y1="5" x2="19" y2="19" stroke-linecap="round"/></svg>
+                                                        @endif
+                                                    </td>
+                                                    {{-- Col 2: label + key --}}
+                                                    <td class="sticky left-10 z-10 w-72 border-r border-gray-100 px-4 py-2.5 dark:border-gray-800 {{ $cellBg }}">
+                                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                                            <span class="font-medium {{ $isIgnored ? 'text-gray-400 line-through dark:text-gray-600' : 'text-gray-800 dark:text-gray-200' }}">
+                                                                {{ $row['spec_label'] }}
+                                                            </span>
+                                                            @if ($row['is_custom'])
+                                                                <span class="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">custom</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="mt-0.5 font-mono text-[10px] {{ $isIgnored ? 'text-gray-300 dark:text-gray-700' : 'text-gray-400 dark:text-gray-500' }}">
+                                                            {{ $row['spec_key'] }}
+                                                        </div>
+                                                    </td>
+                                                    {{-- Col 3: status badge --}}
+                                                    <td class="w-16 px-1 py-2.5 text-center">
+                                                        @if ($isKey)
+                                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Key</span>
+                                                        @elseif ($isIgnored)
+                                                            <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-400 dark:bg-red-900/20 dark:text-red-500">Ignored</span>
+                                                        @else
+                                                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-400">Normal</span>
+                                                        @endif
+                                                    </td>
+                                                    {{-- Profile presence columns --}}
+                                                    @foreach ($matrixProfiles as $mp)
+                                                        <td class="w-28 px-3 py-2.5 text-center">
+                                                            @if ($row['presence'][$mp->id] ?? false)
+                                                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30" title="Present">
+                                                                    <svg class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                                                </span>
+                                                            @else
+                                                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800" title="Missing">
+                                                                    <svg class="h-3 w-3 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+                                                                </span>
+                                                            @endif
+                                                        </td>
+                                                    @endforeach
+                                                </tr>
+                                            @endforeach
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </div>
+                </div>{{-- end matrix tab --}}
 
             </div>{{-- end x-data tabs --}}
         @else

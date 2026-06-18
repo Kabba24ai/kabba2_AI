@@ -63,7 +63,7 @@ class DispatchContextBuilder
                 'name'                      => $d->full_name,
                 'cdl_a'                     => (bool) $d->cdl_a,
                 'cdl_b'                     => (bool) $d->cdl_b,
-                'cdl_license'               => $cap?->cdl_license ?? false,
+                'cdl_license'               => (bool) $d->cdl_a || (bool) $d->cdl_b,
                 'max_gvwr'                  => $cap?->max_gvwr,
                 'max_trailer_weight'        => $cap?->max_trailer_weight,
                 'can_tow_equipment_trailer' => $cap?->can_tow_equipment_trailer ?? false,

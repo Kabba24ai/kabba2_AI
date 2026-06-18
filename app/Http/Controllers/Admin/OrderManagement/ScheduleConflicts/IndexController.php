@@ -6,6 +6,7 @@ use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
+use App\Models\MaintenanceManagement\Supplier;
 use App\Models\Orders\OrderProduct;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
@@ -318,6 +319,8 @@ class IndexController extends Controller
             ->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name', 'phone', 'email']);
 
+        $suppliers = Supplier::active()->orderBy('name')->get(['id', 'name', 'phone', 'email', 'primary_contact_name', 'primary_contact_phone']);
+
         return view('admin.order_management.schedule_conflicts.index', compact(
             'doubleBookings',
             'damagedBookings',
@@ -333,6 +336,7 @@ class IndexController extends Controller
             'section',
             'callUsers',
             'customers',
+            'suppliers',
         ));
     }
 }

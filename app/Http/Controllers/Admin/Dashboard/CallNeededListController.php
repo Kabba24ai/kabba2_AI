@@ -12,6 +12,7 @@ class CallNeededListController extends Controller
     {
        $calls = CustomerCallNeeded::with([
             'customer',
+            'supplier',
             'creator',
             'assignee',
             'activities.user',
@@ -31,25 +32,53 @@ class CallNeededListController extends Controller
                     'is_urgent' => (bool) $call->is_urgent,
                     'created_at' => CustomHelper::formatDateTime($call->created_at),
 
+                  'contact_type' => $call->customer_id ? 'customer'
+                    : ($call->supplier_id ? 'supplier' : 'manual'),
+
                   'customer' => $call->customer
                     ? [
-                        'id' => $call->customer->id,
-                        'full_name' => $call->customer->full_name,
+                        'id'           => $call->customer->id,
+                        'full_name'    => $call->customer->full_name,
                         'company_name' => $call->customer->company_name,
-                        'phone' => $call->customer->phone
+                        'phone'        => $call->customer->phone
                             ? CustomHelper::formatPhone($call->customer->phone)
                             : null,
-                        'email' => $call->customer->email,
+                        'email'        => $call->customer->email,
                     ]
-                    : [
-                        'id' => null,
-                        'full_name' => $call->contact_name,
-                        'company_name' => null,
-                        'phone' => $call->contact_phone
-                            ? CustomHelper::formatPhone($call->contact_phone)
+                    : ($call->supplier
+                        ? [
+                            'id'           => null,
+                            'full_name'    => $call->supplier->name,
+                            'company_name' => null,
+                            'phone'        => $call->supplier->phone
+                                ? CustomHelper::formatPhone($call->supplier->phone)
+                                : ($call->supplier->primary_contact_phone
+                                    ? CustomHelper::formatPhone($call->supplier->primary_contact_phone)
+                                    : null),
+                            'email'        => $call->supplier->email ?? $call->supplier->primary_contact_email,
+                        ]
+                        : [
+                            'id'           => null,
+                            'full_name'    => $call->contact_name,
+                            'company_name' => null,
+                            'phone'        => $call->contact_phone
+                                ? CustomHelper::formatPhone($call->contact_phone)
+                                : null,
+                            'email'        => $call->contact_email,
+                        ]),
+
+                  'supplier' => $call->supplier ? [
+                        'id'                   => $call->supplier->id,
+                        'name'                 => $call->supplier->name,
+                        'phone'                => $call->supplier->phone
+                            ? CustomHelper::formatPhone($call->supplier->phone)
                             : null,
-                        'email' => $call->contact_email,
-                    ],
+                        'email'                => $call->supplier->email,
+                        'primary_contact_name' => $call->supplier->primary_contact_name,
+                        'primary_contact_phone'=> $call->supplier->primary_contact_phone
+                            ? CustomHelper::formatPhone($call->supplier->primary_contact_phone)
+                            : null,
+                  ] : null,
 
                    'creator' => [
     'id' => $call->creator?->id,

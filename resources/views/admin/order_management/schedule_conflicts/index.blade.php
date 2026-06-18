@@ -1174,8 +1174,12 @@
                             <span class="text-sm text-gray-700">Customer</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="sc_contact_type" value="supplier" class="focus:ring-blue-500">
+                            <span class="text-sm text-gray-700">Supplier</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="sc_contact_type" value="manual" class="focus:ring-blue-500">
-                            <span class="text-sm text-gray-700">Other-Customer</span>
+                            <span class="text-sm text-gray-700">Other</span>
                         </label>
                     </div>
                 </div>
@@ -1196,6 +1200,20 @@
                                     {{ $cnFull }}{{ $cnPhone ? '      ' . \App\Helpers\CustomHelper::formatPhone($cnPhone) : '' }}{{ $customer->email ? '      ' . $customer->email : '' }}
                                 </option>
                             @endif
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Supplier select --}}
+                <div id="sc-supplier-section" class="w-full hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Supplier</label>
+                    <select id="sc_call_supplier_id"
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-900">
+                        <option value="">Select Supplier</option>
+                        @foreach ($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}">
+                                {{ $supplier->name }}{{ $supplier->phone ? '      ' . \App\Helpers\CustomHelper::formatPhone($supplier->phone) : '' }}{{ $supplier->primary_contact_name ? '      ' . $supplier->primary_contact_name : '' }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -1641,6 +1659,8 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('sc_call_reason').value      = 'equipment_availability';
         document.getElementById('sc_call_notes').value       = '';
         document.getElementById('sc_call_is_urgent').checked = true;
+        const scSupplierEl   = document.getElementById('sc_call_supplier_id');
+        if (scSupplierEl) scSupplierEl.value = '';
         const scContactName  = document.getElementById('sc_contact_name');
         const scContactEmail = document.getElementById('sc_contact_email');
         const scContactPhone = document.getElementById('sc_contact_phone');
@@ -1652,6 +1672,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const scCustomerRadio = document.querySelector('input[name="sc_contact_type"][value="customer"]');
         if (scCustomerRadio) scCustomerRadio.checked = true;
         document.getElementById('sc-customer-section').classList.remove('hidden');
+        document.getElementById('sc-supplier-section').classList.add('hidden');
         document.getElementById('sc-manual-contact-section').classList.add('hidden');
 
         // Populate and show the damaged badge
@@ -1678,9 +1699,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Contact type toggle for SC modal
     document.addEventListener('change', function (e) {
         if (e.target.name !== 'sc_contact_type') return;
-        const isCustomer = e.target.value === 'customer';
-        document.getElementById('sc-customer-section').classList.toggle('hidden', !isCustomer);
-        document.getElementById('sc-manual-contact-section').classList.toggle('hidden', isCustomer);
+        const val = e.target.value;
+        document.getElementById('sc-customer-section').classList.toggle('hidden', val !== 'customer');
+        document.getElementById('sc-supplier-section').classList.toggle('hidden', val !== 'supplier');
+        document.getElementById('sc-manual-contact-section').classList.toggle('hidden', val !== 'manual');
     });
 });
 </script>
@@ -1695,6 +1717,7 @@ function closeDamagedCallModal() {
 function saveDamagedCallNeeded() {
     const contactType  = document.querySelector('input[name="sc_contact_type"]:checked')?.value;
     const customerId   = document.getElementById('sc_call_customer_id').value;
+    const supplierId   = document.getElementById('sc_call_supplier_id')?.value || null;
     const contactName  = document.getElementById('sc_contact_name')?.value.trim()  || '';
     const contactEmail = document.getElementById('sc_contact_email')?.value.trim() || '';
     const contactPhone = document.getElementById('sc_contact_phone')?.value.trim() || '';
@@ -1705,6 +1728,10 @@ function saveDamagedCallNeeded() {
 
     if (contactType === 'customer' && !customerId) {
         if (window.notyf) notyf.error('Please select a customer.');
+        return;
+    }
+    if (contactType === 'supplier' && !supplierId) {
+        if (window.notyf) notyf.error('Please select a supplier.');
         return;
     }
     if (contactType === 'manual' && !contactName) {
@@ -1739,9 +1766,10 @@ function saveDamagedCallNeeded() {
         },
         body: JSON.stringify({
             customer_id:   contactType === 'customer' ? customerId : null,
-            contact_name:  contactName  || null,
-            contact_email: contactEmail || null,
-            contact_phone: contactPhone || null,
+            supplier_id:   contactType === 'supplier' ? supplierId : null,
+            contact_name:  contactType === 'manual' ? (contactName  || null) : null,
+            contact_email: contactType === 'manual' ? (contactEmail || null) : null,
+            contact_phone: contactType === 'manual' ? (contactPhone || null) : null,
             assigned_to:   assignedTo,
             reason:        reason,
             notes:         notes,

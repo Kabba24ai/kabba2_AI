@@ -112,9 +112,18 @@
                             <input
                                 type="radio"
                                 name="contact_type"
+                                value="supplier"
+                                class="text-brand-600 focus:ring-brand-500">
+                            <span class="text-sm text-gray-700">Supplier</span>
+                        </label>
+
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="contact_type"
                                 value="manual"
                                 class="text-brand-600 focus:ring-brand-500">
-                            <span class="text-sm text-gray-700">Other-Customer</span>
+                            <span class="text-sm text-gray-700">Other</span>
                         </label>
                     </div>
                 </div>
@@ -148,6 +157,22 @@
 
                         @endforeach
 
+                    </select>
+                </div>
+
+                {{-- Supplier select --}}
+                <div id="supplier-section" class="w-full hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">
+                        Supplier
+                    </label>
+                    <select name="supplier_id" id="call_supplier_id"
+                        class="choices-select w-full rounded-md py-3 px-3 border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="">Select Supplier</option>
+                        @foreach ($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}">
+                                {{ $supplier->name }}{{ $supplier->phone ? '      ' . \App\Helpers\CustomHelper::formatPhone($supplier->phone) : '' }}{{ $supplier->primary_contact_name ? '      ' . $supplier->primary_contact_name : '' }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -602,17 +627,7 @@ function submitCompleteCall(action)
 
     function openCallNeededModal()
 {
-    document.querySelector(
-        'input[value="customer"]'
-    ).checked = true;
-
-    document
-        .getElementById('customer-section')
-        .classList.remove('hidden');
-
-    document
-        .getElementById('manual-contact-section')
-        .classList.add('hidden');
+    document.querySelector('input[name="contact_type"][value="customer"]').checked = true;
 
     document.getElementById('call_needed_id').value = '';
 
@@ -624,23 +639,21 @@ function submitCompleteCall(action)
 
     document.getElementById('callNeededForm').reset();
 
-    document.getElementById('contact_name').value = '';
+    document.getElementById('contact_name').value  = '';
     document.getElementById('contact_email').value = '';
     document.getElementById('contact_phone').value = '';
 
-    if (window.callCustomerChoices) {
-    window.callCustomerChoices.removeActiveItems();
-}
+    if (window.callCustomerChoices)  window.callCustomerChoices.removeActiveItems();
+    if (window.callSupplierChoices)  window.callSupplierChoices.removeActiveItems();
 
-document.getElementById('call_is_urgent').checked = false;
+    document.getElementById('supplier-section').classList.add('hidden');
+    document.getElementById('customer-section').classList.remove('hidden');
+    document.getElementById('manual-contact-section').classList.add('hidden');
 
-if (window.callAssigneeChoices) {
-    window.callAssigneeChoices.removeActiveItems();
-}
+    document.getElementById('call_is_urgent').checked = false;
 
-if (window.callReasonChoices) {
-    window.callReasonChoices.removeActiveItems();
-}
+    if (window.callAssigneeChoices) window.callAssigneeChoices.removeActiveItems();
+    if (window.callReasonChoices)   window.callReasonChoices.removeActiveItems();
 
     const modal = document.getElementById('CallNeededModal');
 
@@ -660,20 +673,27 @@ if (window.callReasonChoices) {
             'input[name="contact_type"]:checked'
         ).value;
 
-        const customerId  = document.getElementById('call_customer_id').value;
-        const contactName = document.getElementById('contact_name')?.value.trim();
+        const customerId   = document.getElementById('call_customer_id').value;
+        const supplierId   = document.getElementById('call_supplier_id')?.value || null;
+        const contactName  = document.getElementById('contact_name')?.value.trim();
         const contactEmail = document.getElementById('contact_email')?.value.trim();
         const contactPhone = document.getElementById('contact_phone')?.value.trim();
-        const reason     = document.getElementById('call_reason').value;
-        const notes      = document.getElementById('call_notes').value;
-        const assignedTo = document.getElementById('call_assigned_to').value;
-        const isUrgent =
-    document.getElementById('call_is_urgent').checked;
+        const reason       = document.getElementById('call_reason').value;
+        const notes        = document.getElementById('call_notes').value;
+        const assignedTo   = document.getElementById('call_assigned_to').value;
+        const isUrgent     = document.getElementById('call_is_urgent').checked;
 
         if (contactType === 'customer') {
 
             if (!customerId) {
                 notyf.error('Please select customer.');
+                return;
+            }
+
+        } else if (contactType === 'supplier') {
+
+            if (!supplierId) {
+                notyf.error('Please select a supplier.');
                 return;
             }
 
@@ -726,14 +746,15 @@ if (window.callReasonChoices) {
                     .getAttribute('content'),
             },
             body: JSON.stringify({
-                customer_id: contactType === 'customer' ? customerId : null,
-                contact_name: contactName,
-                contact_email: contactEmail,
-                contact_phone: contactPhone,
-                assigned_to: assignedTo,
-                reason: reason,
-                notes: notes,
-                is_urgent: isUrgent ? 1 : 0,
+                customer_id:   contactType === 'customer' ? customerId : null,
+                supplier_id:   contactType === 'supplier' ? supplierId : null,
+                contact_name:  contactType === 'manual' ? contactName  : null,
+                contact_email: contactType === 'manual' ? contactEmail : null,
+                contact_phone: contactType === 'manual' ? contactPhone : null,
+                assigned_to:   assignedTo,
+                reason:        reason,
+                notes:         notes,
+                is_urgent:     isUrgent ? 1 : 0,
             }),
         })
         .then(res => res.json())
@@ -892,7 +913,7 @@ function renderCallNeededList(calls, skipFilters = false)
             <!-- Header -->
             <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-sm font-medium text-gray-500">
-                    ${call.customer.id ? 'Customer:' : 'Contact Person:'}
+                    ${call.contact_type === 'customer' ? 'Customer:' : call.contact_type === 'supplier' ? 'Supplier:' : 'Contact Person:'}
                 </span>
                 <h3 class="text-sm font-semibold text-gray-900">
                     ${call.customer.full_name}
@@ -1155,50 +1176,40 @@ function viewCallNeeded(id)
         document.getElementById('call_needed_id').value =
             call.id;
 
-       const customerRadio =
-        document.querySelector('input[name="contact_type"][value="customer"]');
+        const customerRadio  = document.querySelector('input[name="contact_type"][value="customer"]');
+        const supplierRadio  = document.querySelector('input[name="contact_type"][value="supplier"]');
+        const manualRadio    = document.querySelector('input[name="contact_type"][value="manual"]');
 
-       const manualRadio =
-            document.querySelector('input[name="contact_type"][value="manual"]');
+        // hide all sections first
+        document.getElementById('customer-section').classList.add('hidden');
+        document.getElementById('supplier-section').classList.add('hidden');
+        document.getElementById('manual-contact-section').classList.add('hidden');
 
         if (call.customer_id) {
 
             customerRadio.checked = true;
+            document.getElementById('customer-section').classList.remove('hidden');
+            window.callCustomerChoices.setChoiceByValue(String(call.customer_id));
+            if (window.callSupplierChoices) window.callSupplierChoices.removeActiveItems();
 
-            document
-                .getElementById('customer-section')
-                .classList.remove('hidden');
+        } else if (call.supplier_id) {
 
-            document
-                .getElementById('manual-contact-section')
-                .classList.add('hidden');
-
-            window.callCustomerChoices.setChoiceByValue(
-                String(call.customer_id)
-            );
+            supplierRadio.checked = true;
+            document.getElementById('supplier-section').classList.remove('hidden');
+            if (window.callSupplierChoices) window.callSupplierChoices.setChoiceByValue(String(call.supplier_id));
+            window.callCustomerChoices.removeActiveItems();
 
         } else {
 
             manualRadio.checked = true;
+            document.getElementById('manual-contact-section').classList.remove('hidden');
 
-            document
-                .getElementById('customer-section')
-                .classList.add('hidden');
-
-            document
-                .getElementById('manual-contact-section')
-                .classList.remove('hidden');
-
-            document.getElementById('contact_name').value =
-                call.contact_name ?? '';
-
-            document.getElementById('contact_email').value =
-                call.contact_email ?? '';
-
-            document.getElementById('contact_phone').value =
-                call.contact_phone ?? '';
+            document.getElementById('contact_name').value  = call.contact_name  ?? '';
+            document.getElementById('contact_email').value = call.contact_email ?? '';
+            document.getElementById('contact_phone').value = call.contact_phone ?? '';
 
             window.callCustomerChoices.removeActiveItems();
+            if (window.callSupplierChoices) window.callSupplierChoices.removeActiveItems();
         }
 
         window.callAssigneeChoices.setChoiceByValue(
@@ -1262,9 +1273,21 @@ if (!window.callReasonChoices) {
             searchEnabled: true,
             shouldSort: false,
             itemSelectText: '',
-                    searchResultLimit: 1000,
-        renderChoiceLimit: -1,
+            searchResultLimit: 1000,
+            renderChoiceLimit: -1,
+        }
+    );
+}
 
+if (!window.callSupplierChoices) {
+    window.callSupplierChoices = new Choices(
+        document.getElementById('call_supplier_id'),
+        {
+            searchEnabled: true,
+            shouldSort: false,
+            itemSelectText: '',
+            searchResultLimit: 1000,
+            renderChoiceLimit: -1,
         }
     );
 }
@@ -1278,16 +1301,11 @@ document.addEventListener('change', function (e) {
         return;
     }
 
-    const isCustomer =
-        e.target.value === 'customer';
+    const val = e.target.value;
 
-    document
-        .getElementById('customer-section')
-        .classList.toggle('hidden', !isCustomer);
-
-    document
-        .getElementById('manual-contact-section')
-        .classList.toggle('hidden', isCustomer);
+    document.getElementById('customer-section').classList.toggle('hidden', val !== 'customer');
+    document.getElementById('supplier-section').classList.toggle('hidden', val !== 'supplier');
+    document.getElementById('manual-contact-section').classList.toggle('hidden', val !== 'manual');
 });
 </script>
 

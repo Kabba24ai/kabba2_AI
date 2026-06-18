@@ -23,6 +23,7 @@ use App\Models\Dashboard\FuelNotePreset;
 
 
 use App\Helpers\CustomHelper;
+use App\Models\MaintenanceManagement\Supplier;
 
 
 use Illuminate\Support\Facades\DB;
@@ -336,12 +337,14 @@ class IndexController extends Controller
             ->orderBy('last_name')
             ->get();
 
+        $suppliers = Supplier::active()->orderBy('name')->get(['id', 'name', 'phone', 'email', 'primary_contact_name', 'primary_contact_phone']);
+
         $resolutionPresets = ResolutionNotePreset::orderBy('label')->get();
         $fuelNotePresets   = FuelNotePreset::orderBy('label')->get();
 
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
-        return view('admin.dashboard.index', compact('salesData','customers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets','fuelNotePresets','sales_tax'));
+        return view('admin.dashboard.index', compact('salesData','customers','suppliers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets','fuelNotePresets','sales_tax'));
 
     }
 

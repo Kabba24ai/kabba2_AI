@@ -65,6 +65,8 @@ class User extends Authenticatable
 
         'social_security',
         'is_driver',
+        'cdl_a',
+        'cdl_b',
     ];
 
     protected $appends = ['full_name', 'role_short_names'];
@@ -87,6 +89,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_driver' => 'boolean',
+            'cdl_a'     => 'boolean',
+            'cdl_b'     => 'boolean',
         ];
     }
 

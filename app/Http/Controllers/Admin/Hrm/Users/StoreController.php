@@ -46,8 +46,12 @@ class StoreController extends Controller
                 'pay_type'       => $validated['payType'] ?? null,
                 'status'         => $validated['status'] ?? 'Active',
                 'limit_start_time' => $validated['limit_start'] ?? false,
-                'limit_end_time' => $validated['limit_end'] ?? false,
-                'lunch_override' => $validated['lunch_override'] ?? false,
+                'limit_end_time'   => $validated['limit_end'] ?? false,
+                'lunch_override'   => $validated['lunch_override'] ?? false,
+
+                'is_driver' => !empty($validated['is_driver']),
+                'cdl_a'     => !empty($validated['cdl_a']),
+                'cdl_b'     => !empty($validated['cdl_b']),
 
                 'auto_clockout_penalty' => $validated['auto_clockout_penalty'] ?? null,
                 

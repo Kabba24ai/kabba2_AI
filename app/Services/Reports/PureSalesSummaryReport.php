@@ -68,21 +68,32 @@ class PureSalesSummaryReport
         $damageWaiverRevenue   = $addonRows->sum(fn ($r) => (float) ($r->dw_price ?? 0) * (int) ($r->quantity ?? 1));
         $trackInsuranceRevenue = $addonRows->sum(fn ($r) => (float) ($r->ti_price ?? 0) * (int) ($r->quantity ?? 1));
 
+        // ── Query 4: account payments received (customer_accounts.type='payment') ─
+        // Account orders become realized revenue when a customer_account payment
+        // record is created. Shown for 'paid', 'all', and 'account' status views.
+        $paymentStatus = $filters['payment_status'] ?? 'paid';
+        $accountPaymentsReceived = 0.0;
+        if (in_array($paymentStatus, ['paid', 'all', 'account'])) {
+            $accountPaymentsReceived = $this->accountPaymentsTotal($filters);
+        }
+
         // ── Derived metrics ──────────────────────────────────────────────────
-        $netSales     = max(0, $grossSales - $discounts);
+        $netSales      = max(0, $grossSales - $discounts);
         $averageTicket = $transactionCount > 0 ? $netSales / $transactionCount : 0;
 
         return [
-            'gross_sales'             => $grossSales,
-            'discounts'               => $discounts,
-            'net_sales'               => $netSales,
-            'tax_collected'           => $taxCollected,
-            'delivery_revenue'        => $deliveryRevenue,
-            'damage_waiver_revenue'   => $damageWaiverRevenue,
-            'track_insurance_revenue' => $trackInsuranceRevenue,
-            'shipping_revenue'        => 0, // reserved for future shipping line-item support
-            'transaction_count'       => $transactionCount,
-            'average_ticket'          => $averageTicket,
+            'gross_sales'               => $grossSales,
+            'discounts'                 => $discounts,
+            'net_sales'                 => $netSales,
+            'tax_collected'             => $taxCollected,
+            'delivery_revenue'          => $deliveryRevenue,
+            'damage_waiver_revenue'     => $damageWaiverRevenue,
+            'track_insurance_revenue'   => $trackInsuranceRevenue,
+            'shipping_revenue'          => 0,
+            'transaction_count'         => $transactionCount,
+            'average_ticket'            => $averageTicket,
+            'account_payments_received' => $accountPaymentsReceived,
+            'payment_status'            => $paymentStatus,
         ];
     }
 
@@ -157,6 +168,27 @@ class PureSalesSummaryReport
             ->orderByDesc('orders.order_date')
             ->get()
             ->map(fn ($row) => $this->formatDetailRow($row));
+    }
+
+    // ─── Account Payments ────────────────────────────────────────────────────
+
+    /**
+     * Sum of customer_accounts payments received (type='payment') in the date range.
+     * This is the realized-revenue moment for Account-method orders.
+     */
+    public function accountPaymentsTotal(array $filters): float
+    {
+        $query = DB::table('customer_accounts')->where('type', 'payment');
+
+        [$start, $end] = $this->reporting->resolveDateRange($filters);
+        if ($start && $end) {
+            $query->whereBetween('date', [
+                $start->toDateString(),
+                $end->toDateString(),
+            ]);
+        }
+
+        return (float) $query->sum('amount');
     }
 
     // ─── Filter Helpers ──────────────────────────────────────────────────────

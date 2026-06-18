@@ -128,6 +128,18 @@
         {{-- Revenue Inclusion Filters (second row) --}}
         <div class="flex flex-wrap gap-6 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
 
+            {{-- Payment Status --}}
+            <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Payment Status</p>
+                <select id="f-payment-status"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="paid"    @selected(($filters['payment_status'] ?? 'paid') === 'paid')>Paid Orders</option>
+                    <option value="all"     @selected(($filters['payment_status'] ?? '') === 'all')>All Orders</option>
+                    <option value="pod"     @selected(($filters['payment_status'] ?? '') === 'pod')>POD (COD Only)</option>
+                    <option value="account" @selected(($filters['payment_status'] ?? '') === 'account')>Account Orders</option>
+                </select>
+            </div>
+
             <div>
                 <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Damage Waiver</p>
                 <select id="f-damage-waiver"
@@ -194,6 +206,7 @@
     const fItemType       = document.getElementById('f-item-type');
     const fCategory       = document.getElementById('f-category');
     const fProduct        = document.getElementById('f-product');
+    const fPaymentStatus  = document.getElementById('f-payment-status');
     const fDamageWaiver   = document.getElementById('f-damage-waiver');
     const fTrackInsurance = document.getElementById('f-track-insurance');
     const fDelivery       = document.getElementById('f-delivery');
@@ -214,6 +227,7 @@
         if (fItemType.value !== 'all') params.set('item_type', fItemType.value);
         if (fCategory.value)       params.set('category', fCategory.value);
         if (fProduct.value)        params.set('product', fProduct.value);
+        params.set('payment_status', fPaymentStatus.value || 'paid');
         if (fDamageWaiver.value !== 'all')   params.set('damage_waiver', fDamageWaiver.value);
         if (fTrackInsurance.value !== 'all') params.set('track_insurance', fTrackInsurance.value);
         if (fDelivery.value !== 'all')       params.set('delivery', fDelivery.value);
@@ -292,6 +306,7 @@
         fItemType.value       = 'all';
         fCategory.value       = '';
         fProduct.value        = '';
+        fPaymentStatus.value  = 'paid';
         fDamageWaiver.value   = 'all';
         fTrackInsurance.value = 'all';
         fDelivery.value       = 'all';

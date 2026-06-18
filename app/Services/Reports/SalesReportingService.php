@@ -115,6 +115,28 @@ class SalesReportingService
             }
         }
 
+        // Payment status — matches against the most recent order_payment record
+        // 'paid'    = Card / Cash / Online / Cheque / Other (realized immediately)
+        // 'pod'     = COD  (Pay on Delivery — not yet realized)
+        // 'account' = Account (charged to account — not realized until CustomerAccount payment)
+        $paymentStatus = $filters['payment_status'] ?? 'paid';
+        if ($paymentStatus !== 'all') {
+            $query->whereExists(function ($sub) use ($paymentStatus) {
+                $sub->selectRaw('1')
+                    ->from('order_payments')
+                    ->whereColumn('order_payments.order_id', 'orders.id')
+                    ->whereRaw('order_payments.id = (SELECT MAX(op2.id) FROM order_payments op2 WHERE op2.order_id = orders.id)');
+
+                if ($paymentStatus === 'paid') {
+                    $sub->whereNotIn('order_payments.payment_method', ['COD', 'Account']);
+                } elseif ($paymentStatus === 'pod') {
+                    $sub->where('order_payments.payment_method', 'COD');
+                } elseif ($paymentStatus === 'account') {
+                    $sub->where('order_payments.payment_method', 'Account');
+                }
+            });
+        }
+
         return $query;
     }
 

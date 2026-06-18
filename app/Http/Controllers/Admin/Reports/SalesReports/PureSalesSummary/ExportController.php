@@ -24,6 +24,7 @@ class ExportController extends Controller
             'damage_waiver'   => $request->input('damage_waiver', 'all'),
             'track_insurance' => $request->input('track_insurance', 'all'),
             'delivery'        => $request->input('delivery', 'all'),
+            'payment_status'  => $request->input('payment_status', 'paid'),
         ];
 
         $rows     = $this->report->exportData($filters);

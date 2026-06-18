@@ -1227,7 +1227,7 @@
                         class="choices-select w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-900">
                         <option value="">Select Supplier</option>
                         @foreach ($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}">{{ $supplier->name }}{{ $supplier->phone ? '  ·  ' . \App\Helpers\CustomHelper::formatPhone($supplier->phone) : '' }}{{ $supplier->primary_contact_name ? '  ·  ' . $supplier->primary_contact_name : '' }}</option>
+                            <option value="{{ $supplier->id }}">{{ $supplier->name }}{{ $supplier->phone ? '    ·    ' . \App\Helpers\CustomHelper::formatPhone($supplier->phone) : '' }}{{ $supplier->primary_contact_name ? '    ·    ' . $supplier->primary_contact_name : '' }}</option>
                         @endforeach
                     </select>
                 </div>

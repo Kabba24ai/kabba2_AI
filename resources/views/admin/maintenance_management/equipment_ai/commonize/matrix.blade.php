@@ -116,7 +116,7 @@
         <button type="button"
                 @click="showKeyFlags = !showKeyFlags"
                 :class="showKeyFlags
-                    ? 'border-fuchsia-500 bg-fuchsia-500 text-white hover:bg-fuchsia-600'
+                    ? 'border-fuchsia-500 bg-fuchsia-100 text-fuchsia-900 hover:bg-fuchsia-200 dark:bg-fuchsia-900/40 dark:text-fuchsia-200 dark:border-fuchsia-500 dark:hover:bg-fuchsia-900/60'
                     : 'border-fuchsia-400 text-fuchsia-700 hover:bg-fuchsia-50 dark:border-fuchsia-600 dark:text-fuchsia-400 dark:hover:bg-fuchsia-900/20'"
                 class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
                 title="Show / hide the upgrade and caution flag settings for each Key Comparison spec">

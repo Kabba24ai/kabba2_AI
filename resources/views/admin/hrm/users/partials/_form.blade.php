@@ -935,6 +935,38 @@
         </div>
     </div>
 
+    {{-- Driver Settings --}}
+    <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
+        <h2 class="text-base font-semibold text-gray-800 flex items-center mb-4 gap-2">
+            <x-heroicon-o-truck class="w-5 h-5 text-blue-600" />
+            Driver Settings
+        </h2>
+
+        <div class="flex flex-wrap gap-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="is_driver" value="1"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                    {{ old('is_driver', $user->is_driver ?? false) ? 'checked' : '' }}>
+                <span class="text-sm font-medium text-gray-700">Driver</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="cdl_a" value="1"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                    {{ old('cdl_a', $user->cdl_a ?? false) ? 'checked' : '' }}>
+                <span class="text-sm font-medium text-gray-700">CDL A</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="cdl_b" value="1"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                    {{ old('cdl_b', $user->cdl_b ?? false) ? 'checked' : '' }}>
+                <span class="text-sm font-medium text-gray-700">CDL B</span>
+            </label>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">Drivers appear in the Dispatch driver assignment list.</p>
+    </div>
+
     <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mt-6">
         <div class="flex justify-end space-x-3">
             <!-- Cancel Button -->

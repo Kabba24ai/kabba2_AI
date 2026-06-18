@@ -72,7 +72,10 @@ class UpdateRequest extends FormRequest
             'emergency2_state' => ['nullable'],
             'emergency2_zip' => ['nullable'],
             'emergency2_country' => ['nullable'],
-            'roles' => ['nullable', 'array'],
+            'roles'     => ['nullable', 'array'],
+            'is_driver' => ['nullable', 'boolean'],
+            'cdl_a'     => ['nullable', 'boolean'],
+            'cdl_b'     => ['nullable', 'boolean'],
         ];
     }
 

@@ -82,7 +82,10 @@ class StoreRequest extends FormRequest
             'emergency2_zip' => ['nullable', 'string', 'max:20'],
             'emergency2_country' => ['nullable'],
 
-            'roles' => ['nullable', 'array'],
+            'roles'     => ['nullable', 'array'],
+            'is_driver' => ['nullable', 'boolean'],
+            'cdl_a'     => ['nullable', 'boolean'],
+            'cdl_b'     => ['nullable', 'boolean'],
 
         ];
     }

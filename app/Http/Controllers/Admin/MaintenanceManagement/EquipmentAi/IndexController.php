@@ -97,6 +97,19 @@ class IndexController extends Controller
             }
         }
 
+        // Annotate each comparison key with whether any spec row still exists for it.
+        // Orphaned keys (has_specs = false) can appear after a reset + regenerate cycle
+        // when the new AI uses a slightly different spec_key name.
+        if ($selectedCategory) {
+            $existingMatrixKeySet = collect($matrix)->pluck('spec_key')->flip()->toArray();
+            foreach ($comparisonKeys as $ck) {
+                $ck->has_specs = isset($existingMatrixKeySet[$ck->spec_key]);
+            }
+            $activeComparisonKeyCount = $comparisonKeys->where('has_specs', true)->count();
+        } else {
+            $activeComparisonKeyCount = 0;
+        }
+
         return view('admin.maintenance_management.equipment_ai.index', compact(
             'categories',
             'profiles',
@@ -104,6 +117,7 @@ class IndexController extends Controller
             'selectedCategory',
             'matrix',
             'matrixProfiles',
+            'activeComparisonKeyCount',
         ));
     }
 }

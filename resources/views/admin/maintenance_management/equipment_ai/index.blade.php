@@ -134,8 +134,13 @@
                         <x-heroicon-o-adjustments-horizontal class="h-4 w-4" />
                         Key Comparison Criteria
                         <span class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-600 dark:text-gray-300">
-                            {{ $comparisonKeys->count() }}
+                            {{ $activeComparisonKeyCount }}
                         </span>
+                        @if ($comparisonKeys->where('has_specs', false)->count() > 0)
+                            <span class="rounded-full bg-amber-400 px-1.5 py-0.5 text-xs font-bold text-white" title="{{ $comparisonKeys->where('has_specs', false)->count() }} stale key(s) — no matching spec data">
+                                !
+                            </span>
+                        @endif
                     </button>
                     <button @click="activeTab = 'matrix'"
                         :class="activeTab === 'matrix'
@@ -352,9 +357,18 @@
                                     @forelse ($comparisonKeys as $ck)
                                         {{-- View row --}}
                                         <tr x-show="editingKeyId !== {{ $ck->id }}"
-                                            class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                            class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors {{ !$ck->has_specs ? 'bg-amber-50/60 dark:bg-amber-900/10' : '' }}">
                                             <td class="px-5 py-3 text-gray-800 dark:text-gray-200">
-                                                <p>{{ $ck->display_label }}</p>
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <p>{{ $ck->display_label }}</p>
+                                                    @if (!$ck->has_specs)
+                                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+                                                              title="No specification data found for key '{{ $ck->spec_key }}' — the AI may have used a different key name after regeneration. Delete this entry and re-designate the correct spec as Key Comparison.">
+                                                            <x-heroicon-o-exclamation-triangle class="h-3 w-3" />
+                                                            Stale — no spec data
+                                                        </span>
+                                                    @endif
+                                                </div>
                                                 <div class="mt-2 grid grid-cols-2 gap-1 text-[11px] text-gray-500 dark:text-gray-400">
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox" class="h-3 w-3 rounded border-gray-300 text-brand-500" disabled {{ $ck->upgrade_exceeds_value ? 'checked' : '' }}>

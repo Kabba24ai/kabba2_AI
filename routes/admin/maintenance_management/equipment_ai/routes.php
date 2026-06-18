@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\Custo
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\UpdateValueController as CustomSpecUpdateValueController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\ResearchController as CustomSpecResearchController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\Spec\UpdateStatusController as SpecUpdateStatusController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\Spec\DeleteController as CommonizeSpecDeleteController;
 
 // Controllers — Category Comparison Keys
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\IndexController as KeyIndexController;
@@ -82,6 +83,9 @@ Route::prefix('equipment-ai')
 
                 // Extracted spec status (instant persist — no Save Framework needed)
                 Route::patch('/specs/status', SpecUpdateStatusController::class)->name('specs.update-status');
+
+                // Delete extracted specs by key across all profiles in category
+                Route::delete('/specs/delete-by-key', CommonizeSpecDeleteController::class)->name('specs.delete-by-key');
             });
 
         /*

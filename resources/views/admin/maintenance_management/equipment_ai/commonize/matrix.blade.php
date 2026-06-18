@@ -175,8 +175,8 @@
                             Specification Label
                         </th>
                         <th scope="col"
-                            class="sticky top-0 z-30 w-16 bg-gray-50 px-1 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-400"
-                            title="Key = sent to AI · Normal = default · Ignored = excluded">
+                            class="sticky top-0 z-30 w-24 bg-gray-50 px-1 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-400"
+                            title="Key = sent to AI · Normal = default · Ignored = excluded · Delete = remove from all equipment">
                             Status
                         </th>
                         @foreach ($profiles as $profile)
@@ -397,8 +397,8 @@
 
                             </td>
 
-                            {{-- Col 3: Status buttons (★ / ⊘) --}}
-                            <td class="w-16 px-1 py-2.5 text-center" x-show="item.type !== 'section_header'">
+                            {{-- Col 3: Status buttons (★ / ⊘ / 🗑) --}}
+                            <td class="w-24 px-1 py-2.5 text-center" x-show="item.type !== 'section_header'">
 
                                 <template x-if="item.type === 'group_header'">
                                     <div class="inline-flex items-center gap-1">
@@ -411,14 +411,22 @@
                                         </button>
                                         <button type="button" @click.stop="toggleIgnore(item.group)"
                                                 x-show="!item.group.is_key_comparison"
-                                                :title="item.group.is_ignored ? 'Ignored — click to set Normal' : 'Mark as Ignored'"
+                                                :title="item.group.is_ignored ? 'Ignored — click to set Normal' : 'Ignore (keep data, exclude from AI)'"
                                                 :class="item.group.is_ignored ? 'text-red-400 hover:text-red-500' : 'text-gray-400 hover:text-red-400 dark:text-gray-500 dark:hover:text-red-400'">
                                             <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke-linecap="round"/></svg>
+                                        </button>
+                                        <button type="button"
+                                                @click.stop="deleteExtractedSpec(item.group.member_keys, item.group.master_label)"
+                                                title="Delete from ALL equipment in this category"
+                                                class="text-gray-300 hover:text-red-500 dark:text-gray-700 dark:hover:text-red-400 transition-colors">
+                                            <svg style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
                                         </button>
                                     </div>
                                 </template>
 
-                                <template x-if="item.type === 'ungrouped'">
+                                <template x-if="item.type === 'ungrouped' && !item.row.is_custom">
                                     <div class="inline-flex items-center gap-1">
                                         <button type="button" @click.stop="toggleKey(item.row)"
                                                 :title="item.row.is_key_comparison ? 'Key — click to set Normal' : 'Mark as Key Comparison'"
@@ -429,11 +437,24 @@
                                         </button>
                                         <button type="button" @click.stop="toggleIgnore(item.row)"
                                                 x-show="!item.row.is_key_comparison"
-                                                :title="item.row.is_ignored ? 'Ignored — click to set Normal' : 'Mark as Ignored'"
+                                                :title="item.row.is_ignored ? 'Ignored — click to set Normal' : 'Ignore (keep data, exclude from AI)'"
                                                 :class="item.row.is_ignored ? 'text-red-400 hover:text-red-500' : 'text-gray-400 hover:text-red-400 dark:text-gray-500 dark:hover:text-red-400'">
                                             <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke-linecap="round"/></svg>
                                         </button>
+                                        <button type="button"
+                                                @click.stop="deleteExtractedSpec([item.row.spec_key], item.row.spec_label)"
+                                                title="Delete from ALL equipment in this category"
+                                                class="text-gray-300 hover:text-red-500 dark:text-gray-700 dark:hover:text-red-400 transition-colors">
+                                            <svg style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
                                     </div>
+                                </template>
+
+                                {{-- Custom spec rows: no status buttons here (delete is in the label cell) --}}
+                                <template x-if="item.type === 'ungrouped' && item.row.is_custom">
+                                    <span></span>
                                 </template>
 
                             </td>
@@ -638,7 +659,8 @@
                 <p>
                     <strong>Status:</strong>
                     <span class="font-mono font-semibold text-amber-600">★</span> <strong>Key</strong> — sent to AI for conflict analysis.
-                    <span class="font-mono font-semibold text-red-400">⊘</span> <strong>Ignored</strong> — excluded from AI.
+                    <span class="font-mono font-semibold text-red-400">⊘</span> <strong>Ignore</strong> — keeps data in each profile, excluded from AI, moved to bottom.
+                    <svg class="inline h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> <strong>Delete</strong> — permanently removes from every equipment profile in this category.
                     Unmarked = <strong>Normal</strong>.
                 </p>
                 <p>
@@ -1661,6 +1683,38 @@ function specMatrix() {
             );
             if ((await resp.json()).success) {
                 this.rows = this.rows.filter(r => r.spec_key !== specKey);
+            }
+        },
+
+        // ── Delete extracted spec(s) from all profiles in category ────────
+        async deleteExtractedSpec(specKeys, label) {
+            const keys = Array.isArray(specKeys) ? specKeys : [specKeys];
+            const noun = keys.length > 1
+                ? `"${label}" (${keys.length} raw spec keys)`
+                : `"${label}"`;
+            if (!confirm(`Permanently delete ${noun} from ALL equipment in this category?\n\nThis removes the specification data from every profile and cannot be undone.`)) return;
+            try {
+                const resp = await fetch('/maintenance-management/equipment-ai/commonize/specs/delete-by-key', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ category_id: this.categoryId, spec_keys: keys }),
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    this.rows = this.rows.filter(r => !keys.includes(r.spec_key));
+                    // Remove any groups that only contained the deleted keys
+                    this.groups = this.groups
+                        .map(g => ({ ...g, member_keys: g.member_keys.filter(k => !keys.includes(k)) }))
+                        .filter(g => g.member_keys.length > 0);
+                } else {
+                    alert(data.message || 'Failed to delete specification.');
+                }
+            } catch (e) {
+                console.error('deleteExtractedSpec error', e);
+                alert('Request failed. Please try again.');
             }
         },
 

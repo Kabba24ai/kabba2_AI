@@ -260,8 +260,6 @@
     const fDeliveryOnly        = document.getElementById('f-delivery-only');
     const fExcludeShipping     = document.getElementById('f-exclude-shipping');
     const customDateWrap       = document.getElementById('custom-date-wrap');
-    const kpiSection           = document.getElementById('kpi-section');
-    const detailSection        = document.getElementById('detail-section');
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     function collectFilters() {
@@ -296,8 +294,10 @@
     }
 
     function setLoading(on) {
-        kpiSection.style.opacity    = on ? '0.4' : '1';
-        detailSection.style.opacity = on ? '0.4' : '1';
+        const kpi    = document.getElementById('kpi-section');
+        const detail = document.getElementById('detail-section');
+        if (kpi)    kpi.style.opacity    = on ? '0.4' : '1';
+        if (detail) detail.style.opacity = on ? '0.4' : '1';
     }
 
     // ── Run Report ─────────────────────────────────────────────────────────────
@@ -313,9 +313,11 @@
         .then(r => r.json())
         .then(data => {
             if (!data.success) throw new Error(data.error || 'Report failed');
-            if (data.kpi_html) kpiSection.innerHTML    = data.kpi_html;
-            if (data.html)     detailSection.innerHTML = data.html;
-            if (data.trend)    renderTrend(data.trend);
+            const kpiSec    = document.getElementById('kpi-section');
+            const detailSec = document.getElementById('detail-section');
+            if (data.kpi_html && kpiSec)    kpiSec.innerHTML    = data.kpi_html;
+            if (data.html     && detailSec) detailSec.innerHTML = data.html;
+            if (data.trend)                 renderTrend(data.trend);
             document.querySelectorAll('a[href*="pure-sales-summary/export"]').forEach(a => {
                 a.href = EXPORT_ROUTE + '?' + params.toString();
             });

@@ -605,15 +605,22 @@
                                                         </label>
                                                     </div>
                                                 </div>
-                                                <div class="flex items-end gap-2">
-                                                    <button type="submit"
-                                                        class="rounded-md bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">
-                                                        Save
-                                                    </button>
-                                                    <button type="button" @click="editingId = null"
-                                                        class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
-                                                        Cancel
-                                                    </button>
+                                                <div class="flex flex-col justify-end gap-2">
+                                                    <label class="inline-flex items-center gap-1.5 cursor-pointer" title="Apply this display label to all other equipment models in the same category that share this spec key">
+                                                        <input type="checkbox" name="propagate_label" value="1"
+                                                               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-500 focus:ring-indigo-400">
+                                                        <span class="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">Apply label to whole category</span>
+                                                    </label>
+                                                    <div class="flex items-center gap-2">
+                                                        <button type="submit"
+                                                            class="rounded-md bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">
+                                                            Save
+                                                        </button>
+                                                        <button type="button" @click="editingId = null"
+                                                            class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
+                                                            Cancel
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </form>
                                         </td>

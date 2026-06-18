@@ -46,7 +46,7 @@ class MatrixController extends Controller
 
         // ── 1. Extracted spec rows ────────────────────────────────────────────
         $allSpecs = EquipmentAiSpecification::whereIn('equipment_ai_profile_id', $profileIds)
-            ->select('equipment_ai_profile_id', 'spec_key', 'spec_label', 'is_key_comparison', 'is_ignored')
+            ->select('equipment_ai_profile_id', 'spec_key', 'spec_label', 'spec_value', 'is_key_comparison', 'is_ignored')
             ->get();
 
         $compKeySet = EquipmentCategoryComparisonKey::where('category_id', $categoryId)
@@ -59,8 +59,12 @@ class MatrixController extends Controller
 
             $presence = [];
             foreach ($profiles as $profile) {
+                // A cell is "present" only when a non-null, non-empty value exists.
+                // Placeholder rows (spec_value = null) are treated as missing so the gray
+                // research button still appears for that cell.
                 $presence[$profile->id] = $specsForKey
                     ->where('equipment_ai_profile_id', $profile->id)
+                    ->filter(fn($s) => filled($s->spec_value))
                     ->isNotEmpty();
             }
 

@@ -22,6 +22,15 @@ class CustomerCallNeeded extends Model
         'contact_name',
         'contact_email',
         'contact_phone',
+        'follow_up_at',
+        'follow_up_note',
+        'rescheduled_by',
+        'rescheduled_at',
+    ];
+
+    protected $casts = [
+        'follow_up_at'   => 'datetime',
+        'rescheduled_at' => 'datetime',
     ];
 
     public function customer()

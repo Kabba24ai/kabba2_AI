@@ -44,7 +44,7 @@
 </div>
 
 {{-- Revenue Breakdown Row --}}
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
 
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Delivery Revenue</p>
@@ -65,5 +65,14 @@
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Shipping</p>
         <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ $kpis['shipping_revenue'] }}</p>
     </div>
+
+    {{-- Account Payments Received — shown when payment_status is paid / all / account --}}
+    @if (in_array($kpis['payment_status'] ?? 'paid', ['paid', 'all', 'account']))
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-emerald-200 dark:border-emerald-700 p-4 shadow-sm ring-1 ring-emerald-100 dark:ring-emerald-900">
+        <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1">Account Payments Received</p>
+        <p class="text-xl font-semibold text-emerald-700 dark:text-emerald-300">{{ $kpis['account_payments_received'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Realized from account orders</p>
+    </div>
+    @endif
 
 </div>

@@ -100,6 +100,7 @@ class IndexController extends Controller
             'damage_waiver'   => $request->input('damage_waiver', 'all'),
             'track_insurance' => $request->input('track_insurance', 'all'),
             'delivery'        => $request->input('delivery', 'all'),
+            'payment_status'  => $request->input('payment_status', 'paid'),
         ];
     }
 
@@ -114,10 +115,12 @@ class IndexController extends Controller
             'damage_waiver_revenue'   => CustomHelper::formatCurrency($kpis['damage_waiver_revenue']),
             'track_insurance_revenue' => CustomHelper::formatCurrency($kpis['track_insurance_revenue']),
             'shipping_revenue'        => CustomHelper::formatCurrency($kpis['shipping_revenue']),
-            'transaction_count'       => number_format($kpis['transaction_count']),
-            'average_ticket'          => CustomHelper::formatCurrency($kpis['average_ticket']),
+            'transaction_count'         => number_format($kpis['transaction_count']),
+            'average_ticket'            => CustomHelper::formatCurrency($kpis['average_ticket']),
+            'account_payments_received' => CustomHelper::formatCurrency($kpis['account_payments_received']),
+            'payment_status'            => $kpis['payment_status'],
             // raw values for JS
-            'raw'                     => $kpis,
+            'raw'                       => $kpis,
         ];
     }
 }

@@ -13,22 +13,17 @@ class CallNeededStoreController extends Controller
     {
         try {
 
-            $customerId = $request->customer_id;
+            $customerId  = $request->customer_id;
+            $supplierId  = $request->supplier_id;
+            $isManual    = !$customerId && !$supplierId;
 
             $callNeeded = CustomerCallNeeded::create([
                 'customer_id'   => $customerId ?: null,
+                'supplier_id'   => $supplierId  ?: null,
 
-                'contact_name'  => $customerId
-                    ? null
-                    : $request->contact_name,
-
-                'contact_email' => $customerId
-                    ? null
-                    : $request->contact_email,
-
-                'contact_phone' => $customerId
-                    ? null
-                    : $request->contact_phone,
+                'contact_name'  => $isManual ? $request->contact_name  : null,
+                'contact_email' => $isManual ? $request->contact_email : null,
+                'contact_phone' => $isManual ? $request->contact_phone : null,
 
                 'reason'      => $request->reason,
                 'notes'       => $request->notes,
@@ -40,7 +35,7 @@ class CallNeededStoreController extends Controller
 
             $description = $customerId
                 ? 'Call reminder created.'
-                : 'Non-customer call reminder created.';
+                : ($supplierId ? 'Supplier call reminder created.' : 'Non-customer call reminder created.');
 
             if ($callNeeded->assignee) {
                 $description .= " Assigned to {$callNeeded->assignee->full_name}.";

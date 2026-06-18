@@ -12,6 +12,7 @@ class CustomerCallNeeded extends Model
 
     protected $fillable = [
         'customer_id',
+        'supplier_id',
         'reason',
         'notes',
         'status',
@@ -20,12 +21,17 @@ class CustomerCallNeeded extends Model
         'auth_by',
         'contact_name',
         'contact_email',
-        'contact_phone'
+        'contact_phone',
     ];
 
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(\App\Models\MaintenanceManagement\Supplier::class);
     }
 
    public function creator()

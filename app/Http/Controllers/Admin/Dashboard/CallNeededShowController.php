@@ -11,6 +11,7 @@ class CallNeededShowController extends Controller
     {
         $call = CustomerCallNeeded::with([
             'customer',
+            'supplier',
             'creator',
             'assignee',
         ])->findOrFail($id);

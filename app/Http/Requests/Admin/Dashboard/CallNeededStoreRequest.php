@@ -26,6 +26,10 @@ class CallNeededStoreRequest extends FormRequest
             'nullable',
             'exists:customers,id',
         ],
+            'supplier_id' => [
+                'nullable',
+                'exists:suppliers,id',
+            ],
             'assigned_to' => ['required', 'exists:users,id'],
             'reason' => [
                 'required',
@@ -41,8 +45,8 @@ class CallNeededStoreRequest extends FormRequest
                 'nullable',
                 'boolean',
             ],
-            'contact_name' => 'required_without:customer_id|nullable|string|max:255',
-            'contact_phone' => 'required_without:customer_id|nullable',
+            'contact_name'  => 'required_without_all:customer_id,supplier_id|nullable|string|max:255',
+            'contact_phone' => 'required_without_all:customer_id,supplier_id|nullable',
             'contact_email' => 'nullable|email',
             'customer_id.exists' =>
             'Selected customer is invalid.',

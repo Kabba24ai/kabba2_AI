@@ -92,13 +92,27 @@ class IndexController extends Controller
                 return $carry;
             }, []);
 
+        // All unique spec_keys in this category mapped to their label, sorted by label then key.
+        // Shown in the inline edit dropdown so the user can pick any key (with label context)
+        // to commonize specs — even when labels differ across profiles.
+        $allCategorySpecKeys = EquipmentAiSpecification::query()
+            ->whereHas('profile', fn ($q) => $q->where('category_id', $profile->category_id))
+            ->select('spec_key', 'spec_label')
+            ->get()
+            ->filter(fn ($s) => filled($s->spec_key))
+            ->unique('spec_key')
+            ->sortBy([['spec_label', 'asc'], ['spec_key', 'asc']])
+            ->mapWithKeys(fn ($s) => [trim($s->spec_key) => trim($s->spec_label)])
+            ->toArray();
+
         return view('admin.maintenance_management.equipment_ai.specifications.index', compact(
             'profile',
             'keyCriteriaSpecs',
             'commonSpecs',
             'uniqueSpecs',
             'comparisonKeySettingsBySpecKey',
-            'keyComparisonOwnersBySpecKey'
+            'keyComparisonOwnersBySpecKey',
+            'allCategorySpecKeys'
         ));
     }
 }

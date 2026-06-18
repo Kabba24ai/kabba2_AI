@@ -20,6 +20,13 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\
 // Controllers — Commonize (Compare & Commonize)
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\AnalyzeController as CommonizeAnalyzeController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\ApplyController as CommonizeApplyController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\MatrixController as CommonizeMatrixController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\SaveFrameworkController as CommonizeSaveFrameworkController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\StoreController as CustomSpecStoreController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\DeleteController as CustomSpecDeleteController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\UpdateStatusController as CustomSpecUpdateStatusController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\UpdateValueController as CustomSpecUpdateValueController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\CustomSpec\ResearchController as CustomSpecResearchController;
 
 // Controllers — Category Comparison Keys
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\IndexController as KeyIndexController;
@@ -54,8 +61,17 @@ Route::prefix('equipment-ai')
         Route::prefix('commonize')
             ->name('commonize.')
             ->group(function () {
-                Route::post('/analyze', CommonizeAnalyzeController::class)->name('analyze');
-                Route::post('/apply',   CommonizeApplyController::class)->name('apply');
+                Route::get('/matrix',          CommonizeMatrixController::class)->name('matrix');
+                Route::post('/analyze',        CommonizeAnalyzeController::class)->name('analyze');
+                Route::post('/apply',          CommonizeApplyController::class)->name('apply');
+                Route::post('/save-framework', CommonizeSaveFrameworkController::class)->name('save-framework');
+
+                // Custom (user-defined) specifications
+                Route::post('/custom-specs',                           CustomSpecStoreController::class)->name('custom-specs.store');
+                Route::delete('/custom-specs/{id}',                    CustomSpecDeleteController::class)->name('custom-specs.delete');
+                Route::patch('/custom-specs/{id}/status',              CustomSpecUpdateStatusController::class)->name('custom-specs.update-status');
+                Route::patch('/custom-spec-values/{id}',               CustomSpecUpdateValueController::class)->name('custom-spec-values.update');
+                Route::post('/custom-specs/{id}/research',             CustomSpecResearchController::class)->name('custom-specs.research');
             });
 
         /*

@@ -223,7 +223,27 @@
                 keyCriteriaForm.upgrade_exceeds_value = false;
                 keyCriteriaForm.caution_if_below_value = false;
             }
-        })">
+        });
+
+        // Auto-open edit row when ?edit={spec_key} is present (deep-link from matrix)
+        const _editKey = new URLSearchParams(window.location.search).get('edit');
+        if (_editKey) {
+            const _specKeyMap = @js($profile->specifications->pluck('id', 'spec_key'));
+            const _specId = _specKeyMap[_editKey] ?? null;
+            if (_specId) {
+                editingId = _specId;
+                $nextTick(() => {
+                    const el = document.getElementById('spec-row-' + _specId);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Focus the key field so the user can immediately retype it
+                    const keyInput = $refs['specKeyInput_' + _specId];
+                    if (keyInput) {
+                        keyInput.focus();
+                        keyInput.select();
+                    }
+                });
+            }
+        }">
 
         {{-- ─── Breadcrumb / Back ───────────────────────────────────────── --}}
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -428,7 +448,7 @@
 
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-800">
+                    <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm dark:bg-gray-800">
                         <tr>
                             <th
                                 class="w-20 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -501,7 +521,8 @@
                                             : null;
                                     @endphp
                                     {{-- View row --}}
-                                    <tr x-show="editingId !== {{ $spec->id }}"
+                                    <tr id="spec-row-{{ $spec->id }}"
+                                        x-show="editingId !== {{ $spec->id }}"
                                         class="{{ $spec->is_key_comparison ? 'bg-amber-50/40 dark:bg-amber-900/10' : '' }} {{ $isLockedByOtherProfile ? 'opacity-60' : '' }} hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                         <td class="px-5 py-3 text-center">
                                             <input type="checkbox" id="kc_{{ $spec->id }}"
@@ -610,7 +631,24 @@
                                                 @method('PUT')
 
                                                 {{-- Fields row --}}
-                                                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                                                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                                            Key
+                                                            <span class="ml-1 font-normal text-gray-400">— select to commonize</span>
+                                                        </label>
+                                                        <select name="spec_key"
+                                                            class="w-full rounded-md border border-indigo-300 bg-indigo-50/40 px-2 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-indigo-600/60 dark:bg-indigo-900/10 dark:text-indigo-200"
+                                                            x-ref="specKeyInput_{{ $spec->id }}">
+                                                            @foreach ($allCategorySpecKeys as $key => $label)
+                                                                <option value="{{ $key }}"
+                                                                    {{ $spec->spec_key === $key ? 'selected' : '' }}>
+                                                                    {{ $label }} — {{ $key }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        <p class="mt-0.5 text-[10px] text-indigo-500 dark:text-indigo-400">Current: <code>{{ $spec->spec_key }}</code></p>
+                                                    </div>
                                                     <div>
                                                         <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label *</label>
                                                         <input type="text" name="spec_label"

@@ -95,6 +95,13 @@
                                 </button>
                             </form>
 
+                            {{-- Compare & Commonize Matrix --}}
+                            <a href="{{ route('admin.maintenance-management.equipment-ai.commonize.matrix', ['category_id' => $selectedCategory->id]) }}"
+                               class="inline-flex items-center gap-2 rounded-lg border border-purple-400 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-1 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-900/20">
+                                <x-heroicon-o-table-cells class="h-4 w-4" />
+                                Compare &amp; Commonize
+                            </a>
+
                         </div>
                     </div>
                 @endif

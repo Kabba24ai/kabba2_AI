@@ -14,6 +14,7 @@ class UpdateController extends Controller
         $spec = EquipmentAiSpecification::findOrFail($id);
 
         $data = $request->validate([
+            'spec_key'        => 'nullable|string|max:100|regex:/^[a-z0-9_]+$/',
             'spec_label'      => 'required|string|max:150',
             'spec_value'      => 'nullable|string|max:500',
             'spec_unit'       => 'nullable|string|max:50',
@@ -24,6 +25,17 @@ class UpdateController extends Controller
             'upgrade_is_below_value' => 'nullable|boolean',
             'caution_if_below_value' => 'nullable|boolean',
         ]);
+
+        // Normalise and apply spec_key if provided
+        if (!empty($data['spec_key'])) {
+            $newKey = trim(strtolower($data['spec_key']));
+            $newKey = preg_replace('/[^a-z0-9_]/', '_', $newKey);
+            $newKey = trim($newKey, '_');
+            if ($newKey !== '') {
+                $spec->spec_key = $newKey;
+            }
+        }
+        unset($data['spec_key']);
 
         $criteriaFlags = [
             'upgrade_exceeds_value' => $request->boolean('upgrade_exceeds_value', false),

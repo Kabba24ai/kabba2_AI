@@ -24,7 +24,7 @@
                         {{ \App\Helpers\CustomHelper::formatDate($row->transaction_date) }}
                     </td>
                     <td class="px-4 py-3">
-                        <a href="{{ route('admin.orders.edit', $row->order_unique_id) }}"
+                        <a href="{{ route('admin.order-management.orders.edit', $row->order_unique_id) }}"
                            class="text-brand-500 hover:underline font-medium">
                             #{{ $row->transaction_number }}
                         </a>

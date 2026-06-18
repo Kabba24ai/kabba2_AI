@@ -400,7 +400,7 @@
                 @php
                     $dEquipment   = $damage['equipment'];
                     $resolveUrl   = $dEquipment?->unique_id
-                        ? route('admin.maintenance-management.equipment.edit', $dEquipment->unique_id)
+                        ? route('admin.checklist-management.equipment-management.show', $dEquipment->unique_id)
                         : '#';
                     $dPrimaryOpId = $damage['orders']->first()?->id;
                 @endphp
@@ -434,7 +434,7 @@
                                     Call Needed
                                 </button>
                                 <a href="{{ $resolveUrl }}"
-                                   title="Update equipment status in Maintenance Management"
+                                   title="Open in Rental Ready to update equipment status"
                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition shadow-sm">
                                     <x-heroicon-o-wrench-screwdriver class="w-3.5 h-3.5" />
                                     Resolve Damaged Booking

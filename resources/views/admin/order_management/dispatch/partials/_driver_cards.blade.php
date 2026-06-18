@@ -31,7 +31,15 @@
             <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center shrink-0">
                 {{ $initials }}
             </div>
-            <span class="font-semibold text-sm text-gray-900 leading-tight">{{ $driver->full_name }}</span>
+            <div class="flex flex-col min-w-0">
+                <span class="font-semibold text-sm text-gray-900 leading-tight">{{ $driver->full_name }}</span>
+                @php
+                    $cdlLabels = collect(['Driver'])
+                        ->when($driver->cdl_a, fn($c) => $c->push('CDL A'))
+                        ->when($driver->cdl_b, fn($c) => $c->push('CDL B'));
+                @endphp
+                <span class="text-[10px] text-gray-400 leading-tight">{{ $cdlLabels->implode(' | ') }}</span>
+            </div>
             <div class="ml-auto flex items-center gap-2 text-xs shrink-0">
                 @if ($hasJobs)
                     <button type="button"

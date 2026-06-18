@@ -434,7 +434,7 @@
                                     Ai Suggest!
                                 </button>
                                 <button type="button"
-                                    class="sc-call-needed-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-700 text-white hover:bg-red-800 transition shadow-sm"
+                                    class="sc-call-needed-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm"
                                     data-equipment-name="{{ $dEquipment?->equipment_name }}"
                                     data-equipment-id="{{ $dEquipment?->equipment_id }}"
                                     data-category="{{ $dEquipment?->productCategory?->title }}">

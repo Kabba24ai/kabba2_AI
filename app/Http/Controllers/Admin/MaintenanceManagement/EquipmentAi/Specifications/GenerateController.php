@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifica
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\EquipmentAiProfile;
 use App\Models\MaintenanceManagement\EquipmentAiSpecification;
+use App\Models\MaintenanceManagement\EquipmentCategoryComparisonKey;
 use App\Services\OpenAIService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -172,6 +173,17 @@ PROMPT;
             );
 
             $saved++;
+        }
+
+        // ── Sync is_key_comparison from category-level comparison keys ──────
+        // Ensures that specs already designated as "key" in the matrix keep
+        // that flag even after a reset + regenerate cycle.
+        $catKeys = EquipmentCategoryComparisonKey::where('category_id', $profile->category_id)
+            ->pluck('spec_key')->toArray();
+        if (!empty($catKeys)) {
+            EquipmentAiSpecification::where('equipment_ai_profile_id', $profile->id)
+                ->whereIn('spec_key', $catKeys)
+                ->update(['is_key_comparison' => true]);
         }
 
         // ── Update profile status ────────────────────────────────────────────

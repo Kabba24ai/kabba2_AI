@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifica
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\EquipmentAiProfile;
 use App\Models\MaintenanceManagement\EquipmentAiSpecification;
+use App\Models\MaintenanceManagement\EquipmentCategoryComparisonKey;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -82,6 +83,16 @@ class FillGapsController extends Controller
 
                 $filled++;
             }
+        }
+
+        // Sync is_key_comparison from category-level keys so placeholder rows
+        // for key specs are flagged correctly (keeps matrix + profile counts in sync)
+        $catKeys = EquipmentCategoryComparisonKey::where('category_id', $categoryId)
+            ->pluck('spec_key')->toArray();
+        if (!empty($catKeys)) {
+            EquipmentAiSpecification::whereIn('equipment_ai_profile_id', $targetIds)
+                ->whereIn('spec_key', $catKeys)
+                ->update(['is_key_comparison' => true]);
         }
 
         return response()->json([

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifica
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\EquipmentAiProfile;
 use App\Models\MaintenanceManagement\EquipmentAiSpecification;
+use App\Models\MaintenanceManagement\EquipmentCategoryComparisonKey;
 use App\Services\OpenAIService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -93,17 +94,22 @@ PROMPT;
         $specUnit   = isset($result['spec_unit']) && $result['spec_unit'] !== '' ? trim((string) $result['spec_unit']) : null;
         $confidence = isset($result['confidence_score']) ? min(1.0, max(0.0, (float) $result['confidence_score'])) : null;
 
+        $isKeyInCategory = EquipmentCategoryComparisonKey::where('category_id', $profile->category_id)
+            ->where('spec_key', $specKey)
+            ->exists();
+
         $spec = EquipmentAiSpecification::updateOrCreate(
             [
                 'equipment_ai_profile_id' => $profile->id,
                 'spec_key'                => $specKey,
             ],
             [
-                'spec_label'       => $specLabel,
-                'spec_value'       => $specValue,
-                'spec_unit'        => $specUnit,
-                'confidence_score' => $confidence,
-                'source'           => $specValue !== null ? 'ai_openai' : 'placeholder',
+                'spec_label'        => $specLabel,
+                'spec_value'        => $specValue,
+                'spec_unit'         => $specUnit,
+                'confidence_score'  => $confidence,
+                'source'            => $specValue !== null ? 'ai_openai' : 'placeholder',
+                'is_key_comparison' => $isKeyInCategory,
             ]
         );
 

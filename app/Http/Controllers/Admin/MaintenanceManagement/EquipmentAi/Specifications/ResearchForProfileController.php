@@ -64,7 +64,7 @@ Rules:
 PROMPT;
 
         try {
-            $response = $openAI->chatCompletion([
+            $response = $openAI->webChatCompletion([
                 [
                     'role'    => 'system',
                     'content' => 'You are a heavy equipment specification expert. Return ONLY valid JSON with no markdown or extra text.',

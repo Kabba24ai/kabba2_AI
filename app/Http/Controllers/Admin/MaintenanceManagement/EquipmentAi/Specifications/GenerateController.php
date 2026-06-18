@@ -78,9 +78,9 @@ Rules:
 7. Return ONLY the JSON array. No extra text.
 PROMPT;
 
-        // ── Call OpenAI ──────────────────────────────────────────────────────
+        // ── Call OpenAI (web-search model — fetches live manufacturer spec sheets) ──
         try {
-            $response = $openAI->chatCompletion([
+            $response = $openAI->webChatCompletion([
                 [
                     'role'    => 'system',
                     'content' => 'You are a heavy equipment specification expert. Return ONLY valid JSON arrays with no markdown or extra text.',

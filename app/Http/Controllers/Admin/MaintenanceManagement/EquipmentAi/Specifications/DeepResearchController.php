@@ -46,7 +46,7 @@ Rules:
 JSON;
 
         try {
-            $response = $openAI->chatCompletion([
+            $response = $openAI->webChatCompletion([
                 [
                     'role'    => 'system',
                     'content' => 'You are verifying a single equipment specification for a rental/equipment comparison database. Return ONLY valid JSON with no markdown or extra text.',

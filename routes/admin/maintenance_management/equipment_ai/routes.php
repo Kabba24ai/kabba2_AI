@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\IndexController
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ScanController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\RefreshController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\DeleteController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ResetCategoryController;
 
 // Controllers — Profile Specifications
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\IndexController as SpecIndexController;
@@ -57,6 +58,7 @@ Route::prefix('equipment-ai')
         Route::get('/', IndexController::class)->name('index');
         Route::post('/scan', ScanController::class)->name('scan');
         Route::post('/refresh', RefreshController::class)->name('refresh');
+        Route::post('/reset-category', ResetCategoryController::class)->name('reset-category');
         Route::delete('/profiles/{unique_id}', DeleteController::class)->name('profiles.delete');
 
         /*

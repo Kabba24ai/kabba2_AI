@@ -114,6 +114,19 @@ class UpdateProductScheduleController extends Controller
             }
         }
 
+        // Auto-clear Reschedule status when a new date is assigned.
+        // This returns the item to the active schedule without requiring a manual status change.
+        if (array_key_exists('delivery_date', $validatedData) && $validatedData['delivery_date']) {
+            if ($orderProduct->delivery_status === 'Reschedule') {
+                $orderProduct->delivery_status = 'Pending';
+            }
+        }
+        if (array_key_exists('pickup_date', $validatedData) && $validatedData['pickup_date']) {
+            if ($orderProduct->pickup_status === 'Reschedule') {
+                $orderProduct->pickup_status = 'Pending';
+            }
+        }
+
         // If either transport mode changed, update service_method and service_option
         if ($deliveryChanged || $pickupChanged) {
             $serviceData = $orderProduct->getServiceMethodFromTransportMode();

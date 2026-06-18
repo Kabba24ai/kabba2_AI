@@ -30,6 +30,12 @@ class IndexController extends Controller
                 ->whereHas('order')
                 ->whereNotNull('delivery_date');
 
+            // Exclude rescheduled-pending items from the active schedule by default.
+            // They are only visible when the user explicitly enables the Rescheduled Pending filter.
+            if (!$request->filled('rescheduled_only')) {
+                $query->where('delivery_status', '!=', 'Reschedule')
+                      ->where('pickup_status', '!=', 'Reschedule');
+            }
 
             if ($request->filled('unassigned_equipment')) {
                 $query->whereDoesntHave('softAssignment')->whereDoesntHave('equipment');

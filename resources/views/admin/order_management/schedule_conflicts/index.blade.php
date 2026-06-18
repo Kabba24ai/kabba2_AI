@@ -426,14 +426,6 @@
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
                                 <button type="button"
-                                    class="ai-suggest-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 transition shadow-sm"
-                                    data-conflict-index="d{{ $dLoopIndex }}"
-                                    data-order-product-id="{{ $dPrimaryOpId }}"
-                                    data-equipment-name="{{ $dEquipment?->equipment_name }}">
-                                    <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
-                                    Ai Suggest!
-                                </button>
-                                <button type="button"
                                     class="sc-call-needed-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm"
                                     data-equipment-name="{{ $dEquipment?->equipment_name }}"
                                     data-equipment-id="{{ $dEquipment?->equipment_id }}"

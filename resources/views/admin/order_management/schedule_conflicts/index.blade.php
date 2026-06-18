@@ -1199,12 +1199,8 @@
                 {{-- Supplier select --}}
                 <div id="sc-supplier-section" class="w-full hidden">
                     <label class="block text-sm font-medium text-gray-700 mb-1 required">Supplier</label>
-                    <input type="text" id="sc-supplier-search"
-                        placeholder="Search suppliers..."
-                        oninput="filterScSuppliers(this.value)"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                     <select id="sc_call_supplier_id"
-                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-900">
+                        class="choices-select w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-900">
                         <option value="">Select Supplier</option>
                         @foreach ($suppliers as $supplier)
                             <option value="{{ $supplier->id }}">{{ $supplier->name }}{{ $supplier->phone ? '  ·  ' . \App\Helpers\CustomHelper::formatPhone($supplier->phone) : '' }}{{ $supplier->primary_contact_name ? '  ·  ' . $supplier->primary_contact_name : '' }}</option>
@@ -1653,10 +1649,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('sc_call_reason').value      = 'equipment_availability';
         document.getElementById('sc_call_notes').value       = '';
         document.getElementById('sc_call_is_urgent').checked = true;
-        const scSupplierEl   = document.getElementById('sc_call_supplier_id');
-        if (scSupplierEl) scSupplierEl.value = '';
-        const scSupplierSearch = document.getElementById('sc-supplier-search');
-        if (scSupplierSearch) { scSupplierSearch.value = ''; filterScSuppliers(''); }
+        if (window.scCallSupplierChoices) window.scCallSupplierChoices.removeActiveItems();
         const scContactName  = document.getElementById('sc_contact_name');
         const scContactEmail = document.getElementById('sc_contact_email');
         const scContactPhone = document.getElementById('sc_contact_phone');
@@ -1700,6 +1693,21 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('sc-supplier-section').classList.toggle('hidden', val !== 'supplier');
         document.getElementById('sc-manual-contact-section').classList.toggle('hidden', val !== 'manual');
     });
+
+    // Choices.js for SC modal supplier select
+    if (document.getElementById('sc_call_supplier_id') && !window.scCallSupplierChoices) {
+        window.scCallSupplierChoices = new Choices(
+            document.getElementById('sc_call_supplier_id'),
+            {
+                searchEnabled: true,
+                shouldSort: false,
+                itemSelectText: '',
+                searchResultLimit: 1000,
+                renderChoiceLimit: -1,
+                searchPlaceholderValue: 'Search suppliers...',
+            }
+        );
+    }
 });
 </script>
 
@@ -1710,15 +1718,6 @@ function closeDamagedCallModal() {
     modal.classList.add('hidden');
 }
 
-function filterScSuppliers(query) {
-    const select = document.getElementById('sc_call_supplier_id');
-    if (!select) return;
-    const q = query.toLowerCase();
-    Array.from(select.options).forEach(opt => {
-        if (!opt.value) return;
-        opt.hidden = q !== '' && !opt.text.toLowerCase().includes(q);
-    });
-}
 
 function saveDamagedCallNeeded() {
     const contactType  = document.querySelector('input[name="sc_contact_type"]:checked')?.value;

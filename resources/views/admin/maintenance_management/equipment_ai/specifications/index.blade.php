@@ -18,41 +18,61 @@
             caution_if_below_value: false,
         },
 
+        // ── Deep Research modal ──────────────────────────────────────────
         showDeepResearchModal: false,
-        deepResearchSpecId: null,
-        deepResearchSpecLabel: '',
-        deepResearchSpecKey: '',
+        deepResearchSpecId:       null,
+        deepResearchSpecLabel:    '',
+        deepResearchSpecKey:      '',
         deepResearchCurrentValue: '',
-        deepResearchCurrentUnit: '',
-        deepResearchMake: '{{ addslashes($profile->make) }}',
+        deepResearchCurrentUnit:  '',
+        deepResearchMake:  '{{ addslashes($profile->make) }}',
         deepResearchModel: '{{ addslashes($profile->model) }}',
-        deepResearchPrompt: '',
-        deepResearching: false,
-        deepResearchResult: null,
-        applyingResearch: false,
+        deepResearchPrompt:    '',
+        deepResearching:       false,
+        deepResearchResult:    null,
+        applyingResearch:      false,
+        deepResearchRefUrls:   ['', '', ''],
+        deepResearchFollowUp:  '',
+        showRefineSection:     false,
 
         openDeepResearchModal(specId, specLabel, specKey, currentValue, currentUnit) {
-            this.deepResearchSpecId = specId;
-            this.deepResearchSpecLabel = specLabel;
-            this.deepResearchSpecKey = specKey;
+            this.deepResearchSpecId       = specId;
+            this.deepResearchSpecLabel    = specLabel;
+            this.deepResearchSpecKey      = specKey;
             this.deepResearchCurrentValue = currentValue;
-            this.deepResearchCurrentUnit = currentUnit;
+            this.deepResearchCurrentUnit  = currentUnit;
             this.deepResearchPrompt = `You are verifying a single equipment specification for a rental/equipment comparison database.\n\nEquipment Make: ${this.deepResearchMake}\nEquipment Model: ${this.deepResearchModel}\nSpecification to Verify: ${specLabel}\nCurrent Value: ${currentValue}\nCurrent Unit: ${currentUnit}\n\nYour task is to perform a deep research review of this one specification only.\n\nResearch Requirements:\n1. Verify the correct value for the specified make and model.\n2. Prioritize manufacturer manuals, official spec sheets, parts/service manuals, dealer literature, and credible equipment databases.\n3. Check for model-year differences, configuration differences, optional packages, regional variations, or attachment-dependent values that may affect the specification.\n4. Do not assume the current value is correct.\n5. If sources conflict, explain the conflict and identify the most reliable value.\n6. If the specification cannot be confidently verified, say so clearly.\n\nImportant:\nOnly research this one specification. Do not return a full equipment specification sheet.`;
-            this.deepResearchResult = null;
-            this.deepResearching = false;
+            this.deepResearchResult   = null;
+            this.deepResearching      = false;
+            this.deepResearchRefUrls  = ['', '', ''];
+            this.deepResearchFollowUp = '';
+            this.showRefineSection    = false;
             this.showDeepResearchModal = true;
         },
 
         closeDeepResearchModal() {
             this.showDeepResearchModal = false;
-            this.deepResearchResult = null;
-            this.deepResearching = false;
+            this.deepResearchResult    = null;
+            this.deepResearching       = false;
+            this.showRefineSection     = false;
         },
 
         async runDeepResearch() {
             if (!this.deepResearchSpecId || !this.deepResearchPrompt.trim()) return;
-            this.deepResearching = true;
+            this.deepResearching   = true;
             this.deepResearchResult = null;
+
+            // Build final prompt: base + follow-up note + reference URLs
+            let finalPrompt = this.deepResearchPrompt;
+            if (this.deepResearchFollowUp.trim()) {
+                finalPrompt += '\n\nCorrection Note from User:\n' + this.deepResearchFollowUp.trim();
+            }
+            const refUrls = this.deepResearchRefUrls.filter(u => u.trim());
+            if (refUrls.length > 0) {
+                finalPrompt += '\n\nReference Sources — please use these specific pages to find the correct value:\n'
+                    + refUrls.map((u, i) => (i + 1) + '. ' + u).join('\n');
+            }
+
             try {
                 const res = await fetch(`/maintenance-management/equipment-ai/specifications/${this.deepResearchSpecId}/deep-research`, {
                     method: 'POST',
@@ -61,15 +81,17 @@
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ prompt: this.deepResearchPrompt }),
+                    body: JSON.stringify({ prompt: finalPrompt }),
                 });
                 const data = await res.json();
                 if (data.success) {
                     this.deepResearchResult = data;
+                    this.showRefineSection  = false;
                 } else {
                     alert(data.message || 'Research failed. Please try again.');
                 }
             } catch (e) {
+                console.error('runDeepResearch error', e);
                 alert('Request failed. Please check your connection.');
             } finally {
                 this.deepResearching = false;
@@ -80,7 +102,7 @@
             if (!this.deepResearchResult || !this.deepResearchSpecId) return;
             this.applyingResearch = true;
             try {
-                const url = `/maintenance-management/equipment-ai/specifications/${this.deepResearchSpecId}`;
+                const url  = `/maintenance-management/equipment-ai/specifications/${this.deepResearchSpecId}`;
                 const body = new FormData();
                 body.append('_method', 'PUT');
                 body.append('_token', '{{ csrf_token() }}');
@@ -223,27 +245,7 @@
                 keyCriteriaForm.upgrade_exceeds_value = false;
                 keyCriteriaForm.caution_if_below_value = false;
             }
-        });
-
-        // Auto-open edit row when ?edit={spec_key} is present (deep-link from matrix)
-        const _editKey = new URLSearchParams(window.location.search).get('edit');
-        if (_editKey) {
-            const _specKeyMap = @js($profile->specifications->pluck('id', 'spec_key'));
-            const _specId = _specKeyMap[_editKey] ?? null;
-            if (_specId) {
-                editingId = _specId;
-                $nextTick(() => {
-                    const el = document.getElementById('spec-row-' + _specId);
-                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // Focus the key field so the user can immediately retype it
-                    const keyInput = $refs['specKeyInput_' + _specId];
-                    if (keyInput) {
-                        keyInput.focus();
-                        keyInput.select();
-                    }
-                });
-            }
-        }">
+        })">
 
         {{-- ─── Breadcrumb / Back ───────────────────────────────────────── --}}
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -448,35 +450,38 @@
 
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-100 text-sm dark:divide-gray-700">
-                    <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm dark:bg-gray-800">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
                         <tr>
                             <th
-                                class="w-20 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                Key</th>
+                                class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 w-32">
+                                Key Comparison</th>
                             <th
                                 class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Label</th>
                             <th
-                                class="w-36 px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Value</th>
                             <th
-                                class="w-36 px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Unit</th>
+                            <th
+                                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Source</th>
                             <th
-                                class="w-36 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Confidence</th>
                             <th
-                                class="w-24 px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Research</th>
                             <th
-                                class="w-24 px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-900">
                         @if ($profile->specifications->isEmpty())
                             <tr>
-                                <td colspan="7" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
+                                <td colspan="8" class="px-6 py-10 text-center text-gray-400 dark:text-gray-500">
                                     No specifications yet. Click <strong>Research &amp; Create General
                                         Specification</strong> to generate with AI,
                                     or <strong>Add Specification</strong> to add manually.
@@ -487,7 +492,7 @@
                                 @continue($section['items']->isEmpty())
 
                                 <tr class="{{ $section['row_class'] }}">
-                                    <td colspan="7" class="px-5 py-3">
+                                    <td colspan="8" class="px-5 py-3">
                                         <div class="flex items-center justify-between gap-3">
                                             <div>
                                                 <h3 class="text-sm font-semibold">{{ $section['title'] }}</h3>
@@ -521,8 +526,7 @@
                                             : null;
                                     @endphp
                                     {{-- View row --}}
-                                    <tr id="spec-row-{{ $spec->id }}"
-                                        x-show="editingId !== {{ $spec->id }}"
+                                    <tr x-show="editingId !== {{ $spec->id }}"
                                         class="{{ $spec->is_key_comparison ? 'bg-amber-50/40 dark:bg-amber-900/10' : '' }} {{ $isLockedByOtherProfile ? 'opacity-60' : '' }} hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                         <td class="px-5 py-3 text-center">
                                             <input type="checkbox" id="kc_{{ $spec->id }}"
@@ -546,37 +550,45 @@
                                             @endif
 
                                             @if ($spec->is_key_comparison)
-                                                <div class="mt-2 grid grid-cols-2 gap-1 text-[11px] text-gray-500 dark:text-gray-400">
+                                                <div
+                                                    class="mt-2 grid grid-cols-2 gap-1 text-[11px] text-gray-500 dark:text-gray-400">
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox"
                                                             class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled
                                                             {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}>
                                                         <span>Upgrade exceeds value</span>
                                                     </label>
+
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox"
                                                             class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled
                                                             {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}>
                                                         <span>Caution if below value</span>
                                                     </label>
+
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox"
                                                             class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled
                                                             {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}>
                                                         <span>Upgrade is below value</span>
                                                     </label>
+
                                                     <label class="inline-flex items-center gap-1.5">
                                                         <input type="checkbox"
                                                             class="h-3 w-3 rounded border-gray-300 text-amber-500" disabled
                                                             {{ $criteriaFlags['caution_if_exceeds_value'] ? 'checked' : '' }}>
                                                         <span>Caution if exceeds value</span>
                                                     </label>
+
+
+
                                                 </div>
                                             @endif
                                         </td>
-                                        <td class="px-5 py-3">
-                                            <span class="font-medium text-gray-900 dark:text-gray-100">{{ $spec->spec_value ?? '—' }}</span>@if ($spec->spec_unit)<span class="ml-1 text-xs text-gray-400 dark:text-gray-500">{{ $spec->spec_unit }}</span>@endif
-                                        </td>
+                                        <td class="px-5 py-3 font-medium text-gray-900 dark:text-gray-100">
+                                            {{ $spec->spec_value ?? '—' }}</td>
+                                        <td class="px-5 py-3 text-gray-500 dark:text-gray-400">
+                                            {{ $spec->spec_unit ?? '—' }}</td>
                                         <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ $spec->source ?? '—' }}
                                         </td>
                                         <td class="px-5 py-3 text-center">
@@ -587,15 +599,13 @@
                                             </span>
                                         </td>
                                         <td class="px-5 py-3 text-center">
-                                            @unless ($spec->is_key_comparison)
                                             <button type="button"
                                                 @click="openDeepResearchModal({{ $spec->id }}, '{{ addslashes($spec->spec_label) }}', '{{ addslashes($spec->spec_key) }}', '{{ addslashes($spec->spec_value ?? '') }}', '{{ addslashes($spec->spec_unit ?? '') }}')"
                                                 class="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40"
-                                                title="Deep Research">
+                                                title="Deep Research — verify this spec with AI">
                                                 <x-heroicon-o-magnifying-glass class="h-3.5 w-3.5" />
                                                 Research
                                             </button>
-                                            @endunless
                                         </td>
                                         <td class="px-5 py-3">
                                             <div class="flex items-center justify-end gap-2">
@@ -607,7 +617,7 @@
                                                 <form method="POST"
                                                     action="{{ route('admin.maintenance-management.equipment-ai.specifications.delete', $spec->id) }}"
                                                     class="inline"
-                                                    onsubmit="return confirm('Delete spec "{{ addslashes($spec->spec_key) }}"?')">
+                                                    onsubmit="return confirm('Delete spec &quot;{{ addslashes($spec->spec_key) }}&quot;?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit"
@@ -623,108 +633,99 @@
                                     {{-- Inline edit row --}}
                                     <tr x-show="editingId === {{ $spec->id }}" x-cloak
                                         class="bg-blue-50/50 dark:bg-blue-900/10">
-                                        <td colspan="7" class="px-5 py-4">
+                                        <td colspan="8" class="px-5 py-4">
                                             <form method="POST"
                                                 action="{{ route('admin.maintenance-management.equipment-ai.specifications.update', $spec->id) }}"
-                                                data-spec-id="{{ $spec->id }}">
+                                                class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
                                                 @csrf
                                                 @method('PUT')
 
-                                                {{-- Fields row --}}
-                                                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                                            Key
-                                                            <span class="ml-1 font-normal text-gray-400">— select to commonize</span>
-                                                        </label>
-                                                        <select name="spec_key"
-                                                            class="w-full rounded-md border border-indigo-300 bg-indigo-50/40 px-2 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-indigo-600/60 dark:bg-indigo-900/10 dark:text-indigo-200"
-                                                            x-ref="specKeyInput_{{ $spec->id }}">
-                                                            @foreach ($allCategorySpecKeys as $key => $label)
-                                                                <option value="{{ $key }}"
-                                                                    {{ $spec->spec_key === $key ? 'selected' : '' }}>
-                                                                    {{ $label }} — {{ $key }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        <p class="mt-0.5 text-[10px] text-indigo-500 dark:text-indigo-400">Current: <code>{{ $spec->spec_key }}</code></p>
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label *</label>
-                                                        <input type="text" name="spec_label"
-                                                            value="{{ $spec->spec_label }}" required
-                                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Value</label>
-                                                        <input type="text" name="spec_value"
-                                                            value="{{ $spec->spec_value }}"
-                                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Unit</label>
-                                                        <input type="text" name="spec_unit"
-                                                            value="{{ $spec->spec_unit }}"
-                                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Source</label>
-                                                        <select name="source"
-                                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                                            @foreach (['manual', 'manufacturer_pdf', 'manufacturer_website', 'ai_openai', 'ai_other'] as $src)
-                                                                <option value="{{ $src }}" {{ $spec->source == $src ? 'selected' : '' }}>
-                                                                    {{ ucwords(str_replace('_', ' ', $src)) }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Confidence</label>
-                                                        <input type="number" name="confidence_score"
-                                                            value="{{ $spec->confidence_score }}" min="0" max="1" step="0.01"
-                                                            class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                                    </div>
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label
+                                                        *</label>
+                                                    <input type="text" name="spec_label"
+                                                        value="{{ $spec->spec_label }}" required
+                                                        class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                                 </div>
-
-                                                {{-- Flags (key comparison only) --}}
-                                                @if ($spec->is_key_comparison)
-                                                <div class="mt-3 inline-block rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2.5 dark:border-amber-700/40 dark:bg-amber-900/10">
-                                                    <p class="text-xs font-semibold text-gray-700 dark:text-gray-200 mb-2">Comparison Flags</p>
-                                                    <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                                                        <label class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
-                                                            <input type="checkbox" name="upgrade_exceeds_value" value="1"
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Value</label>
+                                                    <input type="text" name="spec_value"
+                                                        value="{{ $spec->spec_value }}"
+                                                        class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Unit</label>
+                                                    <input type="text" name="spec_unit"
+                                                        value="{{ $spec->spec_unit }}"
+                                                        class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Source</label>
+                                                    <select name="source"
+                                                        class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                                        @foreach (['manual', 'manufacturer_pdf', 'manufacturer_website', 'ai_openai', 'ai_other'] as $src)
+                                                            <option value="{{ $src }}"
+                                                                {{ $spec->source == $src ? 'selected' : '' }}>
+                                                                {{ ucwords(str_replace('_', ' ', $src)) }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Confidence</label>
+                                                    <input type="number" name="confidence_score"
+                                                        value="{{ $spec->confidence_score }}" min="0"
+                                                        max="1" step="0.01"
+                                                        class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                                </div>
+                                                <div
+                                                    class="sm:col-span-3 lg:col-span-2 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/40">
+                                                    <p class="text-xs font-semibold text-gray-700 dark:text-gray-200">Flags
+                                                    </p>
+                                                    <div class="mt-2 grid gap-1 md:grid-cols-2">
+                                                        <label
+                                                            class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="upgrade_exceeds_value"
+                                                                value="1"
                                                                 {{ $criteriaFlags['upgrade_exceeds_value'] ? 'checked' : '' }}
-                                                                class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
-                                                                onclick="if(this.checked){this.form.elements['upgrade_is_below_value'].checked=false;this.form.elements['caution_if_exceeds_value'].checked=false;}">
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
                                                             <span>Upgrade Exceeds Value</span>
                                                         </label>
-                                                        <label class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
-                                                            <input type="checkbox" name="caution_if_below_value" value="1"
+                                                        <label
+                                                            class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="caution_if_below_value"
+                                                                value="1"
                                                                 {{ $criteriaFlags['caution_if_below_value'] ? 'checked' : '' }}
-                                                                class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
-                                                                onclick="if(this.checked){this.form.elements['upgrade_is_below_value'].checked=false;this.form.elements['caution_if_exceeds_value'].checked=false;}">
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                onclick="if(this.checked) { this.form.elements['upgrade_is_below_value'].checked = false; this.form.elements['caution_if_exceeds_value'].checked = false; }">
                                                             <span>Caution If Below Value</span>
                                                         </label>
-                                                        <label class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
-                                                            <input type="checkbox" name="upgrade_is_below_value" value="1"
+                                                        <label
+                                                            class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="upgrade_is_below_value"
+                                                                value="1"
                                                                 {{ $criteriaFlags['upgrade_is_below_value'] ? 'checked' : '' }}
-                                                                class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
-                                                                onclick="if(this.checked){this.form.elements['upgrade_exceeds_value'].checked=false;this.form.elements['caution_if_below_value'].checked=false;}">
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
                                                             <span>Upgrade Is Below Value</span>
                                                         </label>
-                                                        <label class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
-                                                            <input type="checkbox" name="caution_if_exceeds_value" value="1"
+                                                        <label
+                                                            class="inline-flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                                                            <input type="checkbox" name="caution_if_exceeds_value"
+                                                                value="1"
                                                                 {{ $criteriaFlags['caution_if_exceeds_value'] ? 'checked' : '' }}
-                                                                class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
-                                                                onclick="if(this.checked){this.form.elements['upgrade_exceeds_value'].checked=false;this.form.elements['caution_if_below_value'].checked=false;}">
+                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                                                onclick="if(this.checked) { this.form.elements['upgrade_exceeds_value'].checked = false; this.form.elements['caution_if_below_value'].checked = false; }">
                                                             <span>Caution If Exceeds Value</span>
                                                         </label>
                                                     </div>
                                                 </div>
-                                                @endif
-
-                                                {{-- Action buttons --}}
-                                                <div class="flex flex-col justify-end gap-2 mt-3 border-t border-blue-100 pt-3 dark:border-blue-900/30">
+                                                <div class="flex flex-col justify-end gap-2">
                                                     <label class="inline-flex items-center gap-1.5 cursor-pointer" title="Apply this display label to all other equipment models in the same category that share this spec key">
                                                         <input type="checkbox" name="propagate_label" value="1"
                                                                class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-500 focus:ring-indigo-400">
@@ -732,23 +733,13 @@
                                                     </label>
                                                     <div class="flex items-center gap-2">
                                                         <button type="submit"
-                                                            class="rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-1">
+                                                            class="rounded-md bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">
                                                             Save
                                                         </button>
                                                         <button type="button" @click="editingId = null"
-                                                            class="rounded-md border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
+                                                            class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
                                                             Cancel
                                                         </button>
-                                                        @unless ($spec->is_key_comparison)
-                                                        <div class="ml-auto">
-                                                            <button type="button"
-                                                                @click="openDeepResearchModal({{ $spec->id }}, '{{ addslashes($spec->spec_label) }}', '{{ addslashes($spec->spec_key) }}', '{{ addslashes($spec->spec_value ?? '') }}', '{{ addslashes($spec->spec_unit ?? '') }}')"
-                                                                class="inline-flex items-center gap-1.5 rounded-md border border-amber-400 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1 dark:border-amber-600 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40">
-                                                                <x-heroicon-o-magnifying-glass class="h-3.5 w-3.5" />
-                                                                Deep Research
-                                                            </button>
-                                                        </div>
-                                                        @endunless
                                                     </div>
                                                 </div>
                                             </form>
@@ -771,31 +762,27 @@
                         treated in upgrade and caution logic.</p>
                 </div>
 
-                <div class="px-5 py-4">
-                    <div class="inline-block rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2.5 dark:border-amber-700/40 dark:bg-amber-900/10">
-                        <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                            <label class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
-                                <input type="checkbox" x-model="keyCriteriaForm.upgrade_exceeds_value"
-                                    class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                <span>Upgrade Exceeds Value</span>
-                            </label>
-                            <label class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
-                                <input type="checkbox" x-model="keyCriteriaForm.caution_if_below_value"
-                                    class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                <span>Caution If Below Value</span>
-                            </label>
-                            <label class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
-                                <input type="checkbox" x-model="keyCriteriaForm.upgrade_is_below_value"
-                                    class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                <span>Upgrade Is Below Value</span>
-                            </label>
-                            <label class="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
-                                <input type="checkbox" x-model="keyCriteriaForm.caution_if_exceeds_value"
-                                    class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                                <span>Caution If Exceeds Value</span>
-                            </label>
-                        </div>
-                    </div>
+                <div class="space-y-3 px-5 py-4 grid gap-1 md:grid-cols-2">
+                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <input type="checkbox" x-model="keyCriteriaForm.upgrade_exceeds_value"
+                            class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                        <span>Upgrade Exceeds Value</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <input type="checkbox" x-model="keyCriteriaForm.caution_if_below_value"
+                            class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                        <span>Caution If Below Value</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <input type="checkbox" x-model="keyCriteriaForm.upgrade_is_below_value"
+                            class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                        <span>Upgrade Is Below Value</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <input type="checkbox" x-model="keyCriteriaForm.caution_if_exceeds_value"
+                            class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                        <span>Caution If Exceeds Value</span>
+                    </label>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-gray-700">
@@ -812,7 +799,9 @@
         </div>
 
         {{-- ─── Deep Research Modal ─────────────────────────────────────────── --}}
-        <div x-show="showDeepResearchModal" x-cloak class="fixed inset-0 z-9999 flex items-center justify-center p-4">
+        <div x-show="showDeepResearchModal" x-cloak
+             class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+             @keydown.escape.window="closeDeepResearchModal()">
             <div class="absolute inset-0 bg-gray-900/50" @click="closeDeepResearchModal()"></div>
             <div class="relative w-full max-w-2xl rounded-xl bg-white shadow-2xl dark:bg-gray-900 max-h-[90vh] flex flex-col">
 
@@ -830,49 +819,89 @@
                     </div>
                 </div>
 
-                {{-- Prompt input --}}
-                <div class="px-5 py-4 overflow-y-auto flex-1">
-                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Research prompt <span class="text-red-500">*</span>
-                    </label>
-                    <textarea x-model="deepResearchPrompt" rows="14"
-                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-xs font-mono leading-relaxed focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 resize-y"></textarea>
-                    <p class="mt-1 text-[11px] text-gray-400 dark:text-gray-500">Review and edit the prompt above before submitting.</p>
-                </div>
+                {{-- Scrollable body --}}
+                <div class="overflow-y-auto flex-1 px-5 py-4 space-y-4">
 
-                {{-- Result area --}}
-                <div x-show="deepResearchResult" class="mx-5 mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-700/50 dark:bg-emerald-900/20">
-                    <p class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 mb-2">Verified Specification</p>
-                    <div class="grid grid-cols-4 gap-2 text-xs mb-3">
-                        <div>
-                            <span class="block text-gray-500 dark:text-gray-400">Value</span>
-                            <span class="font-medium text-gray-900 dark:text-white" x-text="deepResearchResult?.value || '—'"></span>
-                        </div>
-                        <div>
-                            <span class="block text-gray-500 dark:text-gray-400">Unit</span>
-                            <span class="font-medium text-gray-900 dark:text-white" x-text="deepResearchResult?.unit || '—'"></span>
-                        </div>
-                        <div>
-                            <span class="block text-gray-500 dark:text-gray-400">Confidence</span>
-                            <span class="font-medium text-gray-900 dark:text-white" x-text="deepResearchResult?.confidence !== null ? deepResearchResult.confidence + '%' : '—'"></span>
-                        </div>
-                        <div>
-                            <span class="block text-gray-500 dark:text-gray-400">Source Type</span>
-                            <span class="font-medium text-gray-900 dark:text-white capitalize" x-text="deepResearchResult?.source_type || '—'"></span>
+                    {{-- Prompt textarea --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            Research prompt <span class="text-red-500">*</span>
+                        </label>
+                        <textarea x-model="deepResearchPrompt" rows="10"
+                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-xs font-mono leading-relaxed focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 resize-y"></textarea>
+                        <p class="mt-1 text-[11px] text-gray-400 dark:text-gray-500">Review and edit the prompt above before submitting. After seeing a wrong result, edit the prompt to add correction context, then click Research again.</p>
+                    </div>
+
+                    {{-- Reference URLs --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            Reference URLs
+                            <span class="ml-1 font-normal text-gray-400">(optional — paste manufacturer or spec-sheet pages to guide AI)</span>
+                        </label>
+                        <div class="space-y-1.5">
+                            <template x-for="(url, i) in deepResearchRefUrls" :key="i">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-10 shrink-0 text-right text-[10px] text-gray-400" x-text="'URL ' + (i + 1)"></span>
+                                    <input type="url"
+                                           x-model="deepResearchRefUrls[i]"
+                                           :placeholder="i === 0 ? 'https://www.niftylift.com/products/...' : 'https://'"
+                                           class="block flex-1 rounded-md border border-gray-200 px-2.5 py-1.5 text-xs focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-600">
+                                </div>
+                            </template>
                         </div>
                     </div>
-                    <div x-show="deepResearchResult?.reasoning" class="mb-2">
-                        <span class="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Reasoning</span>
-                        <p class="text-[11px] text-gray-700 dark:text-gray-200" x-text="deepResearchResult?.reasoning"></p>
+
+                    {{-- Research result --}}
+                    <div x-show="deepResearchResult" class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-700/50 dark:bg-emerald-900/20">
+                        <p class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 mb-2">Verified Specification</p>
+                        <div class="grid grid-cols-4 gap-2 text-xs mb-3">
+                            <div>
+                                <span class="block text-gray-500 dark:text-gray-400">Value</span>
+                                <span class="font-medium text-gray-900 dark:text-white" x-text="deepResearchResult?.value || '—'"></span>
+                            </div>
+                            <div>
+                                <span class="block text-gray-500 dark:text-gray-400">Unit</span>
+                                <span class="font-medium text-gray-900 dark:text-white" x-text="deepResearchResult?.unit || '—'"></span>
+                            </div>
+                            <div>
+                                <span class="block text-gray-500 dark:text-gray-400">Confidence</span>
+                                <span class="font-medium text-gray-900 dark:text-white" x-text="deepResearchResult?.confidence !== null ? deepResearchResult.confidence + '%' : '—'"></span>
+                            </div>
+                            <div>
+                                <span class="block text-gray-500 dark:text-gray-400">Source Type</span>
+                                <span class="font-medium text-gray-900 dark:text-white capitalize" x-text="deepResearchResult?.source_type || '—'"></span>
+                            </div>
+                        </div>
+                        <div x-show="deepResearchResult?.reasoning" class="mb-2">
+                            <span class="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Reasoning</span>
+                            <p class="text-[11px] text-gray-700 dark:text-gray-200" x-text="deepResearchResult?.reasoning"></p>
+                        </div>
+                        <div x-show="deepResearchResult?.source_notes">
+                            <span class="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Source Notes</span>
+                            <p class="text-[11px] text-gray-600 dark:text-gray-300 italic" x-text="deepResearchResult?.source_notes"></p>
+                        </div>
                     </div>
-                    <div x-show="deepResearchResult?.source_notes">
-                        <span class="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Source Notes</span>
-                        <p class="text-[11px] text-gray-600 dark:text-gray-300 italic" x-text="deepResearchResult?.source_notes"></p>
+
+                    {{-- Refine section: appears after result, lets user add correction context --}}
+                    <div x-show="deepResearchResult">
+                        <button type="button"
+                                @click="showRefineSection = !showRefineSection"
+                                class="text-xs text-amber-600 hover:text-amber-700 hover:underline dark:text-amber-400 dark:hover:text-amber-300">
+                            <span x-text="showRefineSection ? '▲ Hide correction notes' : '▼ Result wrong? Add correction notes &amp; re-research'"></span>
+                        </button>
+                        <div x-show="showRefineSection" x-cloak class="mt-2">
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Correction guidance</label>
+                            <textarea x-model="deepResearchFollowUp" rows="3"
+                                      placeholder="Describe what's wrong, e.g.: 'The TM34 only comes in 2WD. The 4WD value is incorrect. Please verify using the reference URLs above.'"
+                                      class="w-full rounded-md border border-amber-200 px-3 py-2 text-xs focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-amber-700/50 dark:bg-gray-800 dark:text-gray-100 resize-y"></textarea>
+                            <p class="mt-0.5 text-[11px] text-gray-400">This note + any reference URLs above will be appended to the prompt when you click Research again.</p>
+                        </div>
                     </div>
+
                 </div>
 
                 {{-- Footer --}}
-                <div class="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-gray-700">
+                <div class="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-gray-700 shrink-0">
                     <button type="button" @click="closeDeepResearchModal()"
                         class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
                         Close

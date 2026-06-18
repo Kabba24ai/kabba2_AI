@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\DeepResearchController as SpecDeepResearchController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\FillGapsController as SpecFillGapsController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\ResearchForProfileController as SpecResearchForProfileController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\SetValueController as SpecSetValueController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\PropagateLabelController as SpecPropagateLabelController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\CompareController as EquipmentAiCompareController;
 
@@ -110,6 +111,9 @@ Route::prefix('equipment-ai')
 
         // Per-cell matrix research (profile + spec_key, no existing spec_id required)
         Route::post('/specifications/research-for-profile', SpecResearchForProfileController::class)->name('specifications.research-for-profile');
+
+        // Manual value entry from matrix page
+        Route::post('/specifications/set-value', SpecSetValueController::class)->name('specifications.set-value');
 
         // AI comparison report for a category
         Route::post('/compare', EquipmentAiCompareController::class)->name('compare');

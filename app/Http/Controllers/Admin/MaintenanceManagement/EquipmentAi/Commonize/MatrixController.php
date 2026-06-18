@@ -46,7 +46,7 @@ class MatrixController extends Controller
 
         // ── 1. Extracted spec rows ────────────────────────────────────────────
         $allSpecs = EquipmentAiSpecification::whereIn('equipment_ai_profile_id', $profileIds)
-            ->select('equipment_ai_profile_id', 'spec_key', 'spec_label', 'spec_value', 'is_key_comparison', 'is_ignored')
+            ->select('equipment_ai_profile_id', 'spec_key', 'spec_label', 'spec_value', 'spec_unit', 'is_key_comparison', 'is_ignored')
             ->get();
 
         $compKeyRecords = EquipmentCategoryComparisonKey::where('category_id', $categoryId)->get();
@@ -76,6 +76,7 @@ class MatrixController extends Controller
             $matrix[] = [
                 'spec_key'           => $specKey,
                 'spec_label'         => $representative->spec_label,
+                'spec_unit'          => $representative->spec_unit,
                 'is_key_comparison'  => $isKey,
                 'is_ignored'         => $isIgnored,
                 'is_custom'          => false,

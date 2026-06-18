@@ -455,12 +455,12 @@
                                                 </a>
                                             </template>
                                             <template x-if="!groupPresence(item.group, {{ $profile->id }})">
-                                                <a :href="profileSpecUrls[{{ $profile->id }}]"
-                                                   target="_blank"
-                                                   class="inline-flex items-center justify-center text-gray-300 hover:text-gray-500 dark:text-gray-700 dark:hover:text-gray-400 transition-colors"
-                                                   title="Missing — click to open profile and add spec">
+                                                <button type="button"
+                                                        @click.stop="openManualModal(item.group.master_key, item.group.master_label, '', {{ $profile->id }})"
+                                                        class="inline-flex items-center justify-center text-gray-300 hover:text-indigo-500 dark:text-gray-700 dark:hover:text-indigo-400 transition-colors"
+                                                        title="Missing — click to add value now">
                                                     <svg class="mx-auto h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm3 10.5a.75.75 0 000-1.5H9a.75.75 0 000 1.5h6z" /></svg>
-                                                </a>
+                                                </button>
                                             </template>
                                         </span>
                                     </template>
@@ -477,12 +477,12 @@
                                                 </a>
                                             </template>
                                             <template x-if="!(item.row && item.row.presence[{{ $profile->id }}])">
-                                                <a :href="profileSpecUrls[{{ $profile->id }}] + '?edit=' + item.specKey"
-                                                   target="_blank"
-                                                   class="inline-flex items-center justify-center text-gray-300 hover:text-gray-500 dark:text-gray-700 dark:hover:text-gray-400 transition-colors"
-                                                   title="Missing — click to open profile and add spec">
+                                                <button type="button"
+                                                        @click.stop="openManualModal(item.specKey, item.row ? item.row.spec_label : item.specKey, item.row ? (item.row.spec_unit || '') : '', {{ $profile->id }})"
+                                                        class="inline-flex items-center justify-center text-gray-300 hover:text-indigo-500 dark:text-gray-700 dark:hover:text-indigo-400 transition-colors"
+                                                        title="Missing — click to add value now">
                                                     <svg class="mx-auto h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm3 10.5a.75.75 0 000-1.5H9a.75.75 0 000 1.5h6z" /></svg>
-                                                </a>
+                                                </button>
                                             </template>
                                         </span>
                                     </template>
@@ -500,12 +500,12 @@
                                             </template>
                                             <template x-if="!item.row.presence[{{ $profile->id }}]">
                                                 <div class="inline-flex items-center justify-center gap-0.5">
-                                                    <a :href="profileSpecUrls[{{ $profile->id }}] + '?edit=' + item.row.spec_key"
-                                                       target="_blank"
-                                                       class="inline-flex items-center justify-center text-gray-300 hover:text-gray-500 dark:text-gray-700 dark:hover:text-gray-400 transition-colors"
-                                                       title="Missing — click to open profile and add spec manually">
+                                                    <button type="button"
+                                                            @click.stop="openManualModal(item.row.spec_key, item.row.spec_label, item.row.spec_unit || '', {{ $profile->id }})"
+                                                            class="inline-flex items-center justify-center text-gray-300 hover:text-indigo-500 dark:text-gray-700 dark:hover:text-indigo-400 transition-colors"
+                                                            title="Missing — click to add value now">
                                                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm3 10.5a.75.75 0 000-1.5H9a.75.75 0 000 1.5h6z" /></svg>
-                                                    </a>
+                                                    </button>
                                                     <button type="button"
                                                             @click.stop="researchForProfile(item.row, {{ $profile->id }})"
                                                             :disabled="researchingCell !== null"
@@ -854,6 +854,82 @@
         </div>
     </div>
 
+    {{-- ── Manual Value Entry Modal ───────────────────────────────────────── --}}
+    <div x-show="showManualModal"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+         @keydown.escape.window="showManualModal = false">
+        <div class="w-full max-w-md rounded-2xl border border-indigo-100 bg-white shadow-xl dark:border-indigo-700/30 dark:bg-gray-900"
+             @click.outside="showManualModal = false">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between border-b border-indigo-100 px-6 py-4 dark:border-indigo-700/30">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+                        <svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900 dark:text-white" x-text="manualModal.specLabel"></h3>
+                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                            <span x-text="manualModal.profileName"></span>
+                            <span class="mx-1 text-gray-300 dark:text-gray-600">·</span>
+                            <code class="font-mono text-[10px]" x-text="manualModal.specKey"></code>
+                        </p>
+                    </div>
+                </div>
+                <button type="button" @click="showManualModal = false"
+                        class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-6 py-5 space-y-4">
+                <div class="flex gap-3">
+                    <div class="flex-1">
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Value <span class="text-red-500">*</span>
+                        </label>
+                        <input id="manualValueInput"
+                               type="text"
+                               x-model="manualModal.value"
+                               @keydown.enter.prevent="saveManualValue()"
+                               :placeholder="manualModal.hintUnit ? 'e.g. 40 ' + manualModal.hintUnit : 'Enter value'"
+                               class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500">
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Unit</label>
+                        <input type="text"
+                               x-model="manualModal.unit"
+                               @keydown.enter.prevent="saveManualValue()"
+                               placeholder="ft, lbs…"
+                               class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 dark:text-gray-600">Value is entered as the numeric or text value only — put the unit in the Unit field.</p>
+            </div>
+
+            {{-- Footer --}}
+            <div class="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4 dark:border-gray-700">
+                <button type="button" @click="showManualModal = false"
+                        class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                    Cancel
+                </button>
+                <button type="button"
+                        @click="saveManualValue()"
+                        :disabled="!manualModal.value.trim() || manualModal.saving"
+                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    <template x-if="manualModal.saving">
+                        <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    </template>
+                    <span x-text="manualModal.saving ? 'Saving…' : 'Save Value'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- ── AI Comparison Modal ─────────────────────────────────────────────── --}}
     <div x-show="showCompareModal"
          x-cloak
@@ -995,6 +1071,19 @@ function specMatrix() {
         showKeyFlags: false,
         savingFlags: null,       // spec_key currently being PATCH'd
 
+        // ── Manual value entry modal ─────────────────────────────────────
+        showManualModal: false,
+        manualModal: {
+            profileId:   null,
+            profileName: '',
+            specKey:     '',
+            specLabel:   '',
+            hintUnit:    '',
+            value:       '',
+            unit:        '',
+            saving:      false,
+        },
+
         // ── Save state ────────────────────────────────────────────────────
         saving: false,
 
@@ -1132,6 +1221,55 @@ function specMatrix() {
                 alert('Request failed. Please try again.');
             } finally {
                 this.savingFlags = null;
+            }
+        },
+
+        openManualModal(specKey, specLabel, hintUnit, profileId) {
+            this.manualModal = {
+                profileId,
+                profileName: this.profileNames[profileId] || `Profile ${profileId}`,
+                specKey,
+                specLabel,
+                hintUnit:    hintUnit || '',
+                value:       '',
+                unit:        hintUnit || '',
+                saving:      false,
+            };
+            this.showManualModal = true;
+            this.$nextTick(() => { this.$el.querySelector('#manualValueInput')?.focus(); });
+        },
+
+        async saveManualValue() {
+            if (!this.manualModal.value.trim()) return;
+            this.manualModal.saving = true;
+            try {
+                const resp = await fetch('/maintenance-management/equipment-ai/specifications/set-value', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        profile_id: this.manualModal.profileId,
+                        spec_key:   this.manualModal.specKey,
+                        spec_label: this.manualModal.specLabel,
+                        spec_value: this.manualModal.value.trim(),
+                        spec_unit:  this.manualModal.unit.trim() || null,
+                    }),
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    const row = this.rows.find(r => r.spec_key === this.manualModal.specKey);
+                    if (row) row.presence[this.manualModal.profileId] = true;
+                    this.showManualModal = false;
+                } else {
+                    alert(data.message || 'Failed to save.');
+                }
+            } catch (e) {
+                console.error('saveManualValue error', e);
+                alert('Request failed. Please try again.');
+            } finally {
+                this.manualModal.saving = false;
             }
         },
 

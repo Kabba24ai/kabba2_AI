@@ -17,8 +17,11 @@ Route::prefix('reports')
 ->name('reports.')
 ->group(function ($router) {
 
-    // sales_reports
+    // sales tax
     require base_path('routes/admin/reports/sales_tax/routes.php');
+
+    // sales reports (Pure Sales Summary + future reports)
+    require base_path('routes/admin/reports/sales_reports/routes.php');
 
     // calls log
     require base_path('routes/admin/reports/calls_log/routes.php');

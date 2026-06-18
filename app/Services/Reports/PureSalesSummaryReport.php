@@ -1,0 +1,244 @@
+<?php
+
+namespace App\Services\Reports;
+
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Pure Sales Summary — Report 1.
+ *
+ * Answers: "How much revenue did we actually sell in this period?"
+ * Uses SalesReportingService for all filter + query logic.
+ * Every other Sales Report will follow the same pattern.
+ */
+class PureSalesSummaryReport
+{
+    public function __construct(private SalesReportingService $reporting) {}
+
+    // ─── KPI Aggregation ────────────────────────────────────────────────────
+
+    /**
+     * Return all KPI card values for the given filters.
+     * Runs two DB queries: one for line-item aggregates, one for order-level totals.
+     */
+    public function kpis(array $filters): array
+    {
+        // ── Query 1: line-item level aggregates ─────────────────────────────
+        $lineAgg = $this->reporting->baseQuery($filters)
+            ->selectRaw("
+                SUM(order_products.sub_total)                                                AS gross_sales,
+                SUM(order_products.tax)                                                      AS tax_collected,
+                COUNT(DISTINCT orders.id)                                                    AS transaction_count,
+                SUM(
+                    COALESCE(
+                        CAST(JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_option_price')) AS DECIMAL(12,2)),
+                        0
+                    )
+                )                                                                            AS delivery_revenue
+            ")
+            ->first();
+
+        $grossSales        = (float) ($lineAgg->gross_sales        ?? 0);
+        $taxCollected      = (float) ($lineAgg->tax_collected      ?? 0);
+        $deliveryRevenue   = (float) ($lineAgg->delivery_revenue   ?? 0);
+        $transactionCount  = (int)   ($lineAgg->transaction_count  ?? 0);
+
+        // ── Query 2: order-level discount total (SUM of DISTINCT order discounts) ─
+        // We identify the in-scope order IDs from the same filters, then sum at order level.
+        $orderIds = $this->reporting->baseQuery($filters)
+            ->selectRaw('DISTINCT orders.id')
+            ->pluck('id');
+
+        $discounts = (float) DB::table('orders')
+            ->whereIn('id', $orderIds)
+            ->sum('discount_amount');
+
+        // ── Query 3: damage waiver + track insurance (PHP-parsed from product_data) ─
+        // These prices live inside product_data.product_rental_items_prices JSON object.
+        $addonRows = $this->reporting->baseQuery($filters)
+            ->selectRaw("
+                order_products.quantity,
+                JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_damage_waiver'))   AS dw_price,
+                JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_track_insurance'))  AS ti_price
+            ")
+            ->get();
+
+        $damageWaiverRevenue   = $addonRows->sum(fn ($r) => (float) ($r->dw_price ?? 0) * (int) ($r->quantity ?? 1));
+        $trackInsuranceRevenue = $addonRows->sum(fn ($r) => (float) ($r->ti_price ?? 0) * (int) ($r->quantity ?? 1));
+
+        // ── Derived metrics ──────────────────────────────────────────────────
+        $netSales     = max(0, $grossSales - $discounts);
+        $averageTicket = $transactionCount > 0 ? $netSales / $transactionCount : 0;
+
+        return [
+            'gross_sales'             => $grossSales,
+            'discounts'               => $discounts,
+            'net_sales'               => $netSales,
+            'tax_collected'           => $taxCollected,
+            'delivery_revenue'        => $deliveryRevenue,
+            'damage_waiver_revenue'   => $damageWaiverRevenue,
+            'track_insurance_revenue' => $trackInsuranceRevenue,
+            'shipping_revenue'        => 0, // reserved for future shipping line-item support
+            'transaction_count'       => $transactionCount,
+            'average_ticket'          => $averageTicket,
+        ];
+    }
+
+    // ─── Detail Grid ────────────────────────────────────────────────────────
+
+    /**
+     * Return a paginated detail grid — one row per order_product.
+     */
+    public function detailGrid(array $filters, int $page = 1, int $perPage = 50): LengthAwarePaginator
+    {
+        $query = $this->reporting->baseQuery($filters)
+            ->select([
+                'order_products.id',
+                'orders.order_date                        as transaction_date',
+                'orders.order_number                      as transaction_number',
+                'orders.unique_id                         as order_unique_id',
+                'stores.store_name',
+                'orders.customer_name',
+                'order_products.product_name',
+                'pc.title                                 as category_name',
+                'products.product_type                    as item_type',
+                'order_products.quantity',
+                'order_products.price                     as unit_price',
+                'order_products.sub_total',
+                'order_products.tax',
+                'order_products.total',
+                'orders.subtotal                          as order_subtotal',
+                'orders.discount_amount                   as order_discount',
+                'order_products.product_data',
+            ])
+            ->orderByDesc('orders.order_date')
+            ->orderByDesc('orders.id');
+
+        $total = (clone $query)->count('order_products.id');
+
+        $items = $query
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get()
+            ->map(fn ($row) => $this->formatDetailRow($row));
+
+        return new LengthAwarePaginator($items, $total, $perPage, $page, [
+            'path'  => request()->url(),
+            'query' => request()->query(),
+        ]);
+    }
+
+    /**
+     * Return the full ungrouped dataset for CSV/Excel export (no pagination).
+     */
+    public function exportData(array $filters): Collection
+    {
+        return $this->reporting->baseQuery($filters)
+            ->select([
+                'order_products.id',
+                'orders.order_date                        as transaction_date',
+                'orders.order_number                      as transaction_number',
+                'stores.store_name',
+                'orders.customer_name',
+                'order_products.product_name',
+                'pc.title                                 as category_name',
+                'products.product_type                    as item_type',
+                'order_products.quantity',
+                'order_products.price                     as unit_price',
+                'order_products.sub_total',
+                'order_products.tax',
+                'order_products.total',
+                'orders.subtotal                          as order_subtotal',
+                'orders.discount_amount                   as order_discount',
+                'order_products.product_data',
+            ])
+            ->orderByDesc('orders.order_date')
+            ->get()
+            ->map(fn ($row) => $this->formatDetailRow($row));
+    }
+
+    // ─── Filter Helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Return categories that have at least one product with finalized orders.
+     * Used to populate the Category dropdown.
+     */
+    public function availableCategories(): Collection
+    {
+        return DB::table('product_categories as pc')
+            ->join('product_category_children as pcc', 'pcc.product_category_id', '=', 'pc.id')
+            ->join('products', 'products.id', '=', 'pcc.product_id')
+            ->join('order_products', 'order_products.product_id', '=', 'products.id')
+            ->join('orders', 'orders.id', '=', 'order_products.order_id')
+            ->whereNull('orders.deleted_at')
+            ->whereNull('order_products.deleted_at')
+            ->select('pc.id', 'pc.title')
+            ->distinct()
+            ->orderBy('pc.title')
+            ->get();
+    }
+
+    /**
+     * Return products belonging to the given category (or all if null).
+     */
+    public function availableProducts(?int $categoryId = null): Collection
+    {
+        $q = DB::table('products')
+            ->join('order_products', 'order_products.product_id', '=', 'products.id')
+            ->join('orders', 'orders.id', '=', 'order_products.order_id')
+            ->whereNull('orders.deleted_at')
+            ->whereNull('order_products.deleted_at');
+
+        if ($categoryId) {
+            $q->join('product_category_children as pcc', 'pcc.product_id', '=', 'products.id')
+              ->where('pcc.product_category_id', $categoryId);
+        }
+
+        return $q->select('products.id', 'products.product_name')
+            ->distinct()
+            ->orderBy('products.product_name')
+            ->get();
+    }
+
+    // ─── Private Helpers ─────────────────────────────────────────────────────
+
+    private function formatDetailRow(object $row): object
+    {
+        $productData = is_string($row->product_data)
+            ? (json_decode($row->product_data, true) ?? [])
+            : ($row->product_data ?? []);
+
+        // Apportion order-level discount to this line: proportional to sub_total share.
+        $orderSubtotal = (float) ($row->order_subtotal ?? 0);
+        $lineSubtotal  = (float) ($row->sub_total ?? 0);
+        $orderDiscount = (float) ($row->order_discount ?? 0);
+        $lineDiscount  = ($orderSubtotal > 0)
+            ? round($orderDiscount * ($lineSubtotal / $orderSubtotal), 2)
+            : 0;
+
+        $extendedAmount = $lineSubtotal - $lineDiscount;
+
+        // Delivery fee embedded in product_data
+        $deliveryFee = (float) ($productData['service_option_price'] ?? 0);
+
+        return (object) [
+            'id'                 => $row->id,
+            'transaction_date'   => $row->transaction_date,
+            'transaction_number' => $row->transaction_number,
+            'order_unique_id'    => $row->order_unique_id,
+            'store_name'         => $row->store_name ?? '—',
+            'customer_name'      => $row->customer_name ?? '—',
+            'product_name'       => $row->product_name,
+            'category_name'      => $row->category_name ?? '—',
+            'item_type'          => $row->item_type ?? '—',
+            'quantity'           => (int) ($row->quantity ?? 1),
+            'unit_price'         => (float) ($row->unit_price ?? 0),
+            'discount'           => $lineDiscount,
+            'extended_amount'    => $extendedAmount,
+            'delivery_fee'       => $deliveryFee,
+            'tax'                => (float) ($row->tax ?? 0),
+        ];
+    }
+}

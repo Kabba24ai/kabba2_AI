@@ -116,9 +116,9 @@ class SalesReportingService
         }
 
         // Payment status — matches against the most recent order_payment record
-        // 'paid'    = Card / Cash / Online / Cheque / Other (realized immediately)
-        // 'pod'     = COD  (Pay on Delivery — not yet realized)
-        // 'account' = Account (charged to account — not realized until CustomerAccount payment)
+        // 'paid'    = Card / Cash / Online / Cheque / Other + COD with status='Paid' (all realized)
+        // 'pod'     = COD with status != 'Paid' (collected on delivery, not yet realized)
+        // 'account' = Account method (not realized until CustomerAccount payment received)
         $paymentStatus = $filters['payment_status'] ?? 'paid';
         if ($paymentStatus !== 'all') {
             $query->whereExists(function ($sub) use ($paymentStatus) {
@@ -128,9 +128,19 @@ class SalesReportingService
                     ->whereRaw('order_payments.id = (SELECT MAX(op2.id) FROM order_payments op2 WHERE op2.order_id = orders.id)');
 
                 if ($paymentStatus === 'paid') {
-                    $sub->whereNotIn('order_payments.payment_method', ['COD', 'Account']);
+                    // Exclude Account; include all non-COD methods + COD that has been collected
+                    $sub->where('order_payments.payment_method', '!=', 'Account')
+                        ->where(function ($q) {
+                            $q->where('order_payments.payment_method', '!=', 'COD')
+                              ->orWhere(function ($q2) {
+                                  $q2->where('order_payments.payment_method', 'COD')
+                                     ->where('order_payments.status', 'Paid');
+                              });
+                        });
                 } elseif ($paymentStatus === 'pod') {
-                    $sub->where('order_payments.payment_method', 'COD');
+                    // COD only where payment has NOT yet been collected
+                    $sub->where('order_payments.payment_method', 'COD')
+                        ->where('order_payments.status', '!=', 'Paid');
                 } elseif ($paymentStatus === 'account') {
                     $sub->where('order_payments.payment_method', 'Account');
                 }

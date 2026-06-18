@@ -49,7 +49,17 @@ class IndexController extends Controller
             }
         }
 
-        $records = $query->get();
+        // $records = $query->get();
+        $records = $query
+    ->select([
+        'id',
+        'order_id',
+        'equipment_id',
+        'damage_charge',
+        'damage_status',
+        'created_at',
+    ])
+    ->get();
 
         // ── CRM / manually-added damage charges (from Dashboard or Order Edit) ─
         $crmQuery = CustomerAccount::with(['customer', 'order'])
@@ -76,10 +86,25 @@ class IndexController extends Controller
             }
         }
 
-        $crmDamageRecords = $crmQuery->latest()->get();
+        // $crmDamageRecords = $crmQuery->latest()->get();
+        $crmDamageRecords = $crmQuery
+    ->select([
+        'id',
+        'customer_id',
+        'order_id',
+        'amount',
+        'sales_tax',
+        'sales_tax_type',
+        'notes',
+        'damage_alert_status',
+        'date',
+        'created_at',
+    ])
+    ->latest()
+    ->get();
 
         // ── Merge both sources into one sorted collection ────────────────────
-        $perPage = 25;
+        $perPage = $request->input('per_page', 30);
         $page    = max(1, (int) $request->input('page', 1));
 
         $merged = $records

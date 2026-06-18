@@ -133,9 +133,9 @@
                 <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Payment Status</p>
                 <select id="f-payment-status"
                     class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="paid"    @selected(($filters['payment_status'] ?? 'paid') === 'paid')>Paid Orders</option>
+                    <option value="paid"    @selected(($filters['payment_status'] ?? 'paid') === 'paid')>Paid Orders (incl. collected COD)</option>
                     <option value="all"     @selected(($filters['payment_status'] ?? '') === 'all')>All Orders</option>
-                    <option value="pod"     @selected(($filters['payment_status'] ?? '') === 'pod')>POD (COD Only)</option>
+                    <option value="pod"     @selected(($filters['payment_status'] ?? '') === 'pod')>POD Pending (unrealized COD)</option>
                     <option value="account" @selected(($filters['payment_status'] ?? '') === 'account')>Account Orders</option>
                 </select>
             </div>

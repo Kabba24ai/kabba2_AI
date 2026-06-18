@@ -523,6 +523,72 @@
         </div>
     </div>
 
+    {{-- ─── Key Comparison Criteria Modal ─────────────────────────────── --}}
+    <div x-show="showKeyCriteriaModal"
+         x-cloak
+         class="fixed inset-0 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm"
+         style="z-index: 9999;"
+         @keydown.escape.window="cancelKeyModal()">
+        <div class="relative w-full max-w-md rounded-xl bg-white shadow-2xl dark:bg-gray-900 dark:border dark:border-gray-700"
+             @click.outside="cancelKeyModal()">
+
+            <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                        <svg class="h-4 w-4 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354l-4.502 2.826c-.995.608-2.23-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Set Key Comparison Flags</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Choose how this spec is treated in upgrade and caution logic.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-5 py-5">
+                <div class="rounded-lg border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-700/40 dark:bg-amber-900/10">
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-3">
+                        <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                            <input type="checkbox" x-model="keyCriteriaForm.upgrade_exceeds_value"
+                                   @change="if(keyCriteriaForm.upgrade_exceeds_value){ keyCriteriaForm.upgrade_is_below_value=false; keyCriteriaForm.caution_if_exceeds_value=false; }"
+                                   class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                            <span>Upgrade exceeds value</span>
+                        </label>
+                        <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                            <input type="checkbox" x-model="keyCriteriaForm.caution_if_below_value"
+                                   @change="if(keyCriteriaForm.caution_if_below_value){ keyCriteriaForm.upgrade_is_below_value=false; }"
+                                   class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                            <span>Caution if below value</span>
+                        </label>
+                        <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                            <input type="checkbox" x-model="keyCriteriaForm.upgrade_is_below_value"
+                                   @change="if(keyCriteriaForm.upgrade_is_below_value){ keyCriteriaForm.upgrade_exceeds_value=false; keyCriteriaForm.caution_if_below_value=false; }"
+                                   class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                            <span>Upgrade is below value</span>
+                        </label>
+                        <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                            <input type="checkbox" x-model="keyCriteriaForm.caution_if_exceeds_value"
+                                   @change="if(keyCriteriaForm.caution_if_exceeds_value){ keyCriteriaForm.upgrade_exceeds_value=false; }"
+                                   class="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                            <span>Caution if exceeds value</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-gray-700">
+                <button type="button" @click="cancelKeyModal()"
+                        class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                    Cancel
+                </button>
+                <button type="button" @click="confirmKeyFromModal()"
+                        class="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354l-4.502 2.826c-.995.608-2.23-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"/></svg>
+                    Mark as Key
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- ─── Add New Specification Modal ────────────────────────────────── --}}
     <div x-show="showAddSpecModal"
          x-cloak
@@ -701,6 +767,16 @@ function specMatrix() {
         groupModalKey:   '',
         editingGroupIdx: null,
 
+        // ── Key criteria modal ────────────────────────────────────────────
+        showKeyCriteriaModal: false,
+        pendingKeyTarget: null,
+        keyCriteriaForm: {
+            upgrade_exceeds_value:    true,
+            caution_if_exceeds_value: false,
+            upgrade_is_below_value:   false,
+            caution_if_below_value:   false,
+        },
+
         // ── Add spec modal ────────────────────────────────────────────────
         showAddSpecModal: false,
         addSpecSaving:    false,
@@ -749,15 +825,36 @@ function specMatrix() {
         },
         toggleKey(target) {
             if (target.is_key_comparison) {
+                // Toggle OFF — no modal needed
                 target.is_key_comparison = false;
+                if (target.custom_spec_id) this.persistCustomSpecStatus(target);
             } else {
-                target.is_key_comparison = true;
-                target.is_ignored = false;
+                // Toggle ON — open criteria modal first
+                this.pendingKeyTarget = target;
+                this.keyCriteriaForm = {
+                    upgrade_exceeds_value:    target.criteria_flags?.upgrade_exceeds_value    ?? true,
+                    caution_if_exceeds_value: target.criteria_flags?.caution_if_exceeds_value ?? false,
+                    upgrade_is_below_value:   target.criteria_flags?.upgrade_is_below_value   ?? false,
+                    caution_if_below_value:   target.criteria_flags?.caution_if_below_value   ?? false,
+                };
+                this.showKeyCriteriaModal = true;
             }
-            // Persist status for custom specs immediately
-            if (target.custom_spec_id) {
-                this.persistCustomSpecStatus(target);
-            }
+        },
+
+        confirmKeyFromModal() {
+            const target = this.pendingKeyTarget;
+            if (!target) return;
+            target.is_key_comparison = true;
+            target.is_ignored        = false;
+            target.criteria_flags    = { ...this.keyCriteriaForm };
+            this.showKeyCriteriaModal = false;
+            this.pendingKeyTarget     = null;
+            if (target.custom_spec_id) this.persistCustomSpecStatus(target);
+        },
+
+        cancelKeyModal() {
+            this.showKeyCriteriaModal = false;
+            this.pendingKeyTarget     = null;
         },
         toggleIgnore(target) {
             if (target.is_ignored) {
@@ -774,7 +871,11 @@ function specMatrix() {
             fetch(`/maintenance-management/equipment-ai/commonize/custom-specs/${row.custom_spec_id}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-                body: JSON.stringify({ is_key_comparison: row.is_key_comparison, is_ignored: row.is_ignored }),
+                body: JSON.stringify({
+                    is_key_comparison: row.is_key_comparison,
+                    is_ignored:        row.is_ignored,
+                    ...(row.is_key_comparison && row.criteria_flags ? row.criteria_flags : {}),
+                }),
             });
         },
 
@@ -856,6 +957,7 @@ function specMatrix() {
                     raw_keys:          [...group.member_keys],
                     is_key_comparison: group.is_key_comparison,
                     is_ignored:        group.is_ignored && !group.is_key_comparison,
+                    criteria_flags:    group.criteria_flags ?? {},
                 });
             });
 
@@ -867,6 +969,7 @@ function specMatrix() {
                         raw_keys:          [row.spec_key],
                         is_key_comparison: row.is_key_comparison,
                         is_ignored:        row.is_ignored && !row.is_key_comparison,
+                        criteria_flags:    row.criteria_flags ?? {},
                     });
                 }
             });

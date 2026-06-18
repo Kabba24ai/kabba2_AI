@@ -98,9 +98,16 @@ class SaveFrameworkController extends Controller
 
             // ── 2. Sync category-level comparison key ────────────────────────
             if ($isKey) {
+                $flags = $item['criteria_flags'] ?? [];
                 EquipmentCategoryComparisonKey::updateOrCreate(
                     ['category_id' => $categoryId, 'spec_key' => $masterKey],
-                    ['display_label' => $masterLabel]
+                    [
+                        'display_label'           => $masterLabel,
+                        'upgrade_exceeds_value'    => (bool) ($flags['upgrade_exceeds_value']    ?? true),
+                        'caution_if_exceeds_value' => (bool) ($flags['caution_if_exceeds_value'] ?? false),
+                        'upgrade_is_below_value'   => (bool) ($flags['upgrade_is_below_value']   ?? false),
+                        'caution_if_below_value'   => (bool) ($flags['caution_if_below_value']   ?? false),
+                    ]
                 );
                 $keyCount++;
             } else {

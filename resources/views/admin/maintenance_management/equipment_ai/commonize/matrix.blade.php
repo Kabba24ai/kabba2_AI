@@ -526,104 +526,84 @@
     {{-- ─── Add New Specification Modal ────────────────────────────────── --}}
     <div x-show="showAddSpecModal"
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+         class="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+         style="z-index: 9999;"
          @keydown.escape.window="showAddSpecModal = false">
-        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:border dark:border-gray-700 dark:bg-gray-900"
+        <div class="w-full max-w-xl rounded-2xl border border-emerald-100 bg-white shadow-xl dark:border-emerald-700/30 dark:bg-gray-900"
              @click.outside="showAddSpecModal = false">
 
-            <div class="flex items-center gap-3 mb-5">
-                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                    <x-heroicon-o-plus-circle class="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            {{-- Modal header --}}
+            <div class="flex items-center justify-between border-b border-emerald-100 px-6 py-4 dark:border-emerald-700/30">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                        <x-heroicon-o-plus-circle class="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900 dark:text-white">Add New Specification</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Define a spec not extracted automatically. AI Research will fill values per profile.</p>
+                    </div>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Add New Specification</h3>
+                <button type="button" @click="showAddSpecModal = false"
+                        class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
 
-            <div class="space-y-4">
+            {{-- Fields --}}
+            <div class="grid grid-cols-1 gap-4 px-6 py-5 sm:grid-cols-2">
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Specification Name <span class="text-red-500">*</span>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Display Label <span class="text-red-500">*</span>
                     </label>
                     <input type="text" x-model="addSpec.label"
+                           @input="addSpec.keyPreview = addSpec.label.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')"
                            placeholder="e.g. Outriggers Required"
-                           class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500">
+                           class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500">
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Spec Key <span class="text-gray-400 font-normal">(auto-derived)</span>
+                    </label>
+                    <div class="flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-700 dark:bg-gray-800">
+                        <span class="font-mono text-sm text-gray-500 dark:text-gray-400" x-text="addSpec.keyPreview || '—'"></span>
+                    </div>
+                    <p class="mt-0.5 text-xs text-gray-400">Generated from the label — lowercase with underscores.</p>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Description / Research Instruction
                     </label>
                     <textarea x-model="addSpec.description" rows="2"
                               placeholder="e.g. Determine whether this boom lift requires outriggers/stabilizers for operation."
-                              class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"></textarea>
-                    <p class="mt-1 text-xs text-gray-400">This is sent to AI when you click "Research with AI".</p>
+                              class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"></textarea>
+                    <p class="mt-0.5 text-xs text-gray-400">Sent to AI when you click "Research with AI" on the row.</p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                            Expected Value Type <span class="text-red-500">*</span>
-                        </label>
-                        <select x-model="addSpec.value_type"
-                                class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                            <option value="boolean">Boolean / Yes-No</option>
-                            <option value="numeric">Numeric</option>
-                            <option value="text">Text</option>
-                            <option value="enum">Select / Enum</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
-                        <select x-model="addSpec.status"
-                                class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                            <option value="normal">Normal (Default)</option>
-                            <option value="key">Key Comparison</option>
-                            <option value="ignored">Ignored</option>
-                        </select>
-                    </div>
-                </div>
-
-                {{-- Allowed values for boolean/enum --}}
-                <div x-show="addSpec.value_type === 'boolean' || addSpec.value_type === 'enum'">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Allowed Values
-                        <span class="font-normal text-gray-400" x-show="addSpec.value_type === 'boolean'">(defaults: Yes, No, Unknown)</span>
-                    </label>
-                    <template x-if="addSpec.value_type === 'boolean'">
-                        <p class="text-xs text-gray-400">Boolean specs automatically use: <strong>Yes</strong>, <strong>No</strong>, <strong>Unknown</strong>.</p>
-                    </template>
-                    <template x-if="addSpec.value_type === 'enum'">
-                        <div class="space-y-2">
-                            <template x-for="(val, vi) in addSpec.allowed_values" :key="vi">
-                                <div class="flex items-center gap-2">
-                                    <input type="text" x-model="addSpec.allowed_values[vi]"
-                                           :placeholder="'Option ' + (vi + 1)"
-                                           class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                                    <button type="button" @click="addSpec.allowed_values.splice(vi, 1)"
-                                        class="text-gray-400 hover:text-red-500">
-                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                    </button>
-                                </div>
-                            </template>
-                            <button type="button" @click="addSpec.allowed_values.push('')"
-                                class="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400">
-                                + Add option
-                            </button>
-                        </div>
-                    </template>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                    <select x-model="addSpec.status"
+                            class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                        <option value="normal">Normal (Default)</option>
+                        <option value="key">Key Comparison</option>
+                        <option value="ignored">Ignored</option>
+                    </select>
                 </div>
 
             </div>
 
-            <div class="mt-6 flex items-center justify-end gap-3">
+            {{-- Footer --}}
+            <div class="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4 dark:border-gray-700">
                 <button type="button" @click="showAddSpecModal = false"
                     class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                     Cancel
                 </button>
                 <button type="button" @click="saveNewSpec()"
                         :disabled="!addSpec.label.trim() || addSpecSaving"
-                        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
-                    <x-heroicon-o-plus class="h-4 w-4" />
+                        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    <x-heroicon-o-check class="h-4 w-4" />
                     <span x-text="addSpecSaving ? 'Adding…' : 'Add Specification'"></span>
                 </button>
             </div>
@@ -725,11 +705,10 @@ function specMatrix() {
         showAddSpecModal: false,
         addSpecSaving:    false,
         addSpec: {
-            label:          '',
-            description:    '',
-            value_type:     'boolean',
-            status:         'normal',
-            allowed_values: [''],
+            label:      '',
+            keyPreview: '',
+            description:'',
+            status:     'normal',
         },
 
         // ── Cell editor ──────────────────────────────────────────────────
@@ -999,8 +978,8 @@ function specMatrix() {
 
         // ── Add New Specification ─────────────────────────────────────────
         openAddSpecModal() {
-            this.addSpec = { label: '', description: '', value_type: 'boolean', status: 'normal', allowed_values: [''] };
-            this.addSpecSaving   = false;
+            this.addSpec = { label: '', keyPreview: '', description: '', status: 'normal' };
+            this.addSpecSaving    = false;
             this.showAddSpecModal = true;
         },
 
@@ -1015,15 +994,11 @@ function specMatrix() {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                     body: JSON.stringify({
-                        category_id:        this.categoryId,
-                        spec_label:         this.addSpec.label.trim(),
-                        description:        this.addSpec.description.trim() || null,
-                        value_type:         this.addSpec.value_type,
-                        allowed_values:     this.addSpec.value_type === 'enum'
-                                                ? this.addSpec.allowed_values.filter(v => v.trim())
-                                                : null,
-                        is_key_comparison:  this.addSpec.status === 'key',
-                        is_ignored:         this.addSpec.status === 'ignored',
+                        category_id:       this.categoryId,
+                        spec_label:        this.addSpec.label.trim(),
+                        description:       this.addSpec.description.trim() || null,
+                        is_key_comparison: this.addSpec.status === 'key',
+                        is_ignored:        this.addSpec.status === 'ignored',
                     }),
                 });
                 const data = await resp.json();

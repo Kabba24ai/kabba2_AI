@@ -115,6 +115,18 @@ class SalesReportingService
             }
         }
 
+        // Shipping — service_method stored in product_data JSON
+        if (!empty($filters['shipping']) && $filters['shipping'] !== 'all') {
+            if ($filters['shipping'] === 'only') {
+                $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'Shipping'");
+            } elseif ($filters['shipping'] === 'exclude') {
+                $query->where(function ($q) {
+                    $q->whereRaw("JSON_EXTRACT(order_products.product_data, '$.service_method') IS NULL")
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) != 'Shipping'");
+                });
+            }
+        }
+
         // Payment status — matches against the most recent order_payment record
         // 'paid'    = Card / Cash / Online / Cheque / Other + COD with status='Paid' (all realized)
         // 'pod'     = COD with status != 'Paid' (collected on delivery, not yet realized)

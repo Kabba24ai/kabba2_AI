@@ -222,6 +222,80 @@ class PureSalesSummaryReport
             ->sum('refund_amount');
     }
 
+    // ─── Sales Trend ─────────────────────────────────────────────────────────
+
+    /**
+     * Daily revenue trend for the selected filter period plus the immediately
+     * preceding equal-length period for comparison.
+     */
+    public function trendData(array $filters): array
+    {
+        [$start, $end] = $this->reporting->resolveDateRange($filters);
+
+        if (!$start || !$end) {
+            return [
+                'categories'         => [],
+                'current'            => [],
+                'previous'           => [],
+                'totalSales'         => 0,
+                'previousTotalSales' => 0,
+                'dailyAverage'       => 0,
+                'growthRate'         => 0,
+            ];
+        }
+
+        $days = (int) $start->diffInDays($end) + 1;
+
+        $currentRows = $this->reporting->baseQuery($filters)
+            ->selectRaw('DATE(orders.order_date) as date, SUM(order_products.sub_total) as daily_total')
+            ->groupByRaw('DATE(orders.order_date)')
+            ->get()
+            ->keyBy('date');
+
+        $prevEnd   = $start->copy()->subDay()->endOfDay();
+        $prevStart = $prevEnd->copy()->subDays($days - 1)->startOfDay();
+
+        $prevFilters = array_merge($filters, [
+            'date_range' => 'custom',
+            'start_date' => $prevStart->toDateString(),
+            'end_date'   => $prevEnd->toDateString(),
+        ]);
+
+        $previousRows = $this->reporting->baseQuery($prevFilters)
+            ->selectRaw('DATE(orders.order_date) as date, SUM(order_products.sub_total) as daily_total')
+            ->groupByRaw('DATE(orders.order_date)')
+            ->get()
+            ->keyBy('date');
+
+        $categories = [];
+        $current    = [];
+        $previous   = [];
+
+        for ($i = 0; $i < $days; $i++) {
+            $date     = $start->copy()->addDays($i);
+            $prevDate = $prevStart->copy()->addDays($i);
+
+            $categories[] = $date->format('M j');
+            $current[]    = (float) ($currentRows[$date->toDateString()]->daily_total ?? 0);
+            $previous[]   = (float) ($previousRows[$prevDate->toDateString()]->daily_total ?? 0);
+        }
+
+        $totalSales         = array_sum($current);
+        $previousTotalSales = array_sum($previous);
+
+        return [
+            'categories'         => $categories,
+            'current'            => $current,
+            'previous'           => $previous,
+            'totalSales'         => $totalSales,
+            'previousTotalSales' => $previousTotalSales,
+            'dailyAverage'       => $days > 0 ? round($totalSales / $days, 2) : 0,
+            'growthRate'         => $previousTotalSales > 0
+                ? round((($totalSales - $previousTotalSales) / $previousTotalSales) * 100, 1)
+                : 0,
+        ];
+    }
+
     // ─── Filter Helpers ──────────────────────────────────────────────────────
 
     /**

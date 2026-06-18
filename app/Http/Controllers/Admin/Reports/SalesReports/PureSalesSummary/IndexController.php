@@ -114,7 +114,7 @@ class IndexController extends Controller
             'delivery_revenue'        => CustomHelper::formatCurrency($kpis['delivery_revenue']),
             'damage_waiver_revenue'   => CustomHelper::formatCurrency($kpis['damage_waiver_revenue']),
             'track_insurance_revenue' => CustomHelper::formatCurrency($kpis['track_insurance_revenue']),
-            'shipping_revenue'        => CustomHelper::formatCurrency($kpis['shipping_revenue']),
+            'tire_insurance_revenue'  => CustomHelper::formatCurrency($kpis['tire_insurance_revenue']),
             'transaction_count'         => number_format($kpis['transaction_count']),
             'average_ticket'            => CustomHelper::formatCurrency($kpis['average_ticket']),
             'account_payments_received' => CustomHelper::formatCurrency($kpis['account_payments_received']),

@@ -60,13 +60,15 @@ class PureSalesSummaryReport
         $addonRows = $this->reporting->baseQuery($filters)
             ->selectRaw("
                 order_products.quantity,
-                JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_damage_waiver'))   AS dw_price,
-                JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_track_insurance'))  AS ti_price
+                JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_damage_waiver'))    AS dw_price,
+                JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_track_insurance'))  AS track_price,
+                JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_tire_insurance'))   AS tire_price
             ")
             ->get();
 
-        $damageWaiverRevenue   = $addonRows->sum(fn ($r) => (float) ($r->dw_price ?? 0) * (int) ($r->quantity ?? 1));
-        $trackInsuranceRevenue = $addonRows->sum(fn ($r) => (float) ($r->ti_price ?? 0) * (int) ($r->quantity ?? 1));
+        $damageWaiverRevenue   = $addonRows->sum(fn ($r) => (float) ($r->dw_price    ?? 0) * (int) ($r->quantity ?? 1));
+        $trackInsuranceRevenue = $addonRows->sum(fn ($r) => (float) ($r->track_price ?? 0) * (int) ($r->quantity ?? 1));
+        $tireInsuranceRevenue  = $addonRows->sum(fn ($r) => (float) ($r->tire_price  ?? 0) * (int) ($r->quantity ?? 1));
 
         // ── Query 4: account payments received (customer_accounts.type='payment') ─
         // Account orders become realized revenue when a customer_account payment
@@ -96,7 +98,7 @@ class PureSalesSummaryReport
             'delivery_revenue'          => $deliveryRevenue,
             'damage_waiver_revenue'     => $damageWaiverRevenue,
             'track_insurance_revenue'   => $trackInsuranceRevenue,
-            'shipping_revenue'          => 0,
+            'tire_insurance_revenue'    => $tireInsuranceRevenue,
             'transaction_count'         => $transactionCount,
             'average_ticket'            => $averageTicket,
             'account_payments_received' => $accountPaymentsReceived,

@@ -18,9 +18,7 @@ class StoreController extends Controller
             'category_id'       => 'required|exists:product_categories,id',
             'spec_label'        => 'required|string|max:150',
             'description'       => 'nullable|string|max:2000',
-            'value_type'        => 'required|in:boolean,numeric,text,enum',
-            'allowed_values'    => 'nullable|array',
-            'allowed_values.*'  => 'string|max:100',
+            'value_type'        => 'nullable|in:boolean,numeric,text,enum',
             'is_key_comparison' => 'boolean',
             'is_ignored'        => 'boolean',
         ]);
@@ -41,20 +39,13 @@ class StoreController extends Controller
             $key = $rawKey . '_' . (++$attempt);
         }
 
-        $allowedValues = null;
-        if ($data['value_type'] === 'boolean' && empty($data['allowed_values'])) {
-            $allowedValues = ['Yes', 'No', 'Unknown'];
-        } elseif (!empty($data['allowed_values'])) {
-            $allowedValues = array_values(array_filter(array_map('trim', $data['allowed_values'])));
-        }
-
         $spec = EquipmentAiCustomSpec::create([
             'category_id'       => $categoryId,
             'spec_key'          => $key,
             'spec_label'        => trim($data['spec_label']),
             'description'       => $data['description'] ?? null,
-            'value_type'        => $data['value_type'],
-            'allowed_values'    => $allowedValues,
+            'value_type'        => $data['value_type'] ?? 'text',
+            'allowed_values'    => null,
             'is_key_comparison' => $isKey,
             'is_ignored'        => $isIgnored,
         ]);

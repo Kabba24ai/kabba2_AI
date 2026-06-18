@@ -25,13 +25,21 @@
 
     {{-- ── FILTERS ─────────────────────────────────────────────────────────── --}}
     <div id="filter-panel" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6 shadow-sm">
-        <div class="flex flex-wrap items-end gap-3">
 
-            {{-- Clear --}}
+        {{-- Panel header --}}
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                <x-heroicon-o-funnel class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                <span>Filters</span>
+            </div>
             <button type="button" id="btn-clear-filters"
-                class="text-sm text-gray-600 bg-white px-3 py-2 flex gap-2 items-center rounded-md border border-gray-300 hover:bg-gray-50">
-                <x-heroicon-o-x-mark class="w-4 h-4" /> Clear
+                class="text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 px-3 py-1.5 flex gap-1.5 items-center rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                Clear Filters
             </button>
+        </div>
+
+        {{-- Row 1: Main dropdowns --}}
+        <div class="flex flex-wrap items-end gap-3">
 
             {{-- Date Range Preset --}}
             <div>
@@ -42,7 +50,7 @@
                     <option value="today"      @selected(($filters['date_range'] ?? '') === 'today')>Today</option>
                     <option value="yesterday"  @selected(($filters['date_range'] ?? '') === 'yesterday')>Yesterday</option>
                     <option value="last_7"     @selected(($filters['date_range'] ?? '') === 'last_7')>Last 7 Days</option>
-                    <option value="last_30"    @selected(($filters['date_range'] ?? '') === 'last_30')>Last 30 Days</option>
+                    <option value="last_30"    @selected(($filters['date_range'] ?? '') === 'last_30')>30 Day Rolling</option>
                     <option value="mtd"        @selected(($filters['date_range'] ?? 'mtd') === 'mtd')>Month to Date</option>
                     <option value="qtd"        @selected(($filters['date_range'] ?? '') === 'qtd')>Quarter to Date</option>
                     <option value="ytd"        @selected(($filters['date_range'] ?? '') === 'ytd')>Year to Date</option>
@@ -116,59 +124,59 @@
                 </select>
             </div>
 
-            {{-- Run Report --}}
-            <div class="pt-4">
-                <button type="button" id="btn-run-report"
-                    class="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition">
-                    Run Report
-                </button>
-            </div>
         </div>
 
-        {{-- Revenue Inclusion Filters (second row) --}}
-        <div class="flex flex-wrap gap-6 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+        {{-- Row 2: Checkbox inclusion/exclusion filters --}}
+        <div class="flex flex-wrap gap-x-5 gap-y-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 items-center">
 
-            {{-- Payment Status --}}
-            <div>
-                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Payment Status</p>
-                <select id="f-payment-status"
-                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="paid"    @selected(($filters['payment_status'] ?? 'paid') === 'paid')>Paid Orders (incl. collected COD)</option>
-                    <option value="all"     @selected(($filters['payment_status'] ?? '') === 'all')>All Orders</option>
-                    <option value="pod"     @selected(($filters['payment_status'] ?? '') === 'pod')>POD Pending (unrealized COD)</option>
-                    <option value="account" @selected(($filters['payment_status'] ?? '') === 'account')>Account Orders</option>
-                </select>
-            </div>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-exclude-damage-waiver"
+                    {{ ($filters['damage_waiver'] ?? '') === 'exclude' ? 'checked' : '' }}
+                    class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Exclude Damage Waiver
+            </label>
 
-            <div>
-                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Damage Waiver</p>
-                <select id="f-damage-waiver"
-                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="all"     @selected(($filters['damage_waiver'] ?? 'all') === 'all')>Include All</option>
-                    <option value="only"    @selected(($filters['damage_waiver'] ?? '') === 'only')>Damage Waiver Only</option>
-                    <option value="exclude" @selected(($filters['damage_waiver'] ?? '') === 'exclude')>Exclude Damage Waiver</option>
-                </select>
-            </div>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-damage-waiver-only"
+                    {{ ($filters['damage_waiver'] ?? '') === 'only' ? 'checked' : '' }}
+                    class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Damage Waiver Only
+            </label>
 
-            <div>
-                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Track Insurance</p>
-                <select id="f-track-insurance"
-                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="all"     @selected(($filters['track_insurance'] ?? 'all') === 'all')>Include All</option>
-                    <option value="only"    @selected(($filters['track_insurance'] ?? '') === 'only')>Track Insurance Only</option>
-                    <option value="exclude" @selected(($filters['track_insurance'] ?? '') === 'exclude')>Exclude Track Insurance</option>
-                </select>
-            </div>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-exclude-track-ins"
+                    {{ ($filters['track_insurance'] ?? '') === 'exclude' ? 'checked' : '' }}
+                    class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Exclude Track Ins.
+            </label>
 
-            <div>
-                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Delivery</p>
-                <select id="f-delivery"
-                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="all"     @selected(($filters['delivery'] ?? 'all') === 'all')>Include All</option>
-                    <option value="only"    @selected(($filters['delivery'] ?? '') === 'only')>Delivery Only</option>
-                    <option value="exclude" @selected(($filters['delivery'] ?? '') === 'exclude')>Exclude Delivery</option>
-                </select>
-            </div>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-track-ins-only"
+                    {{ ($filters['track_insurance'] ?? '') === 'only' ? 'checked' : '' }}
+                    class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Track Ins. Only
+            </label>
+
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-exclude-delivery"
+                    {{ ($filters['delivery'] ?? '') === 'exclude' ? 'checked' : '' }}
+                    class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Exclude Delivery
+            </label>
+
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-delivery-only"
+                    {{ ($filters['delivery'] ?? '') === 'only' ? 'checked' : '' }}
+                    class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Delivery Only
+            </label>
+
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-exclude-shipping"
+                    {{ ($filters['shipping'] ?? '') === 'exclude' ? 'checked' : '' }}
+                    class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Exclude Shipping
+            </label>
 
         </div>
     </div>
@@ -181,12 +189,47 @@
         ])
     </div>
 
+    {{-- ── SALES TREND CHART ──────────────────────────────────────────────── --}}
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6 shadow-sm">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6">Sales Trend Analysis</h2>
+
+        {{-- Metric cards --}}
+        <div class="flex justify-center mb-6">
+            <div class="flex flex-wrap justify-center gap-4">
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 min-w-[168px] text-center">
+                    <div class="text-xs text-gray-600 font-medium mb-1">Total Sales</div>
+                    <div id="psr-total-sales" class="text-lg font-semibold text-blue-800">—</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200 min-w-[168px] text-center">
+                    <div class="text-xs text-gray-600 font-medium mb-1">Previous Period</div>
+                    <div id="psr-previous-total" class="text-lg font-semibold text-green-800">—</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 min-w-[168px] text-center">
+                    <div class="text-xs text-gray-600 font-medium mb-1">Growth Rate</div>
+                    <div id="psr-growth-wrapper" class="text-lg font-semibold flex items-center justify-center whitespace-nowrap">
+                        <span id="psr-growth-icon" class="mr-1"></span>
+                        <span id="psr-growth-value">—</span>
+                    </div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 min-w-[168px] text-center">
+                    <div class="text-xs text-gray-600 font-medium mb-1">Daily Average</div>
+                    <div id="psr-daily-avg" class="text-lg font-semibold text-purple-800">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="psr-no-data" class="hidden text-center py-12 text-gray-400 text-sm">
+            Select a date range to view the sales trend.
+        </div>
+        <div id="psr-sales-chart" style="min-height: 350px;"></div>
+    </div>
+
     {{-- ── DETAIL GRID ──────────────────────────────────────────────────────── --}}
-    <div id="detail-section">
+     {{--<div id="detail-section">
         @include('admin.reports.sales_reports.pure_sales_summary.partials._detail_table', [
             'grid' => $grid,
         ])
-    </div>
+    </div>--}}
 
 @endsection
 
@@ -198,21 +241,27 @@
     const ROUTE = '{{ route('admin.reports.sales-reports.pure-sales-summary.index') }}';
     const EXPORT_ROUTE = '{{ route('admin.reports.sales-reports.pure-sales-summary.export') }}';
 
+    // ── Initial trend data from server ────────────────────────────────────────
+    const initialTrend = @json($trend);
+
     // ── DOM refs ──────────────────────────────────────────────────────────────
-    const fDateRange      = document.getElementById('f-date-range');
-    const fStartDate      = document.getElementById('f-start-date');
-    const fEndDate        = document.getElementById('f-end-date');
-    const fStore          = document.getElementById('f-store');
-    const fItemType       = document.getElementById('f-item-type');
-    const fCategory       = document.getElementById('f-category');
-    const fProduct        = document.getElementById('f-product');
-    const fPaymentStatus  = document.getElementById('f-payment-status');
-    const fDamageWaiver   = document.getElementById('f-damage-waiver');
-    const fTrackInsurance = document.getElementById('f-track-insurance');
-    const fDelivery       = document.getElementById('f-delivery');
-    const customDateWrap  = document.getElementById('custom-date-wrap');
-    const kpiSection      = document.getElementById('kpi-section');
-    const detailSection   = document.getElementById('detail-section');
+    const fDateRange           = document.getElementById('f-date-range');
+    const fStartDate           = document.getElementById('f-start-date');
+    const fEndDate             = document.getElementById('f-end-date');
+    const fStore               = document.getElementById('f-store');
+    const fItemType            = document.getElementById('f-item-type');
+    const fCategory            = document.getElementById('f-category');
+    const fProduct             = document.getElementById('f-product');
+    const fExcludeDamageWaiver = document.getElementById('f-exclude-damage-waiver');
+    const fDamageWaiverOnly    = document.getElementById('f-damage-waiver-only');
+    const fExcludeTrackIns     = document.getElementById('f-exclude-track-ins');
+    const fTrackInsOnly        = document.getElementById('f-track-ins-only');
+    const fExcludeDelivery     = document.getElementById('f-exclude-delivery');
+    const fDeliveryOnly        = document.getElementById('f-delivery-only');
+    const fExcludeShipping     = document.getElementById('f-exclude-shipping');
+    const customDateWrap       = document.getElementById('custom-date-wrap');
+    const kpiSection           = document.getElementById('kpi-section');
+    const detailSection        = document.getElementById('detail-section');
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     function collectFilters() {
@@ -221,16 +270,28 @@
         if (dr) params.set('date_range', dr);
         if (dr === 'custom') {
             if (fStartDate.value) params.set('start_date', fStartDate.value);
-            if (fEndDate.value)   params.set('end_date', fEndDate.value);
+            if (fEndDate.value)   params.set('end_date',   fEndDate.value);
         }
-        if (fStore.value)          params.set('store', fStore.value);
+        if (fStore.value)              params.set('store', fStore.value);
         if (fItemType.value !== 'all') params.set('item_type', fItemType.value);
-        if (fCategory.value)       params.set('category', fCategory.value);
-        if (fProduct.value)        params.set('product', fProduct.value);
-        params.set('payment_status', fPaymentStatus.value || 'paid');
-        if (fDamageWaiver.value !== 'all')   params.set('damage_waiver', fDamageWaiver.value);
-        if (fTrackInsurance.value !== 'all') params.set('track_insurance', fTrackInsurance.value);
-        if (fDelivery.value !== 'all')       params.set('delivery', fDelivery.value);
+        if (fCategory.value)           params.set('category', fCategory.value);
+        if (fProduct.value)            params.set('product', fProduct.value);
+
+        // Damage Waiver (mutually exclusive pair)
+        if (fExcludeDamageWaiver.checked)     params.set('damage_waiver', 'exclude');
+        else if (fDamageWaiverOnly.checked)   params.set('damage_waiver', 'only');
+
+        // Track Insurance (mutually exclusive pair)
+        if (fExcludeTrackIns.checked)         params.set('track_insurance', 'exclude');
+        else if (fTrackInsOnly.checked)       params.set('track_insurance', 'only');
+
+        // Delivery (mutually exclusive pair)
+        if (fExcludeDelivery.checked)         params.set('delivery', 'exclude');
+        else if (fDeliveryOnly.checked)       params.set('delivery', 'only');
+
+        // Shipping (single exclusion)
+        if (fExcludeShipping.checked)         params.set('shipping', 'exclude');
+
         return params;
     }
 
@@ -252,9 +313,9 @@
         .then(r => r.json())
         .then(data => {
             if (!data.success) throw new Error(data.error || 'Report failed');
-            if (data.kpi_html) kpiSection.innerHTML   = data.kpi_html;
+            if (data.kpi_html) kpiSection.innerHTML    = data.kpi_html;
             if (data.html)     detailSection.innerHTML = data.html;
-            // Update export link
+            if (data.trend)    renderTrend(data.trend);
             document.querySelectorAll('a[href*="pure-sales-summary/export"]').forEach(a => {
                 a.href = EXPORT_ROUTE + '?' + params.toString();
             });
@@ -266,16 +327,122 @@
         .finally(() => setLoading(false));
     }
 
+    // ── Currency formatter ────────────────────────────────────────────────────
+    function formatCurrency(val) {
+        const code = window.APP_CURRENCY || 'USD';
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency', currency: code,
+            minimumFractionDigits: 0, maximumFractionDigits: 0,
+        }).format(val || 0);
+    }
+
+    // ── Trend chart ───────────────────────────────────────────────────────────
+    let psrChart = null;
+
+    function buildChartOptions(trend) {
+        return {
+            series: [
+                { name: 'Current Period', data: trend.current },
+                { name: 'Previous Period', data: trend.previous },
+            ],
+            chart: {
+                height: 350,
+                type: 'line',
+                toolbar: { show: false },
+                zoom:    { enabled: false },
+            },
+            stroke:  { curve: 'smooth', width: [2, 2] },
+            colors:  ['#3B82F6', '#10B981'],
+            markers: { size: 0 },
+            xaxis: {
+                categories: trend.categories,
+                tickAmount: Math.min(trend.categories.length, 15),
+                labels:     { rotate: -30, style: { fontSize: '11px' } },
+            },
+            yaxis: {
+                labels: { formatter: v => formatCurrency(v) },
+            },
+            tooltip: {
+                y: { formatter: v => formatCurrency(v) },
+            },
+            legend: { position: 'top' },
+            grid:   { borderColor: '#f3f4f6' },
+        };
+    }
+
+    function updateTrendMetrics(trend) {
+        document.getElementById('psr-total-sales').textContent    = formatCurrency(trend.totalSales);
+        document.getElementById('psr-previous-total').textContent = formatCurrency(trend.previousTotalSales);
+        document.getElementById('psr-daily-avg').textContent      = formatCurrency(trend.dailyAverage);
+
+        const wrapper    = document.getElementById('psr-growth-wrapper');
+        const growthVal  = document.getElementById('psr-growth-value');
+        const growthIcon = document.getElementById('psr-growth-icon');
+
+        growthVal.textContent = Math.abs(trend.growthRate).toFixed(1) + '%';
+        wrapper.classList.remove('text-emerald-800', 'text-red-800');
+        wrapper.classList.add(trend.growthRate >= 0 ? 'text-emerald-800' : 'text-red-800');
+
+        if (trend.growthRate >= 0) {
+            growthIcon.innerHTML = `<svg fill="currentColor" class="w-5 h-5" viewBox="0 0 640 640"><path d="M416 224C398.3 224 384 209.7 384 192C384 174.3 398.3 160 416 160L576 160C593.7 160 608 174.3 608 192L608 352C608 369.7 593.7 384 576 384C558.3 384 544 369.7 544 352L544 269.3L374.6 438.7C362.1 451.2 341.8 451.2 329.3 438.7L224 333.3L86.6 470.6C74.1 483.1 53.8 483.1 41.3 470.6C28.8 458.1 28.8 437.8 41.3 425.3L201.3 265.3C213.8 252.8 234.1 252.8 246.6 265.3L352 370.7L498.7 224L416 224z"/></svg>`;
+        } else {
+            growthIcon.innerHTML = `<svg fill="currentColor" class="w-5 h-5" viewBox="0 0 640 640"><path d="M416 416C398.3 416 384 430.3 384 448C384 465.7 398.3 480 416 480L576 480C593.7 480 608 465.7 608 448L608 288C608 270.3 593.7 256 576 256C558.3 256 544 270.3 544 288L544 370.7L374.6 201.3C362.1 188.8 341.8 188.8 329.3 201.3L224 306.7L86.6 169.4C74.1 156.9 53.8 156.9 41.3 169.4C28.8 181.9 28.8 202.2 41.3 214.7L201.3 374.7C213.8 387.2 234.1 387.2 246.6 374.7L352 269.3L498.7 416L416 416z"/></svg>`;
+        }
+    }
+
+    function renderTrend(trend) {
+        const noData   = document.getElementById('psr-no-data');
+        const chartEl  = document.getElementById('psr-sales-chart');
+
+        if (!trend || !trend.categories || trend.categories.length === 0) {
+            noData.classList.remove('hidden');
+            chartEl.style.display = 'none';
+            return;
+        }
+
+        noData.classList.add('hidden');
+        chartEl.style.display = '';
+
+        updateTrendMetrics(trend);
+
+        if (!psrChart) {
+            psrChart = new ApexCharts(chartEl, buildChartOptions(trend));
+            psrChart.render();
+        } else {
+            psrChart.updateOptions({ xaxis: { categories: trend.categories, tickAmount: Math.min(trend.categories.length, 15) } }, false, false);
+            psrChart.updateSeries([
+                { name: 'Current Period',  data: trend.current },
+                { name: 'Previous Period', data: trend.previous },
+            ]);
+        }
+    }
+
+    // ── Debounced auto-run ─────────────────────────────────────────────────────
+    let debounceTimer = null;
+    function scheduleRun() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => runReport(1), 400);
+    }
+
     // ── Custom date range toggle ───────────────────────────────────────────────
     fDateRange.addEventListener('change', function () {
         customDateWrap.classList.toggle('hidden', this.value !== 'custom');
+        scheduleRun();
     });
 
-    // ── Category → Product dependency ─────────────────────────────────────────
+    // ── Dropdown filter changes ────────────────────────────────────────────────
+    [fStore, fItemType, fProduct].forEach(el => {
+        if (el) el.addEventListener('change', scheduleRun);
+    });
+
+    // ── Category → Product dependency (then auto-run) ─────────────────────────
     fCategory.addEventListener('change', function () {
         const catId = this.value;
         fProduct.innerHTML = '<option value="">All Products</option>';
-        if (!catId) return;
+
+        const afterProducts = () => scheduleRun();
+
+        if (!catId) { afterProducts(); return; }
 
         fetch(ROUTE + '?ajax_products=1&category=' + catId, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -290,26 +457,44 @@
                     fProduct.appendChild(opt);
                 });
             }
+            afterProducts();
         })
-        .catch(err => console.error('Product load error:', err));
+        .catch(err => { console.error('Product load error:', err); afterProducts(); });
     });
 
-    // ── Run on button click ────────────────────────────────────────────────────
-    document.getElementById('btn-run-report').addEventListener('click', () => runReport(1));
+    // ── Checkbox pairs (mutually exclusive) ────────────────────────────────────
+    function bindCheckboxPair(cbA, cbB) {
+        cbA.addEventListener('change', function () {
+            if (this.checked) cbB.checked = false;
+            scheduleRun();
+        });
+        cbB.addEventListener('change', function () {
+            if (this.checked) cbA.checked = false;
+            scheduleRun();
+        });
+    }
+
+    bindCheckboxPair(fExcludeDamageWaiver, fDamageWaiverOnly);
+    bindCheckboxPair(fExcludeTrackIns,     fTrackInsOnly);
+    bindCheckboxPair(fExcludeDelivery,     fDeliveryOnly);
+    fExcludeShipping.addEventListener('change', scheduleRun);
 
     // ── Clear filters ──────────────────────────────────────────────────────────
     document.getElementById('btn-clear-filters').addEventListener('click', function () {
-        fDateRange.value      = 'mtd';
-        fStartDate.value      = '';
-        fEndDate.value        = '';
-        fStore.value          = '';
-        fItemType.value       = 'all';
-        fCategory.value       = '';
-        fProduct.value        = '';
-        fPaymentStatus.value  = 'paid';
-        fDamageWaiver.value   = 'all';
-        fTrackInsurance.value = 'all';
-        fDelivery.value       = 'all';
+        fDateRange.value               = 'mtd';
+        fStartDate.value               = '';
+        fEndDate.value                 = '';
+        fStore.value                   = '';
+        fItemType.value                = 'all';
+        fCategory.value                = '';
+        fProduct.innerHTML             = '<option value="">All Products</option>';
+        fExcludeDamageWaiver.checked   = false;
+        fDamageWaiverOnly.checked      = false;
+        fExcludeTrackIns.checked       = false;
+        fTrackInsOnly.checked          = false;
+        fExcludeDelivery.checked       = false;
+        fDeliveryOnly.checked          = false;
+        fExcludeShipping.checked       = false;
         customDateWrap.classList.add('hidden');
         runReport(1);
     });
@@ -326,8 +511,8 @@
         }
     });
 
-    // ── AJAX products endpoint ─────────────────────────────────────────────────
-    // Handled in the same IndexController via ?ajax_products=1 query param.
+    // ── Init chart on page load ────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => renderTrend(initialTrend));
 
 })();
 </script>

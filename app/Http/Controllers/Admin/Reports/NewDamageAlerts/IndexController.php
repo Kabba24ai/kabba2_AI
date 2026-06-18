@@ -12,18 +12,9 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        \Log::info('Damage Alert Filters', [
-    'search_name'   => $request->search_name,
-    'search_order'  => $request->search_order,
-    'search_status' => $request->search_status,
-    'is_ajax'       => $request->ajax(),
-]);
+       
         // ── OrderProduct-based damage charges (from rental checklist) ─────────
-        // $query = OrderProduct::with([
-        //     'order.customer',
-        //     'equipment',
-        //     'damageChargeLogs',
-        // ])
+        
 
         $query = OrderProduct::with([
     'order:id,customer_id,unique_id,order_number',
@@ -44,12 +35,7 @@ class IndexController extends Controller
             });
         }
 
-        // if ($request->filled('search_order')) {
-        //     $query->whereHas('order', function ($q) use ($request) {
-        //         $q->where('order_number', 'like', '%' . $request->search_order . '%');
-        //     });
-        // }
-
+      
 
        if ($request->filled('search_order')) {
 

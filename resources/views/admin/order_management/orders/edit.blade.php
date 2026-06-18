@@ -11,10 +11,11 @@
 
     {{-- Order Header Section --}}
     <div class="bg-white px-4 py-4 rounded-xl shadow-sm mb-6">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        {{-- <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"> --}}
+            <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
 
             {{-- LEFT: Order + Customer/Company --}}
-            <div class="min-w-[260px]">
+            <div class="min-w-0 xl:w-[280px]">
                 <div class="text-lg font-semibold text-gray-800">
                     <span class="text-gray-700">Order ID:</span> {{ $order->order_number }}
                     @if (!empty($order->reference_order_number))
@@ -48,7 +49,7 @@
                     ->where('status', \App\Enums\Orders\OrderPaymentStatus::PartialPayment->value)
                     ->sum('amount');
             @endphp
-            <div class="flex-1 flex flex-col items-start lg:items-center gap-2">
+            <div class="flex-1 min-w-0 flex flex-col items-start xl:items-center gap-2">
                 <div class="flex flex-wrap items-center justify-start lg:justify-center gap-2">
                     @if (!$order->is_paid && in_array($order->last_payment_status, ['Pending', 'Failed', 'Partial Payment']))
                         <button id="pendingPaymentBtn" type="button"
@@ -156,7 +157,7 @@
             </div>
 
             {{-- RIGHT: Action Buttons --}}
-            <div class="flex flex-wrap justify-start lg:justify-end gap-2 items-start">
+            <div class="flex flex-wrap justify-start xl:justify-end gap-2 items-center w-full xl:w-auto">
                 <button id="reorderBtn" type="button"
                     class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white hover:bg-orange-600 focus:outline-none">
                     <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder

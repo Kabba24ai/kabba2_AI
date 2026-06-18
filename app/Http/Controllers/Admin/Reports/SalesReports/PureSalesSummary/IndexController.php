@@ -30,11 +30,12 @@ class IndexController extends Controller
             return $this->ajaxResponse($request, $filters);
         }
 
-        $kpis          = $this->report->kpis($filters);
-        $grid          = $this->report->detailGrid($filters, $request->integer('page', 1), 50);
-        $categories    = $this->report->availableCategories();
-        $products      = $this->report->availableProducts($filters['category'] ?? null);
+        $kpis           = $this->report->kpis($filters);
+        $grid           = $this->report->detailGrid($filters, $request->integer('page', 1), 50);
+        $categories     = $this->report->availableCategories();
+        $products       = $this->report->availableProducts($filters['category'] ?? null);
         $dateRangeLabel = $this->reporting->dateRangeLabel($filters);
+        $trend          = $this->report->trendData($filters);
 
         return view('admin.reports.sales_reports.pure_sales_summary.index', [
             'filters'        => $filters,
@@ -44,6 +45,7 @@ class IndexController extends Controller
             'categories'     => $categories,
             'products'       => $products,
             'dateRangeLabel' => $dateRangeLabel,
+            'trend'          => $trend,
         ]);
     }
 
@@ -63,6 +65,7 @@ class IndexController extends Controller
 
             $grid  = $this->report->detailGrid($filters, $request->integer('page', 1), 50);
             $kpis  = $this->formatKpis($this->report->kpis($filters));
+            $trend = $this->report->trendData($filters);
             $html  = view('admin.reports.sales_reports.pure_sales_summary.partials._detail_table', [
                 'grid' => $grid,
             ])->render();
@@ -76,6 +79,7 @@ class IndexController extends Controller
                 'html'     => $html,
                 'kpi_html' => $kpiHtml,
                 'kpis'     => $kpis,
+                'trend'    => $trend,
             ]);
         } catch (\Throwable $e) {
             \Log::error('Pure Sales Summary AJAX error', [
@@ -100,6 +104,7 @@ class IndexController extends Controller
             'damage_waiver'   => $request->input('damage_waiver', 'all'),
             'track_insurance' => $request->input('track_insurance', 'all'),
             'delivery'        => $request->input('delivery', 'all'),
+            'shipping'        => $request->input('shipping', 'all'),
             'payment_status'  => $request->input('payment_status', 'paid'),
         ];
     }

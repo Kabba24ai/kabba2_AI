@@ -535,16 +535,24 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Follow-up Date <span class="text-red-500">*</span>
                     </label>
-                    <input type="date" id="reschedule_follow_up_date"
-                        min="{{ now()->format('Y-m-d') }}"
-                        class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400">
+                    <div class="relative">
+                        <input type="text" id="reschedule_follow_up_date"
+                            placeholder="Pick a date"
+                            readonly
+                            class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 cursor-pointer bg-white">
+                        <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Follow-up Time <span class="text-red-500">*</span>
                     </label>
-                    <input type="time" id="reschedule_follow_up_time"
-                        class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400">
+                    <div class="relative">
+                        <input type="time" id="reschedule_follow_up_time"
+                            class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400">
+                    </div>
                 </div>
             </div>
 
@@ -585,6 +593,41 @@
 let _rescheduleCallId = null;
 let _rescheduleCallStatus = null;
 let _rescheduleCallNote = null;
+let _rescheduleFlatpickr = null;
+
+function initRescheduleDatePicker() {
+    function doInit() {
+        if (_rescheduleFlatpickr) {
+            _rescheduleFlatpickr.clear();
+            return;
+        }
+        _rescheduleFlatpickr = flatpickr('#reschedule_follow_up_date', {
+            dateFormat:    'Y-m-d',
+            altInput:      true,
+            altFormat:     'F j, Y',
+            minDate:       'today',
+            disableMobile: true,
+        });
+    }
+
+    if (window.flatpickr) {
+        doInit();
+        return;
+    }
+
+    if (!document.getElementById('flatpickr-css')) {
+        const link  = document.createElement('link');
+        link.id     = 'flatpickr-css';
+        link.rel    = 'stylesheet';
+        link.href   = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+        document.head.appendChild(link);
+    }
+
+    const script  = document.createElement('script');
+    script.src    = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js';
+    script.onload = doInit;
+    document.head.appendChild(script);
+}
 
 function openRescheduleStep() {
     const status      = document.getElementById('complete_call_status').value;
@@ -597,7 +640,6 @@ function openRescheduleStep() {
     _rescheduleCallStatus = status;
     _rescheduleCallNote   = description;
 
-    document.getElementById('reschedule_follow_up_date').value = '';
     document.getElementById('reschedule_follow_up_time').value = '';
     document.getElementById('reschedule_follow_up_note').value = '';
 
@@ -606,6 +648,8 @@ function openRescheduleStep() {
     const modal = document.getElementById('RescheduleCallModal');
     modal.style.display = 'flex';
     modal.classList.remove('hidden');
+
+    initRescheduleDatePicker();
 }
 
 function closeRescheduleCallModal() {

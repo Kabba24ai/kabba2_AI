@@ -12,12 +12,25 @@ class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
+        \Log::info('Damage Alert Filters', [
+    'search_name'   => $request->search_name,
+    'search_order'  => $request->search_order,
+    'search_status' => $request->search_status,
+    'is_ajax'       => $request->ajax(),
+]);
         // ── OrderProduct-based damage charges (from rental checklist) ─────────
+        // $query = OrderProduct::with([
+        //     'order.customer',
+        //     'equipment',
+        //     'damageChargeLogs',
+        // ])
+
         $query = OrderProduct::with([
-            'order.customer',
-            'equipment',
-            'damageChargeLogs',
-        ])
+    'order:id,customer_id,unique_id,order_number',
+    'order.customer:id,first_name,last_name,phone,unique_id',
+    'equipment:id,equipment_name',
+    'damageChargeLogs:id,order_product_id,change_amount',
+])
         ->where(function ($q) {
             $q->where('damage_charge', '>', 0)
               ->orWhereNotNull('damage_status');
@@ -31,11 +44,23 @@ class IndexController extends Controller
             });
         }
 
-        if ($request->filled('search_order')) {
-            $query->whereHas('order', function ($q) use ($request) {
-                $q->where('order_number', 'like', '%' . $request->search_order . '%');
-            });
-        }
+        // if ($request->filled('search_order')) {
+        //     $query->whereHas('order', function ($q) use ($request) {
+        //         $q->where('order_number', 'like', '%' . $request->search_order . '%');
+        //     });
+        // }
+
+
+       if ($request->filled('search_order')) {
+
+    $search = trim($request->search_order);
+
+
+    $query->whereHas('order', function ($q) use ($search) {
+        $q->where('order_number', 'like', "%{$search}%")
+          ->orWhere('reference_order_number', 'like', "%{$search}%");
+    });
+}
 
         if ($request->filled('search_status')) {
             $status = $request->search_status;
@@ -61,8 +86,14 @@ class IndexController extends Controller
     ])
     ->get();
 
+
+    
         // ── CRM / manually-added damage charges (from Dashboard or Order Edit) ─
-        $crmQuery = CustomerAccount::with(['customer', 'order'])
+        // $crmQuery = CustomerAccount::with(['customer', 'order'])
+        $crmQuery = CustomerAccount::with([
+    'customer:id,first_name,last_name,phone,unique_id',
+    'order:id,unique_id,order_number',
+])
             ->where('type', 'charge')
             ->where('reason', 'Damages');
 
@@ -122,6 +153,8 @@ class IndexController extends Controller
             'path'  => $request->url(),
             'query' => $request->except('page'),
         ]);
+
+        
 
         if ($request->ajax()) {
             $html = view('admin.reports.new_damage_alerts.partials._table', compact('allDamageRecords'))->render();

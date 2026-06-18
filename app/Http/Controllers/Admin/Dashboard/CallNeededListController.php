@@ -18,6 +18,9 @@ class CallNeededListController extends Controller
             'activities.user',
         ])
         ->where('status', 'active')
+        ->where(function ($q) {
+            $q->whereNull('follow_up_at')->orWhere('follow_up_at', '<=', now());
+        })
         ->latest()
         ->get();
 
@@ -31,6 +34,10 @@ class CallNeededListController extends Controller
                     'notes' => $call->notes,
                     'is_urgent' => (bool) $call->is_urgent,
                     'created_at' => CustomHelper::formatDateTime($call->created_at),
+                    'was_rescheduled' => $call->follow_up_at !== null,
+                    'follow_up_at_label' => $call->follow_up_at
+                        ? $call->follow_up_at->format('M j, Y g:i A')
+                        : null,
 
                   'contact_type' => $call->customer_id ? 'customer'
                     : ($call->supplier_id ? 'supplier' : 'manual'),

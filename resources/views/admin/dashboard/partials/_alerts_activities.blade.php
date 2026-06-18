@@ -373,7 +373,7 @@
     style="display:none;"
     class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 hidden">
 
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-200">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl border border-gray-200">
 
         <div class="flex justify-between items-center px-6 py-4 border-b">
             <div>
@@ -422,7 +422,7 @@
                     placeholder="Write what happened during the call..."></textarea>
             </div>
 
-            <div class="flex items-center justify-between pt-3">
+            <div class="flex items-center justify-between gap-3 pt-3 flex-wrap">
 
                 {{-- Close / Cancel --}}
                 <button
@@ -435,14 +435,14 @@
                     Close
                 </button>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
 
                     {{-- Update & Remain Open --}}
                     <button
                         type="button"
                         id="call-action-save-btn"
                         onclick="submitCompleteCall('save')"
-                        class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
+                        class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition whitespace-nowrap">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
@@ -457,11 +457,22 @@
                     <button
                         type="button"
                         onclick="submitCompleteCall('complete')"
-                        class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition">
+                        class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition whitespace-nowrap">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                         </svg>
                         Save &amp; Close
+                    </button>
+
+                    {{-- Update and Reschedule --}}
+                    <button
+                        type="button"
+                        onclick="openRescheduleStep()"
+                        class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition whitespace-nowrap">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Update and Reschedule
                     </button>
 
                 </div>
@@ -470,9 +481,207 @@
     </div>
 </div>
 
+{{-- Reschedule Follow-Up Modal --}}
+<div id="RescheduleCallModal"
+    style="display:none;"
+    class="fixed inset-0 z-[100000] flex items-center justify-center bg-black/60 px-4 hidden">
+
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-200">
+
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Reschedule Follow-Up</h2>
+                <p class="text-sm text-gray-500">Set when this call should return to the active dashboard</p>
+            </div>
+            <button type="button" onclick="closeRescheduleCallModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+        </div>
+
+        <div class="px-6 py-5 space-y-4">
+
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p class="text-sm text-amber-800">
+                    <strong>Note saved.</strong> This call will be hidden from the active dashboard and automatically reappear at the selected date and time.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Follow-up Date <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="date"
+                        id="reschedule_follow_up_date"
+                        min="{{ now()->format('Y-m-d') }}"
+                        class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Follow-up Time <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="time"
+                        id="reschedule_follow_up_time"
+                        class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Reminder Note <span class="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <textarea
+                    id="reschedule_follow_up_note"
+                    rows="3"
+                    class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+                    placeholder="Add context for the follow-up call..."></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+
+                <button
+                    type="button"
+                    onclick="closeRescheduleCallModal()"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    id="reschedule-confirm-btn"
+                    onclick="submitRescheduleCall()"
+                    class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition whitespace-nowrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span id="rescheduleBtnText">Confirm Reschedule</span>
+                    <svg id="rescheduleBtnSpinner" xmlns="http://www.w3.org/2000/svg" class="hidden animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('js')
 
 <script>
+
+// Module-level state for the two-step reschedule flow
+let _rescheduleCallId = null;
+let _rescheduleCallStatus = null;
+let _rescheduleCallNote = null;
+
+function openRescheduleStep()
+{
+    const status      = document.getElementById('complete_call_status').value;
+    const description = document.getElementById('complete_call_description').value.trim();
+
+    if (!status) {
+        notyf.error('Please select call status.');
+        return;
+    }
+
+    if (!description) {
+        notyf.error('Please enter call summary.');
+        return;
+    }
+
+    _rescheduleCallId     = document.getElementById('complete_call_id').value;
+    _rescheduleCallStatus = status;
+    _rescheduleCallNote   = description;
+
+    document.getElementById('reschedule_follow_up_date').value = '';
+    document.getElementById('reschedule_follow_up_time').value = '';
+    document.getElementById('reschedule_follow_up_note').value = '';
+
+    closeCompleteCallModal();
+
+    const modal = document.getElementById('RescheduleCallModal');
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+}
+
+function closeRescheduleCallModal()
+{
+    const modal = document.getElementById('RescheduleCallModal');
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+    _rescheduleCallId = _rescheduleCallStatus = _rescheduleCallNote = null;
+}
+
+function submitRescheduleCall()
+{
+    const followUpDate = document.getElementById('reschedule_follow_up_date').value;
+    const followUpTime = document.getElementById('reschedule_follow_up_time').value;
+    const followUpNote = document.getElementById('reschedule_follow_up_note').value.trim();
+
+    if (!followUpDate) {
+        notyf.error('Please select a follow-up date.');
+        return;
+    }
+
+    if (!followUpTime) {
+        notyf.error('Please select a follow-up time.');
+        return;
+    }
+
+    const followUpAt = followUpDate + ' ' + followUpTime + ':00';
+    const callId     = _rescheduleCallId;
+
+    const btn     = document.getElementById('reschedule-confirm-btn');
+    const btnText = document.getElementById('rescheduleBtnText');
+    const spinner = document.getElementById('rescheduleBtnSpinner');
+
+    btn.disabled = true;
+    btnText.textContent = 'Saving...';
+    spinner.classList.remove('hidden');
+
+    fetch(
+        "{{ route('admin.dashboard.call-needed.reschedule', ':id') }}"
+            .replace(':id', callId),
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({
+                call_status:      _rescheduleCallStatus,
+                completion_note:  _rescheduleCallNote,
+                follow_up_at:     followUpAt,
+                follow_up_note:   followUpNote || null,
+            }),
+        }
+    )
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.success) {
+            notyf.success(data.message);
+            closeRescheduleCallModal();
+
+            const card = document.querySelector(`[data-call-id="${callId}"]`);
+            if (card) card.remove();
+
+            loadCallNeededList();
+        } else {
+            notyf.error(data.message || 'Something went wrong');
+        }
+    })
+    .catch(err => {
+        console.error('Reschedule call error:', err);
+        notyf.error('Failed to reschedule call');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btnText.textContent = 'Confirm Reschedule';
+        spinner.classList.add('hidden');
+    });
+}
 
 function openCompleteCallModal(id)
 {
@@ -935,6 +1144,13 @@ function renderCallNeededList(calls, skipFilters = false)
                     <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-700 text-xs font-semibold border border-red-200">
                         <x-heroicon-o-exclamation-triangle class="w-3.5 h-3.5" />
                         Urgent
+                    </span>
+                ` : ''}
+
+                ${call.was_rescheduled ? `
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Returned from reschedule
                     </span>
                 ` : ''}
 

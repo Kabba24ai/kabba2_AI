@@ -16,6 +16,10 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\GenerateController as SpecGenerateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\ToggleKeyComparisonController as SpecToggleKeyComparisonController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\DeepResearchController as SpecDeepResearchController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\FillGapsController as SpecFillGapsController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\ResearchForProfileController as SpecResearchForProfileController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Specifications\PropagateLabelController as SpecPropagateLabelController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\CompareController as EquipmentAiCompareController;
 
 // Controllers — Commonize (Compare & Commonize)
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\Commonize\AnalyzeController as CommonizeAnalyzeController;
@@ -90,6 +94,7 @@ Route::prefix('equipment-ai')
                 Route::get('/',          SpecIndexController::class)->name('index');
                 Route::post('/',         SpecStoreController::class)->name('store');
                 Route::post('/generate', SpecGenerateController::class)->name('generate');
+                Route::post('/fill-gaps', SpecFillGapsController::class)->name('fill-gaps');
             });
 
         // Spec update/delete/toggle keyed by spec id (not profile unique_id)
@@ -97,6 +102,16 @@ Route::prefix('equipment-ai')
         Route::delete('/specifications/{id}', SpecDeleteController::class)->name('specifications.delete');
         Route::post('/specifications/{id}/toggle-key-comparison', SpecToggleKeyComparisonController::class)->name('specifications.toggle-key-comparison');
         Route::post('/specifications/{id}/deep-research', SpecDeepResearchController::class)->name('specifications.deep-research');
+        Route::post('/specifications/{id}/propagate-label', SpecPropagateLabelController::class)->name('specifications.propagate-label');
+
+        // Category-wide fill-gaps (no profile context)
+        Route::post('/category-fill-gaps', SpecFillGapsController::class)->name('category-fill-gaps');
+
+        // Per-cell matrix research (profile + spec_key, no existing spec_id required)
+        Route::post('/specifications/research-for-profile', SpecResearchForProfileController::class)->name('specifications.research-for-profile');
+
+        // AI comparison report for a category
+        Route::post('/compare', EquipmentAiCompareController::class)->name('compare');
 
         /*
         |-----------------------------------------------------------

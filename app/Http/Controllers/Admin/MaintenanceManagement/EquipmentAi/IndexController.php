@@ -47,7 +47,7 @@ class IndexController extends Controller
                     ->pluck('spec_key', 'spec_key');
 
                 $allSpecs = EquipmentAiSpecification::whereIn('equipment_ai_profile_id', $profileIds)
-                    ->select('equipment_ai_profile_id', 'spec_key', 'spec_label', 'is_key_comparison', 'is_ignored')
+                    ->select('equipment_ai_profile_id', 'spec_key', 'spec_label', 'spec_value', 'is_key_comparison', 'is_ignored')
                     ->get();
 
                 foreach ($allSpecs->groupBy('spec_key') as $specKey => $specsForKey) {
@@ -56,7 +56,11 @@ class IndexController extends Controller
                     $isIgnored = !$isKey && $specsForKey->contains('is_ignored', true);
                     $presence  = [];
                     foreach ($matrixProfiles as $p) {
-                        $presence[$p->id] = $specsForKey->where('equipment_ai_profile_id', $p->id)->isNotEmpty();
+                        // Placeholder rows (spec_value = null) are treated as missing
+                        $presence[$p->id] = $specsForKey
+                            ->where('equipment_ai_profile_id', $p->id)
+                            ->filter(fn($s) => filled($s->spec_value))
+                            ->isNotEmpty();
                     }
                     $matrix[] = [
                         'spec_key'          => $specKey,

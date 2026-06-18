@@ -180,11 +180,15 @@ PROMPT;
             'last_ai_update_at' => now(),
         ]);
 
+        // ── Backfill placeholder rows so every profile × spec_key cell exists ──
+        $filled = (new FillGapsController())(request(), $profile->unique_id)->getData(true)['filled'] ?? 0;
+
         return response()->json([
-            'success' => true,
-            'saved'   => $saved,
-            'skipped' => $skipped,
-            'message' => $saved . ' specification(s) generated and saved.',
+            'success'  => true,
+            'saved'    => $saved,
+            'skipped'  => $skipped,
+            'filled'   => $filled,
+            'message'  => $saved . ' specification(s) generated and saved.' . ($filled ? " {$filled} placeholder row(s) added for missing specs." : ''),
         ]);
     }
 }

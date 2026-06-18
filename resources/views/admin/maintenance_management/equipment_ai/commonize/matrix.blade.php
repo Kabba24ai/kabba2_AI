@@ -82,6 +82,36 @@
             Add New Specification
         </button>
 
+        {{-- Fill Gaps --}}
+        <button type="button"
+                @click="fillCategoryGaps()"
+                :disabled="fillingGaps"
+                class="inline-flex items-center gap-2 rounded-lg border border-blue-300 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                title="Insert placeholder rows for every missing model × spec combination so the matrix is fully populated">
+            <template x-if="fillingGaps">
+                <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            </template>
+            <template x-if="!fillingGaps">
+                <x-heroicon-o-table-cells class="h-4 w-4" />
+            </template>
+            <span x-text="fillingGaps ? 'Filling…' : 'Fill Gaps'"></span>
+        </button>
+
+        {{-- AI Compare Equipment --}}
+        <button type="button"
+                @click="runComparison()"
+                :disabled="comparing"
+                class="inline-flex items-center gap-2 rounded-lg border border-amber-400 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50 dark:border-amber-600 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                title="Send Key Comparison specs to AI for a side-by-side equipment analysis">
+            <template x-if="comparing">
+                <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            </template>
+            <template x-if="!comparing">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354l-4.502 2.826c-.995.608-2.23-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"/></svg>
+            </template>
+            <span x-text="comparing ? 'Analyzing…' : 'AI Compare Equipment'"></span>
+        </button>
+
         <div class="flex-1"></div>
 
         {{-- Stats chips --}}
@@ -408,12 +438,26 @@
                                                 </a>
                                             </template>
                                             <template x-if="!item.row.presence[{{ $profile->id }}]">
-                                                <a :href="profileSpecUrls[{{ $profile->id }}] + '?edit=' + item.row.spec_key"
-                                                   target="_blank"
-                                                   class="inline-flex items-center justify-center text-gray-300 hover:text-gray-500 dark:text-gray-700 dark:hover:text-gray-400 transition-colors"
-                                                   title="Missing — click to open profile and add spec">
-                                                    <svg class="mx-auto h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm3 10.5a.75.75 0 000-1.5H9a.75.75 0 000 1.5h6z" /></svg>
-                                                </a>
+                                                <div class="inline-flex items-center justify-center gap-0.5">
+                                                    <a :href="profileSpecUrls[{{ $profile->id }}] + '?edit=' + item.row.spec_key"
+                                                       target="_blank"
+                                                       class="inline-flex items-center justify-center text-gray-300 hover:text-gray-500 dark:text-gray-700 dark:hover:text-gray-400 transition-colors"
+                                                       title="Missing — click to open profile and add spec manually">
+                                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm3 10.5a.75.75 0 000-1.5H9a.75.75 0 000 1.5h6z" /></svg>
+                                                    </a>
+                                                    <button type="button"
+                                                            @click.stop="researchForProfile(item.row, {{ $profile->id }})"
+                                                            :disabled="researchingCell !== null"
+                                                            class="inline-flex items-center justify-center text-gray-300 hover:text-purple-500 dark:text-gray-700 dark:hover:text-purple-400 transition-colors disabled:opacity-30"
+                                                            title="Research this spec with AI">
+                                                        <template x-if="researchingCell === (item.row.spec_key + ':{{ $profile->id }}')">
+                                                            <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                                        </template>
+                                                        <template x-if="researchingCell !== (item.row.spec_key + ':{{ $profile->id }}')">
+                                                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354l-4.502 2.826c-.995.608-2.23-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"/></svg>
+                                                        </template>
+                                                    </button>
+                                                </div>
                                             </template>
                                         </span>
                                     </template>
@@ -749,6 +793,69 @@
         </div>
     </div>
 
+    {{-- ── AI Comparison Modal ─────────────────────────────────────────────── --}}
+    <div x-show="showCompareModal"
+         x-cloak
+         x-transition
+         class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 backdrop-blur-sm p-4 pt-10"
+         @keydown.escape.window="showCompareModal = false">
+        <div class="relative w-full max-w-4xl rounded-2xl bg-white shadow-2xl dark:border dark:border-gray-700 dark:bg-gray-900"
+             @click.outside="showCompareModal = false">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                        <svg class="h-5 w-5 text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354l-4.502 2.826c-.995.608-2.23-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900 dark:text-white">AI Equipment Comparison</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            {{ $category->title }} · Key Comparison specs only
+                        </p>
+                    </div>
+                </div>
+                <button type="button" @click="showCompareModal = false"
+                        class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-6 py-5">
+                {{-- Loading --}}
+                <template x-if="comparing">
+                    <div class="flex flex-col items-center justify-center gap-4 py-16">
+                        <svg class="h-10 w-10 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Analyzing equipment specs with AI — this may take 15–30 seconds…</p>
+                    </div>
+                </template>
+
+                {{-- Error --}}
+                <template x-if="!comparing && compareError">
+                    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-400" x-text="compareError"></div>
+                </template>
+
+                {{-- Result --}}
+                <template x-if="!comparing && compareResult">
+                    <div class="prose prose-sm max-w-none dark:prose-invert prose-headings:text-gray-800 prose-strong:text-gray-700 dark:prose-headings:text-gray-200 dark:prose-strong:text-gray-300">
+                        <div class="whitespace-pre-wrap text-sm leading-relaxed text-gray-700 dark:text-gray-300" x-text="compareResult"></div>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Footer --}}
+            <template x-if="!comparing && compareResult">
+                <div class="border-t border-gray-100 px-6 py-4 dark:border-gray-700">
+                    <p class="text-xs text-gray-400 dark:text-gray-600">AI analysis is based on the Key Comparison specs in this matrix. Always verify critical values before making rental decisions.</p>
+                </div>
+            </template>
+        </div>
+    </div>
+
 </div>
 @endsection
 
@@ -820,9 +927,17 @@ function specMatrix() {
 
         // ── AI research state ────────────────────────────────────────────
         researchingSpecId: null,
+        researchingCell: null,   // "spec_key:profileId" while per-cell research runs
+        fillingGaps: false,
 
         // ── Save state ────────────────────────────────────────────────────
         saving: false,
+
+        // ── AI Comparison ─────────────────────────────────────────────────
+        comparing:        false,
+        showCompareModal: false,
+        compareResult:    null,
+        compareError:     null,
 
         // ── Color palette ────────────────────────────────────────────────
         colorDefs: [
@@ -1158,6 +1273,70 @@ function specMatrix() {
             }
         },
 
+        // ── Per-cell matrix research (extracted specs) ────────────────────
+        async researchForProfile(row, profileId) {
+            const cellKey = row.spec_key + ':' + profileId;
+            if (this.researchingCell) return;
+            this.researchingCell = cellKey;
+            try {
+                const resp = await fetch('/maintenance-management/equipment-ai/specifications/research-for-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        profile_id: profileId,
+                        spec_key:   row.spec_key,
+                        spec_label: row.spec_label,
+                    }),
+                });
+                const data = await resp.json();
+                if (data.success && data.found) {
+                    const liveRow = this.rows.find(r => r.spec_key === row.spec_key);
+                    if (liveRow) liveRow.presence[profileId] = true;
+                } else if (data.success && !data.found) {
+                    alert('AI could not verify this specification with sufficient confidence for this model.');
+                } else {
+                    alert(data.message || 'Research failed.');
+                }
+            } catch (e) {
+                console.error('researchForProfile error', e);
+                alert('Request failed. Please check your connection.');
+            } finally {
+                this.researchingCell = null;
+            }
+        },
+
+        // ── Fill gaps across entire category ─────────────────────────────
+        async fillCategoryGaps() {
+            if (this.fillingGaps) return;
+            if (!confirm('Insert placeholder rows for every missing model × spec combination in this category?\n\nThis ensures the matrix is fully populated. It may take a moment.')) return;
+            this.fillingGaps = true;
+            try {
+                const resp = await fetch('/maintenance-management/equipment-ai/category-fill-gaps', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ category_id: this.categoryId }),
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    alert(data.message || 'Done.');
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed.');
+                }
+            } catch (e) {
+                console.error('fillCategoryGaps error', e);
+                alert('Request failed.');
+            } finally {
+                this.fillingGaps = false;
+            }
+        },
+
         // ── AI Research ───────────────────────────────────────────────────
         async researchSpec(customSpecId) {
             if (this.researchingSpecId) return;
@@ -1189,6 +1368,35 @@ function specMatrix() {
                 }
             } finally {
                 this.researchingSpecId = null;
+            }
+        },
+
+        // ── AI Equipment Comparison ───────────────────────────────────────
+        async runComparison() {
+            this.compareResult    = null;
+            this.compareError     = null;
+            this.comparing        = true;
+            this.showCompareModal = true;
+            try {
+                const resp = await fetch('/maintenance-management/equipment-ai/compare', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ category_id: this.categoryId }),
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    this.compareResult = data.analysis;
+                } else {
+                    this.compareError = data.message || 'Comparison failed.';
+                }
+            } catch (e) {
+                console.error('runComparison error', e);
+                this.compareError = 'Request failed. Please check your connection.';
+            } finally {
+                this.comparing = false;
             }
         },
 

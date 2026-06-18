@@ -724,25 +724,32 @@
                                                 @endif
 
                                                 {{-- Action buttons --}}
-                                                <div class="mt-3 flex items-center gap-2 border-t border-blue-100 pt-3 dark:border-blue-900/30">
-                                                    <button type="submit"
-                                                        class="rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-1">
-                                                        Save
-                                                    </button>
-                                                    <button type="button" @click="editingId = null"
-                                                        class="rounded-md border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
-                                                        Cancel
-                                                    </button>
-                                                    @unless ($spec->is_key_comparison)
-                                                    <div class="ml-auto">
-                                                        <button type="button"
-                                                            @click="openDeepResearchModal({{ $spec->id }}, '{{ addslashes($spec->spec_label) }}', '{{ addslashes($spec->spec_key) }}', '{{ addslashes($spec->spec_value ?? '') }}', '{{ addslashes($spec->spec_unit ?? '') }}')"
-                                                            class="inline-flex items-center gap-1.5 rounded-md border border-amber-400 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1 dark:border-amber-600 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40">
-                                                            <x-heroicon-o-magnifying-glass class="h-3.5 w-3.5" />
-                                                            Deep Research
+                                                <div class="flex flex-col justify-end gap-2 mt-3 border-t border-blue-100 pt-3 dark:border-blue-900/30">
+                                                    <label class="inline-flex items-center gap-1.5 cursor-pointer" title="Apply this display label to all other equipment models in the same category that share this spec key">
+                                                        <input type="checkbox" name="propagate_label" value="1"
+                                                               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-500 focus:ring-indigo-400">
+                                                        <span class="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">Apply label to whole category</span>
+                                                    </label>
+                                                    <div class="flex items-center gap-2">
+                                                        <button type="submit"
+                                                            class="rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-1">
+                                                            Save
                                                         </button>
+                                                        <button type="button" @click="editingId = null"
+                                                            class="rounded-md border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700">
+                                                            Cancel
+                                                        </button>
+                                                        @unless ($spec->is_key_comparison)
+                                                        <div class="ml-auto">
+                                                            <button type="button"
+                                                                @click="openDeepResearchModal({{ $spec->id }}, '{{ addslashes($spec->spec_label) }}', '{{ addslashes($spec->spec_key) }}', '{{ addslashes($spec->spec_value ?? '') }}', '{{ addslashes($spec->spec_unit ?? '') }}')"
+                                                                class="inline-flex items-center gap-1.5 rounded-md border border-amber-400 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1 dark:border-amber-600 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40">
+                                                                <x-heroicon-o-magnifying-glass class="h-3.5 w-3.5" />
+                                                                Deep Research
+                                                            </button>
+                                                        </div>
+                                                        @endunless
                                                     </div>
-                                                    @endunless
                                                 </div>
                                             </form>
                                         </td>

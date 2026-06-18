@@ -38,6 +38,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\StoreController as KeyStoreController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\UpdateController as KeyUpdateController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\DeleteController as KeyDeleteController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\PatchFlagsController as KeyPatchFlagsController;
 
 Route::prefix('equipment-ai')
     ->name('equipment-ai.')
@@ -126,5 +127,6 @@ Route::prefix('equipment-ai')
                 Route::post('/', KeyStoreController::class)->name('store');
                 Route::put('/{id}', KeyUpdateController::class)->name('update');
                 Route::delete('/{id}', KeyDeleteController::class)->name('delete');
+                Route::patch('/{id}/flags', KeyPatchFlagsController::class)->name('flags');
             });
     });

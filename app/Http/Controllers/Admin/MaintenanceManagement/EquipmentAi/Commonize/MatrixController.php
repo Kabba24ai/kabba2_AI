@@ -49,8 +49,9 @@ class MatrixController extends Controller
             ->select('equipment_ai_profile_id', 'spec_key', 'spec_label', 'spec_value', 'is_key_comparison', 'is_ignored')
             ->get();
 
-        $compKeySet = EquipmentCategoryComparisonKey::where('category_id', $categoryId)
-            ->pluck('spec_key', 'spec_key');
+        $compKeyRecords = EquipmentCategoryComparisonKey::where('category_id', $categoryId)->get();
+        $compKeySet     = $compKeyRecords->pluck('spec_key', 'spec_key');
+        $compKeyMap     = $compKeyRecords->keyBy('spec_key');
 
         $matrix = [];
 
@@ -70,15 +71,23 @@ class MatrixController extends Controller
 
             $isKey     = $specsForKey->contains('is_key_comparison', true) || isset($compKeySet[$specKey]);
             $isIgnored = !$isKey && $specsForKey->contains('is_ignored', true);
+            $compKey   = $compKeyMap->get($specKey);
 
             $matrix[] = [
-                'spec_key'          => $specKey,
-                'spec_label'        => $representative->spec_label,
-                'is_key_comparison' => $isKey,
-                'is_ignored'        => $isIgnored,
-                'is_custom'         => false,
-                'presence'          => $presence,
-                'presence_count'    => collect($presence)->filter()->count(),
+                'spec_key'           => $specKey,
+                'spec_label'         => $representative->spec_label,
+                'is_key_comparison'  => $isKey,
+                'is_ignored'         => $isIgnored,
+                'is_custom'          => false,
+                'presence'           => $presence,
+                'presence_count'     => collect($presence)->filter()->count(),
+                'comparison_key_id'  => $compKey?->id,
+                'criteria_flags'     => $compKey ? [
+                    'upgrade_exceeds_value'    => (bool) $compKey->upgrade_exceeds_value,
+                    'caution_if_exceeds_value' => (bool) $compKey->caution_if_exceeds_value,
+                    'upgrade_is_below_value'   => (bool) $compKey->upgrade_is_below_value,
+                    'caution_if_below_value'   => (bool) $compKey->caution_if_below_value,
+                ] : null,
             ];
         }
 

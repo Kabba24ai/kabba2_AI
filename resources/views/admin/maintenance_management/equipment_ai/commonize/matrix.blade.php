@@ -112,6 +112,20 @@
             <span x-text="comparing ? 'Analyzing…' : 'AI Compare Equipment'"></span>
         </button>
 
+        {{-- View Key Comparison Flags toggle --}}
+        <button type="button"
+                @click="showKeyFlags = !showKeyFlags"
+                :class="showKeyFlags
+                    ? 'border-fuchsia-500 bg-fuchsia-500 text-white hover:bg-fuchsia-600'
+                    : 'border-fuchsia-400 text-fuchsia-700 hover:bg-fuchsia-50 dark:border-fuchsia-600 dark:text-fuchsia-400 dark:hover:bg-fuchsia-900/20'"
+                class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
+                title="Show / hide the upgrade and caution flag settings for each Key Comparison spec">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4m1.6 8l-1.5 6h11M10 19a1 1 0 11-2 0 1 1 0 012 0zm9 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+            </svg>
+            <span x-text="showKeyFlags ? 'Hide Key Flags' : 'View Key Comparison Flags'"></span>
+        </button>
+
         <div class="flex-1"></div>
 
         {{-- Stats chips --}}
@@ -291,6 +305,53 @@
                                               :class="item.status === 'ignored' ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-200'"
                                               x-text="item.row.spec_label"></span>
                                         <code class="font-mono text-[10px] text-gray-400 dark:text-gray-500" x-text="item.row.spec_key"></code>
+                                    </div>
+                                </template>
+
+                                {{-- Key flags inline row --}}
+                                <template x-if="item.type === 'key_flags'">
+                                    <div class="py-1">
+                                        <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                                            <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+                                                   title="When the comparable unit has a HIGHER value for this spec, it is treated as an upgrade option">
+                                                <input type="checkbox"
+                                                       :checked="item.row.criteria_flags?.upgrade_exceeds_value"
+                                                       @change="item.row.criteria_flags.upgrade_exceeds_value = $event.target.checked; saveKeyFlags(item.row)"
+                                                       :disabled="savingFlags === item.row.spec_key"
+                                                       class="h-3.5 w-3.5 rounded border-fuchsia-300 text-fuchsia-500 focus:ring-fuchsia-400 dark:border-fuchsia-700 disabled:opacity-50">
+                                                <span>Upgrade exceeds value</span>
+                                            </label>
+                                            <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+                                                   title="When the comparable unit has a LOWER value for this spec, show a caution warning">
+                                                <input type="checkbox"
+                                                       :checked="item.row.criteria_flags?.caution_if_below_value"
+                                                       @change="item.row.criteria_flags.caution_if_below_value = $event.target.checked; saveKeyFlags(item.row)"
+                                                       :disabled="savingFlags === item.row.spec_key"
+                                                       class="h-3.5 w-3.5 rounded border-fuchsia-300 text-fuchsia-500 focus:ring-fuchsia-400 dark:border-fuchsia-700 disabled:opacity-50">
+                                                <span>Caution if below value</span>
+                                            </label>
+                                            <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+                                                   title="When the comparable unit has a LOWER value for this spec, it is treated as an upgrade option (e.g. lower weight is better)">
+                                                <input type="checkbox"
+                                                       :checked="item.row.criteria_flags?.upgrade_is_below_value"
+                                                       @change="item.row.criteria_flags.upgrade_is_below_value = $event.target.checked; saveKeyFlags(item.row)"
+                                                       :disabled="savingFlags === item.row.spec_key"
+                                                       class="h-3.5 w-3.5 rounded border-fuchsia-300 text-fuchsia-500 focus:ring-fuchsia-400 dark:border-fuchsia-700 disabled:opacity-50">
+                                                <span>Upgrade is below value</span>
+                                            </label>
+                                            <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+                                                   title="When the comparable unit has a HIGHER value for this spec, show a caution warning">
+                                                <input type="checkbox"
+                                                       :checked="item.row.criteria_flags?.caution_if_exceeds_value"
+                                                       @change="item.row.criteria_flags.caution_if_exceeds_value = $event.target.checked; saveKeyFlags(item.row)"
+                                                       :disabled="savingFlags === item.row.spec_key"
+                                                       class="h-3.5 w-3.5 rounded border-fuchsia-300 text-fuchsia-500 focus:ring-fuchsia-400 dark:border-fuchsia-700 disabled:opacity-50">
+                                                <span>Caution if exceeds value</span>
+                                            </label>
+                                        </div>
+                                        <template x-if="savingFlags === item.row.spec_key">
+                                            <p class="mt-1.5 text-[10px] text-fuchsia-500 dark:text-fuchsia-400">Saving…</p>
+                                        </template>
                                     </div>
                                 </template>
 
@@ -930,6 +991,10 @@ function specMatrix() {
         researchingCell: null,   // "spec_key:profileId" while per-cell research runs
         fillingGaps: false,
 
+        // ── Key Comparison Flags panel ───────────────────────────────────
+        showKeyFlags: false,
+        savingFlags: null,       // spec_key currently being PATCH'd
+
         // ── Save state ────────────────────────────────────────────────────
         saving: false,
 
@@ -1038,6 +1103,38 @@ function specMatrix() {
             });
         },
 
+        async saveKeyFlags(row) {
+            if (!row.comparison_key_id || !row.criteria_flags) return;
+            this.savingFlags = row.spec_key;
+            try {
+                const resp = await fetch(
+                    `/maintenance-management/equipment-ai/comparison-keys/${row.comparison_key_id}/flags`,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            upgrade_exceeds_value:    row.criteria_flags.upgrade_exceeds_value    ?? false,
+                            caution_if_exceeds_value: row.criteria_flags.caution_if_exceeds_value ?? false,
+                            upgrade_is_below_value:   row.criteria_flags.upgrade_is_below_value   ?? false,
+                            caution_if_below_value:   row.criteria_flags.caution_if_below_value   ?? false,
+                        }),
+                    }
+                );
+                const data = await resp.json();
+                if (!data.success) {
+                    alert('Failed to save flags.');
+                }
+            } catch (e) {
+                console.error('saveKeyFlags error', e);
+                alert('Request failed. Please try again.');
+            } finally {
+                this.savingFlags = null;
+            }
+        },
+
         // ── displayItems ─────────────────────────────────────────────────
         get displayItems() {
             const items   = [];
@@ -1083,6 +1180,18 @@ function specMatrix() {
                     items.push({ type: 'ungrouped', row: topItem.row, status: topItem.status });
                 }
             });
+
+            // Insert key_flags rows after each ungrouped key comparison row when toggle is active
+            if (this.showKeyFlags) {
+                const withFlags = [];
+                items.forEach(item => {
+                    withFlags.push(item);
+                    if (item.type === 'ungrouped' && item.row && item.row.is_key_comparison && item.row.comparison_key_id) {
+                        withFlags.push({ type: 'key_flags', row: item.row });
+                    }
+                });
+                return withFlags;
+            }
 
             return items;
         },
@@ -1139,6 +1248,7 @@ function specMatrix() {
         // ── Row / cell styling ────────────────────────────────────────────
         rowClass(item) {
             if (!item) return '';
+            if (item.type === 'key_flags') return 'bg-fuchsia-50/40 dark:bg-fuchsia-900/10 border-b border-fuchsia-100/60 dark:border-fuchsia-800/20';
             if (item.type === 'section_header') {
                 if (item.section === 'key')     return 'bg-amber-50/60 dark:bg-amber-900/5';
                 if (item.section === 'ignored') return 'bg-gray-50/80 dark:bg-gray-800/40';
@@ -1158,6 +1268,7 @@ function specMatrix() {
 
         stickyBg(item) {
             if (!item) return 'bg-white dark:bg-gray-900';
+            if (item.type === 'key_flags') return 'bg-fuchsia-50/40 dark:bg-fuchsia-900/10';
             if (item.type === 'section_header') {
                 if (item.section === 'key')     return 'bg-amber-50/60 dark:bg-amber-900/5';
                 if (item.section === 'ignored') return 'bg-gray-50/80 dark:bg-gray-800/40';

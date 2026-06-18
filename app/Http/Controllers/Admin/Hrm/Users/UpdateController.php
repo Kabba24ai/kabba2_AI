@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Hrm\Users;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use App\Models\Dispatch\DispatchAiDriverCapability;
 use App\Models\Iam\Personnel\User;
 use App\Models\Iam\Personnel\EmergencyContact;
 use App\Helpers\CustomHelper;
@@ -140,6 +141,12 @@ class UpdateController extends Controller
                         'country'        => $validated['emergency2_country'] ?? null,
                     ]
                 );
+            }
+
+            // Sync CDL license to Dispatch capabilities (HRM is source of truth)
+            if ($user->is_driver) {
+                DispatchAiDriverCapability::where('user_id', $user->id)
+                    ->update(['cdl_license' => (bool) $user->cdl_a || (bool) $user->cdl_b]);
             }
 
             DB::commit();

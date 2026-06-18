@@ -29,14 +29,32 @@
                 @csrf
                 <input type="hidden" name="user_id" value="{{ $driver->id }}">
 
-                {{-- Capability checkboxes --}}
+                {{-- CDL from HRM (read-only) --}}
+                <div class="mb-3 p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p class="text-xs text-gray-500 mb-1.5 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        CDL — set in <a href="{{ route('admin.hrm.users.edit', $driver->unique_id) }}" class="underline text-indigo-600 hover:text-indigo-800">HRM Settings</a>
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full
+                            {{ $driver->cdl_a ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-400 border border-gray-200' }}">
+                            @if ($driver->cdl_a)
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            @endif
+                            CDL A
+                        </span>
+                        <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full
+                            {{ $driver->cdl_b ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-400 border border-gray-200' }}">
+                            @if ($driver->cdl_b)
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            @endif
+                            CDL B
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Transport capability checkboxes --}}
                 <div class="grid grid-cols-2 gap-3">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="cdl_license" value="1"
-                            class="rounded border-gray-300 text-indigo-600"
-                            {{ $cap?->cdl_license ? 'checked' : '' }}>
-                        <span class="text-sm">CDL License</span>
-                    </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="can_tow_equipment_trailer" value="1"
                             class="rounded border-gray-300 text-indigo-600"
@@ -49,7 +67,7 @@
                             {{ $cap?->can_tow_gooseneck ? 'checked' : '' }}>
                         <span class="text-sm">Can Tow Gooseneck</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 cursor-pointer col-span-2">
                         <input type="checkbox" name="can_operate_cdl_truck" value="1"
                             class="rounded border-gray-300 text-indigo-600"
                             {{ $cap?->can_operate_cdl_truck ? 'checked' : '' }}>

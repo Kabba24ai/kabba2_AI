@@ -17,7 +17,7 @@ use App\Http\Controllers\Admin\Dashboard\CallNeededShowController;
 use App\Http\Controllers\Admin\Dashboard\CallNeededClearController;
 
 use App\Http\Controllers\Admin\Dashboard\CallNeededCompleteController;
-
+use App\Http\Controllers\Admin\Dashboard\CallNeededRescheduleController;
 use App\Http\Controllers\Admin\Dashboard\CallNeededUpdateController;
 use App\Http\Controllers\Admin\Dashboard\ResolutionPresetController;
 use App\Http\Controllers\Admin\Dashboard\FuelNotePresetController;
@@ -51,6 +51,11 @@ Route::prefix('dashboard')
             '/call-needed/{id}/complete',
             CallNeededCompleteController::class
         )->name('call-needed.complete');
+
+        Route::post(
+            '/call-needed/{id}/reschedule',
+            CallNeededRescheduleController::class
+        )->name('call-needed.reschedule');
 
       Route::post('/call-needed/store',CallNeededStoreController::class)->name('call-needed.store');
 

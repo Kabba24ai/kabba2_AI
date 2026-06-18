@@ -39,6 +39,8 @@ use App\Models\Locations\State;
 use App\Models\Orders\Order;
 use App\Models\Stores\Store;
 use App\Models\Orders\OrderProduct;
+use App\Services\AutoAssignDirectService;
+use App\Helpers\ConfigurationHelper;
 use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
@@ -319,6 +321,17 @@ class PostController extends Controller
 
             if (!empty($orderProductRows)) {
                 $order->products()->insert($orderProductRows);
+
+                // Bulk insert bypasses Eloquent observers, so trigger auto-assign here.
+                if (ConfigurationHelper::getSettings('Schedule Assignment', 'auto_assign_enabled') === '1') {
+                    $autoAssign = app(AutoAssignDirectService::class);
+                    $order->products()
+                        ->where('product_data->product_type', 'Rental')
+                        ->whereNotNull('delivery_date')
+                        ->whereDoesntHave('softAssignment')
+                        ->whereDoesntHave('equipment')
+                        ->each(fn ($op) => $autoAssign->assignSingle($op));
+                }
             }
 
             if($validated['auto_inject'] ?? false){

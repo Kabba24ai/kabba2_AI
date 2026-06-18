@@ -111,6 +111,19 @@
             <div class="flex flex-wrap items-center gap-2">
 
 
+                {{-- "Reset AI Specs" — clears AI specs and resets status so Research All re-enables --}}
+                <form method="POST"
+                      action="{{ route('admin.maintenance-management.equipment-ai.reset-category') }}"
+                      onsubmit="return confirm('Reset ALL AI-generated specifications for {{ addslashes($selectedCategory->title) }}?\n\nThis permanently deletes every AI spec across all profiles in this category and sets them back to Pending so you can re-run research.\n\nManually entered specs are preserved.')">
+                    @csrf
+                    <input type="hidden" name="category_id" value="{{ $selectedCategory->id }}">
+                    <button type="submit" :disabled="running"
+                        class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20">
+                        <x-heroicon-o-arrow-path class="h-4 w-4" />
+                        Reset AI Specs
+                    </button>
+                </form>
+
                 {{-- "Research Specs for All" — disabled once running or if nothing pending --}}
                 <button @click="runAll()"
                     :disabled="running || totalPending === 0"

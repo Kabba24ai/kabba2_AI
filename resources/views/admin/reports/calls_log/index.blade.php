@@ -550,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function () {
         params.set('page', page);
 
         
-        const perPage = wrapper.querySelector('[name="per_page"]')?.value || 20;
+        const perPage = wrapper.querySelector('[name="per_page"]')?.value || 30;
         params.set('per_page', perPage);
 
 
@@ -603,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (statusSel.value)  params.set('search_status', statusSel.value);
         params.set('page', page);
 
-        const perPage = wrapper.querySelector('[name="per_page"]')?.value || 20;
+        const perPage = wrapper.querySelector('[name="per_page"]')?.value || 30;
         params.set('per_page', perPage);
 
         // console.log('perPage', perPage);
@@ -657,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function () {
         params.set('page', page);
 
 
-         const perPage = wrapper.querySelector('[name="per_page"]')?.value || 20;
+         const perPage = wrapper.querySelector('[name="per_page"]')?.value || 30;
         params.set('per_page', perPage);
 
         console.log('perPage', perPage);

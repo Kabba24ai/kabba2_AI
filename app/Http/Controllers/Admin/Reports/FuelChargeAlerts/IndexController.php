@@ -80,7 +80,7 @@ class IndexController extends Controller
         $crmFuelRecords = $crmQuery->latest()->get();
 
         // ── Merge both sources into one sorted collection ────────────────────
-        $perPage = 25;
+        $perPage = $request->input('per_page', 30);
         $page    = max(1, (int) $request->input('page', 1));
 
         $merged = $records

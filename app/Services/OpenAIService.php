@@ -37,6 +37,21 @@ class OpenAIService
         return $this->request('/chat/completions', $payload, 'chat_completion');
     }
 
+    /**
+     * Chat completion using the web-search model (gpt-4o-search-preview).
+     * This model has live internet access and can fetch manufacturer spec sheets,
+     * making it dramatically more accurate for equipment specification research.
+     */
+    public function webChatCompletion(array $messages, array $options = []): array
+    {
+        $payload = array_merge([
+            'model'    => $this->webModel(),
+            'messages' => $messages,
+        ], $options);
+
+        return $this->request('/chat/completions', $payload, 'chat_completion_web');
+    }
+
     public function request(string $endpoint, array $payload, string $requestType): array
     {
         $apiKey = $this->apiKey();
@@ -120,6 +135,11 @@ class OpenAIService
     protected function model(): string
     {
         return (string) config('services.openai.model', 'gpt-4.1-mini');
+    }
+
+    protected function webModel(): string
+    {
+        return (string) config('services.openai.web_model', 'gpt-4o-search-preview');
     }
 
     protected function baseUrl(): string

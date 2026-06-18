@@ -46,7 +46,7 @@ return [
         'web_model' => env('OPENAI_WEB_MODEL', 'gpt-4o-search-preview'),
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
        'connect_timeout' => env('OPENAI_CONNECT_TIMEOUT', 15),
-        'timeout' => env('OPENAI_TIMEOUT', 45),
+        'timeout' => env('OPENAI_TIMEOUT', 90),
     ],
 
     'kabba_client_api' => [

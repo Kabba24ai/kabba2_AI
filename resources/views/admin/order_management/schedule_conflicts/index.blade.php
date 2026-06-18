@@ -433,6 +433,14 @@
                                     <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
                                     Ai Suggest!
                                 </button>
+                                <button type="button"
+                                    class="sc-call-needed-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-700 text-white hover:bg-red-800 transition shadow-sm"
+                                    data-equipment-name="{{ $dEquipment?->equipment_name }}"
+                                    data-equipment-id="{{ $dEquipment?->equipment_id }}"
+                                    data-category="{{ $dEquipment?->productCategory?->title }}">
+                                    <x-heroicon-o-phone class="w-3.5 h-3.5" />
+                                    Call Needed
+                                </button>
                                 <a href="{{ $resolveUrl }}"
                                    title="Update equipment status in Maintenance Management"
                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition shadow-sm">
@@ -1140,6 +1148,165 @@
     </div>
 </div>
 
+{{-- Damaged Equipment Call Needed Modal --}}
+<div id="DamagedCallNeededModal"
+    style="display: none;"
+    class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 py-10 hidden">
+    <div class="w-full mx-auto max-w-lg">
+        <div class="bg-white rounded-lg shadow-xl w-full border border-gray-200 overflow-hidden max-h-[90vh] flex flex-col">
+
+            <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Add Call Reminder</h2>
+                    <p class="text-sm text-gray-500">Assign customer call reminder</p>
+                </div>
+                <button type="button" onclick="closeDamagedCallModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+
+            <div class="overflow-y-auto px-6 pt-6 pb-5 space-y-4">
+
+                {{-- Call For --}}
+                <div class="w-full">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Call For</label>
+                    <div class="flex items-center gap-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="sc_contact_type" value="customer" checked class="focus:ring-blue-500">
+                            <span class="text-sm text-gray-700">Customer</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="sc_contact_type" value="manual" class="focus:ring-blue-500">
+                            <span class="text-sm text-gray-700">Other-Customer</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Customer select --}}
+                <div id="sc-customer-section" class="w-full">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Customer</label>
+                    <select id="sc_call_customer_id"
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-900">
+                        <option value="">Select Customer</option>
+                        @foreach ($customers as $customer)
+                            @php
+                                $cnFull  = trim((string) $customer->full_name);
+                                $cnPhone = trim((string) $customer->phone);
+                            @endphp
+                            @if ($cnFull || $cnPhone)
+                                <option value="{{ $customer->id }}">
+                                    {{ $cnFull }}{{ $cnPhone ? '      ' . \App\Helpers\CustomHelper::formatPhone($cnPhone) : '' }}{{ $customer->email ? '      ' . $customer->email : '' }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Manual contact --}}
+                <div id="sc-manual-contact-section" class="hidden space-y-3">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 required">Name</label>
+                            <input type="text" id="sc_contact_name" placeholder="Enter Name"
+                                class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 required">Phone</label>
+                            <input type="text" id="sc_contact_phone" placeholder="(xxx) xxx-xxxx"
+                                class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="sc_contact_email" placeholder="Enter Email"
+                            class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm">
+                    </div>
+                </div>
+
+                {{-- Assign To --}}
+                <div class="w-full">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Assign To</label>
+                    <select id="sc_call_assigned_to"
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-900">
+                        <option value="">Select Assignee</option>
+                        @foreach ($callUsers as $cu)
+                            <option value="{{ $cu->id }}">{{ $cu->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Reason --}}
+                <div class="w-full">
+                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Reason</label>
+                    <select id="sc_call_reason"
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm bg-white text-gray-900">
+                        <option value="">Select Reason</option>
+                        <option value="contract_renewal">Contract Renewal</option>
+                        <option value="delivery_pickup">Delivery / Pickup</option>
+                        <option value="equipment_availability">Equipment Availability</option>
+                        <option value="equipment_return">Equipment Return</option>
+                        <option value="general_followup">General Follow-up</option>
+                        <option value="maintenance_request">Maintenance Request</option>
+                        <option value="order_review">Order Review</option>
+                        <option value="payment_followup">Payment Follow-up</option>
+                        <option value="rental_inquiry">Rental Inquiry</option>
+                    </select>
+                </div>
+
+                {{-- Urgent (pre-checked) --}}
+                <div class="flex items-center rounded-lg border border-gray-200 p-3 bg-gray-50">
+                    <input type="checkbox" id="sc_call_is_urgent" checked
+                        class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500">
+                    <label for="sc_call_is_urgent" class="ml-3 text-sm font-medium text-gray-700">
+                        <span class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-red-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.007v.008H12v-.008zM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />
+                            </svg>
+                            <span>Mark as Urgent</span>
+                        </span>
+                        <span class="block text-xs text-gray-500 font-normal mt-1">High priority call reminder</span>
+                    </label>
+                </div>
+
+                {{-- Notes --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea id="sc_call_notes" rows="3" placeholder="Enter call notes..."
+                        class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700"></textarea>
+                </div>
+
+                {{-- Damaged equipment badge (populated by JS) --}}
+                <div id="sc-damaged-badge-container" class="hidden">
+                    <a id="sc-damaged-badge-link" href="#"
+                        class="inline-flex items-center flex-wrap gap-2 px-3 py-2 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 transition-colors text-sm cursor-pointer">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white tracking-wide">DAMAGED</span>
+                        <span id="sc-damaged-badge-name" class="font-semibold text-gray-900"></span>
+                        <span id="sc-damaged-badge-id" class="text-xs font-mono text-gray-600 bg-white border border-gray-200 rounded px-1.5 py-0.5"></span>
+                        <span id="sc-damaged-badge-category" class="text-xs text-gray-500"></span>
+                    </a>
+                    <p class="text-xs text-gray-400 mt-1">Click badge to view this conflict in Schedule Conflicts.</p>
+                </div>
+
+                {{-- Buttons --}}
+                <div class="flex justify-end gap-2 pt-3">
+                    <button type="button" onclick="closeDamagedCallModal()"
+                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="button" id="sc-call-save-btn" onclick="saveDamagedCallNeeded()"
+                        class="relative px-6 py-3 text-md rounded-lg bg-teal-600 text-white flex items-center justify-center gap-2 hover:bg-teal-700 transition">
+                        <span id="scCallBtnText">Save</span>
+                        <svg id="scCallBtnSpinner" xmlns="http://www.w3.org/2000/svg"
+                            class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('js')
@@ -1456,6 +1623,149 @@ document.addEventListener('DOMContentLoaded', function () {
             loadEquipmentList(all);
             if (pendingPreferredCategoryId) applyPreferredCategory(pendingPreferredCategoryId);
         });
+
+    // ── Damaged Equipment Call Needed Modal ───────────────────────────────────
+    const scConflictsUrl = '{{ route('admin.order-management.schedule-conflicts.index', ['section' => 'damaged']) }}';
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.sc-call-needed-btn');
+        if (!btn) return;
+
+        const equipName     = btn.dataset.equipmentName || '';
+        const equipId       = btn.dataset.equipmentId   || '';
+        const equipCategory = btn.dataset.category       || '';
+
+        // Reset fields
+        document.getElementById('sc_call_customer_id').value = '';
+        document.getElementById('sc_call_assigned_to').value = '';
+        document.getElementById('sc_call_reason').value      = 'equipment_availability';
+        document.getElementById('sc_call_notes').value       = '';
+        document.getElementById('sc_call_is_urgent').checked = true;
+        const scContactName  = document.getElementById('sc_contact_name');
+        const scContactEmail = document.getElementById('sc_contact_email');
+        const scContactPhone = document.getElementById('sc_contact_phone');
+        if (scContactName)  scContactName.value  = '';
+        if (scContactEmail) scContactEmail.value = '';
+        if (scContactPhone) scContactPhone.value = '';
+
+        // Reset to Customer radio
+        const scCustomerRadio = document.querySelector('input[name="sc_contact_type"][value="customer"]');
+        if (scCustomerRadio) scCustomerRadio.checked = true;
+        document.getElementById('sc-customer-section').classList.remove('hidden');
+        document.getElementById('sc-manual-contact-section').classList.add('hidden');
+
+        // Populate and show the damaged badge
+        if (equipName) {
+            document.getElementById('sc-damaged-badge-name').textContent     = equipName;
+            document.getElementById('sc-damaged-badge-id').textContent       = equipId ? 'ID: ' + equipId : '';
+            document.getElementById('sc-damaged-badge-category').textContent = equipCategory;
+            document.getElementById('sc-damaged-badge-link').href            = scConflictsUrl;
+            document.getElementById('sc-damaged-badge-container').classList.remove('hidden');
+
+            document.getElementById('sc_call_notes').value =
+                'Re: Damaged equipment – ' + equipName +
+                (equipId ? ' (ID: ' + equipId + ')' : '') +
+                '. Calling to expedite repair and discuss alternative arrangements.';
+        } else {
+            document.getElementById('sc-damaged-badge-container').classList.add('hidden');
+        }
+
+        const modal = document.getElementById('DamagedCallNeededModal');
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+    });
+
+    // Contact type toggle for SC modal
+    document.addEventListener('change', function (e) {
+        if (e.target.name !== 'sc_contact_type') return;
+        const isCustomer = e.target.value === 'customer';
+        document.getElementById('sc-customer-section').classList.toggle('hidden', !isCustomer);
+        document.getElementById('sc-manual-contact-section').classList.toggle('hidden', isCustomer);
+    });
 });
+</script>
+
+<script>
+function closeDamagedCallModal() {
+    const modal = document.getElementById('DamagedCallNeededModal');
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+}
+
+function saveDamagedCallNeeded() {
+    const contactType  = document.querySelector('input[name="sc_contact_type"]:checked')?.value;
+    const customerId   = document.getElementById('sc_call_customer_id').value;
+    const contactName  = document.getElementById('sc_contact_name')?.value.trim()  || '';
+    const contactEmail = document.getElementById('sc_contact_email')?.value.trim() || '';
+    const contactPhone = document.getElementById('sc_contact_phone')?.value.trim() || '';
+    const reason       = document.getElementById('sc_call_reason').value;
+    const notes        = document.getElementById('sc_call_notes').value;
+    const assignedTo   = document.getElementById('sc_call_assigned_to').value;
+    const isUrgent     = document.getElementById('sc_call_is_urgent').checked;
+
+    if (contactType === 'customer' && !customerId) {
+        if (window.notyf) notyf.error('Please select a customer.');
+        return;
+    }
+    if (contactType === 'manual' && !contactName) {
+        if (window.notyf) notyf.error('Please enter a name.');
+        return;
+    }
+    if (contactType === 'manual' && !contactPhone) {
+        if (window.notyf) notyf.error('Please enter a phone number.');
+        return;
+    }
+    if (!reason) {
+        if (window.notyf) notyf.error('Please select a reason.');
+        return;
+    }
+    if (!assignedTo) {
+        if (window.notyf) notyf.error('Please select an assignee.');
+        return;
+    }
+
+    const btn     = document.getElementById('sc-call-save-btn');
+    const btnText = document.getElementById('scCallBtnText');
+    const spinner = document.getElementById('scCallBtnSpinner');
+    btn.disabled = true;
+    btnText.textContent = 'Saving...';
+    spinner.classList.remove('hidden');
+
+    fetch('{{ route('admin.dashboard.call-needed.store') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+        body: JSON.stringify({
+            customer_id:   contactType === 'customer' ? customerId : null,
+            contact_name:  contactName  || null,
+            contact_email: contactEmail || null,
+            contact_phone: contactPhone || null,
+            assigned_to:   assignedTo,
+            reason:        reason,
+            notes:         notes,
+            is_urgent:     isUrgent ? 1 : 0,
+        }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            if (window.notyf) notyf.success(data.message || 'Call reminder created.');
+            closeDamagedCallModal();
+        } else {
+            if (window.notyf) notyf.error(data.message || 'Something went wrong.');
+        }
+    })
+    .catch(err => {
+        console.error('Save call needed error:', err);
+        if (window.notyf) notyf.error('Request failed. Please try again.');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btnText.textContent = 'Save';
+        spinner.classList.add('hidden');
+    });
+}
 </script>
 @endpush

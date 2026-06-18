@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\OrderManagement\ScheduleConflicts;
 
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
 use App\Models\ProductManagement\ProductCategory;
@@ -309,6 +310,14 @@ class IndexController extends Controller
             ->get()
             ->pluck('full_name', 'unique_id');
 
+        $callUsers = User::active()
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name']);
+
+        $customers = Customer::whereIn('status', ['Active', 'Archived'])
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name', 'phone', 'email']);
+
         return view('admin.order_management.schedule_conflicts.index', compact(
             'doubleBookings',
             'damagedBookings',
@@ -322,6 +331,8 @@ class IndexController extends Controller
             'category',
             'store',
             'section',
+            'callUsers',
+            'customers',
         ));
     }
 }

@@ -43,6 +43,14 @@ use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\DeleteController as KeyDeleteController;
 use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\ComparisonKeys\PatchFlagsController as KeyPatchFlagsController;
 
+// Controllers — Intelligence Rules
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\IntelligenceRules\IndexController as RuleIndexController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\IntelligenceRules\StoreController as RuleStoreController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\IntelligenceRules\UpdateController as RuleUpdateController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\IntelligenceRules\DestroyController as RuleDestroyController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\IntelligenceRules\ApproveController as RuleApproveController;
+use App\Http\Controllers\Admin\MaintenanceManagement\EquipmentAi\IntelligenceRules\AiGenerateController as RuleAiGenerateController;
+
 Route::prefix('equipment-ai')
     ->name('equipment-ai.')
     ->group(function () {
@@ -138,5 +146,22 @@ Route::prefix('equipment-ai')
                 Route::put('/{id}', KeyUpdateController::class)->name('update');
                 Route::delete('/{id}', KeyDeleteController::class)->name('delete');
                 Route::patch('/{id}/flags', KeyPatchFlagsController::class)->name('flags');
+            });
+
+        /*
+        |-----------------------------------------------------------
+        | Equipment Intelligence Rules
+        |-----------------------------------------------------------
+        | Full name: admin.maintenance-management.equipment-ai.intelligence-rules.*
+        */
+        Route::prefix('intelligence-rules')
+            ->name('intelligence-rules.')
+            ->group(function () {
+                Route::get('/', RuleIndexController::class)->name('index');
+                Route::post('/', RuleStoreController::class)->name('store');
+                Route::put('/{rule}', RuleUpdateController::class)->name('update');
+                Route::delete('/{rule}', RuleDestroyController::class)->name('destroy');
+                Route::post('/{rule}/approve', RuleApproveController::class)->name('approve');
+                Route::post('/ai-generate', RuleAiGenerateController::class)->name('ai-generate');
             });
     });

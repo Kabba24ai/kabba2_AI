@@ -9,6 +9,7 @@ use App\Models\MaintenanceManagement\EquipmentAiCustomSpecValue;
 use App\Models\MaintenanceManagement\EquipmentAiProfile;
 use App\Models\MaintenanceManagement\EquipmentAiSpecification;
 use App\Models\MaintenanceManagement\EquipmentCategoryComparisonKey;
+use App\Models\MaintenanceManagement\EquipmentIntelligenceRule;
 use App\Models\ProductManagement\ProductCategory;
 
 class IndexController extends Controller
@@ -110,6 +111,14 @@ class IndexController extends Controller
             $activeComparisonKeyCount = 0;
         }
 
+        $intelligenceRuleCount = $selectedCategory
+            ? EquipmentIntelligenceRule::where('equipment_category_id', $selectedCategory->id)->active()->count()
+            : 0;
+
+        $intelligenceRulePendingCount = $selectedCategory
+            ? EquipmentIntelligenceRule::where('equipment_category_id', $selectedCategory->id)->active()->pending()->count()
+            : 0;
+
         return view('admin.maintenance_management.equipment_ai.index', compact(
             'categories',
             'profiles',
@@ -118,6 +127,8 @@ class IndexController extends Controller
             'matrix',
             'matrixProfiles',
             'activeComparisonKeyCount',
+            'intelligenceRuleCount',
+            'intelligenceRulePendingCount',
         ));
     }
 }

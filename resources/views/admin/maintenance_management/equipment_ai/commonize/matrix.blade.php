@@ -544,6 +544,13 @@
                                         </span>
                                     </template>
 
+                                    {{-- Key flags row: actual spec value for this profile --}}
+                                    <template x-if="item.type === 'key_flags'">
+                                        <span :class="specValueClass(item.row, {{ $profile->id }})"
+                                              x-text="specValueDisplay(item.row, {{ $profile->id }})">
+                                        </span>
+                                    </template>
+
                                     {{-- Ungrouped custom spec: editable value cell --}}
                                     <template x-if="item.type === 'ungrouped' && item.row.is_custom">
                                         <div class="group relative flex items-center justify-center">
@@ -1282,7 +1289,14 @@ function specMatrix() {
                 const data = await resp.json();
                 if (data.success) {
                     const row = this.rows.find(r => r.spec_key === this.manualModal.specKey);
-                    if (row) row.presence[this.manualModal.profileId] = true;
+                    if (row) {
+                        row.presence[this.manualModal.profileId] = true;
+                        if (!row.values) row.values = {};
+                        row.values[this.manualModal.profileId] = {
+                            value: this.manualModal.value.trim(),
+                            unit:  this.manualModal.unit.trim() || null,
+                        };
+                    }
                     this.showManualModal = false;
                 } else {
                     alert(data.message || 'Failed to save.');
@@ -1463,6 +1477,20 @@ function specMatrix() {
             return tip;
         },
 
+        // ── Key flags value helpers ──────────────────────────────────────
+        specValueDisplay(row, profileId) {
+            if (!row || !row.values) return '—';
+            const cell = row.values[profileId];
+            if (!cell || !cell.value) return '—';
+            return cell.unit ? cell.value + ' ' + cell.unit : cell.value;
+        },
+        specValueClass(row, profileId) {
+            const hasVal = row && row.values && row.values[profileId] && row.values[profileId].value;
+            return 'text-xs font-medium ' + (hasVal
+                ? 'text-fuchsia-700 dark:text-fuchsia-300'
+                : 'text-gray-400 dark:text-gray-600');
+        },
+
         // ── Cell editor ───────────────────────────────────────────────────
         openCellEditor(row, profileId) {
             this.cellEditorRowSpecKey    = row.spec_key;
@@ -1565,7 +1593,11 @@ function specMatrix() {
                 const data = await resp.json();
                 if (data.success && data.found) {
                     const liveRow = this.rows.find(r => r.spec_key === row.spec_key);
-                    if (liveRow) liveRow.presence[profileId] = true;
+                    if (liveRow) {
+                        liveRow.presence[profileId] = true;
+                        if (!liveRow.values) liveRow.values = {};
+                        liveRow.values[profileId] = { value: data.spec_value, unit: data.spec_unit || null };
+                    }
                 } else if (data.success && !data.found) {
                     alert('AI could not verify this specification with sufficient confidence for this model.');
                 } else {

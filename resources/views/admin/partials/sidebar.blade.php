@@ -374,13 +374,47 @@
                                         Dash Reports
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="{{ route('admin.reports.sales-reports.pure-sales-summary.index') }}"
+                                <li x-data="{ openSalesReport: {{ Route::is('admin.reports.sales-reports.*') ? 'true' : 'false' }} }">
+                                    <a href="#" @click.prevent="openSalesReport = !openSalesReport"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.reports.sales-reports.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-chart-bar class="w-6 h-6" />
-                                        Sales Reports
+                                        <span class="flex-1">Sales Report</span>
+                                        <template x-if="!openSalesReport">
+                                            <x-heroicon-o-chevron-left class="w-4 h-4 ml-auto" />
+                                        </template>
+                                        <template x-if="openSalesReport">
+                                            <x-heroicon-o-chevron-down class="w-4 h-4 ml-auto" />
+                                        </template>
                                     </a>
+                                    <div x-show="openSalesReport" x-transition>
+                                        <ul class="mt-1 flex flex-col gap-1 pl-6">
+                                            <li>
+                                                <a href="{{ route('admin.reports.sales-reports.pure-sales-summary.index') }}"
+                                                    class="menu-dropdown-item group
+                                                    {{ Route::is('admin.reports.sales-reports.pure-sales-summary.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-document-chart-bar class="w-5 h-5" />
+                                                    Pure Sales Summary
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="{{ route('admin.reports.sales-reports.sales-trend.index') }}"
+                                                    class="menu-dropdown-item group
+                                                    {{ Route::is('admin.reports.sales-reports.sales-trend.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-arrow-trending-up class="w-5 h-5" />
+                                                    Sales Trend
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="{{ route('admin.reports.sales-reports.sales-by-stores.index') }}"
+                                                    class="menu-dropdown-item group
+                                                    {{ Route::is('admin.reports.sales-reports.sales-by-stores.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-building-storefront class="w-5 h-5" />
+                                                    Sales By Stores
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </li>
 
                             </ul>

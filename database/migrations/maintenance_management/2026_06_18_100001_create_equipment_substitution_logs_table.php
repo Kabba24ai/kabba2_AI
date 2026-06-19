@@ -33,7 +33,7 @@ return new class extends Migration
             $table->foreignId('evaluated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 
-            $table->index(['original_equipment_id', 'substitute_equipment_id']);
+            $table->index(['original_equipment_id', 'substitute_equipment_id'], 'esl_orig_sub_idx');
             $table->index('order_product_id');
         });
     }

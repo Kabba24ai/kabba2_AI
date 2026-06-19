@@ -153,6 +153,22 @@
                             {{ $profiles->count() }}
                         </span>
                     </button>
+                    <a href="{{ $selectedCategory ? route('admin.maintenance-management.equipment-ai.intelligence-rules.index', ['category_id' => $selectedCategory->id]) : '#' }}"
+                        class="flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 {{ !$selectedCategory ? 'opacity-40 pointer-events-none' : '' }}">
+                        <x-heroicon-o-light-bulb class="h-4 w-4" />
+                        Intelligence Rules
+                        @if($intelligenceRuleCount > 0)
+                            <span class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                                {{ $intelligenceRuleCount }}
+                            </span>
+                        @endif
+                        @if($intelligenceRulePendingCount > 0)
+                            <span class="rounded-full bg-amber-400 px-1.5 py-0.5 text-xs font-bold text-white"
+                                  title="{{ $intelligenceRulePendingCount }} pending approval">
+                                {{ $intelligenceRulePendingCount }}
+                            </span>
+                        @endif
+                    </a>
                 </div>
 
                 {{-- ── Tab 1: Make / Models ──────────────────────────────── --}}

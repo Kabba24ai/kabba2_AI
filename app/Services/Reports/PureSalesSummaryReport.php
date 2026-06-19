@@ -83,28 +83,42 @@ class PureSalesSummaryReport
         $refunds = $this->refundsTotal($filters);
 
         // ── Derived metrics ──────────────────────────────────────────────────
-        $netSales      = max(0, $grossSales - $discounts);
+        // Net Sales = pure business revenue: product/rental subtotals minus discounts and refunds.
+        // Sales tax is excluded — it is collected on behalf of the state, not revenue.
+        $netSales      = max(0, $grossSales - $discounts - $refunds);
         $averageTicket = $transactionCount > 0 ? $netSales / $transactionCount : 0;
 
-        // Matches dashboard formula: SUM(grand_total) + account_payments - refunds
-        // grand_total = subtotal - discount + tax  →  net_sales + tax_collected
-        $totalRealizedRevenue = max(0, $netSales + $taxCollected + $accountPaymentsReceived - $refunds);
+        // Shipping revenue — tracked as a separate bucket; wired to product_data key when available.
+        $shippingRevenue = 0.0;
+
+        // Operational Revenue = Net Sales + all ancillary revenue streams.
+        $operationalRevenue = $netSales
+            + $deliveryRevenue
+            + $damageWaiverRevenue
+            + $trackInsuranceRevenue
+            + $tireInsuranceRevenue
+            + $shippingRevenue;
+
+        // Total Collected = what actually hits the bank: operational revenue + tax remitted to state.
+        $totalCollected = $operationalRevenue + $taxCollected;
 
         return [
             'gross_sales'               => $grossSales,
             'discounts'                 => $discounts,
+            'refunds'                   => $refunds,
             'net_sales'                 => $netSales,
-            'tax_collected'             => $taxCollected,
             'delivery_revenue'          => $deliveryRevenue,
             'damage_waiver_revenue'     => $damageWaiverRevenue,
             'track_insurance_revenue'   => $trackInsuranceRevenue,
             'tire_insurance_revenue'    => $tireInsuranceRevenue,
+            'shipping_revenue'          => $shippingRevenue,
+            'operational_revenue'       => $operationalRevenue,
+            'tax_collected'             => $taxCollected,
+            'total_collected'           => $totalCollected,
             'transaction_count'         => $transactionCount,
             'average_ticket'            => $averageTicket,
             'account_payments_received' => $accountPaymentsReceived,
             'payment_status'            => $paymentStatus,
-            'refunds'                   => $refunds,
-            'total_realized_revenue'    => $totalRealizedRevenue,
         ];
     }
 
@@ -189,17 +203,22 @@ class PureSalesSummaryReport
      */
     public function accountPaymentsTotal(array $filters): float
     {
-        $query = DB::table('customer_accounts')->where('type', 'payment');
+        // Force payment_status = 'account' so Account-method orders are not excluded
+        // by the baseQuery payment filter (the 'paid' default filters them out).
+        $orderIds = $this->reporting->baseQuery(
+                array_merge($filters, ['payment_status' => 'account'])
+            )
+            ->selectRaw('DISTINCT orders.id')
+            ->pluck('id');
 
-        [$start, $end] = $this->reporting->resolveDateRange($filters);
-        if ($start && $end) {
-            $query->whereBetween('date', [
-                $start->toDateString(),
-                $end->toDateString(),
-            ]);
+        if ($orderIds->isEmpty()) {
+            return 0.0;
         }
 
-        return (float) $query->sum('amount');
+        return (float) DB::table('customer_accounts')
+            ->whereIn('order_id', $orderIds)
+            ->where('type', 'payment')
+            ->sum('amount');
     }
 
     /**

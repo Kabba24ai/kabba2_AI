@@ -379,7 +379,7 @@
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.reports.sales-reports.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-chart-bar class="w-6 h-6" />
-                                        <span class="flex-1">Sales Report</span>
+                                        <span class="flex-1">Sales Reports</span>
                                         <template x-if="!openSalesReport">
                                             <x-heroicon-o-chevron-left class="w-4 h-4 ml-auto" />
                                         </template>

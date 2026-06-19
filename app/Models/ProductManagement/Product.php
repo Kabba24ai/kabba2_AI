@@ -11,6 +11,7 @@ use Str;
 use App\Helpers\ModelHelper;
 use App\Models\Customers\SalesFunnel;
 use App\Models\Global\Media;
+use App\Models\MaintenanceManagement\Equipment;
 use App\Models\TermsAndConditions\Terms;
 
 class Product extends Model
@@ -205,6 +206,11 @@ class Product extends Model
             'product_id', // foreign key on pivot for this model
             'sales_funnel_id', // foreign key on pivot for related model
         )->withTimestamps();
+    }
+
+    public function assignedEquipment()
+    {
+        return $this->hasMany(Equipment::class, 'assigned_product_id');
     }
 
     public function terms()

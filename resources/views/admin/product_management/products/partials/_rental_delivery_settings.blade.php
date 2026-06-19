@@ -1094,6 +1094,7 @@
     </div>
 </div>
 
+
 @push('js')
     <script>
         const damageWaiverPercentage = "{{ $productSettings['damage_waiver_percentage'] }}"

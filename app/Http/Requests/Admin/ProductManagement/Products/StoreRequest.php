@@ -136,6 +136,9 @@ class StoreRequest extends ApiBaseFormRequest
 
             'funnels' => ['nullable', 'array'],
             'funnels.*' => ['exists:sales_funnels,id'],
+
+            'assigned_equipment_ids'   => ['nullable', 'array'],
+            'assigned_equipment_ids.*' => ['exists:equipment,id'],
         ];
     }
 

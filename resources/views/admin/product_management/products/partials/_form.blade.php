@@ -446,8 +446,56 @@
         @endif
     </div>
 
-    <!-- Sales Funnels Column (2 cols) -->
-    <div class="md:col-span-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
+    <!-- Equipment Assignment Column (1 col) — Rental only -->
+    <div class="md:col-span-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6"
+         x-data x-show="$store.productForm.selectedType === 'Rental'" x-cloak>
+        <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">
+            Direct Equipment Assignment
+        </h4>
+
+        @if(isset($equipmentOptions) && $equipmentOptions->isNotEmpty())
+            {{-- Edit mode: server-filtered by category --}}
+            <div class="max-h-64 overflow-y-auto pr-2 custom-scroll">
+                <ul class="space-y-2" id="equipment-list">
+                    @foreach($equipmentOptions as $equipment)
+                        <li class="flex items-center space-x-2 text-sm">
+                            <input
+                                type="checkbox"
+                                name="assigned_equipment_ids[]"
+                                id="equipment_{{ $equipment['id'] }}"
+                                value="{{ $equipment['id'] }}"
+                                {{ in_array($equipment['id'], $assignedEquipmentIds ?? []) ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700">
+                            <label for="equipment_{{ $equipment['id'] }}" class="text-gray-700 dark:text-gray-300 cursor-pointer">
+                                {{ $equipment['label'] }}
+                            </label>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @elseif(isset($allEquipmentJson))
+            {{-- Create mode: JS-driven, rebuilt when categories change --}}
+            <div class="max-h-64 overflow-y-auto pr-2 custom-scroll">
+                <ul class="space-y-2" id="equipment-list">
+                    <li class="text-sm text-gray-400 italic" id="equipment-empty-msg">
+                        Select a category to see available equipment.
+                    </li>
+                </ul>
+            </div>
+        @else
+            <p class="text-sm text-gray-400 italic">No equipment available for this category.</p>
+        @endif
+
+        @error('assigned_equipment_ids')
+            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+        @error('assigned_equipment_ids.*')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <!-- Sales Funnels Column (1 col) -->
+    <div class="md:col-span-1 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-4">
         <div class="flex items-center justify-between mb-2">
             <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-400">
                 Add 1 or More Sales Funnels
@@ -951,3 +999,63 @@
         });
     </script>
 @endpush
+
+@if(isset($allEquipmentJson))
+@push('js')
+<script>
+(function () {
+    const allEquipment = {!! $allEquipmentJson !!};
+    const list     = document.getElementById('equipment-list');
+    const emptyMsg = document.getElementById('equipment-empty-msg');
+
+    function selectedCategoryIds() {
+        return Array.from(document.querySelectorAll('input[name="categories[]"]:checked'))
+            .map(el => parseInt(el.value));
+    }
+
+    function rebuild() {
+        const catIds   = selectedCategoryIds();
+        const filtered = allEquipment.filter(e => catIds.includes(e.category_id));
+
+        // Remove all existing checkbox items (keep the empty-msg node)
+        Array.from(list.querySelectorAll('li[data-eq]')).forEach(el => el.remove());
+
+        if (filtered.length === 0) {
+            if (emptyMsg) emptyMsg.style.display = '';
+            return;
+        }
+
+        if (emptyMsg) emptyMsg.style.display = 'none';
+
+        filtered.forEach(e => {
+            const li    = document.createElement('li');
+            li.dataset.eq = e.id;
+            li.className  = 'flex items-center space-x-2 text-sm';
+
+            const cb  = document.createElement('input');
+            cb.type   = 'checkbox';
+            cb.name   = 'assigned_equipment_ids[]';
+            cb.id     = 'equipment_' + e.id;
+            cb.value  = e.id;
+            cb.className = 'rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700';
+
+            const lbl       = document.createElement('label');
+            lbl.htmlFor     = 'equipment_' + e.id;
+            lbl.className   = 'text-gray-700 dark:text-gray-300 cursor-pointer';
+            lbl.textContent = e.label;
+
+            li.appendChild(cb);
+            li.appendChild(lbl);
+            list.appendChild(li);
+        });
+    }
+
+    document.addEventListener('change', function (ev) {
+        if (ev.target.matches('input[name="categories[]"]')) rebuild();
+    });
+
+    document.addEventListener('DOMContentLoaded', rebuild);
+})();
+</script>
+@endpush
+@endif

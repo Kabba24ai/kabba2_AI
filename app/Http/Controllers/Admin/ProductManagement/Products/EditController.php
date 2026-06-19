@@ -8,6 +8,7 @@ use Illuminate\View\View;
 
 // Models
 use App\Models\Customers\SalesFunnel;
+use App\Models\MaintenanceManagement\Equipment;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\ProductManagement\ProductOption;
@@ -35,15 +36,29 @@ class EditController extends Controller
         $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');
         $priceRateMultiplierSettings = ConfigurationHelper::getSettings('Price Rate Multiplier Settings');
 
+        $categoryIds = $objProduct->categories->pluck('id');
+        $assignedEquipmentIds = $objProduct->assignedEquipment()->pluck('id')->toArray();
+        $equipmentOptions = Equipment::query()
+            ->whereIn('product_category_id', $categoryIds)
+            ->orderBy('equipment_name')
+            ->get(['id', 'equipment_name', 'equipment_id'])
+            ->map(fn($e) => [
+                'id'    => $e->id,
+                'label' => $e->equipment_name . ($e->equipment_id ? ' (' . $e->equipment_id . ')' : ''),
+            ])
+            ->values();
+
         return view('admin.product_management.products.edit', [
-            'objProduct' => $objProduct,
-            'categoryTree' => $categoryTree,
-            'funnels' => $funnels,
-            'terms' => $terms,
-            'productOptions' => $productOptions,
-            'productSettings' => $productSettings,
-            'allocatedHoursSettings' => $allocatedHoursSettings,
+            'objProduct'                => $objProduct,
+            'categoryTree'              => $categoryTree,
+            'funnels'                   => $funnels,
+            'terms'                     => $terms,
+            'productOptions'            => $productOptions,
+            'productSettings'           => $productSettings,
+            'allocatedHoursSettings'    => $allocatedHoursSettings,
             'priceRateMultiplierSettings' => $priceRateMultiplierSettings,
+            'equipmentOptions'          => $equipmentOptions,
+            'assignedEquipmentIds'      => $assignedEquipmentIds,
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\ProductManagement\Products;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductManagement\Products\UpdateRequest;
+use App\Models\MaintenanceManagement\Equipment;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductMediaChild;
 use Illuminate\Support\Facades\DB;
@@ -188,6 +189,16 @@ class UpdateController extends Controller
                 $product->funnels()->sync($validated['funnels']);
             } else {
                 $product->funnels()->detach();
+            }
+
+            // Sync direct equipment assignments
+            $selectedEquipmentIds = $validated['assigned_equipment_ids'] ?? [];
+            Equipment::where('assigned_product_id', $product->id)
+                ->whereNotIn('id', $selectedEquipmentIds)
+                ->update(['assigned_product_id' => null]);
+            if (!empty($selectedEquipmentIds)) {
+                Equipment::whereIn('id', $selectedEquipmentIds)
+                    ->update(['assigned_product_id' => $product->id]);
             }
 
             // --- HOVER IMAGE HANDLING ---

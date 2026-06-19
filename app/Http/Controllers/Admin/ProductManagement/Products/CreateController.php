@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\ProductManagement\Products;
 use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Customers\SalesFunnel;
+use App\Models\MaintenanceManagement\Equipment;
 use Illuminate\Http\Request;
 
 // Models
@@ -33,15 +34,28 @@ class CreateController extends Controller
         $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');
         $priceRateMultiplierSettings = ConfigurationHelper::getSettings('Price Rate Multiplier Settings');
 
+        $allEquipmentJson = Equipment::orderBy('equipment_name')
+            ->get(['id', 'equipment_name', 'equipment_id', 'product_category_id'])
+            ->map(fn($e) => [
+                'id'          => $e->id,
+                'label'       => $e->equipment_name . ($e->equipment_id ? ' (' . $e->equipment_id . ')' : ''),
+                'category_id' => $e->product_category_id,
+            ])
+            ->values()
+            ->toJson();
+
         return view('admin.product_management.products.create', [
-            'categoryTree' => $categoryTree,
-            'funnels' => $funnels,
-            'terms' => $terms,
-            'productOptions' => $productOptions,
-            'products' => $products,
-            'productSettings' => $productSettings,
-            'allocatedHoursSettings' => $allocatedHoursSettings,
+            'categoryTree'              => $categoryTree,
+            'funnels'                   => $funnels,
+            'terms'                     => $terms,
+            'productOptions'            => $productOptions,
+            'products'                  => $products,
+            'productSettings'           => $productSettings,
+            'allocatedHoursSettings'    => $allocatedHoursSettings,
             'priceRateMultiplierSettings' => $priceRateMultiplierSettings,
+            'allEquipmentJson'          => $allEquipmentJson,
+            'equipmentOptions'          => collect(),
+            'assignedEquipmentIds'      => [],
         ]);
     }
 }

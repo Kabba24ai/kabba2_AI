@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Admin\ProductManagement\Products\StoreRequest;
 
 // Models
+use App\Models\MaintenanceManagement\Equipment;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductMediaChild;
 
@@ -191,6 +192,13 @@ class StoreController extends Controller
 
             // Sync options
             $product->options()->sync($validated['options'] ?? []);
+
+            // Sync direct equipment assignments
+            $selectedEquipmentIds = $validated['assigned_equipment_ids'] ?? [];
+            if (!empty($selectedEquipmentIds)) {
+                Equipment::whereIn('id', $selectedEquipmentIds)
+                    ->update(['assigned_product_id' => $product->id]);
+            }
 
             // Sync related products
             if (isset($validated['related_products']) && is_array($validated['related_products'])) {

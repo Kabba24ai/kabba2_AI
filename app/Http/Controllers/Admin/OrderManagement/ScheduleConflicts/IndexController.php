@@ -55,7 +55,8 @@ class IndexController extends Controller
         $doubleBookings = [];
 
         if (!$section || $section === 'double_bookings') {
-            $orderProducts = OrderProduct::with([
+            // Hard-assigned: equipment_id set directly on the order product
+            $hardOps = OrderProduct::with([
                 'order.customer', 'order.shippingAddress', 'order.lastPayment', 'order.notes',
                 'product.categories', 'equipment.productCategory', 'equipment.store',
                 'softAssignment.equipment.store',
@@ -69,7 +70,46 @@ class IndexController extends Controller
             ->tap($applyEquipmentFilters)
             ->get();
 
-            $grouped = $orderProducts->groupBy('equipment_id');
+            // Soft-assigned: equipment linked via EquipmentSoftAssign (auto-assign path)
+            $softOpsQuery = OrderProduct::with([
+                'order.customer', 'order.shippingAddress', 'order.lastPayment', 'order.notes',
+                'product.categories', 'softAssignment.equipment.productCategory', 'softAssignment.equipment.store',
+            ])
+            ->whereNull('equipment_id')
+            ->whereNotNull('delivery_date')
+            ->whereNotNull('pickup_date')
+            ->whereHas('softAssignment')
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->where(fn ($q) => $q->where('pickup_status', '!=', 'Completed')->orWhereNull('pickup_status'))
+            ->whereHas('order');
+
+            if ($category) {
+                $softOpsQuery->whereHas('softAssignment.equipment', fn ($q) => $q->where('product_category_id', $category));
+            }
+            if ($store) {
+                $softOpsQuery->whereHas('softAssignment.equipment', fn ($q) => $q->where('store_id', $store));
+            }
+            if ($search) {
+                $softOpsQuery->where(fn ($q) => $q
+                    ->where('product_name', 'like', "%{$search}%")
+                    ->orWhereHas('softAssignment.equipment', fn ($eq) => $eq
+                        ->where('equipment_name', 'like', "%{$search}%")
+                        ->orWhere('equipment_id', 'like', "%{$search}%"))
+                    ->orWhereHas('order', fn ($o) => $o
+                        ->where('order_number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', fn ($c) => $c
+                            ->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('company_name', 'like', "%{$search}%")))
+                );
+            }
+
+            $softOps = $softOpsQuery->get();
+
+            // Group by the resolved equipment_id (hard: equipment_id, soft: softAssignment.equipment_id)
+            $grouped = $hardOps->concat($softOps)
+                ->filter(fn ($op) => ($op->equipment_id ?? $op->softAssignment?->equipment_id))
+                ->groupBy(fn ($op) => $op->equipment_id ?? $op->softAssignment?->equipment_id);
 
             foreach ($grouped as $equipmentId => $products) {
                 if ($products->count() < 2) continue;
@@ -90,7 +130,7 @@ class IndexController extends Controller
                             $overlapEnd   = $aEnd->lt($bEnd) ? $aEnd : $bEnd;
 
                             $doubleBookings[] = [
-                                'equipment'     => $a->equipment,
+                                'equipment'     => $a->equipment ?? $a->softAssignment?->equipment,
                                 'a'             => $a,
                                 'b'             => $b,
                                 'overlap_start' => $overlapStart,

@@ -59,14 +59,17 @@ class MatrixController extends Controller
             $representative = $specsForKey->sortByDesc('is_key_comparison')->first();
 
             $presence = [];
+            $values   = [];
             foreach ($profiles as $profile) {
                 // A cell is "present" only when a non-null, non-empty value exists.
                 // Placeholder rows (spec_value = null) are treated as missing so the gray
                 // research button still appears for that cell.
-                $presence[$profile->id] = $specsForKey
-                    ->where('equipment_ai_profile_id', $profile->id)
-                    ->filter(fn($s) => filled($s->spec_value))
-                    ->isNotEmpty();
+                $spec     = $specsForKey->firstWhere('equipment_ai_profile_id', $profile->id);
+                $hasValue = $spec && filled($spec->spec_value);
+                $presence[$profile->id] = $hasValue;
+                $values[$profile->id]   = $hasValue
+                    ? ['value' => $spec->spec_value, 'unit' => $spec->spec_unit]
+                    : null;
             }
 
             $isKey     = $specsForKey->contains('is_key_comparison', true) || isset($compKeySet[$specKey]);
@@ -81,6 +84,7 @@ class MatrixController extends Controller
                 'is_ignored'         => $isIgnored,
                 'is_custom'          => false,
                 'presence'           => $presence,
+                'values'             => $values,
                 'presence_count'     => collect($presence)->filter()->count(),
                 'comparison_key_id'  => $compKey?->id,
                 'criteria_flags'     => $compKey ? [

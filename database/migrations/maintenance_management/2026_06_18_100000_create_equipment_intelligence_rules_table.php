@@ -70,10 +70,10 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            // Common query patterns
-            $table->index(['equipment_category_id', 'rule_type', 'is_active']);
-            $table->index(['equipment_profile_id', 'is_active']);
-            $table->index(['approved_by_admin', 'is_active']);
+            // Common query patterns (short explicit names to stay under MySQL's 64-char limit)
+            $table->index(['equipment_category_id', 'rule_type', 'is_active'], 'eir_category_type_active_idx');
+            $table->index(['equipment_profile_id', 'is_active'], 'eir_profile_active_idx');
+            $table->index(['approved_by_admin', 'is_active'], 'eir_approved_active_idx');
         });
     }
 

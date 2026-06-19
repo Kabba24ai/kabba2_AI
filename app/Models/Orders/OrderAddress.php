@@ -2,6 +2,7 @@
 
 namespace App\Models\Orders;
 
+use App\Models\Locations\State;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -33,6 +34,11 @@ class OrderAddress extends Model
         return $this->belongsTo(Order::class);
     }
 
+    public function stateDetail()
+    {
+        return $this->belongsTo(State::class, 'state_id');
+    }
+
     public function getFullNameAttribute()
     {
         return trim("{$this->first_name} {$this->last_name}");
@@ -43,7 +49,7 @@ class OrderAddress extends Model
         $addressParts = [
             $this->address,
             $this->city,
-            $this->state,
+            $this->stateDetail?->abbreviation ? $this->stateDetail->abbreviation : $this->state, // Assuming stateDetail is a relationship to a State model
             $this->zip_code,
         ];
 

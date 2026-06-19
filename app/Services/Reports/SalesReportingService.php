@@ -73,6 +73,14 @@ class SalesReportingService
             $query->where('products.product_type', ucfirst($filters['item_type']));
         }
 
+        // Sale type — quick Rental / Retail top-level toggle
+        if (!empty($filters['sale_type']) && $filters['sale_type'] !== 'all') {
+            $typeMap = ['rental' => 'Rental', 'retail' => 'Retail'];
+            if (isset($typeMap[$filters['sale_type']])) {
+                $query->where('products.product_type', $typeMap[$filters['sale_type']]);
+            }
+        }
+
         // Category
         if (!empty($filters['category'])) {
             $query->where('pcc.primary_category_id', $filters['category']);

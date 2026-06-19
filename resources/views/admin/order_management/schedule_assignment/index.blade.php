@@ -719,6 +719,12 @@
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
 
+            // URL param always wins — e.g. arriving from "Resolve Double Booking" on Schedule Conflicts
+            const urlCategory = new URLSearchParams(window.location.search).get('category');
+            if (urlCategory && categorySelect) {
+                categorySelect.value = urlCategory;
+            }
+
             // Clear filters functionality using global clearFilters
             document.getElementById('clear-filters').addEventListener('click', function() {
                 // Create a filtered fieldMap that excludes equipment_status checkboxes

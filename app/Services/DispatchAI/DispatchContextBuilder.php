@@ -7,6 +7,7 @@ use App\Models\Dispatch\DispatchAiEquipmentRule;
 use App\Models\Dispatch\DispatchAiSettings;
 use App\Models\Dispatch\DispatchAiTrailer;
 use App\Models\Dispatch\DispatchAiTruck;
+use App\Models\Dispatch\DispatchIntelligenceRule;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
 use Carbon\Carbon;
@@ -113,14 +114,31 @@ class DispatchContextBuilder
             'special_notes'        => $r->special_notes,
         ])->values()->toArray();
 
+        // ── Dispatch Intelligence Rules (approved + active only) ─────────────
+        $intelligenceRules = DispatchIntelligenceRule::active()
+            ->approved()
+            ->orderByDesc('priority')
+            ->get(['rule_type', 'rule_name', 'condition', 'recommendation', 'reason', 'priority', 'tags'])
+            ->map(fn ($r) => [
+                'rule_type'      => $r->rule_type->value,
+                'rule_name'      => $r->rule_name,
+                'condition'      => $r->condition,
+                'recommendation' => $r->recommendation,
+                'reason'         => $r->reason,
+                'priority'       => $r->priority,
+                'tags'           => $r->tags ?? [],
+            ])
+            ->values()
+            ->toArray();
+
         // ── Build order payloads ──────────────────────────────────────────────
         $deliveryPayload = $deliveries->map(fn ($op) => $this->formatOrderProduct($op, 'delivery'))->values()->toArray();
         $returnPayload   = $returns->map(fn ($op) => $this->formatOrderProduct($op, 'return'))->values()->toArray();
 
         return [
-            'today'             => $today->toDateString(),
-            'look_ahead_days'   => $lookAheadDays,
-            'settings'          => [
+            'today'               => $today->toDateString(),
+            'look_ahead_days'     => $lookAheadDays,
+            'settings'            => [
                 'prefer_same_driver_for_returns'             => $settings->prefer_same_driver_for_returns,
                 'allow_early_delivery'                       => $settings->allow_early_delivery,
                 'early_delivery_enabled'                     => $settings->early_delivery_enabled,
@@ -135,12 +153,13 @@ class DispatchContextBuilder
                 'route_keep_driver_near_home'                => $settings->route_keep_driver_near_home,
                 'policy_overrides'                           => $settings->policy_overrides ?? [],
             ],
-            'drivers'           => $driverPayload,
-            'trucks'            => $trucks,
-            'trailers'          => $trailers,
-            'equipment_rules'   => $equipmentRules,
-            'deliveries'        => $deliveryPayload,
-            'returns'           => $returnPayload,
+            'drivers'             => $driverPayload,
+            'trucks'              => $trucks,
+            'trailers'            => $trailers,
+            'equipment_rules'     => $equipmentRules,
+            'intelligence_rules'  => $intelligenceRules,
+            'deliveries'          => $deliveryPayload,
+            'returns'             => $returnPayload,
         ];
     }
 

@@ -40,8 +40,9 @@
                     'equipment'     => ['label' => 'Equipment',        'icon' => 'heroicon-o-wrench-screwdriver'],
                     'routing'       => ['label' => 'Routing',          'icon' => 'heroicon-o-map'],
                     'early_delivery'=> ['label' => 'Early Delivery',   'icon' => 'heroicon-o-clock'],
-                    'automation'    => ['label' => 'AI Automation',    'icon' => 'heroicon-o-cpu-chip'],
-                    'policy'        => ['label' => 'AI Policy',        'icon' => 'heroicon-o-document-text'],
+                    'automation'         => ['label' => 'AI Automation',      'icon' => 'heroicon-o-cpu-chip'],
+                    'policy'             => ['label' => 'AI Policy',          'icon' => 'heroicon-o-document-text'],
+                    'intelligence_rules' => ['label' => 'Intelligence Rules',  'icon' => 'heroicon-o-light-bulb'],
                 ];
             @endphp
             @foreach ($tabs as $key => $tab)
@@ -52,6 +53,12 @@
                               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     <x-dynamic-component :component="$tab['icon']" class="w-4 h-4" />
                     {{ $tab['label'] }}
+                    @if ($key === 'intelligence_rules' && ($intelligenceRuleCount ?? 0) > 0)
+                        <span class="ml-1 text-xs font-semibold bg-indigo-100 text-indigo-700 rounded-full px-1.5 py-0.5">{{ $intelligenceRuleCount }}</span>
+                        @if (($intelligenceRulePendingCount ?? 0) > 0)
+                            <span class="text-xs font-semibold bg-amber-100 text-amber-700 rounded-full px-1.5 py-0.5">{{ $intelligenceRulePendingCount }} pending</span>
+                        @endif
+                    @endif
                 </a>
             @endforeach
         </nav>
@@ -74,6 +81,8 @@
         @include('admin.order_management.dispatch.ai_rules.partials._automation')
     @elseif ($activeTab === 'policy')
         @include('admin.order_management.dispatch.ai_rules.partials._policy')
+    @elseif ($activeTab === 'intelligence_rules')
+        @include('admin.order_management.dispatch.ai_rules.partials._intelligence_rules')
     @endif
 
     {{-- Run AI Draft Modal --}}

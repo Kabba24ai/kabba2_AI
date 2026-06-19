@@ -151,17 +151,35 @@ class DispatchAIService
         }
 
         $policyJson  = json_encode($policy, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $contextJson = json_encode($ctx, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        // Separate intelligence rules from the main context so the AI sees them as a distinct section
+        $intelligenceRules = $ctx['intelligence_rules'] ?? [];
+        $contextWithoutRules = $ctx;
+        unset($contextWithoutRules['intelligence_rules']);
+        $contextJson = json_encode($contextWithoutRules, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        $intelligenceSection = '';
+        if (!empty($intelligenceRules)) {
+            $rulesJson = json_encode($intelligenceRules, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            $intelligenceSection = <<<SECTION
+
+## Business Intelligence Rules
+These rules represent accumulated operational experience and business judgment.
+Apply them when the condition described matches the current dispatch situation.
+Intelligence rules supplement the Business Policy above — when they conflict, Business Policy wins.
+{$rulesJson}
+SECTION;
+        }
 
         return <<<PROMPT
 You are an expert dispatch planner for a heavy equipment rental company.
 
 Your job is to assign drivers, trucks, trailers, and priorities to delivery and pickup/return orders
-while following the business policy below exactly.
+while following the business policy and intelligence rules below exactly.
 
 ## Business Policy
 {$policyJson}
-
+{$intelligenceSection}
 ## Dispatch Context
 {$contextJson}
 PROMPT;

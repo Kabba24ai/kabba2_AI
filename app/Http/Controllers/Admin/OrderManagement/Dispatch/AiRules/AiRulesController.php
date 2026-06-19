@@ -8,6 +8,7 @@ use App\Models\Dispatch\DispatchAiEquipmentRule;
 use App\Models\Dispatch\DispatchAiSettings;
 use App\Models\Dispatch\DispatchAiTrailer;
 use App\Models\Dispatch\DispatchAiTruck;
+use App\Models\Dispatch\DispatchIntelligenceRule;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Stores\Store;
@@ -127,6 +128,9 @@ class AiRulesController extends Controller
         }
         $policyPreviewJson = json_encode($mergedPolicy, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
+        $intelligenceRuleCount        = DispatchIntelligenceRule::active()->count();
+        $intelligenceRulePendingCount = DispatchIntelligenceRule::active()->pending()->count();
+
         return view('admin.order_management.dispatch.ai_rules.index', compact(
             'settings',
             'drivers',
@@ -142,6 +146,8 @@ class AiRulesController extends Controller
             'hitchTypes',
             'defaultPolicy',
             'policyPreviewJson',
+            'intelligenceRuleCount',
+            'intelligenceRulePendingCount',
         ));
     }
 }

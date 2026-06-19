@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Reports\SalesReports\SalesByStores;
 
 use App\Http\Controllers\Controller;
+use App\Models\Stores\Store;
 use App\Services\Reports\SalesByStoresReport;
 use Illuminate\Http\Request;
 
@@ -19,11 +20,13 @@ class IndexController extends Controller
             return response()->json(['success' => true, 'data' => $data]);
         }
 
-        $data = $this->report->storeData($filters);
+        $data   = $this->report->storeData($filters);
+        $stores = Store::orderBy('store_name')->get(['id', 'store_name']);
 
         return view('admin.reports.sales_reports.sales_by_stores.index', [
             'filters' => $filters,
             'data'    => $data,
+            'stores'  => $stores,
         ]);
     }
 
@@ -33,6 +36,7 @@ class IndexController extends Controller
             'date_range'     => $request->input('date_range', 'mtd'),
             'start_date'     => $request->input('start_date'),
             'end_date'       => $request->input('end_date'),
+            'store'          => $request->input('store'),
             'payment_status' => $request->input('payment_status', 'paid'),
         ];
     }

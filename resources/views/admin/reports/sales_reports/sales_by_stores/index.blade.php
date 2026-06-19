@@ -64,6 +64,18 @@
                 </div>
             </div>
 
+            {{-- Store --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Store</label>
+                <select id="f-store"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="">All Stores</option>
+                    @foreach ($stores as $store)
+                        <option value="{{ $store->id }}" @selected(($filters['store'] ?? '') == $store->id)>{{ $store->store_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             {{-- Payment Status --}}
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Payment</label>
@@ -191,6 +203,7 @@
     const fDateRange = document.getElementById('f-date-range');
     const fStartDate = document.getElementById('f-start-date');
     const fEndDate   = document.getElementById('f-end-date');
+    const fStore     = document.getElementById('f-store');
     const fPayment   = document.getElementById('f-payment-status');
     const customWrap = document.getElementById('custom-date-wrap');
     const kpiSection = document.getElementById('kpi-section');
@@ -217,6 +230,7 @@
             if (fStartDate.value) p.set('start_date', fStartDate.value);
             if (fEndDate.value)   p.set('end_date',   fEndDate.value);
         }
+        if (fStore.value)   p.set('store', fStore.value);
         if (fPayment.value) p.set('payment_status', fPayment.value);
         return p;
     }
@@ -330,7 +344,11 @@
                 },
             },
             dataLabels: { enabled: false },
-            colors: ['#3B82F6', '#D1D5DB'],
+            colors: ['#3B82F6', '#64748B'],
+            states: {
+                hover:  { filter: { type: 'darken', value: 0.15 } },
+                active: { filter: { type: 'darken', value: 0.2  } },
+            },
             xaxis: {
                 categories: cd.labels,
                 labels: { formatter: v => yFmt(v, metric) },
@@ -340,6 +358,7 @@
                 shared: true,
                 intersect: false,
                 y: { formatter: v => yFmt(v, metric) },
+                theme: 'light',
             },
             legend: { position: 'top', horizontalAlign: 'right' },
             grid:   { borderColor: '#f3f4f6', xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
@@ -365,9 +384,9 @@
             storeChart.render();
         } else {
             storeChart.updateOptions({
-                chart: { height: Math.max(240, cd.labels.length * 52) },
-                xaxis: { categories: cd.labels, labels: { formatter: v => yFmt(v, metric) } },
-                tooltip: { y: { formatter: v => yFmt(v, metric) } },
+                chart:   { height: Math.max(240, cd.labels.length * 52) },
+                xaxis:   { categories: cd.labels, labels: { formatter: v => yFmt(v, metric) } },
+                tooltip: { y: { formatter: v => yFmt(v, metric) }, theme: 'light' },
             }, false, false);
             storeChart.updateSeries([
                 { name: 'Current Period',  data: cd.current  },
@@ -461,12 +480,13 @@
         scheduleRun();
     });
 
-    [fPayment].forEach(el => { if (el) el.addEventListener('change', scheduleRun); });
+    [fStore, fPayment].forEach(el => { if (el) el.addEventListener('change', scheduleRun); });
 
     document.getElementById('btn-clear-filters').addEventListener('click', function () {
         fDateRange.value = 'mtd';
         fStartDate.value = '';
         fEndDate.value   = '';
+        fStore.value     = '';
         fPayment.value   = 'paid';
         customWrap.classList.add('hidden');
         runReport();

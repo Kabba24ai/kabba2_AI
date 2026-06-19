@@ -420,3 +420,30 @@ The following tables should be truncated when performing a "fresh start" reset o
 
 > **Note:** Truncating these tables will remove all customer and order-related data, ensuring a clean state for testing or development.
 
+---
+
+## Release Notes Generation
+
+Generate a customer-facing "New Features & Improvements" document from git history using AI:
+
+```bash
+# Last 2 weeks of commits
+php artisan docs:new-features --since="2 weeks ago"
+
+# Specific date range
+php artisan docs:new-features --since="2026-06-01" --until="2026-06-19"
+
+# Between two git tags
+php artisan docs:new-features --from-tag=v1.2.0 --to-ref=v1.3.0
+
+# Dry run (no AI call — just shows commit/file counts)
+php artisan docs:new-features --since="2 weeks ago" --dry-run
+
+# Custom output path
+php artisan docs:new-features --since="2 weeks ago" --output=docs/june-release.md
+```
+
+Output is saved to `docs/new-features-improvements-YYYY-MM-DD.md` by default and is viewable in the admin panel at `/release-notes`.
+
+**Requirements:** `OPENAI_API_KEY` must be set in `.env`.
+

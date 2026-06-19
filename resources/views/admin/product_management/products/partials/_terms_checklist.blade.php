@@ -55,12 +55,6 @@
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
-
-    <div class="mt-auto flex justify-end">
-        <a href="{{ route('admin.terms-and-conditions.index') }}"  class="text-sm text-blue-500 hover:underline font-medium">
-            Update Terms Settings
-        </a>
-    </div>
 </div>
 
 @push('js')

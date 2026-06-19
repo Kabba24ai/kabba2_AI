@@ -982,11 +982,11 @@
 
 
         <!-- Spacer -->
-        <div class="h-3 md:h-4"></div>
+        <div class="h-3 mb-5 md:h-4"></div>
 
 
         <!-- High Demand Alert -->
-        <div class="grid grid-cols-1  gap-4">
+        <div class="grid grid-cols-1 gap-4 ">
             <div class="flex flex-wrap items-center gap-8 mt-1">
                 <div class="flex items-center gap-2 relative">
                     {!! html()->checkbox('has_high_demand_alert') !!}
@@ -1078,12 +1078,16 @@
             </div>
         </div>
 
-        <div class="h-3 md:h-4"></div>
+        <div class="h-3 mt-5 md:h-4"></div>
         @include('admin.product_management.products.partials._terms_checklist')
 
-        <div class="mt-auto flex justify-end pt-25">
-            <a href="{{ route('admin.configurations.index') }}"
-                class="text-sm text-blue-500 hover:underline font-medium">
+
+        <div class="mt-auto flex items-center justify-end gap-3 ">
+            <a href="{{ route('admin.terms-and-conditions.index') }}" class="text-sm text-blue-500 hover:underline font-medium">
+                Update Terms Settings
+            </a>
+            <span class="text-gray-300 dark:text-gray-600 select-none">|</span>
+            <a href="{{ route('admin.configurations.index') }}" class="text-sm text-blue-500 hover:underline font-medium">
                 Update Settings
             </a>
         </div>

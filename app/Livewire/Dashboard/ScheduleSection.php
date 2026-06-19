@@ -277,17 +277,30 @@ class ScheduleSection extends Component
 
     private function getScheduleConflictCount(): int
     {
-        $products = OrderProduct::whereNotNull('equipment_id')
+        // Hard-assigned orders
+        $hardProducts = OrderProduct::whereNotNull('equipment_id')
             ->whereNotNull('delivery_date')
             ->whereNotNull('pickup_date')
-            ->where(function ($q) {
-                $q->where('is_returned', '!=', 1)->orWhereNull('is_returned');
-            })
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->whereHas('order')
+            ->get(['id', 'equipment_id', 'delivery_date', 'pickup_date']);
+
+        // Soft-assigned orders (auto-assign path)
+        $softProducts = OrderProduct::with('softAssignment:id,order_product_id,equipment_id')
+            ->whereNull('equipment_id')
+            ->whereNotNull('delivery_date')
+            ->whereNotNull('pickup_date')
+            ->whereHas('softAssignment')
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
             ->whereHas('order')
             ->get(['id', 'equipment_id', 'delivery_date', 'pickup_date']);
 
         $count = 0;
-        foreach ($products->groupBy('equipment_id') as $group) {
+        $grouped = $hardProducts->concat($softProducts)
+            ->filter(fn ($op) => ($op->equipment_id ?? $op->softAssignment?->equipment_id))
+            ->groupBy(fn ($op) => $op->equipment_id ?? $op->softAssignment?->equipment_id);
+
+        foreach ($grouped as $group) {
             if ($group->count() < 2) continue;
             $list = $group->values();
             for ($i = 0; $i < $list->count(); $i++) {

@@ -353,22 +353,28 @@
 
 @endsection
 
+@php
+    $ruleData = $rules->keyBy('id')->map(function ($r) {
+        return [
+            'id'                   => $r->id,
+            'rule_type'            => $r->rule_type?->value,
+            'equipment_profile_id' => $r->equipment_profile_id,
+            'rule_name'            => $r->rule_name,
+            'condition'            => $r->condition,
+            'recommendation'       => $r->recommendation,
+            'reason'               => $r->reason,
+            'priority'             => $r->priority,
+            'confidence_score'     => $r->confidence_score,
+            'tags'                 => $r->tags ?? [],
+            'source_type'          => $r->source_type?->value,
+        ];
+    });
+@endphp
+
 @push('js')
 <script>
 // ── Rule data for edit modal ──────────────────────────────────────────
-const ruleData = @json($rules->keyBy('id')->map(fn($r) => [
-    'id'                    => $r->id,
-    'rule_type'             => $r->rule_type->value,
-    'equipment_profile_id'  => $r->equipment_profile_id,
-    'rule_name'             => $r->rule_name,
-    'condition'             => $r->condition,
-    'recommendation'        => $r->recommendation,
-    'reason'                => $r->reason,
-    'priority'              => $r->priority,
-    'confidence_score'      => $r->confidence_score,
-    'tags'                  => $r->tags ?? [],
-    'source_type'           => $r->source_type->value,
-]));
+const ruleData = @json($ruleData);
 
 // ── Modal helpers ─────────────────────────────────────────────────────
 function openModal(id)  { document.getElementById(id).classList.replace('hidden', 'flex'); }

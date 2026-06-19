@@ -201,6 +201,48 @@ class SalesReportingService
     }
 
     /**
+     * Return categories that have at least one product with finalized orders.
+     * Shared across all Sales Reports for the Category dropdown.
+     */
+    public function availableCategories(): \Illuminate\Support\Collection
+    {
+        return \DB::table('product_categories as pc')
+            ->join('product_category_children as pcc', 'pcc.product_category_id', '=', 'pc.id')
+            ->join('products', 'products.id', '=', 'pcc.product_id')
+            ->join('order_products', 'order_products.product_id', '=', 'products.id')
+            ->join('orders', 'orders.id', '=', 'order_products.order_id')
+            ->whereNull('orders.deleted_at')
+            ->whereNull('order_products.deleted_at')
+            ->select('pc.id', 'pc.title')
+            ->distinct()
+            ->orderBy('pc.title')
+            ->get();
+    }
+
+    /**
+     * Return products belonging to the given category (or all if null).
+     * Shared across all Sales Reports for the Product dropdown.
+     */
+    public function availableProducts(?int $categoryId = null): \Illuminate\Support\Collection
+    {
+        $q = \DB::table('products')
+            ->join('order_products', 'order_products.product_id', '=', 'products.id')
+            ->join('orders', 'orders.id', '=', 'order_products.order_id')
+            ->whereNull('orders.deleted_at')
+            ->whereNull('order_products.deleted_at');
+
+        if ($categoryId) {
+            $q->join('product_category_children as pcc', 'pcc.product_id', '=', 'products.id')
+              ->where('pcc.product_category_id', $categoryId);
+        }
+
+        return $q->select('products.id', 'products.product_name')
+            ->distinct()
+            ->orderBy('products.product_name')
+            ->get();
+    }
+
+    /**
      * Build date-range label for display (e.g. "Jun 1 – Jun 17, 2026").
      */
     public function dateRangeLabel(array $filters): string

@@ -30,8 +30,9 @@ class DispatchController extends BaseController
         $search = $validatedData['search'] ?? null;
         $categoryId = $validatedData['category_id'] ?? null;
         $scheduleType = $validatedData['schedule_type'] ?? null;
-        $dateFilter = $validatedData['date_filter'] ?? null;+
+        $dateFilter = $validatedData['date_filter'] ?? null;
         $driverId = $validatedData['driver_id'] ?? null;
+        $scheduleTypes = [];
 
         $query = OrderProduct::query()->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee')->where('product_data->product_type', 'Rental')->whereHas('order')->whereNotNull('delivery_date');
 

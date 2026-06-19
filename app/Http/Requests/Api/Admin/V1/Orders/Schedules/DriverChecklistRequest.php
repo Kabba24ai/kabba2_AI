@@ -12,6 +12,7 @@ class DriverChecklistRequest extends ApiBaseFormRequest
     {
         return [
             'order_product_unique_id'  => 'required|string|max:255|exists:order_products,unique_id',
+            'checklist_type'           => ['required', Rule::in(['delivery', 'pickup'])],
             'equipment_fuel'           => 'nullable|string|max:255',
             'equipment_key_location'   => 'nullable|string|max:255',
             'equipment_driver_status'  => ['nullable', Rule::enum(EquipmentDriverStatus::class)],
@@ -24,6 +25,11 @@ class DriverChecklistRequest extends ApiBaseFormRequest
             'order_product_unique_id' => [
                 'description' => 'The unique ID of the order product.',
                 'example'     => 'ORD-SCH-URXP-LX5R',
+                'type'        => 'string',
+            ],
+            'checklist_type' => [
+                'description' => 'Checklist target type. Use delivery to store delivery fields, pickup to store pickup fields.',
+                'example'     => 'delivery',
                 'type'        => 'string',
             ],
             'equipment_fuel' => [

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin\V1\Orders\Schedules;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Admin\V1\Orders\Schedules\DriverChecklistRequest;
 use App\Events\Admin\Orders\OrderProductDriverChecklistUpdated;
+use App\Enums\Orders\EquipmentDriverStatus;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Http\JsonResponse;
 
@@ -28,11 +29,32 @@ class DriverChecklistController extends Controller
                     ->where('unique_id', $validated['order_product_unique_id'])
                     ->firstOrFail();
 
+            $typePrefix = $validated['checklist_type'];
+            $status = $validated['equipment_driver_status'] ?? null;
+            $statusDrivenFields = [];
+
+            if ($status === EquipmentDriverStatus::READY_TO_GO->value) {
+                $statusDrivenFields = [
+                    $typePrefix . '_ready_to_go_at' => now(),
+                    $typePrefix . '_is_arrived' => false,
+                ];
+            }
+
+            if ($status === EquipmentDriverStatus::ARRIVED->value) {
+                $statusDrivenFields = [
+                    $typePrefix . '_arrived_at' => now(),
+                    $typePrefix . '_is_arrived' => true,
+                    $typePrefix . '_is_delivered' => true,
+                ];
+            }
+
             $fields = array_filter([
-                'equipment_fuel'          => $validated['equipment_fuel'] ?? null,
-                'equipment_key_location'  => $validated['equipment_key_location'] ?? null,
-                'equipment_driver_status' => $validated['equipment_driver_status'] ?? null,
+                $typePrefix . '_equipment_fuel'          => $validated['equipment_fuel'] ?? null,
+                $typePrefix . '_equipment_key_location'  => $validated['equipment_key_location'] ?? null,
+                $typePrefix . '_equipment_driver_status' => $validated['equipment_driver_status'] ?? null,
             ], fn($v) => !is_null($v));
+
+            $fields = array_merge($fields, $statusDrivenFields);
 
             $schedule->fill($fields);
             $schedule->save();

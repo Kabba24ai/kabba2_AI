@@ -54,6 +54,15 @@ class ListResource extends JsonResource
             'delivery_media' => OrderMediasListResource::collection($this->whenLoaded('deliveryMedia') ?? []),
 
             'delivery_notes' => $this->delivery_notes ?? '',
+            'delivery_checklist' => [
+                'equipment_fuel'          => $this->delivery_equipment_fuel,
+                'equipment_key_location'  => $this->delivery_equipment_key_location,
+                'equipment_driver_status' => $this->delivery_equipment_driver_status?->value ?? $this->delivery_equipment_driver_status,
+                'ready_to_go_at'          => $this->delivery_ready_to_go_at?->toDateTimeString(),
+                'arrived_at'              => $this->delivery_arrived_at?->toDateTimeString(),
+                'is_delivered'            => (bool) $this->delivery_is_delivered,
+                'is_arrived'              => (bool) $this->delivery_is_arrived,
+            ],
 
             'pickup_status' => $this->pickup_status ?? '',
             'pickup_transport_mode' => $this->pickup_transport_mode ?? '',
@@ -65,6 +74,15 @@ class ListResource extends JsonResource
             'pickup_media' => OrderMediasListResource::collection($this->whenLoaded('pickupMedia') ?? []),
 
             'pickup_notes' => $this->pickup_notes ?? '',
+            'pickup_checklist' => [
+                'equipment_fuel'          => $this->pickup_equipment_fuel,
+                'equipment_key_location'  => $this->pickup_equipment_key_location,
+                'equipment_driver_status' => $this->pickup_equipment_driver_status?->value ?? $this->pickup_equipment_driver_status,
+                'ready_to_go_at'          => $this->pickup_ready_to_go_at?->toDateTimeString(),
+                'arrived_at'              => $this->pickup_arrived_at?->toDateTimeString(),
+                'is_delivered'            => (bool) $this->pickup_is_delivered,
+                'is_arrived'              => (bool) $this->pickup_is_arrived,
+            ],
 
             'delivery_signature_media_id' => $this->delivery_signature_media_id ?? 0,
             'return_signature_media_id' => $this->pickup_signature_media_id ?? 0,

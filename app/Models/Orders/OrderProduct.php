@@ -87,9 +87,20 @@ class OrderProduct extends Model
 
         'dispatch_checklist',   // JSON: driver pre-delivery checklist state
 
-        'equipment_fuel',
-        'equipment_key_location',
-        'equipment_driver_status',
+        'delivery_equipment_fuel',
+        'delivery_equipment_key_location',
+        'delivery_equipment_driver_status',
+        'pickup_equipment_fuel',
+        'pickup_equipment_key_location',
+        'pickup_equipment_driver_status',
+        'delivery_ready_to_go_at',
+        'delivery_arrived_at',
+        'delivery_is_delivered',
+        'delivery_is_arrived',
+        'pickup_ready_to_go_at',
+        'pickup_arrived_at',
+        'pickup_is_delivered',
+        'pickup_is_arrived',
     ];
 
     // In your OrderProduct.php model
@@ -101,7 +112,16 @@ class OrderProduct extends Model
         'delivery_priority_locked' => 'boolean',
         'pickup_driver_locked'     => 'boolean',
         'pickup_priority_locked'   => 'boolean',
-        'equipment_driver_status' => EquipmentDriverStatus::class,
+        'delivery_equipment_driver_status' => EquipmentDriverStatus::class,
+        'pickup_equipment_driver_status'   => EquipmentDriverStatus::class,
+        'delivery_ready_to_go_at' => 'datetime',
+        'delivery_arrived_at'     => 'datetime',
+        'delivery_is_delivered'   => 'boolean',
+        'delivery_is_arrived'     => 'boolean',
+        'pickup_ready_to_go_at'   => 'datetime',
+        'pickup_arrived_at'       => 'datetime',
+        'pickup_is_delivered'     => 'boolean',
+        'pickup_is_arrived'       => 'boolean',
     ];
 
     // Relationships

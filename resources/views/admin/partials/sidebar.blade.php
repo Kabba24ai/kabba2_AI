@@ -374,13 +374,75 @@
                                         Dash Reports
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="{{ route('admin.reports.sales-reports.pure-sales-summary.index') }}"
+                                <li x-data="{ openSalesReport: {{ Route::is('admin.reports.sales-reports.*') ? 'true' : 'false' }} }">
+                                    <a href="#" @click.prevent="openSalesReport = !openSalesReport"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.reports.sales-reports.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-chart-bar class="w-6 h-6" />
-                                        Sales Reports
+                                        <span class="flex-1">Sales Report</span>
+                                        <template x-if="!openSalesReport">
+                                            <x-heroicon-o-chevron-left class="w-4 h-4 ml-auto" />
+                                        </template>
+                                        <template x-if="openSalesReport">
+                                            <x-heroicon-o-chevron-down class="w-4 h-4 ml-auto" />
+                                        </template>
                                     </a>
+                                    <div x-show="openSalesReport" x-transition>
+                                        <ul class="mt-1 flex flex-col gap-1 pl-6">
+                                            <li>
+                                                <a href="{{ route('admin.reports.sales-reports.pure-sales-summary.index') }}"
+                                                    class="menu-dropdown-item group
+                                                    {{ Route::is('admin.reports.sales-reports.pure-sales-summary.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-document-chart-bar class="w-5 h-5" />
+                                                    Pure Sales Summary
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="{{ route('admin.reports.sales-reports.sales-trend.index') }}"
+                                                    class="menu-dropdown-item group
+                                                    {{ Route::is('admin.reports.sales-reports.sales-trend.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-arrow-trending-up class="w-5 h-5" />
+                                                    Sales Trend
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="{{ route('admin.reports.sales-reports.sales-by-stores.index') }}"
+                                                    class="menu-dropdown-item group
+                                                    {{ Route::is('admin.reports.sales-reports.sales-by-stores.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-building-storefront class="w-5 h-5" />
+                                                    Sales By Stores
+                                                </a>
+                                            </li>
+
+                                            {{-- Product Performance submenu --}}
+                                            <li x-data="{ openProductPerf: {{ Route::is('admin.reports.sales-reports.product-performance.*') ? 'true' : 'false' }} }">
+                                                <a href="#" @click.prevent="openProductPerf = !openProductPerf"
+                                                    class="menu-dropdown-item group
+                                                    {{ Route::is('admin.reports.sales-reports.product-performance.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-trophy class="w-5 h-5" />
+                                                    <span class="flex-1">Product Performance</span>
+                                                    <template x-if="!openProductPerf">
+                                                        <x-heroicon-o-chevron-left class="w-4 h-4 ml-auto" />
+                                                    </template>
+                                                    <template x-if="openProductPerf">
+                                                        <x-heroicon-o-chevron-down class="w-4 h-4 ml-auto" />
+                                                    </template>
+                                                </a>
+                                                <div x-show="openProductPerf" x-transition>
+                                                    <ul class="mt-1 flex flex-col gap-1 pl-5">
+                                                        <li>
+                                                            <a href="{{ route('admin.reports.sales-reports.product-performance.product-sales-ranking.index') }}"
+                                                                class="menu-dropdown-item group
+                                                                {{ Route::is('admin.reports.sales-reports.product-performance.product-sales-ranking.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                                <x-heroicon-o-bars-3-bottom-right class="w-4 h-4" />
+                                                                Product Sales Ranking
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </li>
 
                             </ul>

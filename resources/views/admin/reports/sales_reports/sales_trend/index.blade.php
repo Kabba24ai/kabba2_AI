@@ -76,6 +76,61 @@
                 </select>
             </div>
 
+            {{-- Item Type --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Item Type</label>
+                <select id="f-item-type"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="all"     @selected(($filters['item_type'] ?? 'all') === 'all')>All Items</option>
+                    <option value="Rental"  @selected(($filters['item_type'] ?? '') === 'Rental')>Rental</option>
+                    <option value="Retail"  @selected(($filters['item_type'] ?? '') === 'Retail')>Retail</option>
+                    <option value="Service" @selected(($filters['item_type'] ?? '') === 'Service')>Service</option>
+                    <option value="Fee"     @selected(($filters['item_type'] ?? '') === 'Fee')>Fee</option>
+                    <option value="Other"   @selected(($filters['item_type'] ?? '') === 'Other')>Other</option>
+                </select>
+            </div>
+
+            {{-- Category --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Category</label>
+                <select id="f-category"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="">All Categories</option>
+                    @foreach ($categories as $cat)
+                        <option value="{{ $cat->id }}" @selected(($filters['category'] ?? '') == $cat->id)>{{ $cat->title }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Product --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Product</label>
+                <select id="f-product"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white min-w-[160px]">
+                    <option value="">All Products</option>
+                    @foreach ($products as $prod)
+                        <option value="{{ $prod->id }}" @selected(($filters['product'] ?? '') == $prod->id)>{{ $prod->product_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Sale Type --}}
+            @php $saleType = $filters['sale_type'] ?? 'all'; @endphp
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Sale Type</label>
+                <div id="f-sale-type-group" class="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden text-sm">
+                    @foreach (['all' => 'All Sales', 'rental' => 'Rental', 'retail' => 'Retail'] as $val => $label)
+                    <button type="button" data-value="{{ $val }}"
+                        class="sale-type-btn px-4 py-2 font-medium transition-colors
+                            {{ $val !== 'all' ? 'border-l border-gray-300 dark:border-gray-600' : '' }}
+                            {{ $saleType === $val ? 'bg-brand-500 text-white' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600' }}">
+                        {{ $label }}
+                    </button>
+                    @endforeach
+                </div>
+                <input type="hidden" id="f-sale-type" value="{{ $saleType }}">
+            </div>
+
             {{-- Group By --}}
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Group By</label>
@@ -104,6 +159,38 @@
                 </select>
             </div>
 
+        </div>
+
+        {{-- Row 2: Checkbox inclusion/exclusion filters --}}
+        <div class="flex flex-wrap gap-x-5 gap-y-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 items-center">
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-exclude-damage-waiver" {{ ($filters['damage_waiver'] ?? '') === 'exclude' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Exclude Damage Waiver
+            </label>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-damage-waiver-only" {{ ($filters['damage_waiver'] ?? '') === 'only' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Damage Waiver Only
+            </label>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-exclude-track-ins" {{ ($filters['track_insurance'] ?? '') === 'exclude' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Exclude Track Ins.
+            </label>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-track-ins-only" {{ ($filters['track_insurance'] ?? '') === 'only' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Track Ins. Only
+            </label>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-exclude-delivery" {{ ($filters['delivery'] ?? '') === 'exclude' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Exclude Delivery
+            </label>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-delivery-only" {{ ($filters['delivery'] ?? '') === 'only' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Delivery Only
+            </label>
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="f-exclude-shipping" {{ ($filters['shipping'] ?? '') === 'exclude' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                Exclude Shipping
+            </label>
         </div>
     </div>
 
@@ -220,13 +307,25 @@
     let trendChart   = null;
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
-    const fDateRange = document.getElementById('f-date-range');
-    const fStartDate = document.getElementById('f-start-date');
-    const fEndDate   = document.getElementById('f-end-date');
-    const fStore     = document.getElementById('f-store');
-    const fPayment   = document.getElementById('f-payment-status');
-    const customWrap = document.getElementById('custom-date-wrap');
-    const kpiSection = document.getElementById('kpi-section');
+    const fDateRange           = document.getElementById('f-date-range');
+    const fStartDate           = document.getElementById('f-start-date');
+    const fEndDate             = document.getElementById('f-end-date');
+    const fStore               = document.getElementById('f-store');
+    const fItemType            = document.getElementById('f-item-type');
+    const fCategory            = document.getElementById('f-category');
+    const fProduct             = document.getElementById('f-product');
+    const fSaleType            = document.getElementById('f-sale-type');
+    const fSaleTypeGroup       = document.getElementById('f-sale-type-group');
+    const fExcludeDamageWaiver = document.getElementById('f-exclude-damage-waiver');
+    const fDamageWaiverOnly    = document.getElementById('f-damage-waiver-only');
+    const fExcludeTrackIns     = document.getElementById('f-exclude-track-ins');
+    const fTrackInsOnly        = document.getElementById('f-track-ins-only');
+    const fExcludeDelivery     = document.getElementById('f-exclude-delivery');
+    const fDeliveryOnly        = document.getElementById('f-delivery-only');
+    const fExcludeShipping     = document.getElementById('f-exclude-shipping');
+    const fPayment             = document.getElementById('f-payment-status');
+    const customWrap           = document.getElementById('custom-date-wrap');
+    const kpiSection           = document.getElementById('kpi-section');
 
     // ── Formatters ────────────────────────────────────────────────────────────
     const currFmt = new Intl.NumberFormat('en-US', {
@@ -250,8 +349,20 @@
             if (fStartDate.value) p.set('start_date', fStartDate.value);
             if (fEndDate.value)   p.set('end_date',   fEndDate.value);
         }
-        if (fStore.value)   p.set('store', fStore.value);
-        if (fPayment.value) p.set('payment_status', fPayment.value);
+        if (fStore.value)                    p.set('store', fStore.value);
+        if (fItemType.value !== 'all')       p.set('item_type', fItemType.value);
+        if (fCategory.value)                 p.set('category', fCategory.value);
+        if (fProduct.value)                  p.set('product', fProduct.value);
+        const st = fSaleType ? fSaleType.value : 'all';
+        if (st && st !== 'all')              p.set('sale_type', st);
+        if (fExcludeDamageWaiver.checked)    p.set('damage_waiver', 'exclude');
+        else if (fDamageWaiverOnly.checked)  p.set('damage_waiver', 'only');
+        if (fExcludeTrackIns.checked)        p.set('track_insurance', 'exclude');
+        else if (fTrackInsOnly.checked)      p.set('track_insurance', 'only');
+        if (fExcludeDelivery.checked)        p.set('delivery', 'exclude');
+        else if (fDeliveryOnly.checked)      p.set('delivery', 'only');
+        if (fExcludeShipping.checked)        p.set('shipping', 'exclude');
+        if (fPayment.value)                  p.set('payment_status', fPayment.value);
         p.set('group_by', activeGroup);
         return p;
     }
@@ -496,16 +607,73 @@
         scheduleRun();
     });
 
-    [fStore, fPayment].forEach(el => { if (el) el.addEventListener('change', scheduleRun); });
+    [fStore, fItemType, fProduct, fPayment].forEach(el => { if (el) el.addEventListener('change', scheduleRun); });
+
+    // ── Category → Product dependency ─────────────────────────────────────────
+    fCategory.addEventListener('change', function () {
+        const catId = this.value;
+        fProduct.innerHTML = '<option value="">All Products</option>';
+        const afterLoad = () => scheduleRun();
+        if (!catId) { afterLoad(); return; }
+        fetch(ROUTE + '?ajax_products=1&category=' + catId, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(data => {
+                if (data.products) data.products.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id; opt.textContent = p.product_name;
+                    fProduct.appendChild(opt);
+                });
+                afterLoad();
+            })
+            .catch(() => afterLoad());
+    });
+
+    // ── Checkbox pairs ─────────────────────────────────────────────────────────
+    function bindCheckboxPair(cbA, cbB) {
+        cbA.addEventListener('change', function () { if (this.checked) cbB.checked = false; scheduleRun(); });
+        cbB.addEventListener('change', function () { if (this.checked) cbA.checked = false; scheduleRun(); });
+    }
+    bindCheckboxPair(fExcludeDamageWaiver, fDamageWaiverOnly);
+    bindCheckboxPair(fExcludeTrackIns,     fTrackInsOnly);
+    bindCheckboxPair(fExcludeDelivery,     fDeliveryOnly);
+    fExcludeShipping.addEventListener('change', scheduleRun);
+
+    // ── Sale Type toggle ───────────────────────────────────────────────────────
+    function setSaleType(val) {
+        fSaleType.value = val;
+        fSaleTypeGroup.querySelectorAll('.sale-type-btn').forEach(btn => {
+            const on = btn.dataset.value === val;
+            btn.classList.toggle('bg-brand-500', on);  btn.classList.toggle('text-white', on);
+            btn.classList.toggle('bg-white', !on);      btn.classList.toggle('dark:bg-gray-700', !on);
+            btn.classList.toggle('text-gray-700', !on); btn.classList.toggle('dark:text-gray-200', !on);
+        });
+    }
+    fSaleTypeGroup.addEventListener('click', function (e) {
+        const btn = e.target.closest('.sale-type-btn');
+        if (!btn) return;
+        setSaleType(btn.dataset.value);
+        scheduleRun();
+    });
 
     // ── Clear filters ─────────────────────────────────────────────────────────
     document.getElementById('btn-clear-filters').addEventListener('click', function () {
-        fDateRange.value = 'mtd';
-        fStartDate.value = '';
-        fEndDate.value   = '';
-        fStore.value     = '';
-        fPayment.value   = 'paid';
-        activeGroup      = 'day';
+        fDateRange.value               = 'mtd';
+        fStartDate.value               = '';
+        fEndDate.value                 = '';
+        fStore.value                   = '';
+        fItemType.value                = 'all';
+        fCategory.value                = '';
+        fProduct.innerHTML             = '<option value="">All Products</option>';
+        fExcludeDamageWaiver.checked   = false;
+        fDamageWaiverOnly.checked      = false;
+        fExcludeTrackIns.checked       = false;
+        fTrackInsOnly.checked          = false;
+        fExcludeDelivery.checked       = false;
+        fDeliveryOnly.checked          = false;
+        fExcludeShipping.checked       = false;
+        fPayment.value                 = 'paid';
+        activeGroup                    = 'day';
+        setSaleType('all');
         customWrap.classList.add('hidden');
         syncGroupBtns();
         runReport();

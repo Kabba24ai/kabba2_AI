@@ -261,19 +261,7 @@ class GenerateClientReleaseNotes extends Command
 
     private function buildDocument(array $source, string $aiText): string
     {
-        $header = [
-            '# New Features & Improvements',
-            '',
-            '- Generated at: ' . $source['generated_at'],
-            '- Commit count analyzed: ' . $source['commit_count'],
-            '- File count analyzed: ' . $source['file_count'],
-            '- Scope: ' . (!empty($source['from_tag'])
-                ? ($source['from_tag'] . '..' . $source['to_ref'])
-                : ('since=' . ($source['since'] ?: 'N/A') . ', until=' . ($source['until'] ?: 'N/A') . ', ref=' . $source['to_ref'])),
-            '',
-        ];
-
-        return implode("\n", $header) . $aiText . "\n";
+        return $aiText . "\n";
     }
 
     private function runGit(array $arguments, string $workingDirectory): string

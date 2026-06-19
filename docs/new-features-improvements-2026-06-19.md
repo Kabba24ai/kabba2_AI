@@ -1,9 +1,3 @@
-# New Features & Improvements
-
-- Generated at: 2026-06-19 17:30:35
-- Commit count analyzed: 80
-- File count analyzed: 395
-- Scope: since=2 weeks ago, until=N/A, ref=HEAD
 ## New Features
 - Added new Dispatch Intelligence Rules module to help automate and optimize dispatch decisions.
 - Introduced Equipment Intelligence Rules module for improved equipment management insights.

@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Admin\ReleaseNotes;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class ShowController extends Controller
 {
-    public function __invoke(Request $request, string $slug): Response
+    public function __invoke(string $slug): Response
     {
         // Guard against path traversal
         if (!preg_match('/^[\w\-]+$/', $slug)) {
@@ -49,7 +48,7 @@ class ShowController extends Controller
         }
 
         return collect(File::files($docsPath))
-            ->filter(fn($f) => $f->getExtension() === 'md')
+            ->filter(fn($f) => $f->getExtension() === 'md' && str_starts_with($f->getFilename(), 'new-features-improvements-'))
             ->sortByDesc(fn($f) => $f->getMTime())
             ->map(function ($file) {
                 $slug  = pathinfo($file->getFilename(), PATHINFO_FILENAME);

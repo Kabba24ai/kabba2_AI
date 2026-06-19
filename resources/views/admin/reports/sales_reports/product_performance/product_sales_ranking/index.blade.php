@@ -466,7 +466,7 @@
             series: [{ name: isByQty ? 'Units Sold' : 'Revenue', data: values }],
             chart: {
                 type: 'bar',
-                height: Math.max(300, top.length * 40),
+                height: Math.max(120, top.length * 60),
                 toolbar: { show: false },
                 animations: { enabled: true, speed: 350 },
             },
@@ -475,14 +475,15 @@
                     horizontal: true,
                     borderRadius: 4,
                     distributed: true,
-                    dataLabels: { position: 'top' },
+                    barHeight: '50%',
+                    dataLabels: { position: 'center' },
                 },
             },
             dataLabels: {
                 enabled: true,
                 formatter: v => isByQty ? fmtNum(v) : fmtCurr(v),
-                offsetX: 6,
-                style: { fontSize: '11px', colors: ['#374151'] },
+                offsetX: 0,
+                style: { fontSize: '14px', fontWeight: '700', colors: ['#ffffff'] },
             },
             colors: [
                 '#3B82F6','#6366F1','#8B5CF6','#EC4899','#F43F5E',

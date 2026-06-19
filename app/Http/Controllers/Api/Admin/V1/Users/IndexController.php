@@ -32,12 +32,12 @@ class IndexController extends BaseController
                         $query->where('is_driver', $validatedData['is_driver']);
                     })->paginate($perPage);
 
-        if ($users->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => trans('messages.api.admin.v1.users.no_users_found'),
-            ], JsonResponse::HTTP_NOT_FOUND);
-        }
+        // if ($users->isEmpty()) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => trans('messages.api.admin.v1.users.no_users_found'),
+        //     ], JsonResponse::HTTP_NOT_FOUND);
+        // }
 
         return response()->json([
             'success' => true,

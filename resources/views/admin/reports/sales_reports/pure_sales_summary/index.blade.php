@@ -124,6 +124,25 @@
                 </select>
             </div>
 
+            {{-- Sale Type segmented toggle --}}
+            @php $saleType = $filters['sale_type'] ?? 'all'; @endphp
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Sale Type</label>
+                <div id="f-sale-type-group" class="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden text-sm">
+                    @foreach (['all' => 'All Sales', 'rental' => 'Rental', 'retail' => 'Retail'] as $val => $label)
+                    <button type="button" data-value="{{ $val }}"
+                        class="sale-type-btn px-4 py-2 font-medium transition-colors
+                            {{ $val !== 'all' ? 'border-l border-gray-300 dark:border-gray-600' : '' }}
+                            {{ $saleType === $val
+                                ? 'bg-brand-500 text-white'
+                                : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600' }}">
+                        {{ $label }}
+                    </button>
+                    @endforeach
+                </div>
+                <input type="hidden" id="f-sale-type" value="{{ $saleType }}">
+            </div>
+
         </div>
 
         {{-- Row 2: Checkbox inclusion/exclusion filters --}}
@@ -191,7 +210,13 @@
 
     {{-- ── SALES TREND CHART ──────────────────────────────────────────────── --}}
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6 shadow-sm">
-        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6">Sales Trend Analysis</h2>
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3 flex-wrap">
+            Sales Trend Analysis
+            <span id="psr-chart-period-badge"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 tracking-wide">
+                <span id="psr-chart-period">{{ $dateRangeLabel }}</span>
+            </span>
+        </h2>
 
         {{-- Metric cards --}}
         <div class="flex justify-center mb-6">
@@ -214,6 +239,11 @@
                 <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 min-w-[168px] text-center">
                     <div class="text-xs text-gray-600 font-medium mb-1">Daily Average</div>
                     <div id="psr-daily-avg" class="text-lg font-semibold text-purple-800">—</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 min-w-[168px] text-center">
+                    <div class="text-xs text-gray-600 font-medium mb-1">Transactions</div>
+                    <div id="psr-transactions" class="text-lg font-semibold text-gray-800">{{ $kpis['transaction_count'] }}</div>
+                    <div class="text-xs text-gray-400 mt-0.5">Avg: <span id="psr-avg-ticket">{{ $kpis['average_ticket'] }}</span></div>
                 </div>
             </div>
         </div>
@@ -260,6 +290,8 @@
     const fDeliveryOnly        = document.getElementById('f-delivery-only');
     const fExcludeShipping     = document.getElementById('f-exclude-shipping');
     const customDateWrap       = document.getElementById('custom-date-wrap');
+    const fSaleType            = document.getElementById('f-sale-type');
+    const fSaleTypeGroup       = document.getElementById('f-sale-type-group');
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     function collectFilters() {
@@ -290,6 +322,10 @@
         // Shipping (single exclusion)
         if (fExcludeShipping.checked)         params.set('shipping', 'exclude');
 
+        // Sale Type
+        const st = fSaleType.value;
+        if (st && st !== 'all') params.set('sale_type', st);
+
         return params;
     }
 
@@ -318,6 +354,16 @@
             if (data.kpi_html && kpiSec)    kpiSec.innerHTML    = data.kpi_html;
             if (data.html     && detailSec) detailSec.innerHTML = data.html;
             if (data.trend)                 renderTrend(data.trend);
+            if (data.date_range_label) {
+                const periodEl = document.getElementById('psr-chart-period');
+                if (periodEl) periodEl.textContent = data.date_range_label;
+            }
+            if (data.kpis) {
+                const txEl  = document.getElementById('psr-transactions');
+                const avgEl = document.getElementById('psr-avg-ticket');
+                if (txEl)  txEl.textContent  = data.kpis.transaction_count  ?? '—';
+                if (avgEl) avgEl.textContent  = data.kpis.average_ticket     ?? '—';
+            }
             document.querySelectorAll('a[href*="pure-sales-summary/export"]').forEach(a => {
                 a.href = EXPORT_ROUTE + '?' + params.toString();
             });
@@ -481,6 +527,26 @@
     bindCheckboxPair(fExcludeDelivery,     fDeliveryOnly);
     fExcludeShipping.addEventListener('change', scheduleRun);
 
+    // ── Sale Type toggle ───────────────────────────────────────────────────────
+    function setSaleType(val) {
+        fSaleType.value = val;
+        fSaleTypeGroup.querySelectorAll('.sale-type-btn').forEach(btn => {
+            const active = btn.dataset.value === val;
+            btn.classList.toggle('bg-brand-500', active);
+            btn.classList.toggle('text-white',   active);
+            btn.classList.toggle('bg-white',     !active);
+            btn.classList.toggle('dark:bg-gray-700', !active);
+            btn.classList.toggle('text-gray-700', !active);
+            btn.classList.toggle('dark:text-gray-200', !active);
+        });
+    }
+    fSaleTypeGroup.addEventListener('click', function (e) {
+        const btn = e.target.closest('.sale-type-btn');
+        if (!btn) return;
+        setSaleType(btn.dataset.value);
+        scheduleRun();
+    });
+
     // ── Clear filters ──────────────────────────────────────────────────────────
     document.getElementById('btn-clear-filters').addEventListener('click', function () {
         fDateRange.value               = 'mtd';
@@ -497,6 +563,7 @@
         fExcludeDelivery.checked       = false;
         fDeliveryOnly.checked          = false;
         fExcludeShipping.checked       = false;
+        setSaleType('all');
         customDateWrap.classList.add('hidden');
         runReport(1);
     });

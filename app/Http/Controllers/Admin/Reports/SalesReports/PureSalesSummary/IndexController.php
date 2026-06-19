@@ -75,11 +75,12 @@ class IndexController extends Controller
             ])->render();
 
             return response()->json([
-                'success'  => true,
-                'html'     => $html,
-                'kpi_html' => $kpiHtml,
-                'kpis'     => $kpis,
-                'trend'    => $trend,
+                'success'          => true,
+                'html'             => $html,
+                'kpi_html'         => $kpiHtml,
+                'kpis'             => $kpis,
+                'trend'            => $trend,
+                'date_range_label' => $this->reporting->dateRangeLabel($filters),
             ]);
         } catch (\Throwable $e) {
             \Log::error('Pure Sales Summary AJAX error', [
@@ -105,6 +106,7 @@ class IndexController extends Controller
             'track_insurance' => $request->input('track_insurance', 'all'),
             'delivery'        => $request->input('delivery', 'all'),
             'shipping'        => $request->input('shipping', 'all'),
+            'sale_type'       => $request->input('sale_type', 'all'),
             'payment_status'  => $request->input('payment_status', 'paid'),
         ];
     }
@@ -112,20 +114,26 @@ class IndexController extends Controller
     private function formatKpis(array $kpis): array
     {
         return [
+            // Pure Sales waterfall
             'gross_sales'             => CustomHelper::formatCurrency($kpis['gross_sales']),
             'discounts'               => CustomHelper::formatCurrency($kpis['discounts']),
+            'refunds'                 => CustomHelper::formatCurrency($kpis['refunds']),
             'net_sales'               => CustomHelper::formatCurrency($kpis['net_sales']),
-            'tax_collected'           => CustomHelper::formatCurrency($kpis['tax_collected']),
+            // Ancillary revenue streams
             'delivery_revenue'        => CustomHelper::formatCurrency($kpis['delivery_revenue']),
             'damage_waiver_revenue'   => CustomHelper::formatCurrency($kpis['damage_waiver_revenue']),
             'track_insurance_revenue' => CustomHelper::formatCurrency($kpis['track_insurance_revenue']),
             'tire_insurance_revenue'  => CustomHelper::formatCurrency($kpis['tire_insurance_revenue']),
+            'shipping_revenue'        => CustomHelper::formatCurrency($kpis['shipping_revenue']),
+            'operational_revenue'     => CustomHelper::formatCurrency($kpis['operational_revenue']),
+            // Tax & total
+            'tax_collected'           => CustomHelper::formatCurrency($kpis['tax_collected']),
+            'total_collected'         => CustomHelper::formatCurrency($kpis['total_collected']),
+            // Stats
             'transaction_count'         => number_format($kpis['transaction_count']),
             'average_ticket'            => CustomHelper::formatCurrency($kpis['average_ticket']),
             'account_payments_received' => CustomHelper::formatCurrency($kpis['account_payments_received']),
             'payment_status'            => $kpis['payment_status'],
-            'refunds'                   => CustomHelper::formatCurrency($kpis['refunds']),
-            'total_realized_revenue'    => CustomHelper::formatCurrency($kpis['total_realized_revenue']),
             // raw values for JS
             'raw'                       => $kpis,
         ];

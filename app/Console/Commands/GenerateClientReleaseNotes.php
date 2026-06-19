@@ -58,8 +58,13 @@ class GenerateClientReleaseNotes extends Command
             $aiText = trim($response['choices'][0]['message']['content'] ?? 'No response text returned.');
 
             $content = $this->buildDocument($source, $aiText);
+
+            // Write to a temp file first; only move to docs/ on success
+            $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'release-notes-' . uniqid() . '.md';
+            File::put($tmpPath, $content);
+
             File::ensureDirectoryExists(dirname($outputPath));
-            File::put($outputPath, $content);
+            File::move($tmpPath, $outputPath);
 
             $this->info('New Features & Improvements doc created.');
             $this->line(str_replace('\\', '/', $outputPath));

@@ -85,35 +85,65 @@ class PureSalesSummaryReport
         // ── Query 5: refunds against the in-scope orders ─────────────────────
         $refunds = $this->refundsTotal($filters);
 
-        // ── Derived metrics ──────────────────────────────────────────────────
+        // Shipping revenue — tracked as a separate bucket; wired to product_data key when available.
+        $shippingRevenue = 0.0;
+
+        // ── Merge account payments into their canonical buckets ──────────────
         // Account payment base → gross sales; account payment tax → tax collected.
         $grossSales   += $accountPaymentsReceived;
         $taxCollected += $accountPaymentsTax;
 
-        // Net Sales = pure business revenue: product/rental subtotals minus discounts and refunds.
-        // Sales tax is excluded — it is collected on behalf of the state, not revenue.
+        // ── Apply component-level revenue filters ────────────────────────────
+        // Damage Waiver / Track Insurance / Delivery / Shipping filters must never
+        // exclude whole orders — they only zero or isolate a specific revenue bucket.
+        $c = $this->applyComponentFilters($filters, [
+            'gross_sales'               => $grossSales,
+            'tax_collected'             => $taxCollected,
+            'delivery_revenue'          => $deliveryRevenue,
+            'damage_waiver_revenue'     => $damageWaiverRevenue,
+            'track_insurance_revenue'   => $trackInsuranceRevenue,
+            'tire_insurance_revenue'    => $tireInsuranceRevenue,
+            'shipping_revenue'          => $shippingRevenue,
+            'refunds'                   => $refunds,
+            'discounts'                 => $discounts,
+            'account_payments_received' => $accountPaymentsReceived,
+            'account_payments_tax'      => $accountPaymentsTax,
+            'transaction_count'         => (float) $transactionCount,
+        ]);
+
+        $grossSales             = $c['gross_sales'];
+        $taxCollected           = $c['tax_collected'];
+        $deliveryRevenue        = $c['delivery_revenue'];
+        $damageWaiverRevenue    = $c['damage_waiver_revenue'];
+        $trackInsuranceRevenue  = $c['track_insurance_revenue'];
+        $tireInsuranceRevenue   = $c['tire_insurance_revenue'];
+        $shippingRevenue        = $c['shipping_revenue'];
+        $refunds                = $c['refunds'];
+        $discounts              = $c['discounts'];
+        $accountPaymentsReceived = $c['account_payments_received'];
+        $accountPaymentsTax     = $c['account_payments_tax'];
+        $transactionCount       = (int) $c['transaction_count'];
+
+        // ── Derived metrics ──────────────────────────────────────────────────
         $netSales      = max(0, $grossSales - $discounts - $refunds);
         $averageTicket = $transactionCount > 0 ? $netSales / $transactionCount : 0;
 
-        // Shipping revenue — tracked as a separate bucket; wired to product_data key when available.
-        $shippingRevenue = 0.0;
-
-        // Operational Revenue = Net Sales + all ancillary revenue streams.
-        $operationalRevenue = $netSales
+        // Total Collected = all money that came in: rental/gross + every ancillary component
+        // + tax - refunds - discounts. Including ancillary components means excluding any one
+        // of them (via filter) reduces Total Collected by exactly that component's amount.
+        $totalCollected = $grossSales
             + $deliveryRevenue
             + $damageWaiverRevenue
             + $trackInsuranceRevenue
             + $tireInsuranceRevenue
-            + $shippingRevenue;
-
-        // Total Collected = everything that hit the bank: gross (incl. account payment base)
-        // + tax (incl. account payment tax) - refunds - discounts.
-        $totalCollected       = $grossSales + $taxCollected - $refunds - $discounts;
+            + $shippingRevenue
+            + $taxCollected
+            - $refunds
+            - $discounts;
 
         // Total Account Payments = what account customers actually paid (base + tax).
         $totalAccountPayments = $accountPaymentsReceived + $accountPaymentsTax;
 
-        // Operational Revenue = Net Sales + all ancillary revenue streams.
         $operationalRevenue = $netSales
             + $deliveryRevenue
             + $damageWaiverRevenue
@@ -300,6 +330,96 @@ class PureSalesSummaryReport
             ->sum('refund_amount');
     }
 
+    // ─── Component Filter Application ────────────────────────────────────────
+
+    /**
+     * Apply damage_waiver / track_insurance / delivery / shipping filters at the
+     * revenue-component level, not at the row/order level.
+     *
+     * "exclude" → zero out just the targeted bucket, leave everything else intact.
+     * "only"    → zero out ALL other buckets; show only the selected component(s).
+     *
+     * @param  array $filters   Request filters (damage_waiver, track_insurance, …)
+     * @param  array $components  All computed revenue buckets keyed by name
+     * @return array  Same shape as $components with filters applied
+     */
+    private function applyComponentFilters(array $filters, array $components): array
+    {
+        $dwFilter    = $filters['damage_waiver']   ?? 'all';
+        $tiFilter    = $filters['track_insurance'] ?? 'all';
+        $delivFilter = $filters['delivery']        ?? 'all';
+        $shipFilter  = $filters['shipping']        ?? 'all';
+
+        $anyOnly = in_array('only', [$dwFilter, $tiFilter, $delivFilter, $shipFilter]);
+
+        if ($anyOnly) {
+            // "Only" mode: start from zero and re-enable only the selected component(s).
+            // Rental gross, tax, refunds, discounts, and account payments are cleared —
+            // the user wants to see only this revenue stream in isolation.
+            $result = array_map(fn() => 0.0, $components);
+
+            if ($dwFilter    === 'only') $result['damage_waiver_revenue']   = $components['damage_waiver_revenue'];
+            if ($tiFilter    === 'only') $result['track_insurance_revenue'] = $components['track_insurance_revenue'];
+            if ($delivFilter === 'only') $result['delivery_revenue']        = $components['delivery_revenue'];
+            if ($shipFilter  === 'only') $result['shipping_revenue']        = $components['shipping_revenue'];
+
+            return $result;
+        }
+
+        // "Exclude" mode: preserve everything, zero only the targeted component.
+        $result = $components;
+        if ($dwFilter    === 'exclude') $result['damage_waiver_revenue']   = 0.0;
+        if ($tiFilter    === 'exclude') $result['track_insurance_revenue'] = 0.0;
+        if ($delivFilter === 'exclude') $result['delivery_revenue']        = 0.0;
+        if ($shipFilter  === 'exclude') $result['shipping_revenue']        = 0.0;
+
+        return $result;
+    }
+
+    /**
+     * Compute the daily revenue total for one trend row, applying the same
+     * component-level filters used in kpis().
+     * $row must have columns: daily_gross, daily_delivery, daily_dw, daily_ti, daily_tire.
+     */
+    private function computeDailyTotal(array $filters, ?object $row): float
+    {
+        if (!$row) {
+            return 0.0;
+        }
+
+        $gross  = (float) ($row->daily_gross    ?? 0);
+        $deliv  = (float) ($row->daily_delivery ?? 0);
+        $dw     = (float) ($row->daily_dw       ?? 0);
+        $ti     = (float) ($row->daily_ti       ?? 0);
+        $tire   = (float) ($row->daily_tire     ?? 0);
+
+        $dwFilter    = $filters['damage_waiver']   ?? 'all';
+        $tiFilter    = $filters['track_insurance'] ?? 'all';
+        $delivFilter = $filters['delivery']        ?? 'all';
+        $shipFilter  = $filters['shipping']        ?? 'all';
+
+        $anyOnly = in_array('only', [$dwFilter, $tiFilter, $delivFilter, $shipFilter]);
+
+        if ($anyOnly) {
+            $total = 0.0;
+            if ($dwFilter    === 'only') $total += $dw;
+            if ($tiFilter    === 'only') $total += $ti;
+            if ($delivFilter === 'only') $total += $deliv;
+            // "shipping only" has no dedicated daily_shipping column — returns 0 for now
+            return max(0.0, $total);
+        }
+
+        // Normal total: gross (rental) + every ancillary component
+        $total = $gross + $deliv + $dw + $ti + $tire;
+
+        // "Exclude" modes: subtract just that component
+        if ($dwFilter    === 'exclude') $total -= $dw;
+        if ($tiFilter    === 'exclude') $total -= $ti;
+        if ($delivFilter === 'exclude') $total -= $deliv;
+
+        return max(0.0, $total);
+    }
+
     // ─── Sales Trend ─────────────────────────────────────────────────────────
 
     /**
@@ -324,8 +444,17 @@ class PureSalesSummaryReport
 
         $days = (int) $start->diffInDays($end) + 1;
 
+        $componentSelect = "
+            DATE(orders.order_date) AS date,
+            SUM(order_products.sub_total) AS daily_gross,
+            SUM(COALESCE(CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_option_price')), '') AS DECIMAL(12,2)), 0)) AS daily_delivery,
+            SUM(COALESCE(CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_damage_waiver')), '') AS DECIMAL(12,2)), 0) * order_products.quantity) AS daily_dw,
+            SUM(COALESCE(CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_track_insurance')), '') AS DECIMAL(12,2)), 0) * order_products.quantity) AS daily_ti,
+            SUM(COALESCE(CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_rental_items_prices.rental_tire_insurance')), '') AS DECIMAL(12,2)), 0) * order_products.quantity) AS daily_tire
+        ";
+
         $currentRows = $this->reporting->baseQuery($filters)
-            ->selectRaw('DATE(orders.order_date) as date, SUM(order_products.sub_total) as daily_total')
+            ->selectRaw($componentSelect)
             ->groupByRaw('DATE(orders.order_date)')
             ->get()
             ->keyBy('date');
@@ -340,7 +469,7 @@ class PureSalesSummaryReport
         ]);
 
         $previousRows = $this->reporting->baseQuery($prevFilters)
-            ->selectRaw('DATE(orders.order_date) as date, SUM(order_products.sub_total) as daily_total')
+            ->selectRaw($componentSelect)
             ->groupByRaw('DATE(orders.order_date)')
             ->get()
             ->keyBy('date');
@@ -354,8 +483,8 @@ class PureSalesSummaryReport
             $prevDate = $prevStart->copy()->addDays($i);
 
             $categories[] = $date->format('M j');
-            $current[]    = (float) ($currentRows[$date->toDateString()]->daily_total ?? 0);
-            $previous[]   = (float) ($previousRows[$prevDate->toDateString()]->daily_total ?? 0);
+            $current[]    = $this->computeDailyTotal($filters, $currentRows[$date->toDateString()] ?? null);
+            $previous[]   = $this->computeDailyTotal($filters, $previousRows[$prevDate->toDateString()] ?? null);
         }
 
         $totalSales         = array_sum($current);

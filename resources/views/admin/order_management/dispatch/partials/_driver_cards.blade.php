@@ -70,7 +70,10 @@
                     <span class="ml-auto text-gray-400 font-normal normal-case tracking-normal">{{ $driver->delivery_jobs->count() }}</span>
                 </p>
                 @forelse ($driver->delivery_jobs as $job)
-                @php $addr = $job->order?->shippingAddress; @endphp
+                @php
+                    $addr = $job->order?->shippingAddress;
+                    $isOverdue = $job->delivery_date && \Carbon\Carbon::parse($job->delivery_date)->lt(today());
+                @endphp
                 <div class="flex items-start gap-2">
                     {{-- Editable priority circle --}}
                     <button type="button"
@@ -83,7 +86,10 @@
                     <button type="button"
                         class="flex-1 text-left space-y-0.5 py-1 hover:bg-blue-50 rounded transition-colors dispatch-card-jump min-w-0"
                         data-order-number="{{ $job->order?->order_number }}">
-                        <p class="font-semibold text-gray-800 leading-tight"><span class="text-blue-600 mr-1">#{{ $job->order?->order_number }}</span>{{ $job->order?->customer_name ?? '—' }}</p>
+                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1">
+                            @if($isOverdue)<x-heroicon-s-exclamation-triangle class="w-3.5 h-3.5 text-red-500 shrink-0" />@endif
+                            <span class="text-blue-600 mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
+                        </p>
                         <p class="text-gray-600 leading-snug">{{ $job->equipment?->equipment_name ?? $job->softAssignment?->equipment?->equipment_name ?? $job->product_name }}</p>
                         <p class="text-gray-400 leading-snug">From: {{ $job->deliveryStore?->store_name ?? 'Custom' }}</p>
                         <p class="text-gray-500 leading-snug">{{ $addr?->address ?? '' }}{{ $addr?->address && $addr?->city ? ', ' : '' }}{{ $addr?->city ?? '—' }}</p>
@@ -102,7 +108,10 @@
                     <span class="ml-auto text-gray-400 font-normal normal-case tracking-normal">{{ $driver->return_jobs->count() }}</span>
                 </p>
                 @forelse ($driver->return_jobs as $job)
-                @php $addr = $job->order?->shippingAddress; @endphp
+                @php
+                    $addr = $job->order?->shippingAddress;
+                    $isOverdue = $job->pickup_date && \Carbon\Carbon::parse($job->pickup_date)->lt(today());
+                @endphp
                 <div class="flex items-start gap-2">
                     {{-- Editable priority circle --}}
                     <button type="button"
@@ -115,7 +124,10 @@
                     <button type="button"
                         class="flex-1 text-left space-y-0.5 py-1 hover:bg-purple-50 rounded transition-colors dispatch-card-jump min-w-0"
                         data-order-number="{{ $job->order?->order_number }}">
-                        <p class="font-semibold text-gray-800 leading-tight"><span class="text-purple-600 mr-1">#{{ $job->order?->order_number }}</span>{{ $job->order?->customer_name ?? '—' }}</p>
+                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1">
+                            @if($isOverdue)<x-heroicon-s-exclamation-triangle class="w-3.5 h-3.5 text-red-500 shrink-0" />@endif
+                            <span class="text-purple-600 mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
+                        </p>
                         <p class="text-gray-600 leading-snug">{{ $job->equipment?->equipment_name ?? $job->softAssignment?->equipment?->equipment_name ?? $job->product_name }}</p>
                         <p class="text-gray-500 leading-snug">{{ $addr?->address ?? '' }}{{ $addr?->address && $addr?->city ? ', ' : '' }}{{ $addr?->city ?? '—' }}</p>
                         <p class="text-gray-400 leading-snug">To: {{ $job->pickupStore?->store_name ?? 'Custom' }}</p>
@@ -140,6 +152,8 @@
                 $isDelivery = $job->getAttribute('_slot') === 'delivery';
                 $priority   = $isDelivery ? $job->delivery_priority : $job->pickup_priority;
                 $addr       = $job->order?->shippingAddress;
+                $jobDate    = $isDelivery ? $job->delivery_date : $job->pickup_date;
+                $isOverdue  = $jobDate && \Carbon\Carbon::parse($jobDate)->lt(today());
             @endphp
             <button type="button"
                 class="w-full text-left space-y-1 border-l-2 {{ $isDelivery ? 'border-blue-300 hover:bg-blue-50' : 'border-purple-300 hover:bg-purple-50' }} pl-3 py-1 rounded-r transition-colors dispatch-card-jump"
@@ -150,8 +164,9 @@
                         {{ $priority ?? '—' }}
                     </span>
                     <div class="min-w-0 flex-1">
-                        <p class="font-semibold text-gray-800 leading-tight">
-                            <span class="{{ $isDelivery ? 'text-blue-600' : 'text-purple-600' }} mr-1">#{{ $job->order?->order_number }}</span>{{ $job->order?->customer_name ?? '—' }}
+                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1">
+                            @if($isOverdue)<x-heroicon-s-exclamation-triangle class="w-3.5 h-3.5 text-red-500 shrink-0" />@endif
+                            <span class="{{ $isDelivery ? 'text-blue-600' : 'text-purple-600' }} mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
                             <span class="ml-1 text-[10px] font-normal {{ $isDelivery ? 'text-blue-400' : 'text-purple-400' }}">{{ $isDelivery ? '↑ Del' : '↓ Ret' }}</span>
                         </p>
                         <p class="text-gray-600 leading-snug">{{ $job->equipment?->equipment_name ?? $job->softAssignment?->equipment?->equipment_name ?? $job->product_name }}</p>

@@ -4,25 +4,20 @@
     Period: <span class="font-medium text-gray-700 dark:text-gray-200">{{ $dateRangeLabel }}</span>
 </div>
 
-{{-- ── Row 1: Pure Sales Waterfall ─────────────────────────────────────── --}}
+{{-- ── Row 1: Total Collected | Gross Sales | Net Sales | Tax Collected | Refunds | Discounts ── --}}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+
+    {{-- Total Collected: gross + tax - refunds - discounts — what actually hit the bank --}}
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-teal-200 dark:border-teal-700 p-4 shadow-sm ring-1 ring-teal-100 dark:ring-teal-900">
+        <p class="text-xs font-medium text-teal-600 dark:text-teal-400 uppercase tracking-wide mb-1">Total Collected</p>
+        <p class="text-2xl font-bold text-teal-700 dark:text-teal-300">{{ $kpis['total_collected'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Gross + Tax &minus; Refunds &minus; Discounts</p>
+    </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Gross Sales</p>
         <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $kpis['gross_sales'] }}</p>
         <p class="text-xs text-gray-400 mt-1">Before discounts &amp; refunds</p>
-    </div>
-
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
-        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Discounts</p>
-        <p class="text-2xl font-bold text-red-600 dark:text-red-400">- {{ $kpis['discounts'] }}</p>
-        <p class="text-xs text-gray-400 mt-1">Applied to orders</p>
-    </div>
-
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
-        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Refunds</p>
-        <p class="text-2xl font-bold text-red-600 dark:text-red-400">- {{ $kpis['refunds'] }}</p>
-        <p class="text-xs text-gray-400 mt-1">Against period orders</p>
     </div>
 
     {{-- Net Sales: the key pure-revenue metric --}}
@@ -39,17 +34,39 @@
         <p class="text-xs text-amber-400 mt-1">Not included in revenue</p>
     </div>
 
-    {{-- Total Collected: gross + tax - refunds - discounts — what actually hit the bank --}}
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-teal-200 dark:border-teal-700 p-4 shadow-sm ring-1 ring-teal-100 dark:ring-teal-900">
-        <p class="text-xs font-medium text-teal-600 dark:text-teal-400 uppercase tracking-wide mb-1">Total Collected</p>
-        <p class="text-2xl font-bold text-teal-700 dark:text-teal-300">{{ $kpis['total_collected'] }}</p>
-        <p class="text-xs text-gray-400 mt-1">Gross + Tax &minus; Refunds &minus; Discounts</p>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Refunds</p>
+        <p class="text-2xl font-bold text-red-600 dark:text-red-400">- {{ $kpis['refunds'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Against period orders</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Discounts</p>
+        <p class="text-2xl font-bold text-red-600 dark:text-red-400">- {{ $kpis['discounts'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Applied to orders</p>
     </div>
 
 </div>
 
-{{-- ── Row 2: Ancillary Revenue Streams ───────────────────────────────── --}}
+{{-- ── Row 2: Total Account Payments | Account Payments Received | Delivery | Damage Waiver | Track Ins. | Tire Ins. ── --}}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+
+    @if (in_array($kpis['payment_status'] ?? 'paid', ['paid', 'all', 'account']))
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-emerald-300 dark:border-emerald-600 p-4 shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-800">
+        <p class="text-xs font-medium text-emerald-700 dark:text-emerald-300 uppercase tracking-wide mb-1">Total Account Payments</p>
+        <p class="text-xl font-semibold text-emerald-800 dark:text-emerald-200">{{ $kpis['total_account_payments'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Base + sales tax collected</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-emerald-200 dark:border-emerald-700 p-4 shadow-sm ring-1 ring-emerald-100 dark:ring-emerald-900">
+        <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1">Account Payments Received</p>
+        <p class="text-xl font-semibold text-emerald-700 dark:text-emerald-300">{{ $kpis['account_payments_received'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Base amount, excl. tax</p>
+    </div>
+    @else
+    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-4"></div>
+    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-4"></div>
+    @endif
 
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Delivery Revenue</p>
@@ -70,24 +87,6 @@
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Tire Insurance</p>
         <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ $kpis['tire_insurance_revenue'] }}</p>
     </div>
-
-    @if (in_array($kpis['payment_status'] ?? 'paid', ['paid', 'all', 'account']))
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-emerald-200 dark:border-emerald-700 p-4 shadow-sm ring-1 ring-emerald-100 dark:ring-emerald-900">
-        <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1">Account Payments Received</p>
-        <p class="text-xl font-semibold text-emerald-700 dark:text-emerald-300">{{ $kpis['account_payments_received'] }}</p>
-        <p class="text-xs text-gray-400 mt-1">Base amount, excl. tax</p>
-    </div>
-
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-emerald-300 dark:border-emerald-600 p-4 shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-800">
-        <p class="text-xs font-medium text-emerald-700 dark:text-emerald-300 uppercase tracking-wide mb-1">Total Account Payments</p>
-        <p class="text-xl font-semibold text-emerald-800 dark:text-emerald-200">{{ $kpis['total_account_payments'] }}</p>
-        <p class="text-xs text-gray-400 mt-1">Base + sales tax collected</p>
-    </div>
-    @else
-    {{-- Placeholder cards to keep row aligned when account payments are hidden --}}
-    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-4"></div>
-    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-4"></div>
-    @endif
 
     @if (($kpis['raw']['shipping_revenue'] ?? 0) > 0)
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">

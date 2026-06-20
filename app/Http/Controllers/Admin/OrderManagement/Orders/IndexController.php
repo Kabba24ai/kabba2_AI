@@ -75,11 +75,13 @@ class IndexController extends Controller
                     $search = trim($request->equipment_id_search);
                     $q->whereHas('products', function ($s) use ($search) {
                         $s->where(function ($sub) use ($search) {
-                            // Hard assignment: order_products.equipment_id FK → equipment.equipment_id
-                            $sub->whereHas('equipment', function ($eq) use ($search) {
+                            // Primary: equipment_details JSON (source of truth for table display)
+                            $sub->where('equipment_details->equipment_id', 'like', "%{$search}%")
+                            // Hard assignment FK → equipment.equipment_id readable string
+                            ->orWhereHas('equipment', function ($eq) use ($search) {
                                 $eq->where('equipment_id', 'like', "%{$search}%");
                             })
-                            // Soft assignment: equipment_soft_assigns → equipment.equipment_id
+                            // Soft assignment
                             ->orWhereHas('softAssignment.equipment', function ($eq) use ($search) {
                                 $eq->where('equipment_id', 'like', "%{$search}%");
                             });

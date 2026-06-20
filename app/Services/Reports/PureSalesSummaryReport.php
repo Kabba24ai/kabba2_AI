@@ -83,6 +83,10 @@ class PureSalesSummaryReport
         $refunds = $this->refundsTotal($filters);
 
         // ── Derived metrics ──────────────────────────────────────────────────
+        // Add realized account payments into gross sales so they flow through
+        // to net sales, operational revenue, and total collected.
+        $grossSales += $accountPaymentsReceived;
+
         // Net Sales = pure business revenue: product/rental subtotals minus discounts and refunds.
         // Sales tax is excluded — it is collected on behalf of the state, not revenue.
         $netSales      = max(0, $grossSales - $discounts - $refunds);

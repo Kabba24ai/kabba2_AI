@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules;
 
 use App\Http\Controllers\Controller;
+use App\Enums\Dispatch\DispatchIntelligenceRuleType;
 use App\Models\Dispatch\DispatchAiDriverCapability;
 use App\Models\Dispatch\DispatchAiEquipmentRule;
 use App\Models\Dispatch\DispatchAiSettings;
@@ -131,6 +132,27 @@ class AiRulesController extends Controller
         $intelligenceRuleCount        = DispatchIntelligenceRule::active()->count();
         $intelligenceRulePendingCount = DispatchIntelligenceRule::active()->pending()->count();
 
+        // Intelligence Rules tab data (only queried when that tab is active)
+        $rules        = collect();
+        $ruleTypes    = [];
+        $filterType   = null;
+        $filterStatus = null;
+
+        if (request('tab') === 'intelligence_rules') {
+            $filterType   = request('rule_type');
+            $filterStatus = request('status');
+
+            $rules = DispatchIntelligenceRule::with(['approver:id,first_name,last_name', 'creator:id,first_name,last_name'])
+                ->when($filterType,   fn ($q) => $q->where('rule_type', $filterType))
+                ->when($filterStatus === 'approved', fn ($q) => $q->where('approved_by_admin', true))
+                ->when($filterStatus === 'pending',  fn ($q) => $q->where('approved_by_admin', false))
+                ->orderByDesc('priority')
+                ->orderBy('rule_type')
+                ->get();
+
+            $ruleTypes = DispatchIntelligenceRuleType::cases();
+        }
+
         return view('admin.order_management.dispatch.ai_rules.index', compact(
             'settings',
             'drivers',
@@ -148,6 +170,10 @@ class AiRulesController extends Controller
             'policyPreviewJson',
             'intelligenceRuleCount',
             'intelligenceRulePendingCount',
+            'rules',
+            'ruleTypes',
+            'filterType',
+            'filterStatus',
         ));
     }
 }

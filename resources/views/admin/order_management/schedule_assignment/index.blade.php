@@ -269,9 +269,10 @@
             <div class="px-4 pt-3 space-y-2 overflow-y-auto">
                 <!-- Order Information Section -->
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-                    <div>
+                    <div class="flex items-center gap-2">
                         <span class="text-xs font-semibold text-blue-700">Order ID:</span>
-                        <a id="assign-order-id" href="#"  class="text-sm text-blue-900 font-semibold">-</a>
+                        <a id="assign-order-id" href="#" class="text-sm text-blue-900 font-semibold">-</a>
+                        <span id="assign-transport-icon" class="inline-flex items-center gap-1"></span>
                     </div>
                     <div>
                         <span class="text-xs font-semibold text-blue-700">Customer:</span>
@@ -281,6 +282,18 @@
                         <span class="text-xs font-semibold text-blue-700">Product Ordered:</span>
                         <span id="assign-product-name" class="text-sm text-blue-900 font-semibold">-</span>
                     </div>
+                    <div id="assign-equipment-info" class="hidden">
+                        <span class="text-xs font-semibold text-blue-700">Equipment Assigned:</span>
+                        <span id="assign-equipment-name" class="text-sm text-blue-900 font-semibold">-</span>
+                        <span id="assign-equipment-id" class="text-xs text-gray-500 font-mono ml-1"></span>
+                    </div>
+                </div>
+
+                <div id="assign-readonly-notice" class="hidden bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 flex items-start gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mt-0.5 shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                    <span>This rental is already in process. Equipment assignment cannot be changed from this screen.</span>
                 </div>
 
                 <div class="space-y-1">
@@ -359,6 +372,37 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function buildTransportIcon(deliveryMode, pickupMode) {
+        const truckSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle" title="Truck"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>`;
+        const storeSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle" title="In-Store"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>`;
+
+        function modeIcon(mode, color) {
+            if (!mode) return '';
+            const svg = mode === 'Truck' ? truckSvg : storeSvg;
+            return `<span style="color:${color}">${svg}</span>`;
+        }
+
+        if (!deliveryMode && !pickupMode) return '';
+
+        if (deliveryMode === pickupMode) {
+            const label = deliveryMode === 'Truck' ? 'Truck' : 'In-Store';
+            const color = deliveryMode === 'Truck' ? '#1d4ed8' : '#6b7280';
+            return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:${color}">${modeIcon(deliveryMode, color)}<span>${label}</span></span>`;
+        }
+
+        // Delivery and return differ — show both with labels
+        let parts = [];
+        if (deliveryMode) {
+            const color = deliveryMode === 'Truck' ? '#1d4ed8' : '#6b7280';
+            parts.push(`<span style="display:inline-flex;align-items:center;gap:2px;font-size:10px;color:${color}">${modeIcon(deliveryMode, color)}<span>Del</span></span>`);
+        }
+        if (pickupMode) {
+            const color = pickupMode === 'Truck' ? '#1d4ed8' : '#6b7280';
+            parts.push(`<span style="display:inline-flex;align-items:center;gap:2px;font-size:10px;color:${color}">${modeIcon(pickupMode, color)}<span>Ret</span></span>`);
+        }
+        return parts.join('<span style="color:#d1d5db;font-size:10px;margin:0 1px">/</span>');
     }
 
     function showScheduleAssistantModal(title = 'Scheduling Assistant') {
@@ -994,6 +1038,7 @@
             const customerNameLabel = document.getElementById('assign-customer-name');
             const productNameLabel = document.getElementById('assign-product-name');
             let pendingPreferredCategoryId = '';
+            let isHardAssignedMode = false;
 
             function applyPreferredCategory(categoryId) {
                 const normalizedCategoryId = String(categoryId || '').trim();
@@ -1029,6 +1074,11 @@
                 const productName = btn.dataset.productName || '';
                 const customerName = btn.dataset.customerName || '';
                 const preferredCategoryId = btn.dataset.categoryId || '';
+                const deliveryTransportMode = btn.dataset.deliveryTransportMode || '';
+                const pickupTransportMode = btn.dataset.pickupTransportMode || '';
+                const isHardAssigned = btn.dataset.isHardAssigned === 'true';
+                const assignedEquipmentName = btn.dataset.assignedEquipmentName || '';
+                const assignedEquipmentId = btn.dataset.assignedEquipmentId || '';
                 let orderDetailUrl = "{{ route('admin.order-management.orders.edit', ['unique_id' => 'ORDER_ID_PLACEHOLDER']) }}";
 
                 document.getElementById('order-product-unique-id').value = orderProductUniqueId || '';
@@ -1044,6 +1094,40 @@
 
                 if (productNameLabel) {
                     productNameLabel.textContent = productName || '-';
+                }
+
+                const transportIconEl = document.getElementById('assign-transport-icon');
+                if (transportIconEl) {
+                    transportIconEl.innerHTML = buildTransportIcon(deliveryTransportMode, pickupTransportMode);
+                }
+
+                // Hard-assigned (rental in process) — show info, lock controls
+                isHardAssignedMode = isHardAssigned;
+                const equipInfoEl    = document.getElementById('assign-equipment-info');
+                const equipNameEl    = document.getElementById('assign-equipment-name');
+                const equipIdEl      = document.getElementById('assign-equipment-id');
+                const readonlyEl     = document.getElementById('assign-readonly-notice');
+                const userSelEl      = document.getElementById('user_unique_id');
+                const catSelEl       = document.getElementById('category_select');
+                const equipSelEl     = document.getElementById('equipment_unique_id');
+                const assignBtnEl    = document.getElementById('equipment-assign-submit');
+
+                if (isHardAssigned) {
+                    if (equipInfoEl)  equipInfoEl.classList.remove('hidden');
+                    if (equipNameEl)  equipNameEl.textContent = assignedEquipmentName || '-';
+                    if (equipIdEl)    equipIdEl.textContent   = assignedEquipmentId ? `(${assignedEquipmentId})` : '';
+                    if (readonlyEl)   readonlyEl.classList.remove('hidden');
+                    if (userSelEl)    userSelEl.disabled  = true;
+                    if (catSelEl)     catSelEl.disabled   = true;
+                    if (equipSelEl)   equipSelEl.disabled = true;
+                    if (assignBtnEl)  { assignBtnEl.disabled = true; assignBtnEl.classList.add('opacity-50', 'cursor-not-allowed'); }
+                } else {
+                    if (equipInfoEl)  equipInfoEl.classList.add('hidden');
+                    if (readonlyEl)   readonlyEl.classList.add('hidden');
+                    if (userSelEl)    userSelEl.disabled  = false;
+                    if (catSelEl)     catSelEl.disabled   = false;
+                    if (equipSelEl)   equipSelEl.disabled = false;
+                    if (assignBtnEl)  assignBtnEl.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
 
                 modal.classList.remove('hidden');
@@ -1074,6 +1158,21 @@
                 if (orderIdLabel) orderIdLabel.textContent = '-';
                 if (customerNameLabel) customerNameLabel.textContent = '-';
                 if (productNameLabel) productNameLabel.textContent = '-';
+                const transportIconElClear = document.getElementById('assign-transport-icon');
+                if (transportIconElClear) transportIconElClear.innerHTML = '';
+
+                // Reset hard-assigned state
+                isHardAssignedMode = false;
+                const equipInfoElClear = document.getElementById('assign-equipment-info');
+                const readonlyElClear  = document.getElementById('assign-readonly-notice');
+                const userSelClear     = document.getElementById('user_unique_id');
+                const catSelClear      = document.getElementById('category_select');
+                const equipSelClear    = document.getElementById('equipment_unique_id');
+                if (equipInfoElClear) equipInfoElClear.classList.add('hidden');
+                if (readonlyElClear)  readonlyElClear.classList.add('hidden');
+                if (userSelClear)     userSelClear.disabled  = false;
+                if (catSelClear)      catSelClear.disabled   = false;
+                if (equipSelClear)    equipSelClear.disabled = false;
                 if (statusDiv) {
                     statusDiv.textContent = '';
                     statusDiv.className = 'text-sm font-semibold text-gray-600';
@@ -1234,7 +1333,7 @@
 
                 statusDiv.textContent = `Status: ${statusText}`;
                 statusDiv.className = `mt-2 text-sm font-semibold ${statusColor}`;
-                assignBtn.disabled = !isAvailable;
+                assignBtn.disabled = !isAvailable || isHardAssignedMode;
                 pageLink.href = link;
                 pageLink.textContent = title;
             }

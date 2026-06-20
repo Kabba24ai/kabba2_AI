@@ -71,6 +71,15 @@
                         class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
                 </div>
             </div>
+            <div class="w-full sm:w-40">
+                <div class="relative bg-white">
+                    <input type="text" id="equipment_id_search" placeholder="Equipment ID" name="equipment_id_search"
+                        value="{{ request('equipment_id_search') }}"
+                        class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
+                    <x-heroicon-o-wrench-screwdriver
+                        class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
+                </div>
+            </div>
             <div class="w-full sm:w-48">
                 <select name="category"
                     class="choices-select w-full rounded-md py-3 px-3 border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
@@ -298,6 +307,7 @@
             let customerCompanyNameInput = document.querySelector('input[name="customer_company_name"]');
             let customerPhoneInput = document.querySelector('input[name="customer_phone"]');
             let orderNumberInput = document.querySelector('input[name="order_number"]');
+            let equipmentIdSearchInput = document.querySelector('input[name="equipment_id_search"]');
             let categoryInput = document.querySelector('select[name="category"]');
             let paymentMethodInput = document.querySelector('select[name="payment_method"]');
             let paymentStatusInput = document.querySelector('select[name="payment_status"]');
@@ -317,6 +327,7 @@
                 'customer_company_name': customerCompanyNameInput,
                 'customer_phone': customerPhoneInput,
                 'order_number': orderNumberInput,
+                'equipment_id_search': equipmentIdSearchInput,
                 'category': categoryInput,
                 'payment_method': paymentMethodInput,
                 'payment_status': paymentStatusInput,
@@ -332,6 +343,7 @@
                 const customerCompany = customerCompanyNameInput.value;
                 const customerPhone = customerPhoneInput.value;
                 const orderNumber = orderNumberInput.value;
+                const equipmentIdSearch = equipmentIdSearchInput ? equipmentIdSearchInput.value : '';
                 const category = categoryInput.value;
                 const paymentMethod = paymentMethodInput.value;
                 const paymentStatus = paymentStatusInput.value;
@@ -348,6 +360,8 @@
                     customerPhone);
                 if (orderNumber.length >= 3 || orderNumber.length === 0) params.append('order_number',
                     orderNumber);
+                if (equipmentIdSearch.length >= 2 || equipmentIdSearch.length === 0) params.append('equipment_id_search',
+                    equipmentIdSearch);
                 if (category) params.append('category', category);
                 if (paymentMethod) params.append('payment_method', paymentMethod);
                 if (paymentStatus) params.append('payment_status', paymentStatus);
@@ -401,7 +415,12 @@
                 timeout = setTimeout(fetchOrders, 400); // Wait 400ms before firing
             });
 
-
+            if (equipmentIdSearchInput) {
+                equipmentIdSearchInput.addEventListener('input', function() {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(fetchOrders, 400);
+                });
+            }
 
             // Instant change on selects
             productInput.addEventListener('change', fetchOrders);

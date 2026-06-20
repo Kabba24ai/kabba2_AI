@@ -25,7 +25,7 @@ class IndexController extends Controller
         if ($request->ajax()) {
             // Fetch orders from the database, most recent first
             $query = Order::query()
-                ->with('shippingAddress','billingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia' , 'products.returnSignatureMedia')->withCount('notes')
+                ->with('shippingAddress','billingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.equipment', 'products.softAssignment.equipment')->withCount('notes')
                 ->when($request->filled('customer_name'), function ($q) use ($request) {
                     $name = trim($request->customer_name);
                     $q->whereHas('billingAddress', function ($s) use ($name) {
@@ -69,6 +69,22 @@ class IndexController extends Controller
                 ->when($request->filled('payment_status') && $request->payment_status !== 'All Status', function ($q) use ($request) {
                     // only match the latest payment's status
                     $q->whereRelation('lastPayment', 'status', $request->payment_status);
+                })
+
+                ->when($request->filled('equipment_id_search'), function ($q) use ($request) {
+                    $search = trim($request->equipment_id_search);
+                    $q->whereHas('products', function ($s) use ($search) {
+                        $s->where(function ($sub) use ($search) {
+                            // Hard assignment: order_products.equipment_id FK → equipment.equipment_id
+                            $sub->whereHas('equipment', function ($eq) use ($search) {
+                                $eq->where('equipment_id', 'like', "%{$search}%");
+                            })
+                            // Soft assignment: equipment_soft_assigns → equipment.equipment_id
+                            ->orWhereHas('softAssignment.equipment', function ($eq) use ($search) {
+                                $eq->where('equipment_id', 'like', "%{$search}%");
+                            });
+                        });
+                    });
                 });
 
             $perPage = $request->input('per_page', 30);

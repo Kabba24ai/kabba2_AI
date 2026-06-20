@@ -177,10 +177,21 @@
                                             <span
                                                 class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
                                         @endif
-                                        <a href="{{ $overdueOrder?->order?->unique_id ? route('admin.order-management.orders.edit', ['unique_id' => $overdueOrder->order->unique_id]) : '#' }}"
-                                            class="underline @if($overdueOrder?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" >
-                                            {{ $overdueOrder?->order?->order_number }}
-                                        </a>
+                                        <button type="button"
+                                            class="underline equipment-assign-btn @if($overdueOrder?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @else text-white @endif"
+                                            data-order-product-unique-id="{{ $overdueOrder->unique_id }}"
+                                            data-product-name="{{ $overdueOrder->product_name }}"
+                                            data-order-id="{{ $overdueOrder->order?->order_number }}"
+                                            data-order-unique-id="{{ $overdueOrder->order?->unique_id }}"
+                                            data-category-id=""
+                                            data-customer-name="{{ $overdueOrder->order?->customer_name }}"
+                                            data-delivery-transport-mode="{{ $overdueOrder->delivery_transport_mode ?? '' }}"
+                                            data-pickup-transport-mode="{{ $overdueOrder->pickup_transport_mode ?? '' }}"
+                                            data-is-hard-assigned="true"
+                                            data-assigned-equipment-name="{{ $eq->equipment_name }}"
+                                            data-assigned-equipment-id="{{ $eq->equipment_id }}">
+                                            {{ $overdueOrder->order?->order_number ?? '-' }}
+                                        </button>
                                     </div>
                                 @endforeach
 
@@ -191,10 +202,21 @@
                                             <span
                                                 class="absolute inset-y-0 left-0 w-[15%] bg-blue-600 rounded-l"></span>
                                         @endif
-                                        <a href="{{ $activeOrderProduct?->order?->unique_id ? route('admin.order-management.orders.edit', ['unique_id' => $activeOrderProduct->order->unique_id]) : '#' }}"
-                                            class="underline @if($activeOrderProduct?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @endif" >
-                                            {{ $activeOrderProduct?->order?->order_number }}
-                                        </a>
+                                        <button type="button"
+                                            class="underline equipment-assign-btn @if($activeOrderProduct?->order?->last_payment_type == \App\Enums\Orders\OrderPaymentMethod::COD) text-yellow-500 @else {{ $textColor }} @endif"
+                                            data-order-product-unique-id="{{ $activeOrderProduct?->unique_id }}"
+                                            data-product-name="{{ $activeOrderProduct?->product_name }}"
+                                            data-order-id="{{ $activeOrderProduct?->order?->order_number }}"
+                                            data-order-unique-id="{{ $activeOrderProduct?->order?->unique_id }}"
+                                            data-category-id=""
+                                            data-customer-name="{{ $activeOrderProduct?->order?->customer_name }}"
+                                            data-delivery-transport-mode="{{ $activeOrderProduct?->delivery_transport_mode ?? '' }}"
+                                            data-pickup-transport-mode="{{ $activeOrderProduct?->pickup_transport_mode ?? '' }}"
+                                            data-is-hard-assigned="true"
+                                            data-assigned-equipment-name="{{ $eq->equipment_name }}"
+                                            data-assigned-equipment-id="{{ $eq->equipment_id }}">
+                                            {{ $activeOrderProduct?->order?->order_number ?? '-' }}
+                                        </button>
                                     </div>
                                 @endif
 
@@ -213,7 +235,9 @@
                                                     data-order-unique-id="{{ $assignment->orderProduct?->order?->unique_id }}"
                                                     data-order-id="{{ $assignment->orderProduct?->order?->order_number }}"
                                                     data-category-id="{{ $assignment->orderProduct?->product?->categories?->first()?->id ?? '' }}"
-                                                    data-customer-name="{{ $assignment->orderProduct?->order?->customer_name }}">
+                                                    data-customer-name="{{ $assignment->orderProduct?->order?->customer_name }}"
+                                                    data-delivery-transport-mode="{{ $assignment->orderProduct->delivery_transport_mode ?? '' }}"
+                                                    data-pickup-transport-mode="{{ $assignment->orderProduct->pickup_transport_mode ?? '' }}">
                                                     {{ $assignment->order?->order_number ?? '-' }}
                                                 </button>
                                             @endif

@@ -7,6 +7,7 @@
                 <th class="py-4 px-6 text-left">Customer</th>
                 <th class="py-4 px-6 text-left">Company</th>
                 <th class="py-4 px-6 text-left">Product</th>
+                <th class="py-4 px-4 text-left">Equip. ID</th>
                 <th class="py-4 px-6 text-left">Billing Address</th>
                 <th class="py-4 px-6 text-left">Phone</th>
                 <th class="py-4 px-6 text-right">Amount</th>
@@ -53,6 +54,23 @@
                             <span class="text-gray-500 italic text-xs">Extension Charge</span>
                         @else
                             —
+                        @endif
+                    </td>
+                    <td class="py-4 px-4 text-left">
+                        @php
+                            $equipIds = $order->products->map(function ($product) {
+                                return $product->equipment_details['equipment_id']
+                                    ?? $product->equipment?->equipment_id
+                                    ?? $product->softAssignment?->equipment?->equipment_id
+                                    ?? null;
+                            })->filter()->unique()->values();
+                        @endphp
+                        @if ($equipIds->isNotEmpty())
+                            @foreach ($equipIds as $eqId)
+                                <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-gray-100 text-gray-700 border mb-0.5">{{ $eqId }}</span>
+                            @endforeach
+                        @else
+                            <span class="text-gray-300">—</span>
                         @endif
                     </td>
                     <td class="py-4 px-6 truncate min-w-xs max-w-xs ">{{ $order->billingAddress?->full_address ?? '—' }}</td>

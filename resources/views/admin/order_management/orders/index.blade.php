@@ -80,6 +80,14 @@
                         class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
                 </div>
             </div>
+            <div class="w-full sm:w-36">
+                <select id="order_type" name="order_type"
+                    class="border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Orders</option>
+                    <option value="Rental" @selected(request('order_type') === 'Rental')>Rental</option>
+                    <option value="Retail" @selected(request('order_type') === 'Retail')>Retail</option>
+                </select>
+            </div>
             <div class="w-full sm:w-48">
                 <select name="category"
                     class="choices-select w-full rounded-md py-3 px-3 border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
@@ -312,6 +320,7 @@
             let paymentMethodInput = document.querySelector('select[name="payment_method"]');
             let paymentStatusInput = document.querySelector('select[name="payment_status"]');
             let productInput = document.querySelector('select[name="product"]');
+            let orderTypeInput = document.querySelector('select[name="order_type"]');
 
             let wrapper = document.querySelector('#order-table-wrapper');
             let timeout = null;
@@ -328,6 +337,7 @@
                 'customer_phone': customerPhoneInput,
                 'order_number': orderNumberInput,
                 'equipment_id_search': equipmentIdSearchInput,
+                'order_type': orderTypeInput,
                 'category': categoryInput,
                 'payment_method': paymentMethodInput,
                 'payment_status': paymentStatusInput,
@@ -344,6 +354,7 @@
                 const customerPhone = customerPhoneInput.value;
                 const orderNumber = orderNumberInput.value;
                 const equipmentIdSearch = equipmentIdSearchInput ? equipmentIdSearchInput.value : '';
+                const orderType = orderTypeInput ? orderTypeInput.value : '';
                 const category = categoryInput.value;
                 const paymentMethod = paymentMethodInput.value;
                 const paymentStatus = paymentStatusInput.value;
@@ -362,6 +373,7 @@
                     orderNumber);
                 if (equipmentIdSearch.length >= 2 || equipmentIdSearch.length === 0) params.append('equipment_id_search',
                     equipmentIdSearch);
+                if (orderType) params.append('order_type', orderType);
                 if (category) params.append('category', category);
                 if (paymentMethod) params.append('payment_method', paymentMethod);
                 if (paymentStatus) params.append('payment_status', paymentStatus);
@@ -427,6 +439,7 @@
             categoryInput.addEventListener('change', fetchOrders);
             paymentMethodInput.addEventListener('change', fetchOrders);
             paymentStatusInput.addEventListener('change', fetchOrders);
+            if (orderTypeInput) orderTypeInput.addEventListener('change', fetchOrders);
         });
     </script>
 @endpush

@@ -85,6 +85,12 @@ class IndexController extends Controller
                             });
                         });
                     });
+                })
+
+                ->when($request->filled('order_type') && in_array($request->order_type, ['Rental', 'Retail']), function ($q) use ($request) {
+                    $q->whereHas('products.product', function ($s) use ($request) {
+                        $s->where('product_type', $request->order_type);
+                    });
                 });
 
             $perPage = $request->input('per_page', 30);

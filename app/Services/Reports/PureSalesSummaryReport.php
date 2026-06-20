@@ -222,7 +222,8 @@ class PureSalesSummaryReport
      * Anchored on customer_accounts.date (payment received date), not order_date.
      *
      * sales_tax stores the rate (e.g. 0.0975), not a dollar amount.
-     * tax = amount × sales_tax when sales_tax_type = 'add'.
+     * Payment records often have sales_tax_type = NULL even when a rate is set,
+     * so tax is computed whenever the rate is non-zero (not gated on sales_tax_type).
      *
      * @return array{total: float, tax: float}
      */
@@ -260,7 +261,7 @@ class PureSalesSummaryReport
         $row = (clone $query)->selectRaw("
             SUM(amount) AS base_total,
             SUM(
-                CASE WHEN sales_tax_type = 'add'
+                CASE WHEN CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)) > 0
                     THEN amount * CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6))
                     ELSE 0
                 END

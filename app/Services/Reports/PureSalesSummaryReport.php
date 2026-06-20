@@ -128,28 +128,17 @@ class PureSalesSummaryReport
         $netSales      = max(0, $grossSales - $discounts - $refunds);
         $averageTicket = $transactionCount > 0 ? $netSales / $transactionCount : 0;
 
-        // Total Collected = all money that came in: rental/gross + every ancillary component
-        // + tax - refunds - discounts. Including ancillary components means excluding any one
-        // of them (via filter) reduces Total Collected by exactly that component's amount.
-        $totalCollected = $grossSales
-            + $deliveryRevenue
-            + $damageWaiverRevenue
-            + $trackInsuranceRevenue
-            + $tireInsuranceRevenue
-            + $shippingRevenue
-            + $taxCollected
-            - $refunds
-            - $discounts;
+        // Total Collected = Gross + Tax - Refunds - Discounts.
+        // SUM(sub_total) already contains delivery, DW, track, and tire as line-item
+        // sub-components — they must NOT be added again or they double-count.
+        $totalCollected = $grossSales + $taxCollected - $refunds - $discounts;
 
         // Total Account Payments = what account customers actually paid (base + tax).
         $totalAccountPayments = $accountPaymentsReceived + $accountPaymentsTax;
 
-        $operationalRevenue = $netSales
-            + $deliveryRevenue
-            + $damageWaiverRevenue
-            + $trackInsuranceRevenue
-            + $tireInsuranceRevenue
-            + $shippingRevenue;
+        // Operational Revenue = Net Sales. Ancillary components (delivery, DW, track, tire)
+        // are already inside sub_total → gross_sales → net_sales; do not add them again.
+        $operationalRevenue = $netSales;
 
         return [
             'gross_sales'               => $grossSales,
@@ -353,25 +342,52 @@ class PureSalesSummaryReport
         $anyOnly = in_array('only', [$dwFilter, $tiFilter, $delivFilter, $shipFilter]);
 
         if ($anyOnly) {
-            // "Only" mode: start from zero and re-enable only the selected component(s).
-            // Rental gross, tax, refunds, discounts, and account payments are cleared —
-            // the user wants to see only this revenue stream in isolation.
+            // "Only" mode: the user wants to isolate a single revenue stream.
+            // gross_sales is set to only that component's amount (its share of sub_total).
+            // Everything else — tax, refunds, discounts, account payments — is zeroed so
+            // Total Collected = exactly that component's revenue.
             $result = array_map(fn() => 0.0, $components);
 
-            if ($dwFilter    === 'only') $result['damage_waiver_revenue']   = $components['damage_waiver_revenue'];
-            if ($tiFilter    === 'only') $result['track_insurance_revenue'] = $components['track_insurance_revenue'];
-            if ($delivFilter === 'only') $result['delivery_revenue']        = $components['delivery_revenue'];
-            if ($shipFilter  === 'only') $result['shipping_revenue']        = $components['shipping_revenue'];
+            if ($dwFilter    === 'only') {
+                $result['gross_sales']             = $components['damage_waiver_revenue'];
+                $result['damage_waiver_revenue']   = $components['damage_waiver_revenue'];
+            }
+            if ($tiFilter    === 'only') {
+                $result['gross_sales']             += $components['track_insurance_revenue'];
+                $result['track_insurance_revenue'] = $components['track_insurance_revenue'];
+            }
+            if ($delivFilter === 'only') {
+                $result['gross_sales']             += $components['delivery_revenue'];
+                $result['delivery_revenue']        = $components['delivery_revenue'];
+            }
+            if ($shipFilter  === 'only') {
+                $result['gross_sales']             += $components['shipping_revenue'];
+                $result['shipping_revenue']        = $components['shipping_revenue'];
+            }
 
             return $result;
         }
 
-        // "Exclude" mode: preserve everything, zero only the targeted component.
+        // "Exclude" mode: the ancillary components are sub-components of gross_sales
+        // (they are baked into order_products.sub_total). To correctly remove one from
+        // all totals, subtract it from gross_sales AND zero the dedicated display card.
         $result = $components;
-        if ($dwFilter    === 'exclude') $result['damage_waiver_revenue']   = 0.0;
-        if ($tiFilter    === 'exclude') $result['track_insurance_revenue'] = 0.0;
-        if ($delivFilter === 'exclude') $result['delivery_revenue']        = 0.0;
-        if ($shipFilter  === 'exclude') $result['shipping_revenue']        = 0.0;
+        if ($dwFilter    === 'exclude') {
+            $result['gross_sales']             -= $result['damage_waiver_revenue'];
+            $result['damage_waiver_revenue']    = 0.0;
+        }
+        if ($tiFilter    === 'exclude') {
+            $result['gross_sales']             -= $result['track_insurance_revenue'];
+            $result['track_insurance_revenue']  = 0.0;
+        }
+        if ($delivFilter === 'exclude') {
+            $result['gross_sales']             -= $result['delivery_revenue'];
+            $result['delivery_revenue']         = 0.0;
+        }
+        if ($shipFilter  === 'exclude') {
+            $result['gross_sales']             -= $result['shipping_revenue'];
+            $result['shipping_revenue']         = 0.0;
+        }
 
         return $result;
     }
@@ -401,18 +417,21 @@ class PureSalesSummaryReport
         $anyOnly = in_array('only', [$dwFilter, $tiFilter, $delivFilter, $shipFilter]);
 
         if ($anyOnly) {
+            // "Only" mode: show just the selected component's portion of each day's revenue.
+            // These amounts come from the JSON columns but are also inside daily_gross (sub_total),
+            // so we return the component value directly — not daily_gross.
             $total = 0.0;
             if ($dwFilter    === 'only') $total += $dw;
             if ($tiFilter    === 'only') $total += $ti;
             if ($delivFilter === 'only') $total += $deliv;
-            // "shipping only" has no dedicated daily_shipping column — returns 0 for now
+            // "shipping only" has no daily column yet — returns 0
             return max(0.0, $total);
         }
 
-        // Normal total: gross (rental) + every ancillary component
-        $total = $gross + $deliv + $dw + $ti + $tire;
-
-        // "Exclude" modes: subtract just that component
+        // Normal / "exclude" modes:
+        // daily_gross = SUM(sub_total) which already contains delivery, DW, track, tire.
+        // To exclude a component, subtract its extracted amount from gross (do NOT add them).
+        $total = $gross;
         if ($dwFilter    === 'exclude') $total -= $dw;
         if ($tiFilter    === 'exclude') $total -= $ti;
         if ($delivFilter === 'exclude') $total -= $deliv;

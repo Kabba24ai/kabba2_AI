@@ -665,7 +665,6 @@
                 'date_filter': dateFilterInput,
                 'store_location[]': storeLocationInputs,
                 'rescheduled_only': rescheduledOnlyInput,
-                'overdue': overdueInput,
                 'schedule_type[]': scheduleTypeInputs,
                 'transport_mode[]': transportModeInputs,
             };

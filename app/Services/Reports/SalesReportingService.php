@@ -91,49 +91,10 @@ class SalesReportingService
             $query->where('order_products.product_id', $filters['product']);
         }
 
-        // Damage Waiver — stored as a value inside product_data.product_rental_items JSON array
-        if (!empty($filters['damage_waiver']) && $filters['damage_waiver'] !== 'all') {
-            $hasDw = "JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NOT NULL";
-            if ($filters['damage_waiver'] === 'only') {
-                $query->whereRaw($hasDw);
-            } elseif ($filters['damage_waiver'] === 'exclude') {
-                $query->whereRaw(str_replace('IS NOT NULL', 'IS NULL', $hasDw));
-            }
-        }
-
-        // Track Insurance
-        if (!empty($filters['track_insurance']) && $filters['track_insurance'] !== 'all') {
-            $hasTi = "JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NOT NULL";
-            if ($filters['track_insurance'] === 'only') {
-                $query->whereRaw($hasTi);
-            } elseif ($filters['track_insurance'] === 'exclude') {
-                $query->whereRaw(str_replace('IS NOT NULL', 'IS NULL', $hasTi));
-            }
-        }
-
-        // Delivery — service_method stored in product_data JSON
-        if (!empty($filters['delivery']) && $filters['delivery'] !== 'all') {
-            if ($filters['delivery'] === 'only') {
-                $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'Delivery'");
-            } elseif ($filters['delivery'] === 'exclude') {
-                $query->where(function ($q) {
-                    $q->whereRaw("JSON_EXTRACT(order_products.product_data, '$.service_method') IS NULL")
-                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) != 'Delivery'");
-                });
-            }
-        }
-
-        // Shipping — service_method stored in product_data JSON
-        if (!empty($filters['shipping']) && $filters['shipping'] !== 'all') {
-            if ($filters['shipping'] === 'only') {
-                $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'Shipping'");
-            } elseif ($filters['shipping'] === 'exclude') {
-                $query->where(function ($q) {
-                    $q->whereRaw("JSON_EXTRACT(order_products.product_data, '$.service_method') IS NULL")
-                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) != 'Shipping'");
-                });
-            }
-        }
+        // NOTE: damage_waiver, track_insurance, delivery, and shipping are component-level
+        // revenue filters. They must NOT exclude entire order_product rows — doing so removes
+        // all rental revenue from those orders, not just the targeted component. These filters
+        // are applied post-aggregation in PureSalesSummaryReport::applyComponentFilters().
 
         // Payment status — matches against the most recent order_payment record
         // 'paid'    = Card / Cash / Online / Cheque / Other + COD with status='Paid' (all realized)

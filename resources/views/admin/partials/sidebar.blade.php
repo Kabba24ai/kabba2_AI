@@ -827,6 +827,71 @@
 
 
 
+                    @php
+                        $tutorialsActive = Route::is('admin.tutorials.*');
+                    @endphp
+
+                    <!-- Tutorials -->
+                    <li x-data="{ open: {{ $tutorialsActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $tutorialsActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-book-open class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Tutorials</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ? 'lg:hidden' : '']">
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+                        </a>
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9" :class="sidebarToggle ? 'lg:hidden' : ''">
+                                {{-- Video Tutorials: placeholder --}}
+                                <li>
+                                    <span class="menu-dropdown-item group menu-dropdown-item-inactive cursor-not-allowed opacity-50 flex items-center gap-1.5">
+                                        <x-heroicon-o-play-circle class="h-5 w-5" /> Video Tutorials
+                                        <span class="ml-auto text-[10px] bg-gray-100 text-gray-400 px-1.5 rounded">Soon</span>
+                                    </span>
+                                </li>
+                                {{-- System Logic --}}
+                                <li x-data="{ openLogic: {{ Route::is('admin.tutorials.system-logic.*') ? 'true' : 'false' }} }">
+                                    <a href="#" @click.prevent="openLogic = !openLogic"
+                                        class="menu-dropdown-item group {{ Route::is('admin.tutorials.system-logic.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-document-text class="h-5 w-5" />
+                                        <span class="flex-1">System Logic</span>
+                                        <template x-if="!openLogic">
+                                            <x-heroicon-o-chevron-left class="w-4 h-4 ml-auto" />
+                                        </template>
+                                        <template x-if="openLogic">
+                                            <x-heroicon-o-chevron-down class="w-4 h-4 ml-auto" />
+                                        </template>
+                                    </a>
+                                    <div x-show="openLogic" x-transition>
+                                        <ul class="mt-1 flex flex-col gap-1 pl-5">
+                                            <li>
+                                                <a href="{{ route('admin.tutorials.system-logic.dispatch.index') }}"
+                                                    class="menu-dropdown-item group {{ Route::is('admin.tutorials.system-logic.dispatch.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-truck class="h-4 w-4" /> Dispatch
+                                                </a>
+                                            </li>
+                                            {{-- Future modules: placeholder --}}
+                                            @foreach (['Schedule', 'Parts', 'CRM', 'Equipment', 'Orders', 'Reports', 'HRM'] as $futureModule)
+                                                <li>
+                                                    <span class="menu-dropdown-item group menu-dropdown-item-inactive cursor-not-allowed opacity-40 flex items-center gap-1.5 text-xs">
+                                                        <x-heroicon-o-ellipsis-horizontal class="h-4 w-4" /> {{ $futureModule }}
+                                                    </span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
                     <!-- Settings -->
                     <li x-data="{ open: {{ $settingsActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"

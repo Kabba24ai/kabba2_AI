@@ -72,5 +72,8 @@ Route::name('admin.')->group(function ($router) {
         // Release Notes
         require base_path('routes/admin/release_notes/routes.php');
 
+        // Tutorials (System Logic, Video Tutorials)
+        require base_path('routes/admin/tutorials/routes.php');
+
     });
 });

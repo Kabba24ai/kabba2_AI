@@ -199,26 +199,41 @@ class PureSalesSummaryReport
 
     /**
      * Sum of customer_accounts payments received (type='payment') in the date range.
-     * This is the realized-revenue moment for Account-method orders.
+     * Anchored on customer_accounts.date (when payment was received), not order_date.
+     * Account payments are lump-sum balance credits — they have no order_id.
      */
     public function accountPaymentsTotal(array $filters): float
     {
-        // Force payment_status = 'account' so Account-method orders are not excluded
-        // by the baseQuery payment filter (the 'paid' default filters them out).
-        $orderIds = $this->reporting->baseQuery(
-                array_merge($filters, ['payment_status' => 'account'])
-            )
-            ->selectRaw('DISTINCT orders.id')
-            ->pluck('id');
+        [$start, $end] = $this->reporting->resolveDateRange($filters);
 
-        if ($orderIds->isEmpty()) {
-            return 0.0;
+        $query = DB::table('customer_accounts')
+            ->where('type', 'payment')
+            ->whereNull('deleted_at');
+
+        if ($start && $end) {
+            $query->whereBetween('date', [
+                $start->toDateString(),
+                $end->toDateString(),
+            ]);
         }
 
-        return (float) DB::table('customer_accounts')
-            ->whereIn('order_id', $orderIds)
-            ->where('type', 'payment')
-            ->sum('amount');
+        // Store filter: limit to customers who have had orders at this store
+        if (!empty($filters['store'])) {
+            $customerIds = DB::table('orders')
+                ->join('order_products', 'order_products.order_id', '=', 'orders.id')
+                ->whereNull('orders.deleted_at')
+                ->whereNull('order_products.deleted_at')
+                ->where(function ($q) use ($filters) {
+                    $q->where('order_products.delivery_store_id', $filters['store'])
+                      ->orWhere('order_products.pickup_store_id', $filters['store']);
+                })
+                ->pluck('orders.customer_id')
+                ->unique();
+
+            $query->whereIn('customer_id', $customerIds);
+        }
+
+        return (float) $query->sum('amount');
     }
 
     /**

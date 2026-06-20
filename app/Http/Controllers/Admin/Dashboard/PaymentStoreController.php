@@ -22,6 +22,7 @@ use App\Models\Orders\Order;
 use App\Models\Orders\OrderProduct;
 
 use App\Events\Admin\Orders\OrderExtraChargeEvent;
+use App\Services\ChargeService;
 
 class PaymentStoreController extends Controller
 {
@@ -101,11 +102,32 @@ if (
     ]);
 }
 
-
+            // Create CustomerAccount payment ledger entry and sync linked CA charge status
+            if ($orderProduct) {
+                $type = $validated['type'] ?? null;
+                if ($type === 'fuel' || $type === 'damage') {
+                    $chargeType  = $type;
+                    $gatewayData = [
+                        'transaction_id'    => $record->payment_number_id,
+                        'auth_code'         => $record->auth_code,
+                        'customer_profile_id' => $record->customer_profile_id,
+                        'payment_profile_id'  => $record->payment_profile_id,
+                        'cheque_number'     => $validated['cheque_number'] ?? null,
+                    ];
+                    ChargeService::recordPayment(
+                        $orderProduct,
+                        $chargeType,
+                        (float) $validated['amount'],
+                        $validated['payment_type'],
+                        (int) $validated['responsible_person'],
+                        $gatewayData
+                    );
+                }
+            }
 
             $employee = auth()->user();
 
-            $action = 'collected' ;
+            $action = 'collected';
 
     event(new OrderExtraChargeEvent(
     $order,

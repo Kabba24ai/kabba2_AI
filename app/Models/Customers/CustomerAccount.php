@@ -8,6 +8,7 @@ use App\Models\Iam\Personnel\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 use App\Models\Orders\Order;
+use App\Models\Orders\OrderProduct;
 use App\Helpers\ModelHelper;
 class CustomerAccount extends Model
 {
@@ -38,6 +39,7 @@ class CustomerAccount extends Model
         'customer_action_log',
         'fuel_alert_status',
         'damage_alert_status',
+        'order_product_id',
     ];
 
     protected $casts = [
@@ -80,6 +82,14 @@ class CustomerAccount extends Model
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Relationship to the originating OrderProduct (set for checklist-based charges).
+     */
+    public function orderProduct()
+    {
+        return $this->belongsTo(OrderProduct::class, 'order_product_id');
     }
 
     public function card()

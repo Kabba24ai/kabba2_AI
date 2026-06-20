@@ -6,6 +6,7 @@ use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
+use App\Services\ChargeService;
 use Illuminate\Http\JsonResponse;
 
 // Requests
@@ -126,6 +127,12 @@ class SaveReturnController extends BaseController
         }
 
         $orderProduct->update($orderProductData);
+
+        // If the checklist recorded a fuel charge, create the CA ledger entry
+        if (!empty($orderProductData['fuel_total_charge']) && $orderProductData['fuel_total_charge'] > 0) {
+            $orderProduct->refresh();
+            ChargeService::createFromOrderProduct($orderProduct, 'fuel', $validated['user_id'] ?? null);
+        }
 
         if ($equipment) {
             $equipment->equipment_hours = $validated['end_hours'] ?? null;

@@ -27,6 +27,8 @@ class IndexController extends Controller
               ->orWhereNotNull('damage_status');
         })
         ->whereHas('order')
+        // Exclude OPs that already have a CA ledger record — those appear in the CRM source below
+        ->whereDoesntHave('customerAccountCharges', fn ($q) => $q->where('reason', 'Damages'))
         ->latest('id');
 
         if ($request->filled('search_name')) {

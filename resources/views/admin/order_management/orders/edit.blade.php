@@ -1607,6 +1607,9 @@
             </div>
         @endif
 
+        {{-- Additional Charges (Fuel & Damage from customer_accounts) --}}
+        @include('admin.order_management.orders.partials._additional_charges', ['additionalCharges' => $additionalCharges])
+
         {{-- Extension Charges Section --}}
         <div class="grid md:grid-cols-1 gap-4">
             <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">

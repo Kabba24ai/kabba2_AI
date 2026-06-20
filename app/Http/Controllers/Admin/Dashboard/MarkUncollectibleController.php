@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Orders\OrderProduct;
 use App\Models\Orders\OrderExtraCharges;
 use App\Events\Admin\Orders\OrderExtraChargeEvent;
+use App\Services\ChargeService;
 
 class MarkUncollectibleController extends Controller
 {
@@ -27,19 +28,15 @@ class MarkUncollectibleController extends Controller
 
         DB::transaction(function () use ($request, $orderProduct) {
 
-            $order = $orderProduct->order;
+            $order    = $orderProduct->order;
             $employee = auth()->user();
 
-            //  Update product status
-            if ($request->type === 'damage') {
-                $orderProduct->damage_status = 'uncollectible';
-            }
-
-            if ($request->type === 'fuel') {
-                $orderProduct->fuel_charge_status = 'uncollectible';
-            }
-
-            $orderProduct->save();
+            // Update OP status + sync any linked CA charge records
+            ChargeService::markUncollectible(
+                $orderProduct,
+                $request->type,
+                auth()->id() ?? 0
+            );
 
             //  Create OrderExtraCharges record (audit)
 

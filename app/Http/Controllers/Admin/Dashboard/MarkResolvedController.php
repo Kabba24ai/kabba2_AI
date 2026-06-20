@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Orders\OrderProduct;
 use App\Models\Orders\OrderExtraCharges;
 use App\Events\Admin\Orders\OrderExtraChargeEvent;
+use App\Services\ChargeService;
 
 class MarkResolvedController extends Controller
 {
@@ -33,16 +34,13 @@ class MarkResolvedController extends Controller
             $order    = $orderProduct->order;
             $employee = auth()->user();
 
-            // Update the product status to resolved
-            if ($request->type === 'damage') {
-                $orderProduct->damage_status = 'resolved';
-            }
-
-            if ($request->type === 'fuel') {
-                $orderProduct->fuel_charge_status = 'resolved';
-            }
-
-            $orderProduct->save();
+            // Update OP status + sync any linked CA charge records (creates reversal entry)
+            ChargeService::markResolved(
+                $orderProduct,
+                $request->type,
+                $request->resolution_note,
+                (int) $request->resolved_by
+            );
 
             // Persist an audit record capturing the note and resolver
             $charge = OrderExtraCharges::create([

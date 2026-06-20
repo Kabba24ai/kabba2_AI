@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Helpers\ConfigurationHelper;
 
 // Models
+use App\Models\Customers\CustomerAccount;
 use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
 use App\Models\Orders\Order;
@@ -45,6 +46,14 @@ class EditController extends Controller
         //  define payments from relationship
         $payments = $order->extraCharges->sortByDesc('type');
 
+        // Additional charges (fuel/damage) linked to this order via customer_accounts
+        $additionalCharges = CustomerAccount::where('order_id', $order->id)
+            ->where('type', 'charge')
+            ->whereIn('reason', ['Fuel Charge', 'Damages'])
+            ->with(['responsibleUser:id,first_name,last_name', 'orderProduct:id,unique_id'])
+            ->latest('id')
+            ->get();
+
         // Extension orders always have a suffixed order_number (e.g. #047-A, #047-B).
         // Reorders also set reference_order_number but get a new sequential number — exclude them.
         $relatedOrders = Order::where('reference_order_number', $order->order_number)
@@ -53,6 +62,6 @@ class EditController extends Controller
             ->latest('id')
             ->get();
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders'));
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges'));
     }
 }

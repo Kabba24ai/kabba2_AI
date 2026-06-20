@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 // Enums
 use App\Enums\Orders\EquipmentDriverStatus;
 use App\Enums\Orders\OrderMediaType;
+use App\Enums\Orders\OrderProductChargeStatus;
 
 // Helpers
 use App\Helpers\ModelHelper;
@@ -122,6 +123,8 @@ class OrderProduct extends Model
         'pickup_arrived_at'       => 'datetime',
         'pickup_is_delivered'     => 'boolean',
         'pickup_is_arrived'       => 'boolean',
+        'fuel_charge_status'      => OrderProductChargeStatus::class,
+        'damage_status'           => OrderProductChargeStatus::class,
     ];
 
     // Relationships
@@ -313,6 +316,15 @@ class OrderProduct extends Model
         return $this->hasMany(
             OrderProductDamageChargeLog::class
         )->latest();
+    }
+
+    /**
+     * CustomerAccount charge records originating from this OrderProduct.
+     */
+    public function customerAccountCharges()
+    {
+        return $this->hasMany(\App\Models\Customers\CustomerAccount::class, 'order_product_id')
+            ->where('type', 'charge');
     }
 
 

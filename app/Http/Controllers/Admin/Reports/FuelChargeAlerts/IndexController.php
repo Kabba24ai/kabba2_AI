@@ -21,6 +21,8 @@ class IndexController extends Controller
         ->whereNotNull('fuel_total_charge')
         ->where('fuel_total_charge', '>', 0)
         ->whereHas('order')
+        // Exclude OPs that already have a CA ledger record — those appear in the CRM source below
+        ->whereDoesntHave('customerAccountCharges', fn ($q) => $q->where('reason', 'Fuel Charge'))
         ->latest('id');
 
         if ($request->filled('search_name')) {

@@ -49,7 +49,11 @@
                     </td>
                     <td class="py-4 px-6 truncate min-w-3xs max-w-3xs text-left">
                         @if ($order->products->isNotEmpty())
-                            {!! $order->products->pluck('product_name')->join('<br> ') !!}
+                            <div class="flex flex-col gap-1">
+                                @foreach ($order->products as $product)
+                                    <div>{{ $product->product_name }}</div>
+                                @endforeach
+                            </div>
                         @elseif ($order->reference_order_number)
                             <span class="text-gray-500 italic text-xs">Extension Charge</span>
                         @else
@@ -57,18 +61,24 @@
                         @endif
                     </td>
                     <td class="py-4 px-4 text-left">
-                        @php
-                            $equipIds = $order->products->map(function ($product) {
-                                return $product->equipment_details['equipment_id']
-                                    ?? $product->equipment?->equipment_id
-                                    ?? $product->softAssignment?->equipment?->equipment_id
-                                    ?? null;
-                            })->filter()->unique()->values();
-                        @endphp
-                        @if ($equipIds->isNotEmpty())
-                            @foreach ($equipIds as $eqId)
-                                <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-gray-100 text-gray-700 border mb-0.5">{{ $eqId }}</span>
-                            @endforeach
+                        @if ($order->products->isNotEmpty())
+                            <div class="flex flex-col gap-1">
+                                @foreach ($order->products as $product)
+                                    @php
+                                        $eqId = $product->equipment_details['equipment_id']
+                                            ?? $product->equipment?->equipment_id
+                                            ?? $product->softAssignment?->equipment?->equipment_id
+                                            ?? null;
+                                    @endphp
+                                    <div>
+                                        @if ($eqId)
+                                            <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-gray-100 text-gray-700 border">{{ $eqId }}</span>
+                                        @else
+                                            <span class="text-gray-300">—</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
                         @else
                             <span class="text-gray-300">—</span>
                         @endif

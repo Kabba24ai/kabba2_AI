@@ -71,21 +71,24 @@ class PureSalesSummaryReport
         $tireInsuranceRevenue  = $addonRows->sum(fn ($r) => (float) ($r->tire_price  ?? 0) * (int) ($r->quantity ?? 1));
 
         // ── Query 4: account payments received (customer_accounts.type='payment') ─
-        // Account orders become realized revenue when a customer_account payment
-        // record is created. Shown for 'paid', 'all', and 'account' status views.
-        $paymentStatus = $filters['payment_status'] ?? 'paid';
+        // Returns base (pre-tax) and tax component so each flows into the correct bucket:
+        // base → gross sales, tax → tax collected (mirrors direct paid order split).
+        $paymentStatus           = $filters['payment_status'] ?? 'paid';
         $accountPaymentsReceived = 0.0;
+        $accountPaymentsTax      = 0.0;
         if (in_array($paymentStatus, ['paid', 'all', 'account'])) {
-            $accountPaymentsReceived = $this->accountPaymentsTotal($filters);
+            $apSummary               = $this->accountPaymentsSummary($filters);
+            $accountPaymentsReceived = $apSummary['total'];
+            $accountPaymentsTax      = $apSummary['tax'];
         }
 
         // ── Query 5: refunds against the in-scope orders ─────────────────────
         $refunds = $this->refundsTotal($filters);
 
         // ── Derived metrics ──────────────────────────────────────────────────
-        // Add realized account payments into gross sales so they flow through
-        // to net sales, operational revenue, and total collected.
-        $grossSales += $accountPaymentsReceived;
+        // Account payment base → gross sales; account payment tax → tax collected.
+        $grossSales   += $accountPaymentsReceived;
+        $taxCollected += $accountPaymentsTax;
 
         // Net Sales = pure business revenue: product/rental subtotals minus discounts and refunds.
         // Sales tax is excluded — it is collected on behalf of the state, not revenue.
@@ -202,11 +205,15 @@ class PureSalesSummaryReport
     // ─── Account Payments ────────────────────────────────────────────────────
 
     /**
-     * Sum of customer_accounts payments received (type='payment') in the date range.
-     * Anchored on customer_accounts.date (when payment was received), not order_date.
-     * Account payments are lump-sum balance credits — they have no order_id.
+     * Return base revenue and tax from customer_accounts payments in the date range.
+     * Anchored on customer_accounts.date (payment received date), not order_date.
+     *
+     * sales_tax stores the rate (e.g. 0.0975), not a dollar amount.
+     * tax = amount × sales_tax when sales_tax_type = 'add'.
+     *
+     * @return array{total: float, tax: float}
      */
-    public function accountPaymentsTotal(array $filters): float
+    public function accountPaymentsSummary(array $filters): array
     {
         [$start, $end] = $this->reporting->resolveDateRange($filters);
 
@@ -237,7 +244,26 @@ class PureSalesSummaryReport
             $query->whereIn('customer_id', $customerIds);
         }
 
-        return (float) $query->sum('amount');
+        $row = (clone $query)->selectRaw("
+            SUM(amount) AS base_total,
+            SUM(
+                CASE WHEN sales_tax_type = 'add'
+                    THEN amount * CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6))
+                    ELSE 0
+                END
+            ) AS tax_total
+        ")->first();
+
+        return [
+            'total' => (float) ($row->base_total ?? 0),
+            'tax'   => (float) ($row->tax_total  ?? 0),
+        ];
+    }
+
+    /** @deprecated Use accountPaymentsSummary()['total'] */
+    public function accountPaymentsTotal(array $filters): float
+    {
+        return $this->accountPaymentsSummary($filters)['total'];
     }
 
     /**

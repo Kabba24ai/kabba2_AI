@@ -106,8 +106,20 @@ class PureSalesSummaryReport
             + $tireInsuranceRevenue
             + $shippingRevenue;
 
-        // Total Collected = what actually hits the bank: operational revenue + tax remitted to state.
-        $totalCollected = $operationalRevenue + $taxCollected;
+        // Total Collected = everything that hit the bank: gross (incl. account payment base)
+        // + tax (incl. account payment tax) - refunds - discounts.
+        $totalCollected       = $grossSales + $taxCollected - $refunds - $discounts;
+
+        // Total Account Payments = what account customers actually paid (base + tax).
+        $totalAccountPayments = $accountPaymentsReceived + $accountPaymentsTax;
+
+        // Operational Revenue = Net Sales + all ancillary revenue streams.
+        $operationalRevenue = $netSales
+            + $deliveryRevenue
+            + $damageWaiverRevenue
+            + $trackInsuranceRevenue
+            + $tireInsuranceRevenue
+            + $shippingRevenue;
 
         return [
             'gross_sales'               => $grossSales,
@@ -122,6 +134,7 @@ class PureSalesSummaryReport
             'operational_revenue'       => $operationalRevenue,
             'tax_collected'             => $taxCollected,
             'total_collected'           => $totalCollected,
+            'total_account_payments'    => $totalAccountPayments,
             'transaction_count'         => $transactionCount,
             'average_ticket'            => $averageTicket,
             'account_payments_received' => $accountPaymentsReceived,

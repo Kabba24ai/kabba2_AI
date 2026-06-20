@@ -684,13 +684,22 @@
 
 
 
-            // Load saved filters on page load
-            FilterFreezer.loadFilters(screenKey, fieldMap);
-
-            // If arriving from the dashboard Overdue Orders card, force-check overdue
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('overdue') === '1' && overdueInput) {
-                overdueInput.checked = true;
+
+            if (urlParams.get('overdue') === '1') {
+                // Arriving from the dashboard Overdue Orders card — start with clean slate
+                [customerNameInput, customerCompanyNameInput, customerPhoneInput, orderNumberInput]
+                    .forEach(el => { if (el) el.value = ''; });
+                [categoryInput, paymentStatusInput, paymentMethodInput, dateFilterInput]
+                    .forEach(el => { if (el) el.value = ''; });
+                scheduleTypeInputs.forEach(input => { input.checked = true; });
+                transportModeInputs.forEach(input => { input.checked = true; });
+                storeLocationInputs.forEach(input => { input.checked = true; });
+                if (rescheduledOnlyInput) rescheduledOnlyInput.checked = false;
+                if (overdueInput) overdueInput.checked = true;
+            } else {
+                // Normal load — restore whatever the user had saved
+                FilterFreezer.loadFilters(screenKey, fieldMap);
             }
 
             if (urlScheduleType) {

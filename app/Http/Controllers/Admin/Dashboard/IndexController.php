@@ -744,7 +744,7 @@ private function getRevenueRows(Carbon $start, Carbon $end)
 
          $orderRows = $orders->map(fn ($order) => (object) [
         'date' => $order->order_date,
-        'grand_total' => (float) $order->grand_total,
+        'grand_total' => (float) $order->subtotal,
         ]);
 
         $orderRefundedPayments = $orders->flatMap(function ($order) {
@@ -769,10 +769,24 @@ private function getRevenueRows(Carbon $start, Carbon $end)
         ->pluck('paymentAccounts')
         ->flatten()
         ->filter(fn ($p) => $p->date >= $start && $p->date <= $end)
-        ->map(fn ($p) => (object) [
-            'date' => $p->date,
-            'grand_total' => (float) $p->amount,
-        ]);
+        // ->map(fn ($p) => (object) [
+        //     'date' => $p->date,
+        //     'grand_total' => (float) $p->amount,
+        // ]);
+
+        ->map(function ($p) {
+            $amount = (float) $p->amount;
+            $salesTaxRate = (float) $p->sales_tax;
+
+            $taxAmount = $salesTaxRate > 0
+                ? $amount * $salesTaxRate
+                : 0;
+
+            return (object) [
+                'date' => $p->date,
+                'grand_total' => $amount - $taxAmount,
+            ];
+        });
 
       return $orderRows
         ->concat($orderRefundedPayments)

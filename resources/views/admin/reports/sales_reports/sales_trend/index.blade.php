@@ -50,7 +50,7 @@
             </div>
 
             {{-- Compare Year 1 --}}
-            <div>
+            <div id="compare-year-1-wrap" style="transition: opacity 0.2s;">
                 <label class="block text-xs text-gray-500 mb-1">Compare Year 1</label>
                 <select id="f-compare-1"
                     class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
@@ -62,7 +62,7 @@
             </div>
 
             {{-- Compare Year 2 --}}
-            <div>
+            <div id="compare-year-2-wrap" style="transition: opacity 0.2s;">
                 <label class="block text-xs text-gray-500 mb-1">Compare Year 2</label>
                 <select id="f-compare-2"
                     class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
@@ -78,10 +78,11 @@
                 <label class="block text-xs text-gray-500 mb-1">Store</label>
                 <select id="f-store"
                     class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="">All Stores</option>
+                    <option value="" @selected(($selectedStore ?? '') === '')>All Stores</option>
                     @foreach ($stores as $store)
-                        <option value="{{ $store->id }}" @selected(($filters['store'] ?? '') == $store->id)>{{ $store->store_name }}</option>
+                        <option value="{{ $store->id }}" @selected(($selectedStore ?? '') == $store->id)>{{ $store->store_name }}</option>
                     @endforeach
+                    <option value="all_individually" @selected(($selectedStore ?? '') === 'all_individually')>All Individually</option>
                 </select>
             </div>
 
@@ -207,43 +208,67 @@
 (function () {
     'use strict';
 
-    const ROUTE      = @json(route('admin.reports.sales-reports.sales-trend.index'));
-    const initData   = @json($data);
+    const ROUTE    = @json(route('admin.reports.sales-reports.sales-trend.index'));
+    const initData = @json($data);
 
-    // ── Chart colors (primary, compare1, compare2) ────────────────────────────
-    const YEAR_COLORS = ['#3B82F6', '#F97316', '#10B981'];
+    // ── Chart colors ──────────────────────────────────────────────────────────
+    const YEAR_COLORS  = ['#3B82F6', '#F97316', '#10B981'];
+    const STORE_COLORS = ['#3B82F6', '#F97316', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B'];
 
     // ── State ─────────────────────────────────────────────────────────────────
-    let reportData     = null;
-    let primaryChart   = null;
-    let yoyChart       = null;
-    let debounceTimer  = null;
+    let reportData       = null;
+    let primaryChart     = null;
+    let primaryChartMode = null; // 'year' | 'store' — destroy/recreate on mode switch
+    let yoyChart         = null;
+    let debounceTimer    = null;
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
-    const fYear           = document.getElementById('f-year');
-    const fCompare1       = document.getElementById('f-compare-1');
-    const fCompare2       = document.getElementById('f-compare-2');
-    const fStore          = document.getElementById('f-store');
-    const fSaleType       = document.getElementById('f-sale-type');
-    const fSaleTypeGroup  = document.getElementById('f-sale-type-group');
-    const fCategory       = document.getElementById('f-category');
-    const fProduct        = document.getElementById('f-product');
-    const kpiSection      = document.getElementById('kpi-section');
-    const yoySection      = document.getElementById('yoy-section');
+    const fYear              = document.getElementById('f-year');
+    const fCompare1          = document.getElementById('f-compare-1');
+    const fCompare2          = document.getElementById('f-compare-2');
+    const fStore             = document.getElementById('f-store');
+    const fSaleType          = document.getElementById('f-sale-type');
+    const fSaleTypeGroup     = document.getElementById('f-sale-type-group');
+    const fCategory          = document.getElementById('f-category');
+    const fProduct           = document.getElementById('f-product');
+    const kpiSection         = document.getElementById('kpi-section');
+    const yoySection         = document.getElementById('yoy-section');
+    const compareYear1Wrap   = document.getElementById('compare-year-1-wrap');
+    const compareYear2Wrap   = document.getElementById('compare-year-2-wrap');
 
     // ── Formatters ────────────────────────────────────────────────────────────
     const currFmt = new Intl.NumberFormat('en-US', {
         style: 'currency', currency: window.APP_CURRENCY || 'USD',
         minimumFractionDigits: 0, maximumFractionDigits: 0,
     });
-    function fmt(v)    { return currFmt.format(v || 0); }
+    function fmt(v)       { return currFmt.format(v || 0); }
     function fmtSigned(v) {
         const s = currFmt.format(Math.abs(v || 0));
         return v >= 0 ? '+' + s : '−' + s;
     }
 
+    // ── "All Individually" detection ──────────────────────────────────────────
+    function isAllIndividually() {
+        return fStore.value === 'all_individually';
+    }
+
+    // Disable/enable compare year dropdowns based on store mode.
+    function syncCompareVisibility() {
+        const disable = isAllIndividually();
+        [compareYear1Wrap, compareYear2Wrap].forEach(w => {
+            if (!w) return;
+            w.style.opacity      = disable ? '0.35' : '1';
+            w.style.pointerEvents = disable ? 'none'  : '';
+        });
+        if (disable) {
+            fCompare1.value = '';
+            fCompare2.value = '';
+        }
+    }
+
     // ── Collect compare years from dropdowns ──────────────────────────────────
     function getCompareYears() {
+        if (isAllIndividually()) return [];
         const years = [];
         const primaryYear = parseInt(fYear.value, 10);
         [fCompare1, fCompare2].forEach(sel => {
@@ -308,23 +333,24 @@
 
     // ── KPI Cards ─────────────────────────────────────────────────────────────
     function renderKpis(data) {
-        const k = data.kpis;
+        const k           = data.kpis;
         const primaryYear = data.primary_year;
 
-        document.getElementById('kpi-ytd').textContent    = fmt(k.ytd_net_sales);
+        document.getElementById('kpi-ytd').textContent =
+            fmt(k.ytd_net_sales);
         document.getElementById('kpi-ytd-label').textContent =
             k.months_counted < 12
                 ? 'Jan–' + data.months[k.months_counted - 1] + ' ' + primaryYear
                 : '' + primaryYear;
 
         document.getElementById('kpi-prior-label').textContent = k.prior_year + ' Same Period';
-        document.getElementById('kpi-prior').textContent = fmt(k.prior_year_same_period);
+        document.getElementById('kpi-prior').textContent       = fmt(k.prior_year_same_period);
 
         const dcEl = document.getElementById('kpi-dollar-change');
-        dcEl.textContent  = fmtSigned(k.dollar_change);
-        dcEl.className    = 'text-lg font-bold ' + (k.dollar_change >= 0 ? 'text-emerald-600' : 'text-red-500');
+        dcEl.textContent = fmtSigned(k.dollar_change);
+        dcEl.className   = 'text-lg font-bold ' + (k.dollar_change >= 0 ? 'text-emerald-600' : 'text-red-500');
 
-        const pcEl = document.getElementById('kpi-pct-change');
+        const pcEl   = document.getElementById('kpi-pct-change');
         const pctStr = (k.pct_change >= 0 ? '+' : '') + k.pct_change.toFixed(1) + '%';
         pcEl.textContent = pctStr;
         pcEl.className   = 'text-lg font-bold ' + (k.pct_change >= 0 ? 'text-emerald-600' : 'text-red-500');
@@ -338,11 +364,58 @@
     function renderPrimaryChart(data) {
         const noData = document.getElementById('primary-chart-no-data');
         const el     = document.getElementById('primary-chart');
+        const mode   = data.mode === 'by_store' ? 'store' : 'year';
 
-        // Primary series is always data.series[0]
+        // Destroy and recreate when switching between year and store modes
+        // so ApexCharts gets a clean slate (series count & column width change).
+        if (primaryChart && primaryChartMode !== mode) {
+            primaryChart.destroy();
+            primaryChart = null;
+        }
+        primaryChartMode = mode;
+
+        if (mode === 'store') {
+            const allZero = data.series.every(s => s.data.every(v => v === 0));
+            document.getElementById('primary-chart-title').textContent =
+                data.primary_year + ' — Net Sales by Store';
+
+            if (allZero) {
+                noData.classList.remove('hidden');
+                el.style.display = 'none';
+                return;
+            }
+            noData.classList.add('hidden');
+            el.style.display = '';
+
+            const series = data.series.map(s => ({ name: s.store_name, data: s.data }));
+            const colors = data.series.map((_, i) => STORE_COLORS[i % STORE_COLORS.length]);
+
+            const opts = {
+                series,
+                chart: { type: 'bar', height: 300, toolbar: { show: false }, animations: { enabled: true, speed: 350 } },
+                plotOptions: { bar: { borderRadius: 3, columnWidth: '70%' } },
+                colors,
+                dataLabels: { enabled: false },
+                xaxis: { categories: data.months },
+                yaxis: { labels: { formatter: v => fmt(v) } },
+                tooltip: { shared: true, intersect: false, y: { formatter: v => fmt(v) } },
+                legend: { position: 'top', horizontalAlign: 'right' },
+                grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+            };
+
+            if (!primaryChart) {
+                primaryChart = new ApexCharts(el, opts);
+                primaryChart.render();
+            } else {
+                primaryChart.updateOptions({ xaxis: { categories: data.months }, colors }, false, false);
+                primaryChart.updateSeries(series);
+            }
+            return;
+        }
+
+        // Normal year mode — single series bar chart
         const primarySeries = data.series[0] ?? null;
         const allZero = !primarySeries || primarySeries.data.every(v => v === 0);
-
         document.getElementById('primary-chart-title').textContent =
             data.primary_year + ' — Monthly Net Sales';
 
@@ -363,6 +436,7 @@
             xaxis: { categories: data.months },
             yaxis: { labels: { formatter: v => fmt(v) } },
             tooltip: { y: { formatter: v => fmt(v) } },
+            legend: { show: false },
             grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
         };
 
@@ -370,14 +444,18 @@
             primaryChart = new ApexCharts(el, opts);
             primaryChart.render();
         } else {
-            primaryChart.updateOptions({ xaxis: { categories: data.months } }, false, false);
+            primaryChart.updateOptions({ xaxis: { categories: data.months }, colors: [YEAR_COLORS[0]], legend: { show: false } }, false, false);
             primaryChart.updateSeries([{ name: String(data.primary_year), data: primarySeries.data }]);
         }
     }
 
     // ── YOY Section (secondary chart + YOY KPI row) ───────────────────────────
     function renderYoySection(data) {
-        const hasCompare = data.compare_years && data.compare_years.length > 0;
+        // Hide in by_store mode; year comparison is disabled.
+        const hasCompare = data.mode !== 'by_store'
+            && data.compare_years
+            && data.compare_years.length > 0;
+
         yoySection.classList.toggle('hidden', !hasCompare);
         if (!hasCompare) return;
 
@@ -395,11 +473,7 @@
         noData.classList.add('hidden');
         el.style.display = '';
 
-        const series = data.series.map((s, i) => ({
-            name: String(s.year),
-            data: s.data,
-        }));
-
+        const series = data.series.map(s => ({ name: String(s.year), data: s.data }));
         const colors = data.series.map((_, i) => YEAR_COLORS[i] ?? '#6B7280');
 
         const opts = {
@@ -425,16 +499,15 @@
     }
 
     function renderYoyKpis(data) {
-        const k    = data.kpis;
-        const row  = document.getElementById('yoy-kpi-row');
+        const k      = data.kpis;
+        const row    = document.getElementById('yoy-kpi-row');
         const totals = k.yoy_totals ?? [];
 
         const cards = [
-            { label: 'Best Year',          value: String(k.best_year), cls: 'text-emerald-600 text-xl font-bold' },
-            { label: 'Best Month Overall', value: k.best_month_overall, cls: 'text-blue-600 text-xl font-bold' },
+            { label: 'Best Year',          value: String(k.best_year),      cls: 'text-emerald-600 text-xl font-bold' },
+            { label: 'Best Month Overall', value: k.best_month_overall,     cls: 'text-blue-600 text-xl font-bold' },
         ];
-
-        totals.forEach((t, i) => {
+        totals.forEach(t => {
             cards.push({ label: t.year + ' Total', value: fmt(t.total), cls: 'text-gray-900 dark:text-white text-xl font-bold' });
         });
 
@@ -446,14 +519,11 @@
         `).join('');
     }
 
-    // ── Compare year dropdown enforcement ────────────────────────────────────
-    // Clear a compare dropdown if it matches the primary year.
+    // ── Compare year dropdown enforcement ─────────────────────────────────────
     function syncCompareOptions() {
         const primaryYear = parseInt(fYear.value, 10);
         [fCompare1, fCompare2].forEach(sel => {
-            if (parseInt(sel.value, 10) === primaryYear) {
-                sel.value = '';
-            }
+            if (parseInt(sel.value, 10) === primaryYear) sel.value = '';
         });
     }
 
@@ -490,6 +560,12 @@
         scheduleRun();
     });
 
+    // ── Store change — sync compare visibility before re-running ──────────────
+    fStore.addEventListener('change', function () {
+        syncCompareVisibility();
+        scheduleRun();
+    });
+
     // ── Category → Product cascade ────────────────────────────────────────────
     fCategory.addEventListener('change', function () {
         const catId = this.value;
@@ -513,10 +589,8 @@
         .catch(() => scheduleRun());
     });
 
-    // ── Standard filter events ────────────────────────────────────────────────
-    [fStore, fProduct].forEach(el => {
-        if (el) el.addEventListener('change', scheduleRun);
-    });
+    // ── Product filter ────────────────────────────────────────────────────────
+    if (fProduct) fProduct.addEventListener('change', scheduleRun);
 
     // ── Clear filters ─────────────────────────────────────────────────────────
     document.getElementById('btn-clear-filters').addEventListener('click', function () {
@@ -527,11 +601,13 @@
         fCategory.value    = '';
         fProduct.innerHTML = '<option value="">All Products</option>';
         setSaleType('all');
+        syncCompareVisibility(); // re-enable compare dropdowns
         runReport();
     });
 
     // ── Init ──────────────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
+        syncCompareVisibility(); // apply disabled state if loaded with all_individually
         reportData = initData;
         renderAll(initData);
     });

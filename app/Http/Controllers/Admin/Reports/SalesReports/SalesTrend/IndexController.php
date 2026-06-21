@@ -35,7 +35,15 @@ class IndexController extends Controller
             );
             $filters = $this->extractFilters($request);
 
-            $data = $this->engine->reportData($primaryYear, $compareYears, $filters);
+            // "All Individually" mode: one chart series per store, no year comparison.
+            $allIndividually = ($filters['store'] === 'all_individually');
+            if ($allIndividually) {
+                $filters['store'] = null;   // engine handles per-store breakdown internally
+                $compareYears     = [];
+                $data = $this->engine->reportDataByStore($primaryYear, $filters);
+            } else {
+                $data = $this->engine->reportData($primaryYear, $compareYears, $filters);
+            }
 
             if ($request->ajax()) {
                 return response()->json(['success' => true, 'data' => $data]);
@@ -50,6 +58,7 @@ class IndexController extends Controller
                 'products'       => $this->reporting->availableProducts($filters['category'] ?? null),
                 'availableYears' => $this->buildAvailableYears(),
                 'filters'        => $filters,
+                'selectedStore'  => $request->input('store', ''),
             ]);
 
         } catch (\Throwable $e) {

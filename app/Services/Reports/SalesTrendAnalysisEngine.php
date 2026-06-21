@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Models\Stores\Store;
 use Carbon\Carbon;
 
 /**
@@ -101,6 +102,51 @@ class SalesTrendAnalysisEngine
         }
 
         return $result;
+    }
+
+    /**
+     * Build report data broken out by store ("All Individually" mode).
+     *
+     * - Chart series  = one series per store, side-by-side grouped bars.
+     * - KPI cards     = combined total across all stores (no store filter).
+     * - compare_years = always empty — year comparison is disabled in this mode.
+     * - mode          = 'by_store' so the frontend can branch rendering.
+     *
+     * Reconciliation guarantee: sum of all store bars for any month equals the
+     * All-Stores monthly net sales for that month and filters.
+     */
+    public function reportDataByStore(int $primaryYear, array $filters): array
+    {
+        $stores = Store::orderBy('store_name')->get(['id', 'store_name']);
+
+        // One chart series per store
+        $chartSeries = [];
+        foreach ($stores as $store) {
+            $storeFilters = array_merge($filters, ['store' => $store->id]);
+            $monthly      = $this->monthlyNetSales($primaryYear, $storeFilters);
+            $chartSeries[] = [
+                'store_id'   => $store->id,
+                'store_name' => $store->store_name,
+                'data'       => array_values($monthly),
+            ];
+        }
+
+        // KPIs use combined total (store = null so all stores are included)
+        $filtersAll = array_merge($filters, ['store' => null]);
+        $priorYear  = $primaryYear - 1;
+        $yearSeries = [
+            $primaryYear => $this->monthlyNetSales($primaryYear, $filtersAll),
+            $priorYear   => $this->monthlyNetSales($priorYear,   $filtersAll),
+        ];
+
+        return [
+            'months'        => array_values(self::MONTHS),
+            'series'        => $chartSeries,
+            'primary_year'  => $primaryYear,
+            'compare_years' => [],
+            'kpis'          => $this->buildKpis($primaryYear, $priorYear, $yearSeries, []),
+            'mode'          => 'by_store',
+        ];
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────

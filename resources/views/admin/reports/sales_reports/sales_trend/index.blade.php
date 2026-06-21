@@ -246,6 +246,12 @@
         const s = currFmt.format(Math.abs(v || 0));
         return v >= 0 ? '+' + s : '−' + s;
     }
+    // Bar label formatter — returns '' for zero/null so no label appears.
+    function fmtLabel(val) {
+        if (val === null || val === undefined || val === 0) return '';
+        const n = Math.round(Math.abs(val)).toLocaleString('en-US');
+        return val < 0 ? '-$' + n : '$' + n;
+    }
 
     // ── "All Individually" detection ──────────────────────────────────────────
     function isAllIndividually() {
@@ -392,10 +398,17 @@
 
             const opts = {
                 series,
-                chart: { type: 'bar', height: 300, toolbar: { show: false }, animations: { enabled: true, speed: 350 } },
-                plotOptions: { bar: { borderRadius: 3, columnWidth: '70%' } },
+                chart: { type: 'bar', height: 330, toolbar: { show: false }, animations: { enabled: true, speed: 350 } },
+                plotOptions: { bar: { borderRadius: 3, columnWidth: '70%', dataLabels: { position: 'top' } } },
                 colors,
-                dataLabels: { enabled: false },
+                dataLabels: {
+                    enabled: true,
+                    formatter: fmtLabel,
+                    offsetY: -20,
+                    style: { fontSize: '10px', fontWeight: '500', colors: ['#374151'] },
+                    background: { enabled: false },
+                    dropShadow: { enabled: false },
+                },
                 xaxis: { categories: data.months },
                 yaxis: { labels: { formatter: v => fmt(v) } },
                 tooltip: { shared: true, intersect: false, y: { formatter: v => fmt(v) } },
@@ -429,10 +442,17 @@
 
         const opts = {
             series: [{ name: String(data.primary_year), data: primarySeries.data }],
-            chart:  { type: 'bar', height: 300, toolbar: { show: false }, animations: { enabled: true, speed: 350 } },
-            plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+            chart:  { type: 'bar', height: 330, toolbar: { show: false }, animations: { enabled: true, speed: 350 } },
+            plotOptions: { bar: { borderRadius: 4, columnWidth: '55%', dataLabels: { position: 'top' } } },
             colors: [YEAR_COLORS[0]],
-            dataLabels: { enabled: false },
+            dataLabels: {
+                enabled: true,
+                formatter: fmtLabel,
+                offsetY: -20,
+                style: { fontSize: '11px', fontWeight: '500', colors: ['#374151'] },
+                background: { enabled: false },
+                dropShadow: { enabled: false },
+            },
             xaxis: { categories: data.months },
             yaxis: { labels: { formatter: v => fmt(v) } },
             tooltip: { y: { formatter: v => fmt(v) } },
@@ -478,10 +498,17 @@
 
         const opts = {
             series,
-            chart: { type: 'bar', height: 320, toolbar: { show: false }, animations: { enabled: true, speed: 350 } },
-            plotOptions: { bar: { borderRadius: 3, columnWidth: '70%', groupPadding: 0.1 } },
+            chart: { type: 'bar', height: 360, toolbar: { show: false }, animations: { enabled: true, speed: 350 } },
+            plotOptions: { bar: { borderRadius: 3, columnWidth: '70%', groupPadding: 0.1, dataLabels: { position: 'top' } } },
             colors,
-            dataLabels: { enabled: false },
+            dataLabels: {
+                enabled: true,
+                formatter: fmtLabel,
+                offsetY: -20,
+                style: { fontSize: '10px', fontWeight: '500', colors: ['#374151'] },
+                background: { enabled: false },
+                dropShadow: { enabled: false },
+            },
             xaxis: { categories: data.months },
             yaxis: { labels: { formatter: v => fmt(v) } },
             tooltip: { shared: true, intersect: false, y: { formatter: v => fmt(v) } },

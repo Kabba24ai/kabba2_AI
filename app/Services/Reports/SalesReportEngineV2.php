@@ -41,6 +41,25 @@ class SalesReportEngineV2
     }
 
     /**
+     * Return net sales for an explicit date window using the verified snapshot() path.
+     * Called by SalesTrendAnalysisEngine — guarantees reconciliation with Pure Sales Summary.
+     *
+     * $filters must NOT include date_range/start_date/end_date — those are set here
+     * so that baseQuery() inside snapshot() applies the correct order-date window.
+     */
+    public function netSalesForPeriod(string $startDate, string $endDate, array $filters): float
+    {
+        $filters = array_merge($filters, [
+            'date_range' => 'custom',
+            'start_date' => $startDate,
+            'end_date'   => $endDate,
+        ]);
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end   = Carbon::parse($endDate)->endOfDay();
+        return $this->snapshot($filters, $start, $end)['net_sales'];
+    }
+
+    /**
      * Return trend data for the selected period plus the preceding equal-length period.
      *
      * Acceptance guarantees:

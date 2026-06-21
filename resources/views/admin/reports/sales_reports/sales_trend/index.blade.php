@@ -1,66 +1,70 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Sales Trend')
+@section('title', 'Sales Trend Analysis')
 
 @section('content')
 
     @include('flash::message')
     @include('admin.partials.formErrors')
 
-    {{-- Page Header --}}
+    {{-- ── Page Header ────────────────────────────────────────────────────── --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <div>
             <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Reports › Sales Reports</p>
-            <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Sales Trend</h3>
+            <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Sales Trend Analysis</h3>
         </div>
     </div>
 
-    {{-- ── FILTERS ────────────────────────────────────────────────────────── --}}
+    {{-- ── Filters ─────────────────────────────────────────────────────────── --}}
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6 shadow-sm">
 
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                <x-heroicon-o-funnel class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                </svg>
                 <span>Filters</span>
             </div>
             <button type="button" id="btn-clear-filters"
                 class="text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 px-3 py-1.5 flex gap-1.5 items-center rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
-                Clear Filters
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear
             </button>
         </div>
 
+        {{-- Row 1: Year + Compare + Store + Sale Type + Category + Product --}}
         <div class="flex flex-wrap items-end gap-3">
 
-            {{-- Date Range --}}
+            {{-- Primary Year --}}
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Date Range</label>
-                <select id="f-date-range"
+                <label class="block text-xs text-gray-500 mb-1">Year</label>
+                <select id="f-year"
                     class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value=""          @selected(($filters['date_range'] ?? '') === '')>All Time</option>
-                    <option value="today"     @selected(($filters['date_range'] ?? '') === 'today')>Today</option>
-                    <option value="yesterday" @selected(($filters['date_range'] ?? '') === 'yesterday')>Yesterday</option>
-                    <option value="last_7"    @selected(($filters['date_range'] ?? '') === 'last_7')>Last 7 Days</option>
-                    <option value="last_30"   @selected(($filters['date_range'] ?? '') === 'last_30')>30 Day Rolling</option>
-                    <option value="mtd"       @selected(($filters['date_range'] ?? 'mtd') === 'mtd')>Month to Date</option>
-                    <option value="qtd"       @selected(($filters['date_range'] ?? '') === 'qtd')>Quarter to Date</option>
-                    <option value="ytd"       @selected(($filters['date_range'] ?? '') === 'ytd')>Year to Date</option>
-                    <option value="custom"    @selected(($filters['date_range'] ?? '') === 'custom')>Custom Range</option>
+                    @foreach ($availableYears as $yr)
+                        <option value="{{ $yr }}" @selected($yr === $primaryYear)>{{ $yr }}</option>
+                    @endforeach
                 </select>
             </div>
 
-            {{-- Custom date inputs --}}
-            <div id="custom-date-wrap" class="{{ ($filters['date_range'] ?? '') === 'custom' ? '' : 'hidden' }} flex gap-2">
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Start</label>
-                    {!! html()->text('start_date', $filters['start_date'] ?? '')->class([
-                        'rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 datepicker dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-                    ])->attributes(['id' => 'f-start-date', 'placeholder' => 'Start Date', 'autocomplete' => 'off']) !!}
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">End</label>
-                    {!! html()->text('end_date', $filters['end_date'] ?? '')->class([
-                        'rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 datepicker dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-                    ])->attributes(['id' => 'f-end-date', 'placeholder' => 'End Date', 'autocomplete' => 'off']) !!}
+            {{-- Compare Years (max 2 checkboxes) --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Compare To (max 2)</label>
+                <div id="compare-years-wrap" class="flex gap-3 items-center flex-wrap" data-primary="{{ $primaryYear }}">
+                    @foreach ($availableYears as $yr)
+                        @if ($yr !== $primaryYear)
+                            <label class="compare-year-label flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
+                                   data-year="{{ $yr }}">
+                                <input type="checkbox"
+                                    class="compare-year-cb rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    value="{{ $yr }}"
+                                    @checked(in_array($yr, $compareYears))>
+                                {{ $yr }}
+                            </label>
+                        @endif
+                    @endforeach
                 </div>
             </div>
 
@@ -76,18 +80,22 @@
                 </select>
             </div>
 
-            {{-- Item Type --}}
+            {{-- Sale Type --}}
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Item Type</label>
-                <select id="f-item-type"
-                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="all"     @selected(($filters['item_type'] ?? 'all') === 'all')>All Items</option>
-                    <option value="Rental"  @selected(($filters['item_type'] ?? '') === 'Rental')>Rental</option>
-                    <option value="Retail"  @selected(($filters['item_type'] ?? '') === 'Retail')>Retail</option>
-                    <option value="Service" @selected(($filters['item_type'] ?? '') === 'Service')>Service</option>
-                    <option value="Fee"     @selected(($filters['item_type'] ?? '') === 'Fee')>Fee</option>
-                    <option value="Other"   @selected(($filters['item_type'] ?? '') === 'Other')>Other</option>
-                </select>
+                <label class="block text-xs text-gray-500 mb-1">Sale Type</label>
+                <div id="f-sale-type-group" class="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden text-sm">
+                    @foreach (['all' => 'All', 'rental' => 'Rental', 'retail' => 'Retail'] as $val => $label)
+                        <button type="button" data-value="{{ $val }}"
+                            class="sale-type-btn px-3 py-2 font-medium transition-colors
+                                {{ $val !== 'all' ? 'border-l border-gray-300 dark:border-gray-600' : '' }}
+                                {{ ($filters['sale_type'] ?? 'all') === $val
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600' }}">
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
+                <input type="hidden" id="f-sale-type" value="{{ $filters['sale_type'] ?? 'all' }}">
             </div>
 
             {{-- Category --}}
@@ -114,178 +122,76 @@
                 </select>
             </div>
 
-            {{-- Sale Type --}}
-            @php $saleType = $filters['sale_type'] ?? 'all'; @endphp
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">Sale Type</label>
-                <div id="f-sale-type-group" class="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden text-sm">
-                    @foreach (['all' => 'All Sales', 'rental' => 'Rental', 'retail' => 'Retail'] as $val => $label)
-                    <button type="button" data-value="{{ $val }}"
-                        class="sale-type-btn px-4 py-2 font-medium transition-colors
-                            {{ $val !== 'all' ? 'border-l border-gray-300 dark:border-gray-600' : '' }}
-                            {{ $saleType === $val ? 'bg-brand-500 text-white' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600' }}">
-                        {{ $label }}
-                    </button>
-                    @endforeach
-                </div>
-                <input type="hidden" id="f-sale-type" value="{{ $saleType }}">
-            </div>
-
-            {{-- Group By --}}
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">Group By</label>
-                <div class="inline-flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
-                    @foreach (['day' => 'Day', 'week' => 'Week', 'month' => 'Month', 'year' => 'Year'] as $val => $lbl)
-                        <button type="button" data-group="{{ $val }}"
-                            class="group-btn px-3 py-2 text-sm font-medium border-r border-gray-300 dark:border-gray-600 last:border-r-0 transition
-                                {{ ($filters['group_by'] ?? 'day') === $val
-                                    ? 'bg-brand-500 text-white'
-                                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600' }}">
-                            {{ $lbl }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- Payment Status --}}
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">Payment</label>
-                <select id="f-payment-status"
-                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="paid"    @selected(($filters['payment_status'] ?? 'paid') === 'paid')>Paid</option>
-                    <option value="all"     @selected(($filters['payment_status'] ?? '') === 'all')>All</option>
-                    <option value="pod"     @selected(($filters['payment_status'] ?? '') === 'pod')>POD</option>
-                    <option value="account" @selected(($filters['payment_status'] ?? '') === 'account')>Account</option>
-                </select>
-            </div>
-
-        </div>
-
-        {{-- Row 2: Checkbox inclusion/exclusion filters --}}
-        <div class="flex flex-wrap gap-x-5 gap-y-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 items-center">
-            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                <input type="checkbox" id="f-exclude-damage-waiver" {{ ($filters['damage_waiver'] ?? '') === 'exclude' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                Exclude Damage Waiver
-            </label>
-            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                <input type="checkbox" id="f-damage-waiver-only" {{ ($filters['damage_waiver'] ?? '') === 'only' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                Damage Waiver Only
-            </label>
-            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                <input type="checkbox" id="f-exclude-track-ins" {{ ($filters['track_insurance'] ?? '') === 'exclude' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                Exclude Track Ins.
-            </label>
-            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                <input type="checkbox" id="f-track-ins-only" {{ ($filters['track_insurance'] ?? '') === 'only' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                Track Ins. Only
-            </label>
-            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                <input type="checkbox" id="f-exclude-delivery" {{ ($filters['delivery'] ?? '') === 'exclude' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                Exclude Delivery
-            </label>
-            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                <input type="checkbox" id="f-delivery-only" {{ ($filters['delivery'] ?? '') === 'only' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                Delivery Only
-            </label>
-            <label class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                <input type="checkbox" id="f-exclude-shipping" {{ ($filters['shipping'] ?? '') === 'exclude' ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
-                Exclude Shipping
-            </label>
         </div>
     </div>
 
-    {{-- ── KPI CARDS ──────────────────────────────────────────────────────── --}}
-    <div id="kpi-section" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 transition-opacity duration-200">
+    {{-- ── KPI Cards ───────────────────────────────────────────────────────── --}}
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4 mb-6" id="kpi-section">
 
-        {{-- Revenue --}}
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
-            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide mb-2">Revenue</div>
-            <div id="kpi-revenue" class="text-2xl font-bold text-gray-900 dark:text-white mb-2">—</div>
-            <div class="flex items-center gap-2">
-                <span id="kpi-revenue-badge" class="inline-flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">—</span>
-                <span id="kpi-revenue-prev" class="text-xs text-gray-400"></span>
-            </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">YTD Net Sales</p>
+            <p class="text-lg font-bold text-gray-900 dark:text-white" id="kpi-ytd">—</p>
+            <p class="text-xs text-gray-400 mt-0.5" id="kpi-ytd-label">—</p>
         </div>
 
-        {{-- Transactions --}}
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
-            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide mb-2">Transactions</div>
-            <div id="kpi-transactions" class="text-2xl font-bold text-gray-900 dark:text-white mb-2">—</div>
-            <div class="flex items-center gap-2">
-                <span id="kpi-tx-badge" class="inline-flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">—</span>
-                <span id="kpi-tx-prev" class="text-xs text-gray-400"></span>
-            </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1" id="kpi-prior-label">Prior Year</p>
+            <p class="text-lg font-bold text-gray-900 dark:text-white" id="kpi-prior">—</p>
+            <p class="text-xs text-gray-400 mt-0.5">Same period</p>
         </div>
 
-        {{-- Avg Ticket --}}
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
-            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide mb-2">Avg Ticket</div>
-            <div id="kpi-avg-ticket" class="text-2xl font-bold text-gray-900 dark:text-white mb-2">—</div>
-            <div class="flex items-center gap-2">
-                <span id="kpi-avg-badge" class="inline-flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">—</span>
-                <span id="kpi-avg-prev" class="text-xs text-gray-400"></span>
-            </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">$ Change</p>
+            <p class="text-lg font-bold" id="kpi-dollar-change">—</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">% Change</p>
+            <p class="text-lg font-bold" id="kpi-pct-change">—</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">Best Month</p>
+            <p class="text-lg font-bold text-emerald-600" id="kpi-best-month">—</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">Worst Month</p>
+            <p class="text-lg font-bold text-red-500" id="kpi-worst-month">—</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">Avg / Month</p>
+            <p class="text-lg font-bold text-gray-900 dark:text-white" id="kpi-avg">—</p>
         </div>
 
     </div>
 
-    {{-- ── CHART ──────────────────────────────────────────────────────────── --}}
+    {{-- ── Primary Chart — single year monthly bar ────────────────────────── --}}
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6 shadow-sm">
-
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
             <div>
-                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Trend Analysis</h2>
-                <p id="chart-date-label" class="text-xs text-gray-400 mt-0.5">—</p>
-            </div>
-            {{-- Metric toggle --}}
-            <div class="inline-flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
-                <button type="button" data-metric="revenue"
-                    class="metric-btn px-3 py-1.5 text-sm font-medium border-r border-gray-300 dark:border-gray-600 bg-brand-500 text-white transition">
-                    Revenue
-                </button>
-                <button type="button" data-metric="transactions"
-                    class="metric-btn px-3 py-1.5 text-sm font-medium border-r border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition">
-                    Transactions
-                </button>
-                <button type="button" data-metric="avg_ticket"
-                    class="metric-btn px-3 py-1.5 text-sm font-medium bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition">
-                    Avg Ticket
-                </button>
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white" id="primary-chart-title">Monthly Net Sales</h2>
+                <p class="text-xs text-gray-400 mt-0.5">January — December</p>
             </div>
         </div>
-
-        <div id="chart-no-data" class="hidden text-center py-14 text-gray-400 text-sm">
-            Select a date range to view the trend.
-        </div>
-        <div id="trend-chart" style="min-height: 320px;"></div>
-
+        <div id="primary-chart-no-data" class="hidden text-center py-14 text-gray-400 text-sm">No data for selected filters.</div>
+        <div id="primary-chart" style="min-height:300px;"></div>
     </div>
 
-    {{-- ── PERIOD BREAKDOWN TABLE ─────────────────────────────────────────── --}}
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden mb-6">
-        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Period Breakdown</h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead>
-                    <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-                        <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Period</th>
-                        <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right whitespace-nowrap">Revenue</th>
-                        <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right whitespace-nowrap">vs Prev</th>
-                        <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right whitespace-nowrap">Transactions</th>
-                        <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right whitespace-nowrap">vs Prev</th>
-                        <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right whitespace-nowrap">Avg Ticket</th>
-                        <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right whitespace-nowrap">vs Prev</th>
-                    </tr>
-                </thead>
-                <tbody id="trend-table-body" class="divide-y divide-gray-100 dark:divide-gray-700">
-                    <tr>
-                        <td colspan="7" class="px-5 py-8 text-center text-gray-400 text-sm">Loading…</td>
-                    </tr>
-                </tbody>
-                <tfoot id="trend-table-foot" class="border-t-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 font-semibold text-gray-800 dark:text-white"></tfoot>
-            </table>
+    {{-- ── Secondary Chart — YOY grouped bar ──────────────────────────────── --}}
+    <div id="yoy-section" class="hidden">
+
+        {{-- YOY KPI summary --}}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4" id="yoy-kpi-row"></div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6 shadow-sm">
+            <div class="mb-5">
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Year-Over-Year Comparison</h2>
+                <p class="text-xs text-gray-400 mt-0.5">Monthly Net Sales — side-by-side bars per month</p>
+            </div>
+            <div id="yoy-chart-no-data" class="hidden text-center py-14 text-gray-400 text-sm">Select at least one comparison year.</div>
+            <div id="yoy-chart" style="min-height:320px;"></div>
         </div>
     </div>
 
@@ -296,78 +202,60 @@
 (function () {
     'use strict';
 
-    const ROUTE = '{{ route('admin.reports.sales-reports.sales-trend.index') }}';
+    const ROUTE      = @json(route('admin.reports.sales-reports.sales-trend.index'));
+    const initData   = @json($data);
 
-    const initialTrend = @json($trend);
+    // ── Chart colors (primary, compare1, compare2) ────────────────────────────
+    const YEAR_COLORS = ['#3B82F6', '#F97316', '#10B981'];
 
     // ── State ─────────────────────────────────────────────────────────────────
-    let trendData    = null;
-    let activeMetric = 'revenue';
-    let activeGroup  = '{{ $filters['group_by'] ?? 'day' }}';
-    let trendChart   = null;
+    let reportData     = null;
+    let primaryChart   = null;
+    let yoyChart       = null;
+    let debounceTimer  = null;
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
-    const fDateRange           = document.getElementById('f-date-range');
-    const fStartDate           = document.getElementById('f-start-date');
-    const fEndDate             = document.getElementById('f-end-date');
-    const fStore               = document.getElementById('f-store');
-    const fItemType            = document.getElementById('f-item-type');
-    const fCategory            = document.getElementById('f-category');
-    const fProduct             = document.getElementById('f-product');
-    const fSaleType            = document.getElementById('f-sale-type');
-    const fSaleTypeGroup       = document.getElementById('f-sale-type-group');
-    const fExcludeDamageWaiver = document.getElementById('f-exclude-damage-waiver');
-    const fDamageWaiverOnly    = document.getElementById('f-damage-waiver-only');
-    const fExcludeTrackIns     = document.getElementById('f-exclude-track-ins');
-    const fTrackInsOnly        = document.getElementById('f-track-ins-only');
-    const fExcludeDelivery     = document.getElementById('f-exclude-delivery');
-    const fDeliveryOnly        = document.getElementById('f-delivery-only');
-    const fExcludeShipping     = document.getElementById('f-exclude-shipping');
-    const fPayment             = document.getElementById('f-payment-status');
-    const customWrap           = document.getElementById('custom-date-wrap');
-    const kpiSection           = document.getElementById('kpi-section');
+    const fYear           = document.getElementById('f-year');
+    const fStore          = document.getElementById('f-store');
+    const fSaleType       = document.getElementById('f-sale-type');
+    const fSaleTypeGroup  = document.getElementById('f-sale-type-group');
+    const fCategory       = document.getElementById('f-category');
+    const fProduct        = document.getElementById('f-product');
+    const compareWrap     = document.getElementById('compare-years-wrap');
+    const kpiSection      = document.getElementById('kpi-section');
+    const yoySection      = document.getElementById('yoy-section');
 
     // ── Formatters ────────────────────────────────────────────────────────────
     const currFmt = new Intl.NumberFormat('en-US', {
         style: 'currency', currency: window.APP_CURRENCY || 'USD',
         minimumFractionDigits: 0, maximumFractionDigits: 0,
     });
-    const numFmt = new Intl.NumberFormat('en-US');
-
-    function fmtCurr(v) { return currFmt.format(v || 0); }
-    function fmtNum(v)  { return numFmt.format(v || 0); }
-    function fmtVal(v, metric) {
-        return metric === 'transactions' ? fmtNum(v) : fmtCurr(v);
+    function fmt(v)    { return currFmt.format(v || 0); }
+    function fmtSigned(v) {
+        const s = currFmt.format(Math.abs(v || 0));
+        return v >= 0 ? '+' + s : '−' + s;
     }
 
-    // ── Filters ───────────────────────────────────────────────────────────────
+    // ── Collect compare years from checkboxes ─────────────────────────────────
+    function getCompareYears() {
+        return Array.from(document.querySelectorAll('.compare-year-cb:checked'))
+            .map(cb => parseInt(cb.value, 10));
+    }
+
+    // ── Collect all filter values for the AJAX request ────────────────────────
     function collectFilters() {
-        const p  = new URLSearchParams();
-        const dr = fDateRange.value;
-        if (dr) p.set('date_range', dr);
-        if (dr === 'custom') {
-            if (fStartDate.value) p.set('start_date', fStartDate.value);
-            if (fEndDate.value)   p.set('end_date',   fEndDate.value);
-        }
-        if (fStore.value)                    p.set('store', fStore.value);
-        if (fItemType.value !== 'all')       p.set('item_type', fItemType.value);
-        if (fCategory.value)                 p.set('category', fCategory.value);
-        if (fProduct.value)                  p.set('product', fProduct.value);
-        const st = fSaleType ? fSaleType.value : 'all';
-        if (st && st !== 'all')              p.set('sale_type', st);
-        if (fExcludeDamageWaiver.checked)    p.set('damage_waiver', 'exclude');
-        else if (fDamageWaiverOnly.checked)  p.set('damage_waiver', 'only');
-        if (fExcludeTrackIns.checked)        p.set('track_insurance', 'exclude');
-        else if (fTrackInsOnly.checked)      p.set('track_insurance', 'only');
-        if (fExcludeDelivery.checked)        p.set('delivery', 'exclude');
-        else if (fDeliveryOnly.checked)      p.set('delivery', 'only');
-        if (fExcludeShipping.checked)        p.set('shipping', 'exclude');
-        if (fPayment.value)                  p.set('payment_status', fPayment.value);
-        p.set('group_by', activeGroup);
+        const p = new URLSearchParams();
+        p.set('year', fYear.value);
+        getCompareYears().forEach(y => p.append('compare_years[]', y));
+        if (fStore.value)         p.set('store', fStore.value);
+        const st = fSaleType.value;
+        if (st && st !== 'all')   p.set('sale_type', st);
+        if (fCategory.value)      p.set('category', fCategory.value);
+        if (fProduct.value)       p.set('product', fProduct.value);
         return p;
     }
 
-    // ── Fetch ─────────────────────────────────────────────────────────────────
+    // ── Fetch report data ─────────────────────────────────────────────────────
     function runReport() {
         const params = collectFilters();
         kpiSection.style.opacity = '0.4';
@@ -375,277 +263,223 @@
         fetch(ROUTE + '?' + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
         })
-        .then(r => r.json())
-        .then(data => {
-            if (!data.success) throw new Error(data.error || 'Report failed');
-            trendData = data.trend;
-            renderAll(trendData);
+        .then(r => {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(resp => {
+            if (!resp.success) throw new Error(resp.error || 'Report failed');
+            reportData = resp.data;
+            renderAll(reportData);
         })
         .catch(err => {
-            console.error('Sales Trend error:', err);
+            console.error('[SalesTrend] Error:', err);
             alert('Report failed: ' + err.message);
         })
-        .finally(() => { kpiSection.style.opacity = '1'; });
-    }
-
-    function renderAll(trend) {
-        renderKpis(trend);
-        renderChart(trend, activeMetric);
-        renderTable(trend);
-        const lbl = document.getElementById('chart-date-label');
-        if (lbl) lbl.textContent = trend.date_range_label || '';
-    }
-
-    // ── KPI cards ─────────────────────────────────────────────────────────────
-    function growthBadge(pct) {
-        if (!pct) return { html: '<span>—</span>', cls: 'bg-gray-100 text-gray-500' };
-        const up   = pct > 0;
-        const icon = up
-            ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7 7 7"/></svg>'
-            : '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7-7-7"/></svg>';
-        return {
-            html: icon + '<span>' + Math.abs(pct).toFixed(1) + '%</span>',
-            cls:  up ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600',
-        };
-    }
-
-    function setBadge(id, pct) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const b = growthBadge(pct);
-        el.innerHTML  = b.html;
-        el.className  = 'inline-flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded-full ' + b.cls;
-    }
-
-    function renderKpis(trend) {
-        const t = trend.totals;
-        document.getElementById('kpi-revenue').textContent     = fmtCurr(t.revenue);
-        document.getElementById('kpi-transactions').textContent = fmtNum(t.transactions);
-        document.getElementById('kpi-avg-ticket').textContent  = fmtCurr(t.avg_ticket);
-
-        setBadge('kpi-revenue-badge', t.revenue_growth);
-        setBadge('kpi-tx-badge',      t.tx_growth);
-        setBadge('kpi-avg-badge',     t.avg_ticket_growth);
-
-        document.getElementById('kpi-revenue-prev').textContent = 'vs ' + fmtCurr(t.prev_revenue);
-        document.getElementById('kpi-tx-prev').textContent      = 'vs ' + fmtNum(t.prev_transactions);
-        document.getElementById('kpi-avg-prev').textContent     = 'vs ' + fmtCurr(t.prev_avg_ticket);
-    }
-
-    // ── Chart ─────────────────────────────────────────────────────────────────
-    function seriesForMetric(trend, metric) {
-        return {
-            revenue:      { curr: trend.revenue,      prev: trend.prev_revenue      },
-            transactions: { curr: trend.transactions,  prev: trend.prev_transactions },
-            avg_ticket:   { curr: trend.avg_ticket,    prev: trend.prev_avg_ticket   },
-        }[metric] || { curr: trend.revenue, prev: trend.prev_revenue };
-    }
-
-    function yFmt(v, metric) {
-        return metric === 'transactions' ? fmtNum(v) : fmtCurr(v);
-    }
-
-    function chartOptions(trend, metric) {
-        const s = seriesForMetric(trend, metric);
-        return {
-            series: [
-                { name: 'Current Period',  data: s.curr },
-                { name: 'Previous Period', data: s.prev },
-            ],
-            chart: {
-                height: 320, type: 'area',
-                toolbar: { show: false }, zoom: { enabled: false },
-                animations: { enabled: true, speed: 350 },
-            },
-            stroke: { curve: 'smooth', width: [2, 2], dashArray: [0, 5] },
-            fill: {
-                type: 'gradient',
-                gradient: { shadeIntensity: 1, opacityFrom: 0.2, opacityTo: 0.02, stops: [0, 90, 100] },
-            },
-            colors: ['#3B82F6', '#9CA3AF'],
-            markers: { size: 0 },
-            xaxis: {
-                categories: trend.labels,
-                tickAmount: Math.min(trend.labels.length, 14),
-                labels: { rotate: -30, style: { fontSize: '11px' } },
-            },
-            yaxis: { labels: { formatter: v => yFmt(v, metric) } },
-            tooltip: {
-                shared: true, intersect: false,
-                y: { formatter: v => yFmt(v, metric) },
-            },
-            legend: { position: 'top', horizontalAlign: 'right' },
-            grid:   { borderColor: '#f3f4f6', strokeDashArray: 4 },
-        };
-    }
-
-    function renderChart(trend, metric) {
-        const noData  = document.getElementById('chart-no-data');
-        const chartEl = document.getElementById('trend-chart');
-
-        if (!trend || !trend.labels || trend.labels.length === 0) {
-            noData.classList.remove('hidden');
-            chartEl.style.display = 'none';
-            return;
-        }
-        noData.classList.add('hidden');
-        chartEl.style.display = '';
-
-        const s = seriesForMetric(trend, metric);
-
-        if (!trendChart) {
-            trendChart = new ApexCharts(chartEl, chartOptions(trend, metric));
-            trendChart.render();
-        } else {
-            trendChart.updateOptions({
-                xaxis: { categories: trend.labels, tickAmount: Math.min(trend.labels.length, 14) },
-                yaxis: { labels: { formatter: v => yFmt(v, metric) } },
-                tooltip: { y: { formatter: v => yFmt(v, metric) } },
-            }, false, false);
-            trendChart.updateSeries([
-                { name: 'Current Period',  data: s.curr },
-                { name: 'Previous Period', data: s.prev },
-            ]);
-        }
-    }
-
-    // ── Table ─────────────────────────────────────────────────────────────────
-    function deltaHtml(curr, prev) {
-        if (prev === 0) return '<span class="text-gray-400">—</span>';
-        const pct = (((curr - prev) / prev) * 100).toFixed(1);
-        if (curr > prev) return `<span class="text-emerald-600 text-xs font-medium">↑ ${pct}%</span>`;
-        if (curr < prev) return `<span class="text-red-500 text-xs font-medium">↓ ${Math.abs(pct)}%</span>`;
-        return '<span class="text-gray-400 text-xs">—</span>';
-    }
-
-    function renderTable(trend) {
-        const tbody = document.getElementById('trend-table-body');
-        const tfoot = document.getElementById('trend-table-foot');
-
-        if (!trend || !trend.labels || trend.labels.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-8 text-center text-gray-400 text-sm">No data for the selected period.</td></tr>';
-            tfoot.innerHTML = '';
-            return;
-        }
-
-        let rows = '';
-        trend.labels.forEach((label, i) => {
-            const rev  = trend.revenue[i]           || 0;
-            const pRev = trend.prev_revenue[i]       || 0;
-            const tx   = trend.transactions[i]       || 0;
-            const pTx  = trend.prev_transactions[i]  || 0;
-            const avg  = trend.avg_ticket[i]         || 0;
-            const pAvg = trend.prev_avg_ticket[i]    || 0;
-
-            rows += `<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
-                <td class="px-5 py-3 text-gray-800 dark:text-gray-200 font-medium whitespace-nowrap">${label}</td>
-                <td class="px-5 py-3 text-right text-gray-900 dark:text-white whitespace-nowrap">${fmtCurr(rev)}</td>
-                <td class="px-5 py-3 text-right whitespace-nowrap">${deltaHtml(rev, pRev)}</td>
-                <td class="px-5 py-3 text-right text-gray-900 dark:text-white">${fmtNum(tx)}</td>
-                <td class="px-5 py-3 text-right whitespace-nowrap">${deltaHtml(tx, pTx)}</td>
-                <td class="px-5 py-3 text-right text-gray-900 dark:text-white whitespace-nowrap">${fmtCurr(avg)}</td>
-                <td class="px-5 py-3 text-right whitespace-nowrap">${deltaHtml(avg, pAvg)}</td>
-            </tr>`;
-        });
-        tbody.innerHTML = rows;
-
-        const t = trend.totals;
-        tfoot.innerHTML = `<tr>
-            <td class="px-5 py-3">Total / Avg</td>
-            <td class="px-5 py-3 text-right whitespace-nowrap">${fmtCurr(t.revenue)}</td>
-            <td class="px-5 py-3 text-right whitespace-nowrap">${deltaHtml(t.revenue, t.prev_revenue)}</td>
-            <td class="px-5 py-3 text-right">${fmtNum(t.transactions)}</td>
-            <td class="px-5 py-3 text-right whitespace-nowrap">${deltaHtml(t.transactions, t.prev_transactions)}</td>
-            <td class="px-5 py-3 text-right whitespace-nowrap">${fmtCurr(t.avg_ticket)}</td>
-            <td class="px-5 py-3 text-right whitespace-nowrap">${deltaHtml(t.avg_ticket, t.prev_avg_ticket)}</td>
-        </tr>`;
-    }
-
-    // ── Group By buttons ──────────────────────────────────────────────────────
-    function syncGroupBtns() {
-        document.querySelectorAll('.group-btn').forEach(b => {
-            const on = b.dataset.group === activeGroup;
-            b.className = 'group-btn px-3 py-2 text-sm font-medium border-r border-gray-300 dark:border-gray-600 last:border-r-0 transition ' +
-                (on ? 'bg-brand-500 text-white' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600');
+        .finally(() => {
+            kpiSection.style.opacity = '1';
         });
     }
 
-    document.querySelectorAll('.group-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            activeGroup = this.dataset.group;
-            syncGroupBtns();
-            scheduleRun();
-        });
-    });
-
-    // ── Metric toggle ─────────────────────────────────────────────────────────
-    function syncMetricBtns() {
-        document.querySelectorAll('.metric-btn').forEach(b => {
-            const on = b.dataset.metric === activeMetric;
-            b.className = 'metric-btn px-3 py-1.5 text-sm font-medium border-r border-gray-300 dark:border-gray-600 last:border-r-0 transition ' +
-                (on ? 'bg-brand-500 text-white' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50');
-        });
-    }
-
-    document.querySelectorAll('.metric-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            activeMetric = this.dataset.metric;
-            syncMetricBtns();
-            if (trendData) renderChart(trendData, activeMetric);
-        });
-    });
-
-    // ── Debounce & events ─────────────────────────────────────────────────────
-    let debounceTimer = null;
     function scheduleRun() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(runReport, 400);
     }
 
-    fDateRange.addEventListener('change', function () {
-        customWrap.classList.toggle('hidden', this.value !== 'custom');
-        scheduleRun();
-    });
-
-    [fStore, fItemType, fProduct, fPayment].forEach(el => { if (el) el.addEventListener('change', scheduleRun); });
-
-    // ── Category → Product dependency ─────────────────────────────────────────
-    fCategory.addEventListener('change', function () {
-        const catId = this.value;
-        fProduct.innerHTML = '<option value="">All Products</option>';
-        const afterLoad = () => scheduleRun();
-        if (!catId) { afterLoad(); return; }
-        fetch(ROUTE + '?ajax_products=1&category=' + catId, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(r => r.json())
-            .then(data => {
-                if (data.products) data.products.forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.id; opt.textContent = p.product_name;
-                    fProduct.appendChild(opt);
-                });
-                afterLoad();
-            })
-            .catch(() => afterLoad());
-    });
-
-    // ── Checkbox pairs ─────────────────────────────────────────────────────────
-    function bindCheckboxPair(cbA, cbB) {
-        cbA.addEventListener('change', function () { if (this.checked) cbB.checked = false; scheduleRun(); });
-        cbB.addEventListener('change', function () { if (this.checked) cbA.checked = false; scheduleRun(); });
+    // ── Render everything from data ───────────────────────────────────────────
+    function renderAll(data) {
+        renderKpis(data);
+        renderPrimaryChart(data);
+        renderYoySection(data);
+        updateCompareCheckboxes(data.primary_year);
     }
-    bindCheckboxPair(fExcludeDamageWaiver, fDamageWaiverOnly);
-    bindCheckboxPair(fExcludeTrackIns,     fTrackInsOnly);
-    bindCheckboxPair(fExcludeDelivery,     fDeliveryOnly);
-    fExcludeShipping.addEventListener('change', scheduleRun);
 
-    // ── Sale Type toggle ───────────────────────────────────────────────────────
+    // ── KPI Cards ─────────────────────────────────────────────────────────────
+    function renderKpis(data) {
+        const k = data.kpis;
+        const primaryYear = data.primary_year;
+
+        document.getElementById('kpi-ytd').textContent    = fmt(k.ytd_net_sales);
+        document.getElementById('kpi-ytd-label').textContent =
+            k.months_counted < 12
+                ? 'Jan–' + data.months[k.months_counted - 1] + ' ' + primaryYear
+                : '' + primaryYear;
+
+        document.getElementById('kpi-prior-label').textContent = k.prior_year + ' Same Period';
+        document.getElementById('kpi-prior').textContent = fmt(k.prior_year_same_period);
+
+        const dcEl = document.getElementById('kpi-dollar-change');
+        dcEl.textContent  = fmtSigned(k.dollar_change);
+        dcEl.className    = 'text-lg font-bold ' + (k.dollar_change >= 0 ? 'text-emerald-600' : 'text-red-500');
+
+        const pcEl = document.getElementById('kpi-pct-change');
+        const pctStr = (k.pct_change >= 0 ? '+' : '') + k.pct_change.toFixed(1) + '%';
+        pcEl.textContent = pctStr;
+        pcEl.className   = 'text-lg font-bold ' + (k.pct_change >= 0 ? 'text-emerald-600' : 'text-red-500');
+
+        document.getElementById('kpi-best-month').textContent  = k.best_month;
+        document.getElementById('kpi-worst-month').textContent = k.worst_month;
+        document.getElementById('kpi-avg').textContent         = fmt(k.avg_monthly_net_sales);
+    }
+
+    // ── Primary Chart ─────────────────────────────────────────────────────────
+    function renderPrimaryChart(data) {
+        const noData = document.getElementById('primary-chart-no-data');
+        const el     = document.getElementById('primary-chart');
+
+        // Primary series is always data.series[0]
+        const primarySeries = data.series[0] ?? null;
+        const allZero = !primarySeries || primarySeries.data.every(v => v === 0);
+
+        document.getElementById('primary-chart-title').textContent =
+            data.primary_year + ' — Monthly Net Sales';
+
+        if (allZero) {
+            noData.classList.remove('hidden');
+            el.style.display = 'none';
+            return;
+        }
+        noData.classList.add('hidden');
+        el.style.display = '';
+
+        const opts = {
+            series: [{ name: String(data.primary_year), data: primarySeries.data }],
+            chart:  { type: 'bar', height: 300, toolbar: { show: false }, animations: { enabled: true, speed: 350 } },
+            plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+            colors: [YEAR_COLORS[0]],
+            dataLabels: { enabled: false },
+            xaxis: { categories: data.months },
+            yaxis: { labels: { formatter: v => fmt(v) } },
+            tooltip: { y: { formatter: v => fmt(v) } },
+            grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+        };
+
+        if (!primaryChart) {
+            primaryChart = new ApexCharts(el, opts);
+            primaryChart.render();
+        } else {
+            primaryChart.updateOptions({ xaxis: { categories: data.months } }, false, false);
+            primaryChart.updateSeries([{ name: String(data.primary_year), data: primarySeries.data }]);
+        }
+    }
+
+    // ── YOY Section (secondary chart + YOY KPI row) ───────────────────────────
+    function renderYoySection(data) {
+        const hasCompare = data.compare_years && data.compare_years.length > 0;
+        yoySection.classList.toggle('hidden', !hasCompare);
+        if (!hasCompare) return;
+
+        renderYoyKpis(data);
+
+        const noData = document.getElementById('yoy-chart-no-data');
+        const el     = document.getElementById('yoy-chart');
+
+        const allZero = data.series.every(s => s.data.every(v => v === 0));
+        if (allZero) {
+            noData.classList.remove('hidden');
+            el.style.display = 'none';
+            return;
+        }
+        noData.classList.add('hidden');
+        el.style.display = '';
+
+        const series = data.series.map((s, i) => ({
+            name: String(s.year),
+            data: s.data,
+        }));
+
+        const colors = data.series.map((_, i) => YEAR_COLORS[i] ?? '#6B7280');
+
+        const opts = {
+            series,
+            chart: { type: 'bar', height: 320, toolbar: { show: false }, animations: { enabled: true, speed: 350 } },
+            plotOptions: { bar: { borderRadius: 3, columnWidth: '70%', groupPadding: 0.1 } },
+            colors,
+            dataLabels: { enabled: false },
+            xaxis: { categories: data.months },
+            yaxis: { labels: { formatter: v => fmt(v) } },
+            tooltip: { shared: true, intersect: false, y: { formatter: v => fmt(v) } },
+            legend: { position: 'top', horizontalAlign: 'right' },
+            grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+        };
+
+        if (!yoyChart) {
+            yoyChart = new ApexCharts(el, opts);
+            yoyChart.render();
+        } else {
+            yoyChart.updateOptions({ xaxis: { categories: data.months }, colors }, false, false);
+            yoyChart.updateSeries(series);
+        }
+    }
+
+    function renderYoyKpis(data) {
+        const k    = data.kpis;
+        const row  = document.getElementById('yoy-kpi-row');
+        const totals = k.yoy_totals ?? [];
+
+        const cards = [
+            { label: 'Best Year',          value: String(k.best_year), cls: 'text-emerald-600 text-xl font-bold' },
+            { label: 'Best Month Overall', value: k.best_month_overall, cls: 'text-blue-600 text-xl font-bold' },
+        ];
+
+        totals.forEach((t, i) => {
+            cards.push({ label: t.year + ' Total', value: fmt(t.total), cls: 'text-gray-900 dark:text-white text-xl font-bold' });
+        });
+
+        row.innerHTML = cards.map(c => `
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">${c.label}</p>
+                <p class="${c.cls}">${c.value}</p>
+            </div>
+        `).join('');
+    }
+
+    // ── Compare year checkbox enforcement (max 2) ─────────────────────────────
+    function updateCompareCheckboxes(newPrimaryYear) {
+        // Show/hide the checkbox for the primary year
+        document.querySelectorAll('.compare-year-label').forEach(lbl => {
+            const yr  = parseInt(lbl.dataset.year, 10);
+            const cb  = lbl.querySelector('input');
+            if (yr === newPrimaryYear) {
+                lbl.classList.add('hidden');
+                cb.checked = false;
+            } else {
+                lbl.classList.remove('hidden');
+            }
+        });
+        enforceMaxCompareYears();
+    }
+
+    function enforceMaxCompareYears() {
+        const checked = document.querySelectorAll('.compare-year-cb:checked');
+        document.querySelectorAll('.compare-year-cb:not(:checked)').forEach(cb => {
+            cb.disabled = checked.length >= 2;
+        });
+    }
+
+    document.querySelectorAll('.compare-year-cb').forEach(cb => {
+        cb.addEventListener('change', function () {
+            const checked = document.querySelectorAll('.compare-year-cb:checked').length;
+            if (checked > 2) {
+                this.checked = false;
+                return;
+            }
+            enforceMaxCompareYears();
+            scheduleRun();
+        });
+    });
+
+    // ── Sale Type toggle ──────────────────────────────────────────────────────
     function setSaleType(val) {
         fSaleType.value = val;
         fSaleTypeGroup.querySelectorAll('.sale-type-btn').forEach(btn => {
             const on = btn.dataset.value === val;
-            btn.classList.toggle('bg-brand-500', on);  btn.classList.toggle('text-white', on);
-            btn.classList.toggle('bg-white', !on);      btn.classList.toggle('dark:bg-gray-700', !on);
-            btn.classList.toggle('text-gray-700', !on); btn.classList.toggle('dark:text-gray-200', !on);
+            btn.classList.toggle('bg-blue-600', on);
+            btn.classList.toggle('text-white', on);
+            btn.classList.toggle('bg-white', !on);
+            btn.classList.toggle('dark:bg-gray-700', !on);
+            btn.classList.toggle('text-gray-700', !on);
+            btn.classList.toggle('dark:text-gray-200', !on);
         });
     }
     fSaleTypeGroup.addEventListener('click', function (e) {
@@ -655,34 +489,57 @@
         scheduleRun();
     });
 
+    // ── Year change — rebuild compare checkboxes ──────────────────────────────
+    fYear.addEventListener('change', function () {
+        updateCompareCheckboxes(parseInt(this.value, 10));
+        scheduleRun();
+    });
+
+    // ── Category → Product cascade ────────────────────────────────────────────
+    fCategory.addEventListener('change', function () {
+        const catId = this.value;
+        fProduct.innerHTML = '<option value="">All Products</option>';
+        if (!catId) { scheduleRun(); return; }
+        fetch(ROUTE + '?ajax_products=1&category=' + catId, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+        .then(r => r.json())
+        .then(resp => {
+            if (resp.products) {
+                resp.products.forEach(p => {
+                    const opt       = document.createElement('option');
+                    opt.value       = p.id;
+                    opt.textContent = p.product_name;
+                    fProduct.appendChild(opt);
+                });
+            }
+            scheduleRun();
+        })
+        .catch(() => scheduleRun());
+    });
+
+    // ── Standard filter events ────────────────────────────────────────────────
+    [fStore, fProduct].forEach(el => {
+        if (el) el.addEventListener('change', scheduleRun);
+    });
+
     // ── Clear filters ─────────────────────────────────────────────────────────
     document.getElementById('btn-clear-filters').addEventListener('click', function () {
-        fDateRange.value               = 'mtd';
-        fStartDate.value               = '';
-        fEndDate.value                 = '';
-        fStore.value                   = '';
-        fItemType.value                = 'all';
-        fCategory.value                = '';
-        fProduct.innerHTML             = '<option value="">All Products</option>';
-        fExcludeDamageWaiver.checked   = false;
-        fDamageWaiverOnly.checked      = false;
-        fExcludeTrackIns.checked       = false;
-        fTrackInsOnly.checked          = false;
-        fExcludeDelivery.checked       = false;
-        fDeliveryOnly.checked          = false;
-        fExcludeShipping.checked       = false;
-        fPayment.value                 = 'paid';
-        activeGroup                    = 'day';
+        fYear.value    = fYear.options[0]?.value ?? '';
+        fStore.value   = '';
+        fCategory.value = '';
+        fProduct.innerHTML = '<option value="">All Products</option>';
+        document.querySelectorAll('.compare-year-cb').forEach(cb => { cb.checked = false; });
         setSaleType('all');
-        customWrap.classList.add('hidden');
-        syncGroupBtns();
+        updateCompareCheckboxes(parseInt(fYear.value, 10));
         runReport();
     });
 
     // ── Init ──────────────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
-        trendData = initialTrend;
-        renderAll(initialTrend);
+        reportData = initData;
+        renderAll(initData);
+        enforceMaxCompareYears();
     });
 
 })();

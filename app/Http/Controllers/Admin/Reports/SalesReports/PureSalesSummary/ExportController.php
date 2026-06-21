@@ -17,6 +17,8 @@ class ExportController extends Controller
             'date_range'      => $request->input('date_range', 'mtd'),
             'start_date'      => $request->input('start_date'),
             'end_date'        => $request->input('end_date'),
+            'month'           => $request->input('month') ? (int) $request->input('month') : null,
+            'year'            => $request->input('year')  ? (int) $request->input('year')  : null,
             'store'           => $request->input('store'),
             'item_type'       => $request->input('item_type', 'all'),
             'category'        => $request->input('category') ? (int) $request->input('category') : null,

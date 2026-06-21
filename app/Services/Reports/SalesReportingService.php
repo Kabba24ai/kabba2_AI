@@ -149,6 +149,14 @@ class SalesReportingService
             return [null, null];
         }
 
+        if ($range === 'month') {
+            $month = (int) ($filters['month'] ?? $now->month);
+            $year  = (int) ($filters['year']  ?? $now->year);
+            $start = Carbon::create($year, $month, 1)->startOfDay();
+            $end   = $start->copy()->endOfMonth()->endOfDay();
+            return [$start, $end];
+        }
+
         return match ($range) {
             'today'     => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
             'yesterday' => [$now->copy()->subDay()->startOfDay(), $now->copy()->subDay()->endOfDay()],
@@ -208,6 +216,13 @@ class SalesReportingService
      */
     public function dateRangeLabel(array $filters): string
     {
+        if (($filters['date_range'] ?? null) === 'month') {
+            $now   = Carbon::now();
+            $month = (int) ($filters['month'] ?? $now->month);
+            $year  = (int) ($filters['year']  ?? $now->year);
+            return Carbon::create($year, $month, 1)->format('F Y');
+        }
+
         [$start, $end] = $this->resolveDateRange($filters);
         if (!$start || !$end) {
             return 'All Time';

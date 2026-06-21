@@ -757,7 +757,10 @@ private function getRevenueRows(Carbon $start, Carbon $end)
             })
             ->map(function ($payment) use ($order) {
                 return (object) [
-                    'date' => $payment->payment_datetime ?? $payment->created_at ?? $order->order_date,
+                    'date' => $payment->refunded_at
+                        ?? $payment->payment_datetime
+                        ?? $payment->created_at
+                        ?? $order->order_date,
                     'grand_total' => -((float) $payment->refund_amount),
                 ];
             });

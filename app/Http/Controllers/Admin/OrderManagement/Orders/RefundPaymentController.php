@@ -124,6 +124,13 @@ class RefundPaymentController extends Controller
                 );
             }
 
+            // Tax refunded — proportional to the order-level tax rate.
+            // Refunds are order-level financial adjustments; no line-item attribution needed.
+            $originalTaxRate = ((float) $order->subtotal > 0 && (float) $order->tax_amount > 0)
+                ? (float) $order->tax_amount / (float) $order->subtotal
+                : 0.0;
+            $taxRefunded = round($currentRefundAmount * $originalTaxRate, 2);
+
             // Decide status using accessor
             $willRemain = $remaining - $currentRefundAmount;
             $refundStatus = $willRemain <= 0 ? OrderPaymentStatus::Refund : OrderPaymentStatus::PartialRefund;
@@ -138,7 +145,7 @@ class RefundPaymentController extends Controller
                 'auth_code'               => $authCode,
                 'status'                  => $refundStatus->value,
                 'refund_amount'           => $currentRefundAmount,
-                'tax_refunded'            => 0,
+                'tax_refunded'            => $taxRefunded,
                 'refund_note'             => $validated['reason'],
                 'cheque_number'           => $validated['cheque_number'] ?? null,
                 'created_by_type'         => get_class($user),

@@ -99,10 +99,9 @@ class IndexController extends Controller
         ];
     }
 
-    /** Current year down to 5 years ago (6 entries total). */
+    /** 2040 down to 2024 — future-proofed range. */
     private function buildAvailableYears(): array
     {
-        $current = (int) Carbon::now()->year;
-        return range($current, $current - 5);
+        return range(2040, 2024);
     }
 }

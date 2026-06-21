@@ -180,8 +180,24 @@ class SalesTaxReportEngine
             ->where('type', 'payment')
             ->whereBetween('date', [$start, $end]);
 
-        if (!empty($filters['payment_method']) && $filters['payment_method'] !== 'All Methods') {
-            $query->where('payment_type', $filters['payment_method']);
+        // customer_accounts.payment_type uses Customers\PaymentMethod values (CreditCard, BankTransfer, …)
+        // while the filter sends Orders\OrderPaymentMethod values (Card, Online, …).
+        // Map before applying so the filter works correctly for all payment types.
+        $accountMethodMap = [
+            'Card'   => 'CreditCard',
+            'Online' => 'BankTransfer',
+            'Cash'   => 'Cash',
+            'Cheque' => 'Cheque',
+            'Other'  => 'Other',
+        ];
+        if (!empty($filters['payment_method'])) {
+            $mapped = $accountMethodMap[$filters['payment_method']] ?? null;
+            if ($mapped) {
+                $query->where('payment_type', $mapped);
+            } else {
+                // COD, Account, or unknown — no account rows use these types
+                return collect();
+            }
         }
 
         return $query->get()->map(function ($payment) {

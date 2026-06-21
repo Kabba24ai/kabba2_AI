@@ -124,12 +124,16 @@ class RefundPaymentController extends Controller
                 );
             }
 
-            // Tax refunded — proportional to the order-level tax rate.
-            // Refunds are order-level financial adjustments; no line-item attribution needed.
+            // Tax refunded: extract tax from the tax-inclusive refund_amount.
+            // refund_amount is grand-total-basis (= grand_total − already_refunded), so we
+            // use the "extract" formula: amount − amount/(1+rate), which matches
+            // CustomHelper::calculateRefundSalesTax() used as the historic-record fallback.
             $originalTaxRate = ((float) $order->subtotal > 0 && (float) $order->tax_amount > 0)
                 ? (float) $order->tax_amount / (float) $order->subtotal
                 : 0.0;
-            $taxRefunded = round($currentRefundAmount * $originalTaxRate, 2);
+            $taxRefunded = ($originalTaxRate > 0)
+                ? round($currentRefundAmount - ($currentRefundAmount / (1 + $originalTaxRate)), 2)
+                : 0.0;
 
             // Decide status using accessor
             $willRemain = $remaining - $currentRefundAmount;

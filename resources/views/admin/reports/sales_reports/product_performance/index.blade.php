@@ -48,8 +48,31 @@
                     <option value="mtd"       @selected(($filters['date_range'] ?? 'mtd') === 'mtd')>Month to Date</option>
                     <option value="qtd"       @selected(($filters['date_range'] ?? '') === 'qtd')>Quarter to Date</option>
                     <option value="ytd"       @selected(($filters['date_range'] ?? '') === 'ytd')>Year to Date</option>
+                    <option value="month"     @selected(($filters['date_range'] ?? '') === 'month')>Specific Month</option>
                     <option value="custom"    @selected(($filters['date_range'] ?? '') === 'custom')>Custom Range</option>
                 </select>
+            </div>
+
+            {{-- Specific Month inputs --}}
+            <div id="month-wrap" class="{{ ($filters['date_range'] ?? '') === 'month' ? '' : 'hidden' }} flex gap-2">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Month</label>
+                    <select id="f-month"
+                        class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        @foreach(['Jan'=>1,'Feb'=>2,'Mar'=>3,'Apr'=>4,'May'=>5,'Jun'=>6,'Jul'=>7,'Aug'=>8,'Sep'=>9,'Oct'=>10,'Nov'=>11,'Dec'=>12] as $label => $num)
+                            <option value="{{ $num }}" @selected((int)($filters['month'] ?? now()->month) === $num)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Year</label>
+                    <select id="f-year"
+                        class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        @foreach(range(now()->year, 2024, -1) as $yr)
+                            <option value="{{ $yr }}" @selected((int)($filters['year'] ?? now()->year) === $yr)>{{ $yr }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             {{-- Custom date inputs --}}
@@ -289,6 +312,9 @@
     const fStartDate   = document.getElementById('f-start-date');
     const fEndDate     = document.getElementById('f-end-date');
     const customWrap   = document.getElementById('custom-date-wrap');
+    const monthWrap    = document.getElementById('month-wrap');
+    const fMonth       = document.getElementById('f-month');
+    const fYear        = document.getElementById('f-year');
     const fStore       = document.getElementById('f-store');
     const fSaleType    = document.getElementById('f-sale-type');
     const fCategory    = document.getElementById('f-category');
@@ -357,11 +383,12 @@
     // ── Date range toggle ───────────────────────────────────────────────────
     fDateRange.addEventListener('change', function () {
         customWrap.classList.toggle('hidden', this.value !== 'custom');
+        monthWrap.classList.toggle('hidden', this.value !== 'month');
         scheduleRun();
     });
 
     // ── Generic filter listeners ────────────────────────────────────────────
-    [fStartDate, fEndDate, fSaleType, fProduct, fSortBy].forEach(el => {
+    [fStartDate, fEndDate, fMonth, fYear, fSaleType, fProduct, fSortBy].forEach(el => {
         el.addEventListener('change', scheduleRun);
     });
 
@@ -370,6 +397,7 @@
     document.getElementById('btn-clear-filters').addEventListener('click', function () {
         fDateRange.value = 'mtd';
         customWrap.classList.add('hidden');
+        monthWrap.classList.add('hidden');
         fStartDate.value = '';
         fEndDate.value   = '';
         fStore.value     = '';
@@ -394,6 +422,10 @@
         if (fDateRange.value === 'custom') {
             if (fStartDate.value) p.set('start_date', fStartDate.value);
             if (fEndDate.value)   p.set('end_date',   fEndDate.value);
+        }
+        if (fDateRange.value === 'month') {
+            if (fMonth.value) p.set('month', fMonth.value);
+            if (fYear.value)  p.set('year',  fYear.value);
         }
         if (fStore.value)    p.set('store',     fStore.value);
         if (fSaleType.value && fSaleType.value !== 'all') p.set('sale_type', fSaleType.value);

@@ -8,7 +8,6 @@ use App\Models\Orders\Order;
 use App\Models\Orders\OrderExtraCharges;
 use App\Models\Stores\Store;
 use App\Helpers\CustomHelper;
-use App\Helpers\ConfigurationHelper;
 use App\Services\Reports\SalesTaxReportEngine;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -22,8 +21,6 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         try {
-            $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
-
             $filters = [
                 'month_range'    => $request->input('month_range')  ?: null,
                 'start_date'     => $request->input('start_date')   ?: null,
@@ -56,16 +53,29 @@ class IndexController extends Controller
                 ->get();
 
             // ── KPI stats ─────────────────────────────────────────────────────
-            $reportRowsTotal     = $reportRows->sum(fn($row) => $row->grand_total);
-            $rowsalesTaxCollected = $reportRows->filter(fn($row) => $row->tax_amount == 0)->sum(fn($row) => $row->subtotal);
+            // All three streams use transaction-date accounting. Refund rows carry
+            // negative grand_total, subtotal, and tax_amount, so summing across all
+            // rows automatically produces net figures — no separate refund subtraction needed.
+
             $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
 
-            $taxFreeRevenue  = CustomHelper::formatCurrency($rowsalesTaxCollected + $extraChargesTotalRaw);
-            $rowtaxableRevenue = $reportRowsTotal - $rowsalesTaxCollected;
-            $taxableRevenue  = CustomHelper::formatCurrency($rowtaxableRevenue);
-            $salesTaxCollected = CustomHelper::formatCurrency($rowtaxableRevenue * $sales_tax);
+            // F3: sum actual stored tax_amount values (positive for sales, negative for refunds)
+            $netTaxAmount  = $reportRows->sum(fn($row) => $row->tax_amount);
+
+            // F2: use subtotal sum for taxable revenue base (excludes the tax component)
+            $taxableSubtotal = $reportRows->sum(fn($row) => $row->subtotal);
+
+            // Net grand total across all taxed rows
+            $reportRowsTotal = $reportRows->sum(fn($row) => $row->grand_total);
+
+            // Relationship that must hold: taxableSubtotal + netTaxAmount === reportRowsTotal
+            // (grand_total = subtotal + tax_amount, so Σgrand = Σsubtotal + Σtax)
+
+            $salesTaxCollected        = CustomHelper::formatCurrency($netTaxAmount);
+            $taxableRevenue           = CustomHelper::formatCurrency($taxableSubtotal);
+            $taxFreeRevenue           = CustomHelper::formatCurrency($extraChargesTotalRaw);
             $totalCollectedAllSources = CustomHelper::formatCurrency($extraChargesTotalRaw + $reportRowsTotal);
-            $totalRevenue    = CustomHelper::formatCurrency($reportRowsTotal - $rowsalesTaxCollected);
+            $totalRevenue             = CustomHelper::formatCurrency($reportRowsTotal);
 
             // ── Pagination ────────────────────────────────────────────────────
             $perPage  = $request->get('per_page', 30);

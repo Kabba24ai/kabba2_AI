@@ -91,6 +91,14 @@
                 </select>
             </div>
 
+            {{-- Tax Free Only --}}
+            <div class="w-full sm:w-auto flex items-center gap-2 py-2">
+                <input type="checkbox" id="tax_free_only" name="tax_free_only"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer">
+                <label for="tax_free_only" class="text-sm text-gray-700 whitespace-nowrap cursor-pointer select-none">
+                    Tax Free Only
+                </label>
+            </div>
 
         </div>
     </div>
@@ -210,6 +218,7 @@
             const startDateInput = document.querySelector('input[name="start_date"]');
             const endDateInput = document.querySelector('input[name="end_date"]');
             const storeInput = document.querySelector('select[name="store"]');
+            const taxFreeOnlyInput = document.getElementById('tax_free_only');
             const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location
                     .search)
                 .get('per_page') || null;
@@ -218,6 +227,7 @@
             const reloadIcon = document.getElementById('reloadIcon');
 
             const screenKey = 'sales_tax_report_filters';
+            const taxFreeKey = screenKey + '_tax_free_only';
 
             const fieldMap = {
                 'payment_method': paymentMethodInput,
@@ -229,10 +239,17 @@
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
+            if (taxFreeOnlyInput) {
+                taxFreeOnlyInput.checked = localStorage.getItem(taxFreeKey) === '1';
+            }
 
             // Clear filters functionality using global clearFilters
             document.getElementById('clear-filters').addEventListener('click', function() {
                 window.clearFilters(fieldMap, screenKey);
+                if (taxFreeOnlyInput) {
+                    taxFreeOnlyInput.checked = false;
+                    localStorage.removeItem(taxFreeKey);
+                }
                 fetchOrders(); // Fetch orders after clearing filters
             });
 
@@ -246,17 +263,22 @@
                 const startDate = startDateInput?.value || '';
                 const endDate = endDateInput?.value || '';
                 const store = storeInput?.value || '';
+                const taxFreeOnly = taxFreeOnlyInput?.checked || false;
 
                 if (paymentMethod) params.append('payment_method', paymentMethod);
                 if (monthRange) params.append('month_range', monthRange);
                 if (startDate) params.append('start_date', startDate);
                 if (endDate) params.append('end_date', endDate);
                 if (store) params.append('store', store);
+                if (taxFreeOnly) params.append('tax_free_only', '1');
                 if (perPage) params.append('per_page', perPage);
                 params.set('page', page);
 
                 // save current filters
                 FilterFreezer.saveFilters(screenKey, fieldMap);
+                if (taxFreeOnlyInput) {
+                    localStorage.setItem(taxFreeKey, taxFreeOnlyInput.checked ? '1' : '0');
+                }
 
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
@@ -345,6 +367,7 @@
             startDateInput?.addEventListener('change', () => fetchOrders(1, perPageParam));
             endDateInput?.addEventListener('change', () => fetchOrders(1, perPageParam));
             paymentMethodInput?.addEventListener('change', () => fetchOrders(1, perPageParam));
+            taxFreeOnlyInput?.addEventListener('change', () => fetchOrders(1, perPageParam));
 
 
 

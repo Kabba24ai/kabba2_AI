@@ -27,6 +27,7 @@ class IndexController extends Controller
                 'end_date'       => $request->input('end_date')      ?: null,
                 'store'          => $request->input('store')         ?: null,
                 'payment_method' => $request->input('payment_method') ?: null,
+                'tax_free_only'  => $request->boolean('tax_free_only'),
             ];
 
             // ── Three independent transaction streams ──────────────────────────
@@ -50,8 +51,14 @@ class IndexController extends Controller
                 ->filter(fn($row) => $row->tax_amount == 0)
                 ->sum(fn($row) => $row->grand_total);
 
-            // Detail table: only rows with a tax component (zero-tax rows remain in KPI totals above).
+            // KPI base: taxable rows only (zero-tax rows are captured in $taxFreeRowRevenue above).
             $reportRows = $allRows->filter(fn($row) => $row->tax_amount != 0)->values();
+
+            // Detail table: taxable rows by default; tax-free rows when the filter is active.
+            // KPI cards always reflect the full period ($reportRows + $taxFreeRowRevenue) regardless.
+            $tableRows = !empty($filters['tax_free_only'])
+                ? $allRows->filter(fn($row) => $row->tax_amount == 0)->values()
+                : $reportRows;
 
             // ── Extra charges (anchored on created_at — separate system) ───────
             [$start, $end] = $this->engine->resolveDateRange($filters);
@@ -83,8 +90,8 @@ class IndexController extends Controller
             // ── Pagination ────────────────────────────────────────────────────
             $perPage  = $request->get('per_page', 30);
             $page     = $request->get('page', 1);
-            $total    = $reportRows->count();
-            $items    = $reportRows->slice(($page - 1) * $perPage, $perPage)->values();
+            $total    = $tableRows->count();
+            $items    = $tableRows->slice(($page - 1) * $perPage, $perPage)->values();
 
             $paginated = new LengthAwarePaginator($items, $total, $perPage, $page, [
                 'path'  => $request->url(),
@@ -126,8 +133,7 @@ class IndexController extends Controller
 
             $availableMonths = $allMonths->map(fn($item) => [
                 'value' => "{$item->year}-" . str_pad($item->month, 2, '0', STR_PAD_LEFT),
-                'label' => 'Pay for '
-                    . Carbon::create($item->year, $item->month, 1)->format('M 1')
+                'label' => Carbon::create($item->year, $item->month, 1)->format('M 1')
                     . ' - '
                     . Carbon::create($item->year, $item->month, 1)->endOfMonth()->format('M d'),
             ]);

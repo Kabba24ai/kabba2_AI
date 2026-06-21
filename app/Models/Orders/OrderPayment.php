@@ -3,7 +3,9 @@
 namespace App\Models\Orders;
 
 use App\Helpers\ModelHelper;
+use App\Models\Orders\Order;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // enums
@@ -60,6 +62,11 @@ class OrderPayment extends Model
         static::creating(function ($model) {
             $model->unique_id = ModelHelper::generateUniqueID($model, 'ORD-PAY');
         });
+    }
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
     }
 
     // Polymorphic relations for created_by and updated_by

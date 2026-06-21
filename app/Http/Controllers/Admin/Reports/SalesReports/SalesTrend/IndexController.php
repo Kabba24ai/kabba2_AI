@@ -33,15 +33,47 @@ class IndexController extends Controller
                 $request->input('compare_years', []),
                 $primaryYear
             );
-            $filters = $this->extractFilters($request);
+            $filters         = $this->extractFilters($request);
+            $compareCategory = $request->input('compare_category') ? (int)$request->input('compare_category') : null;
+            $compareProduct  = $request->input('compare_product')  ? (int)$request->input('compare_product')  : null;
 
-            // "All Individually" mode: one chart series per store, no year comparison.
+            // Pre-load shared collections (used in mode dispatch and view).
+            $categories  = $this->reporting->availableCategories();
+            $products    = $this->reporting->availableProducts($filters['category'] ?? null);
+            $allProducts = $filters['category']
+                ? $this->reporting->availableProducts(null)
+                : $products;
+
+            // ── Mode dispatch (priority: product > category > by_store > year) ──
             $allIndividually = ($filters['store'] === 'all_individually');
-            if ($allIndividually) {
-                $filters['store'] = null;   // engine handles per-store breakdown internally
+
+            if ($filters['product'] && $compareProduct && $filters['product'] !== $compareProduct) {
+                // Product comparison
+                $compareYears = [];
+                $prodA = $allProducts->firstWhere('id', $filters['product']);
+                $prodB = $allProducts->firstWhere('id', $compareProduct);
+                $nameA = $prodA ? $prodA->product_name : ('Product ' . $filters['product']);
+                $nameB = $prodB ? $prodB->product_name : ('Product ' . $compareProduct);
+                $data  = $this->engine->productComparison(
+                    $primaryYear, $filters['product'], $nameA, $compareProduct, $nameB, $filters
+                );
+            } elseif ($filters['category'] && $compareCategory && $filters['category'] !== $compareCategory) {
+                // Category comparison
+                $compareYears = [];
+                $catA  = $categories->firstWhere('id', $filters['category']);
+                $catB  = $categories->firstWhere('id', $compareCategory);
+                $nameA = $catA ? $catA->title : ('Category ' . $filters['category']);
+                $nameB = $catB ? $catB->title : ('Category ' . $compareCategory);
+                $data  = $this->engine->categoryComparison(
+                    $primaryYear, $filters['category'], $nameA, $compareCategory, $nameB, $filters
+                );
+            } elseif ($allIndividually) {
+                // All Individually store mode
+                $filters['store'] = null;
                 $compareYears     = [];
                 $data = $this->engine->reportDataByStore($primaryYear, $filters);
             } else {
+                // Default year / YOY mode
                 $data = $this->engine->reportData($primaryYear, $compareYears, $filters);
             }
 
@@ -50,15 +82,18 @@ class IndexController extends Controller
             }
 
             return view('admin.reports.sales_reports.sales_trend.index', [
-                'data'           => $data,
-                'primaryYear'    => $primaryYear,
-                'compareYears'   => $compareYears,
-                'stores'         => Store::orderBy('store_name')->get(['id', 'store_name']),
-                'categories'     => $this->reporting->availableCategories(),
-                'products'       => $this->reporting->availableProducts($filters['category'] ?? null),
-                'availableYears' => $this->buildAvailableYears(),
-                'filters'        => $filters,
-                'selectedStore'  => $request->input('store', ''),
+                'data'            => $data,
+                'primaryYear'     => $primaryYear,
+                'compareYears'    => $compareYears,
+                'stores'          => Store::orderBy('store_name')->get(['id', 'store_name']),
+                'categories'      => $categories,
+                'products'        => $products,
+                'allProducts'     => $allProducts,
+                'availableYears'  => $this->buildAvailableYears(),
+                'filters'         => $filters,
+                'selectedStore'   => $request->input('store', ''),
+                'compareCategory' => $compareCategory,
+                'compareProduct'  => $compareProduct,
             ]);
 
         } catch (\Throwable $e) {

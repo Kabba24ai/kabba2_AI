@@ -69,6 +69,69 @@ class SalesTrendAnalysisEngine
     }
 
     /**
+     * Build a 2-series monthly comparison between two categories for a single year.
+     *
+     * Base filters (store, sale_type) are preserved; category is overridden per series.
+     * Product filter is cleared — categories define the scope.
+     */
+    public function categoryComparison(
+        int    $year,
+        int    $categoryA, string $nameA,
+        int    $categoryB, string $nameB,
+        array  $filters
+    ): array {
+        $fa = array_merge($filters, ['category' => $categoryA, 'product' => null]);
+        $fb = array_merge($filters, ['category' => $categoryB, 'product' => null]);
+
+        $monthlyA = $this->monthlyNetSales($year, $fa);
+        $monthlyB = $this->monthlyNetSales($year, $fb);
+
+        return [
+            'months'        => array_values(self::MONTHS),
+            'series'        => [
+                ['name' => $nameA, 'data' => array_values($monthlyA)],
+                ['name' => $nameB, 'data' => array_values($monthlyB)],
+            ],
+            'primary_year'  => $year,
+            'compare_years' => [],
+            'kpis'          => $this->buildComparisonKpis($monthlyA, $nameA, $monthlyB, $nameB, $year),
+            'mode'          => 'category_compare',
+            'title'         => $nameA . ' vs ' . $nameB,
+        ];
+    }
+
+    /**
+     * Build a 2-series monthly comparison between two products for a single year.
+     *
+     * Category filter is cleared — product IDs define the scope.
+     */
+    public function productComparison(
+        int    $year,
+        int    $productA, string $nameA,
+        int    $productB, string $nameB,
+        array  $filters
+    ): array {
+        $fa = array_merge($filters, ['product' => $productA, 'category' => null]);
+        $fb = array_merge($filters, ['product' => $productB, 'category' => null]);
+
+        $monthlyA = $this->monthlyNetSales($year, $fa);
+        $monthlyB = $this->monthlyNetSales($year, $fb);
+
+        return [
+            'months'        => array_values(self::MONTHS),
+            'series'        => [
+                ['name' => $nameA, 'data' => array_values($monthlyA)],
+                ['name' => $nameB, 'data' => array_values($monthlyB)],
+            ],
+            'primary_year'  => $year,
+            'compare_years' => [],
+            'kpis'          => $this->buildComparisonKpis($monthlyA, $nameA, $monthlyB, $nameB, $year),
+            'mode'          => 'product_compare',
+            'title'         => $nameA . ' vs ' . $nameB,
+        ];
+    }
+
+    /**
      * Return monthly net sales for a given year, indexed 1 (Jan) through 12 (Dec).
      *
      * Future months always return 0.0 and are never omitted — the chart always
@@ -150,6 +213,51 @@ class SalesTrendAnalysisEngine
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
+
+    /**
+     * KPI payload for category or product comparison mode.
+     *
+     * Returns 'mode' = 'comparison' so the frontend switches to the comparison
+     * KPI layout (A YTD / B YTD / $ Diff / % Diff / Leader / Best Month A / Best Month B).
+     */
+    private function buildComparisonKpis(
+        array  $monthlyA, string $nameA,
+        array  $monthlyB, string $nameB,
+        int    $year
+    ): array {
+        $today        = Carbon::today();
+        $currentMonth = ($year === (int)$today->year) ? (int)$today->month : 12;
+
+        $ytdA = 0.0; $ytdB = 0.0; $monthCount = 0;
+        $bestNetA = null; $bestNetB = null;
+        $bestMonthA = '—'; $bestMonthB = '—';
+
+        for ($m = 1; $m <= $currentMonth; $m++) {
+            $valA = (float)($monthlyA[$m] ?? 0);
+            $valB = (float)($monthlyB[$m] ?? 0);
+            $ytdA += $valA; $ytdB += $valB; $monthCount++;
+            if ($bestNetA === null || $valA >= $bestNetA) { $bestNetA = $valA; $bestMonthA = self::MONTHS[$m]; }
+            if ($bestNetB === null || $valB >= $bestNetB) { $bestNetB = $valB; $bestMonthB = self::MONTHS[$m]; }
+        }
+
+        $dollarDiff = $ytdA - $ytdB;
+        $pctDiff    = $ytdB != 0 ? round(($dollarDiff / abs($ytdB)) * 100, 1) : 0.0;
+        $leader     = $ytdA >= $ytdB ? $nameA : $nameB;
+
+        return [
+            'mode'           => 'comparison',
+            'ytd_a'          => round($ytdA, 2),
+            'ytd_b'          => round($ytdB, 2),
+            'name_a'         => $nameA,
+            'name_b'         => $nameB,
+            'dollar_diff'    => round($dollarDiff, 2),
+            'pct_diff'       => $pctDiff,
+            'leader'         => $leader,
+            'months_counted' => $monthCount,
+            'best_month_a'   => $bestMonthA,
+            'best_month_b'   => $bestMonthB,
+        ];
+    }
 
     /**
      * Clamp compareYears: max 2, no duplicates, no primary year, valid integers.

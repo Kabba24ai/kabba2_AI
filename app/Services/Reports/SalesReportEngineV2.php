@@ -15,15 +15,14 @@ use Illuminate\Support\Facades\DB;
  *   - No independent revenue calculations exist outside this class.
  *
  * Transaction-based accounting — each financial event is dated when it occurred:
- *   Sales / Discounts  →  orders.order_date          (sale transaction date)
- *   Refunds            →  order_payments.updated_at  (refund transaction date — see note)
- *   Account Payments   →  customer_accounts.date     (payment transaction date)
+ *   Sales / Discounts  →  orders.order_date                              (sale transaction date)
+ *   Refunds            →  COALESCE(refunded_at, payment_datetime, created_at)  (refund transaction date)
+ *   Account Payments   →  customer_accounts.date                               (payment transaction date)
  *   Tax                →  same anchor as its parent transaction
  *
  * Refund date note:
- *   order_payments has no dedicated refunded_at column. updated_at is the best
- *   available proxy — it captures when the record last changed state, which is when
- *   the refund was recorded. A future migration should add refunded_at for precision.
+ *   refunded_at is the canonical field set by RefundPaymentController at refund creation.
+ *   The COALESCE chain covers historical records backfilled from payment_datetime/created_at.
  */
 class SalesReportEngineV2
 {
@@ -141,7 +140,7 @@ class SalesReportEngineV2
         // 3. Discounts — anchored on orders.order_date (discount is part of original sale)
         $discounts = $this->queryDiscounts($filters);
 
-        // 4. Refunds — anchored on order_payments.updated_at (REFUND TRANSACTION DATE)
+        // 4. Refunds — anchored on COALESCE(refunded_at, payment_datetime, created_at) (REFUND TRANSACTION DATE)
         //    A refund in June on a May order appears in June, not May.
         $refunds = $this->queryRefunds($filters, $startDate, $endDate);
 
@@ -250,7 +249,7 @@ class SalesReportEngineV2
             ? $this->queryDailyDiscounts($filters)
             : collect();
 
-        // Daily refunds — TRANSACTION DATE anchor (order_payments.updated_at)
+        // Daily refunds — TRANSACTION DATE anchor (COALESCE(refunded_at, payment_datetime, created_at))
         // Zeroed in "only" mode to match applyComponentFilters behavior in snapshot.
         $dailyRefunds = !$anyOnly
             ? $this->queryDailyRefunds($filters, $startDate, $endDate)
@@ -342,16 +341,16 @@ class SalesReportEngineV2
     }
 
     /**
-     * Refunds anchored to order_payments.updated_at — the REFUND TRANSACTION DATE.
+     * Refunds anchored to COALESCE(op.refunded_at, op.payment_datetime, op.created_at) — the REFUND TRANSACTION DATE.
      *
      * Key difference from old code: a refund on a May order processed in June
      * appears in June's refund total, not May's. May's Net Sales are preserved.
      *
      * Context filters (store, item type, category, product) scope which orders'
-     * refunds to include, but the DATE bucket remains order_payments.updated_at.
+     * refunds to include, but the DATE bucket is the refund transaction date.
      *
-     * ACCOUNTING NOTE: updated_at is a proxy for refund date (no dedicated
-     * refunded_at column exists yet). Add a refunded_at migration for precision.
+     * refunded_at is the canonical field (added in migration 2026_06_21_000001).
+     * COALESCE covers historical records backfilled during migration.
      */
     private function queryRefunds(array $filters, string $startDate, string $endDate): float
     {
@@ -359,7 +358,7 @@ class SalesReportEngineV2
             ->join('orders as o', 'o.id', '=', 'op.order_id')
             ->whereNull('o.deleted_at')
             ->whereIn('op.status', ['Refunded', 'Partial Refund'])
-            ->whereBetween(DB::raw('DATE(op.updated_at)'), [$startDate, $endDate]);
+            ->whereBetween(DB::raw('DATE(COALESCE(op.refunded_at, op.payment_datetime, op.created_at))'), [$startDate, $endDate]);
 
         $this->applyRefundContextFilters($query, $filters);
 
@@ -453,7 +452,7 @@ class SalesReportEngineV2
     }
 
     /**
-     * Daily refunds grouped by order_payments.updated_at (REFUND TRANSACTION DATE).
+     * Daily refunds grouped by COALESCE(op.refunded_at, op.payment_datetime, op.created_at) (REFUND TRANSACTION DATE).
      * Mirrors queryRefunds() but per-day for chart use.
      *
      * The date bucket is when the refund was recorded, not the original order date.
@@ -465,9 +464,9 @@ class SalesReportEngineV2
             ->join('orders as o', 'o.id', '=', 'op.order_id')
             ->whereNull('o.deleted_at')
             ->whereIn('op.status', ['Refunded', 'Partial Refund'])
-            ->whereBetween(DB::raw('DATE(op.updated_at)'), [$startDate, $endDate])
-            ->selectRaw('DATE(op.updated_at) AS date, SUM(op.refund_amount) AS daily_refunds')
-            ->groupByRaw('DATE(op.updated_at)');
+            ->whereBetween(DB::raw('DATE(COALESCE(op.refunded_at, op.payment_datetime, op.created_at))'), [$startDate, $endDate])
+            ->selectRaw('DATE(COALESCE(op.refunded_at, op.payment_datetime, op.created_at)) AS date, SUM(op.refund_amount) AS daily_refunds')
+            ->groupByRaw('DATE(COALESCE(op.refunded_at, op.payment_datetime, op.created_at))');
 
         $this->applyRefundContextFilters($query, $filters);
 

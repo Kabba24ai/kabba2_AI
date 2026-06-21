@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin\Reports\SalesTax;
 
 use App\Http\Controllers\Controller;
-use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAccount;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderExtraCharges;

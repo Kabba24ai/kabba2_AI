@@ -391,11 +391,19 @@ class SalesReportEngineV2
             $query->whereIn('customer_id', $customerIds);
         }
 
+        // customer_accounts.amount is tax-inclusive for type='payment' records.
+        // Extract formula: pre-tax = amount / (1 + rate), tax = amount − amount / (1 + rate).
+        // Records with sales_tax = 0 fall through to ELSE branches (base = amount, tax = 0).
         $row = $query->selectRaw("
-            SUM(amount) AS base_total,
             SUM(
                 CASE WHEN CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)) > 0
-                    THEN amount * CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6))
+                    THEN amount / (1 + CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)))
+                    ELSE amount
+                END
+            ) AS base_total,
+            SUM(
+                CASE WHEN CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)) > 0
+                    THEN amount - amount / (1 + CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)))
                     ELSE 0
                 END
             ) AS tax_total
@@ -500,8 +508,15 @@ class SalesReportEngineV2
             $query->whereIn('customer_id', $customerIds);
         }
 
+        // Use the same extract formula as queryAccountPayments() so that
+        // sum(daily_acct) == snapshot accountPaymentsReceived (reconciliation guarantee).
         return $query
-            ->selectRaw('date, SUM(amount) AS daily_acct')
+            ->selectRaw("date, SUM(
+                CASE WHEN CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)) > 0
+                    THEN amount / (1 + CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)))
+                    ELSE amount
+                END
+            ) AS daily_acct")
             ->groupBy('date')
             ->get()
             ->keyBy('date');
@@ -512,7 +527,7 @@ class SalesReportEngineV2
     /**
      * Apply context filters to a refund query to scope which orders' refunds to include.
      * These filters determine WHICH orders are in scope — not WHEN the refund occurred.
-     * The date bucket remains order_payments.updated_at regardless.
+     * The date bucket is COALESCE(refunded_at, payment_datetime, created_at) regardless.
      *
      * Filters applied: store, item_type/sale_type, category, product.
      * Payment status is intentionally NOT applied to refunds (future refinement).

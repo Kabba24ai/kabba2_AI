@@ -11,7 +11,6 @@
 
                 <th class="px-4 py-3 text-right">Sub Amount</th>
                 <th class="px-4 py-3 text-right">Tax</th>
-                <th class="px-4 py-3 text-right">Discount Amount</th>
                 <th class="px-4 py-3 text-right">Total Amount</th>
 
             </tr>
@@ -67,12 +66,6 @@
 
                     <td class="px-4 py-3 font-semibold text-right">
                          <span class="{{ $order->type === 'refund' ? 'text-green-600' : '' }}">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($order->discount_amount) }}
-                         </span>
-                    </td>
-
-                    <td class="px-4 py-3 font-semibold text-right">
-                         <span class="{{ $order->type === 'refund' ? 'text-green-600' : '' }}">
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
                          </span>
                     </td>
@@ -81,7 +74,7 @@
 
             @empty
                 <tr>
-                    <td colspan="9" class="text-center text-sm text-gray-500 px-4 py-6">
+                    <td colspan="8" class="text-center text-sm text-gray-500 px-4 py-6">
                         @if ($orders)
                             No orders found.
                         @else

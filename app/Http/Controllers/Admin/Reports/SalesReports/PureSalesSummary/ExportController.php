@@ -4,12 +4,16 @@ namespace App\Http\Controllers\Admin\Reports\SalesReports\PureSalesSummary;
 
 use App\Http\Controllers\Controller;
 use App\Services\Reports\PureSalesSummaryReport;
+use App\Services\Reports\SalesReportingService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportController extends Controller
 {
-    public function __construct(private PureSalesSummaryReport $report) {}
+    public function __construct(
+        private PureSalesSummaryReport $report,
+        private SalesReportingService  $reporting,
+    ) {}
 
     public function __invoke(Request $request): StreamedResponse
     {
@@ -30,10 +34,12 @@ class ExportController extends Controller
             'payment_status'  => $request->input('payment_status', 'paid'),
         ];
 
-        $rows     = $this->report->exportData($filters);
-        $filename = 'pure-sales-summary-' . now()->format('Y-m-d') . '.csv';
+        $rows        = $this->report->exportData($filters);
+        $kpis        = $this->report->kpis($filters);
+        $periodLabel = $this->reporting->dateRangeLabel($filters);
+        $filename    = 'pure-sales-summary-' . now()->format('Y-m-d') . '.csv';
 
-        return response()->streamDownload(function () use ($rows) {
+        return response()->streamDownload(function () use ($rows, $kpis, $periodLabel) {
             $out = fopen('php://output', 'w');
 
             fputcsv($out, [
@@ -69,6 +75,29 @@ class ExportController extends Controller
                     number_format($row->tax, 2),
                 ]);
             }
+
+            // ── KPI Summary block ──────────────────────────────────────────────────
+            // Provides a reconciliation anchor so totals in this export match the KPI cards.
+            // Account payments are not representable as order-product line rows, so they appear here.
+            fputcsv($out, []);
+            fputcsv($out, ['PERIOD SUMMARY', $periodLabel]);
+            fputcsv($out, ['Metric', 'Amount']);
+            fputcsv($out, ['Gross Sales',             '$' . number_format($kpis['gross_sales'],     2)]);
+            fputcsv($out, ['Tax Collected',           '$' . number_format($kpis['tax_collected'],   2)]);
+            fputcsv($out, ['Refunds',                '-$' . number_format($kpis['refunds'],         2)]);
+            fputcsv($out, ['Discounts',              '-$' . number_format($kpis['discounts'],       2)]);
+            fputcsv($out, ['Net Sales',               '$' . number_format($kpis['net_sales'],       2)]);
+            fputcsv($out, ['Total Collected',         '$' . number_format($kpis['total_collected'], 2)]);
+            if (in_array($kpis['payment_status'], ['paid', 'all', 'account'])) {
+                fputcsv($out, ['Account Payments Received', '$' . number_format($kpis['account_payments_received'], 2)]);
+                fputcsv($out, ['Total Account Payments',    '$' . number_format($kpis['total_account_payments'],    2)]);
+            }
+            fputcsv($out, ['Delivery Revenue',        '$' . number_format($kpis['delivery_revenue'],          2)]);
+            fputcsv($out, ['Damage Waiver Revenue',   '$' . number_format($kpis['damage_waiver_revenue'],     2)]);
+            fputcsv($out, ['Track Insurance Revenue', '$' . number_format($kpis['track_insurance_revenue'],   2)]);
+            fputcsv($out, ['Tire Insurance Revenue',  '$' . number_format($kpis['tire_insurance_revenue'],    2)]);
+            fputcsv($out, ['Transaction Count',       $kpis['transaction_count']]);
+            fputcsv($out, ['Average Ticket',          '$' . number_format($kpis['average_ticket'],            2)]);
 
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv']);

@@ -439,6 +439,40 @@ class PureSalesSummaryReport
         return max(0.0, $total);
     }
 
+    /**
+     * Sum of account payments (base amount only) grouped by date for the trend chart.
+     * Mirrors accountPaymentsSummary() filtering but keyed by 'Y-m-d' date string.
+     * Only the base amount (not tax) is included — this aligns daily totals with Gross Sales.
+     */
+    private function accountPaymentsByDay(array $filters, string $startDate, string $endDate): \Illuminate\Support\Collection
+    {
+        $query = DB::table('customer_accounts')
+            ->where('type', 'payment')
+            ->whereNull('deleted_at')
+            ->whereBetween('date', [$startDate, $endDate]);
+
+        if (!empty($filters['store'])) {
+            $customerIds = DB::table('orders')
+                ->join('order_products', 'order_products.order_id', '=', 'orders.id')
+                ->whereNull('orders.deleted_at')
+                ->whereNull('order_products.deleted_at')
+                ->where(function ($q) use ($filters) {
+                    $q->where('order_products.delivery_store_id', $filters['store'])
+                      ->orWhere('order_products.pickup_store_id', $filters['store']);
+                })
+                ->pluck('orders.customer_id')
+                ->unique();
+
+            $query->whereIn('customer_id', $customerIds);
+        }
+
+        return $query
+            ->selectRaw('date, SUM(amount) AS daily_acct')
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+    }
+
     // ─── Sales Trend ─────────────────────────────────────────────────────────
 
     /**
@@ -493,6 +527,25 @@ class PureSalesSummaryReport
             ->get()
             ->keyBy('date');
 
+        // Account payments by day — mirrors kpis() gate: included for 'paid'/'all'/'account';
+        // zeroed in component "only" mode (applyComponentFilters zeros account payments there too).
+        $paymentStatus   = $filters['payment_status'] ?? 'paid';
+        $anyOnly         = in_array('only', [
+            $filters['damage_waiver']   ?? 'all',
+            $filters['track_insurance'] ?? 'all',
+            $filters['delivery']        ?? 'all',
+            $filters['shipping']        ?? 'all',
+        ]);
+        $includeAcctPmts = in_array($paymentStatus, ['paid', 'all', 'account']) && !$anyOnly;
+
+        $currentAcctByDay  = $includeAcctPmts
+            ? $this->accountPaymentsByDay($filters, $start->toDateString(), $end->toDateString())
+            : collect();
+
+        $previousAcctByDay = $includeAcctPmts
+            ? $this->accountPaymentsByDay($filters, $prevStart->toDateString(), $prevEnd->toDateString())
+            : collect();
+
         $categories = [];
         $current    = [];
         $previous   = [];
@@ -502,8 +555,10 @@ class PureSalesSummaryReport
             $prevDate = $prevStart->copy()->addDays($i);
 
             $categories[] = $date->format('M j');
-            $current[]    = $this->computeDailyTotal($filters, $currentRows[$date->toDateString()] ?? null);
-            $previous[]   = $this->computeDailyTotal($filters, $previousRows[$prevDate->toDateString()] ?? null);
+            $current[]    = $this->computeDailyTotal($filters, $currentRows[$date->toDateString()] ?? null)
+                          + (float) ($currentAcctByDay[$date->toDateString()]->daily_acct ?? 0);
+            $previous[]   = $this->computeDailyTotal($filters, $previousRows[$prevDate->toDateString()] ?? null)
+                          + (float) ($previousAcctByDay[$prevDate->toDateString()]->daily_acct ?? 0);
         }
 
         $totalSales         = array_sum($current);

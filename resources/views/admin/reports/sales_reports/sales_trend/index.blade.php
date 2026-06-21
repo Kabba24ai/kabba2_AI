@@ -49,23 +49,28 @@
                 </select>
             </div>
 
-            {{-- Compare Years (max 2 checkboxes) --}}
+            {{-- Compare Year 1 --}}
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Compare To (max 2)</label>
-                <div id="compare-years-wrap" class="flex gap-3 items-center flex-wrap" data-primary="{{ $primaryYear }}">
+                <label class="block text-xs text-gray-500 mb-1">Compare Year 1</label>
+                <select id="f-compare-1"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="">— None —</option>
                     @foreach ($availableYears as $yr)
-                        @if ($yr !== $primaryYear)
-                            <label class="compare-year-label flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
-                                   data-year="{{ $yr }}">
-                                <input type="checkbox"
-                                    class="compare-year-cb rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    value="{{ $yr }}"
-                                    @checked(in_array($yr, $compareYears))>
-                                {{ $yr }}
-                            </label>
-                        @endif
+                        <option value="{{ $yr }}" @selected(isset($compareYears[0]) && $compareYears[0] === $yr)>{{ $yr }}</option>
                     @endforeach
-                </div>
+                </select>
+            </div>
+
+            {{-- Compare Year 2 --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Compare Year 2</label>
+                <select id="f-compare-2"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="">— None —</option>
+                    @foreach ($availableYears as $yr)
+                        <option value="{{ $yr }}" @selected(isset($compareYears[1]) && $compareYears[1] === $yr)>{{ $yr }}</option>
+                    @endforeach
+                </select>
             </div>
 
             {{-- Store --}}
@@ -216,12 +221,13 @@
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
     const fYear           = document.getElementById('f-year');
+    const fCompare1       = document.getElementById('f-compare-1');
+    const fCompare2       = document.getElementById('f-compare-2');
     const fStore          = document.getElementById('f-store');
     const fSaleType       = document.getElementById('f-sale-type');
     const fSaleTypeGroup  = document.getElementById('f-sale-type-group');
     const fCategory       = document.getElementById('f-category');
     const fProduct        = document.getElementById('f-product');
-    const compareWrap     = document.getElementById('compare-years-wrap');
     const kpiSection      = document.getElementById('kpi-section');
     const yoySection      = document.getElementById('yoy-section');
 
@@ -236,10 +242,17 @@
         return v >= 0 ? '+' + s : '−' + s;
     }
 
-    // ── Collect compare years from checkboxes ─────────────────────────────────
+    // ── Collect compare years from dropdowns ──────────────────────────────────
     function getCompareYears() {
-        return Array.from(document.querySelectorAll('.compare-year-cb:checked'))
-            .map(cb => parseInt(cb.value, 10));
+        const years = [];
+        const primaryYear = parseInt(fYear.value, 10);
+        [fCompare1, fCompare2].forEach(sel => {
+            const v = parseInt(sel.value, 10);
+            if (sel.value && v !== primaryYear && !years.includes(v)) {
+                years.push(v);
+            }
+        });
+        return years;
     }
 
     // ── Collect all filter values for the AJAX request ────────────────────────
@@ -291,7 +304,6 @@
         renderKpis(data);
         renderPrimaryChart(data);
         renderYoySection(data);
-        updateCompareCheckboxes(data.primary_year);
     }
 
     // ── KPI Cards ─────────────────────────────────────────────────────────────
@@ -434,37 +446,20 @@
         `).join('');
     }
 
-    // ── Compare year checkbox enforcement (max 2) ─────────────────────────────
-    function updateCompareCheckboxes(newPrimaryYear) {
-        // Show/hide the checkbox for the primary year
-        document.querySelectorAll('.compare-year-label').forEach(lbl => {
-            const yr  = parseInt(lbl.dataset.year, 10);
-            const cb  = lbl.querySelector('input');
-            if (yr === newPrimaryYear) {
-                lbl.classList.add('hidden');
-                cb.checked = false;
-            } else {
-                lbl.classList.remove('hidden');
+    // ── Compare year dropdown enforcement ────────────────────────────────────
+    // Clear a compare dropdown if it matches the primary year.
+    function syncCompareOptions() {
+        const primaryYear = parseInt(fYear.value, 10);
+        [fCompare1, fCompare2].forEach(sel => {
+            if (parseInt(sel.value, 10) === primaryYear) {
+                sel.value = '';
             }
-        });
-        enforceMaxCompareYears();
-    }
-
-    function enforceMaxCompareYears() {
-        const checked = document.querySelectorAll('.compare-year-cb:checked');
-        document.querySelectorAll('.compare-year-cb:not(:checked)').forEach(cb => {
-            cb.disabled = checked.length >= 2;
         });
     }
 
-    document.querySelectorAll('.compare-year-cb').forEach(cb => {
-        cb.addEventListener('change', function () {
-            const checked = document.querySelectorAll('.compare-year-cb:checked').length;
-            if (checked > 2) {
-                this.checked = false;
-                return;
-            }
-            enforceMaxCompareYears();
+    [fCompare1, fCompare2].forEach(sel => {
+        sel.addEventListener('change', function () {
+            syncCompareOptions();
             scheduleRun();
         });
     });
@@ -489,9 +484,9 @@
         scheduleRun();
     });
 
-    // ── Year change — rebuild compare checkboxes ──────────────────────────────
+    // ── Year change ───────────────────────────────────────────────────────────
     fYear.addEventListener('change', function () {
-        updateCompareCheckboxes(parseInt(this.value, 10));
+        syncCompareOptions();
         scheduleRun();
     });
 
@@ -525,13 +520,13 @@
 
     // ── Clear filters ─────────────────────────────────────────────────────────
     document.getElementById('btn-clear-filters').addEventListener('click', function () {
-        fYear.value    = fYear.options[0]?.value ?? '';
-        fStore.value   = '';
-        fCategory.value = '';
+        fYear.value        = fYear.options[0]?.value ?? '';
+        fCompare1.value    = '';
+        fCompare2.value    = '';
+        fStore.value       = '';
+        fCategory.value    = '';
         fProduct.innerHTML = '<option value="">All Products</option>';
-        document.querySelectorAll('.compare-year-cb').forEach(cb => { cb.checked = false; });
         setSaleType('all');
-        updateCompareCheckboxes(parseInt(fYear.value, 10));
         runReport();
     });
 
@@ -539,7 +534,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         reportData = initData;
         renderAll(initData);
-        enforceMaxCompareYears();
     });
 
 })();

@@ -116,7 +116,7 @@ class SalesTrendAnalysisEngine
             array_slice(
                 array_filter(
                     array_map('intval', $raw),
-                    fn($y) => $y > 2000 && $y !== $primaryYear
+                    fn($y) => $y >= 2024 && $y <= 2040 && $y !== $primaryYear
                 ),
                 0, 2
             )

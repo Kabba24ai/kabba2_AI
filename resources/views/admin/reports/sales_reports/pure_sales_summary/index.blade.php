@@ -251,7 +251,7 @@
         <div class="flex justify-center mb-6">
             <div class="flex flex-wrap justify-center gap-4">
                 <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 min-w-[168px] text-center">
-                    <div class="text-xs text-gray-600 font-medium mb-1">Total Sales</div>
+                    <div class="text-xs text-gray-600 font-medium mb-1">Gross Sales</div>
                     <div id="psr-total-sales" class="text-lg font-semibold text-blue-800">—</div>
                 </div>
                 <div class="bg-green-50 p-4 rounded-xl border border-green-200 min-w-[168px] text-center">

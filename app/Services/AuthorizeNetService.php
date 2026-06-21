@@ -990,13 +990,16 @@ class AuthorizeNetService
         if ($response !== null && $response->getMessages()->getResultCode() === 'Ok' && $response->getTransactionResponse() && in_array($response->getTransactionResponse()->getResponseCode(), ['1', '4'])) {
             $transactionResponse = $response->getTransactionResponse();
 
+            $gatewayRefundTransId = $transactionResponse && method_exists($transactionResponse, 'getTransId') ? $transactionResponse->getTransId() : null;
+
             return [
-                'status' => 'success',
-                'message' => 'Refund successful',
-                'transaction_id' => $transactionResponse && method_exists($transactionResponse, 'getTransId') ? $transactionResponse->getTransId() : null,
-                'auth_code' => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
-                'card_number' => $transactionResponse && method_exists($transactionResponse, 'getAccountNumber') ? $transactionResponse->getAccountNumber() : null,
-                'card_type' => $transactionResponse && method_exists($transactionResponse, 'getAccountType') ? $transactionResponse->getAccountType() : null,
+                'status'           => 'success',
+                'message'          => 'Refund successful',
+                'transaction_id'   => $gatewayRefundTransId,
+                'gateway_refund_id'=> $gatewayRefundTransId,
+                'auth_code'        => $transactionResponse && method_exists($transactionResponse, 'getAuthCode') ? $transactionResponse->getAuthCode() : null,
+                'card_number'      => $transactionResponse && method_exists($transactionResponse, 'getAccountNumber') ? $transactionResponse->getAccountNumber() : null,
+                'card_type'        => $transactionResponse && method_exists($transactionResponse, 'getAccountType') ? $transactionResponse->getAccountType() : null,
             ];
         }
 

@@ -21,7 +21,9 @@ class OrderPayment extends Model
         'order_id',
         'payment_method', // e.g., 'COD*', 'Account', 'Card'
         'payment_datetime',
+        'refunded_at',
         'transaction_id',
+        'gateway_refund_id',
         'card_first_name',
         'card_last_name',
         'card_number',
@@ -33,6 +35,7 @@ class OrderPayment extends Model
         'amount',
         'status', // e.g., 'Pending', 'Paid', 'Account', 'Partial Refund', 'Refunded', 'Failed'
         'refund_amount',
+        'tax_refunded',
         'refund_note',
         'payment_response',
         'created_by_id',
@@ -42,9 +45,12 @@ class OrderPayment extends Model
     ];
 
     protected $casts = [
-        'payment_method' => OrderPaymentMethod::class,
-        'status' => OrderPaymentStatus::class,
+        'payment_method'   => OrderPaymentMethod::class,
+        'status'           => OrderPaymentStatus::class,
         'payment_response' => 'json',
+        'payment_datetime' => 'datetime',
+        'refunded_at'      => 'datetime',
+        'tax_refunded'     => 'decimal:2',
     ];
 
     protected static function boot()

@@ -1496,8 +1496,14 @@
                                     </div>
 
                                     <div class="text-xs text-gray-500">
-                                        {{ \App\Helpers\CustomHelper::formatDateTime($refund->created_at) }}
+                                        {{ \App\Helpers\CustomHelper::formatDateTime($refund->refunded_at ?? $refund->created_at) }}
                                     </div>
+
+                                    @if($refund->gateway_refund_id)
+                                        <div class="text-xs text-gray-400">
+                                            Ref: {{ $refund->gateway_refund_id }}
+                                        </div>
+                                    @endif
 
                                     @if($refund->refund_note)
                                         <div class="text-xs text-gray-500">

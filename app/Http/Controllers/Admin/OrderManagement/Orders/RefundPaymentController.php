@@ -85,16 +85,18 @@ class RefundPaymentController extends Controller
                     );
                 }
 
-                $transactionId = $response['transaction_id'] ?? null;
-                $cardNumber = $response['card_number'] ?? null;
-                $authCode = $response['auth_code'] ?? null;
+                $transactionId   = $response['transaction_id']   ?? null;
+                $gatewayRefundId = $response['gateway_refund_id'] ?? null;
+                $cardNumber      = $response['card_number']       ?? null;
+                $authCode        = $response['auth_code']         ?? null;
             } else {
                 // For non-card refunds or if original was not card, just log the refund without processing through gateway
                 logger()->info('Refund logged for Order ID: ' . $order->unique_id . ' - Refund Payment Method: ' . $refundPaymentType . ' - Amount: ' . $validated['amount'] . ' - Reason: ' . $validated['reason']);
 
-                $transactionId = null;
-                $cardNumber = null;
-                $authCode = null;
+                $transactionId   = null;
+                $gatewayRefundId = null;
+                $cardNumber      = null;
+                $authCode        = null;
             }
 
             // Use accessor instead of manual sum
@@ -126,18 +128,21 @@ class RefundPaymentController extends Controller
             $willRemain = $remaining - $currentRefundAmount;
             $refundStatus = $willRemain <= 0 ? OrderPaymentStatus::Refund : OrderPaymentStatus::PartialRefund;
             $payment = $order->payments()->create([
-                'payment_datetime' => now(),
+                'payment_datetime'        => now(),
+                'refunded_at'             => now(),
                 'parent_order_payment_id' => $order->lastPayment->id,
-                'payment_method' => $this->mapPaymentMethod($refundPaymentType),
-                'transaction_id' => $transactionId,
-                'card_number' => $cardNumber,
-                'auth_code' => $authCode,
-                'status' => $refundStatus->value,
-                'refund_amount' => $currentRefundAmount,
-                'refund_note' => $validated['reason'],
-                'cheque_number' => $validated['cheque_number'] ?? null,
-                'created_by_type' => get_class($user),
-                'created_by_id' => $user->id,
+                'payment_method'          => $this->mapPaymentMethod($refundPaymentType),
+                'transaction_id'          => $transactionId,
+                'gateway_refund_id'       => $gatewayRefundId,
+                'card_number'             => $cardNumber,
+                'auth_code'               => $authCode,
+                'status'                  => $refundStatus->value,
+                'refund_amount'           => $currentRefundAmount,
+                'tax_refunded'            => 0,
+                'refund_note'             => $validated['reason'],
+                'cheque_number'           => $validated['cheque_number'] ?? null,
+                'created_by_type'         => get_class($user),
+                'created_by_id'           => $user->id,
             ]);
 
             event(new RefundInitiateEvent($order, $user, $payment));

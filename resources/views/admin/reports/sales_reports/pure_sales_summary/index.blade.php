@@ -54,8 +54,37 @@
                     <option value="mtd"        @selected(($filters['date_range'] ?? 'mtd') === 'mtd')>Month to Date</option>
                     <option value="qtd"        @selected(($filters['date_range'] ?? '') === 'qtd')>Quarter to Date</option>
                     <option value="ytd"        @selected(($filters['date_range'] ?? '') === 'ytd')>Year to Date</option>
+                    <option value="month"      @selected(($filters['date_range'] ?? '') === 'month')>Specific Month</option>
                     <option value="custom"     @selected(($filters['date_range'] ?? '') === 'custom')>Custom Range</option>
                 </select>
+            </div>
+
+            {{-- Month + Year inputs (shown only when "Specific Month" is selected) --}}
+            @php
+                $selMonth = $filters['month'] ?? now()->month;
+                $selYear  = $filters['year']  ?? now()->year;
+                $months   = [1=>'January',2=>'February',3=>'March',4=>'April',5=>'May',6=>'June',
+                             7=>'July',8=>'August',9=>'September',10=>'October',11=>'November',12=>'December'];
+            @endphp
+            <div id="month-date-wrap" class="{{ ($filters['date_range'] ?? '') === 'month' ? '' : 'hidden' }} flex gap-2">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Month</label>
+                    <select id="f-month"
+                        class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        @foreach ($months as $num => $name)
+                            <option value="{{ $num }}" @selected((int) $selMonth === $num)>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Year</label>
+                    <select id="f-year"
+                        class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        @for ($y = now()->year; $y >= 2020; $y--)
+                            <option value="{{ $y }}" @selected((int) $selYear === $y)>{{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
             </div>
 
             {{-- Custom date inputs (shown only when custom is selected) --}}
@@ -278,6 +307,9 @@
     const fDateRange           = document.getElementById('f-date-range');
     const fStartDate           = document.getElementById('f-start-date');
     const fEndDate             = document.getElementById('f-end-date');
+    const fMonth               = document.getElementById('f-month');
+    const fYear                = document.getElementById('f-year');
+    const monthDateWrap        = document.getElementById('month-date-wrap');
     const fStore               = document.getElementById('f-store');
     const fItemType            = document.getElementById('f-item-type');
     const fCategory            = document.getElementById('f-category');
@@ -301,6 +333,10 @@
         if (dr === 'custom') {
             if (fStartDate.value) params.set('start_date', fStartDate.value);
             if (fEndDate.value)   params.set('end_date',   fEndDate.value);
+        }
+        if (dr === 'month') {
+            if (fMonth.value) params.set('month', fMonth.value);
+            if (fYear.value)  params.set('year',  fYear.value);
         }
         if (fStore.value)              params.set('store', fStore.value);
         if (fItemType.value !== 'all') params.set('item_type', fItemType.value);
@@ -475,8 +511,11 @@
     // ── Custom date range toggle ───────────────────────────────────────────────
     fDateRange.addEventListener('change', function () {
         customDateWrap.classList.toggle('hidden', this.value !== 'custom');
+        monthDateWrap.classList.toggle('hidden',  this.value !== 'month');
         scheduleRun();
     });
+    if (fMonth) fMonth.addEventListener('change', scheduleRun);
+    if (fYear)  fYear.addEventListener('change',  scheduleRun);
 
     // ── Dropdown filter changes ────────────────────────────────────────────────
     [fStore, fItemType, fProduct].forEach(el => {
@@ -552,6 +591,10 @@
         fDateRange.value               = 'mtd';
         fStartDate.value               = '';
         fEndDate.value                 = '';
+        fMonth.value                   = new Date().getMonth() + 1;
+        fYear.value                    = new Date().getFullYear();
+        customDateWrap.classList.add('hidden');
+        monthDateWrap.classList.add('hidden');
         fStore.value                   = '';
         fItemType.value                = 'all';
         fCategory.value                = '';

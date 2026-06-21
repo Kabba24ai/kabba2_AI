@@ -247,26 +247,27 @@
             </span>
         </h2>
 
-        {{-- Metric cards --}}
+        {{-- Metric cards — all values represent Net Sales (Gross − Discounts − Refunds) --}}
         <div class="flex justify-center mb-6">
             <div class="flex flex-wrap justify-center gap-4">
-                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 min-w-[168px] text-center">
-                    <div class="text-xs text-gray-600 font-medium mb-1">Gross Sales</div>
-                    <div id="psr-total-sales" class="text-lg font-semibold text-blue-800">—</div>
+                <div class="bg-teal-50 p-4 rounded-xl border border-teal-200 ring-2 ring-teal-200 min-w-[168px] text-center">
+                    <div class="text-xs text-teal-700 font-semibold mb-1 uppercase tracking-wide">Net Sales</div>
+                    <div id="psr-total-sales" class="text-lg font-bold text-teal-800">—</div>
+                    <div class="text-xs text-teal-500 mt-0.5">Current period</div>
                 </div>
                 <div class="bg-green-50 p-4 rounded-xl border border-green-200 min-w-[168px] text-center">
-                    <div class="text-xs text-gray-600 font-medium mb-1">Previous Period</div>
+                    <div class="text-xs text-gray-600 font-medium mb-1">Prev Period Net Sales</div>
                     <div id="psr-previous-total" class="text-lg font-semibold text-green-800">—</div>
                 </div>
                 <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 min-w-[168px] text-center">
-                    <div class="text-xs text-gray-600 font-medium mb-1">Growth Rate</div>
+                    <div class="text-xs text-gray-600 font-medium mb-1">Net Sales Growth</div>
                     <div id="psr-growth-wrapper" class="text-lg font-semibold flex items-center justify-center whitespace-nowrap">
                         <span id="psr-growth-icon" class="mr-1"></span>
                         <span id="psr-growth-value">—</span>
                     </div>
                 </div>
                 <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 min-w-[168px] text-center">
-                    <div class="text-xs text-gray-600 font-medium mb-1">Daily Average</div>
+                    <div class="text-xs text-gray-600 font-medium mb-1">Daily Net Sales</div>
                     <div id="psr-daily-avg" class="text-lg font-semibold text-purple-800">—</div>
                 </div>
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 min-w-[168px] text-center">
@@ -426,7 +427,7 @@
     function buildChartOptions(trend) {
         return {
             series: [
-                { name: 'Current Period', data: trend.current },
+                { name: 'Net Sales',       data: trend.current },
                 { name: 'Previous Period', data: trend.previous },
             ],
             chart: {
@@ -455,9 +456,9 @@
     }
 
     function updateTrendMetrics(trend) {
-        document.getElementById('psr-total-sales').textContent    = formatCurrency(trend.totalSales);
-        document.getElementById('psr-previous-total').textContent = formatCurrency(trend.previousTotalSales);
-        document.getElementById('psr-daily-avg').textContent      = formatCurrency(trend.dailyAverage);
+        document.getElementById('psr-total-sales').textContent    = formatCurrency(trend.netSales);
+        document.getElementById('psr-previous-total').textContent = formatCurrency(trend.previousNetSales);
+        document.getElementById('psr-daily-avg').textContent      = formatCurrency(trend.dailyNetAverage);
 
         const wrapper    = document.getElementById('psr-growth-wrapper');
         const growthVal  = document.getElementById('psr-growth-value');
@@ -495,7 +496,7 @@
         } else {
             psrChart.updateOptions({ xaxis: { categories: trend.categories, tickAmount: Math.min(trend.categories.length, 15) } }, false, false);
             psrChart.updateSeries([
-                { name: 'Current Period',  data: trend.current },
+                { name: 'Net Sales',       data: trend.current },
                 { name: 'Previous Period', data: trend.previous },
             ]);
         }

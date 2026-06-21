@@ -440,9 +440,47 @@ class PureSalesSummaryReport
     }
 
     /**
+     * Discounts per day keyed by 'Y-m-d'. Accepts a Collection of order IDs already
+     * scoped to the period by baseQuery — avoids double-counting multi-line orders.
+     */
+    private function dailyDiscountsByOrderDate(\Illuminate\Support\Collection $orderIds): \Illuminate\Support\Collection
+    {
+        if ($orderIds->isEmpty()) {
+            return collect();
+        }
+
+        return DB::table('orders')
+            ->whereIn('id', $orderIds)
+            ->selectRaw('DATE(order_date) AS date, SUM(discount_amount) AS daily_discounts')
+            ->groupByRaw('DATE(order_date)')
+            ->get()
+            ->keyBy('date');
+    }
+
+    /**
+     * Refund amounts per day keyed by 'Y-m-d', anchored to the order's order_date
+     * (mirrors refundsTotal() — refund reduces the period the order was placed in).
+     */
+    private function dailyRefundsByOrderDate(\Illuminate\Support\Collection $orderIds): \Illuminate\Support\Collection
+    {
+        if ($orderIds->isEmpty()) {
+            return collect();
+        }
+
+        return DB::table('order_payments')
+            ->join('orders', 'orders.id', '=', 'order_payments.order_id')
+            ->whereIn('order_payments.order_id', $orderIds)
+            ->whereIn('order_payments.status', ['Refunded', 'Partial Refund'])
+            ->selectRaw('DATE(orders.order_date) AS date, SUM(order_payments.refund_amount) AS daily_refunds')
+            ->groupByRaw('DATE(orders.order_date)')
+            ->get()
+            ->keyBy('date');
+    }
+
+    /**
      * Sum of account payments (base amount only) grouped by date for the trend chart.
      * Mirrors accountPaymentsSummary() filtering but keyed by 'Y-m-d' date string.
-     * Only the base amount (not tax) is included — this aligns daily totals with Gross Sales.
+     * Only the base amount (not tax) is included — aligns with Gross Sales bucket in kpis().
      */
     private function accountPaymentsByDay(array $filters, string $startDate, string $endDate): \Illuminate\Support\Collection
     {
@@ -485,13 +523,13 @@ class PureSalesSummaryReport
 
         if (!$start || !$end) {
             return [
-                'categories'         => [],
-                'current'            => [],
-                'previous'           => [],
-                'totalSales'         => 0,
-                'previousTotalSales' => 0,
-                'dailyAverage'       => 0,
-                'growthRate'         => 0,
+                'categories'       => [],
+                'current'          => [],
+                'previous'         => [],
+                'netSales'         => 0,
+                'previousNetSales' => 0,
+                'dailyNetAverage'  => 0,
+                'growthRate'       => 0,
             ];
         }
 
@@ -546,6 +584,16 @@ class PureSalesSummaryReport
             ? $this->accountPaymentsByDay($filters, $prevStart->toDateString(), $prevEnd->toDateString())
             : collect();
 
+        // Daily discounts and refunds — same order_date anchor as kpis() so that
+        // array_sum($current) == kpis()['net_sales'] for every filter combination.
+        $currentOrderIds  = $this->reporting->baseQuery($filters)->selectRaw('DISTINCT orders.id')->pluck('id');
+        $previousOrderIds = $this->reporting->baseQuery($prevFilters)->selectRaw('DISTINCT orders.id')->pluck('id');
+
+        $currentDiscountByDay  = $this->dailyDiscountsByOrderDate($currentOrderIds);
+        $currentRefundByDay    = $this->dailyRefundsByOrderDate($currentOrderIds);
+        $previousDiscountByDay = $this->dailyDiscountsByOrderDate($previousOrderIds);
+        $previousRefundByDay   = $this->dailyRefundsByOrderDate($previousOrderIds);
+
         $categories = [];
         $current    = [];
         $previous   = [];
@@ -555,24 +603,34 @@ class PureSalesSummaryReport
             $prevDate = $prevStart->copy()->addDays($i);
 
             $categories[] = $date->format('M j');
-            $current[]    = $this->computeDailyTotal($filters, $currentRows[$date->toDateString()] ?? null)
-                          + (float) ($currentAcctByDay[$date->toDateString()]->daily_acct ?? 0);
-            $previous[]   = $this->computeDailyTotal($filters, $previousRows[$prevDate->toDateString()] ?? null)
-                          + (float) ($previousAcctByDay[$prevDate->toDateString()]->daily_acct ?? 0);
+
+            // Net Sales per day = gross + account payments - discounts - refunds (same formula as kpis())
+            $current[]  = max(0.0,
+                $this->computeDailyTotal($filters, $currentRows[$date->toDateString()] ?? null)
+                + (float) ($currentAcctByDay[$date->toDateString()]->daily_acct           ?? 0)
+                - (float) ($currentDiscountByDay[$date->toDateString()]->daily_discounts   ?? 0)
+                - (float) ($currentRefundByDay[$date->toDateString()]->daily_refunds       ?? 0)
+            );
+            $previous[] = max(0.0,
+                $this->computeDailyTotal($filters, $previousRows[$prevDate->toDateString()] ?? null)
+                + (float) ($previousAcctByDay[$prevDate->toDateString()]->daily_acct          ?? 0)
+                - (float) ($previousDiscountByDay[$prevDate->toDateString()]->daily_discounts  ?? 0)
+                - (float) ($previousRefundByDay[$prevDate->toDateString()]->daily_refunds      ?? 0)
+            );
         }
 
-        $totalSales         = array_sum($current);
-        $previousTotalSales = array_sum($previous);
+        $netSales         = array_sum($current);
+        $previousNetSales = array_sum($previous);
 
         return [
-            'categories'         => $categories,
-            'current'            => $current,
-            'previous'           => $previous,
-            'totalSales'         => $totalSales,
-            'previousTotalSales' => $previousTotalSales,
-            'dailyAverage'       => $days > 0 ? round($totalSales / $days, 2) : 0,
-            'growthRate'         => $previousTotalSales > 0
-                ? round((($totalSales - $previousTotalSales) / $previousTotalSales) * 100, 1)
+            'categories'       => $categories,
+            'current'          => $current,
+            'previous'         => $previous,
+            'netSales'         => $netSales,
+            'previousNetSales' => $previousNetSales,
+            'dailyNetAverage'  => $days > 0 ? round($netSales / $days, 2) : 0,
+            'growthRate'       => $previousNetSales > 0
+                ? round((($netSales - $previousNetSales) / $previousNetSales) * 100, 1)
                 : 0,
         ];
     }

@@ -38,12 +38,20 @@ class IndexController extends Controller
             // Stream B is independent: a June refund on a May order appears
             // in June's report, not May's.
 
-            $reportRows = $this->engine->salesRows($filters)
+            // Merge all three streams before any filtering so KPIs see the full dataset.
+            $allRows = $this->engine->salesRows($filters)
                 ->concat($this->engine->refundRows($filters))
                 ->concat($this->engine->accountRows($filters))
                 ->sortByDesc(fn($row) => $row->date)
-                ->filter(fn($row) => $row->tax_amount != 0)
                 ->values();
+
+            // Tax-free revenue must be captured BEFORE the detail-table filter removes zero-tax rows.
+            $taxFreeRowRevenue = $allRows
+                ->filter(fn($row) => $row->tax_amount == 0)
+                ->sum(fn($row) => $row->grand_total);
+
+            // Detail table: only rows with a tax component (zero-tax rows remain in KPI totals above).
+            $reportRows = $allRows->filter(fn($row) => $row->tax_amount != 0)->values();
 
             // ── Extra charges (anchored on created_at — separate system) ───────
             [$start, $end] = $this->engine->resolveDateRange($filters);
@@ -53,28 +61,22 @@ class IndexController extends Controller
                 ->get();
 
             // ── KPI stats ─────────────────────────────────────────────────────
-            // All three streams use transaction-date accounting. Refund rows carry
-            // negative grand_total, subtotal, and tax_amount, so summing across all
-            // rows automatically produces net figures — no separate refund subtraction needed.
+            // Refund rows carry negative values — summing automatically produces net figures.
 
             $extraChargesTotalRaw = $orderExtraCharges->sum('amount');
 
-            // F3: sum actual stored tax_amount values (positive for sales, negative for refunds)
-            $netTaxAmount  = $reportRows->sum(fn($row) => $row->tax_amount);
-
-            // F2: use subtotal sum for taxable revenue base (excludes the tax component)
+            // Taxed rows only (detail-table subset)
+            $netTaxAmount    = $reportRows->sum(fn($row) => $row->tax_amount);
             $taxableSubtotal = $reportRows->sum(fn($row) => $row->subtotal);
-
-            // Net grand total across all taxed rows
             $reportRowsTotal = $reportRows->sum(fn($row) => $row->grand_total);
 
-            // Relationship that must hold: taxableSubtotal + netTaxAmount === reportRowsTotal
-            // (grand_total = subtotal + tax_amount, so Σgrand = Σsubtotal + Σtax)
+            // Invariant: taxableSubtotal + netTaxAmount === reportRowsTotal
+            // (grand_total = subtotal + tax_amount per row, so the sums are equal)
 
             $salesTaxCollected        = CustomHelper::formatCurrency($netTaxAmount);
             $taxableRevenue           = CustomHelper::formatCurrency($taxableSubtotal);
-            $taxFreeRevenue           = CustomHelper::formatCurrency($extraChargesTotalRaw);
-            $totalCollectedAllSources = CustomHelper::formatCurrency($extraChargesTotalRaw + $reportRowsTotal);
+            $taxFreeRevenue           = CustomHelper::formatCurrency($taxFreeRowRevenue + $extraChargesTotalRaw);
+            $totalCollectedAllSources = CustomHelper::formatCurrency($extraChargesTotalRaw + $reportRowsTotal + $taxFreeRowRevenue);
             $totalRevenue             = CustomHelper::formatCurrency($reportRowsTotal);
 
             // ── Pagination ────────────────────────────────────────────────────

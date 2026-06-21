@@ -182,7 +182,8 @@ class SalesTaxReportEngine
 
         // customer_accounts.payment_type uses Customers\PaymentMethod values (CreditCard, BankTransfer, …)
         // while the filter sends Orders\OrderPaymentMethod values (Card, Online, …).
-        // Map before applying so the filter works correctly for all payment types.
+        // 'Account' means "show account payment rows" — customer_accounts.type = 'payment' already
+        // scopes to that subset, so no additional payment_type constraint is needed.
         $accountMethodMap = [
             'Card'   => 'CreditCard',
             'Online' => 'BankTransfer',
@@ -191,11 +192,13 @@ class SalesTaxReportEngine
             'Other'  => 'Other',
         ];
         if (!empty($filters['payment_method'])) {
-            $mapped = $accountMethodMap[$filters['payment_method']] ?? null;
-            if ($mapped) {
-                $query->where('payment_type', $mapped);
+            if ($filters['payment_method'] === 'Account') {
+                // Show all account rows — payment_type records which method settled the balance
+                // (card, check, etc.) and is distinct from the Account stream concept itself.
+            } elseif (isset($accountMethodMap[$filters['payment_method']])) {
+                $query->where('payment_type', $accountMethodMap[$filters['payment_method']]);
             } else {
-                // COD, Account, or unknown — no account rows use these types
+                // COD or unknown — no customer_account rows match these
                 return collect();
             }
         }

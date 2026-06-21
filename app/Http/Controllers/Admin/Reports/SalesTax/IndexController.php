@@ -70,8 +70,9 @@ class IndexController extends Controller
             $taxableSubtotal = $reportRows->sum(fn($row) => $row->subtotal);
             $reportRowsTotal = $reportRows->sum(fn($row) => $row->grand_total);
 
-            // Invariant: taxableSubtotal + netTaxAmount === reportRowsTotal
-            // (grand_total = subtotal + tax_amount per row, so the sums are equal)
+            // Relationship: taxableSubtotal + netTaxAmount = reportRowsTotal + Σ discount_amount
+            // grand_total = subtotal + tax_amount - discount_amount (discount applied post-tax)
+            // When no discounts exist: taxableSubtotal + netTaxAmount === reportRowsTotal
 
             $salesTaxCollected        = CustomHelper::formatCurrency($netTaxAmount);
             $taxableRevenue           = CustomHelper::formatCurrency($taxableSubtotal);

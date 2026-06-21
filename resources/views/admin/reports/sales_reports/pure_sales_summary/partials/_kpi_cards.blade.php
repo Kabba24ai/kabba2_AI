@@ -7,10 +7,10 @@
 {{-- ── Row 1: Total Collected | Gross Sales | Net Sales | Tax Collected | Refunds | Discounts ── --}}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
 
-    {{-- Total Collected: gross + tax - refunds - discounts — what actually hit the bank --}}
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-teal-200 dark:border-teal-700 p-4 shadow-sm ring-1 ring-teal-100 dark:ring-teal-900">
-        <p class="text-xs font-medium text-teal-600 dark:text-teal-400 uppercase tracking-wide mb-1">Total Collected</p>
-        <p class="text-2xl font-bold text-teal-700 dark:text-teal-300">{{ $kpis['total_collected'] }}</p>
+    {{-- Total Collected: supporting metric — includes tax which is remitted to government --}}
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-blue-200 dark:border-blue-700 p-4 shadow-sm ring-1 ring-blue-100 dark:ring-blue-900">
+        <p class="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Total Collected</p>
+        <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">{{ $kpis['total_collected'] }}</p>
         <p class="text-xs text-gray-400 mt-1">Gross + Tax &minus; Refunds &minus; Discounts</p>
     </div>
 
@@ -20,11 +20,11 @@
         <p class="text-xs text-gray-400 mt-1">Before discounts &amp; refunds</p>
     </div>
 
-    {{-- Net Sales: the key pure-revenue metric --}}
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-blue-200 dark:border-blue-700 p-4 shadow-sm ring-1 ring-blue-100 dark:ring-blue-900">
-        <p class="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Net Sales</p>
-        <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">{{ $kpis['net_sales'] }}</p>
-        <p class="text-xs text-gray-400 mt-1">Use for all analytics &amp; comparisons</p>
+    {{-- Net Sales: PRIMARY performance metric — actual business result --}}
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-teal-200 dark:border-teal-700 p-4 shadow-sm ring-2 ring-teal-200 dark:ring-teal-700">
+        <p class="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-wide mb-1">Net Sales ★</p>
+        <p class="text-2xl font-bold text-teal-700 dark:text-teal-300">{{ $kpis['net_sales'] }}</p>
+        <p class="text-xs text-teal-500 dark:text-teal-500 mt-1">Primary performance metric</p>
     </div>
 
     {{-- Tax Collected: separate — remitted to state, never counted as revenue --}}

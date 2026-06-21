@@ -118,6 +118,20 @@ class SalesReportingService
                                      ->where('order_payments.status', 'Paid');
                               });
                         });
+                } elseif ($paymentStatus === 'paid_and_account') {
+                    // Includes paid + account; excludes only unpaid COD (POD).
+                    // Used by Product Performance report where account-order demand counts.
+                    $sub->where(function ($q) {
+                        $q->where('order_payments.payment_method', 'Account')
+                          ->orWhere(function ($q2) {
+                              $q2->where('order_payments.payment_method', '!=', 'Account')
+                                 ->where('order_payments.payment_method', '!=', 'COD');
+                          })
+                          ->orWhere(function ($q2) {
+                              $q2->where('order_payments.payment_method', 'COD')
+                                 ->where('order_payments.status', 'Paid');
+                          });
+                    });
                 } elseif ($paymentStatus === 'pod') {
                     // COD only where payment has NOT yet been collected
                     $sub->where('order_payments.payment_method', 'COD')

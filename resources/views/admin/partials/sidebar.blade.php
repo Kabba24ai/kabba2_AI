@@ -405,41 +405,16 @@
                                                     Sales Trend
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="{{ route('admin.reports.sales-reports.sales-by-stores.index') }}"
-                                                    class="menu-dropdown-item group
-                                                    {{ Route::is('admin.reports.sales-reports.sales-by-stores.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                                    <x-heroicon-o-building-storefront class="w-5 h-5" />
-                                                    Sales By Stores
-                                                </a>
-                                            </li>
+                                            {{-- Sales By Stores: hidden from nav, route kept --}}
 
-                                            {{-- Product Performance submenu --}}
-                                            <li x-data="{ openProductPerf: {{ Route::is('admin.reports.sales-reports.product-performance.*') ? 'true' : 'false' }} }">
-                                                <a href="#" @click.prevent="openProductPerf = !openProductPerf"
+                                            {{-- Product Performance --}}
+                                            <li>
+                                                <a href="{{ route('admin.reports.sales-reports.product-performance.index') }}"
                                                     class="menu-dropdown-item group
-                                                    {{ Route::is('admin.reports.sales-reports.product-performance.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    {{ Route::is('admin.reports.sales-reports.product-performance.index') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                                     <x-heroicon-o-trophy class="w-5 h-5" />
-                                                    <span class="flex-1">Product Performance</span>
-                                                    <template x-if="!openProductPerf">
-                                                        <x-heroicon-o-chevron-left class="w-4 h-4 ml-auto" />
-                                                    </template>
-                                                    <template x-if="openProductPerf">
-                                                        <x-heroicon-o-chevron-down class="w-4 h-4 ml-auto" />
-                                                    </template>
+                                                    Product Performance
                                                 </a>
-                                                <div x-show="openProductPerf" x-transition>
-                                                    <ul class="mt-1 flex flex-col gap-1 pl-5">
-                                                        <li>
-                                                            <a href="{{ route('admin.reports.sales-reports.product-performance.product-sales-ranking.index') }}"
-                                                                class="menu-dropdown-item group
-                                                                {{ Route::is('admin.reports.sales-reports.product-performance.product-sales-ranking.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                                                <x-heroicon-o-bars-3-bottom-right class="w-4 h-4" />
-                                                                Product Sales Ranking
-                                                            </a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
                                             </li>
                                         </ul>
                                     </div>

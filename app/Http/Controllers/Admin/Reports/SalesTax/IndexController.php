@@ -146,19 +146,28 @@ class IndexController extends Controller
 
                         $refundAmount = (float) $payment->refund_amount;
 
-                        $refundTax = CustomHelper::calculateRefundSalesTax(
-                            $refundAmount,
-                            $order->subtotal,
-                            $order->tax_amount
-                        );
+                        // Prefer stored tax_refunded (accurate) over the estimated helper.
+                        $refundTax = ((float) ($payment->tax_refunded ?? 0) > 0)
+                            ? (float) $payment->tax_refunded
+                            : CustomHelper::calculateRefundSalesTax(
+                                $refundAmount,
+                                $order->subtotal,
+                                $order->tax_amount
+                            );
 
                         $refundSubtotal = $refundAmount - $refundTax;
+
+                        // Refund transaction date — must reflect WHEN the refund was processed,
+                        // not the original order date (transaction-date accounting).
+                        $refundDate = $payment->refunded_at
+                            ?? $payment->payment_datetime
+                            ?? $payment->created_at;
 
                         return (object) [
                             'type' => 'refund',
                             'unique_id' => $order->unique_id,
                             'link' => $order->view_link,
-                             'date' => $order->order_date,
+                            'date' => $refundDate,
                             'customer_name' =>
                                 $order->shippingAddress?->full_name ?? '-',
                             'products' =>

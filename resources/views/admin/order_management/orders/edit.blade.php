@@ -1477,8 +1477,11 @@
                         @foreach($refunds as $refund)
 
                             @php
-                                $refundTax =
-                                    \App\Helpers\CustomHelper::calculateRefundSalesTax(
+                                // Prefer stored tax_refunded (accurate) over the proportional estimate.
+                                // Falls back to estimate for historical records where tax_refunded = 0.
+                                $refundTax = ((float) ($refund->tax_refunded ?? 0) > 0)
+                                    ? (float) $refund->tax_refunded
+                                    : \App\Helpers\CustomHelper::calculateRefundSalesTax(
                                         $refund->refund_amount,
                                         $order->subtotal,
                                         $order->tax_amount

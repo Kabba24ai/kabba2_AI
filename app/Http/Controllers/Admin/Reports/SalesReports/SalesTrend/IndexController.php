@@ -99,9 +99,9 @@ class IndexController extends Controller
         ];
     }
 
-    /** 2040 down to 2024 — future-proofed range. */
+    /** 2024 up to 2040 — ascending, future-proofed range. */
     private function buildAvailableYears(): array
     {
-        return range(2040, 2024);
+        return range(2024, 2040);
     }
 }

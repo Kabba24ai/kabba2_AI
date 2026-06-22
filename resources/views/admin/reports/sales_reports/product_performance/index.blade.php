@@ -419,14 +419,13 @@
     function collectParams() {
         const p = new URLSearchParams();
 
-        // Resolve the effective view to send to the server. When on the Categories
-        // tab with a category selected, tell the server to drill into products for
-        // that category rather than letting the server guess from the filter state.
+        // When a category or product is selected while on the Categories tab,
+        // send view=products so the server runs productData() — which has always
+        // been wired to that value in the original engine — rather than routing
+        // through category_drilldown which requires newer server code.
         let sendView = activeView;
-        if (activeView === 'categories' && fCategory.value) {
-            sendView = fProduct.value ? 'product_single' : 'category_drilldown';
-        } else if (activeView === 'categories' && !fCategory.value && fProduct.value) {
-            sendView = 'product_single';
+        if (activeView === 'categories' && (fCategory.value || fProduct.value)) {
+            sendView = 'products';
         }
         p.set('view', sendView);
 
@@ -467,17 +466,25 @@
     // ── Chart title ──────────────────────────────────────────────────────────
     function getChartTitle(data) {
         const v = data.view;
-        if (v === 'category_drilldown') {
-            const sel = fCategory.options[fCategory.selectedIndex];
-            const catName = (sel && sel.value) ? sel.text : 'Selected Category';
-            return 'Products in ' + catName + ' by Revenue';
+        if (v === 'stores') return 'Store Comparison by Revenue';
+
+        // Product-level views: title depends on which filters are active
+        if (v === 'products' || v === 'category_drilldown' || v === 'product_single') {
+            // Single product selected
+            if (fProduct.value) {
+                const pSel = fProduct.options[fProduct.selectedIndex];
+                return (pSel && pSel.value) ? pSel.text + ' Performance' : 'Product Performance';
+            }
+            // Category drilldown (category selected, all products within it)
+            if (fCategory.value) {
+                const cSel = fCategory.options[fCategory.selectedIndex];
+                return (cSel && cSel.value)
+                    ? 'Products in ' + cSel.text + ' by Revenue'
+                    : 'Products by Revenue';
+            }
+            return 'Top Products by Revenue';
         }
-        if (v === 'product_single') {
-            const sel = fProduct.options[fProduct.selectedIndex];
-            return (sel && sel.value) ? sel.text + ' Performance' : 'Product Performance';
-        }
-        if (v === 'products')  return 'Top Products by Revenue';
-        if (v === 'stores')    return 'Store Comparison by Revenue';
+
         return 'Top Categories by Revenue';
     }
 

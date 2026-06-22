@@ -1,0 +1,152 @@
+<?php
+
+namespace App\Http\Controllers\Front\Checkout;
+
+use App\Http\Controllers\Controller;
+use App\Helpers\ConfigurationHelper;
+use App\Helpers\SignedUrlHelper;
+use App\Jobs\CreateReceiptJob;
+use App\Models\Customers\Customer;
+use App\Models\Orders\Order;
+use App\Services\AuthorizeNetService;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class OrderPaymentController extends Controller
+{
+    public function show(Request $request, $unique_id)
+    {
+        try {
+            $uniqueId = decrypt($unique_id);
+        } catch (DecryptException $e) {
+            abort(403, 'Invalid or tampered order parameter.');
+        }
+
+        $order = Order::with(
+            'shippingAddress',
+            'billingAddress',
+            'products.product',
+            'lastPayment',
+            'customer'
+        )->where('unique_id', $uniqueId)->firstOrFail();
+
+        if ($order->balance_due <= 0) {
+            abort(403, 'This order is already fully paid.');
+        }
+
+        $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
+
+        return view('front.checkout.order-payment-form', [
+            'title'          => 'Complete Payment',
+            'order'          => $order,
+            'customer'       => $order->customer,
+            'paymentSetting' => $paymentSetting,
+            'encrypted_id'   => $unique_id,
+        ]);
+    }
+
+    public function store(Request $request, $unique_id)
+    {
+        try {
+            $uniqueId = decrypt($unique_id);
+        } catch (DecryptException $e) {
+            return response()->json(['success' => false, 'message' => 'Invalid order parameter.']);
+        }
+
+        $order    = Order::with('customer')->where('unique_id', $uniqueId)->firstOrFail();
+        $customer = $order->customer;
+
+        if ($order->balance_due <= 0) {
+            return response()->json(['success' => false, 'message' => 'This order is already fully paid.']);
+        }
+
+        $opaqueDataValue      = $request->input('opaqueDataValue');
+        $opaqueDataDescriptor = $request->input('opaqueDataDescriptor');
+        $firstName            = $request->input('firstName');
+        $lastName             = $request->input('lastName');
+
+        if (!$opaqueDataValue || !$opaqueDataDescriptor) {
+            return response()->json(['success' => false, 'message' => 'Payment data missing or invalid.']);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $amount = $order->balance_due;
+
+            $authorizeNetService = new AuthorizeNetService();
+
+            if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Payment token invalid.']);
+            }
+
+            $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, [
+                'order_number' => $order->order_number,
+                'customer'     => $customer->toArray(),
+            ]);
+
+            if (($paymentResult['status'] ?? null) !== 'success') {
+                Log::error('Order payment failed for Order: ' . $order->unique_id . ' - ' . ($paymentResult['message'] ?? 'Unknown'));
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => $paymentResult['message'] ?? 'Payment failed.']);
+            }
+
+            $order->payments()->create([
+                'payment_datetime'    => now(),
+                'payment_method'      => 'Card',
+                'amount'              => $amount,
+                'transaction_id'      => $paymentResult['transaction_id'] ?? null,
+                'auth_code'           => $paymentResult['auth_code'] ?? null,
+                'customer_profile_id' => $paymentResult['customer_profile_id'] ?? null,
+                'payment_profile_id'  => $paymentResult['payment_profile_id'] ?? null,
+                'card_number'         => $paymentResult['card_number'] ?? null,
+                'card_first_name'     => $firstName,
+                'card_last_name'      => $lastName,
+                'status'              => $paymentResult['payment_status'] ?? 'Paid',
+                'payment_response'    => $paymentResult['payment_response'] ?? null,
+                'created_by_id'       => $customer->id,
+                'created_by_type'     => Customer::class,
+            ]);
+
+            if (empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
+                $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
+                $customer->saveQuietly();
+            }
+
+            if (!empty($paymentResult['payment_profile_id'])) {
+                $customer->cards()->updateOrCreate(
+                    ['payment_profile_id' => $paymentResult['payment_profile_id']],
+                    [
+                        'first_name'  => $firstName,
+                        'last_name'   => $lastName,
+                        'card_number' => $paymentResult['card_number'] ?? null,
+                        'card_type'   => $paymentResult['card_type'] ?? null,
+                    ],
+                );
+            }
+
+            CreateReceiptJob::dispatch($order->id, 'card');
+
+            DB::commit();
+
+            $redirectUrl = SignedUrlHelper::make('front.checkout.thank-you', ['order' => $order->unique_id], 5);
+
+            return response()->json([
+                'success'      => true,
+                'redirect_url' => $redirectUrl,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Order payment error', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'An error occurred while processing payment.']);
+        }
+    }
+}

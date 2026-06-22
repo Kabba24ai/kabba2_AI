@@ -13,6 +13,7 @@
                 <th class="py-4 px-[22px] text-center text-blue-700">Driver</th>
                 <th class="py-4 px-[22px] text-center">Return Date</th>
                 <th class="py-4 px-[22px] text-center text-purple-700">Driver</th>
+                <th class="py-4 px-6 text-center">Payment</th>
                 <th class="py-4 px-2 text-center"></th>
             </tr>
         </thead>
@@ -248,6 +249,10 @@
                         @endif
                     </td>
 
+                    <td class="py-4 px-6 text-center">
+                        {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
+                    </td>
+
                     <td class="py-4 px-2 text-center">
                         <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order?->unique_id ?? 0) }}"
                             class="text-sky-600 hover:text-sky-800" title="View Order">
@@ -261,7 +266,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="12" class="text-center text-sm text-gray-500 px-4 py-6">
+                    <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
                         @if ($orderProducts)
                             No dispatch records found.
                         @else

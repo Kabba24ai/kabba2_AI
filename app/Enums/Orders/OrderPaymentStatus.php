@@ -28,7 +28,7 @@ enum OrderPaymentStatus : string
            self::PartialRefund => 'Partial Refund',
            self::Refund => 'Refunded',
            self::Failed => 'Failed',
-           self::PartialPayment => 'Partial Payment',
+           self::PartialPayment => 'Partial',
            self::InvoiceCard => 'Paid by CC on File',
            self::InvoiceCash => 'Paid at Front Desk',
            self::InvoiceOnline => 'Paid by Direct Bank',

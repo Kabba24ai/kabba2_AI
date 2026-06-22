@@ -210,6 +210,64 @@ class SettingSeeder extends Seeder
                 'default_value' => true,
                 'sort_order' => $sortOrder++,
             ],
+
+            // POD Payment Reminder Messages
+            [
+                'value_type' => 'text',
+                'setting_name' => 'pod_payment_reminder_1_message',
+                'setting_title' => 'POD Payment Reminder #1 Message',
+                'default_value' => "Rent 'n King: Your rental order is not reserved until payment is complete. Pay here to secure your order: {{payment_link}}",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'pod_payment_reminder_1_enabled',
+                'setting_title' => 'Enable POD Payment Reminder #1',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'pod_payment_reminder_2_message',
+                'setting_title' => 'POD Payment Reminder #2 Message',
+                'default_value' => "Rent 'n King reminder: Your rental starts today, but payment is still needed before your order is guaranteed. Pay here: {{payment_link}}",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'pod_payment_reminder_2_enabled',
+                'setting_title' => 'Enable POD Payment Reminder #2',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'pod_payment_reminder_3_message',
+                'setting_title' => 'POD Payment Reminder #3 Message (Last Chance)',
+                'default_value' => "Rent 'n King: You can still complete your rental order. Pay now and choose a new rental start date at checkout: {{payment_link}}",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'pod_payment_reminder_3_enabled',
+                'setting_title' => 'Enable POD Payment Reminder #3',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'pod_payment_reminder_4_message',
+                'setting_title' => 'POD Payment Reminder #4 Message (Closeout)',
+                'default_value' => "Rent 'n King: It looks like this rental request is no longer needed, so we'll remove the unpaid order from our system. If your plans change, we'd be happy to help. Thank you for considering Rent 'n King.",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'checkbox',
+                'setting_name' => 'pod_payment_reminder_4_enabled',
+                'setting_title' => 'Enable POD Payment Reminder #4',
+                'default_value' => true,
+                'sort_order' => $sortOrder++,
+            ],
         ];
     }
 

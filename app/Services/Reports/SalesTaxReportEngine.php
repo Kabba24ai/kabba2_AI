@@ -248,6 +248,11 @@ class SalesTaxReportEngine
             ];
         }
 
-        return [null, null];
+        // return [null, null];
+         // Default = Current Month
+    return [
+        now()->startOfMonth(),
+        now()->endOfMonth(),
+    ];
     }
 }

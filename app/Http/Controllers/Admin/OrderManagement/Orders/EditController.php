@@ -33,6 +33,7 @@ class EditController extends Controller
 
         $stores = Store::orderBy('store_name')->get();
         $employees = User::activeOrIds($assignedUserIds)->orderBy('first_name')->get();
+        $drivers = User::activeOrIds($assignedUserIds)->where('is_driver', true)->orderBy('first_name')->get();
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
         $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');
@@ -62,6 +63,6 @@ class EditController extends Controller
             ->latest('id')
             ->get();
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges'));
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'drivers', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges'));
     }
 }

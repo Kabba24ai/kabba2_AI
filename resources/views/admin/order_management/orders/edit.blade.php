@@ -1063,17 +1063,17 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <!-- Technician -->
+                                            <!-- Driver -->
                                             <div class="flex flex-col items-start min-w-[90px] flex-1">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                    for="delivery_by_{{ $orderProduct->unique_id }}">Technician</label>
+                                                    for="delivery_by_{{ $orderProduct->unique_id }}">Driver</label>
                                                 <select id="delivery_by_{{ $orderProduct->unique_id }}"
                                                     class="delivery_by border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="" disabled selected>Select Technician</option>
-                                                    @foreach ($employees as $employee)
-                                                        <option value="{{ $employee->id }}"
-                                                            {{ $orderProduct->delivery_by == $employee->id ? 'selected' : '' }}>
-                                                            {{ $employee->first_name }} {{ $employee->last_name }}
+                                                    <option value="" disabled selected>Select Driver</option>
+                                                    @foreach ($drivers as $driver)
+                                                        <option value="{{ $driver->id }}"
+                                                            {{ $orderProduct->delivery_by == $driver->id ? 'selected' : '' }}>
+                                                            {{ $driver->first_name }} {{ $driver->last_name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -1199,17 +1199,17 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <!-- Technician -->
+                                            <!-- Driver -->
                                             <div class="flex flex-col items-start min-w-[90px] flex-1">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                    for="pickup_by_{{ $orderProduct->unique_id }}">Technician</label>
+                                                    for="pickup_by_{{ $orderProduct->unique_id }}">Driver</label>
                                                 <select id="pickup_by_{{ $orderProduct->unique_id }}"
                                                     class="pickup_by border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="" disabled selected>Select Technician</option>
-                                                    @foreach ($employees as $employee)
-                                                        <option value="{{ $employee->id }}"
-                                                            {{ $orderProduct->pickup_by == $employee->id ? 'selected' : '' }}>
-                                                            {{ $employee->first_name }} {{ $employee->last_name }}
+                                                    <option value="" disabled selected>Select Driver</option>
+                                                    @foreach ($drivers as $driver)
+                                                        <option value="{{ $driver->id }}"
+                                                            {{ $orderProduct->pickup_by == $driver->id ? 'selected' : '' }}>
+                                                            {{ $driver->first_name }} {{ $driver->last_name }}
                                                         </option>
                                                     @endforeach
                                                 </select>

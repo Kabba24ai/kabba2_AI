@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Reports\SalesReports\PureSalesSummary\ExportContr
 use App\Http\Controllers\Admin\Reports\SalesReports\SalesTrend\IndexController as SalesTrendIndexController;
 use App\Http\Controllers\Admin\Reports\SalesReports\SalesByStores\IndexController as SalesByStoresIndexController;
 use App\Http\Controllers\Admin\Reports\SalesReports\ProductPerformance\ProductSalesRanking\IndexController as ProductSalesRankingIndexController;
+use App\Http\Controllers\Admin\Reports\SalesReports\EmployeePerformance\IndexController as EmployeePerformanceIndexController;
 use App\Http\Controllers\Admin\Reports\SalesReports\ProductPerformance\IndexController as ProductPerformanceIndexController;
 
 Route::prefix('sales-reports')
@@ -29,6 +30,12 @@ Route::prefix('sales-reports')
             ->name('sales-by-stores.')
             ->group(function () {
                 Route::get('/', SalesByStoresIndexController::class)->name('index');
+            });
+
+        Route::prefix('employee-performance')
+            ->name('employee-performance.')
+            ->group(function () {
+                Route::get('/', EmployeePerformanceIndexController::class)->name('index');
             });
 
         Route::prefix('product-performance')

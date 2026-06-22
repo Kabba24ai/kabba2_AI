@@ -91,6 +91,12 @@ class SalesReportingService
             $query->where('order_products.product_id', $filters['product']);
         }
 
+        // Employee (order creator) — scopes to orders created by a specific user
+        if (!empty($filters['employee_id'])) {
+            $query->where('orders.created_by_id', $filters['employee_id'])
+                  ->where('orders.created_by_type', \App\Models\Iam\Personnel\User::class);
+        }
+
         // NOTE: damage_waiver, track_insurance, delivery, and shipping are component-level
         // revenue filters. They must NOT exclude entire order_product rows — doing so removes
         // all rental revenue from those orders, not just the targeted component. These filters
@@ -174,9 +180,12 @@ class SalesReportingService
         return match ($range) {
             'today'        => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
             'yesterday'    => [$now->copy()->subDay()->startOfDay(), $now->copy()->subDay()->endOfDay()],
+            'this_week'    => [$now->copy()->startOfWeek(), $now->copy()->endOfDay()],
+            'last_week'    => [$now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek()->endOfDay()],
             'last_7'       => [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()],
             'last_30'      => [$now->copy()->subDays(29)->startOfDay(), $now->copy()->endOfDay()],
             'mtd'          => [$now->copy()->startOfMonth(), $now->copy()->endOfDay()],
+            'last_month'   => [$now->copy()->subMonthNoOverflow()->startOfMonth()->startOfDay(), $now->copy()->subMonthNoOverflow()->endOfMonth()->endOfDay()],
             'qtd'          => [$now->copy()->startOfQuarter(), $now->copy()->endOfDay()],
             'ytd'          => [$now->copy()->startOfYear(), $now->copy()->endOfDay()],
             'prev_quarter' => [

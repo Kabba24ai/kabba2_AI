@@ -108,7 +108,14 @@ class SendPodPaymentReminderJob implements ShouldQueue
                 $skipped++;
                 continue;
             }
-            // END TEMP TEST ONLY
+
+            // TEMP DATE GUARD — only process orders on/after 2026-06-22; remove before go-live
+            if ($order->created_at->toDateString() < '2026-06-22') {
+                $this->log('info', '[POD Reminder] TEMP SKIP — order ' . $order->unique_id . ' skipped (created_at ' . $order->created_at->toDateString() . ' is before cutoff 2026-06-22).');
+                $skipped++;
+                continue;
+            }
+            // END TEMP DATE GUARD
 
             $paymentLink = route('front.checkout.order-payment-form', [
                 'order' => encrypt($order->unique_id),

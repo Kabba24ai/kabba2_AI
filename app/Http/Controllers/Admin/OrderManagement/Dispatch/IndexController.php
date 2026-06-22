@@ -36,6 +36,7 @@ class IndexController extends Controller
             ->whereIn('delivery_by', $driverIds)
             ->where('delivery_status', 'Pending')
             ->where('delivery_transport_mode', 'Truck')
+            ->whereDate('delivery_date', '<=', today())
             ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
             ->orderBy('delivery_date')
             ->get()
@@ -45,6 +46,8 @@ class IndexController extends Controller
             ->whereIn('pickup_by', $driverIds)
             ->where('pickup_status', 'Pending')
             ->where('pickup_transport_mode', 'Truck')
+            ->whereNotNull('pickup_date')
+            ->whereDate('pickup_date', '<=', today())
             ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
             ->orderBy('pickup_date')
             ->get()
@@ -223,9 +226,16 @@ class IndexController extends Controller
 
                 if ($useBothDates) {
                     if ($dateFilter === 'today') {
+                        // Couple status + date: only show actionable pending items due today or overdue
                         $query->where(function ($q) {
-                            $q->whereDate('delivery_date', '<=', today())
-                              ->orWhereDate('pickup_date', '<=', today());
+                            $q->where(function ($sub) {
+                                $sub->where('delivery_status', 'Pending')
+                                    ->whereDate('delivery_date', '<=', today());
+                            })->orWhere(function ($sub) {
+                                $sub->where('pickup_status', 'Pending')
+                                    ->whereNotNull('pickup_date')
+                                    ->whereDate('pickup_date', '<=', today());
+                            });
                         });
                     } elseif ($dateFilter === 'week') {
                         $query->where(function ($q) {

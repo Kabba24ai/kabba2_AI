@@ -558,6 +558,22 @@
         const isMulti   = series.length > 1;
         const colors    = isMulti ? STORE_COLORS : [SINGLE_COLOR];
 
+        // Build qty lookup from rows (same order as chart labels/series data)
+        const rows       = data.rows || [];
+        const qtyByIndex = rows.map(r => r.qty ?? r.total_qty ?? 0);
+
+        // Single-series: show "$33,047 · Qty: 37"; multi-store: revenue only
+        const labelFormatter = isMulti
+            ? fmtLabel
+            : function (val, opts) {
+                if (!val || val === 0) return '';
+                const rev = '$' + Math.round(Math.abs(val)).toLocaleString('en-US');
+                const qty = qtyByIndex[opts.dataPointIndex];
+                return (qty !== undefined && qty !== null)
+                    ? rev + ' · Qty: ' + Number(qty).toLocaleString('en-US')
+                    : rev;
+            };
+
         const options = {
             chart: {
                 type:    'bar',
@@ -580,7 +596,7 @@
             },
             dataLabels: {
                 enabled:   true,
-                formatter: fmtLabel,
+                formatter: labelFormatter,
                 style:     { fontSize: '11px', fontWeight: '700', colors: ['#000000'] },
                 background: { enabled: false },
             },

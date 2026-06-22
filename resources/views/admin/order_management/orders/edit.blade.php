@@ -238,6 +238,34 @@
                     </svg>
                 </a>
 
+                {{-- Resend POD Payment Link (only for COD Pending orders) --}}
+                @php
+                    $hasCodPending = $order->payments
+                        ->where('payment_method', 'COD')
+                        ->where('status', 'Pending')
+                        ->isNotEmpty();
+                @endphp
+                @if($hasCodPending)
+                <div class="flex flex-col">
+                    <button id="resendPodPaymentLinkBtn" type="button"
+                        data-url="{{ route('admin.order-management.orders.resend-pod-payment-link', $order->unique_id) }}"
+                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm">
+                        <x-heroicon-o-paper-airplane class="w-4 h-4 mr-1 btn-icon" />
+                        <span class="btn-label">Resend Payment Link</span>
+                        <svg class="hidden w-4 h-4 ml-2 animate-spin text-white btn-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                    @if($order->podPaymentLink?->activities()->where('event', 'manual_resend')->exists())
+                        @php $lastResent = $order->podPaymentLink->activities()->where('event', 'manual_resend')->latest('id')->first(); @endphp
+                        <div class="text-xs text-gray-500 mt-1 ml-[2px] text-center">
+                            Last sent {{ \Carbon\Carbon::parse($lastResent->created_at)->format('m/d/Y h:i A') }}
+                        </div>
+                    @endif
+                </div>
+                @endif
+
                 {{-- Call Needed --}}
                 <span id="callNeededBtn"
                     data-customer-id="{{ $order->customer_id }}"
@@ -4940,6 +4968,52 @@
                     .finally(() => {
                         btn.disabled = false;
                     });
+            });
+        }
+
+        // ── Resend POD Payment Link ──────────────────────────────────────────
+        const resendPodBtn = document.getElementById('resendPodPaymentLinkBtn');
+
+        if (resendPodBtn) {
+            resendPodBtn.addEventListener('click', function () {
+                const btn      = this;
+                const icon     = btn.querySelector('.btn-icon');
+                const label    = btn.querySelector('.btn-label');
+                const spinner  = btn.querySelector('.btn-spinner');
+
+                btn.disabled = true;
+                icon?.classList.add('hidden');
+                spinner?.classList.remove('hidden');
+                label.textContent = 'Sending…';
+
+                apiFetch(btn.dataset.url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    }
+                })
+                .then(res => {
+                    if (res && res.success) {
+                        notyf.success('Payment link sent successfully.');
+                        // Update "last sent" label under the button
+                        let sub = btn.closest('.flex.flex-col')?.querySelector('.text-xs');
+                        if (!sub) {
+                            sub = document.createElement('div');
+                            sub.className = 'text-xs text-gray-500 mt-1 ml-[2px] text-center';
+                            btn.closest('.flex.flex-col')?.appendChild(sub);
+                        }
+                        sub.textContent = 'Last sent ' + (res.sent_at ?? 'just now');
+                    } else {
+                        notyf.error(res?.message || 'Failed to send payment link.');
+                    }
+                })
+                .catch(() => notyf.error('Request failed. Please try again.'))
+                .finally(() => {
+                    btn.disabled = false;
+                    icon?.classList.remove('hidden');
+                    spinner?.classList.add('hidden');
+                    label.textContent = 'Resend Payment Link';
+                });
             });
         }
     </script>

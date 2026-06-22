@@ -35,6 +35,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\UpdatePoidController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\RepairDeletedOrdersController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\AlertChargeController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\Extension\StoreController as ExtensionStoreController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\ResendPodPaymentLinkController;
 
 
 Route::prefix('orders')
@@ -92,6 +93,9 @@ Route::prefix('orders')
 
         // Extension Charges
         Route::post('/{unique_id}/extension/store', ExtensionStoreController::class)->name('extension.store');
+
+        // POD Payment Link — manual resend
+        Route::post('/{unique_id}/resend-pod-payment-link', ResendPodPaymentLinkController::class)->name('resend-pod-payment-link');
 
         // Route::get('repair-deleted-orders', RepairDeletedOrdersController::class)->name('repair-deleted-orders');
 

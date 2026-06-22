@@ -13,6 +13,7 @@ enum PodPaymentLinkEvent: string
     case PaymentCompleted = 'payment_completed';
     case OrderExpired     = 'order_expired';
     case OrderReactivated = 'order_reactivated';
+    case ManualResend     = 'manual_resend';
 
     public function label(): string
     {
@@ -26,6 +27,7 @@ enum PodPaymentLinkEvent: string
             self::PaymentCompleted => 'Payment Completed',
             self::OrderExpired     => 'Order Expired',
             self::OrderReactivated => 'Order Reactivated',
+            self::ManualResend     => 'Payment Link Manually Resent (Admin)',
         };
     }
 

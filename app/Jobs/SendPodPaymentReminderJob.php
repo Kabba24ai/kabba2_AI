@@ -8,6 +8,7 @@ use App\Enums\Orders\PodPaymentLinkStatus;
 use App\Helpers\ConfigurationHelper;
 use App\Models\Orders\Order;
 use App\Models\Orders\PodPaymentLink;
+use App\Services\PaymentShortLinkService;
 use App\Services\TwilioService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,6 +24,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private TwilioService $twilio;
+    private PaymentShortLinkService $shortLinks;
 
     private function log(string $level, string $message, array $context = []): void
     {
@@ -37,7 +39,8 @@ class SendPodPaymentReminderJob implements ShouldQueue
         $settings = ConfigurationHelper::getSettings('Default Sales Funnel Settings');
 
         try {
-            $this->twilio = new TwilioService();
+            $this->twilio     = new TwilioService();
+            $this->shortLinks = new PaymentShortLinkService();
             $this->log('info', '[POD Reminder] TwilioService initialised successfully.');
         } catch (\Exception $e) {
             $this->log('error', '[POD Reminder] TwilioService init failed — aborting job.', [
@@ -253,9 +256,12 @@ class SendPodPaymentReminderJob implements ShouldQueue
             // Ensure a pod_payment_links tracker row exists for this order
             $podLink = $this->findOrCreatePodPaymentLink($order);
 
-            $paymentLink = route('front.checkout.order-payment-form', [
+            $longUrl = route('front.checkout.order-payment-form', [
                 'order' => encrypt($order->unique_id),
             ]);
+
+            $shortLink   = $this->shortLinks->shorten($longUrl, $order->id, $order->customer_id);
+            $paymentLink = $this->shortLinks->shortUrlFor($shortLink->token);
 
             $message = str_replace('{{payment_link}}', $paymentLink, $messageTemplate);
 

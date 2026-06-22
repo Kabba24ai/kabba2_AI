@@ -9,6 +9,7 @@ use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Orders\Order;
 use App\Models\Orders\PodPaymentLink;
+use App\Services\PaymentShortLinkService;
 use App\Services\TwilioService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -46,9 +47,19 @@ class ResendPodPaymentLinkController extends Controller
         $settings        = ConfigurationHelper::getSettings('Default Sales Funnel Settings');
         $messageTemplate = $settings['pod_payment_reminder_1_message'] ?? null;
 
-        $paymentLink = route('front.checkout.order-payment-form', [
+        $longUrl   = route('front.checkout.order-payment-form', [
             'order' => encrypt($order->unique_id),
         ]);
+        $shortLinks  = new PaymentShortLinkService();
+        $shortLink   = $shortLinks->shorten(
+            $longUrl,
+            $order->id,
+            $order->customer_id,
+            now()->addDays(14),
+            null,
+            auth()->id()
+        );
+        $paymentLink = $shortLinks->shortUrlFor($shortLink->token);
 
         $message = $messageTemplate
             ? str_replace('{{payment_link}}', $paymentLink, $messageTemplate)

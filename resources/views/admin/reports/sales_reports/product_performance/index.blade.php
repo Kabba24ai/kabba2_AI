@@ -575,14 +575,13 @@
                 bar: {
                     horizontal:   true,
                     borderRadius: 3,
-                    dataLabels:   { position: 'top' },
+                    dataLabels:   { position: 'center' },
                 },
             },
             dataLabels: {
                 enabled:   true,
                 formatter: fmtLabel,
-                offsetX:   8,
-                style:     { fontSize: '11px', fontWeight: '500', colors: ['#374151'] },
+                style:     { fontSize: '11px', fontWeight: '700', colors: ['#000000'] },
                 background: { enabled: false },
             },
             colors: colors,

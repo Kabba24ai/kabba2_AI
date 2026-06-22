@@ -17,7 +17,7 @@ enum OrderPaymentStatus : string
     case InvoiceCheque = 'Invoice Cheque';
     case InvoiceOther = 'Invoice Other';
 
-    case PartialPayment = 'Partial';
+    case PartialPayment = 'Partial Payment';
 
     public function label(): string
     {

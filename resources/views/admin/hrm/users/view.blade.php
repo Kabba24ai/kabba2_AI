@@ -187,30 +187,24 @@
         @endforeach
 
         <!-- Driver Designation -->
+        @if($user->is_driver || $user->cdl_a || $user->cdl_b)
         <div class="border-t pt-4 mt-2">
-            <div class="flex items-center gap-4 flex-wrap">
-                <div class="flex items-center gap-2">
-                    <input type="checkbox"
-                        class="w-4 h-4 rounded border-gray-300 text-blue-600"
-                        {{ $user->is_driver ? 'checked' : '' }}
-                        disabled>
-                    <span class="text-sm text-gray-700 font-medium">Designate as a Driver</span>
-                </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                @if($user->is_driver)
+                    <span class="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-700">
+                        <x-heroicon-o-truck class="w-3.5 h-3.5" />
+                        Driver
+                    </span>
+                @endif
                 @if($user->cdl_a)
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600" checked disabled>
-                    <span class="text-sm text-gray-700 font-medium">CDL A</span>
-                </div>
+                    <span class="text-xs px-3 py-1 rounded-full bg-amber-50 text-amber-700">CDL A</span>
                 @endif
                 @if($user->cdl_b)
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600" checked disabled>
-                    <span class="text-sm text-gray-700 font-medium">CDL B</span>
-                </div>
+                    <span class="text-xs px-3 py-1 rounded-full bg-amber-50 text-amber-700">CDL B</span>
                 @endif
             </div>
-            <p class="text-xs text-gray-400 mt-1 ml-6">Drivers appear in the Dispatch driver assignment list.</p>
         </div>
+        @endif
 
     </div>
 </div>

@@ -97,6 +97,7 @@ class IndexController extends Controller
             'sale_type'      => $request->input('sale_type', 'all'),
             'category'       => $request->input('category') ? (int) $request->input('category') : null,
             'product'        => $request->input('product')  ? (int) $request->input('product')  : null,
+            'limit'          => $request->input('limit', '10'),
             'payment_status' => 'paid_and_account', // always — product demand scope
         ];
     }

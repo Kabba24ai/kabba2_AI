@@ -149,6 +149,19 @@
                 </select>
             </div>
 
+            {{-- Quantity (limit) --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Quantity</label>
+                <select id="f-limit"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="all">All</option>
+                    <option value="5">Top 5</option>
+                    <option value="10" selected>Top 10</option>
+                    <option value="15">Top 15</option>
+                    <option value="20">Top 20</option>
+                </select>
+            </div>
+
             {{-- Run button --}}
             <div>
                 <button type="button" id="btn-run"
@@ -321,6 +334,7 @@
     const fCategory    = document.getElementById('f-category');
     const fProduct     = document.getElementById('f-product');
     const fSortBy      = document.getElementById('f-sort-by');
+    const fLimit       = document.getElementById('f-limit');
     const tabStoresBtn = document.getElementById('tab-stores-btn');
 
     // ── Tabs ────────────────────────────────────────────────────────────────
@@ -388,7 +402,7 @@
     });
 
     // ── Generic filter listeners ────────────────────────────────────────────
-    [fStartDate, fEndDate, fMonth, fYear, fSaleType, fProduct, fSortBy].forEach(el => {
+    [fStartDate, fEndDate, fMonth, fYear, fSaleType, fProduct, fSortBy, fLimit].forEach(el => {
         el.addEventListener('change', scheduleRun);
     });
 
@@ -405,6 +419,7 @@
         fCategory.value  = '';
         fProduct.value   = '';
         fSortBy.value    = 'revenue';
+        fLimit.value     = '10';
         tabStoresBtn.classList.add('opacity-40', 'cursor-not-allowed');
         if (activeView === 'stores') setActiveTab('categories');
         runReport();
@@ -441,6 +456,8 @@
         if (fSaleType.value && fSaleType.value !== 'all') p.set('sale_type', fSaleType.value);
         if (fCategory.value) p.set('category',  fCategory.value);
         if (fProduct.value)  p.set('product',   fProduct.value);
+        p.set('sort_by', fSortBy.value || 'revenue');
+        p.set('limit', fLimit.value || '10');
         return p;
     }
 
@@ -542,6 +559,22 @@
         const isMulti   = series.length > 1;
         const colors    = isMulti ? STORE_COLORS : [SINGLE_COLOR];
 
+        // Build qty lookup from rows (same order as chart labels/series data)
+        const rows       = data.rows || [];
+        const qtyByIndex = rows.map(r => r.qty ?? r.total_qty ?? 0);
+
+        // Single-series: show "$33,047 · Qty: 37"; multi-store: revenue only
+        const labelFormatter = isMulti
+            ? fmtLabel
+            : function (val, opts) {
+                if (!val || val === 0) return '';
+                const rev = '$' + Math.round(Math.abs(val)).toLocaleString('en-US');
+                const qty = qtyByIndex[opts.dataPointIndex];
+                return (qty !== undefined && qty !== null)
+                    ? rev + ' · Qty: ' + Number(qty).toLocaleString('en-US')
+                    : rev;
+            };
+
         const options = {
             chart: {
                 type:    'bar',
@@ -559,14 +592,13 @@
                 bar: {
                     horizontal:   true,
                     borderRadius: 3,
-                    dataLabels:   { position: 'top' },
+                    dataLabels:   { position: 'center' },
                 },
             },
             dataLabels: {
                 enabled:   true,
-                formatter: fmtLabel,
-                offsetX:   8,
-                style:     { fontSize: '11px', fontWeight: '500', colors: ['#374151'] },
+                formatter: labelFormatter,
+                style:     { fontSize: '11px', fontWeight: '700', colors: ['#000000'] },
                 background: { enabled: false },
             },
             colors: colors,

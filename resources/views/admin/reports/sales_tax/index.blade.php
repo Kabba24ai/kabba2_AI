@@ -108,7 +108,7 @@
         <div class="dark:border-gray-800">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4  mx-auto mt-6">
-                <!-- Total Revenue - All Sources  -->
+                <!-- Card 1: Gross Revenue -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-blue-100 text-blue-600 rounded-md p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -119,69 +119,42 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500">Total Revenue - All Sources </p>
-                        <p class="text-xl font-semibold text-gray-900" id="totalCollectedAllSources">
-
-                        </p>
+                        <p class="text-sm text-gray-500">Gross Revenue</p>
+                        <p class="text-xl font-semibold text-gray-900" id="grossRevenue"></p>
                     </div>
                 </div>
 
-                <!-- Total Revenue Excluding Sales Tax -->
-                <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
-                    <div class="bg-indigo-100 text-indigo-600 rounded-md p-2">
-                        <!-- Wallet Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-wallet w-6 h-6" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                            <path d="M16 12h4v4h-4z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">
-                            Total Revenue - Excluding Tax Free Revenue
-                        </p>
-                        <p class="text-xl font-semibold text-gray-900" id="totalRevenue">
-                        </p>
-
-                    </div>
-                </div>
-
-
-                <!-- Available Credit -->
+                <!-- Card 2: Tax Free Revenue -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-green-100 text-green-600 rounded-md p-2">
-                        <!-- Shield Icon for Tax Free Revenue (protection/exemption) -->
                         <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-shield w-6 h-6" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm  text-gray-500">Tax Free Revenue</p>
-                        <p class="text-xl font-semibold text-gray-900" id="taxFreeRevenue">
-                        </p>
+                        <p class="text-sm text-gray-500">Tax Free Revenue</p>
+                        <p class="text-xl font-semibold text-gray-900" id="taxFreeRevenue"></p>
                     </div>
                 </div>
 
-                <!-- Open Invoices -->
+                <!-- Card 3: Taxable Revenue -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-yellow-100 text-yellow-600 rounded-md p-2">
-                        <!-- Receipt Icon for Taxable Revenue -->
                         <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-receipt w-6 h-6" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 21v-17h16v17l-4-4-4 4-4-4-4 4z" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm  text-gray-500">Taxable Revenue</p>
+                        <p class="text-sm text-gray-500">Taxable Revenue</p>
                         <p class="text-xl font-semibold text-gray-900" id="taxableRevenue"></p>
                     </div>
                 </div>
 
-                <!-- Last Payment -->
+                <!-- Card 4: Sales Tax Collected -->
                 <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
                     <div class="bg-green-100 text-green-600 rounded-md p-2">
-                        <!-- Percent Icon for Sales Tax -->
                         <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-percent w-6 h-6" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="19" y1="5" x2="5" y2="19" />
@@ -190,8 +163,23 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm  text-gray-500">Sales Tax Collected</p>
-                        <p class="text-xl font-semibold text-gray-900" id="salesTaxCollected"> </p>
+                        <p class="text-sm text-gray-500">Sales Tax Collected</p>
+                        <p class="text-xl font-semibold text-gray-900" id="salesTaxCollected"></p>
+                    </div>
+                </div>
+
+                <!-- Card 5: Total Revenue Collected – Includes Sales Tax -->
+                <div class="bg-white p-4 rounded-md shadow-sm flex items-center gap-4">
+                    <div class="bg-indigo-100 text-indigo-600 rounded-md p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-wallet w-6 h-6" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                            <path d="M16 12h4v4h-4z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Total Revenue – Includes Sales Tax</p>
+                        <p class="text-xl font-semibold text-gray-900" id="totalCollectedAllSources"></p>
                     </div>
                 </div>
             </div>
@@ -311,21 +299,11 @@
 
                                 // Update stats dynamically
                                 if (data.stats) {
-                                    document.querySelector('#totalRevenue').textContent = data.stats
-                                        .totalRevenue;
-                                    document.querySelector('#totalCollectedAllSources').textContent = data
-                                        .stats.totalCollectedAllSources;
-                                    document.querySelector('#taxFreeRevenue').textContent = data.stats
-                                        .taxFreeRevenue;
-
-                                        document.querySelector('#taxableRevenue').textContent = data.stats
-                                        .taxableRevenue;
-
-                                    // document.querySelector('#taxableRevenue').textContent = data.stats
-                                    //     .totalRevenue;
-
-                                    document.querySelector('#salesTaxCollected').textContent = data.stats
-                                        .salesTaxCollected;
+                                    document.querySelector('#grossRevenue').textContent           = data.stats.grossRevenue;
+                                    document.querySelector('#taxFreeRevenue').textContent         = data.stats.taxFreeRevenue;
+                                    document.querySelector('#taxableRevenue').textContent         = data.stats.taxableRevenue;
+                                    document.querySelector('#salesTaxCollected').textContent      = data.stats.salesTaxCollected;
+                                    document.querySelector('#totalCollectedAllSources').textContent = data.stats.totalCollectedAllSources;
                                 }
 
                             } else {

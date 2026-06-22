@@ -85,7 +85,8 @@ class IndexController extends Controller
             $taxableRevenue           = CustomHelper::formatCurrency($taxableSubtotal);
             $taxFreeRevenue           = CustomHelper::formatCurrency($taxFreeRowRevenue + $extraChargesTotalRaw);
             $totalCollectedAllSources = CustomHelper::formatCurrency($extraChargesTotalRaw + $reportRowsTotal + $taxFreeRowRevenue);
-            $totalRevenue             = CustomHelper::formatCurrency($reportRowsTotal);
+            // Gross Revenue = taxable subtotal (excl. tax) + tax-free revenue + extra charges
+            $grossRevenue             = CustomHelper::formatCurrency($taxableSubtotal + $taxFreeRowRevenue + $extraChargesTotalRaw);
 
             // ── Pagination ────────────────────────────────────────────────────
             $perPage  = $request->get('per_page', 30);
@@ -107,11 +108,11 @@ class IndexController extends Controller
                     'success' => true,
                     'html'    => $html,
                     'stats'   => [
-                        'totalCollectedAllSources' => $totalCollectedAllSources,
-                        'totalRevenue'             => $totalRevenue,
+                        'grossRevenue'             => $grossRevenue,
                         'taxFreeRevenue'           => $taxFreeRevenue,
                         'taxableRevenue'           => $taxableRevenue,
                         'salesTaxCollected'        => $salesTaxCollected,
+                        'totalCollectedAllSources' => $totalCollectedAllSources,
                     ],
                 ]);
             }
@@ -142,11 +143,11 @@ class IndexController extends Controller
                 'orders'                  => $paginated,
                 'stores'                  => Store::all(),
                 'availableMonths'         => $availableMonths,
-                'totalRevenue'            => $totalRevenue,
-                'totalCollectedAllSources'=> $totalCollectedAllSources,
+                'grossRevenue'            => $grossRevenue,
                 'taxFreeRevenue'          => $taxFreeRevenue,
                 'taxableRevenue'          => $taxableRevenue,
                 'salesTaxCollected'       => $salesTaxCollected,
+                'totalCollectedAllSources'=> $totalCollectedAllSources,
             ]);
 
         } catch (\Throwable $e) {

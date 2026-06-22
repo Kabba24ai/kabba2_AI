@@ -188,44 +188,29 @@
 
         <!-- Driver Designation -->
         <div class="border-t pt-4 mt-2">
-            <label class="flex items-center gap-2 cursor-pointer w-fit">
-                <input type="checkbox"
-                    id="driverDesignationToggle"
-                    class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
-                    {{ $user->is_driver ? 'checked' : '' }}
-                    data-url="{{ route('admin.hrm.users.toggle-driver', $user->unique_id) }}"
-                    data-csrf="{{ csrf_token() }}">
-                <span class="text-sm text-gray-700 font-medium">Designate as a Driver</span>
-                <span id="driverToggleStatus" class="text-xs text-green-600 font-semibold hidden">Saved</span>
-            </label>
+            <div class="flex items-center gap-4 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox"
+                        class="w-4 h-4 rounded border-gray-300 text-blue-600"
+                        {{ $user->is_driver ? 'checked' : '' }}
+                        disabled>
+                    <span class="text-sm text-gray-700 font-medium">Designate as a Driver</span>
+                </div>
+                @if($user->cdl_a)
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600" checked disabled>
+                    <span class="text-sm text-gray-700 font-medium">CDL A</span>
+                </div>
+                @endif
+                @if($user->cdl_b)
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600" checked disabled>
+                    <span class="text-sm text-gray-700 font-medium">CDL B</span>
+                </div>
+                @endif
+            </div>
             <p class="text-xs text-gray-400 mt-1 ml-6">Drivers appear in the Dispatch driver assignment list.</p>
         </div>
-
-        <script>
-        (function () {
-            const cb = document.getElementById('driverDesignationToggle');
-            if (!cb) return;
-            cb.addEventListener('change', function () {
-                const status = document.getElementById('driverToggleStatus');
-                fetch(cb.dataset.url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': cb.dataset.csrf,
-                    },
-                    body: JSON.stringify({ is_driver: cb.checked }),
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        status.classList.remove('hidden');
-                        setTimeout(() => status.classList.add('hidden'), 2000);
-                    }
-                })
-                .catch(() => { cb.checked = !cb.checked; });
-            });
-        })();
-        </script>
 
     </div>
 </div>

@@ -115,11 +115,18 @@ class DispatchController extends BaseController
 
             if ($useBothDates) {
                 if ($dateFilter === 'Today') {
+                    // Couple status + date: only show actionable pending items due today or overdue
                     $query->where(function ($q) {
-                        $q->whereDate('delivery_date', '<=', today())
-                            ->orWhereDate('pickup_date', '<=', today());
+                        $q->where(function ($sub) {
+                            $sub->where('delivery_status', 'Pending')
+                                ->whereDate('delivery_date', '<=', today());
+                        })->orWhere(function ($sub) {
+                            $sub->where('pickup_status', 'Pending')
+                                ->whereNotNull('pickup_date')
+                                ->whereDate('pickup_date', '<=', today());
+                        });
                     });
-                }  elseif ($dateFilter === "Tomorrow") {
+                } elseif ($dateFilter === "Tomorrow") {
                     $query->where(function ($q) {
                         $q->whereDate('delivery_date', now()->addDay()->toDateString())
                             ->orWhereDate('pickup_date', now()->addDay()->toDateString());

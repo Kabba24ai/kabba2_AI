@@ -128,8 +128,7 @@ class IndexController extends Controller
             }
 
             // --- SCHEDULE TYPE + TRANSPORT MODE ---
-            $scheduleTypes      = [];
-            $showAll            = $request->boolean('show_all');
+            $scheduleTypes = [];
 
             if ($request->filled('schedule_type')) {
                 $scheduleTypes = array_filter((array) $request->input('schedule_type', []), fn($v) => $v !== '' && $v !== 'false');
@@ -141,8 +140,8 @@ class IndexController extends Controller
             $isReturnOnly       = $isReturnSelected  && !$isDeliverySelected;
             $isDeliveryOnly     = $isDeliverySelected && !$isReturnSelected;
 
-            // Default (show_all=false): hide completed rows — only show actionable items
-            if (!empty($scheduleTypes) && !$showAll) {
+            // Hide completed rows — only show actionable items
+            if (!empty($scheduleTypes)) {
                 $query->where(function ($q) use ($isDeliverySelected, $isReturnSelected, $isReturnOnly) {
                     if ($isDeliverySelected) {
                         $q->where('delivery_status', 'Pending');
@@ -164,12 +163,10 @@ class IndexController extends Controller
                     $q->where('delivery_transport_mode', 'Truck')
                       ->orWhere('pickup_transport_mode', 'Truck');
                 });
-                if (!$showAll) {
-                    $query->where(function ($q) {
-                        $q->where('delivery_status', '!=', 'Completed')
-                          ->orWhere('pickup_status', '!=', 'Completed');
-                    });
-                }
+                $query->where(function ($q) {
+                    $q->where('delivery_status', '!=', 'Completed')
+                      ->orWhere('pickup_status', '!=', 'Completed');
+                });
             } else {
                 $query->where(function ($q) use ($isDeliverySelected, $isReturnSelected) {
                     if ($isDeliverySelected) {

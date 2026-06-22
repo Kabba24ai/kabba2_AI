@@ -230,13 +230,6 @@
                         data-schedule-type="Return">Returns - Truck</button>
                 </div>
 
-                <!-- Show All toggle -->
-                <label class="flex items-center gap-2 cursor-pointer ml-2 select-none">
-                    <input type="checkbox" id="show_all" name="show_all"
-                        class="text-blue-600 focus:ring-blue-500 rounded border-gray-300 w-4 h-4">
-                    <span class="text-sm font-medium text-gray-700">Show All</span>
-                </label>
-
             </div>
         </div>
     </div>
@@ -504,7 +497,6 @@
             const driverFilterInput        = document.getElementById('driver_filter');
             const storeLocationInputs      = document.querySelectorAll('input[name="store_location[]"]');
             const scheduleTypeInputs       = document.querySelectorAll('input[name="schedule_type[]"]');
-            const showAllInput             = document.getElementById('show_all');
             const loadingIndicator         = document.querySelector('#dispatch-loading');
             const wrapper                  = document.querySelector('#dispatch-table-wrapper');
 
@@ -524,7 +516,6 @@
                 'driver_id':            driverFilterInput,
                 'store_location[]':     storeLocationInputs,
                 'schedule_type[]':      scheduleTypeInputs,
-                'show_all':             showAllInput,
             };
 
             // Clear filters
@@ -532,10 +523,7 @@
                 window.clearFilters(fieldMap, screenKey);
                 scheduleTypeInputs.forEach(input => { input.checked = true; });
                 storeLocationInputs.forEach(input => { input.checked = true; });
-                // Reset date to 'today' (default for Dispatch — shows today + overdue)
-                if (dateFilterInput) dateFilterInput.value = 'today';
-                // Reset Show All to off (default — hide completed)
-                if (showAllInput) showAllInput.checked = false;
+                if (dateFilterInput) dateFilterInput.value = '';
                 // Reset driver filter
                 if (driverFilterInput) driverFilterInput.value = '';
                 fetchDispatch();
@@ -544,9 +532,9 @@
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
 
-            // Default date_filter to 'today' (today + overdue) when no saved preference exists
+            // Default date_filter: All Dates when no saved preference exists
             if (dateFilterInput && !dateFilterInput.value) {
-                dateFilterInput.value = 'today';
+                dateFilterInput.value = '';
             }
 
             const pageParam    = new URLSearchParams(window.location.search).get('page') || 1;
@@ -668,7 +656,6 @@
                 if (paymentMethodInput && paymentMethodInput.value) params.append('payment_method', paymentMethodInput.value);
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
                 if (driverFilterInput && driverFilterInput.value) params.append('driver_id', driverFilterInput.value);
-                if (showAllInput?.checked) params.append('show_all', '1');
                 if (perPage) params.append('per_page', perPage);
                 params.set('page', page);
 
@@ -724,7 +711,6 @@
             if (paymentMethodInput) paymentMethodInput.addEventListener('change', fetchDispatch);
             if (dateFilterInput) dateFilterInput.addEventListener('change', fetchDispatch);
             if (driverFilterInput) driverFilterInput.addEventListener('change', fetchDispatch);
-            if (showAllInput) showAllInput.addEventListener('change', fetchDispatch);
             storeLocationInputs.forEach(input => input.addEventListener('change', fetchDispatch));
 
             scheduleTypeInputs.forEach(input => {

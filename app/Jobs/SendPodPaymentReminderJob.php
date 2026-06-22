@@ -273,9 +273,10 @@ class SendPodPaymentReminderJob implements ShouldQueue
 
             try {
                 $result = $this->twilio->sendSms($customer->phone, $message, [], [
-                    'order_id'    => $order->id,
-                    'customer_id' => $customer->id,
-                    'sms_type'    => $smsType->value,
+                    'order_id'            => $order->id,
+                    'customer_id'         => $customer->id,
+                    'sms_type'            => $smsType->value,
+                    'pod_payment_link_id' => $podLink->id,
                 ]);
 
                 if ($result['success'] ?? false) {

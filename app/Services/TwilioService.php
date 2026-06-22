@@ -65,12 +65,13 @@ class TwilioService
         ];
 
         $logContext = [
-            'order_id'         => $context['order_id'] ?? null,
-            'order_product_id' => $context['order_product_id'] ?? null,
-            'customer_id'      => $context['customer_id'] ?? null,
-            'sms_type'         => $context['sms_type'] ?? null,
-            'phone'            => $to,
-            'message'          => $message,
+            'order_id'             => $context['order_id'] ?? null,
+            'order_product_id'     => $context['order_product_id'] ?? null,
+            'customer_id'          => $context['customer_id'] ?? null,
+            'sms_type'             => $context['sms_type'] ?? null,
+            'pod_payment_link_id'  => $context['pod_payment_link_id'] ?? null,
+            'phone'                => $to,
+            'message'              => $message,
         ];
 
         if (!$this->isValidPhone($to)) {
@@ -256,16 +257,17 @@ class TwilioService
 
         try {
             SMSLog::create([
-                'sms_type'         => $smsType,
-                'status'           => $status,
-                'phone'            => $context['phone'] ?? null,
-                'message'          => $context['message'] ?? null,
-                'sms_sent_at'      => $status === 'sent' ? now() : null,
-                'customer_id'      => $context['customer_id'] ?? null,
-                'order_product_id' => $context['order_product_id'] ?? null,
-                'order_id'         => $context['order_id'] ?? null,
-                'twilio_sid'       => $twilioSid,
-                'error_message'    => $status === 'failed' ? $errorMessage : null,
+                'sms_type'            => $smsType,
+                'status'              => $status,
+                'phone'               => $context['phone'] ?? null,
+                'message'             => $context['message'] ?? null,
+                'sms_sent_at'         => $status === 'sent' ? now() : null,
+                'customer_id'         => $context['customer_id'] ?? null,
+                'order_product_id'    => $context['order_product_id'] ?? null,
+                'order_id'            => $context['order_id'] ?? null,
+                'pod_payment_link_id' => $context['pod_payment_link_id'] ?? null,
+                'twilio_sid'          => $twilioSid,
+                'error_message'       => $status === 'failed' ? $errorMessage : null,
             ]);
         } catch (\Throwable $e) {
             $this->logError('Failed to persist SMS log: ' . $e->getMessage(), ['context' => $context]);

@@ -6,6 +6,7 @@ use App\Enums\Communication\SmsType;
 use App\Models\Customers\Customer;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderProduct;
+use App\Models\Orders\PodPaymentLink;
 use Illuminate\Database\Eloquent\Model;
 
 class SMSLog extends Model
@@ -21,6 +22,7 @@ class SMSLog extends Model
         'customer_id',
         'order_product_id',
         'order_id',
+        'pod_payment_link_id',
         'twilio_sid',
         'error_message',
     ];
@@ -46,6 +48,11 @@ class SMSLog extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function podPaymentLink()
+    {
+        return $this->belongsTo(PodPaymentLink::class);
     }
 
     // Query Scopes

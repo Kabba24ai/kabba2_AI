@@ -84,6 +84,9 @@ class IndexController extends Controller
                 ->whereHas('order')
                 ->whereNotNull('delivery_date');
 
+             $query->where('delivery_status', '!=', 'Reschedule')
+                      ->where('pickup_status', '!=', 'Reschedule');
+
             if ($request->filled('order_number')) {
                 $query->whereHas('order', function ($q) use ($request) {
                     $q->where('order_number', 'like', '%' . $request->order_number . '%')

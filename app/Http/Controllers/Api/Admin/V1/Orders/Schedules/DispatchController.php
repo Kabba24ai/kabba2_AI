@@ -36,6 +36,8 @@ class DispatchController extends BaseController
 
         $query = OrderProduct::query()->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee')->where('product_data->product_type', 'Rental')->whereHas('order')->whereNotNull('delivery_date');
 
+        $query->where('delivery_status', '!=', 'Reschedule')->where('pickup_status', '!=', 'Reschedule');
+
         if ($search) {
             $query->whereHas('order.shippingAddress', function ($q) use ($search) {
                 $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$search}%"]);

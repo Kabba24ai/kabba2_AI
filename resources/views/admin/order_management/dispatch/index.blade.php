@@ -738,9 +738,6 @@
                     // Check all stores
                     storeLocationInputs.forEach(cb => { cb.checked = true; });
 
-                    // Default to Today
-                    if (dateFilterInput) dateFilterInput.value = 'today';
-
                     fetchDispatch(pageParam, perPageParam);
                 });
             });

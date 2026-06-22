@@ -55,7 +55,11 @@ class IndexController extends Controller
             $data = $this->engine->reportData($filters, $effectiveView, $storeMode);
 
             if ($request->ajax()) {
-                return response()->json(['success' => true, 'data' => $data]);
+                return response()->json([
+                    'success'          => true,
+                    'data'             => $data,
+                    'date_range_label' => $this->reporting->dateRangeLabel($filters),
+                ]);
             }
 
             return view('admin.reports.sales_reports.product_performance.index', [

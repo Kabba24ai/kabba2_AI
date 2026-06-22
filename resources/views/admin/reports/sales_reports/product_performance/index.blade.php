@@ -46,8 +46,9 @@
                     <option value="last_7"    @selected(($filters['date_range'] ?? '') === 'last_7')>Last 7 Days</option>
                     <option value="last_30"   @selected(($filters['date_range'] ?? '') === 'last_30')>30 Day Rolling</option>
                     <option value="mtd"       @selected(($filters['date_range'] ?? 'mtd') === 'mtd')>Month to Date</option>
-                    <option value="qtd"       @selected(($filters['date_range'] ?? '') === 'qtd')>Quarter to Date</option>
-                    <option value="ytd"       @selected(($filters['date_range'] ?? '') === 'ytd')>Year to Date</option>
+                    <option value="qtd"          @selected(($filters['date_range'] ?? '') === 'qtd')>Quarter to Date</option>
+                    <option value="prev_quarter" @selected(($filters['date_range'] ?? '') === 'prev_quarter')>Previous Quarter</option>
+                    <option value="ytd"          @selected(($filters['date_range'] ?? '') === 'ytd')>Year to Date</option>
                     <option value="month"     @selected(($filters['date_range'] ?? '') === 'month')>Specific Month</option>
                     <option value="custom"    @selected(($filters['date_range'] ?? '') === 'custom')>Custom Range</option>
                 </select>
@@ -470,6 +471,9 @@
             .then(json => {
                 if (!json.success) { console.error('Report error', json.error); return; }
                 reportData = json.data;
+                if (json.date_range_label) {
+                    document.getElementById('date-range-label').textContent = json.date_range_label;
+                }
                 renderAll(json.data);
             })
             .finally(() => setLoading(false));

@@ -719,13 +719,13 @@
             if (customerCompanyNameInput) customerCompanyNameInput.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(fetchDispatch, 400); });
             if (customerPhoneInput) customerPhoneInput.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(fetchDispatch, 400); });
             if (orderNumberInput) orderNumberInput.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(fetchDispatch, 400); });
-            if (categoryInput) categoryInput.addEventListener('change', fetchDispatch);
-            if (paymentStatusInput) paymentStatusInput.addEventListener('change', fetchDispatch);
-            if (paymentMethodInput) paymentMethodInput.addEventListener('change', fetchDispatch);
-            if (dateFilterInput) dateFilterInput.addEventListener('change', fetchDispatch);
-            if (driverFilterInput) driverFilterInput.addEventListener('change', fetchDispatch);
-            if (showAllInput) showAllInput.addEventListener('change', fetchDispatch);
-            storeLocationInputs.forEach(input => input.addEventListener('change', fetchDispatch));
+            if (categoryInput) categoryInput.addEventListener('change', () => fetchDispatch());
+            if (paymentStatusInput) paymentStatusInput.addEventListener('change', () => fetchDispatch());
+            if (paymentMethodInput) paymentMethodInput.addEventListener('change', () => fetchDispatch());
+            if (dateFilterInput) dateFilterInput.addEventListener('change', () => fetchDispatch());
+            if (driverFilterInput) driverFilterInput.addEventListener('change', () => fetchDispatch());
+            if (showAllInput) showAllInput.addEventListener('change', () => fetchDispatch());
+            storeLocationInputs.forEach(input => input.addEventListener('change', () => fetchDispatch()));
 
             scheduleTypeInputs.forEach(input => {
                 input.addEventListener('change', function(e) {

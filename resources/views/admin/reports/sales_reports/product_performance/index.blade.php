@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Product Performance')
+@section('title', 'Product Analytics')
 
 @section('content')
 
@@ -10,8 +10,8 @@
     {{-- Page Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <div>
-            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Reports › Sales Reports › Product Performance</p>
-            <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Product Performance</h3>
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Reports › Sales Reports › Product Analytics</p>
+            <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Product Analytics</h3>
         </div>
         <div class="text-xs text-gray-500 dark:text-gray-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg px-3 py-2 max-w-sm">
             Includes paid orders and account orders regardless of payment collection.

@@ -407,13 +407,13 @@
                                             </li>
                                             {{-- Sales By Stores: hidden from nav, route kept --}}
 
-                                            {{-- Product Performance --}}
+                                            {{-- Product Analytics --}}
                                             <li>
                                                 <a href="{{ route('admin.reports.sales-reports.product-performance.index') }}"
                                                     class="menu-dropdown-item group
                                                     {{ Route::is('admin.reports.sales-reports.product-performance.index') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                                     <x-heroicon-o-trophy class="w-5 h-5" />
-                                                    Product Performance
+                                                    Product Analytics
                                                 </a>
                                             </li>
                                         </ul>

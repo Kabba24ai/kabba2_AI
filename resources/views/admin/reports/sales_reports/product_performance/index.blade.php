@@ -248,6 +248,7 @@
 
         {{-- Chart --}}
         <div class="p-5">
+            <h4 id="chart-title" class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3"></h4>
             <div id="perf-chart" style="min-height: 320px;"></div>
         </div>
 
@@ -417,7 +418,17 @@
 
     function collectParams() {
         const p = new URLSearchParams();
-        p.set('view', activeView);
+
+        // When a category or product is selected while on the Categories tab,
+        // send view=products so the server runs productData() — which has always
+        // been wired to that value in the original engine — rather than routing
+        // through category_drilldown which requires newer server code.
+        let sendView = activeView;
+        if (activeView === 'categories' && (fCategory.value || fProduct.value)) {
+            sendView = 'products';
+        }
+        p.set('view', sendView);
+
         p.set('date_range', fDateRange.value);
         if (fDateRange.value === 'custom') {
             if (fStartDate.value) p.set('start_date', fStartDate.value);
@@ -452,6 +463,36 @@
         document.getElementById('loading-overlay').classList.toggle('hidden', !on);
     }
 
+    // ── Chart title ──────────────────────────────────────────────────────────
+    function getChartTitle(data) {
+        const v = data.view;
+        if (v === 'stores') return 'Store Comparison by Revenue';
+
+        // Product-level views: title depends on which filters are active
+        if (v === 'products' || v === 'category_drilldown' || v === 'product_single') {
+            // Single product selected
+            if (fProduct.value) {
+                const pSel = fProduct.options[fProduct.selectedIndex];
+                return (pSel && pSel.value) ? pSel.text + ' Performance' : 'Product Performance';
+            }
+            // Category drilldown (category selected, all products within it)
+            if (fCategory.value) {
+                const cSel = fCategory.options[fCategory.selectedIndex];
+                return (cSel && cSel.value)
+                    ? 'Products in ' + cSel.text + ' by Revenue'
+                    : 'Products by Revenue';
+            }
+            return 'Top Products by Revenue';
+        }
+
+        return 'Top Categories by Revenue';
+    }
+
+    function updateChartTitle(data) {
+        const el = document.getElementById('chart-title');
+        if (el) el.textContent = getChartTitle(data);
+    }
+
     // ── Render ───────────────────────────────────────────────────────────────
     function renderAll(data) {
         renderKpis(data.kpis);
@@ -459,6 +500,7 @@
         renderTable(data);
         renderDateLabel(data);
         renderTotalsStrip(data);
+        updateChartTitle(data);
     }
 
     function renderKpis(k) {
@@ -568,9 +610,11 @@
                 : (b.revenue || b.total_revenue || 0) - (a.revenue || a.total_revenue || 0)
         );
 
+        const effectiveView = data.view || activeView;
+
         if (isMultiStore) {
             renderMultiStoreTable(thead, tbody, sorted, stores);
-        } else if (activeView === 'products') {
+        } else if (effectiveView === 'products' || effectiveView === 'category_drilldown' || effectiveView === 'product_single') {
             renderProductsTable(thead, tbody, sorted);
         } else {
             renderCategoriesTable(thead, tbody, sorted);

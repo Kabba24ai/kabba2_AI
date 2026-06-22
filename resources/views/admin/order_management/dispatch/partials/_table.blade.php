@@ -13,8 +13,8 @@
                 <th class="py-4 px-[22px] text-center text-blue-700">Driver</th>
                 <th class="py-4 px-[22px] text-center">Return Date</th>
                 <th class="py-4 px-[22px] text-center text-purple-700">Driver</th>
-                <th class="py-4 px-6 text-center">Payment</th>
-                <th class="py-4 px-2 text-center"></th>
+                <th class="py-4 px-2 text-center w-[80px]">Payment</th>
+                <th class="py-4 px-1 text-center w-8"></th>
             </tr>
         </thead>
         <div id="dispatch-loading" class="hidden"></div>
@@ -58,7 +58,7 @@
                         {!! $orderProduct->order?->view_link ?? '-' !!}
                     </td>
 
-                    <td class="py-4 px-6 text-left max-w-0 w-[200px] overflow-hidden">
+                    <td class="py-4 px-6 text-left w-[275px] max-w-[275px] overflow-hidden">
                         <div class="font-medium truncate">
                             {{ $orderProduct->order?->customer_name ?? '-' }}
                         </div>
@@ -74,7 +74,7 @@
                         @endif
                     </td>
 
-                    <td class="py-4 px-6 truncate min-w-xs max-w-xs">
+                    <td class="py-4 px-6 w-[245px] max-w-[245px] truncate">
                         {{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}
                     </td>
 
@@ -249,11 +249,11 @@
                         @endif
                     </td>
 
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-2 text-center w-[80px]">
                         {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
                     </td>
 
-                    <td class="py-4 px-2 text-center">
+                    <td class="py-4 px-1 text-center w-8">
                         <a href="{{ route('admin.order-management.orders.edit', $orderProduct->order?->unique_id ?? 0) }}"
                             class="text-sky-600 hover:text-sky-800" title="View Order">
                             @if ($orderProduct?->order?->notes->isNotEmpty())

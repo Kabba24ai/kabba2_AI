@@ -89,6 +89,9 @@ class PodPaymentLink extends Model
                 $this->pod_reactivated_at = $now;
                 $this->pod_status = PodPaymentLinkStatus::Reactivated;
             })(),
+
+        // No dedicated timestamp column — activity row is the record
+        PodPaymentLinkEvent::ManualResend => null,
         };
 
         $this->save();

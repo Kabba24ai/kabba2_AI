@@ -42,12 +42,14 @@ class IndexController extends Controller
             $hasCategory = !empty($filters['category']);
             $hasProduct  = !empty($filters['product']);
 
-            if ($view === 'categories' && $hasCategory) {
-                $effectiveView = 'category_drilldown'; // products inside selected category
-            } elseif ($view === 'categories' && !$hasCategory && $hasProduct) {
-                $effectiveView = 'product_single';     // single product, no category context
+            // When a category or product filter is active on the categories tab,
+            // pass 'products' to the engine — it routes to productData() which
+            // has existed since initial deployment and correctly scopes by the
+            // category/product already present in $filters.
+            if ($view === 'categories' && ($hasCategory || $hasProduct)) {
+                $effectiveView = 'products';
             } else {
-                $effectiveView = $view;                // 'categories' | 'products' | 'stores'
+                $effectiveView = $view; // 'categories' | 'products' | 'stores'
             }
 
             $data = $this->engine->reportData($filters, $effectiveView, $storeMode);

@@ -172,14 +172,18 @@ class SalesReportingService
         }
 
         return match ($range) {
-            'today'     => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
-            'yesterday' => [$now->copy()->subDay()->startOfDay(), $now->copy()->subDay()->endOfDay()],
-            'last_7'    => [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()],
-            'last_30'   => [$now->copy()->subDays(29)->startOfDay(), $now->copy()->endOfDay()],
-            'mtd'       => [$now->copy()->startOfMonth(), $now->copy()->endOfDay()],
-            'qtd'       => [$now->copy()->startOfQuarter(), $now->copy()->endOfDay()],
-            'ytd'       => [$now->copy()->startOfYear(), $now->copy()->endOfDay()],
-            default     => [null, null],
+            'today'        => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+            'yesterday'    => [$now->copy()->subDay()->startOfDay(), $now->copy()->subDay()->endOfDay()],
+            'last_7'       => [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()],
+            'last_30'      => [$now->copy()->subDays(29)->startOfDay(), $now->copy()->endOfDay()],
+            'mtd'          => [$now->copy()->startOfMonth(), $now->copy()->endOfDay()],
+            'qtd'          => [$now->copy()->startOfQuarter(), $now->copy()->endOfDay()],
+            'ytd'          => [$now->copy()->startOfYear(), $now->copy()->endOfDay()],
+            'prev_quarter' => [
+                $now->copy()->subQuarter()->firstOfQuarter()->startOfDay(),
+                $now->copy()->subQuarter()->lastOfQuarter()->endOfDay(),
+            ],
+            default        => [null, null],
         };
     }
 

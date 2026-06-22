@@ -80,6 +80,11 @@ class ProductSalesPerformanceEngine
             ];
         })->toArray();
 
+        $limit = $filters['limit'] ?? '10';
+        if ($limit !== 'all' && is_numeric($limit)) {
+            $categories = array_slice($categories, 0, (int) $limit);
+        }
+
         return [
             'rows'   => $categories,
             'totals' => $this->rowTotals($rows),
@@ -129,6 +134,11 @@ class ProductSalesPerformanceEngine
             ];
         })->toArray();
 
+        $limit = $filters['limit'] ?? '10';
+        if ($limit !== 'all' && is_numeric($limit)) {
+            $products = array_slice($products, 0, (int) $limit);
+        }
+
         return [
             'rows'   => $products,
             'totals' => $this->rowTotals($rows),
@@ -159,7 +169,8 @@ class ProductSalesPerformanceEngine
             ->orderByDesc('revenue')
             ->get();
 
-        return $this->pivotByStore($rows, 'category_id', 'category_name', $storeIds, $storeNames);
+        $limit = $filters['limit'] ?? '10';
+        return $this->pivotByStore($rows, 'category_id', 'category_name', $storeIds, $storeNames, $limit);
     }
 
     public function productDataByStore(array $filters): array
@@ -186,7 +197,8 @@ class ProductSalesPerformanceEngine
             ->orderByDesc('revenue')
             ->get();
 
-        return $this->pivotByStore($rows, 'item_id', 'item_name', $storeIds, $storeNames);
+        $limit = $filters['limit'] ?? '10';
+        return $this->pivotByStore($rows, 'item_id', 'item_name', $storeIds, $storeNames, $limit);
     }
 
     public function storeData(array $filters): array
@@ -378,7 +390,8 @@ class ProductSalesPerformanceEngine
         string $idKey,
         string $nameKey,
         array $storeIds,
-        array $storeNames
+        array $storeNames,
+        string $limit = 'all'
     ): array {
         $grouped = [];
         foreach ($rows as $row) {
@@ -403,6 +416,10 @@ class ProductSalesPerformanceEngine
         }
 
         usort($grouped, fn($a, $b) => $b['total_revenue'] <=> $a['total_revenue']);
+
+        if ($limit !== 'all' && is_numeric($limit)) {
+            $grouped = array_slice($grouped, 0, (int) $limit);
+        }
 
         $totalAllRev = array_sum(array_column($grouped, 'total_revenue'));
         $totalAllQty = array_sum(array_column($grouped, 'total_qty'));

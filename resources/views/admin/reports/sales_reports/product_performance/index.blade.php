@@ -418,7 +418,18 @@
 
     function collectParams() {
         const p = new URLSearchParams();
-        p.set('view', activeView);
+
+        // Resolve the effective view to send to the server. When on the Categories
+        // tab with a category selected, tell the server to drill into products for
+        // that category rather than letting the server guess from the filter state.
+        let sendView = activeView;
+        if (activeView === 'categories' && fCategory.value) {
+            sendView = fProduct.value ? 'product_single' : 'category_drilldown';
+        } else if (activeView === 'categories' && !fCategory.value && fProduct.value) {
+            sendView = 'product_single';
+        }
+        p.set('view', sendView);
+
         p.set('date_range', fDateRange.value);
         if (fDateRange.value === 'custom') {
             if (fStartDate.value) p.set('start_date', fStartDate.value);

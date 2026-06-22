@@ -26,20 +26,21 @@ class ProductSalesPerformanceEngine
         $kpis     = $this->buildKpis($filters);
         $allIndiv = ($storeMode === 'all_individually');
 
-        // 'category_drilldown' and 'product_single' both call productData()
-        // with the category/product already in $filters — the base query does
-        // the right filtering automatically. The mode string is kept in the
-        // returned payload so JS can set the correct chart title.
-        $viewData = match (true) {
-            $view === 'categories'                                             && $allIndiv => $this->categoryDataByStore($filters),
-            $view === 'categories'                                                         => $this->categoryData($filters),
-            ($view === 'products' || $view === 'category_drilldown'
-                                  || $view === 'product_single')              && $allIndiv => $this->productDataByStore($filters),
-            ($view === 'products' || $view === 'category_drilldown'
-                                  || $view === 'product_single')                          => $this->productData($filters),
-            $view === 'stores'                                                 && $allIndiv => $this->storeData($filters),
-            default                                                                        => $this->categoryData($filters),
-        };
+        $isProductView = in_array($view, ['products', 'category_drilldown', 'product_single'], true);
+
+        if ($view === 'categories' && $allIndiv) {
+            $viewData = $this->categoryDataByStore($filters);
+        } elseif ($view === 'categories') {
+            $viewData = $this->categoryData($filters);
+        } elseif ($isProductView && $allIndiv) {
+            $viewData = $this->productDataByStore($filters);
+        } elseif ($isProductView) {
+            $viewData = $this->productData($filters);
+        } elseif ($view === 'stores' && $allIndiv) {
+            $viewData = $this->storeData($filters);
+        } else {
+            $viewData = $this->categoryData($filters);
+        }
 
         return array_merge(['kpis' => $kpis, 'view' => $view, 'store_mode' => $storeMode], $viewData);
     }

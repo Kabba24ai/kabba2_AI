@@ -236,11 +236,11 @@ class SendPodPaymentReminderJob implements ShouldQueue
             }
 
             // TEMP TEST ONLY — remove this block before go-live
-            if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
+            /*if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
                 $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
                 $skipped++;
                 continue;
-            }
+            }*/
 
             // TEMP DATE GUARD — only process orders on/after 2026-06-21; remove before go-live
             if ($order->created_at->toDateString() < '2026-06-21') {

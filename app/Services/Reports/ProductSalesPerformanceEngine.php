@@ -51,6 +51,8 @@ class ProductSalesPerformanceEngine
     {
         $expr = $this->netRevenueExpr();
 
+        $orderCol = ($filters['sort_by'] ?? 'revenue') === 'qty' ? 'qty' : 'revenue';
+
         $rows = $this->demandQuery($filters)
             ->selectRaw("
                 pc.id                                 AS category_id,
@@ -59,7 +61,7 @@ class ProductSalesPerformanceEngine
                 SUM({$expr})                          AS revenue
             ")
             ->groupBy('pc.id', 'pc.title')
-            ->orderByDesc('revenue')
+            ->orderByDesc($orderCol)
             ->get();
 
         $totalRevenue = (float) $rows->sum('revenue');
@@ -97,6 +99,8 @@ class ProductSalesPerformanceEngine
     {
         $expr = $this->netRevenueExpr();
 
+        $orderCol = ($filters['sort_by'] ?? 'revenue') === 'qty' ? 'qty' : 'revenue';
+
         $rows = $this->demandQuery($filters)
             ->selectRaw("
                 order_products.product_id             AS product_id,
@@ -108,7 +112,7 @@ class ProductSalesPerformanceEngine
                 SUM({$expr})                          AS revenue
             ")
             ->groupBy('order_products.product_id', 'products.product_name', 'products.product_type', 'pc.id', 'pc.title')
-            ->orderByDesc('revenue')
+            ->orderByDesc($orderCol)
             ->get();
 
         $totalRevenue = (float) $rows->sum('revenue');
@@ -169,8 +173,9 @@ class ProductSalesPerformanceEngine
             ->orderByDesc('revenue')
             ->get();
 
-        $limit = $filters['limit'] ?? '10';
-        return $this->pivotByStore($rows, 'category_id', 'category_name', $storeIds, $storeNames, $limit);
+        $limit  = $filters['limit']   ?? '10';
+        $sortBy = $filters['sort_by'] ?? 'revenue';
+        return $this->pivotByStore($rows, 'category_id', 'category_name', $storeIds, $storeNames, $limit, $sortBy);
     }
 
     public function productDataByStore(array $filters): array
@@ -197,8 +202,9 @@ class ProductSalesPerformanceEngine
             ->orderByDesc('revenue')
             ->get();
 
-        $limit = $filters['limit'] ?? '10';
-        return $this->pivotByStore($rows, 'item_id', 'item_name', $storeIds, $storeNames, $limit);
+        $limit  = $filters['limit']   ?? '10';
+        $sortBy = $filters['sort_by'] ?? 'revenue';
+        return $this->pivotByStore($rows, 'item_id', 'item_name', $storeIds, $storeNames, $limit, $sortBy);
     }
 
     public function storeData(array $filters): array
@@ -391,7 +397,8 @@ class ProductSalesPerformanceEngine
         string $nameKey,
         array $storeIds,
         array $storeNames,
-        string $limit = 'all'
+        string $limit = 'all',
+        string $sortBy = 'revenue'
     ): array {
         $grouped = [];
         foreach ($rows as $row) {
@@ -415,7 +422,10 @@ class ProductSalesPerformanceEngine
             $grouped[$id]['total_qty']     += (int)   $row->qty;
         }
 
-        usort($grouped, fn($a, $b) => $b['total_revenue'] <=> $a['total_revenue']);
+        usort($grouped, $sortBy === 'qty'
+            ? fn($a, $b) => $b['total_qty']     <=> $a['total_qty']
+            : fn($a, $b) => $b['total_revenue'] <=> $a['total_revenue']
+        );
 
         if ($limit !== 'all' && is_numeric($limit)) {
             $grouped = array_slice($grouped, 0, (int) $limit);

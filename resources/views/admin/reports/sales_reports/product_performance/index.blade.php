@@ -456,6 +456,7 @@
         if (fSaleType.value && fSaleType.value !== 'all') p.set('sale_type', fSaleType.value);
         if (fCategory.value) p.set('category',  fCategory.value);
         if (fProduct.value)  p.set('product',   fProduct.value);
+        p.set('sort_by', fSortBy.value || 'revenue');
         p.set('limit', fLimit.value || '10');
         return p;
     }

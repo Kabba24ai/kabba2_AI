@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::name('front.')->group(function () {
 
+    // Payment short-link redirect — no front-data middleware needed, just throttle + web
+    Route::middleware(['web', 'throttle:60,1'])->group(function () {
+        require base_path('routes/front/pay/routes.php');
+    });
+
     Route::middleware('front.common-front-data','web')->group(function () {
         // Home
         require base_path('routes/front/home/routes.php');

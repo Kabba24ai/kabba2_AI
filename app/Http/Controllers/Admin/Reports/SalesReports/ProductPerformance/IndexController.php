@@ -28,15 +28,29 @@ class IndexController extends Controller
             }
 
             $filters   = $this->extractFilters($request);
-            $view      = $request->input('view', 'categories'); // categories | products | stores
+            $view      = $request->input('view', 'categories'); // tab: categories | products | stores
             $storeMode = ($filters['store'] === 'all_individually') ? 'all_individually' : 'single';
 
-            // View 3 (stores) is only valid in all_individually mode; fall back to categories
+            // Stores tab only valid in all_individually mode
             if ($view === 'stores' && $storeMode !== 'all_individually') {
                 $view = 'categories';
             }
 
-            $data = $this->engine->reportData($filters, $view, $storeMode);
+            // Determine effective rendering mode from tab + filter state.
+            // When on the "categories" tab with a category selected, drill into
+            // products within that category rather than producing a 1-bar chart.
+            $hasCategory = !empty($filters['category']);
+            $hasProduct  = !empty($filters['product']);
+
+            if ($view === 'categories' && $hasCategory) {
+                $effectiveView = 'category_drilldown'; // products inside selected category
+            } elseif ($view === 'categories' && !$hasCategory && $hasProduct) {
+                $effectiveView = 'product_single';     // single product, no category context
+            } else {
+                $effectiveView = $view;                // 'categories' | 'products' | 'stores'
+            }
+
+            $data = $this->engine->reportData($filters, $effectiveView, $storeMode);
 
             if ($request->ajax()) {
                 return response()->json(['success' => true, 'data' => $data]);
@@ -45,7 +59,8 @@ class IndexController extends Controller
             return view('admin.reports.sales_reports.product_performance.index', [
                 'data'           => $data,
                 'filters'        => $filters,
-                'view'           => $view,
+                'view'           => $view,          // tab selection (for active state)
+                'effectiveView'  => $effectiveView, // actual rendering mode
                 'storeMode'      => $storeMode,
                 'stores'         => Store::orderBy('store_name')->get(['id', 'store_name']),
                 'categories'     => $this->reporting->availableCategories(),

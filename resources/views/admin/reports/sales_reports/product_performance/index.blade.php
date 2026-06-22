@@ -248,6 +248,7 @@
 
         {{-- Chart --}}
         <div class="p-5">
+            <h4 id="chart-title" class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3"></h4>
             <div id="perf-chart" style="min-height: 320px;"></div>
         </div>
 
@@ -452,6 +453,28 @@
         document.getElementById('loading-overlay').classList.toggle('hidden', !on);
     }
 
+    // ── Chart title ──────────────────────────────────────────────────────────
+    function getChartTitle(data) {
+        const v = data.view;
+        if (v === 'category_drilldown') {
+            const sel = fCategory.options[fCategory.selectedIndex];
+            const catName = (sel && sel.value) ? sel.text : 'Selected Category';
+            return 'Products in ' + catName + ' by Revenue';
+        }
+        if (v === 'product_single') {
+            const sel = fProduct.options[fProduct.selectedIndex];
+            return (sel && sel.value) ? sel.text + ' Performance' : 'Product Performance';
+        }
+        if (v === 'products')  return 'Top Products by Revenue';
+        if (v === 'stores')    return 'Store Comparison by Revenue';
+        return 'Top Categories by Revenue';
+    }
+
+    function updateChartTitle(data) {
+        const el = document.getElementById('chart-title');
+        if (el) el.textContent = getChartTitle(data);
+    }
+
     // ── Render ───────────────────────────────────────────────────────────────
     function renderAll(data) {
         renderKpis(data.kpis);
@@ -459,6 +482,7 @@
         renderTable(data);
         renderDateLabel(data);
         renderTotalsStrip(data);
+        updateChartTitle(data);
     }
 
     function renderKpis(k) {
@@ -568,9 +592,11 @@
                 : (b.revenue || b.total_revenue || 0) - (a.revenue || a.total_revenue || 0)
         );
 
+        const effectiveView = data.view || activeView;
+
         if (isMultiStore) {
             renderMultiStoreTable(thead, tbody, sorted, stores);
-        } else if (activeView === 'products') {
+        } else if (effectiveView === 'products' || effectiveView === 'category_drilldown' || effectiveView === 'product_single') {
             renderProductsTable(thead, tbody, sorted);
         } else {
             renderCategoriesTable(thead, tbody, sorted);

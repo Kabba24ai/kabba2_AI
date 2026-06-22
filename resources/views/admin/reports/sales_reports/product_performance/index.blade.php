@@ -341,8 +341,7 @@
         btn.addEventListener('click', function () {
             if (this.dataset.tab === 'stores' && fStore.value !== 'all_individually') return;
             setActiveTab(this.dataset.tab);
-            if (reportData) renderAll(reportData);
-            else runReport();
+            runReport();
         });
     });
 

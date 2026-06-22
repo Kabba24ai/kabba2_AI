@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Models\Iam\Personnel\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -608,6 +609,12 @@ class SalesReportEngineV2
                     ->whereNull('orp_rf4.deleted_at')
                     ->where('orp_rf4.product_id', $filters['product']);
             });
+        }
+
+        // Employee filter — only include refunds on orders created by this employee
+        if (!empty($filters['employee_id'])) {
+            $query->where('o.created_by_id', $filters['employee_id'])
+                  ->where('o.created_by_type', \App\Models\Iam\Personnel\User::class);
         }
     }
 

@@ -416,6 +416,16 @@
                                                     Product Analytics
                                                 </a>
                                             </li>
+
+                                            {{-- Employee Performance --}}
+                                            <li>
+                                                <a href="{{ route('admin.reports.sales-reports.employee-performance.index') }}"
+                                                    class="menu-dropdown-item group
+                                                    {{ Route::is('admin.reports.sales-reports.employee-performance.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-user-group class="w-5 h-5" />
+                                                    Employee Performance
+                                                </a>
+                                            </li>
                                         </ul>
                                     </div>
                                 </li>

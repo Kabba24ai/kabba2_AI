@@ -166,48 +166,138 @@
                         <p class="text-sm text-gray-500">Order {{ $order->order_number }} &mdash; {{ $order->order_date ? \Carbon\Carbon::parse($order->order_date)->format('M d, Y') : '' }}</p>
                     </div>
 
-                    <!-- Items -->
-                    <ul class="flex flex-col gap-3 border-b pb-6 mb-4">
-                        @foreach ($order->products as $item)
-                            <li class="flex justify-between items-start gap-4">
-                                <div class="flex-1 min-w-0">
-                                    <p class="font-medium text-sm truncate">{{ $item->product_name }}</p>
-                                    <p class="text-xs text-gray-500">Qty: {{ $item->quantity }}</p>
+                    <!-- Items (detailed) -->
+                    @foreach ($order->products as $item)
+                        @php $d = $item->product_data ?? []; @endphp
+                        <div class="border-b pb-4 mb-6">
+                            <div class="flex flex-col sm:flex-row items-start gap-3 py-2">
+
+                                {{-- Product image with quantity badge --}}
+                                <div class="relative flex-shrink-0" style="min-width:80px;max-width:80px;">
+                                    <img src="{{ $d['product_image_url'] ?? asset('storage/admin/images/error/No_Image_Available.jpg') }}"
+                                         alt="{{ $item->product_name }}"
+                                         class="w-20 h-20 rounded border object-cover" />
+                                    <span class="bg-yellow-400 w-[22px] h-[22px] text-black rounded-full absolute -top-2 -right-[8px] text-[14px] text-center font-bold leading-[22px]">
+                                        {{ $item->quantity }}
+                                    </span>
                                 </div>
-                                <div class="text-right shrink-0">
-                                    <p class="text-sm font-medium">${{ number_format($item->sub_total, 2) }}</p>
-                                    @if ($item->tax > 0)
-                                        <p class="text-xs text-gray-400">+${{ number_format($item->tax, 2) }} tax</p>
+
+                                {{-- Details --}}
+                                <div class="flex-1 min-w-0 flex flex-col justify-center w-full">
+
+                                    {{-- Name + price --}}
+                                    <h4 class="text-sm flex items-center gap-2 font-medium">
+                                        <span>{{ $item->product_name }}
+                                            @if (!empty($d['product_variant']))
+                                                <span class="text-xs font-normal">- {{ ucfirst($d['product_variant']) }}</span>
+                                            @endif
+                                        </span>
+                                        <span class="font-bold ml-auto">${{ number_format($d['product_price'] ?? $item->price, 2) }}</span>
+                                    </h4>
+
+                                    {{-- Store --}}
+                                    @if (!empty($d['store_name']))
+                                        <div class="flex flex-col gap-y-1 mt-1">
+                                            <div class="text-xs underline">Store:</div>
+                                            <ul>
+                                                <li class="text-xs before:content-['-'] before:pr-1">{{ ucfirst($d['store_name']) }}</li>
+                                            </ul>
+                                        </div>
+                                    @endif
+
+                                    {{-- Distance range --}}
+                                    @if (!empty($d['distance_range']))
+                                        <div class="flex flex-col gap-y-1 mt-1">
+                                            <div class="text-xs underline">Distance Range:</div>
+                                            <ul>
+                                                <li class="text-xs before:content-['-'] before:pr-1">{{ ucfirst($d['distance_range']) }}</li>
+                                            </ul>
+                                        </div>
+                                    @endif
+
+                                    {{-- Delivery / service option --}}
+                                    @if (!empty($d['service_option']))
+                                        <div class="flex flex-col gap-y-1 mt-1">
+                                            <div class="text-xs flex justify-between items-center">
+                                                <span class="underline">Delivery:</span>
+                                                <span class="text-black font-bold">+${{ number_format($d['service_option_price'] ?? 0, 2) }}</span>
+                                            </div>
+                                            <ul>
+                                                <li class="text-xs before:content-['-'] before:pr-1">{{ $d['service_option'] }}</li>
+                                            </ul>
+                                        </div>
+                                    @endif
+
+                                    {{-- Options: rental items + product option items --}}
+                                    @php
+                                        $optionRows = [];
+                                        foreach ($d['product_rental_items_prices'] ?? [] as $rentalKey => $optPrice) {
+                                            $case = collect(\App\Enums\Products\ProductCustomStaticLabel::cases())->firstWhere('name', $rentalKey);
+                                            $name = $case?->label() ?? ucwords(str_replace('_', ' ', preg_replace('/^rental_/', '', $rentalKey)));
+                                            $qty  = $case ? ($item->quantity ?? 1) : 1;
+                                            $optionRows[] = [
+                                                'label' => $name . ' ' . \App\Helpers\CustomHelper::formatCurrency($optPrice) . " (x{$qty})",
+                                                'price' => \App\Helpers\CustomHelper::formatCurrency($optPrice * $qty),
+                                            ];
+                                        }
+                                        foreach ($d['product_option_items'] ?? [] as $opt) {
+                                            if (empty($opt['name'])) continue;
+                                            $qty    = (!empty($opt['charged']) && $opt['charged'] === 'Unlimited') ? ($item->quantity ?? 1) : 1;
+                                            $total  = ($opt['price'] ?? 0) * $qty;
+                                            $optionRows[] = [
+                                                'label' => $opt['name'] . ' ' . \App\Helpers\CustomHelper::formatCurrency($opt['price'] ?? 0) . " (x{$qty})",
+                                                'price' => \App\Helpers\CustomHelper::formatCurrency($total),
+                                            ];
+                                        }
+                                    @endphp
+                                    @if (!empty($optionRows))
+                                        <div class="mt-1">
+                                            <div class="text-xs underline mb-1">Options:</div>
+                                            <ul class="flex flex-col">
+                                                @foreach ($optionRows as $row)
+                                                    <li class="flex justify-between leading-[16px]">
+                                                        <span class="text-xs before:content-['-'] before:pr-1">{{ $row['label'] }}</span>
+                                                        <span class="text-xs font-bold">+ {{ $row['price'] }}</span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
                                     @endif
                                 </div>
-                            </li>
-                        @endforeach
-                    </ul>
+                            </div>
+
+                            {{-- Schedule date --}}
+                            @php $schedDate = $d['delivery_date'] ?? ($item->delivery_date ? \Carbon\Carbon::parse($item->delivery_date)->format('m/d/Y') : null); @endphp
+                            @if ($schedDate)
+                                <p class="mt-2 text-[15px]">Schedule Date: {{ $schedDate }}</p>
+                            @endif
+                        </div>
+                    @endforeach
 
                     <!-- Totals -->
                     <ul class="flex flex-col gap-2">
                         <li class="flex justify-between">
-                            <span class="text-gray-600">Subtotal</span>
-                            <span class="font-medium">${{ number_format($order->subtotal, 2) }}</span>
+                            <span class="text-gray-600">Subtotal:</span>
+                            <span class="font-bold">${{ number_format($order->subtotal, 2) }}</span>
                         </li>
                         <li class="flex justify-between">
                             <span class="text-gray-600">Tax</span>
-                            <span class="font-medium">${{ number_format($order->tax_amount, 2) }}</span>
+                            <span class="font-bold">${{ number_format($order->tax_amount, 2) }}</span>
                         </li>
                         @if ($order->discount_amount > 0)
                             <li class="flex justify-between">
                                 <span class="text-gray-600">Discount</span>
-                                <span class="font-medium text-green-600">-${{ number_format($order->discount_amount, 2) }}</span>
+                                <span class="font-bold text-green-600">-${{ number_format($order->discount_amount, 2) }}</span>
                             </li>
                         @endif
                         <li class="flex justify-between border-t pt-2 mt-1">
-                            <span class="font-semibold">Grand Total</span>
-                            <span class="font-semibold">${{ number_format($order->grand_total, 2) }}</span>
+                            <span class="font-bold">Total</span>
+                            <span class="font-bold">${{ number_format($order->grand_total, 2) }}</span>
                         </li>
                         @if ($order->total_paid > 0)
                             <li class="flex justify-between">
                                 <span class="text-gray-600">Already Paid</span>
-                                <span class="font-medium text-green-600">-${{ number_format($order->total_paid, 2) }}</span>
+                                <span class="font-bold text-green-600">-${{ number_format($order->total_paid, 2) }}</span>
                             </li>
                             <li class="flex justify-between border-t pt-2 mt-1 text-blue-700">
                                 <span class="font-bold text-base">Balance Due</span>

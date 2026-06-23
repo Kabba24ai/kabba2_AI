@@ -27,6 +27,31 @@
         </div>
     </section>
 
+    @if ($isExpired)
+        <section class="lg:pb-[50px]">
+            <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
+                <div class="py-24 flex flex-col items-center text-center">
+                    <div class="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mb-6">
+                        <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-3">Payment Link Expired</h2>
+                    <p class="text-gray-500 max-w-md text-base leading-relaxed">
+                        This payment link has expired. Links are valid for 30 days after the delivery date.
+                        Please contact us if you still need to complete your payment.
+                    </p>
+                    <div class="mt-8">
+                        <a href="{{ route('front.home.index') }}"
+                            class="inline-block bg-gray-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition">
+                            Go to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    @else
     <section class="lg:pb-[50px]">
         <div class="container mx-auto 2xl:max-w-[1320px] md:max-w-[720px] lg:max-w-[1140px] px-[30px] md:px-[.7rem]">
             <div class="flex flex-col md:flex-row gap-2">
@@ -309,8 +334,10 @@
             </div>
         </div>
     </section>
+    @endif
 @endsection
 
+@if (!$isExpired)
 @push('js')
     @if ($paymentSetting['payment_test_mode'] ?? false)
         <script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js"></script>
@@ -493,3 +520,4 @@
         });
     </script>
 @endpush
+@endif

@@ -259,7 +259,16 @@
 
             // Immediate filter for checkboxes
             equipmentStatusCheckboxes.forEach(cb => cb.addEventListener('change', fetchEquipments));
-            currentlyAssignedCheckbox?.addEventListener('change', fetchEquipments);
+            currentlyAssignedCheckbox?.addEventListener('change', function () {
+                if (this.checked) {
+                    equipmentStatusCheckboxes.forEach(cb => {
+                        if (cb.value === 'Maintenance' || cb.value === 'Damaged') {
+                            cb.checked = true;
+                        }
+                    });
+                }
+                fetchEquipments();
+            });
 
 
             let loadingIndicator = document.querySelector('#schedule-loading');

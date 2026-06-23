@@ -191,20 +191,12 @@
                         <div class="flex flex-col items-center gap-0.5 leading-tight">
                             @if ($deliveryPending)
                                 {{-- Delivery is next: Pickup Store = prominent --}}
-                                <span class="font-semibold text-gray-800 text-sm uppercase tracking-wide">
-                                    {{ $pickupStoreName ?? '-' }}
-                                </span>
-                                <span class="text-xs text-gray-400 uppercase">
-                                    {{ $returnStoreName ?? '-' }}
-                                </span>
+                                <span class="text-gray-700">{{ $pickupStoreName ?? '-' }}</span>
+                                <span class="text-xs text-gray-500">{{ $returnStoreName ?? '-' }}</span>
                             @else
                                 {{-- Return is next: Return Store = prominent --}}
-                                <span class="text-xs text-gray-400 uppercase">
-                                    {{ $pickupStoreName ?? '-' }}
-                                </span>
-                                <span class="font-semibold text-gray-800 text-sm uppercase tracking-wide">
-                                    {{ $returnStoreName ?? '-' }}
-                                </span>
+                                <span class="text-xs text-gray-500">{{ $pickupStoreName ?? '-' }}</span>
+                                <span class="text-gray-700">{{ $returnStoreName ?? '-' }}</span>
                             @endif
                         </div>
                     </td>

@@ -267,7 +267,12 @@ class SendPodPaymentReminderJob implements ShouldQueue
             $shortLink   = $this->shortLinks->shorten($longUrl, $order->id, $order->customer_id);
             $paymentLink = $this->shortLinks->shortUrlFor($shortLink->token);
 
-            $message = str_replace('{{payment_link}}', $paymentLink, $messageTemplate);
+            $customerName = trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? ''));
+            $message = str_replace(
+                ['{{customer_name}}', '{{payment_link}}'],
+                [$customerName, $paymentLink],
+                $messageTemplate
+            );
 
             $this->log('info', "$tag Attempting SMS for order {$order->unique_id}", [
                 'order_id'       => $order->unique_id,

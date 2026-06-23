@@ -55,6 +55,8 @@ class SendReturnDayBeforeRentalReminderJob implements ShouldQueue
 
         $records = OrderProduct::with([
                 'order.shippingAddress',
+                'order.customer',
+                'pickupStore',
                 'product',
             ])
             ->whereHas('product', function ($query) {
@@ -91,6 +93,15 @@ class SendReturnDayBeforeRentalReminderJob implements ShouldQueue
                 }
                 $message = $truckMessage;
             }
+
+            $customerName = trim(data_get($record, 'order.customer.first_name', '') . ' ' . data_get($record, 'order.customer.last_name', ''));
+            $storeName    = $record->pickupStore?->store_name ?? '';
+            $returnDate   = $record->pickup_date ? Carbon::parse($record->pickup_date)->format('M d, Y') : '';
+            $message = str_replace(
+                ['{{customer_name}}', '{{store_name}}', '{{return_date}}'],
+                [$customerName, $storeName, $returnDate],
+                $message
+            );
 
             $response = $twilio->sendSms($phoneNumber, $message, [], [
                 'order_id'         => $record->order_id,

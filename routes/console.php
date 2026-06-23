@@ -101,8 +101,7 @@ Schedule::job(new \App\Jobs\ExpirePodPaymentLinksJob())
     ->name('expire-pod-payment-links-job');
 
 Schedule::job(new \App\Jobs\SendPodPaymentReminderJob())
-    // ->everyFiveMinutes() // TODO: change to ->cron('*/54 * * * *') after testing
-     ->everyMinute()
+    ->cron('*/54 * * * *')
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()

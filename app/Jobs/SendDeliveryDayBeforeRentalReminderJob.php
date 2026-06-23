@@ -6,7 +6,7 @@ use App\Enums\Communication\SmsType;
 use App\Helpers\ConfigurationHelper;
 use App\Models\Orders\OrderProduct;
 use App\Services\TwilioService;
-use C0arbon\Carbon;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -55,6 +55,8 @@ class SendDeliveryDayBeforeRentalReminderJob implements ShouldQueue
 
         $records = OrderProduct::with([
                 'order.shippingAddress',
+                'order.customer',
+                'deliveryStore',
                 'product',
             ])
             ->whereHas('product', function ($query) {
@@ -91,6 +93,15 @@ class SendDeliveryDayBeforeRentalReminderJob implements ShouldQueue
                 }
                 $message = $truckMessage;
             }
+
+            $customerName = trim(data_get($record, 'order.customer.first_name', '') . ' ' . data_get($record, 'order.customer.last_name', ''));
+            $storeName    = $record->deliveryStore?->store_name ?? '';
+            $deliveryDate = $record->delivery_date ? Carbon::parse($record->delivery_date)->format('M d, Y') : '';
+            $message = str_replace(
+                ['{{customer_name}}', '{{store_name}}', '{{delivery_date}}'],
+                [$customerName, $storeName, $deliveryDate],
+                $message
+            );
 
             $response = $twilio->sendSms($phoneNumber, $message, [], [
                 'order_id'         => $record->order_id,

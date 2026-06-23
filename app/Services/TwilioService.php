@@ -127,10 +127,9 @@ class TwilioService
         }
 
         return [
-            'success' => true,
-            'total' => count($recipients),
+            'total'   => count($recipients),
             'success' => $success,
-            'failed' => $failed,
+            'failed'  => $failed,
             'results' => $results,
         ];
     }

@@ -10,6 +10,7 @@ use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Helpers\ConfigurationHelper;
 use App\Services\TwilioService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class SendSmsListener
@@ -81,20 +82,10 @@ class SendSmsListener
                 $message  = $smsSetting['store_delivery_cod_order_message'];
                 $smsType  = SmsType::COD_ORDER_NOTIFICATION;
                 $template = 'store_delivery_cod_order_message';
-            } elseif (!$isRental && $isTruck && !empty($smsSetting['truck_delivery_cod_order_message']) && $smsSetting['truck_delivery_cod_message_enabled']) {
+            } elseif ($isRental && $isTruck && !empty($smsSetting['truck_delivery_cod_order_message']) && $smsSetting['truck_delivery_cod_message_enabled']) {
                 $message  = $smsSetting['truck_delivery_cod_order_message'];
                 $smsType  = SmsType::COD_ORDER_NOTIFICATION;
                 $template = 'truck_delivery_cod_order_message';
-            }
-        } elseif ($paymentMethod === OrderPaymentMethod::Card) {
-            if ($isRental && $isStore && !empty($smsSetting['store_delivery_card_order_message']) && $smsSetting['store_delivery_card_message_enabled']) {
-                $message  = $smsSetting['store_delivery_card_order_message'];
-                $smsType  = SmsType::CARD_ORDER_NOTIFICATION;
-                $template = 'store_delivery_card_order_message';
-            } elseif (!$isRental && $isTruck && !empty($smsSetting['truck_delivery_card_order_message']) && $smsSetting['truck_delivery_card_message_enabled']) {
-                $message  = $smsSetting['truck_delivery_card_order_message'];
-                $smsType  = SmsType::CARD_ORDER_NOTIFICATION;
-                $template = 'truck_delivery_card_order_message';
             }
         }
 
@@ -109,6 +100,15 @@ class SendSmsListener
             ]);
             return;
         }
+
+        $customerName = trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? ''));
+        $storeName    = $firstProduct->deliveryStore?->store_name ?? '';
+        $deliveryDate = $firstProduct->delivery_date ? \Carbon\Carbon::parse($firstProduct->delivery_date)->format('M d, Y') : '';
+        $message = str_replace(
+            ['{{customer_name}}', '{{store_name}}', '{{delivery_date}}'],
+            [$customerName, $storeName, $deliveryDate],
+            $message
+        );
 
         Log::info('[Checkout SMS] Sending SMS', [
             'order_id'       => $order->unique_id,

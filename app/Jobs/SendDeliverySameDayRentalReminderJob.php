@@ -64,6 +64,8 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
         $records = OrderProduct::with([
                 'order.shippingAddress',
                 'order.lastPayment',
+                'order.customer',
+                'deliveryStore',
                 'product',
             ])
             ->whereHas('product', function ($query) {
@@ -102,6 +104,15 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
                 }
                 $message = $truckMessage;
             }
+
+            $customerName = trim(data_get($record, 'order.customer.first_name', '') . ' ' . data_get($record, 'order.customer.last_name', ''));
+            $storeName    = $record->deliveryStore?->store_name ?? '';
+            $deliveryDate = $record->delivery_date ? Carbon::parse($record->delivery_date)->format('M d, Y') : '';
+            $message = str_replace(
+                ['{{customer_name}}', '{{store_name}}', '{{delivery_date}}'],
+                [$customerName, $storeName, $deliveryDate],
+                $message
+            );
 
             $response = $twilio->sendSms($phoneNumber, $message, [], [
                 'order_id'         => $record->order_id,
@@ -178,6 +189,15 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
                 }
                 $message = $truckCODMessage;
             }
+
+            $customerName = trim(data_get($record, 'order.customer.first_name', '') . ' ' . data_get($record, 'order.customer.last_name', ''));
+            $storeName    = $record->deliveryStore?->store_name ?? '';
+            $deliveryDate = $record->delivery_date ? Carbon::parse($record->delivery_date)->format('M d, Y') : '';
+            $message = str_replace(
+                ['{{customer_name}}', '{{store_name}}', '{{delivery_date}}'],
+                [$customerName, $storeName, $deliveryDate],
+                $message
+            );
 
             $response = $twilio->sendSms($phoneNumber, $message, [], [
                 'order_id'         => $record->order_id,

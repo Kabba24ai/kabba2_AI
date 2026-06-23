@@ -27,7 +27,7 @@
                     <!--       TAB HEADERS     -->
                     <!-- ===================== -->
                     <div x-data="{
-                                    tab: localStorage.getItem('funnels_tab') || 'rental_delivery',
+                                    tab: localStorage.getItem('funnels_tab') || 'rental_delivery_paid',
                                     setTab(value) {
                                         this.tab = value;
                                         localStorage.setItem('funnels_tab', value);
@@ -37,32 +37,23 @@
                         <div class="border-b border-gray-200 dark:border-gray-800 mb-4">
                             <nav class="flex space-x-6">
 
-                               <button type="button" @click="setTab('rental_delivery')"
-                                    :class="tab === 'rental_delivery' ? 'text-brand-600 border-b-2 border-brand-600' :
-                                        'text-gray-500'"
+                                <button type="button" @click="setTab('rental_delivery_paid')"
+                                    :class="tab === 'rental_delivery_paid' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-gray-500'"
                                     class="py-2 text-sm font-semibold">
-                                    Rental Delivery
+                                    Rental Delivery &mdash; Paid
+                                </button>
+
+                                <button type="button" @click="setTab('rental_delivery_pod')"
+                                    :class="tab === 'rental_delivery_pod' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-gray-500'"
+                                    class="py-2 text-sm font-semibold">
+                                    Rental Delivery &mdash; POD
                                 </button>
 
                                 <button type="button" @click="setTab('rental_return')"
-                                    :class="tab === 'rental_return' ? 'text-brand-600 border-b-2 border-brand-600' :
-                                        'text-gray-500'"
+                                    :class="tab === 'rental_return' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-gray-500'"
                                     class="py-2 text-sm font-semibold">
                                     Rental Return
                                 </button>
-
-                                <button type="button" @click="setTab('orders')"
-                                    :class="tab === 'orders' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-gray-500'"
-                                    class="py-2 text-sm font-semibold">
-                                    POD Orders
-                                </button>
-
-                                {{-- <button type="button" @click="setTab('card')"
-                                    :class="tab === 'card' ? 'text-brand-600 border-b-2 border-brand-600' :
-                                        'text-gray-500'"
-                                    class="py-2 text-sm font-semibold">
-                                    Orders
-                                </button> --}}
 
                             </nav>
                         </div>
@@ -70,11 +61,17 @@
                         <!-- ===================== -->
                         <!--     ORDERS TAB    -->
                         <!-- ===================== -->
-                        <div x-show="tab === 'orders'" x-cloak>
+                        <div x-show="tab === 'rental_delivery_pod'" x-cloak>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                                Available merge codes:
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;customer_name&#125;&#125;</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;delivery_date&#125;&#125;</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;payment_link&#125;&#125;</code>
+                            </p>
                             <div
                                 class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Pay on Delivery Order Message - Text Message sent after POD order placed
+                                    POD Order Confirmation — Text Message sent immediately after a Pay-on-Delivery order is placed
                                 </span>
                             </div>
                             <div class="grid grid-cols-1 grid-flow-col md:grid-cols-2 gap-6">
@@ -156,7 +153,7 @@
                             <div
                                 class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Pay on Delivery Order Message - Sent at 7:00 AM the day of scheduled delivery
+                                    POD Same-Day Reminder — Sent at 7:00 AM on the day of scheduled delivery (if still unpaid)
                                 </span>
                             </div>
                             <div class="grid grid-cols-1 grid-flow-col md:grid-cols-2 gap-6">
@@ -418,97 +415,16 @@
                         </div>
 
                         <!-- ===================== -->
-                        <!--     CARD ORDERS TAB    -->
+                        <!--   RENTAL Delivery - Paid TAB    -->
                         <!-- ===================== -->
-                        {{-- <div x-show="tab === 'card'" x-cloak>
-                            <div
-                                class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
-                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Card Order Message - Text Message sent after card order placed
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-1 grid-flow-col md:grid-cols-2 gap-6">
-                                <div class="cols-span-1">
-                                    <div class="flex items-center mb-2 gap-2">
-                                        <label for="truck_delivery_card_order_message"
-                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
-                                            <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
-                                            Truck Delivery Card Order Message
-                                        </label>
-                                        <label for="truck_delivery_card_message_enabled"
-                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {!! html()->checkbox(
-                                                    'truck_delivery_card_message_enabled',
-                                                    old('truck_delivery_card_message_enabled', $defaultFunnels['truck_delivery_card_message_enabled'] ?? null) == '1',
-                                                    '1',
-                                                )->class([
-                                                    'mr-2 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500',
-                                                ]) !!}
-                                            Active
-                                        </label>
-                                    </div>
-                                    {!! html()->textarea('truck_delivery_card_order_message', old('truck_delivery_card_order_message', $defaultFunnels['truck_delivery_card_order_message'] ?? null))->class([
-                                            'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                                            'border-gray-300' => !$errors->has('truck_delivery_card_order_message'),
-                                            'border-red-500' => $errors->has('truck_delivery_card_order_message'),
-                                        ])->attributes([
-                                            'rows' => 5,
-                                            'maxlength' => 500,
-                                            'data-parsley-maxlength' => 500,
-                                            'placeholder' => 'Enter here',
-                                            'autocomplete' => 'off',
-                                            'id' => 'truck_delivery_card_order_message',
-                                        ])->required() !!}
-                                    @error('truck_delivery_card_order_message')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                    <span id="truck_delivery_card_order_message_count"
-                                        class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
-                                </div>
-                                <div class="cols-span-1">
-                                    <div class="flex items-center mb-2 gap-2">
-                                        <label for="store_delivery_card_order_message"
-                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
-                                            <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
-                                            Store Delivery Card Order Message
-                                        </label>
-                                        <label for="store_delivery_card_message_enabled"
-                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {!! html()->checkbox(
-                                                    'store_delivery_card_message_enabled',
-                                                    old('store_delivery_card_message_enabled', $defaultFunnels['store_delivery_card_message_enabled'] ?? null) == '1',
-                                                    '1',
-                                                )->class([
-                                                    'mr-2 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500',
-                                                ]) !!}
-                                            Active
-                                        </label>
-                                    </div>
-                                    {!! html()->textarea('store_delivery_card_order_message', old('store_delivery_card_order_message', $defaultFunnels['store_delivery_card_order_message'] ?? null))->class([
-                                            'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                                            'border-gray-300' => !$errors->has('store_delivery_card_order_message'),
-                                            'border-red-500' => $errors->has('store_delivery_card_order_message'),
-                                        ])->attributes([
-                                            'rows' => 5,
-                                            'maxlength' => 500,
-                                            'data-parsley-maxlength' => 500,
-                                            'placeholder' => 'Enter here',
-                                            'autocomplete' => 'off',
-                                            'id' => 'store_delivery_card_order_message',
-                                        ])->required() !!}
-                                    @error('store_delivery_card_order_message')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                    <span id="store_delivery_card_order_message_count"
-                                        class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
-                                </div>
-                            </div>
-                        </div> --}}
+                        <div x-show="tab === 'rental_delivery_paid'" x-cloak>
 
-                        <!-- ===================== -->
-                        <!--   RENTAL Delivery TAB    -->
-                        <!-- ===================== -->
-                        <div x-show="tab === 'rental_delivery'" x-cloak>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                                Available merge codes:
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;customer_name&#125;&#125;</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;store_name&#125;&#125;</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;delivery_date&#125;&#125;</code>
+                            </p>
 
                             <div>
                                 <div
@@ -711,6 +627,13 @@
                         <!--   RENTAL RETURN TAB      -->
                         <!-- ===================== -->
                         <div x-show="tab === 'rental_return'" x-cloak>
+
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                                Available merge codes:
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;customer_name&#125;&#125;</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;store_name&#125;&#125;</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;return_date&#125;&#125;</code>
+                            </p>
 
                             <div>
                                 <div

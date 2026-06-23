@@ -396,8 +396,9 @@
                 </button>
             </div>
         </div>
-    <x-admin.equipment-store-modal :stores="$storesForModal" />
     </div>
+
+    <x-admin.equipment-store-modal :stores="$storesForModal" />
 
 @endsection
 

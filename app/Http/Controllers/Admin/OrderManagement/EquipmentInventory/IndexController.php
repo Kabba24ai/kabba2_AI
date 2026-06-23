@@ -72,7 +72,6 @@ class IndexController extends Controller
                     })
                     ->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id')
                     ->select('equipment.*')
-                    ->orderByRaw("FIELD(current_status, 'damaged','maintenance','rented','available')")
                     ->orderBy('product_categories.title', 'asc')
                     ->orderBy('equipment_name', 'asc')
                     ->orderBy('equipment_id', 'asc');

@@ -51,8 +51,8 @@ class SendPodPaymentReminderJob implements ShouldQueue
 
         $this->processReminder1($settings);
         $this->processReminder2($settings);
-        $this->processReminder3($settings);
-        $this->processReminder4($settings);
+        // $this->processReminder3($settings); // commented out for now
+        // $this->processReminder4($settings); // commented out for now
 
         $this->log('info', '[POD Reminder] Job completed.', [
             'started_at'  => $startedAt->toDateTimeString(),
@@ -61,7 +61,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
         ]);
     }
 
-    // ── Reminder #1: 1 hour after POD order is created ───────────────────────
+    // ── Reminder #1: 1 minute after the COD order confirmation SMS ───────────
     private function processReminder1(array $settings): void
     {
         $tag = '[POD Reminder #1]';
@@ -79,8 +79,11 @@ class SendPodPaymentReminderJob implements ShouldQueue
 
         $orders = Order::with('customer')
             ->whereHas('payments', fn($q) => $q->where('payment_method', 'COD')->where('status', 'Pending'))
-            //->where('created_at', '<=', now()->subHour())
-            ->where('created_at', '<=', now()-> subMinutes(1))
+            ->whereExists(fn($q) => $q->select(DB::raw(1))
+                ->from('sms_logs')
+                ->whereColumn('sms_logs.order_id', 'orders.id')
+                ->where('sms_logs.sms_type', SmsType::COD_ORDER_NOTIFICATION->value)
+                ->where('sms_logs.created_at', '<=', now()->subMinutes(1)))
             ->whereNotExists(fn($q) => $q->select(DB::raw(1))
                 ->from('sms_logs')
                 ->whereColumn('sms_logs.order_id', 'orders.id')
@@ -94,7 +97,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
         $this->sendBatch($tag, $orders, $messageTemplate, SmsType::POD_PAYMENT_REMINDER_1, PodPaymentLinkEvent::Reminder1Sent);
     }
 
-    // ── Reminder #2: 7:00 AM on the rental start date (delivery_date) ────────
+    // ── Reminder #2: After "Day Before Delivery" rental reminder is sent ──────
     private function processReminder2(array $settings): void
     {
         $tag = '[POD Reminder #2]';
@@ -104,22 +107,18 @@ class SendPodPaymentReminderJob implements ShouldQueue
             return;
         }
 
-        if (now()->hour < 7) {
-            $this->log('info', "$tag Before 7:00 AM — skipping.");
-            return;
-        }
-
         $messageTemplate = $settings['pod_payment_reminder_2_message'] ?? null;
         if (!$messageTemplate) {
             $this->log('warning', "$tag No message template — skipping.");
             return;
         }
 
-        $today = now()->toDateString();
-
         $orders = Order::with('customer')
             ->whereHas('payments', fn($q) => $q->where('payment_method', 'COD')->where('status', 'Pending'))
-            ->whereHas('products', fn($q) => $q->whereDate('delivery_date', $today))
+            ->whereExists(fn($q) => $q->select(DB::raw(1))
+                ->from('sms_logs')
+                ->whereColumn('sms_logs.order_id', 'orders.id')
+                ->where('sms_logs.sms_type', SmsType::DELIVERY_DAY_BEFORE->value))
             ->whereNotExists(fn($q) => $q->select(DB::raw(1))
                 ->from('sms_logs')
                 ->whereColumn('sms_logs.order_id', 'orders.id')
@@ -133,7 +132,8 @@ class SendPodPaymentReminderJob implements ShouldQueue
         $this->sendBatch($tag, $orders, $messageTemplate, SmsType::POD_PAYMENT_REMINDER_2, PodPaymentLinkEvent::Reminder2Sent);
     }
 
-    // ── Reminder #3: Last Chance — after rental start date has passed ─────────
+    // ── Reminder #3: Last Chance — commented out for now ─────────────────────
+    /*
     private function processReminder3(array $settings): void
     {
         $tag = '[POD Reminder #3]';
@@ -166,8 +166,10 @@ class SendPodPaymentReminderJob implements ShouldQueue
 
         $this->sendBatch($tag, $orders, $messageTemplate, SmsType::POD_PAYMENT_REMINDER_3, PodPaymentLinkEvent::Reminder3Sent);
     }
+    */
 
-    // ── Reminder #4: Closeout — 24 hours after Reminder #3 ───────────────────
+    // ── Reminder #4: Closeout — commented out for now ────────────────────────
+    /*
     private function processReminder4(array $settings): void
     {
         $tag = '[POD Reminder #4]';
@@ -202,6 +204,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
 
         $this->sendBatch($tag, $orders, $messageTemplate, SmsType::POD_PAYMENT_REMINDER_4, PodPaymentLinkEvent::Reminder4Sent);
     }
+    */
 
     // ── Shared send loop ──────────────────────────────────────────────────────
     private function sendBatch(

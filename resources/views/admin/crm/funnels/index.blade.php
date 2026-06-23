@@ -268,7 +268,7 @@
                                         </label>
                                     </div>
                                     <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">
-                                        Sent 1 hour after the POD order is created (if still unpaid).
+                                        First payment message goes out 1 minutes after the order confirmation.
                                     </p>
                                     {!! html()->textarea('pod_payment_reminder_1_message', old('pod_payment_reminder_1_message', $defaultFunnels['pod_payment_reminder_1_message'] ?? null))->class([
                                             'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
@@ -309,7 +309,7 @@
                                         </label>
                                     </div>
                                     <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">
-                                        Sent at 7:00 AM on the rental start date (if still unpaid).
+                                        Goes out 1 minute after the Order reminder about their scheduled rental occurring the next day.
                                     </p>
                                     {!! html()->textarea('pod_payment_reminder_2_message', old('pod_payment_reminder_2_message', $defaultFunnels['pod_payment_reminder_2_message'] ?? null))->class([
                                             'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
@@ -330,7 +330,8 @@
                                         class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            {{-- Reminder #3 and #4 commented out for now --}}
+                            {{-- <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <!-- Reminder #3 -->
                                 <div class="cols-span-1">
                                     <div class="flex items-center mb-1 gap-2">
@@ -413,7 +414,7 @@
                                     <span id="pod_payment_reminder_4_message_count"
                                         class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
 
                         <!-- ===================== -->

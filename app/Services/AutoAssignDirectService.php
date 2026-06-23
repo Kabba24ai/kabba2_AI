@@ -62,7 +62,7 @@ class AutoAssignDirectService
 
             // Pass 1: prefer a conflict-free unit within this tier.
             foreach ($candidates as $equipment) {
-                if (!$this->conflictDetectionService->hasConflict($equipment->id, $orderProduct, null, ignoreSoftConflicts: true)) {
+                if (!$this->conflictDetectionService->hasConflict($equipment->id, $orderProduct, null, ignoreSoftConflicts: false)) {
                     return $this->doAssign($orderProduct, $equipment, 'conflict_free');
                 }
             }

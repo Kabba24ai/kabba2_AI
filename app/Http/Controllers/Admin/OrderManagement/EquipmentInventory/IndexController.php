@@ -36,58 +36,128 @@ class IndexController extends Controller
 
         if ($request->ajax()) {
             if ($request->input('view_mode') === 'store') {
-                $storeQuery = Equipment::with(['productCategory', 'store'])
-                    ->where('not_for_rent', 0)
-                    ->where('current_status', '!=', 'rented')
-                    ->whereNotNull('store_id')
-                    ->when($request->filled('search'), function ($q) use ($request) {
-                        $q->where(function ($sub) use ($request) {
-                            $sub->where('equipment_name', 'like', '%' . $request->search . '%')
-                                ->orWhere('equipment_id', 'like', '%' . $request->search . '%');
-                        });
-                    })
-                    ->when($request->filled('category'), function ($q) use ($request) {
-                        $q->where('product_category_id', $request->category);
-                    })
-                    ->when(
-                        $request->filled('equipment_status'),
-                        fn($q) => $q->whereIn('current_status', $request->equipment_status),
-                        fn($q) => $q->whereIn('current_status', EquipmentCurrentStatus::getValues()),
-                    )
-                    ->when($request->boolean('currently_assigned'), function ($q) {
-                        $q->where(function ($sq) {
-                            $sq->whereHas('orderProducts', function ($sub) {
-                                $sub->where(function ($s) {
-                                    $s->where('delivery_status', 'Pending')
-                                      ->orWhere('pickup_status', 'Pending');
-                                });
-                            })
-                            ->orWhereHas('softAssignments.orderProduct', function ($sub) {
-                                $sub->where(function ($s) {
-                                    $s->where('delivery_status', 'Pending')
-                                      ->orWhere('pickup_status', 'Pending');
+                // Resolve which statuses are active (default = all)
+                $selectedStatuses = $request->filled('equipment_status')
+                    ? $request->equipment_status
+                    : EquipmentCurrentStatus::getValues();
+
+                $showRentedTable = collect($selectedStatuses)
+                    ->map(fn($s) => strtolower($s))
+                    ->contains('rented');
+
+                // Store panels only show non-rented statuses
+                $storeStatuses = collect($selectedStatuses)
+                    ->filter(fn($s) => strtolower($s) !== 'rented')
+                    ->values()
+                    ->all();
+
+                // --- Query 1: equipment physically at a store ---
+                $allEquipment = collect();
+                if (!empty($storeStatuses)) {
+                    $allEquipment = Equipment::with(['productCategory', 'store'])
+                        ->where('not_for_rent', 0)
+                        ->where('current_status', '!=', 'rented')
+                        ->whereNotNull('store_id')
+                        ->whereIn('current_status', $storeStatuses)
+                        ->when($request->filled('search'), function ($q) use ($request) {
+                            $q->where(function ($sub) use ($request) {
+                                $sub->where('equipment_name', 'like', '%' . $request->search . '%')
+                                    ->orWhere('equipment_id', 'like', '%' . $request->search . '%');
+                            });
+                        })
+                        ->when($request->filled('category'), function ($q) use ($request) {
+                            $q->where('product_category_id', $request->category);
+                        })
+                        ->when($request->boolean('currently_assigned'), function ($q) {
+                            $q->where(function ($sq) {
+                                $sq->whereHas('orderProducts', function ($sub) {
+                                    $sub->where(function ($s) {
+                                        $s->where('delivery_status', 'Pending')
+                                          ->orWhere('pickup_status', 'Pending');
+                                    });
+                                })
+                                ->orWhereHas('softAssignments.orderProduct', function ($sub) {
+                                    $sub->where(function ($s) {
+                                        $s->where('delivery_status', 'Pending')
+                                          ->orWhere('pickup_status', 'Pending');
+                                    });
                                 });
                             });
-                        });
-                    })
-                    ->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id')
-                    ->select('equipment.*')
-                    ->orderBy('product_categories.title', 'asc')
-                    ->orderBy('equipment_name', 'asc')
-                    ->orderBy('equipment_id', 'asc');
+                        })
+                        ->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id')
+                        ->select('equipment.*')
+                        ->orderBy('product_categories.title', 'asc')
+                        ->orderBy('equipment_name', 'asc')
+                        ->orderBy('equipment_id', 'asc')
+                        ->get();
+                }
 
-                $allEquipment    = $storeQuery->get();
+                // --- Query 2: rented equipment (out with customers) ---
+                $rentedEquipment = collect();
+                if ($showRentedTable) {
+                    $rentedEquipment = Equipment::with([
+                            'productCategory',
+                            'order',
+                            'order.customer',
+                            'lastCompletedOrderProduct.order',
+                            'nextAssignedOrderProduct.order',
+                            'softAssignments',
+                            'softAssignments.order',
+                            'softAssignments.orderProduct' => function ($q) {
+                                $q->whereHas('order');
+                            },
+                            'softAssignments.orderProduct.order',
+                        ])
+                        ->where('not_for_rent', 0)
+                        ->where('current_status', 'rented')
+                        ->when($request->filled('search'), function ($q) use ($request) {
+                            $q->where(function ($sub) use ($request) {
+                                $sub->where('equipment_name', 'like', '%' . $request->search . '%')
+                                    ->orWhere('equipment_id', 'like', '%' . $request->search . '%')
+                                    ->orWhereHas('order', function ($orderQ) use ($request) {
+                                        $orderQ->where('customer_name', 'like', '%' . $request->search . '%');
+                                    });
+                            });
+                        })
+                        ->when($request->filled('category'), function ($q) use ($request) {
+                            $q->where('product_category_id', $request->category);
+                        })
+                        ->when($request->boolean('currently_assigned'), function ($q) {
+                            $q->where(function ($sq) {
+                                $sq->whereHas('orderProducts', function ($sub) {
+                                    $sub->where(function ($s) {
+                                        $s->where('delivery_status', 'Pending')
+                                          ->orWhere('pickup_status', 'Pending');
+                                    });
+                                })
+                                ->orWhereHas('softAssignments.orderProduct', function ($sub) {
+                                    $sub->where(function ($s) {
+                                        $s->where('delivery_status', 'Pending')
+                                          ->orWhere('pickup_status', 'Pending');
+                                    });
+                                });
+                            });
+                        })
+                        ->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id')
+                        ->select('equipment.*')
+                        ->orderBy('product_categories.title', 'asc')
+                        ->orderBy('equipment_name', 'asc')
+                        ->orderBy('equipment_id', 'asc')
+                        ->get();
+                }
+
                 $storeIds        = $allEquipment->pluck('store_id')->unique()->filter();
                 $storeViewStores = Store::whereIn('id', $storeIds)->orderBy('store_name')->get();
 
                 $html = view('admin.order_management.equipment_inventory.partials._store_view', [
-                    'allEquipment' => $allEquipment,
-                    'stores'       => $storeViewStores,
+                    'allEquipment'    => $allEquipment,
+                    'stores'          => $storeViewStores,
+                    'rentedEquipment' => $rentedEquipment,
                 ])->render();
 
                 return response()->json([
                     'html'  => $html,
-                    'total' => $allEquipment->count(),
+                    'total' => $allEquipment->count() + $rentedEquipment->count(),
                 ]);
             }
 

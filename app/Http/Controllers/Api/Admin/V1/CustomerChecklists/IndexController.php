@@ -33,7 +33,7 @@ class IndexController extends BaseController
         $questions = collect();
 
         if ($type == "return" && $orderProductUniqueId) {
-            $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'checklistQuestions.deliverySelectedAnswer', 'checklistQuestions.returnSelectedAnswer','equipment'])
+            $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'checklistQuestions.deliverySelectedAnswer', 'checklistQuestions.returnSelectedAnswer','equipment', 'equipment.store'])
                 ->whereHas('order')
                 ->where('unique_id', $orderProductUniqueId)
                 ->first();
@@ -44,7 +44,7 @@ class IndexController extends BaseController
 
         if ($type == "delivery" && $equipmentUniqueId) {
             $equipment = Equipment::query()
-                ->with(['checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category'])
+                ->with(['store','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category'])
                 ->where('unique_id', $equipmentUniqueId)
                 ->first();
 

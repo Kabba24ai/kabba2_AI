@@ -7,6 +7,7 @@ use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource as OrderProductsL
 use App\Http\Resources\Api\Admin\V1\ProductCategories\ListResource as ProductCategoriesListResource;
 use App\Http\Resources\Api\Admin\V1\CustomerChecklistQuestions\ListResource as CustomerChecklistQuestionsListResource;
 use App\Http\Resources\Api\Admin\V1\RentalReadyChecklistQuestions\ListResource as RentalReadyChecklistQuestionsListResource;
+use App\Http\Resources\Api\Admin\V1\Stores\ListResource as StoresListResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -72,6 +73,8 @@ class ListResource extends JsonResource
             'rental_ready_checklist_questions' => RentalReadyChecklistQuestionsListResource::collection($this->whenLoaded('rentalReadyQA')),
 
             'equipment_location' => $this->equipmentLocation() ?? '', // due to many relationships add last so above keys whenLoaded not load other data
+
+            'equipment_store' => new StoresListResource($this->whenLoaded('store')),
 
 
 

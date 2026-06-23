@@ -36,7 +36,7 @@ class IndexController extends BaseController
             $order = ['damaged', 'maintenance', 'rented', 'available'];
         }
 
-        $equipment = Equipment::with(['productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer', 'softAssignments', 'store','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category', 'orderProduct.equipmentRentalReadyTemplate.checklistQuestions'])
+        $equipment = Equipment::with(['store', 'productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer', 'softAssignments','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category', 'orderProduct.equipmentRentalReadyTemplate.checklistQuestions'])
             ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')") // order by current_status based on the defined order
             ->orderBy('equipment_name', 'ASC')
             ->get();

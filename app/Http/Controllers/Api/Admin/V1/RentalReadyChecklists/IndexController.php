@@ -28,7 +28,7 @@ class IndexController extends BaseController
         $validated = $request->validated();
         $uniqueId = $validated['equipment_unique_id'];
 
-        $equipment = Equipment::with(['lastRentalReadyTemplate','orderProduct','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])->where('unique_id', $uniqueId)->first();
+        $equipment = Equipment::with(['store','lastRentalReadyTemplate','orderProduct','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])->where('unique_id', $uniqueId)->first();
 
         // if ($equipment && $equipment->orderProduct &&
         //     ($equipment->current_status->isRented() || $equipment->current_status->isAvailable())) {

@@ -5,6 +5,7 @@ namespace App\Enums\Orders;
 enum PodPaymentLinkEvent: string
 {
     case LinkCreated      = 'link_created';
+    case PaymentLinkSent  = 'payment_link_sent';
     case LinkOpened       = 'link_opened';
     case Reminder1Sent    = 'reminder_1_sent';
     case Reminder2Sent    = 'reminder_2_sent';
@@ -19,6 +20,7 @@ enum PodPaymentLinkEvent: string
     {
         return match($this) {
             self::LinkCreated      => 'Payment Link Created',
+            self::PaymentLinkSent  => 'Payment Link SMS Sent (1 min after order confirmation)',
             self::LinkOpened       => 'Payment Link Opened',
             self::Reminder1Sent    => 'Reminder #1 Sent (1 hour after order)',
             self::Reminder2Sent    => 'Reminder #2 Sent (7 AM on rental start date)',

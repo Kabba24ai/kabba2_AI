@@ -15,6 +15,7 @@ enum SmsType: string
     case NEW_CUSTOMER_SIGNUP_NOTIFICATION = 'new_customer_signup_notification';
     case COD_ORDER_NOTIFICATION   = 'cod_order_notification';
     case CARD_ORDER_NOTIFICATION  = 'card_order_notification';
+    case POD_PAYMENT_LINK         = 'pod_payment_link';
     case POD_PAYMENT_REMINDER_1   = 'pod_payment_reminder_1';
     case POD_PAYMENT_REMINDER_2   = 'pod_payment_reminder_2';
     case POD_PAYMENT_REMINDER_3   = 'pod_payment_reminder_3';

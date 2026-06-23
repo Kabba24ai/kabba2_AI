@@ -49,6 +49,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
             return;
         }
 
+        $this->processPaymentLinkMessage($settings);
         $this->processReminder1($settings);
         $this->processReminder2($settings);
         // $this->processReminder3($settings); // commented out for now
@@ -61,7 +62,163 @@ class SendPodPaymentReminderJob implements ShouldQueue
         ]);
     }
 
-    // ── Reminder #1: 1 minute after the COD order confirmation SMS ───────────
+    // ── Payment Link Message: 1 minute after COD order confirmation ──────────
+    private function processPaymentLinkMessage(array $settings): void
+    {
+        $tag = '[POD Payment Link]';
+
+        $truckEnabled = ($settings['pod_payment_link_truck_message_enabled'] ?? null) == '1';
+        $storeEnabled = ($settings['pod_payment_link_store_message_enabled'] ?? null) == '1';
+
+        if (!$truckEnabled && !$storeEnabled) {
+            $this->log('info', "$tag Both truck and store messages disabled — skipping.");
+            return;
+        }
+
+        $truckTemplate = $settings['pod_payment_link_truck_message'] ?? null;
+        $storeTemplate = $settings['pod_payment_link_store_message'] ?? null;
+
+        $orders = Order::with('customer', 'products.deliveryStore')
+            ->whereHas('payments', fn($q) => $q->where('payment_method', 'COD')->where('status', 'Pending'))
+            ->whereExists(fn($q) => $q->select(DB::raw(1))
+                ->from('sms_logs')
+                ->whereColumn('sms_logs.order_id', 'orders.id')
+                ->where('sms_logs.sms_type', SmsType::COD_ORDER_NOTIFICATION->value)
+                ->where('sms_logs.created_at', '<=', now()->subMinutes(1)))
+            ->whereNotExists(fn($q) => $q->select(DB::raw(1))
+                ->from('sms_logs')
+                ->whereColumn('sms_logs.order_id', 'orders.id')
+                ->where('sms_logs.sms_type', SmsType::POD_PAYMENT_LINK->value))
+            ->get();
+
+        $this->log('info', "$tag Eligible orders: " . $orders->count(), [
+            'order_ids' => $orders->pluck('unique_id')->toArray(),
+        ]);
+
+        if ($orders->isEmpty()) {
+            $this->log('info', "$tag No eligible orders — nothing to send.");
+            return;
+        }
+
+        $sent        = 0;
+        $skipped     = 0;
+        $tempSkipped = [];
+
+        foreach ($orders as $order) {
+            $customer = $order->customer;
+
+            if (!$customer) {
+                $this->log('warning', "$tag Order {$order->unique_id} has no customer — skipping.");
+                $skipped++;
+                continue;
+            }
+
+            if (!$customer->phone) {
+                $this->log('warning', "$tag Customer #{$customer->id} (order {$order->unique_id}) has no phone — skipping.");
+                $skipped++;
+                continue;
+            }
+
+            // TEMP DATE GUARD — only process orders on/after 2026-06-21; intentional, do not remove
+            if ($order->created_at->toDateString() < '2026-06-21') {
+                $tempSkipped[] = $order->unique_id;
+                $skipped++;
+                continue;
+            }
+            // END TEMP DATE GUARD
+
+            $firstProduct = $order->products->first();
+            $isTruck      = $firstProduct && strtolower($firstProduct->delivery_transport_mode ?? '') === 'truck';
+
+            if ($isTruck) {
+                if (!$truckEnabled || !$truckTemplate) {
+                    $this->log('info', "$tag Order {$order->unique_id} is truck but truck message disabled/empty — skipping.");
+                    $skipped++;
+                    continue;
+                }
+                $messageTemplate = $truckTemplate;
+                $storeName       = '';
+            } else {
+                if (!$storeEnabled || !$storeTemplate) {
+                    $this->log('info', "$tag Order {$order->unique_id} is store but store message disabled/empty — skipping.");
+                    $skipped++;
+                    continue;
+                }
+                $messageTemplate = $storeTemplate;
+                $storeName       = $firstProduct?->deliveryStore?->store_name ?? '';
+            }
+
+            $podLink = $this->findOrCreatePodPaymentLink($order);
+
+            $longUrl = route('front.checkout.order-payment-form', [
+                'order' => encrypt($order->unique_id),
+            ]);
+
+            $shortLink   = $this->shortLinks->shorten($longUrl, $order->id, $order->customer_id);
+            $paymentLink = $this->shortLinks->shortUrlFor($shortLink->token);
+
+            $customerName = trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? ''));
+            $message = str_replace(
+                ['{{customer_name}}', '{{store_name}}', '{{payment_link}}'],
+                [$customerName, $storeName, $paymentLink],
+                $messageTemplate
+            );
+
+            $this->log('info', "$tag Attempting SMS for order {$order->unique_id}", [
+                'order_id'     => $order->unique_id,
+                'customer_id'  => $customer->id,
+                'is_truck'     => $isTruck,
+                'store_name'   => $storeName,
+                'payment_link' => $paymentLink,
+                'message'      => $message,
+            ]);
+
+            try {
+                $result = $this->twilio->sendSms($customer->phone, $message, [], [
+                    'order_id'            => $order->id,
+                    'customer_id'         => $customer->id,
+                    'sms_type'            => SmsType::POD_PAYMENT_LINK->value,
+                    'pod_payment_link_id' => $podLink->id,
+                ]);
+
+                if ($result['success'] ?? false) {
+                    $this->log('info', "$tag SMS sent for order {$order->unique_id}", [
+                        'twilio_sid' => $result['sid'] ?? null,
+                    ]);
+
+                    $podLink->recordEvent(PodPaymentLinkEvent::PaymentLinkSent, [
+                        'twilio_sid' => $result['sid'] ?? null,
+                        'phone'      => $customer->phone,
+                        'sms_type'   => SmsType::POD_PAYMENT_LINK->value,
+                    ]);
+
+                    $sent++;
+                } else {
+                    $this->log('warning', "$tag SMS returned non-success for order {$order->unique_id}", [
+                        'response' => $result,
+                    ]);
+                    $skipped++;
+                }
+            } catch (\Exception $e) {
+                $this->log('error', "$tag SMS exception for order {$order->unique_id}", [
+                    'error'       => $e->getMessage(),
+                    'order_id'    => $order->unique_id,
+                    'customer_id' => $customer->id,
+                ]);
+                $skipped++;
+            }
+        }
+
+        if (!empty($tempSkipped)) {
+            $this->log('info', "$tag TEMP SKIP — " . count($tempSkipped) . " order(s) before cutoff 2026-06-21.", [
+                'order_ids' => $tempSkipped,
+            ]);
+        }
+
+        $this->log('info', "$tag Batch done — sent: $sent, skipped: $skipped.");
+    }
+
+    // ── Reminder #1: After POD Payment Link has been sent ────────────────────
     private function processReminder1(array $settings): void
     {
         $tag = '[POD Reminder #1]';
@@ -82,8 +239,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
             ->whereExists(fn($q) => $q->select(DB::raw(1))
                 ->from('sms_logs')
                 ->whereColumn('sms_logs.order_id', 'orders.id')
-                ->where('sms_logs.sms_type', SmsType::COD_ORDER_NOTIFICATION->value)
-                ->where('sms_logs.created_at', '<=', now()->subMinutes(1)))
+                ->where('sms_logs.sms_type', SmsType::POD_PAYMENT_LINK->value))
             ->whereNotExists(fn($q) => $q->select(DB::raw(1))
                 ->from('sms_logs')
                 ->whereColumn('sms_logs.order_id', 'orders.id')

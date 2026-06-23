@@ -178,14 +178,26 @@ class UpdateProductScheduleController extends Controller
 
                     $orderProduct->checklistQuestions()->delete();
                     $orderProduct->is_delivered = false;
-                    $orderProduct->is_returned = false;
-                    $orderProduct->delivery_by = null;
-                    $orderProduct->start_hours = null;
-                    $orderProduct->equipment_id = null;
-                    $orderProduct->equipment_details = null;
-                    $orderProduct->assigned_by = null;
-                    $orderProduct->assigned_at = null;
-                    $orderProduct->pickup_status = 'Pending';
+                    $orderProduct->is_returned  = false;
+
+                    // Clear all delivery-side assignments and locks
+                    $orderProduct->delivery_by             = null;
+                    $orderProduct->delivery_priority       = null;
+                    $orderProduct->delivery_driver_locked  = false;
+                    $orderProduct->delivery_priority_locked = false;
+                    $orderProduct->start_hours             = null;
+                    $orderProduct->equipment_id            = null;
+                    $orderProduct->equipment_details       = null;
+                    $orderProduct->assigned_by             = null;
+                    $orderProduct->assigned_at             = null;
+
+                    // Cascade reschedule to return: delivery never happened so the
+                    // entire rental timeline is invalid until re-rescheduled.
+                    $orderProduct->pickup_status           = 'Reschedule';
+                    $orderProduct->pickup_by               = null;
+                    $orderProduct->pickup_priority         = null;
+                    $orderProduct->pickup_driver_locked    = false;
+                    $orderProduct->pickup_priority_locked  = false;
                 }else if($orderProduct->delivery_status === 'Pending'){
                     if($equipment){
                         $orderProduct->softAssignment()->delete();
@@ -233,7 +245,14 @@ class UpdateProductScheduleController extends Controller
                         }
                         $equipment->saveQuietly();
                     }
-                }else{
+                } elseif ($orderProduct->pickup_status === 'Reschedule') {
+                    // Clear all return-side assignments and locks
+                    $orderProduct->is_returned             = false;
+                    $orderProduct->pickup_by               = null;
+                    $orderProduct->pickup_priority         = null;
+                    $orderProduct->pickup_driver_locked    = false;
+                    $orderProduct->pickup_priority_locked  = false;
+                } else {
                     $orderProduct->is_returned = false;
                 }
 

@@ -20,8 +20,8 @@ enum PodPaymentLinkEvent: string
         return match($this) {
             self::LinkCreated      => 'Payment Link Created',
             self::LinkOpened       => 'Payment Link Opened',
-            self::Reminder1Sent    => 'Reminder #1 Sent (1 hour after order)',
-            self::Reminder2Sent    => 'Reminder #2 Sent (7 AM on rental start date)',
+            self::Reminder1Sent    => 'Reminder #1 Sent (1 min. after order confirmation)',
+            self::Reminder2Sent    => 'Reminder #2 Sent (After Next day scheduled rental occuring SMS)',
             self::Reminder3Sent    => 'Reminder #3 Sent (Last Chance — after start date)',
             self::Reminder4Sent    => 'Reminder #4 Sent (Closeout — 24h after R3)',
             self::PaymentCompleted => 'Payment Completed',

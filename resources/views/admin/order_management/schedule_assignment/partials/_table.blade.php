@@ -101,9 +101,17 @@
                             </a>
                         @else
                             @if ($eq->store?->store_name)
-                                {{ $eq->store->store_name }}
+                                <button type="button" class="text-blue-600 underline store-assign-btn"
+                                    data-equipment-unique-id="{{ $eq->unique_id }}"
+                                    data-equipment-name="{{ $eq->equipment_name }}">
+                                    {{ $eq->store->store_name }}
+                                </button>
                             @else
-                                -
+                                <button type="button" class="text-blue-600 underline store-assign-btn"
+                                    data-equipment-unique-id="{{ $eq->unique_id }}"
+                                    data-equipment-name="{{ $eq->equipment_name }}">
+                                    Assign Location
+                                </button>
                             @endif
                         @endif
                     </div>

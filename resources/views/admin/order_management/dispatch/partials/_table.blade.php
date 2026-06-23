@@ -115,8 +115,14 @@
                                    class="text-blue-600 hover:underline">
                                     {{ $orderProduct?->order?->customer_name ?? '-' }}
                                 </a>
+                            @elseif ($orderProduct?->softAssignment?->equipment)
+                                <button type="button" class="text-blue-600 underline store-assign-btn"
+                                    data-equipment-unique-id="{{ $orderProduct->softAssignment->equipment->unique_id }}"
+                                    data-equipment-name="{{ $orderProduct->softAssignment->equipment->equipment_name }}">
+                                    {{ $orderProduct->softAssignment->equipment->store?->store_name ?? 'Assign Location' }}
+                                </button>
                             @else
-                                {{ $orderProduct?->softAssignment?->equipment?->store?->store_name ?? '-' }}
+                                -
                             @endif
                         </div>
                     </td>

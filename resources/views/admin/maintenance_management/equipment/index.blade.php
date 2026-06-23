@@ -79,52 +79,7 @@
             </div>
         </div>
 
-        <!-- Store Assign Modal -->
-        <div id="storeAssignModal"
-            class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
-            <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
-                <!-- Header -->
-                <div class="flex justify-between items-center p-4 border-b">
-                    <h2 class="text-lg font-semibold"> Store : <span id="storeAssignModalTitle" class="capitalize"></span>
-                    </h2>
-                    <button type="button"
-                        class="close-store-assign-modal text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
-                </div>
-                <!-- Body -->
-                {{ html()->form()->attributes([
-                        'data-parsley-validate' => true,
-                        'class' => 'flex-1',
-                        'id' => 'storeAssignForm',
-                    ])->open() }}
-
-                <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
-                    <div>
-                        <label class="text-sm font-medium text-gray-700 required" for="store_unique_id">Store</label>
-                        <select name="store_unique_id" id="store_unique_id"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
-                            required>
-                            <option value="" data-current-status="">Select Store</option>
-                            @foreach ($stores as $uniqueId => $storeName)
-                                <option value="{{ $uniqueId }}">{{ $storeName }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
-                    <button type="button"
-                        class="close-store-assign-modal px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
-                        Cancel
-                    </button>
-                    <button type="submit" id="store-assign-submit"
-                        class="px-6 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
-                        Assign
-                    </button>
-                </div>
-                </form>
-            </div>
-        </div>
+        <x-admin.equipment-store-modal :stores="$stores" />
     </div>
 @endsection
 
@@ -412,80 +367,9 @@
                     });
             };
 
-            const storeAssignModal = document.getElementById('storeAssignModal');
-            const storeAssignForm = document.getElementById('storeAssignForm');
-            const storeUniqueId = document.getElementById('store_unique_id');
-            const storeAssignBtn = document.getElementById('store-assign-submit');
-            const storeAssignModalTitle = document.getElementById('storeAssignModalTitle');
-
-            // --- Event delegation for OPEN buttons (works after table refresh) ---
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('.store-assign-btn');
-                if (!btn) return;
-                const equipmentUniqueId = btn.getAttribute('data-equipment-unique-id');
-                storeAssignBtn.setAttribute('data-equipment-unique-id', equipmentUniqueId);
-                storeAssignModalTitle.textContent = btn.getAttribute('data-equipment-name') || '';
-                storeAssignModal.classList.remove('hidden');
-            });
-
-            // --- Event delegation for CLOSE buttons (works after table refresh) ---
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('.close-store-assign-modal');
-                if (!btn) return;
-                clearStoreModalFields();
-                storeAssignModal.classList.add('hidden');
-            });
-
-            function clearStoreModalFields() {
-                if (storeUniqueId) storeUniqueId.selectedIndex = 0;
-                storeAssignBtn.removeAttribute('data-equipment-unique-id');
-                storeAssignModalTitle.textContent = '';
-            }
-
-            // Form submit
-            storeAssignForm?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                if (window.$ && $(storeAssignForm).parsley && !$(storeAssignForm).parsley()
-                    .isValid()) {
-                    $(storeAssignForm).parsley().validate();
-                    return;
-                }
-
-                const submitBtn = document.getElementById('store-assign-submit');
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Assigning...';
-                }
-
-                const formData = new FormData(storeAssignForm);
-                const equipmentUniqueId = storeAssignBtn.getAttribute('data-equipment-unique-id');
-                formData.append('equipment_unique_id', equipmentUniqueId);
-
-                apiFetch('{{ route('admin.maintenance-management.equipment.store-assign') }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                ?.getAttribute('content'),
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    })
-                    .then(data => {
-                        if (data?.success) {
-                            storeAssignModal.classList.add('hidden');
-                            if (window.notyf) notyf.success(data.message);
-                            clearStoreModalFields();
-                            fetchEquipments();
-                        } else {
-                            if (window.notyf) notyf.error(data?.message || 'Something went wrong.');
-                        }
-                    })
-                    .finally(() => {
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = 'Assign';
-                        }
-                    });
+            // Refresh table when the shared store modal saves a location change
+            document.addEventListener('equipmentStoreUpdated', function () {
+                fetchEquipments();
             });
         });
     </script>

@@ -21,6 +21,7 @@ class IndexController extends Controller
         $categories = ProductCategory::getHierarchy();
 
         $stores = Store::all();
+        $storesForModal = Store::active()->orderByAdmin()->pluck('store_name', 'unique_id');
 
         // Pass enum values to the view
         $statuses = EquipmentCurrentStatus::cases(); // returns all enum cases
@@ -85,6 +86,6 @@ class IndexController extends Controller
             ]);
         }
 
-        return view('admin.order_management.equipment_inventory.index', compact('categories', 'stores', 'statuses', 'dates',));
+        return view('admin.order_management.equipment_inventory.index', compact('categories', 'stores', 'storesForModal', 'statuses', 'dates'));
     }
 }

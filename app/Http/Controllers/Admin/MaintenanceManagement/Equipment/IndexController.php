@@ -49,7 +49,7 @@ class IndexController extends Controller
             ->paginate($perPageVal)
             ->withQueryString();
 
-        $stores = Store::active()->orderByAdmin()->pluck('store_name', 'id');
+        $stores = Store::active()->orderByAdmin()->pluck('store_name', 'unique_id');
 
         $categories = ProductCategory::getHierarchy();
 

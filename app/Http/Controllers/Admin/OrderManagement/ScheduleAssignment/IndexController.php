@@ -21,6 +21,7 @@ class IndexController extends Controller
         $categories = ProductCategory::getHierarchy();
 
         $stores = Store::all();
+        $storesForModal = Store::active()->orderByAdmin()->pluck('store_name', 'unique_id');
 
         // Pass enum values to the view
         $statuses = EquipmentCurrentStatus::cases(); // returns all enum cases
@@ -222,6 +223,6 @@ class IndexController extends Controller
 
         $autoAssignEnabled = ConfigurationHelper::getSettings('Schedule Assignment', 'auto_assign_enabled') === '1';
 
-        return view('admin.order_management.schedule_assignment.index', compact('categories', 'stores', 'dates', 'statuses', 'employees', 'autoAssignEnabled'));
+        return view('admin.order_management.schedule_assignment.index', compact('categories', 'stores', 'storesForModal', 'dates', 'statuses', 'employees', 'autoAssignEnabled'));
     }
 }

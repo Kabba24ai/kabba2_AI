@@ -319,8 +319,9 @@ class IndexController extends Controller
             ]);
         }
 
-        $categories = ProductCategory::getHierarchy();
-        $stores     = Store::orderBy('store_name')->get();
+        $categories     = ProductCategory::getHierarchy();
+        $stores         = Store::orderBy('store_name')->get();
+        $storesForModal = Store::active()->orderByAdmin()->pluck('store_name', 'unique_id');
 
         $allUsers    = User::active()->orderBy('first_name', 'asc')->get();
         $driverUsers = $allUsers->where('is_driver', true);
@@ -350,6 +351,7 @@ class IndexController extends Controller
         return view('admin.order_management.dispatch.index', [
             'categories'      => $categories,
             'stores'          => $stores,
+            'storesForModal'  => $storesForModal,
             'employees'       => $employees,
             'driverEmployees' => $driverEmployees,
             'driverPhones'    => $driverPhones,

@@ -396,6 +396,7 @@
                 </button>
             </div>
         </div>
+    <x-admin.equipment-store-modal :stores="$storesForModal" />
     </div>
 
 @endsection
@@ -1289,5 +1290,10 @@
             });
         });
     })();
+
+    // Refresh dispatch table when the shared store modal saves a location change
+    document.addEventListener('equipmentStoreUpdated', function () {
+        if (typeof window.fetchDispatch === 'function') window.fetchDispatch();
+    });
     </script>
 @endpush

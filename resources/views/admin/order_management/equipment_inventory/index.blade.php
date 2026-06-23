@@ -143,6 +143,7 @@
                 'equipment' => [],
             ])
         </div>
+    <x-admin.equipment-store-modal :stores="$storesForModal" />
     </div>
 @endsection
 
@@ -276,6 +277,11 @@
             setTimeout(() => {
                 window.location.reload();
             }, 200); // slight delay so user sees the spin
+        });
+
+        // Refresh table when the shared store modal saves a location change
+        document.addEventListener('equipmentStoreUpdated', function () {
+            fetchEquipments();
         });
     </script>
 @endpush

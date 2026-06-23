@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front\Checkout;
 
 use App\Http\Controllers\Controller;
+use App\Enums\Orders\PodPaymentLinkStatus;
 use App\Helpers\ConfigurationHelper;
 use App\Helpers\SignedUrlHelper;
 use App\Jobs\CreateReceiptJob;
@@ -36,6 +37,9 @@ class OrderPaymentController extends Controller
             abort(403, 'This order is already fully paid.');
         }
 
+        $podLink   = $order->podPaymentLink;
+        $isExpired = $podLink && $podLink->pod_status === PodPaymentLinkStatus::Expired;
+
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
 
         return view('front.checkout.order-payment-form', [
@@ -44,6 +48,7 @@ class OrderPaymentController extends Controller
             'customer'       => $order->customer,
             'paymentSetting' => $paymentSetting,
             'encrypted_id'   => $unique_id,
+            'isExpired'      => $isExpired,
         ]);
     }
 
@@ -60,6 +65,11 @@ class OrderPaymentController extends Controller
 
         if ($order->balance_due <= 0) {
             return response()->json(['success' => false, 'message' => 'This order is already fully paid.']);
+        }
+
+        $podLink = $order->podPaymentLink;
+        if ($podLink && $podLink->pod_status === PodPaymentLinkStatus::Expired) {
+            return response()->json(['success' => false, 'message' => 'This payment link has expired. Please contact us for assistance.']);
         }
 
         $opaqueDataValue      = $request->input('opaqueDataValue');

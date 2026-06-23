@@ -93,6 +93,13 @@ Schedule::job(new \App\Jobs\SendMeetingReminderJob())
     ->onOneServer()
     ->name('send-meeting-reminder-job');
 
+Schedule::job(new \App\Jobs\ExpirePodPaymentLinksJob())
+    ->dailyAt('01:00')
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('expire-pod-payment-links-job');
+
 Schedule::job(new \App\Jobs\SendPodPaymentReminderJob())
     // ->everyFiveMinutes() // TODO: change to ->cron('*/54 * * * *') after testing
      ->everyMinute()

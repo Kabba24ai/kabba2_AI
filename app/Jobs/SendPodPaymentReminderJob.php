@@ -216,8 +216,9 @@ class SendPodPaymentReminderJob implements ShouldQueue
             return;
         }
 
-        $sent    = 0;
-        $skipped = 0;
+        $sent        = 0;
+        $skipped     = 0;
+        $tempSkipped = [];
 
         foreach ($orders as $order) {
             $customer = $order->customer;
@@ -247,7 +248,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
 
             // TEMP DATE GUARD — only process orders on/after 2026-06-21; remove before go-live
             if ($order->created_at->toDateString() < '2026-06-21') {
-                $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (created_at {$order->created_at->toDateString()} is before cutoff 2026-06-22).");
+                $tempSkipped[] = $order->unique_id;
                 $skipped++;
                 continue;
             }
@@ -315,6 +316,12 @@ class SendPodPaymentReminderJob implements ShouldQueue
                 ]);
                 $skipped++;
             }
+        }
+
+        if (!empty($tempSkipped)) {
+            $this->log('info', "$tag TEMP SKIP — " . count($tempSkipped) . " order(s) before cutoff 2026-06-22.", [
+                'order_ids' => $tempSkipped,
+            ]);
         }
 
         $this->log('info', "$tag Batch done — sent: $sent, skipped: $skipped.");

@@ -105,6 +105,24 @@
                         </button>
                     @endif
 
+                    {{-- POD Reminder Badges --}}
+                    @if ($order->podPaymentLink?->pod_reminder_1_sent_at)
+                        @php
+                            $podR1At = \Carbon\Carbon::parse($order->podPaymentLink->pod_reminder_1_sent_at)->format('m/d/Y h:i A');
+                            $podR2At = $order->podPaymentLink->pod_reminder_2_sent_at
+                                ? \Carbon\Carbon::parse($order->podPaymentLink->pod_reminder_2_sent_at)->format('m/d/Y h:i A')
+                                : null;
+                            $podLabel  = 'POD: R1' . ($podR2At ? ', R2' : '');
+                            $podTooltip = 'R1: ' . $podR1At . ($podR2At ? ' | R2: ' . $podR2At : '');
+                        @endphp
+                        <span
+                            class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full"
+                            title="{{ $podTooltip }}">
+                            <x-heroicon-o-bell class="w-3 h-3" />
+                            {{ $podLabel }}
+                        </span>
+                    @endif
+
                     {{-- PO ID Field --}}
 
                     <div class="flex gap-2 items-center">

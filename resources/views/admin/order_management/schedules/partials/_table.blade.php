@@ -37,9 +37,22 @@
                         && $equipStoreId !== $orderProduct->delivery_store_id;
 
                     // Pickup | Return column values
-                    $pickupStoreName = $orderProduct->deliveryStore?->store_name ?? null;
-                    $returnStoreName = $orderProduct->pickupStore?->store_name ?? null;
+                    // Truck delivery (pending): effective pickup = equipment's physical location
+                    //   (dispatcher loads from wherever the machine is, not the customer's chosen store)
+                    // In-store or completed delivery: use the customer's chosen delivery store
                     $deliveryPending = $orderProduct->delivery_status === 'Pending';
+                    if ($orderProduct->delivery_transport_mode === 'Truck' && $deliveryPending) {
+                        $equipPhysicalStoreName = null;
+                        if ($orderProduct->equipment && !$orderProduct->equipment->current_status?->isRented()) {
+                            $equipPhysicalStoreName = $orderProduct->equipment->store?->store_name;
+                        } elseif ($orderProduct->softAssignment?->equipment) {
+                            $equipPhysicalStoreName = $orderProduct->softAssignment->equipment->store?->store_name;
+                        }
+                        $pickupStoreName = $equipPhysicalStoreName ?? $orderProduct->deliveryStore?->store_name;
+                    } else {
+                        $pickupStoreName = $orderProduct->deliveryStore?->store_name;
+                    }
+                    $returnStoreName = $orderProduct->pickupStore?->store_name ?? null;
                 @endphp
                 <tr id="order-row-{{ $orderProduct->id }}" class="hover:bg-gray-50">
 

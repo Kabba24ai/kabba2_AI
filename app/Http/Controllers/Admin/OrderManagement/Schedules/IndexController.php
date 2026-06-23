@@ -233,8 +233,9 @@ class IndexController extends Controller
             ]);
         }
 
-        $categories = ProductCategory::getHierarchy();
-        $stores = Store::orderBy('store_name')->get();
+        $categories     = ProductCategory::getHierarchy();
+        $stores         = Store::orderBy('store_name')->get();
+        $storesForModal = Store::active()->orderByAdmin()->pluck('store_name', 'unique_id');
 
         $users = User::active()->orderBy('first_name', 'asc')
             ->get()
@@ -255,6 +256,6 @@ class IndexController extends Controller
 
         // dd($all);
 
-        return view('admin.order_management.schedules.index', ['categories' => $categories, 'stores' => $stores, 'employees' => $employees, 'rescheduleOrder' => $rescheduleOrder, 'urlScheduleType' => $urlScheduleType, 'urlTransportMode' => $urlTransportMode]);
+        return view('admin.order_management.schedules.index', ['categories' => $categories, 'stores' => $stores, 'storesForModal' => $storesForModal, 'employees' => $employees, 'rescheduleOrder' => $rescheduleOrder, 'urlScheduleType' => $urlScheduleType, 'urlTransportMode' => $urlTransportMode]);
     }
 }

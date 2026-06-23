@@ -202,6 +202,39 @@ class Equipment extends Model
             });
     }
 
+    /**
+     * Next order for Equipment Inventory: earliest of hard assignment OR soft assignment.
+     * Requires softAssignments.orderProduct.order and nextAssignedOrderProduct.order to be eager-loaded.
+     */
+    public function getNextInventoryOrderAttribute(): ?\App\Models\Orders\Order
+    {
+        $today = now()->toDateString();
+
+        $hardDate  = $this->nextAssignedOrderProduct?->delivery_date;
+        $hardOrder = $this->nextAssignedOrderProduct?->order;
+
+        $softOrder = null;
+        $softDate  = null;
+        if ($this->relationLoaded('softAssignments')) {
+            $earliest = $this->softAssignments
+                ->filter(function ($sa) use ($today) {
+                    return $sa->orderProduct
+                        && $sa->orderProduct->delivery_status === 'Pending'
+                        && $sa->orderProduct->delivery_date
+                        && $sa->orderProduct->delivery_date >= $today;
+                })
+                ->sortBy('orderProduct.delivery_date')
+                ->first();
+            $softDate  = $earliest?->orderProduct?->delivery_date;
+            $softOrder = $earliest?->order;
+        }
+
+        if ($hardOrder && $softOrder) {
+            return $hardDate <= $softDate ? $hardOrder : $softOrder;
+        }
+        return $hardOrder ?? $softOrder;
+    }
+
 
     public function productCategory()
     {

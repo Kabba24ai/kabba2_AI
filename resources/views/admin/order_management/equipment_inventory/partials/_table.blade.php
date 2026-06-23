@@ -119,10 +119,10 @@
                         @endif
                     </td>
                     <td class="px-4 py-3 text-center">
-                        @if ($eq->nextAssignedOrderProduct?->order)
-                            <a href="{{ route('admin.order-management.orders.edit', $eq->nextAssignedOrderProduct->order->unique_id) }}"
+                        @if ($eq->nextInventoryOrder)
+                            <a href="{{ route('admin.order-management.orders.edit', $eq->nextInventoryOrder->unique_id) }}"
                                class="text-orange-600 hover:underline font-medium">
-                                {{ $eq->nextAssignedOrderProduct->order->order_number }}
+                                {{ $eq->nextInventoryOrder->order_number }}
                             </a>
                         @else
                             <span class="text-gray-400">-</span>

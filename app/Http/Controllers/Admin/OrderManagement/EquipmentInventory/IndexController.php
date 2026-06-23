@@ -35,7 +35,22 @@ class IndexController extends Controller
         }
 
         if ($request->ajax()) {
-            $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'order', 'order.customer', 'store', 'activeEquipmentRentalReadyTemplate', 'lastCompletedOrderProduct.order', 'nextAssignedOrderProduct.order')
+            $query = Equipment::with([
+                'statusUpdatedByUser',
+                'productCategory',
+                'order',
+                'order.customer',
+                'store',
+                'activeEquipmentRentalReadyTemplate',
+                'lastCompletedOrderProduct.order',
+                'nextAssignedOrderProduct.order',
+                'softAssignments',
+                'softAssignments.order',
+                'softAssignments.orderProduct' => function ($q) {
+                    $q->whereHas('order');
+                },
+                'softAssignments.orderProduct.order',
+            ])
             ->where('not_for_rent', 0)
                     ->when($request->filled('search'), function ($q) use ($request) {
                         $q->where(function ($sub) use ($request) {
@@ -62,10 +77,20 @@ class IndexController extends Controller
                         },
                     )
                     ->when($request->boolean('currently_assigned'), function ($q) {
-                        $q->whereHas('orderProducts', function ($sq) {
-                            $sq->where(function ($sub) {
-                                $sub->where('delivery_status', 'Pending')
-                                    ->orWhere('pickup_status', 'Pending');
+                        $q->where(function ($sq) {
+                            // Hard assignment: pending delivery or pickup
+                            $sq->whereHas('orderProducts', function ($sub) {
+                                $sub->where(function ($s) {
+                                    $s->where('delivery_status', 'Pending')
+                                      ->orWhere('pickup_status', 'Pending');
+                                });
+                            })
+                            // Soft assignment: soft-assigned to a pending order product
+                            ->orWhereHas('softAssignments.orderProduct', function ($sub) {
+                                $sub->where(function ($s) {
+                                    $s->where('delivery_status', 'Pending')
+                                      ->orWhere('pickup_status', 'Pending');
+                                });
                             });
                         });
                     });

@@ -65,7 +65,11 @@ class IndexController extends Controller
                         $q->where('product_category_id', $request->category);
                     })
                     ->when($request->filled('store'), function ($q) use ($request) {
-                        $q->where('store_id', $request->store);
+                        if ($request->store === 'all_stores') {
+                            $q->whereNotNull('store_id');
+                        } else {
+                            $q->where('store_id', $request->store);
+                        }
                     })
                     ->when(
                         $request->filled('equipment_status'),

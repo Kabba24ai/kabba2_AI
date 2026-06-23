@@ -70,11 +70,12 @@
                 </select>
             </div>
 
-            {{-- Type Dropdown --}}
+            {{-- Store / Location Dropdown --}}
             <div class="w-full sm:w-48">
                 <select name="store"
                     class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
-                    <option value="">All Stores</option>
+                    <option value="" @selected(request('store') === null || request('store') === '')>All Equipment</option>
+                    <option value="all_stores" @selected(request('store') === 'all_stores')>All Stores</option>
                     @foreach ($stores as $store)
                         <option value="{{ $store->id }}" @selected(request('store') == $store->id)>{{ $store->store_name }}</option>
                     @endforeach

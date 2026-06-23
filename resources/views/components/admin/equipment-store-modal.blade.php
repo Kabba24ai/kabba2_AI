@@ -7,6 +7,7 @@
        data-equipment-name        - display name for modal title
      After save: fires CustomEvent "equipmentStoreUpdated" on document so each
      host page can refresh its own table without knowing about this modal.
+     NOTE: JS is inline (not @push) so it works inside Blade components.
 --}}
 
 <div id="storeAssignModal"
@@ -45,83 +46,88 @@
     </div>
 </div>
 
-@push('js')
 <script>
 (function () {
-    const modal      = document.getElementById('storeAssignModal');
-    const form       = document.getElementById('storeAssignForm');
-    const titleEl    = document.getElementById('storeAssignModalTitle');
-    const submitBtn  = document.getElementById('store-assign-submit');
-    const storeSelect = document.getElementById('store_unique_id_modal');
-    let activeEquipmentUniqueId = '';
+    // Wait for DOM ready in case this script runs before the modal element is parsed
+    function init() {
+        const modal       = document.getElementById('storeAssignModal');
+        const form        = document.getElementById('storeAssignForm');
+        const titleEl     = document.getElementById('storeAssignModalTitle');
+        const submitBtn   = document.getElementById('store-assign-submit');
+        const storeSelect = document.getElementById('store_unique_id_modal');
+        let activeEquipmentUniqueId = '';
 
-    function openModal(equipmentUniqueId, equipmentName) {
-        activeEquipmentUniqueId = equipmentUniqueId;
-        titleEl.textContent = equipmentName || '';
-        storeSelect.selectedIndex = 0;
-        modal.classList.remove('hidden');
-    }
+        if (!modal || !form) return; // guard: already initialised by another instance
 
-    function closeModal() {
-        modal.classList.add('hidden');
-        activeEquipmentUniqueId = '';
-        titleEl.textContent = '';
-        storeSelect.selectedIndex = 0;
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Save Location';
-    }
+        function openModal(equipmentUniqueId, equipmentName) {
+            activeEquipmentUniqueId = equipmentUniqueId;
+            titleEl.textContent = equipmentName || '';
+            storeSelect.selectedIndex = 0;
+            modal.classList.remove('hidden');
+        }
 
-    // Open — event delegation so it works after AJAX table refreshes
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.store-assign-btn');
-        if (!btn) return;
-        openModal(
-            btn.getAttribute('data-equipment-unique-id') || '',
-            btn.getAttribute('data-equipment-name') || ''
-        );
-    });
+        function closeModal() {
+            modal.classList.add('hidden');
+            activeEquipmentUniqueId = '';
+            titleEl.textContent = '';
+            storeSelect.selectedIndex = 0;
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Location';
+        }
 
-    // Close
-    document.addEventListener('click', function (e) {
-        if (e.target.closest('.close-store-assign-modal')) closeModal();
-    });
-    modal?.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-    });
+        // Open — event delegation works even for AJAX-rendered table rows
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.store-assign-btn');
+            if (!btn) return;
+            openModal(
+                btn.getAttribute('data-equipment-unique-id') || '',
+                btn.getAttribute('data-equipment-name') || ''
+            );
+        });
 
-    // Submit
-    form?.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (!activeEquipmentUniqueId) return;
+        // Close via × button or Cancel
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('.close-store-assign-modal')) closeModal();
+        });
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeModal();
+        });
 
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Saving…';
+        // Submit
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (!activeEquipmentUniqueId) return;
 
-        const formData = new FormData(form);
-        formData.append('equipment_unique_id', activeEquipmentUniqueId);
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving…';
 
-        apiFetch('{{ route('admin.maintenance-management.equipment.store-assign') }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-                'Accept': 'application/json',
-            },
-            body: formData,
-        }).then(function (data) {
-            if (data?.success) {
+            const formData = new FormData(form);
+            formData.append('equipment_unique_id', activeEquipmentUniqueId);
+
+            window.apiFetch('{{ route('admin.maintenance-management.equipment.store-assign') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            }).then(function (data) {
                 closeModal();
                 if (window.notyf) notyf.success(data.message);
-                // Notify host page to refresh its table
                 document.dispatchEvent(new CustomEvent('equipmentStoreUpdated', {
                     detail: { equipmentUniqueId: activeEquipmentUniqueId }
                 }));
-            } else {
-                if (window.notyf) notyf.error(data?.message || 'Something went wrong.');
+            }).catch(function () {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Save Location';
-            }
+            });
         });
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 })();
 </script>
-@endpush

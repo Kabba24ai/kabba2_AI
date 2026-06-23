@@ -46,9 +46,39 @@ class AssignStoreController extends Controller
         $equipment->store_id = $store->id;
         $equipment->save();
 
-        // --- Sync truck delivery/return store on active order products ---
-        // Rule: for truck delivery orders only, the equipment's physical location
-        //       is the effective load/pickup point. In-store orders are excluded.
+        /*
+        |--------------------------------------------------------------------------
+        | BUSINESS RULE — Completed Schedule Stages Are Historical Records
+        |--------------------------------------------------------------------------
+        |
+        | For truck delivery orders, the equipment's physical store is the
+        | effective load/pickup point. When equipment moves to a new store, the
+        | delivery_store_id and pickup_store_id on related order products must
+        | be updated to keep Dispatch and Schedule Management accurate.
+        |
+        | CRITICAL: Only PENDING stages may be automatically modified.
+        |
+        |   - delivery_store_id is only updated when delivery_status = 'Pending'
+        |   - pickup_store_id   is only updated when pickup_status   = 'Pending'
+        |
+        | Completed stages represent operational history (what actually happened)
+        | and must never be rewritten — even if equipment location, assignments,
+        | stores, or dispatch rules change afterwards.
+        |
+        | Delivery and return are evaluated independently. One leg being completed
+        | does not block the other leg from being updated if it is still pending.
+        |
+        | In-store pickup orders are excluded entirely — the customer's chosen
+        | store remains the source of truth regardless of equipment location.
+        |
+        | If you ever need to change this sync, maintain both guards:
+        |   1. The query-level OR filter (only fetches rows with at least one
+        |      pending truck leg — keeps fully-completed orders out of scope)
+        |   2. The per-field status check inside the foreach (prevents a
+        |      completed leg from being touched even when the row is fetched
+        |      because the other leg is still pending)
+        |
+        */
         $activeScheduleFilter = fn ($q) => $q->where(function ($sub) {
             $sub->where(function ($d) {
                 $d->where('delivery_transport_mode', 'Truck')

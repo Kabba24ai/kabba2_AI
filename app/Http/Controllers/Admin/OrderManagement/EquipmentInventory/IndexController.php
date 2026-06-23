@@ -65,6 +65,10 @@ class IndexController extends Controller
                         $q->where('product_category_id', $request->category);
                     })
                     ->when($request->filled('store'), function ($q) use ($request) {
+                        // Rented equipment is physically at the customer site, not at any store.
+                        // Exclude it from all store-scoped queries so the filter matches what
+                        // the Location column displays (store name vs customer name).
+                        $q->where('current_status', '!=', 'rented');
                         if ($request->store === 'all_stores') {
                             $q->whereNotNull('store_id');
                         } else {

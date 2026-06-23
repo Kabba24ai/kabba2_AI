@@ -105,7 +105,7 @@
                     <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equipment Name</th>
                     <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equip. ID</th>
                     <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Status</th>
-                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Location</th>
+                    <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equip. Location</th>
 
                     <!-- Calendar headers -->
                     <th class="px-4 py-3 text-left font-semibold">Nov18</th>
@@ -331,7 +331,7 @@
                         <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Delivery Address</th>
                         <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Phone</th>
                         <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equipment</th>
-                        <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Location</th>
+                        <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equip. Location</th>
                         <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Delivery Date</th>
                         <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Return Date</th>
                         <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Payment</th>

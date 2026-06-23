@@ -9,7 +9,7 @@
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Phone</th>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equipment</th>
             <th class="px-4 py-3 text-center font-semibold whitespace-nowrap">Equipment ID</th>
-            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Location</th>
+            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equip. Location</th>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Delivery Date</th>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Return Date</th>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Payment</th>

@@ -7,7 +7,7 @@
                 <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Equip. ID</th>
                 <th class="px-4 py-3 cus-width-10 text-left font-semibold">Status</th>
                 <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Tech / Mgt.</th>
-                <th class="px-4 py-3 cus-width-10 text-left font-semibold">Location</th>
+                <th class="px-4 py-3 cus-width-10 text-left font-semibold">Equip. Location</th>
                 <th class="px-4 py-3 cus-width-10 text-center font-semibold whitespace-nowrap">Last Order</th>
                 <th class="px-4 py-3 cus-width-10 text-center font-semibold whitespace-nowrap">Next Order</th>
                 <th class="px-4 py-3 cus-width-5 text-right font-semibold">Actions</th>

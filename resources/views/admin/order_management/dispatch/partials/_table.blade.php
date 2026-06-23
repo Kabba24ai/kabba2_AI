@@ -8,7 +8,7 @@
                 <th class="py-4 px-6 text-left">Delivery Address</th>
                 <th class="py-4 px-1 text-left">Phone</th>
                 <th class="py-4 px-6 text-center">Equipment</th>
-                <th class="py-4 px-[19px] text-center">Location</th>
+                <th class="py-4 px-[19px] text-center">Equip. Location</th>
                 <th class="py-4 px-[22px] text-center">Delivery Date</th>
                 <th class="py-4 px-[22px] text-center text-blue-700">Driver</th>
                 <th class="py-4 px-[22px] text-center">Return Date</th>

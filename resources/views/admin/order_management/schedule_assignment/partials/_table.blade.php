@@ -5,7 +5,7 @@
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equipment Name</th>
             <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equip. ID</th>
             <th class="px-4 py-3 text-center font-semibold whitespace-nowrap">Status</th>
-            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Location</th>
+            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap">Equip. Location</th>
 
             <!-- Calendar headers -->
             @foreach ($dates as $date)

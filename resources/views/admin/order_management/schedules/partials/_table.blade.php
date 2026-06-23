@@ -10,7 +10,7 @@
                 <th class="py-4 px-6 text-center">Equipment</th>
                 <th class="py-4 px-6 text-center">Equipment Id</th>
                 <th class="py-4 px-6 text-center">Equip. Location</th>
-                <th class="py-4 px-6 text-center">Pickup | Return</th>
+                <th class="py-4 px-6 text-center">Delivery | Return</th>
                 <th class="py-4 px-6 text-center">Delivery Date</th>
                 <th class="py-4 px-6 text-center">Return Date</th>
                 <th class="py-4 px-6 text-center">Payment</th>

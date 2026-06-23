@@ -222,11 +222,11 @@
                             <option value="Reschedule"         {{ $delivStatus==='Reschedule'         ? 'selected':'' }}>Reschedule</option>
                         </select>
                     </div>
-                    {{-- Pickup Store --}}
+                    {{-- Delivery Store --}}
                     <div class="flex flex-col items-start min-w-[70px] flex-1">
-                        <label class="block text-xs font-medium text-gray-500 mb-0.5">Pickup Store</label>
+                        <label class="block text-xs font-medium text-gray-500 mb-0.5">Delivery Store</label>
                         <select class="delivery_store_id border rounded px-3 py-3 text-xs w-full">
-                            <option value="" disabled>Select Pickup Store</option>
+                            <option value="" disabled>Select Delivery Store</option>
                             @foreach ($stores as $s)
                                 <option value="{{ $s->id }}" {{ $op->delivery_store_id==$s->id ? 'selected':'' }}>
                                     {{ $s->store_name }}

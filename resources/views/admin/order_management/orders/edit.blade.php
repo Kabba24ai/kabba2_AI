@@ -745,15 +745,29 @@
                 </div>
             </div>
             <div class="p-6 max-h-60 overflow-y-auto">
-                <ul class="list-disc text-sm text-gray-700 space-y-1 pl-3 ">
-                    @forelse ($order->history as $history)
-                        <li>
-                            <span>
-                                {{ $history->description }}
+                @php
+                    $orderHistory = $order->history->map(fn($h) => [
+                        'description' => $h->description,
+                        'created_at'  => $h->created_at,
+                        'is_pod'      => false,
+                    ]);
 
+                    $podActivities = ($order->podPaymentLink?->activities ?? collect())->map(fn($a) => [
+                        'description' => 'POD — ' . $a->event->label(),
+                        'created_at'  => $a->created_at,
+                        'is_pod'      => true,
+                    ]);
+
+                    $allHistory = $orderHistory->concat($podActivities)->sortBy('created_at')->values();
+                @endphp
+                <ul class="list-disc text-sm text-gray-700 space-y-1 pl-3">
+                    @forelse ($allHistory as $entry)
+                        <li>
+                            <span class="{{ $entry['is_pod'] ? 'text-blue-700' : '' }}">
+                                {{ $entry['description'] }}
                                 <br>
                                 <span class="text-xs text-gray-500">
-                                    {{ \App\Helpers\CustomHelper::formatDateTime($history->created_at) }}
+                                    {{ \App\Helpers\CustomHelper::formatDateTime($entry['created_at']) }}
                                 </span>
                             </span>
                         </li>

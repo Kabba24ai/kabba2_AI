@@ -9,6 +9,7 @@
                 <th class="py-4 px-1 text-left">Phone</th>
                 <th class="py-4 px-6 text-center">Equipment</th>
                 <th class="py-4 px-[19px] text-center">Equip. Location</th>
+                <th class="py-4 px-4 text-center">Delivery | Return</th>
                 <th class="py-4 px-[22px] text-center">Delivery Date</th>
                 <th class="py-4 px-[22px] text-center text-blue-700">Driver</th>
                 <th class="py-4 px-[22px] text-center">Return Date</th>
@@ -23,6 +24,19 @@
                 @php
                     $fullyDone = $orderProduct->delivery_status === 'Completed'
                               && $orderProduct->pickup_status === 'Completed';
+
+                    // Delivery | Return column values
+                    // Dispatch is truck-only: delivery load location = equipment's physical store
+                    $deliveryPending = $orderProduct->delivery_status === 'Pending';
+                    if (!$orderProduct->equipment?->current_status?->isRented()) {
+                        $dispatchDeliveryStore = $orderProduct->equipment?->store?->store_name
+                            ?? $orderProduct->softAssignment?->equipment?->store?->store_name
+                            ?? $orderProduct->deliveryStore?->store_name;
+                    } else {
+                        // Equipment is rented (at customer site) — fall back to deliveryStore for history
+                        $dispatchDeliveryStore = $orderProduct->deliveryStore?->store_name;
+                    }
+                    $dispatchReturnStore = $orderProduct->pickupStore?->store_name;
                 @endphp
                 <tr id="order-row-{{ $orderProduct->id }}"
                     class="hover:bg-gray-50 {{ $fullyDone ? 'bg-green-50/60' : '' }}">
@@ -123,6 +137,19 @@
                                 </button>
                             @else
                                 -
+                            @endif
+                        </div>
+                    </td>
+
+                    {{-- Delivery | Return --}}
+                    <td class="py-4 px-4 text-center">
+                        <div class="flex flex-col items-center gap-0.5 leading-tight">
+                            @if ($deliveryPending)
+                                <span class="text-gray-700">{{ $dispatchDeliveryStore ?? '-' }}</span>
+                                <span class="text-xs text-gray-500">{{ $dispatchReturnStore ?? '-' }}</span>
+                            @else
+                                <span class="text-xs text-gray-500">{{ $dispatchDeliveryStore ?? '-' }}</span>
+                                <span class="text-gray-700">{{ $dispatchReturnStore ?? '-' }}</span>
                             @endif
                         </div>
                     </td>
@@ -272,7 +299,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
+                    <td colspan="14" class="text-center text-sm text-gray-500 px-4 py-6">
                         @if ($orderProducts)
                             No dispatch records found.
                         @else

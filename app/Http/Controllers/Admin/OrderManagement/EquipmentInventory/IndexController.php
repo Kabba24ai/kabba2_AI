@@ -35,7 +35,7 @@ class IndexController extends Controller
         }
 
         if ($request->ajax()) {
-            $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'order', 'order.customer', 'store', 'orderProduct', 'lastOrderProduct', 'activeEquipmentRentalReadyTemplate')
+            $query = Equipment::with('statusUpdatedByUser', 'productCategory', 'order', 'order.customer', 'store', 'activeEquipmentRentalReadyTemplate', 'lastCompletedOrderProduct.order', 'nextAssignedOrderProduct.order')
             ->where('not_for_rent', 0)
                     ->when($request->filled('search'), function ($q) use ($request) {
                         $q->where(function ($sub) use ($request) {
@@ -60,7 +60,15 @@ class IndexController extends Controller
                         function ($q) {
                             $q->whereIn('current_status', EquipmentCurrentStatus::getValues());
                         },
-                    );
+                    )
+                    ->when($request->boolean('currently_assigned'), function ($q) {
+                        $q->whereHas('orderProducts', function ($sq) {
+                            $sq->where(function ($sub) {
+                                $sub->where('delivery_status', 'Pending')
+                                    ->orWhere('pickup_status', 'Pending');
+                            });
+                        });
+                    });
 
             $order = ['damaged', 'maintenance', 'rented', 'available'];
             $query

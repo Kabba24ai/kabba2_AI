@@ -8,8 +8,8 @@
                 <th class="px-4 py-3 cus-width-10 text-left font-semibold">Status</th>
                 <th class="px-4 py-3 cus-width-10 text-left font-semibold whitespace-nowrap">Tech / Mgt.</th>
                 <th class="px-4 py-3 cus-width-10 text-left font-semibold">Location</th>
-                <th class="px-4 py-3 cus-width-15 text-center font-semibold whitespace-nowrap">Delivery Date</th>
-                <th class="px-4 py-3 cus-width-15 text-center font-semibold whitespace-nowrap">Return Date</th>
+                <th class="px-4 py-3 cus-width-10 text-center font-semibold whitespace-nowrap">Last Order</th>
+                <th class="px-4 py-3 cus-width-10 text-center font-semibold whitespace-nowrap">Next Order</th>
                 <th class="px-4 py-3 cus-width-5 text-right font-semibold">Actions</th>
             </tr>
         </thead>
@@ -109,61 +109,23 @@
                         </div>
                     </td>
                     <td class="px-4 py-3 text-center">
-                        @if ($eq->orderProduct?->delivery_date)
-                            @php
-                                $iconColor =
-                                    $eq->orderProduct->delivery_status === 'Completed'
-                                        ? 'text-green-600'
-                                        : 'text-yellow-600';
-                            @endphp
-                            <div class="flex flex-col items-center">
-                                <div class="flex items-center justify-center gap-1">
-                                    @if (!empty($eq->orderProduct->delivery_transport_mode))
-                                        @if ($eq->orderProduct->delivery_transport_mode === 'Truck')
-                                            <x-heroicon-o-truck class="w-4 h-4 {{ $iconColor }}" />
-                                        @else
-                                            <x-heroicon-o-building-storefront class="w-4 h-4 {{ $iconColor }}" />
-                                        @endif
-                                    @endif
-                                    <span>
-                                        {{ $eq->orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($eq->orderProduct->delivery_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                </div>
-                                <span class="text-xs text-gray-500 mt-1">
-                                    {{ $eq->orderProduct->delivery_time ? \App\Helpers\CustomHelper::formatTime($eq->orderProduct->delivery_time) : ' ' }}
-                                </span>
-                            </div>
+                        @if ($eq->lastCompletedOrderProduct?->order)
+                            <a href="{{ route('admin.order-management.orders.edit', $eq->lastCompletedOrderProduct->order->unique_id) }}"
+                               class="text-blue-600 hover:underline font-medium">
+                                {{ $eq->lastCompletedOrderProduct->order->order_number }}
+                            </a>
                         @else
-                            -
+                            <span class="text-gray-400">-</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 text-center">
-                        @if ($eq->orderProduct?->pickup_date)
-                            @php
-                                $iconColor =
-                                    $eq->orderProduct->pickup_status === 'Completed'
-                                        ? 'text-green-600'
-                                        : 'text-yellow-600';
-                            @endphp
-                            <div class="flex flex-col items-center">
-                                <div class="flex items-center justify-center gap-1">
-                                    @if (!empty($eq->orderProduct->pickup_transport_mode))
-                                        @if ($eq->orderProduct->pickup_transport_mode === 'Truck')
-                                            <x-heroicon-o-truck class="w-4 h-4 {{ $iconColor }}" />
-                                        @else
-                                            <x-heroicon-o-building-storefront class="w-4 h-4 {{ $iconColor }}" />
-                                        @endif
-                                    @endif
-                                    <span>
-                                        {{ $eq->orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($eq->orderProduct->pickup_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                </div>
-                                <span class="text-xs text-gray-500 mt-1">
-                                    {{ $eq->orderProduct->pickup_time ? \App\Helpers\CustomHelper::formatTime($eq->orderProduct->pickup_time) : ' ' }}
-                                </span>
-                            </div>
+                        @if ($eq->nextAssignedOrderProduct?->order)
+                            <a href="{{ route('admin.order-management.orders.edit', $eq->nextAssignedOrderProduct->order->unique_id) }}"
+                               class="text-orange-600 hover:underline font-medium">
+                                {{ $eq->nextAssignedOrderProduct->order->order_number }}
+                            </a>
                         @else
-                            -
+                            <span class="text-gray-400">-</span>
                         @endif
                     </td>
                     <td class="px-4 py-4">

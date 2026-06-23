@@ -132,6 +132,23 @@
                 </div>
             </div>
 
+            <div class="whitespace-nowrap">
+                <!-- Currently Assigned -->
+                <div class="flex items-center gap-2 bg-white rounded-lg px-4 py-2 border shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-purple-500" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <label class="flex items-center gap-1 font-medium">
+                        <input type="checkbox" name="currently_assigned" value="1" id="currently_assigned"
+                            class="text-purple-600 focus:ring-purple-500 rounded border-gray-300"
+                            {{ request('currently_assigned') ? 'checked' : '' }}>
+                        Currently Assigned
+                    </label>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -156,6 +173,7 @@
             let storeSelect = document.querySelector('select[name="store"]');
             let equipmentTableWrapper = document.querySelector('#equipment-table-wrapper');
             let equipmentStatusCheckboxes = document.querySelectorAll('input[name="equipment_status[]"]');
+            let currentlyAssignedCheckbox = document.querySelector('input[name="currently_assigned"]');
             let timeout = null;
             const perPageParam = document.getElementById('per_page_sm')?.value || new URLSearchParams(location.search)
                 .get('per_page') || null;
@@ -170,6 +188,7 @@
                 // 'status': statusSelect,
                 'store': storeSelect,
                 'equipment_status': equipmentStatusCheckboxes,
+                'currently_assigned': currentlyAssignedCheckbox,
             };
 
             // Load saved filters on page load
@@ -195,6 +214,7 @@
                 equipmentStatusCheckboxes.forEach(cb => {
                     if (cb.checked) params.append('equipment_status[]', cb.value);
                 });
+                if (currentlyAssignedCheckbox?.checked) params.append('currently_assigned', '1');
 
                 // Save current filters
                 FilterFreezer.saveFilters(screenKey, fieldMap);
@@ -239,6 +259,7 @@
 
             // Immediate filter for checkboxes
             equipmentStatusCheckboxes.forEach(cb => cb.addEventListener('change', fetchEquipments));
+            currentlyAssignedCheckbox?.addEventListener('change', fetchEquipments);
 
 
             let loadingIndicator = document.querySelector('#schedule-loading');

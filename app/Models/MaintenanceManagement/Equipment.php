@@ -184,6 +184,24 @@ class Equipment extends Model
             });
     }
 
+    public function lastCompletedOrderProduct()
+    {
+        return $this->hasOne(OrderProduct::class, 'equipment_id')
+            ->ofMany(['id' => 'max'], function ($query) {
+                $query->where('pickup_status', 'Completed');
+            });
+    }
+
+    public function nextAssignedOrderProduct()
+    {
+        return $this->hasOne(OrderProduct::class, 'equipment_id')
+            ->ofMany(['delivery_date' => 'min'], function ($query) {
+                $query->where('delivery_status', 'Pending')
+                      ->whereNotNull('delivery_date')
+                      ->where('delivery_date', '>=', now()->toDateString());
+            });
+    }
+
 
     public function productCategory()
     {

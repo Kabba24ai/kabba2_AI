@@ -236,6 +236,92 @@
                                 </div>
                             </div>
 
+                            <!-- ===================== -->
+                            <!-- POD DAY BEFORE DELIVERY — 3 PM DAY BEFORE -->
+                            <!-- ===================== -->
+                            <div
+                                class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    POD Day Before Delivery Date — Text Message sent at 3:00 PM the day before delivery (if still unpaid)
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 grid-flow-col md:grid-cols-2 gap-6">
+                                <div class="cols-span-1">
+                                    <div class="flex items-center mb-2 gap-2">
+                                        <label for="pod_day_before_truck_message"
+                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                            <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
+                                            Truck Delivery POD Order Message
+                                        </label>
+                                        <label for="pod_day_before_truck_message_enabled"
+                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {!! html()->checkbox(
+                                                    'pod_day_before_truck_message_enabled',
+                                                    old('pod_day_before_truck_message_enabled', $defaultFunnels['pod_day_before_truck_message_enabled'] ?? null) == '1',
+                                                    '1',
+                                                )->class([
+                                                    'mr-2 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500',
+                                                ]) !!}
+                                            Active
+                                        </label>
+                                    </div>
+                                    {!! html()->textarea('pod_day_before_truck_message', old('pod_day_before_truck_message', $defaultFunnels['pod_day_before_truck_message'] ?? null))->class([
+                                            'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                                            'border-gray-300' => !$errors->has('pod_day_before_truck_message'),
+                                            'border-red-500' => $errors->has('pod_day_before_truck_message'),
+                                        ])->attributes([
+                                            'rows' => 5,
+                                            'maxlength' => 500,
+                                            'data-parsley-maxlength' => 500,
+                                            'placeholder' => 'Enter message with {{delivery_date}} and {{payment_link}}',
+                                            'autocomplete' => 'off',
+                                            'id' => 'pod_day_before_truck_message',
+                                        ]) !!}
+                                    @error('pod_day_before_truck_message')
+                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                    <span id="pod_day_before_truck_message_count"
+                                        class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
+                                </div>
+                                <div class="cols-span-1">
+                                    <div class="flex items-center mb-2 gap-2">
+                                        <label for="pod_day_before_store_message"
+                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                            <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
+                                            Store Pickup POD Order Message
+                                        </label>
+                                        <label for="pod_day_before_store_message_enabled"
+                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {!! html()->checkbox(
+                                                    'pod_day_before_store_message_enabled',
+                                                    old('pod_day_before_store_message_enabled', $defaultFunnels['pod_day_before_store_message_enabled'] ?? null) == '1',
+                                                    '1',
+                                                )->class([
+                                                    'mr-2 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500',
+                                                ]) !!}
+                                            Active
+                                        </label>
+                                    </div>
+                                    {!! html()->textarea('pod_day_before_store_message', old('pod_day_before_store_message', $defaultFunnels['pod_day_before_store_message'] ?? null))->class([
+                                            'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                                            'border-gray-300' => !$errors->has('pod_day_before_store_message'),
+                                            'border-red-500' => $errors->has('pod_day_before_store_message'),
+                                        ])->attributes([
+                                            'rows' => 5,
+                                            'maxlength' => 500,
+                                            'data-parsley-maxlength' => 500,
+                                            'placeholder' => 'Enter message with {{store_name}}, {{delivery_date}}, {{payment_link}}',
+                                            'autocomplete' => 'off',
+                                            'id' => 'pod_day_before_store_message',
+                                        ]) !!}
+                                    @error('pod_day_before_store_message')
+                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                    <span id="pod_day_before_store_message_count"
+                                        class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
+                                </div>
+                            </div>
+
                             <div
                                 class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">

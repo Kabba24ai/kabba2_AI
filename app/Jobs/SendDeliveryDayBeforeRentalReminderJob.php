@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 
 class SendDeliveryDayBeforeRentalReminderJob implements ShouldQueue
 {
@@ -65,6 +66,13 @@ class SendDeliveryDayBeforeRentalReminderJob implements ShouldQueue
             ->where('product_data->product_type', 'Rental')
             ->whereDate('delivery_date', $today)
             ->where('delivery_status', 'Pending')
+            // Exclude COD-Pending (POD unpaid) orders — they get a separate POD day-before message
+            ->whereDoesntHave('order.payments', fn($q) => $q->where('payment_method', 'COD')->where('status', 'Pending'))
+            // Prevent duplicate sends if job somehow fires more than once
+            ->whereNotExists(fn($q) => $q->select(DB::raw(1))
+                ->from('sms_logs')
+                ->whereColumn('sms_logs.order_id', 'order_products.order_id')
+                ->where('sms_logs.sms_type', SmsType::DELIVERY_DAY_BEFORE->value))
             ->get();
 
         $count     = $records->count();

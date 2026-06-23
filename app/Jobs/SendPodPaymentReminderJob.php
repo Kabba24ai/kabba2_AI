@@ -15,6 +15,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -50,6 +51,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
         }
 
         $this->processPaymentLinkMessage($settings);
+        $this->processDayBefore3pm($settings);
         $this->processFinalReminder9am($settings);
         $this->processLastDitch4pm($settings);
 
@@ -216,6 +218,49 @@ class SendPodPaymentReminderJob implements ShouldQueue
         $this->log('info', "$tag Batch done — sent: $sent, skipped: $skipped.");
     }
 
+    // ── Day Before Delivery Reminder: 3:00 PM day before (if still unpaid) ──────
+    private function processDayBefore3pm(array $settings): void
+    {
+        $tag = '[POD Day Before 3PM]';
+
+        if (now()->timezone('America/Chicago')->hour < 15) {
+            $this->log('info', "$tag Before 3:00 PM — skipping.");
+            return;
+        }
+
+        $truckEnabled  = ($settings['pod_day_before_truck_message_enabled'] ?? null) == '1';
+        $storeEnabled  = ($settings['pod_day_before_store_message_enabled'] ?? null) == '1';
+        $truckTemplate = $settings['pod_day_before_truck_message'] ?? null;
+        $storeTemplate = $settings['pod_day_before_store_message'] ?? null;
+
+        if (!$truckEnabled && !$storeEnabled) {
+            $this->log('info', "$tag Both messages disabled — skipping.");
+            return;
+        }
+
+        $tomorrow = now()->timezone('America/Chicago')->addDay()->toDateString();
+
+        $orders = Order::with('customer', 'products.deliveryStore')
+            ->whereHas('payments', fn($q) => $q->where('payment_method', 'COD')->where('status', 'Pending'))
+            ->whereHas('products', fn($q) => $q->whereDate('delivery_date', $tomorrow))
+            ->whereNotExists(fn($q) => $q->select(DB::raw(1))
+                ->from('sms_logs')
+                ->whereColumn('sms_logs.order_id', 'orders.id')
+                ->where('sms_logs.sms_type', SmsType::POD_DAY_BEFORE->value))
+            ->get();
+
+        $this->log('info', "$tag Eligible orders: " . $orders->count(), [
+            'order_ids' => $orders->pluck('unique_id')->toArray(),
+        ]);
+
+        if ($orders->isEmpty()) {
+            $this->log('info', "$tag No eligible orders — nothing to send.");
+            return;
+        }
+
+        $this->sendTruckStoreBatch($tag, $orders, $truckTemplate, $storeTemplate, $truckEnabled, $storeEnabled, SmsType::POD_DAY_BEFORE, PodPaymentLinkEvent::DayBeforeSent);
+    }
+
     // ── Final Rental Reminder: 9:00 AM on delivery day (if still unpaid) ────────
     private function processFinalReminder9am(array $settings): void
     {
@@ -371,9 +416,10 @@ class SendPodPaymentReminderJob implements ShouldQueue
             $paymentLink = $this->shortLinks->shortUrlFor($shortLink->token);
 
             $customerName = trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? ''));
+            $deliveryDate = $firstProduct?->delivery_date ? Carbon::parse($firstProduct->delivery_date)->format('M d, Y') : '';
             $message = str_replace(
-                ['{{customer_name}}', '{{store_name}}', '{{payment_link}}'],
-                [$customerName, $storeName, $paymentLink],
+                ['{{customer_name}}', '{{store_name}}', '{{delivery_date}}', '{{payment_link}}'],
+                [$customerName, $storeName, $deliveryDate, $paymentLink],
                 $messageTemplate
             );
 

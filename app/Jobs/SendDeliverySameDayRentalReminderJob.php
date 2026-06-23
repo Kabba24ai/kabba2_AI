@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 
 class SendDeliverySameDayRentalReminderJob implements ShouldQueue
 {
@@ -81,7 +82,16 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
 
         \Log::channel('jobs')->info("Preparing to send {$count} same-day rental delivery reminder message(s).");
 
-        foreach ($records as $record) {
+        // Exclude COD-Pending (POD unpaid) orders from the paid loop — they get a separate POD same-day message.
+        // Also prevent duplicate sends via sms_logs dedup.
+        $paidRecords = $records->filter(function ($record) {
+            $lastPayment = data_get($record, 'order.lastPayment');
+            return !($lastPayment
+                && data_get($lastPayment, 'payment_method') === 'COD'
+                && data_get($lastPayment, 'status') === 'Pending');
+        });
+
+        foreach ($paidRecords as $record) {
             // Safely get phone number
             $phoneNumber = data_get($record, 'order.shippingAddress.phone');
 

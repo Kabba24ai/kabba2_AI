@@ -15,6 +15,7 @@ enum PodPaymentLinkEvent: string
     case OrderExpired     = 'order_expired';
     case OrderReactivated = 'order_reactivated';
     case ManualResend      = 'manual_resend';
+    case DayBeforeSent     = 'day_before_sent';
     case FinalReminderSent = 'final_reminder_sent';
     case LastDitchSent     = 'last_ditch_sent';
 
@@ -32,6 +33,7 @@ enum PodPaymentLinkEvent: string
             self::OrderExpired     => 'Order Expired',
             self::OrderReactivated => 'Order Reactivated',
             self::ManualResend      => 'Payment Link Manually Resent (Admin)',
+            self::DayBeforeSent     => 'Day Before Reminder Sent (3:00 PM day before delivery)',
             self::FinalReminderSent => 'Final Rental Reminder Sent (9:00 AM on delivery day)',
             self::LastDitchSent     => 'Last Ditch Recovery Message Sent (4:00 PM on delivery day)',
         };

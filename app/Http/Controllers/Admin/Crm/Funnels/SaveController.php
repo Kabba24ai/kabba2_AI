@@ -52,6 +52,11 @@ class SaveController extends Controller
             'pod_payment_link_store_message' => 'nullable|string|max:500',
             'pod_payment_link_store_message_enabled' => 'nullable|boolean',
 
+            'pod_day_before_truck_message' => 'nullable|string|max:500',
+            'pod_day_before_truck_message_enabled' => 'nullable|boolean',
+            'pod_day_before_store_message' => 'nullable|string|max:500',
+            'pod_day_before_store_message_enabled' => 'nullable|boolean',
+
             'pod_final_reminder_truck_message' => 'nullable|string|max:500',
             'pod_final_reminder_truck_message_enabled' => 'nullable|boolean',
             'pod_final_reminder_store_message' => 'nullable|string|max:500',
@@ -96,6 +101,11 @@ class SaveController extends Controller
             'pod_payment_link_truck_message_enabled' => $request->input('pod_payment_link_truck_message_enabled') ? '1' : '0',
             'pod_payment_link_store_message' => $request->input('pod_payment_link_store_message'),
             'pod_payment_link_store_message_enabled' => $request->input('pod_payment_link_store_message_enabled') ? '1' : '0',
+
+            'pod_day_before_truck_message' => $request->input('pod_day_before_truck_message'),
+            'pod_day_before_truck_message_enabled' => $request->input('pod_day_before_truck_message_enabled') ? '1' : '0',
+            'pod_day_before_store_message' => $request->input('pod_day_before_store_message'),
+            'pod_day_before_store_message_enabled' => $request->input('pod_day_before_store_message_enabled') ? '1' : '0',
 
             'pod_final_reminder_truck_message' => $request->input('pod_final_reminder_truck_message'),
             'pod_final_reminder_truck_message_enabled' => $request->input('pod_final_reminder_truck_message_enabled') ? '1' : '0',

@@ -123,6 +123,11 @@ window.FilterFreezer = {
                 if (window.jQuery && jQuery(ref).data('select2')) {
                     jQuery(ref).trigger('change');
                 }
+
+                // If Choices.js attached, sync its UI
+                if (ref.choicesInstance) {
+                    ref.choicesInstance.setChoiceByValue(ref.multiple ? (Array.isArray(value) ? value : [value]) : String(value ?? ''));
+                }
                 return;
             }
 

@@ -34,7 +34,7 @@ class DispatchController extends BaseController
         $driverId = $validatedData['driver_id'] ?? null;
         $scheduleTypes = [];
 
-        $query = OrderProduct::query()->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee')->where('product_data->product_type', 'Rental')->whereHas('order')->whereNotNull('delivery_date');
+        $query = OrderProduct::query()->with('equipment', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee',  'deliveryStore', 'pickupStore')->where('product_data->product_type', 'Rental')->whereHas('order')->whereNotNull('delivery_date');
 
         $query->where('delivery_status', '!=', 'Reschedule')->where('pickup_status', '!=', 'Reschedule');
 

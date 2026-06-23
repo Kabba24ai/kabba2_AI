@@ -52,14 +52,15 @@ class SaveController extends Controller
             'pod_payment_link_store_message' => 'nullable|string|max:500',
             'pod_payment_link_store_message_enabled' => 'nullable|boolean',
 
-            'pod_payment_reminder_1_message' => 'nullable|string|max:500',
-            'pod_payment_reminder_1_enabled' => 'nullable|boolean',
-            'pod_payment_reminder_2_message' => 'nullable|string|max:500',
-            'pod_payment_reminder_2_enabled' => 'nullable|boolean',
-            'pod_payment_reminder_3_message' => 'nullable|string|max:500',
-            'pod_payment_reminder_3_enabled' => 'nullable|boolean',
-            'pod_payment_reminder_4_message' => 'nullable|string|max:500',
-            'pod_payment_reminder_4_enabled' => 'nullable|boolean',
+            'pod_final_reminder_truck_message' => 'nullable|string|max:500',
+            'pod_final_reminder_truck_message_enabled' => 'nullable|boolean',
+            'pod_final_reminder_store_message' => 'nullable|string|max:500',
+            'pod_final_reminder_store_message_enabled' => 'nullable|boolean',
+
+            'pod_last_ditch_truck_message' => 'nullable|string|max:500',
+            'pod_last_ditch_truck_message_enabled' => 'nullable|boolean',
+            'pod_last_ditch_store_message' => 'nullable|string|max:500',
+            'pod_last_ditch_store_message_enabled' => 'nullable|boolean',
         ]);
 
         $settings = [
@@ -96,14 +97,15 @@ class SaveController extends Controller
             'pod_payment_link_store_message' => $request->input('pod_payment_link_store_message'),
             'pod_payment_link_store_message_enabled' => $request->input('pod_payment_link_store_message_enabled') ? '1' : '0',
 
-            'pod_payment_reminder_1_message' => $request->input('pod_payment_reminder_1_message'),
-            'pod_payment_reminder_1_enabled' => $request->input('pod_payment_reminder_1_enabled') ? '1' : '0',
-            'pod_payment_reminder_2_message' => $request->input('pod_payment_reminder_2_message'),
-            'pod_payment_reminder_2_enabled' => $request->input('pod_payment_reminder_2_enabled') ? '1' : '0',
-            'pod_payment_reminder_3_message' => $request->input('pod_payment_reminder_3_message'),
-            'pod_payment_reminder_3_enabled' => $request->input('pod_payment_reminder_3_enabled') ? '1' : '0',
-            'pod_payment_reminder_4_message' => $request->input('pod_payment_reminder_4_message'),
-            'pod_payment_reminder_4_enabled' => $request->input('pod_payment_reminder_4_enabled') ? '1' : '0',
+            'pod_final_reminder_truck_message' => $request->input('pod_final_reminder_truck_message'),
+            'pod_final_reminder_truck_message_enabled' => $request->input('pod_final_reminder_truck_message_enabled') ? '1' : '0',
+            'pod_final_reminder_store_message' => $request->input('pod_final_reminder_store_message'),
+            'pod_final_reminder_store_message_enabled' => $request->input('pod_final_reminder_store_message_enabled') ? '1' : '0',
+
+            'pod_last_ditch_truck_message' => $request->input('pod_last_ditch_truck_message'),
+            'pod_last_ditch_truck_message_enabled' => $request->input('pod_last_ditch_truck_message_enabled') ? '1' : '0',
+            'pod_last_ditch_store_message' => $request->input('pod_last_ditch_store_message'),
+            'pod_last_ditch_store_message_enabled' => $request->input('pod_last_ditch_store_message_enabled') ? '1' : '0',
         ];
 
         Setting::where('setting_type', 'Default Sales Funnel Settings')

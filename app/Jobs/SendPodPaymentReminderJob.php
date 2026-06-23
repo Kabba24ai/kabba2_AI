@@ -50,10 +50,8 @@ class SendPodPaymentReminderJob implements ShouldQueue
         }
 
         $this->processPaymentLinkMessage($settings);
-        $this->processReminder1($settings);
-        $this->processReminder2($settings);
-        // $this->processReminder3($settings); // commented out for now
-        // $this->processReminder4($settings); // commented out for now
+        $this->processFinalReminder9am($settings);
+        $this->processLastDitch4pm($settings);
 
         $this->log('info', '[POD Reminder] Job completed.', [
             'started_at'  => $startedAt->toDateTimeString(),
@@ -218,151 +216,221 @@ class SendPodPaymentReminderJob implements ShouldQueue
         $this->log('info', "$tag Batch done — sent: $sent, skipped: $skipped.");
     }
 
-    // ── Reminder #1: After POD Payment Link has been sent ────────────────────
-    private function processReminder1(array $settings): void
+    // ── Final Rental Reminder: 9:00 AM on delivery day (if still unpaid) ────────
+    private function processFinalReminder9am(array $settings): void
     {
-        $tag = '[POD Reminder #1]';
+        $tag = '[POD Final Reminder 9AM]';
 
-        if (($settings['pod_payment_reminder_1_enabled'] ?? null) != '1') {
-            $this->log('info', "$tag Disabled in settings — skipping.");
+        if (now()->timezone('America/Chicago')->hour < 9) {
+            $this->log('info', "$tag Before 9:00 AM — skipping.");
             return;
         }
 
-        $messageTemplate = $settings['pod_payment_reminder_1_message'] ?? null;
-        if (!$messageTemplate) {
-            $this->log('warning', "$tag No message template — skipping.");
+        $truckEnabled  = ($settings['pod_final_reminder_truck_message_enabled'] ?? null) == '1';
+        $storeEnabled  = ($settings['pod_final_reminder_store_message_enabled'] ?? null) == '1';
+        $truckTemplate = $settings['pod_final_reminder_truck_message'] ?? null;
+        $storeTemplate = $settings['pod_final_reminder_store_message'] ?? null;
+
+        if (!$truckEnabled && !$storeEnabled) {
+            $this->log('info', "$tag Both messages disabled — skipping.");
             return;
         }
 
-        $orders = Order::with('customer')
+        $today = now()->timezone('America/Chicago')->toDateString();
+
+        $orders = Order::with('customer', 'products.deliveryStore')
             ->whereHas('payments', fn($q) => $q->where('payment_method', 'COD')->where('status', 'Pending'))
-            ->whereExists(fn($q) => $q->select(DB::raw(1))
-                ->from('sms_logs')
-                ->whereColumn('sms_logs.order_id', 'orders.id')
-                ->where('sms_logs.sms_type', SmsType::POD_PAYMENT_LINK->value))
+            ->whereHas('products', fn($q) => $q->whereDate('delivery_date', $today))
             ->whereNotExists(fn($q) => $q->select(DB::raw(1))
                 ->from('sms_logs')
                 ->whereColumn('sms_logs.order_id', 'orders.id')
-                ->where('sms_logs.sms_type', SmsType::POD_PAYMENT_REMINDER_1->value))
+                ->where('sms_logs.sms_type', SmsType::POD_FINAL_REMINDER->value))
             ->get();
 
         $this->log('info', "$tag Eligible orders: " . $orders->count(), [
             'order_ids' => $orders->pluck('unique_id')->toArray(),
         ]);
 
-        $this->sendBatch($tag, $orders, $messageTemplate, SmsType::POD_PAYMENT_REMINDER_1, PodPaymentLinkEvent::Reminder1Sent);
+        if ($orders->isEmpty()) {
+            $this->log('info', "$tag No eligible orders — nothing to send.");
+            return;
+        }
+
+        $this->sendTruckStoreBatch($tag, $orders, $truckTemplate, $storeTemplate, $truckEnabled, $storeEnabled, SmsType::POD_FINAL_REMINDER, PodPaymentLinkEvent::FinalReminderSent);
     }
 
-    // ── Reminder #2: After "Day Before Delivery" rental reminder is sent ──────
-    private function processReminder2(array $settings): void
+    // ── Last Ditch Recovery: 4:00 PM on delivery day (if still unpaid) ────────
+    private function processLastDitch4pm(array $settings): void
     {
-        $tag = '[POD Reminder #2]';
+        $tag = '[POD Last Ditch 4PM]';
 
-        if (($settings['pod_payment_reminder_2_enabled'] ?? null) != '1') {
-            $this->log('info', "$tag Disabled in settings — skipping.");
+        if (now()->timezone('America/Chicago')->hour < 16) {
+            $this->log('info', "$tag Before 4:00 PM — skipping.");
             return;
         }
 
-        $messageTemplate = $settings['pod_payment_reminder_2_message'] ?? null;
-        if (!$messageTemplate) {
-            $this->log('warning', "$tag No message template — skipping.");
+        $truckEnabled  = ($settings['pod_last_ditch_truck_message_enabled'] ?? null) == '1';
+        $storeEnabled  = ($settings['pod_last_ditch_store_message_enabled'] ?? null) == '1';
+        $truckTemplate = $settings['pod_last_ditch_truck_message'] ?? null;
+        $storeTemplate = $settings['pod_last_ditch_store_message'] ?? null;
+
+        if (!$truckEnabled && !$storeEnabled) {
+            $this->log('info', "$tag Both messages disabled — skipping.");
             return;
         }
 
-        $orders = Order::with('customer')
+        $today = now()->timezone('America/Chicago')->toDateString();
+
+        $orders = Order::with('customer', 'products.deliveryStore')
             ->whereHas('payments', fn($q) => $q->where('payment_method', 'COD')->where('status', 'Pending'))
-            ->whereExists(fn($q) => $q->select(DB::raw(1))
-                ->from('sms_logs')
-                ->whereColumn('sms_logs.order_id', 'orders.id')
-                ->where('sms_logs.sms_type', SmsType::DELIVERY_DAY_BEFORE->value))
+            ->whereHas('products', fn($q) => $q->whereDate('delivery_date', $today))
             ->whereNotExists(fn($q) => $q->select(DB::raw(1))
                 ->from('sms_logs')
                 ->whereColumn('sms_logs.order_id', 'orders.id')
-                ->where('sms_logs.sms_type', SmsType::POD_PAYMENT_REMINDER_2->value))
+                ->where('sms_logs.sms_type', SmsType::POD_LAST_DITCH->value))
             ->get();
 
         $this->log('info', "$tag Eligible orders: " . $orders->count(), [
             'order_ids' => $orders->pluck('unique_id')->toArray(),
         ]);
 
-        $this->sendBatch($tag, $orders, $messageTemplate, SmsType::POD_PAYMENT_REMINDER_2, PodPaymentLinkEvent::Reminder2Sent);
+        if ($orders->isEmpty()) {
+            $this->log('info', "$tag No eligible orders — nothing to send.");
+            return;
+        }
+
+        $this->sendTruckStoreBatch($tag, $orders, $truckTemplate, $storeTemplate, $truckEnabled, $storeEnabled, SmsType::POD_LAST_DITCH, PodPaymentLinkEvent::LastDitchSent);
     }
 
-    // ── Reminder #3: Last Chance — commented out for now ─────────────────────
-    /*
-    private function processReminder3(array $settings): void
-    {
-        $tag = '[POD Reminder #3]';
+    // ── Shared truck/store send loop ──────────────────────────────────────────
+    private function sendTruckStoreBatch(
+        string $tag,
+        $orders,
+        ?string $truckTemplate,
+        ?string $storeTemplate,
+        bool $truckEnabled,
+        bool $storeEnabled,
+        SmsType $smsType,
+        PodPaymentLinkEvent $linkEvent
+    ): void {
+        $sent        = 0;
+        $skipped     = 0;
+        $tempSkipped = [];
 
-        if (($settings['pod_payment_reminder_3_enabled'] ?? null) != '1') {
-            $this->log('info', "$tag Disabled in settings — skipping.");
-            return;
+        foreach ($orders as $order) {
+            $customer = $order->customer;
+
+            if (!$customer) {
+                $this->log('warning', "$tag Order {$order->unique_id} has no customer — skipping.");
+                $skipped++;
+                continue;
+            }
+
+            if (!$customer->phone) {
+                $this->log('warning', "$tag Customer #{$customer->id} (order {$order->unique_id}) has no phone — skipping.");
+                $skipped++;
+                continue;
+            }
+
+            // TEMP DATE GUARD — only process orders on/after 2026-06-21; intentional, do not remove
+            if ($order->created_at->toDateString() < '2026-06-21') {
+                $tempSkipped[] = $order->unique_id;
+                $skipped++;
+                continue;
+            }
+            // END TEMP DATE GUARD
+
+            $firstProduct = $order->products->first();
+            $isTruck      = $firstProduct && strtolower($firstProduct->delivery_transport_mode ?? '') === 'truck';
+
+            if ($isTruck) {
+                if (!$truckEnabled || !$truckTemplate) {
+                    $this->log('info', "$tag Order {$order->unique_id} is truck but truck message disabled/empty — skipping.");
+                    $skipped++;
+                    continue;
+                }
+                $messageTemplate = $truckTemplate;
+                $storeName       = '';
+            } else {
+                if (!$storeEnabled || !$storeTemplate) {
+                    $this->log('info', "$tag Order {$order->unique_id} is store but store message disabled/empty — skipping.");
+                    $skipped++;
+                    continue;
+                }
+                $messageTemplate = $storeTemplate;
+                $storeName       = $firstProduct?->deliveryStore?->store_name ?? '';
+            }
+
+            $podLink = $this->findOrCreatePodPaymentLink($order);
+
+            $longUrl = route('front.checkout.order-payment-form', [
+                'order' => encrypt($order->unique_id),
+            ]);
+
+            $shortLink   = $this->shortLinks->shorten($longUrl, $order->id, $order->customer_id);
+            $paymentLink = $this->shortLinks->shortUrlFor($shortLink->token);
+
+            $customerName = trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? ''));
+            $message = str_replace(
+                ['{{customer_name}}', '{{store_name}}', '{{payment_link}}'],
+                [$customerName, $storeName, $paymentLink],
+                $messageTemplate
+            );
+
+            $this->log('info', "$tag Attempting SMS for order {$order->unique_id}", [
+                'order_id'     => $order->unique_id,
+                'customer_id'  => $customer->id,
+                'is_truck'     => $isTruck,
+                'payment_link' => $paymentLink,
+                'message'      => $message,
+            ]);
+
+            try {
+                $result = $this->twilio->sendSms($customer->phone, $message, [], [
+                    'order_id'            => $order->id,
+                    'customer_id'         => $customer->id,
+                    'sms_type'            => $smsType->value,
+                    'pod_payment_link_id' => $podLink->id,
+                ]);
+
+                if ($result['success'] ?? false) {
+                    $this->log('info', "$tag SMS sent for order {$order->unique_id}", [
+                        'twilio_sid' => $result['sid'] ?? null,
+                    ]);
+
+                    $podLink->recordEvent($linkEvent, [
+                        'twilio_sid' => $result['sid'] ?? null,
+                        'phone'      => $customer->phone,
+                        'sms_type'   => $smsType->value,
+                    ]);
+
+                    $sent++;
+                } else {
+                    $this->log('warning', "$tag SMS returned non-success for order {$order->unique_id}", [
+                        'response' => $result,
+                    ]);
+                    $skipped++;
+                }
+            } catch (\Exception $e) {
+                $this->log('error', "$tag SMS exception for order {$order->unique_id}", [
+                    'error'       => $e->getMessage(),
+                    'order_id'    => $order->unique_id,
+                    'customer_id' => $customer->id,
+                ]);
+                $skipped++;
+            }
         }
 
-        $messageTemplate = $settings['pod_payment_reminder_3_message'] ?? null;
-        if (!$messageTemplate) {
-            $this->log('warning', "$tag No message template — skipping.");
-            return;
+        if (!empty($tempSkipped)) {
+            $this->log('info', "$tag TEMP SKIP — " . count($tempSkipped) . " order(s) before cutoff 2026-06-21.", [
+                'order_ids' => $tempSkipped,
+            ]);
         }
 
-        $today = now()->toDateString();
-
-        $orders = Order::with('customer')
-            ->whereHas('payments', fn($q) => $q->where('payment_method', 'COD')->where('status', 'Pending'))
-            ->whereHas('products', fn($q) => $q->whereDate('delivery_date', '<', $today))
-            ->whereNotExists(fn($q) => $q->select(DB::raw(1))
-                ->from('sms_logs')
-                ->whereColumn('sms_logs.order_id', 'orders.id')
-                ->where('sms_logs.sms_type', SmsType::POD_PAYMENT_REMINDER_3->value))
-            ->get();
-
-        $this->log('info', "$tag Eligible orders: " . $orders->count(), [
-            'order_ids' => $orders->pluck('unique_id')->toArray(),
-        ]);
-
-        $this->sendBatch($tag, $orders, $messageTemplate, SmsType::POD_PAYMENT_REMINDER_3, PodPaymentLinkEvent::Reminder3Sent);
+        $this->log('info', "$tag Batch done — sent: $sent, skipped: $skipped.");
     }
-    */
 
-    // ── Reminder #4: Closeout — commented out for now ────────────────────────
-    /*
-    private function processReminder4(array $settings): void
-    {
-        $tag = '[POD Reminder #4]';
-
-        if (($settings['pod_payment_reminder_4_enabled'] ?? null) != '1') {
-            $this->log('info', "$tag Disabled in settings — skipping.");
-            return;
-        }
-
-        $messageTemplate = $settings['pod_payment_reminder_4_message'] ?? null;
-        if (!$messageTemplate) {
-            $this->log('warning', "$tag No message template — skipping.");
-            return;
-        }
-
-        $orders = Order::with('customer')
-            ->whereHas('payments', fn($q) => $q->where('payment_method', 'COD')->where('status', 'Pending'))
-            ->whereExists(fn($q) => $q->select(DB::raw(1))
-                ->from('sms_logs')
-                ->whereColumn('sms_logs.order_id', 'orders.id')
-                ->where('sms_logs.sms_type', SmsType::POD_PAYMENT_REMINDER_3->value)
-                ->where('sms_logs.created_at', '<=', now()->subHours(24)))
-            ->whereNotExists(fn($q) => $q->select(DB::raw(1))
-                ->from('sms_logs')
-                ->whereColumn('sms_logs.order_id', 'orders.id')
-                ->where('sms_logs.sms_type', SmsType::POD_PAYMENT_REMINDER_4->value))
-            ->get();
-
-        $this->log('info', "$tag Eligible orders: " . $orders->count(), [
-            'order_ids' => $orders->pluck('unique_id')->toArray(),
-        ]);
-
-        $this->sendBatch($tag, $orders, $messageTemplate, SmsType::POD_PAYMENT_REMINDER_4, PodPaymentLinkEvent::Reminder4Sent);
-    }
-    */
-
-    // ── Shared send loop ──────────────────────────────────────────────────────
+    // ── Shared single-template send loop ─────────────────────────────────────
     private function sendBatch(
         string              $tag,
         $orders,

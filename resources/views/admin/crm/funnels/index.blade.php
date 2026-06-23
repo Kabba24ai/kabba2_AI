@@ -319,30 +319,27 @@
                                 </div>
                             </div>
                             <!-- ===================== -->
-                            <!-- POD PAYMENT REMINDERS -->
+                            <!-- POD FINAL RENTAL REMINDER — 9 AM -->
                             <!-- ===================== -->
-                            <div class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
+                            <div
+                                class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    POD Payment Reminder Messages — SMS Schedule
+                                    POD Final Rental Reminder — Sent at 9:00 AM on the day of the scheduled delivery (if still unpaid)
                                 </span>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                                Use <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;payment_link&#125;&#125;</code> in your message to insert the customer's payment URL automatically.
-                            </p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Reminder #1 -->
+                            <div class="grid grid-cols-1 grid-flow-col md:grid-cols-2 gap-6">
                                 <div class="cols-span-1">
-                                    <div class="flex items-center mb-1 gap-2">
-                                        <label for="pod_payment_reminder_1_message"
-                                            class="flex items-center text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            <x-heroicon-o-bell class="w-4 h-4 text-blue-500 mr-1" />
-                                            Reminder #1
+                                    <div class="flex items-center mb-2 gap-2">
+                                        <label for="pod_final_reminder_truck_message"
+                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                            <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
+                                            Truck Delivery POD Order Message
                                         </label>
-                                        <label for="pod_payment_reminder_1_enabled"
+                                        <label for="pod_final_reminder_truck_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {!! html()->checkbox(
-                                                    'pod_payment_reminder_1_enabled',
-                                                    old('pod_payment_reminder_1_enabled', $defaultFunnels['pod_payment_reminder_1_enabled'] ?? null) == '1',
+                                                    'pod_final_reminder_truck_message_enabled',
+                                                    old('pod_final_reminder_truck_message_enabled', $defaultFunnels['pod_final_reminder_truck_message_enabled'] ?? null) == '1',
                                                     '1',
                                                 )->class([
                                                     'mr-2 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500',
@@ -350,40 +347,36 @@
                                             Active
                                         </label>
                                     </div>
-                                    <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">
-                                        First payment message goes out 1 minutes after the order confirmation.
-                                    </p>
-                                    {!! html()->textarea('pod_payment_reminder_1_message', old('pod_payment_reminder_1_message', $defaultFunnels['pod_payment_reminder_1_message'] ?? null))->class([
+                                    {!! html()->textarea('pod_final_reminder_truck_message', old('pod_final_reminder_truck_message', $defaultFunnels['pod_final_reminder_truck_message'] ?? null))->class([
                                             'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                                            'border-gray-300' => !$errors->has('pod_payment_reminder_1_message'),
-                                            'border-red-500' => $errors->has('pod_payment_reminder_1_message'),
+                                            'border-gray-300' => !$errors->has('pod_final_reminder_truck_message'),
+                                            'border-red-500' => $errors->has('pod_final_reminder_truck_message'),
                                         ])->attributes([
-                                            'rows' => 4,
+                                            'rows' => 8,
                                             'maxlength' => 500,
                                             'data-parsley-maxlength' => 500,
-                                            'placeholder' => 'Enter reminder message',
+                                            'placeholder' => 'Enter message with {{payment_link}}',
                                             'autocomplete' => 'off',
-                                            'id' => 'pod_payment_reminder_1_message',
+                                            'id' => 'pod_final_reminder_truck_message',
                                         ]) !!}
-                                    @error('pod_payment_reminder_1_message')
+                                    @error('pod_final_reminder_truck_message')
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
-                                    <span id="pod_payment_reminder_1_message_count"
+                                    <span id="pod_final_reminder_truck_message_count"
                                         class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
-                                <!-- Reminder #2 -->
                                 <div class="cols-span-1">
-                                    <div class="flex items-center mb-1 gap-2">
-                                        <label for="pod_payment_reminder_2_message"
-                                            class="flex items-center text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            <x-heroicon-o-bell class="w-4 h-4 text-blue-500 mr-1" />
-                                            Reminder #2
+                                    <div class="flex items-center mb-2 gap-2">
+                                        <label for="pod_final_reminder_store_message"
+                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                            <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
+                                            Store Delivery POD Order Message
                                         </label>
-                                        <label for="pod_payment_reminder_2_enabled"
+                                        <label for="pod_final_reminder_store_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {!! html()->checkbox(
-                                                    'pod_payment_reminder_2_enabled',
-                                                    old('pod_payment_reminder_2_enabled', $defaultFunnels['pod_payment_reminder_2_enabled'] ?? null) == '1',
+                                                    'pod_final_reminder_store_message_enabled',
+                                                    old('pod_final_reminder_store_message_enabled', $defaultFunnels['pod_final_reminder_store_message_enabled'] ?? null) == '1',
                                                     '1',
                                                 )->class([
                                                     'mr-2 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500',
@@ -391,43 +384,48 @@
                                             Active
                                         </label>
                                     </div>
-                                    <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">
-                                        Goes out 1 minute after the Order reminder about their scheduled rental occurring the next day.
-                                    </p>
-                                    {!! html()->textarea('pod_payment_reminder_2_message', old('pod_payment_reminder_2_message', $defaultFunnels['pod_payment_reminder_2_message'] ?? null))->class([
+                                    {!! html()->textarea('pod_final_reminder_store_message', old('pod_final_reminder_store_message', $defaultFunnels['pod_final_reminder_store_message'] ?? null))->class([
                                             'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                                            'border-gray-300' => !$errors->has('pod_payment_reminder_2_message'),
-                                            'border-red-500' => $errors->has('pod_payment_reminder_2_message'),
+                                            'border-gray-300' => !$errors->has('pod_final_reminder_store_message'),
+                                            'border-red-500' => $errors->has('pod_final_reminder_store_message'),
                                         ])->attributes([
-                                            'rows' => 4,
+                                            'rows' => 8,
                                             'maxlength' => 500,
                                             'data-parsley-maxlength' => 500,
-                                            'placeholder' => 'Enter reminder message',
+                                            'placeholder' => 'Enter message with {{payment_link}}',
                                             'autocomplete' => 'off',
-                                            'id' => 'pod_payment_reminder_2_message',
+                                            'id' => 'pod_final_reminder_store_message',
                                         ]) !!}
-                                    @error('pod_payment_reminder_2_message')
+                                    @error('pod_final_reminder_store_message')
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
-                                    <span id="pod_payment_reminder_2_message_count"
+                                    <span id="pod_final_reminder_store_message_count"
                                         class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
                             </div>
-                            {{-- Reminder #3 and #4 commented out for now --}}
-                            {{-- <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                                <!-- Reminder #3 -->
+
+                            <!-- ===================== -->
+                            <!-- POD LAST DITCH RECOVERY — 4 PM -->
+                            <!-- ===================== -->
+                            <div
+                                class="flex items-center mb-2 border-b border-gray-200 dark:border-gray-700 my-4">
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    POD Last Ditch Recovery Message — Sent at 4:00 PM the day of the scheduled delivery (if still unpaid)
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 grid-flow-col md:grid-cols-2 gap-6">
                                 <div class="cols-span-1">
-                                    <div class="flex items-center mb-1 gap-2">
-                                        <label for="pod_payment_reminder_3_message"
-                                            class="flex items-center text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            <x-heroicon-o-bell-alert class="w-4 h-4 text-orange-500 mr-1" />
-                                            Reminder #3 — Last Chance
+                                    <div class="flex items-center mb-2 gap-2">
+                                        <label for="pod_last_ditch_truck_message"
+                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                            <x-heroicon-o-truck class="w-5 h-5 text-yellow-600 mr-1" />
+                                            Truck Delivery POD Order Message
                                         </label>
-                                        <label for="pod_payment_reminder_3_enabled"
+                                        <label for="pod_last_ditch_truck_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {!! html()->checkbox(
-                                                    'pod_payment_reminder_3_enabled',
-                                                    old('pod_payment_reminder_3_enabled', $defaultFunnels['pod_payment_reminder_3_enabled'] ?? null) == '1',
+                                                    'pod_last_ditch_truck_message_enabled',
+                                                    old('pod_last_ditch_truck_message_enabled', $defaultFunnels['pod_last_ditch_truck_message_enabled'] ?? null) == '1',
                                                     '1',
                                                 )->class([
                                                     'mr-2 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500',
@@ -435,40 +433,36 @@
                                             Active
                                         </label>
                                     </div>
-                                    <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">
-                                        Sent after the rental start date has passed (if still unpaid).
-                                    </p>
-                                    {!! html()->textarea('pod_payment_reminder_3_message', old('pod_payment_reminder_3_message', $defaultFunnels['pod_payment_reminder_3_message'] ?? null))->class([
+                                    {!! html()->textarea('pod_last_ditch_truck_message', old('pod_last_ditch_truck_message', $defaultFunnels['pod_last_ditch_truck_message'] ?? null))->class([
                                             'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                                            'border-gray-300' => !$errors->has('pod_payment_reminder_3_message'),
-                                            'border-red-500' => $errors->has('pod_payment_reminder_3_message'),
+                                            'border-gray-300' => !$errors->has('pod_last_ditch_truck_message'),
+                                            'border-red-500' => $errors->has('pod_last_ditch_truck_message'),
                                         ])->attributes([
-                                            'rows' => 4,
+                                            'rows' => 10,
                                             'maxlength' => 500,
                                             'data-parsley-maxlength' => 500,
-                                            'placeholder' => 'Enter reminder message',
+                                            'placeholder' => 'Enter message with {{payment_link}}',
                                             'autocomplete' => 'off',
-                                            'id' => 'pod_payment_reminder_3_message',
+                                            'id' => 'pod_last_ditch_truck_message',
                                         ]) !!}
-                                    @error('pod_payment_reminder_3_message')
+                                    @error('pod_last_ditch_truck_message')
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
-                                    <span id="pod_payment_reminder_3_message_count"
+                                    <span id="pod_last_ditch_truck_message_count"
                                         class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
-                                <!-- Reminder #4 -->
                                 <div class="cols-span-1">
-                                    <div class="flex items-center mb-1 gap-2">
-                                        <label for="pod_payment_reminder_4_message"
-                                            class="flex items-center text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            <x-heroicon-o-x-circle class="w-4 h-4 text-red-500 mr-1" />
-                                            Reminder #4 — Closeout
+                                    <div class="flex items-center mb-2 gap-2">
+                                        <label for="pod_last_ditch_store_message"
+                                            class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 required">
+                                            <x-heroicon-o-building-storefront class="w-5 h-5 text-yellow-600 mr-1" />
+                                            Store Delivery POD Order Message
                                         </label>
-                                        <label for="pod_payment_reminder_4_enabled"
+                                        <label for="pod_last_ditch_store_message_enabled"
                                             class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {!! html()->checkbox(
-                                                    'pod_payment_reminder_4_enabled',
-                                                    old('pod_payment_reminder_4_enabled', $defaultFunnels['pod_payment_reminder_4_enabled'] ?? null) == '1',
+                                                    'pod_last_ditch_store_message_enabled',
+                                                    old('pod_last_ditch_store_message_enabled', $defaultFunnels['pod_last_ditch_store_message_enabled'] ?? null) == '1',
                                                     '1',
                                                 )->class([
                                                     'mr-2 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500',
@@ -476,28 +470,25 @@
                                             Active
                                         </label>
                                     </div>
-                                    <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">
-                                        Sent 24 hours after Reminder #3. Order is marked expired and payment link is deactivated after this sends.
-                                    </p>
-                                    {!! html()->textarea('pod_payment_reminder_4_message', old('pod_payment_reminder_4_message', $defaultFunnels['pod_payment_reminder_4_message'] ?? null))->class([
+                                    {!! html()->textarea('pod_last_ditch_store_message', old('pod_last_ditch_store_message', $defaultFunnels['pod_last_ditch_store_message'] ?? null))->class([
                                             'w-full rounded-lg border px-4 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                                            'border-gray-300' => !$errors->has('pod_payment_reminder_4_message'),
-                                            'border-red-500' => $errors->has('pod_payment_reminder_4_message'),
+                                            'border-gray-300' => !$errors->has('pod_last_ditch_store_message'),
+                                            'border-red-500' => $errors->has('pod_last_ditch_store_message'),
                                         ])->attributes([
-                                            'rows' => 4,
+                                            'rows' => 10,
                                             'maxlength' => 500,
                                             'data-parsley-maxlength' => 500,
-                                            'placeholder' => 'Enter closeout message',
+                                            'placeholder' => 'Enter message with {{payment_link}}',
                                             'autocomplete' => 'off',
-                                            'id' => 'pod_payment_reminder_4_message',
+                                            'id' => 'pod_last_ditch_store_message',
                                         ]) !!}
-                                    @error('pod_payment_reminder_4_message')
+                                    @error('pod_last_ditch_store_message')
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
-                                    <span id="pod_payment_reminder_4_message_count"
+                                    <span id="pod_last_ditch_store_message_count"
                                         class="text-sm text-gray-500 dark:text-gray-400 float-right">0/500</span>
                                 </div>
-                            </div> --}}
+                            </div>
                         </div>
 
                         <!-- ===================== -->

@@ -21,4 +21,6 @@ enum SmsType: string
     case POD_PAYMENT_REMINDER_3   = 'pod_payment_reminder_3';
     case POD_PAYMENT_REMINDER_4          = 'pod_payment_reminder_4';
     case POD_PAYMENT_LINK_MANUAL_RESEND  = 'pod_payment_link_manual_resend';
+    case POD_FINAL_REMINDER              = 'pod_final_reminder';
+    case POD_LAST_DITCH                  = 'pod_last_ditch';
 }

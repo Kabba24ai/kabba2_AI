@@ -14,7 +14,9 @@ enum PodPaymentLinkEvent: string
     case PaymentCompleted = 'payment_completed';
     case OrderExpired     = 'order_expired';
     case OrderReactivated = 'order_reactivated';
-    case ManualResend     = 'manual_resend';
+    case ManualResend      = 'manual_resend';
+    case FinalReminderSent = 'final_reminder_sent';
+    case LastDitchSent     = 'last_ditch_sent';
 
     public function label(): string
     {
@@ -29,7 +31,9 @@ enum PodPaymentLinkEvent: string
             self::PaymentCompleted => 'Payment Completed',
             self::OrderExpired     => 'Order Expired',
             self::OrderReactivated => 'Order Reactivated',
-            self::ManualResend     => 'Payment Link Manually Resent (Admin)',
+            self::ManualResend      => 'Payment Link Manually Resent (Admin)',
+            self::FinalReminderSent => 'Final Rental Reminder Sent (9:00 AM on delivery day)',
+            self::LastDitchSent     => 'Last Ditch Recovery Message Sent (4:00 PM on delivery day)',
         };
     }
 

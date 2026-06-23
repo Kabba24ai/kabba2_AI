@@ -17,16 +17,36 @@
             </svg>
             <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Equipment Inventory </h3>
         </div>
-        <a href="{{ route('admin.order-management.equipment-inventory.index') }}" id="reloadBtn"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2">
-            <svg id="reloadIcon" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0
-                                         3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
-                                         13.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-            Reload
-        </a>
+        <div class="flex items-center gap-3">
+            <div class="flex rounded-lg border border-gray-300 overflow-hidden shadow-sm" role="group">
+                <button id="btn-table-view" type="button"
+                    class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-blue-600 text-white transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 10h18M3 6h18M3 14h18M3 18h18" />
+                    </svg>
+                    Table
+                </button>
+                <button id="btn-store-view" type="button"
+                    class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-white text-gray-700 transition-colors border-l border-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    Store View
+                </button>
+            </div>
+            <a href="{{ route('admin.order-management.equipment-inventory.index') }}" id="reloadBtn"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2">
+                <svg id="reloadIcon" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0
+                                             3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
+                                             13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                Reload
+            </a>
+        </div>
     </div>
 
     <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm mb-6">
@@ -71,7 +91,7 @@
             </div>
 
             {{-- Store / Location Dropdown --}}
-            <div class="w-full sm:w-48">
+            <div class="w-full sm:w-48" id="store-dropdown-wrapper">
                 <select name="store"
                     class="w-full h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm">
                     <option value="" @selected(request('store') === null || request('store') === '')>All Equipment</option>
@@ -180,6 +200,39 @@
                 .get('per_page') || null;
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
+            // View mode: 'table' | 'store'
+            let currentViewMode = 'table';
+            const btnTableView = document.getElementById('btn-table-view');
+            const btnStoreView = document.getElementById('btn-store-view');
+            const storeDropdownWrapper = document.getElementById('store-dropdown-wrapper');
+            const BASE_BTN = 'flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors';
+
+            function setViewMode(mode) {
+                currentViewMode = mode;
+                if (mode === 'store') {
+                    btnTableView.className = BASE_BTN + ' bg-white text-gray-700';
+                    btnStoreView.className = BASE_BTN + ' bg-blue-600 text-white border-l border-gray-300';
+                    storeDropdownWrapper.classList.add('hidden');
+                } else {
+                    btnTableView.className = BASE_BTN + ' bg-blue-600 text-white';
+                    btnStoreView.className = BASE_BTN + ' bg-white text-gray-700 border-l border-gray-300';
+                    storeDropdownWrapper.classList.remove('hidden');
+                }
+            }
+
+            btnTableView.addEventListener('click', function () {
+                if (currentViewMode !== 'table') {
+                    setViewMode('table');
+                    fetchEquipments();
+                }
+            });
+
+            btnStoreView.addEventListener('click', function () {
+                if (currentViewMode !== 'store') {
+                    setViewMode('store');
+                    fetchEquipments();
+                }
+            });
 
             const screenKey = "equipment_filters";
 
@@ -207,10 +260,14 @@
                 if (searchInput.value.length >= 3 || searchInput.value === '') params.append('search', searchInput
                     .value);
                 if (categorySelect.value) params.append('category', categorySelect.value);
-                // if (statusSelect.value) params.append('status', statusSelect.value);
-                if (storeSelect.value) params.append('store', storeSelect.value);
-                if (perPage) params.append('per_page', perPage);
-                params.append('page', page);
+                if (currentViewMode === 'store') {
+                    params.append('view_mode', 'store');
+                } else {
+                    // if (statusSelect.value) params.append('status', statusSelect.value);
+                    if (storeSelect.value) params.append('store', storeSelect.value);
+                    if (perPage) params.append('per_page', perPage);
+                    params.append('page', page);
+                }
                 // Add all checked equipment_status checkboxes
                 equipmentStatusCheckboxes.forEach(cb => {
                     if (cb.checked) params.append('equipment_status[]', cb.value);

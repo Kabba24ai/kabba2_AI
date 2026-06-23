@@ -50,9 +50,7 @@ class IndexController extends Controller
                         $q->where('product_category_id', $request->category);
                     })
                     ->when($request->filled('store'), function ($q) use ($request) {
-                        $q->whereHas('lastOrderProduct', function ($q) use ($request) {
-                            $q->where('pickup_store_id', $request->store);
-                        });
+                        $q->where('store_id', $request->store);
                     })
                     ->when(
                         $request->filled('equipment_status'),

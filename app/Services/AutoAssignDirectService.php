@@ -48,6 +48,8 @@ class AutoAssignDirectService
             ];
         }
 
+        $orderStoreId = $orderProduct->delivery_store_id;
+
         foreach (self::STATUS_TIERS as $statuses) {
             $candidates = Equipment::query()
                 ->where('assigned_product_id', $productId)
@@ -60,14 +62,26 @@ class AutoAssignDirectService
                 continue;
             }
 
-            // Pass 1: prefer a conflict-free unit within this tier.
+            // Pass 1: prefer a conflict-free unit at the same store as the order.
+            if ($orderStoreId) {
+                foreach ($candidates as $equipment) {
+                    if (
+                        $equipment->store_id == $orderStoreId &&
+                        !$this->conflictDetectionService->hasConflict($equipment->id, $orderProduct, null, ignoreSoftConflicts: false)
+                    ) {
+                        return $this->doAssign($orderProduct, $equipment, 'conflict_free_store_match');
+                    }
+                }
+            }
+
+            // Pass 2: conflict-free unit at any store.
             foreach ($candidates as $equipment) {
                 if (!$this->conflictDetectionService->hasConflict($equipment->id, $orderProduct, null, ignoreSoftConflicts: false)) {
                     return $this->doAssign($orderProduct, $equipment, 'conflict_free');
                 }
             }
 
-            // Pass 2: no conflict-free unit in this tier — assign the first one anyway.
+            // Pass 3: no conflict-free unit in this tier — assign the first one anyway.
             // The overlap will be visible in the Schedule Conflicts module.
             return $this->doAssign($orderProduct, $candidates->first(), 'conflict_flagged');
         }

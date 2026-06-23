@@ -329,6 +329,8 @@
         </div>
     </div>
 
+    <x-admin.equipment-store-modal :stores="$storesForModal" />
+
     <div id="scheduleAssistantModal" class="fixed inset-0 z-9999 hidden">
         <div class="absolute inset-0 bg-black/50" onclick="closeScheduleAssistantModal()"></div>
 
@@ -734,6 +736,7 @@
                 });
             }
             fetchSchedules(pageParam, perPageParam); // initial fetch after loading saved filters
+            window.fetchSchedules = fetchSchedules;
             function fetchSchedules(page = 1, perPage = 30) {
                 const params = new URLSearchParams();
 
@@ -1315,6 +1318,11 @@
 
                 equipmentSelect.appendChild(group);
             }
+        });
+
+        // Refresh table when the shared store modal saves a location change
+        document.addEventListener('equipmentStoreUpdated', function () {
+            if (typeof window.fetchSchedules === 'function') window.fetchSchedules();
         });
     </script>
 @endpush

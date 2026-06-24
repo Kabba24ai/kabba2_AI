@@ -77,25 +77,23 @@ class IndexController extends Controller
         $start = microtime(true);
 
         if ($currentlyAssigned) {
+            // Priority order (uses the is_assigned alias computed in selectRaw):
+            // 1 — assigned + maintenance hold (needs work before next rental)
+            // 2 — assigned + damaged          (needs work before next rental)
+            // 3 — damaged,     no active order
+            // 4 — maintenance, no active order
+            // 5 — rented   (out on rent; never elevated by assignment)
+            // 6 — available (never elevated by assignment)
             $query->orderByRaw("
-                (CASE WHEN (
-                    EXISTS (
-                        SELECT 1 FROM order_products op
-                        WHERE op.equipment_id = equipment.id
-                          AND (op.delivery_status = 'Pending' OR op.pickup_status = 'Pending')
-                    ) OR EXISTS (
-                        SELECT 1 FROM equipment_soft_assigns esa
-                        INNER JOIN order_products op2 ON op2.id = esa.order_product_id
-                        WHERE esa.equipment_id = equipment.id
-                          AND (op2.delivery_status = 'Pending' OR op2.pickup_status = 'Pending')
-                    )
-                ) THEN 0 ELSE 1 END) * 4
-                + CASE equipment.current_status
-                    WHEN 'maintenance' THEN 1
-                    WHEN 'damaged'     THEN 2
-                    WHEN 'rented'      THEN 3
-                    WHEN 'available'   THEN 4
-                    ELSE 5 END
+                CASE
+                    WHEN is_assigned = 1 AND current_status = 'maintenance' THEN 1
+                    WHEN is_assigned = 1 AND current_status = 'damaged'     THEN 2
+                    WHEN current_status = 'damaged'                         THEN 3
+                    WHEN current_status = 'maintenance'                     THEN 4
+                    WHEN current_status = 'rented'                          THEN 5
+                    WHEN current_status = 'available'                       THEN 6
+                    ELSE 7
+                END
             ");
         } else {
             $query->orderByRaw("CASE current_status

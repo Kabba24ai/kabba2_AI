@@ -652,22 +652,32 @@
                     equipmentList.innerHTML = "";
                 }
 
-                // Sort by assignment × status priority
+                // Sort by assignment × status priority.
+                // Only maintenance/damaged equipment with an active assigned order is elevated.
+                // Rented and available are never elevated by assignment status.
                 const assignedFirst = document.getElementById('currentlyAssignedFilter')?.checked ?? true;
-                const badgeRank = assignedFirst
-                    ? { "Maint. Hold": 1, "Damaged": 2, "Rented": 3, "Available": 4 }
-                    : { "Damaged": 1, "Maint. Hold": 2, "Rented": 3, "Available": 4 };
+
+                function getEquipmentPriority(eq) {
+                    if (!assignedFirst) {
+                        // Checkbox off: simple status order
+                        const rank = { "Damaged": 1, "Maint. Hold": 2, "Rented": 3, "Available": 4 };
+                        return rank[eq.badge] || 99;
+                    }
+                    // Checkbox on: assigned maintenance/damaged float to top;
+                    // rented and available always stay at the bottom regardless of assignment.
+                    const actionableAssigned = eq.is_assigned && (eq.badge === 'Maint. Hold' || eq.badge === 'Damaged');
+                    if (actionableAssigned && eq.badge === 'Maint. Hold') return 1;
+                    if (actionableAssigned && eq.badge === 'Damaged')     return 2;
+                    if (eq.badge === 'Damaged')                           return 3;
+                    if (eq.badge === 'Maint. Hold')                       return 4;
+                    if (eq.badge === 'Rented')                            return 5;
+                    if (eq.badge === 'Available')                         return 6;
+                    return 99;
+                }
 
                 equipment.sort((a, b) => {
-                    let aPriority, bPriority;
-                    if (assignedFirst) {
-                        // 8-level: (not assigned)*4 + status_rank
-                        aPriority = (a.is_assigned ? 0 : 1) * 4 + (badgeRank[a.badge] || 99);
-                        bPriority = (b.is_assigned ? 0 : 1) * 4 + (badgeRank[b.badge] || 99);
-                    } else {
-                        aPriority = badgeRank[a.badge] || 99;
-                        bPriority = badgeRank[b.badge] || 99;
-                    }
+                    const aPriority = getEquipmentPriority(a);
+                    const bPriority = getEquipmentPriority(b);
                     if (aPriority !== bPriority) return aPriority - bPriority;
                     return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
                 });

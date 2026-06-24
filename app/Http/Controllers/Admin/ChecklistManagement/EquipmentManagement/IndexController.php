@@ -25,7 +25,24 @@ class IndexController extends Controller
         // $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0)->orderBy('equipment_name', 'asc')->paginate(5);
         // ->get();
 
-        $query = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0);
+        $currentlyAssigned = $request->boolean('currently_assigned', true);
+
+        $query = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
+            ->where('not_for_rent', 0)
+            ->selectRaw("equipment.*, (
+                CASE WHEN (
+                    EXISTS (
+                        SELECT 1 FROM order_products op
+                        WHERE op.equipment_id = equipment.id
+                          AND (op.delivery_status = 'Pending' OR op.pickup_status = 'Pending')
+                    ) OR EXISTS (
+                        SELECT 1 FROM equipment_soft_assigns esa
+                        INNER JOIN order_products op2 ON op2.id = esa.order_product_id
+                        WHERE esa.equipment_id = equipment.id
+                          AND (op2.delivery_status = 'Pending' OR op2.pickup_status = 'Pending')
+                    )
+                ) THEN 1 ELSE 0 END
+            ) AS is_assigned");
 
         if ($request->search) {
             $search = $request->search;
@@ -58,13 +75,38 @@ class IndexController extends Controller
         }
 
         $start = microtime(true);
-        $equipments = $query
-            ->orderByRaw("CASE current_status
+
+        if ($currentlyAssigned) {
+            $query->orderByRaw("
+                (CASE WHEN (
+                    EXISTS (
+                        SELECT 1 FROM order_products op
+                        WHERE op.equipment_id = equipment.id
+                          AND (op.delivery_status = 'Pending' OR op.pickup_status = 'Pending')
+                    ) OR EXISTS (
+                        SELECT 1 FROM equipment_soft_assigns esa
+                        INNER JOIN order_products op2 ON op2.id = esa.order_product_id
+                        WHERE esa.equipment_id = equipment.id
+                          AND (op2.delivery_status = 'Pending' OR op2.pickup_status = 'Pending')
+                    )
+                ) THEN 0 ELSE 1 END) * 4
+                + CASE equipment.current_status
+                    WHEN 'maintenance' THEN 1
+                    WHEN 'damaged'     THEN 2
+                    WHEN 'rented'      THEN 3
+                    WHEN 'available'   THEN 4
+                    ELSE 5 END
+            ");
+        } else {
+            $query->orderByRaw("CASE current_status
                 WHEN 'damaged'     THEN 1
                 WHEN 'maintenance' THEN 2
                 WHEN 'rented'      THEN 3
                 WHEN 'available'   THEN 4
-                ELSE 5 END")
+                ELSE 5 END");
+        }
+
+        $equipments = $query
             ->orderBy('equipment_name', 'asc')
             ->paginate(10);
         // logger('EQUIPMENT QUERY: ' . (microtime(true) - $start) . ' sec');

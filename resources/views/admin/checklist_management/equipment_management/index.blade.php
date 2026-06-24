@@ -69,6 +69,21 @@
                         </select>
                     </div>
 
+                    <!-- Currently Assigned -->
+                    <div class="mb-4 flex items-center gap-2">
+                        <input type="checkbox" id="currentlyAssignedFilter" onchange="applyFilters()"
+                            class="w-4 h-4 text-blue-600 rounded border-gray-300 cursor-pointer" checked>
+                        <label for="currentlyAssignedFilter" class="text-sm text-gray-700 cursor-pointer select-none flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            Currently Assigned
+                        </label>
+                    </div>
+
                     <!-- Clear Filter Button -->
                     <div class="mb-4 flex justify-end">
                         <button type="button" onclick="clearFilters()" 
@@ -501,9 +516,10 @@
                     const search = document.getElementById("searchInput").value;
                     const category = document.getElementById("categoryFilter").value;
                     const status = document.getElementById("statusFilter").value;
+                    const currentlyAssigned = document.getElementById("currentlyAssignedFilter").checked ? '1' : '0';
 
                     const response = await fetch(
-                        `?page=1&search=${search}&category=${category}&status=${status}`,
+                        `?page=1&search=${search}&category=${category}&status=${status}&currently_assigned=${currentlyAssigned}`,
                         {
                             headers: {
                                 "X-Requested-With": "XMLHttpRequest"
@@ -542,7 +558,8 @@
                             is_tracked: eq.is_tracked ?? 'No',
                             customername: eq.order?.customer_name ?? ' ',
                             serviceStatus: eq.service_status,
-                            serviceStatusIcon: serviceIcon
+                            serviceStatusIcon: serviceIcon,
+                            is_assigned: eq.is_assigned ?? 0
                         };
                     });
 
@@ -569,6 +586,7 @@
                     document.getElementById("searchInput").value = "";
                     document.getElementById("categoryFilter").selectedIndex = 0;
                     document.getElementById("statusFilter").selectedIndex = 0;
+                    document.getElementById("currentlyAssignedFilter").checked = true;
 
                     await applyFilters();
                 };
@@ -634,20 +652,24 @@
                     equipmentList.innerHTML = "";
                 }
 
-                //  Add sorting by badge priority
-                const badgeOrder = {
-                    "Damaged": 1,
-                    "Maint. Hold": 2,
-                    "Rented": 3,
-                    "Available": 4
-                };
+                // Sort by assignment × status priority
+                const assignedFirst = document.getElementById('currentlyAssignedFilter')?.checked ?? true;
+                const badgeRank = assignedFirst
+                    ? { "Maint. Hold": 1, "Damaged": 2, "Rented": 3, "Available": 4 }
+                    : { "Damaged": 1, "Maint. Hold": 2, "Rented": 3, "Available": 4 };
 
                 equipment.sort((a, b) => {
-                    const badgeDiff = (badgeOrder[a.badge] || 99) - (badgeOrder[b.badge] || 99);
-                    if (badgeDiff !== 0) return badgeDiff; // status sort first
-                    return a.name.localeCompare(b.name, undefined, {
-                        sensitivity: 'base'
-                    }); // then alphabetical
+                    let aPriority, bPriority;
+                    if (assignedFirst) {
+                        // 8-level: (not assigned)*4 + status_rank
+                        aPriority = (a.is_assigned ? 0 : 1) * 4 + (badgeRank[a.badge] || 99);
+                        bPriority = (b.is_assigned ? 0 : 1) * 4 + (badgeRank[b.badge] || 99);
+                    } else {
+                        aPriority = badgeRank[a.badge] || 99;
+                        bPriority = badgeRank[b.badge] || 99;
+                    }
+                    if (aPriority !== bPriority) return aPriority - bPriority;
+                    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
                 });
                 equipment.forEach(eq => {
                     const card = document.createElement("div");
@@ -754,9 +776,9 @@
                     const search = document.getElementById("searchInput").value;
                     const category = document.getElementById("categoryFilter").value;
                     const status = document.getElementById("statusFilter").value;
+                    const currentlyAssigned = document.getElementById("currentlyAssignedFilter").checked ? '1' : '0';
 
-
-                    const response = await fetch(`?page=${currentPage}&search=${search}&category=${category}&status=${status}`, {
+                    const response = await fetch(`?page=${currentPage}&search=${search}&category=${category}&status=${status}&currently_assigned=${currentlyAssigned}`, {
                         headers: {
                             "X-Requested-With": "XMLHttpRequest"
                         }
@@ -789,7 +811,8 @@
                             is_tracked: eq.is_tracked ?? 'No',
                             customername: eq.order?.customer_name ?? ' ',
                             serviceStatus: eq.service_status,
-                            serviceStatusIcon: serviceIcon
+                            serviceStatusIcon: serviceIcon,
+                            is_assigned: eq.is_assigned ?? 0
                         };
                     });
 

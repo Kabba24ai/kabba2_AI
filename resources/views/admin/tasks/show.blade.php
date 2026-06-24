@@ -84,15 +84,45 @@
                 @endforelse
             </div>
 
-            <form method="POST" action="{{ route('admin.tasks.comments.store', $task) }}">
+            <form id="comment-form" method="POST" action="{{ route('admin.tasks.comments.store', $task) }}">
                 @csrf
-                <textarea name="comment" rows="3" required placeholder="Add a comment..."
+                <textarea id="task-comment" name="comment" rows="3" placeholder="Add a comment..."
                     class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 mb-3"></textarea>
-                <button type="submit"
-                    class="inline-flex items-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
-                    Add Comment
-                </button>
+
+                <div id="comment-validation-msg" class="hidden mb-2 text-sm text-red-600 font-medium">
+                    Please enter a completion note before marking this task complete.
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button type="submit"
+                        class="inline-flex items-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
+                        Add Comment
+                    </button>
+
+                    @if (!$task->status->isTerminal())
+                        <button type="submit"
+                            formaction="{{ route('admin.tasks.complete', $task) }}"
+                            onclick="return validateAndComplete()"
+                            class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-emerald-700">
+                            Add Comment &amp; Mark Complete
+                        </button>
+                    @endif
+                </div>
             </form>
+
+            <script>
+            function validateAndComplete() {
+                var comment = document.getElementById('task-comment').value.trim();
+                var msg = document.getElementById('comment-validation-msg');
+                if (!comment) {
+                    msg.classList.remove('hidden');
+                    document.getElementById('task-comment').focus();
+                    return false;
+                }
+                msg.classList.add('hidden');
+                return true;
+            }
+            </script>
         </div>
 
     </div>
@@ -171,6 +201,12 @@
                     <dt class="text-gray-500">Completed At</dt>
                     <dd class="font-medium text-gray-800">{{ $task->completed_at?->format('M j, Y g:i A') ?? '—' }}</dd>
                 </div>
+                @if ($task->completedBy)
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Completed By</dt>
+                    <dd class="font-medium text-gray-800">{{ $task->completedBy->full_name }}</dd>
+                </div>
+                @endif
                 <div class="flex justify-between">
                     <dt class="text-gray-500">Created</dt>
                     <dd class="font-medium text-gray-800">{{ $task->created_at->format('M j, Y') }}</dd>

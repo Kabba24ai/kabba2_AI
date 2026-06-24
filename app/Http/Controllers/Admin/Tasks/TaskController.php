@@ -106,16 +106,26 @@ class TaskController extends Controller
 
         $users = User::active()->orderBy('first_name')->get();
 
+        $completedToday = Task::completedToday()
+            ->with(['assignedTo', 'category'])
+            ->orderByDesc('completed_at')
+            ->get();
+
         return view('admin.tasks.index', compact(
             'tasks', 'users', 'categories', 'priorities', 'statuses',
-            'categoryCounts', 'userCountsRaw', 'userAllCount', 'badgeUsers'
+            'categoryCounts', 'userCountsRaw', 'userAllCount', 'badgeUsers',
+            'completedToday'
         ));
     }
 
     private function baseTaskQuery(Request $request): Builder
     {
         return Task::query()
-            ->when($request->filled('status'),      fn($q) => $q->where('status', $request->status))
+            ->when(
+                $request->filled('status'),
+                fn($q) => $q->where('status', $request->status),
+                fn($q) => $q->whereNotIn('status', ['completed', 'cancelled'])
+            )
             ->when($request->filled('priority'),    fn($q) => $q->where('priority', $request->priority))
             ->when($request->boolean('due_today'),  fn($q) => $q->dueToday())
             ->when($request->boolean('overdue'),    fn($q) => $q->overdue());
@@ -149,7 +159,7 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $task->load(['assignedTo', 'createdBy', 'equipment.productCategory', 'comments.user', 'activityLogs.user']);
+        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'comments.user', 'activityLogs.user']);
 
         return view('admin.tasks.show', compact('task'));
     }
@@ -220,5 +230,64 @@ class TaskController extends Controller
         $task->logActivity('comment_added');
 
         return redirect()->route('admin.tasks.show', $task)->with('success', 'Comment added.');
+    }
+
+    public function completeWithComment(StoreTaskCommentRequest $request, Task $task)
+    {
+        $comment = $request->validated('comment');
+
+        $task->comments()->create([
+            'user_id' => auth()->id(),
+            'comment' => $comment,
+        ]);
+
+        $task->update([
+            'status'               => 'completed',
+            'completed_at'         => now(),
+            'completed_by_user_id' => auth()->id(),
+        ]);
+
+        $task->logActivity(
+            'task_completed',
+            null,
+            'Task marked completed by ' . auth()->user()->full_name . '. Completion Note: ' . $comment
+        );
+
+        return redirect()->route('admin.tasks.index')->with('success', 'Task marked as completed.');
+    }
+
+    public function archive(Request $request)
+    {
+        $query = Task::with(['assignedTo', 'createdBy', 'completedBy', 'equipment'])
+            ->where('status', 'completed');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(fn($q) => $q->where('title', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%"));
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('assigned_to')) {
+            $query->where('assigned_to_user_id', $request->assigned_to);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('completed_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('completed_at', '<=', $request->date_to);
+        }
+
+        $tasks = $query->orderByDesc('completed_at')->paginate(30)->withQueryString();
+
+        $categories = TaskCategory::cases();
+        $users      = User::active()->orderBy('first_name')->get();
+
+        return view('admin.tasks.archive', compact('tasks', 'categories', 'users'));
     }
 }

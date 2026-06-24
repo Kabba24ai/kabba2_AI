@@ -11,10 +11,16 @@
         <h3 class="text-xl font-semibold text-gray-800">Task Center</h3>
         <p class="text-sm text-gray-500 mt-1">Daily operational tasks for Sales, Yard, Shop, and Admin teams.</p>
     </div>
-    <a href="{{ route('admin.tasks.create') }}"
-        class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
-        + New Task
-    </a>
+    <div class="flex items-center gap-3">
+        <a href="{{ route('admin.tasks.archive') }}"
+            class="inline-flex items-center justify-center rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white shadow hover:bg-gray-800">
+            Task Archive
+        </a>
+        <a href="{{ route('admin.tasks.create') }}"
+            class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
+            + New Task
+        </a>
+    </div>
 </div>
 
 @php
@@ -134,84 +140,126 @@
 
 </form>
 
-{{-- Table --}}
-<div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-    <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
-                <th class="px-4 py-3 text-left font-medium text-gray-600">Title</th>
-                <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
-                <th class="px-4 py-3 text-left font-medium text-gray-600">Equipment</th>
-                <th class="px-4 py-3 text-left font-medium text-gray-600">Priority</th>
-                <th class="px-4 py-3 text-left font-medium text-gray-600">Status</th>
-                <th class="px-4 py-3 text-left font-medium text-gray-600">Due Date</th>
-                <th class="px-4 py-3 text-left font-medium text-gray-600">Created By</th>
-                <th class="px-4 py-3"></th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-            @forelse ($tasks as $task)
-                <tr class="hover:bg-gray-50 {{ $task->isOverdue() ? 'bg-red-50/40' : '' }}">
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->category->color() }}">
-                            {{ $task->category->label() }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 max-w-xs">
-                        <a href="{{ route('admin.tasks.show', $task) }}" class="font-medium text-gray-900 hover:text-brand-600 truncate block">
-                            {{ $task->title }}
-                        </a>
-                        @if ($task->isOverdue())
-                            <span class="text-xs text-red-600 font-medium">Overdue</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3 text-gray-700">
-                        {{ $task->assignedTo?->full_name ?? '—' }}
-                    </td>
-                    <td class="px-4 py-3">
-                        @if ($task->equipment)
-                            <div class="text-sm text-gray-800 truncate max-w-[120px]">{{ $task->equipment->equipment_name }}</div>
-                            <div class="text-xs text-gray-400">{{ $task->equipment->equipment_id }}</div>
-                        @else
-                            <span class="text-gray-400">—</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->priority->color() }}">
-                            {{ $task->priority->label() }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->status->color() }}">
-                            {{ $task->status->label() }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
-                        {{ $task->due_date?->format('M j, Y') ?? '—' }}
-                    </td>
-                    <td class="px-4 py-3 text-gray-600">
-                        {{ $task->createdBy?->full_name ?? '—' }}
-                    </td>
-                    <td class="px-4 py-3 text-right whitespace-nowrap">
-                        <a href="{{ route('admin.tasks.show', $task) }}" class="text-blue-600 hover:underline text-xs mr-3">View</a>
-                        <a href="{{ route('admin.tasks.edit', $task) }}" class="text-gray-600 hover:underline text-xs">Edit</a>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="9" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+{{-- Main layout: task table (left) + Completed Today widget (right) --}}
+<div class="flex gap-6 items-start">
 
-{{-- Pagination --}}
-@if ($tasks->hasPages())
-    <div class="mt-4">
-        {{ $tasks->links() }}
+    {{-- Task table (flex-grow) --}}
+    <div class="flex-1 min-w-0">
+        <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Title</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Equipment</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Priority</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Status</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Due Date</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Created By</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse ($tasks as $task)
+                        <tr class="hover:bg-gray-50 {{ $task->isOverdue() ? 'bg-red-50/40' : '' }}">
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->category->color() }}">
+                                    {{ $task->category->label() }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 max-w-xs">
+                                <a href="{{ route('admin.tasks.show', $task) }}" class="font-medium text-gray-900 hover:text-brand-600 truncate block">
+                                    {{ $task->title }}
+                                </a>
+                                @if ($task->isOverdue())
+                                    <span class="text-xs text-red-600 font-medium">Overdue</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-gray-700">
+                                {{ $task->assignedTo?->full_name ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3">
+                                @if ($task->equipment)
+                                    <div class="text-sm text-gray-800 truncate max-w-[120px]">{{ $task->equipment->equipment_name }}</div>
+                                    <div class="text-xs text-gray-400">{{ $task->equipment->equipment_id }}</div>
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->priority->color() }}">
+                                    {{ $task->priority->label() }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->status->color() }}">
+                                    {{ $task->status->label() }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                {{ $task->due_date?->format('M j, Y') ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-600">
+                                {{ $task->createdBy?->full_name ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <a href="{{ route('admin.tasks.show', $task) }}" class="text-blue-600 hover:underline text-xs mr-3">View</a>
+                                <a href="{{ route('admin.tasks.edit', $task) }}" class="text-gray-600 hover:underline text-xs">Edit</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        @if ($tasks->hasPages())
+            <div class="mt-4">
+                {{ $tasks->links() }}
+            </div>
+        @endif
     </div>
-@endif
+
+    {{-- Completed Today Widget --}}
+    <div class="w-72 shrink-0">
+        <div class="rounded-lg border border-emerald-200 bg-white shadow-sm">
+            <div class="px-4 py-3 border-b border-emerald-100 bg-emerald-50 rounded-t-lg">
+                <h4 class="text-sm font-semibold text-emerald-800">
+                    Tasks Completed ({{ now()->format('F j, Y') }})
+                </h4>
+            </div>
+
+            @if ($completedToday->isEmpty())
+                <div class="px-4 py-6 text-center text-sm text-gray-400">
+                    No tasks completed today.
+                </div>
+            @else
+                <div class="divide-y divide-gray-100">
+                    @foreach ($completedToday as $ct)
+                        <div class="px-4 py-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $ct->category->color() }} mb-1">
+                                        {{ $ct->category->label() }}
+                                    </span>
+                                    <div class="text-sm font-medium text-gray-800 truncate">{{ $ct->title }}</div>
+                                    <div class="text-xs text-gray-500 mt-0.5">{{ $ct->assignedTo?->full_name ?? '—' }}</div>
+                                </div>
+                                <a href="{{ route('admin.tasks.show', $ct) }}"
+                                    class="text-xs text-blue-600 hover:underline shrink-0 mt-1">View</a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+
+</div>
 
 @endsection

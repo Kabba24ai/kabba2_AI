@@ -102,6 +102,17 @@ class OrderProduct extends Model
         'pickup_arrived_at',
         'pickup_is_delivered',
         'pickup_is_arrived',
+
+        'delivery_inputs_date',
+        'delivery_tnc_status',
+        'delivery_drivers_license_status',
+        'delivery_video_status',
+        'delivery_checklist_status',
+        'pickup_inputs_date',
+        'pickup_tnc_status',
+        'pickup_drivers_license_status',
+        'pickup_video_status',
+        'pickup_checklist_status',
     ];
 
     // In your OrderProduct.php model

@@ -95,13 +95,15 @@ Schedule::job(new \App\Jobs\SendMeetingReminderJob())
 
 Schedule::job(new \App\Jobs\ExpirePodPaymentLinksJob())
     ->dailyAt('01:00')
+    // ->dailyAt('02:07')
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()
     ->name('expire-pod-payment-links-job');
 
 Schedule::job(new \App\Jobs\SendPodPaymentReminderJob())
-    ->cron('*/54 * * * *')
+    // ->cron('*/54 * * * *')
+        ->everyMinute()
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()

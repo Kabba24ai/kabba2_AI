@@ -45,13 +45,14 @@
 
             {{-- MIDDLE: Payment Status + Links (centered like screenshot) --}}
             @php
+                use App\Enums\Orders\OrderPaymentStatus;
                 $totalPartialPaid = $order->payments()
-                    ->where('status', \App\Enums\Orders\OrderPaymentStatus::PartialPayment->value)
+                    ->where('status', OrderPaymentStatus::PartialPayment->value)
                     ->sum('amount');
             @endphp
             <div class="flex-1 min-w-0 flex flex-col items-start xl:items-center gap-2">
                 <div class="flex flex-wrap items-center justify-start lg:justify-center gap-2">
-                    @if (!$order->is_paid && in_array($order->last_payment_status, ['Pending', 'Failed', 'Partial Payment']))
+                    @if (!$order->is_paid && in_array($order->last_payment_status, [OrderPaymentStatus::Pending->value, OrderPaymentStatus::Failed->value, OrderPaymentStatus::PartialPayment->value]))
                         <button id="pendingPaymentBtn" type="button"
                             class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
@@ -59,13 +60,13 @@
                         </button>
                     @endif
 
-                    @if ($order->last_payment_status === 'Partial Payment' && $totalPartialPaid > 0)
+                    @if ($order->last_payment_status === OrderPaymentStatus::PartialPayment->value && $totalPartialPaid > 0)
                         <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-orange-700 bg-orange-100 rounded-full">
                             Partial Payment: {{ \App\Helpers\CustomHelper::formatCurrency($totalPartialPaid) }}
                         </span>
                     @endif
 
-                    @if ($order->last_payment_status === 'Pending' && $order->last_payment_type !== 'Card')
+                    @if ($order->last_payment_status === OrderPaymentStatus::Pending->value && $order->last_payment_type !== 'Card')
                         <button id="addToAccountBtn" type="button"
                             class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">
                             Add to Account
@@ -81,7 +82,7 @@
                         </span>
                     @endif
 
-                    @if ($order->last_payment_status === 'Failed')
+                    @if ($order->last_payment_status === OrderPaymentStatus::Failed->value)
                         <span
                             class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
@@ -120,6 +121,35 @@
                             title="{{ $podTooltip }}">
                             <x-heroicon-o-bell class="w-3 h-3" />
                             {{ $podLabel }}
+                        </span>
+                    @endif
+
+                    {{-- POD Payment Link Status Badge --}}
+                    @if ($order->podPaymentLink)
+                        @php
+                            $podLink   = $order->podPaymentLink;
+                            $podStatus = $podLink->pod_status instanceof \App\Enums\Orders\PodPaymentLinkStatus
+                                ? $podLink->pod_status
+                                : \App\Enums\Orders\PodPaymentLinkStatus::from($podLink->pod_status);
+
+                            [$podBadgeColor, $podIcon, $podStatusLabel, $podTooltipExtra] = match ($podStatus) {
+                                \App\Enums\Orders\PodPaymentLinkStatus::Pending      => ['bg-yellow-100 text-yellow-800', 'heroicon-o-clock',               'POD: Pending',      ''],
+                                \App\Enums\Orders\PodPaymentLinkStatus::Opened       => ['bg-blue-100 text-blue-800',     'heroicon-o-eye',                'POD: Opened',       $podLink->payment_link_opened_at ? ' | Opened: ' . \Carbon\Carbon::parse($podLink->payment_link_opened_at)->format('m/d/Y h:i A') : ''],
+                                \App\Enums\Orders\PodPaymentLinkStatus::Expired      => ['bg-red-100 text-red-800',       'heroicon-o-x-circle',           'POD: Expired',      $podLink->pod_expired_at ? ' | Expired: ' . \Carbon\Carbon::parse($podLink->pod_expired_at)->format('m/d/Y h:i A') : ''],
+                                \App\Enums\Orders\PodPaymentLinkStatus::Reactivated  => ['bg-orange-100 text-orange-800', 'heroicon-o-arrow-path',         'POD: Reactivated',  $podLink->pod_reactivated_at ? ' | Reactivated: ' . \Carbon\Carbon::parse($podLink->pod_reactivated_at)->format('m/d/Y h:i A') : ''],
+                                \App\Enums\Orders\PodPaymentLinkStatus::Completed    => ['bg-green-100 text-green-800',   'heroicon-o-check-circle',       'POD: Completed',    $podLink->pod_payment_completed_at ? ' | Paid: ' . \Carbon\Carbon::parse($podLink->pod_payment_completed_at)->format('m/d/Y h:i A') : ''],
+                            };
+
+                            $podCreatedAt  = $podLink->payment_link_created_at
+                                ? 'Created: ' . \Carbon\Carbon::parse($podLink->payment_link_created_at)->format('m/d/Y h:i A')
+                                : '';
+                            $podBadgeTitle = trim($podCreatedAt . $podTooltipExtra, ' |');
+                        @endphp
+                        <span
+                            class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold {{ $podBadgeColor }} rounded-full"
+                            title="{{ $podBadgeTitle }}">
+                            <x-dynamic-component :component="$podIcon" class="w-3 h-3" />
+                            {{ $podStatusLabel }}
                         </span>
                     @endif
 
@@ -797,7 +827,7 @@
         </div>
     </div>
 
-   
+
 
 
     <div class="bg-white rounded-xl shadow-sm p-6 mb-6 space-y-6">
@@ -1289,73 +1319,160 @@
                                     </div>
                                 </div>
 
-                                {{-- Status Checklist --}}
-                                <div class="border rounded-xl p-4 bg-white">
-                                    <div class="grid grid-cols-2 gap-8 text-center text-xs font-medium text-gray-700 mb-2">
-                                        <!-- Checklist -->
-                                        <div class="flex flex-col items-center">
-                                            <div>Checklist</div>
-                                            <div class="flex justify-center gap-2 mb-1">
+                                {{-- Status Checklist + Delivery & Pickup Input Status Boxes --}}
+                                @php
+                                    $deliveryHasData = $orderProduct->delivery_inputs_date !== null
+                                        || $orderProduct->delivery_tnc_status !== null
+                                        || $orderProduct->delivery_drivers_license_status !== null
+                                        || $orderProduct->delivery_video_status !== null
+                                        || $orderProduct->delivery_checklist_status !== null;
+                                    $pickupHasData = $orderProduct->pickup_inputs_date !== null
+                                        || $orderProduct->pickup_tnc_status !== null
+                                        || $orderProduct->pickup_drivers_license_status !== null
+                                        || $orderProduct->pickup_video_status !== null
+                                        || $orderProduct->pickup_checklist_status !== null;
+                                    $deliveryComplete = $orderProduct->delivery_inputs_date !== null
+                                        && $orderProduct->delivery_tnc_status !== null
+                                        && $orderProduct->delivery_drivers_license_status !== null
+                                        && $orderProduct->delivery_video_status !== null
+                                        && $orderProduct->delivery_checklist_status !== null;
+                                    $pickupComplete = $orderProduct->pickup_inputs_date !== null
+                                        && $orderProduct->pickup_tnc_status !== null
+                                        && $orderProduct->pickup_drivers_license_status !== null
+                                        && $orderProduct->pickup_video_status !== null
+                                        && $orderProduct->pickup_checklist_status !== null;
+                                @endphp
+                                <div class="flex gap-3 flex-wrap items-stretch">
+                                    {{-- Checklist / Video badges --}}
+                                    <div class="border rounded-xl px-8 py-4 bg-white">
+                                        <div class="flex justify-center gap-4 text-center text-xs font-medium text-gray-700">
+                                            <!-- Checklist -->
+                                            <div class="flex flex-col items-center gap-1">
+                                                <span class="text-gray-500 leading-none">Checklist</span>
+                                                <div class="flex gap-1">
+                                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold
+                                                        {{ $orderProduct->is_delivered == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}"
+                                                        @if ($orderProduct->is_delivered == 1) onclick="openChecklistModal()" @endif>D</span>
+                                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold
+                                                        {{ $orderProduct->is_returned == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}"
+                                                        @if ($orderProduct->is_returned == 1) onclick="openChecklistModal()" @endif>R</span>
+                                                </div>
+                                            </div>
 
-                                                {{-- Delivery --}}
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded
-               {{ $orderProduct->is_delivered == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
-               text-white text-xs font-bold"
-                                                    @if ($orderProduct->is_delivered == 1) onclick="openChecklistModal()" @endif>
-                                                    D
-                                                </span>
-
-                                                {{-- Return --}}
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded
-               {{ $orderProduct->is_returned == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}
-               text-white text-xs font-bold"
-                                                    @if ($orderProduct->is_returned == 1) onclick="openChecklistModal()" @endif>
-                                                    R
-                                                </span>
+                                            <!-- Video -->
+                                            <div class="flex flex-col items-center gap-1">
+                                                <span class="text-gray-500 leading-none">Video</span>
+                                                <div class="flex gap-1">
+                                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold
+                                                        {{ $orderProduct->deliveryMedia->count() ? 'bg-green-500 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}"
+                                                        @if ($orderProduct->deliveryMedia->count()) onclick="openAllMedia({{ $orderProduct->id }}, 'delivery')" @endif>D</span>
+                                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold
+                                                        {{ $orderProduct->pickupMedia->count() ? 'bg-green-500 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}"
+                                                        @if ($orderProduct->pickupMedia->count()) onclick="openAllMedia({{ $orderProduct->id }}, 'pickup')" @endif>R</span>
+                                                </div>
                                             </div>
                                         </div>
 
-
-                                        <!-- Video -->
-                                        <div class="flex flex-col items-center">
-                                            <div>Video</div>
-                                            <div class="flex justify-center gap-2 mb-1">
-                                                {{-- D = Delivery --}}
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer {{ $orderProduct->deliveryMedia->count() ? 'bg-green-500' : 'bg-red-500' }}"
-                                                    @if ($orderProduct->deliveryMedia->count()) onclick="openAllMedia({{ $orderProduct->id }}, 'delivery')" @endif>
-                                                    D
-                                                </span>
-
-                                                {{-- R = Pickup --}}
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold cursor-pointer {{ $orderProduct->pickupMedia->count() ? 'bg-green-500' : 'bg-red-500' }}"
-                                                    @if ($orderProduct->pickupMedia->count()) onclick="openAllMedia({{ $orderProduct->id }}, 'pickup')" @endif>
-                                                    R
-                                                </span>
-                                            </div>
+                                        <!-- Legend -->
+                                        <div class="flex items-center justify-center gap-2 text-xs text-gray-400 mt-2 pt-1 border-t border-gray-100">
+                                            <span class="flex items-center gap-0.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>Completed</span>
+                                            <span>|</span>
+                                            <span class="flex items-center gap-0.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500"></span>Pending</span>
                                         </div>
                                     </div>
-                                    <!-- Legend -->
-                                    <div class="flex items-center justify-center gap-4 text-xs mt-2">
-                                        <span class="flex items-center">
-                                            <span
-                                                class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
-                                        </span>
-                                        <span class="font-semibold">|</span>
-                                        <span class="flex items-center">
-                                            <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Pending
-                                        </span>
-                                        <span class="font-semibold">|</span>
-                                        <span class="flex items-center">
-                                            <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>N/A
-                                        </span>
-                                        <span class="font-semibold">|</span>
-                                        <span>D=Delivery</span>
-                                        <span class="font-semibold">|</span>
-                                        <span>R=Return</span>
+
+                                    {{-- Delivery & Pickup input boxes --}}
+                                    <div class="flex gap-3 flex-wrap flex-1">
+                                    {{-- Delivery Inputs --}}
+                                    <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Delivery Inputs</span>
+                                            @if($deliveryComplete)
+                                                <span class="text-base leading-none" title="Delivery Complete">🏆</span>
+                                            @endif
+                                        </div>
+                                        @if(!$deliveryHasData)
+                                            <p class="text-xs text-gray-400 italic text-center py-1">No data recorded</p>
+                                        @else
+                                            <div class="flex flex-col gap-0.5 text-xs">
+                                                @if($orderProduct->delivery_inputs_date)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">Date</span>
+                                                        <span class="text-gray-700 font-medium">{{ \Carbon\Carbon::parse($orderProduct->delivery_inputs_date)->format('M d, Y H:i') }}</span>
+                                                    </div>
+                                                @endif
+                                                @if($orderProduct->delivery_tnc_status)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">T&amp;C</span>
+                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->delivery_tnc_status), 'accept') || str_contains(strtolower($orderProduct->delivery_tnc_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->delivery_tnc_status }}</span>
+                                                    </div>
+                                                @endif
+                                                @if($orderProduct->delivery_drivers_license_status)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">License</span>
+                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->delivery_drivers_license_status), 'verif') || str_contains(strtolower($orderProduct->delivery_drivers_license_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->delivery_drivers_license_status }}</span>
+                                                    </div>
+                                                @endif
+                                                @if($orderProduct->delivery_video_status)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">Video</span>
+                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->delivery_video_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->delivery_video_status }}</span>
+                                                    </div>
+                                                @endif
+                                                @if($orderProduct->delivery_checklist_status)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">Checklist</span>
+                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->delivery_checklist_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->delivery_checklist_status }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    {{-- Pickup Inputs --}}
+                                    <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Pickup Inputs</span>
+                                            @if($pickupComplete)
+                                                <span class="text-base leading-none" title="Pickup Complete">🏆</span>
+                                            @endif
+                                        </div>
+                                        @if(!$pickupHasData)
+                                            <p class="text-xs text-gray-400 italic text-center py-1">No data recorded</p>
+                                        @else
+                                            <div class="flex flex-col gap-0.5 text-xs">
+                                                @if($orderProduct->pickup_inputs_date)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">Date</span>
+                                                        <span class="text-gray-700 font-medium">{{ \Carbon\Carbon::parse($orderProduct->pickup_inputs_date)->format('M d, Y H:i') }}</span>
+                                                    </div>
+                                                @endif
+                                                @if($orderProduct->pickup_tnc_status)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">T&amp;C</span>
+                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->pickup_tnc_status), 'accept') || str_contains(strtolower($orderProduct->pickup_tnc_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->pickup_tnc_status }}</span>
+                                                    </div>
+                                                @endif
+                                                @if($orderProduct->pickup_drivers_license_status)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">License</span>
+                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->pickup_drivers_license_status), 'verif') || str_contains(strtolower($orderProduct->pickup_drivers_license_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->pickup_drivers_license_status }}</span>
+                                                    </div>
+                                                @endif
+                                                @if($orderProduct->pickup_video_status)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">Video</span>
+                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->pickup_video_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->pickup_video_status }}</span>
+                                                    </div>
+                                                @endif
+                                                @if($orderProduct->pickup_checklist_status)
+                                                    <div class="flex justify-between gap-2">
+                                                        <span class="text-gray-400">Checklist</span>
+                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->pickup_checklist_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->pickup_checklist_status }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -1376,131 +1493,6 @@
                         </div>
                     </div>
 
-                    @if ($loop->last)
-                        @if (!empty($order->pending_terms_content))
-                            <div class="border rounded-xl p-4 bg-white">
-                                <div class="grid grid-cols-2 gap-2 text-center text-xs font-medium text-gray-700 mb-2">
-                                    <!-- Terms -->
-                                    <div class="flex flex-col items-center">
-                                        <div>Terms</div>
-                                        <div class="flex justify-center mb-1 gap-1">
-                                            @if ($order->terms_status->isPending())
-                                                <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                                     title="View Terms">
-                                                    <span
-                                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
-                                                        <x-heroicon-o-x-mark class="w-4 h-4" />
-                                                    </span>
-                                                </a>
-                                                <button id="send-terms"
-                                                    data-url="{{ route('admin.order-management.orders.send-terms', ['unique_id' => $order->unique_id]) }}">
-                                                    <span
-                                                        class="relative group inline-flex items-center justify-center w-6 h-6 rounded bg-yellow-500 text-white text-base font-bold">
-                                                        <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
-
-                                                        <!-- Tooltip -->
-                                                        <span
-                                                            class="absolute top-full mb-1 hidden group-hover:block px-2 py-1 bg-black text-white text-xs rounded shadow-lg whitespace-nowrap">
-                                                            Send terms signature request
-                                                        </span>
-                                                    </span>
-                                                </button>
-                                            @else
-                                                <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}"
-                                                     title="View Terms">
-                                                    <span
-                                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold">
-                                                        <x-heroicon-o-check class="w-4 h-4" />
-                                                    </span>
-                                                </a>
-                                            @endif
-                                        </div>
-                                        @if (!empty($order->last_terms_sms_sent_at))
-                                            <span class="text-yellow-500 text-xs font-bold">
-                                                {{ \App\Helpers\CustomHelper::formatDateTime($order->last_terms_sms_sent_at) }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <!-- License -->
-                                    <!-- License -->
-                                    <div class="flex flex-col items-center">
-                                        <div>License</div>
-                                        <div class="flex justify-center mb-1">
-                                            @if ($order->licenseMedia->isNotEmpty())
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-base font-bold cursor-pointer"
-                                                    onclick="openAllMedia({{ $order->id }}, 'license')">
-                                                    <x-heroicon-o-check class="w-4 h-4" />
-                                                </span>
-
-                                                <script type="application/json" id="media-{{ $order->id }}-license">
-                                                    {!! $order->licenseMedia->map(fn($m) => [
-                                                        'url'  => optional($m->media)->url,
-                                                        'type' => $m->type, // "image" or "video"
-                                                        'side' => $m->side
-                                                    ])->toJson() !!}
-                                                </script>
-                                            @else
-                                                <span
-                                                    class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-base font-bold">
-                                                    <x-heroicon-o-x-mark class="w-4 h-4" />
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    {{-- <!-- Checklist -->
-                                    <div>
-                                        <div>Checklist</div>
-                                        <div class="flex justify-center gap-1 mb-1">
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                                        </div>
-                                    </div>
-                                    <!-- Machine Hours -->
-                                    <div>
-                                        <div>Machine Hours</div>
-                                        <div class="flex justify-center gap-1 mb-1">
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                                        </div>
-                                    </div>
-                                    <!-- Video -->
-                                    <div>
-                                        <div>Video</div>
-                                        <div class="flex justify-center gap-1 mb-1">
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-green-500 text-white text-xs font-bold">D</span>
-                                            <span
-                                                class="inline-flex items-center justify-center w-6 h-6 rounded bg-red-500 text-white text-xs font-bold">R</span>
-                                        </div>
-                                    </div> --}}
-                                </div>
-                                <!-- Legend -->
-                                <div class="flex items-center justify-center gap-4 text-xs mt-2">
-                                    <span class="flex items-center">
-                                        <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Completed
-                                    </span>
-                                    <span class="font-semibold">|</span>
-                                    <span class="flex items-center">
-                                        <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Pending
-                                    </span>
-                                    <span class="font-semibold">|</span>
-                                    <span class="flex items-center">
-                                        <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>N/A
-                                    </span>
-                                    <span class="font-semibold">|</span>
-                                    <span>D=Delivery</span>
-                                    <span class="font-semibold">|</span>
-                                    <span>R=Return</span>
-                                </div>
-                            </div>
-                        @endif
-                    @endif
                 </div>
 
                 <hr class="col-span-full my-2 border-t border-gray-300" />
@@ -1521,9 +1513,80 @@
 @endphp
 
         {{-- Summary & Notes --}}
-        <div class="grid md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-4 gap-4 items-stretch">
+
+            {{-- Terms & License --}}
+            @if (!empty($order->pending_terms_content))
+                <div class="border rounded-xl p-3 bg-white shadow-sm flex flex-col justify-center">
+                    <div class="flex gap-6 text-center text-xs font-medium text-gray-700 justify-center">
+                        <!-- Terms -->
+                        <div class="flex flex-col items-center gap-1.5">
+                            <span class="text-gray-400 uppercase tracking-wide text-[10px]">Terms</span>
+                            <div class="flex gap-1">
+                                @if ($order->terms_status->isPending())
+                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}" title="View Terms">
+                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-500 text-white shadow-sm">
+                                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                                        </span>
+                                    </a>
+                                    <button id="send-terms"
+                                        data-url="{{ route('admin.order-management.orders.send-terms', ['unique_id' => $order->unique_id]) }}">
+                                        <span class="relative group inline-flex items-center justify-center w-7 h-7 rounded-lg bg-yellow-500 text-white shadow-sm">
+                                            <x-heroicon-o-chat-bubble-left-right class="w-4 h-4" />
+                                            <span class="absolute top-full mt-1 hidden group-hover:block px-2 py-1 bg-gray-800 text-white text-xs rounded shadow-lg whitespace-nowrap z-10">
+                                                Send terms signature request
+                                            </span>
+                                        </span>
+                                    </button>
+                                @else
+                                    <a href="{{ route('front.terms-and-conditions.index', $order->unique_id) }}" title="View Terms">
+                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-500 text-white shadow-sm">
+                                            <x-heroicon-o-check class="w-4 h-4" />
+                                        </span>
+                                    </a>
+                                @endif
+                            </div>
+                            @if (!empty($order->last_terms_sms_sent_at))
+                                <span class="text-yellow-500 text-[10px] font-semibold">
+                                    {{ \App\Helpers\CustomHelper::formatDateTime($order->last_terms_sms_sent_at) }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="w-px bg-gray-100 self-stretch"></div>
+
+                        <!-- License -->
+                        <div class="flex flex-col items-center gap-1.5">
+                            <span class="text-gray-400 uppercase tracking-wide text-[10px]">License</span>
+                            <div class="flex gap-1">
+                                @if ($order->licenseMedia->isNotEmpty())
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-500 text-white shadow-sm cursor-pointer"
+                                        onclick="openAllMedia({{ $order->id }}, 'license')">
+                                        <x-heroicon-o-check class="w-4 h-4" />
+                                    </span>
+                                    <script type="application/json" id="media-{{ $order->id }}-license">
+                                        {!! $order->licenseMedia->map(fn($m) => ['url' => optional($m->media)->url, 'type' => $m->type, 'side' => $m->side])->toJson() !!}
+                                    </script>
+                                @else
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-500 text-white shadow-sm">
+                                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="flex items-center justify-center gap-2 text-[10px] text-gray-400 mt-3 pt-2 border-t border-gray-100">
+                        <span class="flex items-center gap-1"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>Completed</span>
+                        <span>|</span>
+                        <span class="flex items-center gap-1"><span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500"></span>Pending</span>
+                    </div>
+                </div>
+            @endif
+
             <div
-                class="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col text-sm text-gray-700 pt-4">
+                class="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col text-sm text-gray-700">
                 <div class="flex justify-between">
                     <span>Subtotal:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}</span>
@@ -1655,23 +1718,22 @@
                 @endif
 
             </div>
-            <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col relative">
-                <!-- Title -->
+
+            {{-- Notes (col-span-2 = 50%) --}}
+            <div class="col-span-2 bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col relative">
                 <h2 class="text-black font-semibold text-lg mb-2">
                     Order / Delivery Instructions
                 </h2>
-                <!-- Add Note Button -->
                 <button
                     class="absolute top-3 right-3 flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
                     id="addNoteBtn">
                     <x-heroicon-o-plus class="w-4 h-4" /> Add Note
                 </button>
-
                 <div class="p-6 max-h-60 overflow-y-auto" id="noteDiv">
                     <x-admin.order-management.orders.order-notes-list :notes="$order->unified_notes" />
                 </div>
             </div>
-        </div>
+        </div>{{-- close grid grid-cols-4 --}}
         @if (!empty($payments) && $payments->isNotEmpty())
             {{--  Order Extra Payments --}}
             <div class="grid md:grid-cols-1 gap-4">
@@ -1686,6 +1748,113 @@
                 </div>
             </div>
         @endif
+
+        {{-- POD Payment Links History --}}
+        {{-- @if ($order->podPaymentLink)
+            @php
+                $podActivities = $order->podPaymentLink->activities ?? collect();
+                $podPaymentUrl = route('front.checkout.order-payment-form', ['order' => encrypt($order->unique_id)]);
+                $podLinkModel  = $order->podPaymentLink;
+                $podCurStatus  = $podLinkModel->pod_status instanceof \App\Enums\Orders\PodPaymentLinkStatus
+                    ? $podLinkModel->pod_status
+                    : \App\Enums\Orders\PodPaymentLinkStatus::from($podLinkModel->pod_status);
+                [$podCurBg, $podCurBorder, $podCurTextColor, $podCurIcon] = match ($podCurStatus) {
+                    \App\Enums\Orders\PodPaymentLinkStatus::Pending     => ['bg-yellow-50',  'border-yellow-300', 'text-yellow-800', 'heroicon-o-clock'],
+                    \App\Enums\Orders\PodPaymentLinkStatus::Opened      => ['bg-blue-50',    'border-blue-300',   'text-blue-800',   'heroicon-o-eye'],
+                    \App\Enums\Orders\PodPaymentLinkStatus::Expired     => ['bg-red-50',     'border-red-300',    'text-red-800',    'heroicon-o-x-circle'],
+                    \App\Enums\Orders\PodPaymentLinkStatus::Reactivated => ['bg-orange-50',  'border-orange-300', 'text-orange-800', 'heroicon-o-arrow-path'],
+                    \App\Enums\Orders\PodPaymentLinkStatus::Completed   => ['bg-green-50',   'border-green-300',  'text-green-800',  'heroicon-o-check-circle'],
+                };
+                $podTimestamps = array_filter([
+                    $podLinkModel->payment_link_created_at  ? 'Created: '     . \Carbon\Carbon::parse($podLinkModel->payment_link_created_at)->format('m/d/Y h:i A')  : null,
+                    $podLinkModel->payment_link_opened_at   ? 'Opened: '      . \Carbon\Carbon::parse($podLinkModel->payment_link_opened_at)->format('m/d/Y h:i A')   : null,
+                    $podLinkModel->pod_expired_at           ? 'Expired: '     . \Carbon\Carbon::parse($podLinkModel->pod_expired_at)->format('m/d/Y h:i A')           : null,
+                    $podLinkModel->pod_reactivated_at       ? 'Reactivated: ' . \Carbon\Carbon::parse($podLinkModel->pod_reactivated_at)->format('m/d/Y h:i A')       : null,
+                    $podLinkModel->pod_payment_completed_at ? 'Paid: '        . \Carbon\Carbon::parse($podLinkModel->pod_payment_completed_at)->format('m/d/Y h:i A') : null,
+                ]);
+            @endphp
+            <div class="grid md:grid-cols-1 gap-4">
+                <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <h2 class="text-black font-semibold text-lg mb-3">POD Payment Links</h2>
+
+                    
+                    <div class="flex flex-wrap items-center gap-3 mb-4 p-3 rounded-lg border {{ $podCurBg }} {{ $podCurBorder }}">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold {{ $podCurTextColor }} {{ $podCurBg }} border {{ $podCurBorder }}">
+                            <x-dynamic-component :component="$podCurIcon" class="w-4 h-4" />
+                            {{ ucfirst($podCurStatus->value) }}
+                        </span>
+                        @foreach ($podTimestamps as $ts)
+                            <span class="text-xs text-gray-500">{{ $ts }}</span>
+                            @if (!$loop->last)<span class="text-gray-300 text-xs">|</span>@endif
+                        @endforeach
+                        @if ($podLinkModel->payment_link_open_count > 0)
+                            <span class="ml-auto text-xs text-gray-500">Opened {{ $podLinkModel->payment_link_open_count }}×</span>
+                        @endif
+                    </div>
+                    @if ($podActivities->isNotEmpty())
+                        <div class="overflow-x-auto max-h-60 overflow-y-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
+                                        <th class="pb-2 pr-4">#</th>
+                                        <th class="pb-2 pr-4">Time</th>
+                                        <th class="pb-2 pr-4">Status / Event</th>
+                                        <th class="pb-2">Payment Link</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($podActivities->sortBy('id') as $i => $activity)
+                                        <tr>
+                                            <td class="py-2 pr-4 text-gray-400 text-xs">{{ $i + 1 }}</td>
+                                            <td class="py-2 pr-4 text-gray-600 whitespace-nowrap text-xs">
+                                                {{ \Carbon\Carbon::parse($activity->created_at)->format('m/d/Y h:i A') }}
+                                            </td>
+                                            <td class="py-2 pr-4">
+                                                @php
+                                                    $evt = $activity->event instanceof \App\Enums\Orders\PodPaymentLinkEvent
+                                                        ? $activity->event
+                                                        : \App\Enums\Orders\PodPaymentLinkEvent::from($activity->event);
+                                                    [$evtBg, $evtText] = match ($evt) {
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::LinkCreated       => ['bg-gray-100',   'text-gray-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::PaymentLinkSent   => ['bg-blue-100',   'text-blue-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::LinkOpened        => ['bg-indigo-100', 'text-indigo-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::Reminder1Sent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::Reminder2Sent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::Reminder3Sent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::Reminder4Sent     => ['bg-yellow-100', 'text-yellow-800'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::DayBeforeSent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::FinalReminderSent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::LastDitchSent     => ['bg-orange-100', 'text-orange-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::ManualResend      => ['bg-teal-100',   'text-teal-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::PaymentCompleted  => ['bg-green-100',  'text-green-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::OrderExpired      => ['bg-red-100',    'text-red-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::OrderReactivated  => ['bg-purple-100', 'text-purple-700'],
+                                                    };
+                                                @endphp
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $evtBg }} {{ $evtText }}">
+                                                    {{ $evt->label() }}
+                                                </span>
+                                            </td>
+                                            <td class="py-2">
+                                                <a href="{{ $podPaymentUrl }}"
+                                                   target="_blank"
+                                                   class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                                                    <x-heroicon-o-link class="w-3.5 h-3.5" />
+                                                    Open Payment Page
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-sm text-gray-400">No activity recorded yet.</p>
+                    @endif
+                </div>
+            </div>
+        @endif
+        --}}
 
         {{-- Additional Charges (Fuel & Damage from customer_accounts) --}}
         @include('admin.order_management.orders.partials._additional_charges', ['additionalCharges' => $additionalCharges])
@@ -1721,15 +1890,15 @@
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($relatedOrders as $related)
                                     @php
-                                        $extStatus = $related->last_payment_status ?? 'Pending';
-                                        $extStatusClass = $extStatus === 'Paid'
+                                        $extStatus = $related->last_payment_status ?? OrderPaymentStatus::Pending->value;
+                                        $extStatusClass = $extStatus === OrderPaymentStatus::Paid->value
                                             ? 'bg-green-100 text-green-700'
-                                            : ($extStatus === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
+                                            : ($extStatus === OrderPaymentStatus::Failed->value ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
                                         $extTotalPaid = $related->payments
-                                            ->whereIn('status', ['Paid', 'Partial Payment'])
+                                            ->whereIn('status', [OrderPaymentStatus::Paid, OrderPaymentStatus::PartialPayment])
                                             ->sum('amount');
                                         $extBalanceDue = max(0, (float) $related->grand_total - $extTotalPaid);
-                                        $extNeedsPayment = in_array($extStatus, ['Pending', 'Failed', 'Partial Payment']);
+                                        $extNeedsPayment = in_array($extStatus, [OrderPaymentStatus::Pending->value, OrderPaymentStatus::Failed->value, OrderPaymentStatus::PartialPayment->value]);
                                     @endphp
                                     <tr>
                                         <td class="py-3 pr-4">

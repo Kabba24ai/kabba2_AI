@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TaskActivityLog extends Model
 {
+    protected $table = 'daily_task_activity_logs';
+
     protected $fillable = [
         'task_id',
         'user_id',

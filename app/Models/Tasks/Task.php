@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Task extends Model
 {
+    protected $table = 'daily_tasks';
+
     protected $fillable = [
         'category',
         'title',

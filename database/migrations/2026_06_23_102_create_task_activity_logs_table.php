@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('task_activity_logs', function (Blueprint $table) {
+        Schema::create('daily_task_activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('task_id')->constrained('tasks')->cascadeOnDelete();
+            $table->foreignId('task_id')->constrained('daily_tasks')->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('action');
             $table->text('old_value')->nullable();
@@ -21,6 +21,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('task_activity_logs');
+        Schema::dropIfExists('daily_task_activity_logs');
     }
 };

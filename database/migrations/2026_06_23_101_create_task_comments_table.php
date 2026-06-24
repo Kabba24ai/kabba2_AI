@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('task_comments', function (Blueprint $table) {
+        Schema::create('daily_task_comments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('task_id')->constrained('tasks')->cascadeOnDelete();
+            $table->foreignId('task_id')->constrained('daily_tasks')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->text('comment');
             $table->timestamps();
@@ -19,6 +19,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('task_comments');
+        Schema::dropIfExists('daily_task_comments');
     }
 };

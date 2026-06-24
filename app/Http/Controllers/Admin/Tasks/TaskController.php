@@ -107,7 +107,7 @@ class TaskController extends Controller
         $users = User::active()->orderBy('first_name')->get();
 
         $completedToday = Task::completedToday()
-            ->with(['assignedTo', 'category'])
+            ->with(['assignedTo'])
             ->orderByDesc('completed_at')
             ->get();
 

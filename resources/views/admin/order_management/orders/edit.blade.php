@@ -1475,6 +1475,7 @@
                                         @endif
                                     </div>
                                 </div>
+                                </div>{{-- close flex gap-3 flex-wrap items-stretch --}}
 
                                 {{-- Hidden JSON for THIS product --}}
                                 {{-- Hidden JSON --}}

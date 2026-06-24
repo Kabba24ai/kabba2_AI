@@ -80,16 +80,16 @@ class IndexController extends Controller
             // Priority order (uses the is_assigned alias computed in selectRaw):
             // 1 — assigned + maintenance hold (needs work before next rental)
             // 2 — assigned + damaged          (needs work before next rental)
-            // 3 — damaged,     no active order
-            // 4 — maintenance, no active order
+            // 3 — maintenance, no active order
+            // 4 — damaged,     no active order
             // 5 — rented   (out on rent; never elevated by assignment)
             // 6 — available (never elevated by assignment)
             $query->orderByRaw("
                 CASE
                     WHEN is_assigned = 1 AND current_status = 'maintenance' THEN 1
                     WHEN is_assigned = 1 AND current_status = 'damaged'     THEN 2
-                    WHEN current_status = 'damaged'                         THEN 3
-                    WHEN current_status = 'maintenance'                     THEN 4
+                    WHEN current_status = 'maintenance'                     THEN 3
+                    WHEN current_status = 'damaged'                         THEN 4
                     WHEN current_status = 'rented'                          THEN 5
                     WHEN current_status = 'available'                       THEN 6
                     ELSE 7
@@ -97,8 +97,8 @@ class IndexController extends Controller
             ");
         } else {
             $query->orderByRaw("CASE current_status
-                WHEN 'damaged'     THEN 1
-                WHEN 'maintenance' THEN 2
+                WHEN 'maintenance' THEN 1
+                WHEN 'damaged'     THEN 2
                 WHEN 'rented'      THEN 3
                 WHEN 'available'   THEN 4
                 ELSE 5 END");

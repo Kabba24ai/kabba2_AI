@@ -37,60 +37,62 @@
     $badgeInactive = $badgeBase . ' bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
 @endphp
 
-{{-- Filters --}}
-<div class="mb-5 space-y-3">
+{{-- Filters: single flex row — form wraps everything so hidden inputs are preserved on dropdown submit --}}
+<form method="GET" action="{{ route('admin.tasks.index') }}"
+      class="mb-5 flex flex-wrap items-end gap-x-3 gap-y-2">
 
-    {{-- Row 1: Status, Priority, Due Today, Overdue --}}
-    <form method="GET" action="{{ route('admin.tasks.index') }}" class="flex flex-wrap gap-3 items-end">
+    {{-- Preserve badge-selected filters when form dropdowns fire --}}
+    @if(request('category'))
+        <input type="hidden" name="category" value="{{ request('category') }}">
+    @endif
+    @if(request('assigned_to'))
+        <input type="hidden" name="assigned_to" value="{{ request('assigned_to') }}">
+    @endif
 
-        {{-- Preserve badge-selected filters when form dropdowns fire --}}
-        @if(request('category'))
-            <input type="hidden" name="category" value="{{ request('category') }}">
-        @endif
-        @if(request('assigned_to'))
-            <input type="hidden" name="assigned_to" value="{{ request('assigned_to') }}">
-        @endif
+    {{-- Status --}}
+    <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+        <select name="status" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            @foreach ($statuses as $st)
+                <option value="{{ $st->value }}" {{ request('status') === $st->value ? 'selected' : '' }}>{{ $st->label() }}</option>
+            @endforeach
+        </select>
+    </div>
 
-        <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-            <select name="status" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
-                <option value="">All Statuses</option>
-                @foreach ($statuses as $st)
-                    <option value="{{ $st->value }}" {{ request('status') === $st->value ? 'selected' : '' }}>{{ $st->label() }}</option>
-                @endforeach
-            </select>
-        </div>
+    {{-- Priority --}}
+    <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Priority</label>
+        <select name="priority" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
+            <option value="">All Priorities</option>
+            @foreach ($priorities as $pri)
+                <option value="{{ $pri->value }}" {{ request('priority') === $pri->value ? 'selected' : '' }}>{{ $pri->label() }}</option>
+            @endforeach
+        </select>
+    </div>
 
-        <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Priority</label>
-            <select name="priority" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
-                <option value="">All Priorities</option>
-                @foreach ($priorities as $pri)
-                    <option value="{{ $pri->value }}" {{ request('priority') === $pri->value ? 'selected' : '' }}>{{ $pri->label() }}</option>
-                @endforeach
-            </select>
-        </div>
+    {{-- Due Today / Overdue --}}
+    <div class="flex items-center gap-3 pb-1">
+        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-brand-500">
+            Due Today
+        </label>
+        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-red-500">
+            Overdue
+        </label>
+    </div>
 
-        <div class="flex items-center gap-4 pb-1">
-            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-brand-500">
-                Due Today
-            </label>
-            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-red-500">
-                Overdue
-            </label>
-        </div>
+    @if (request()->hasAny(['category', 'status', 'priority', 'assigned_to', 'due_today', 'overdue']))
+        <a href="{{ route('admin.tasks.index') }}" class="text-sm text-gray-500 hover:text-gray-700 underline pb-1">Clear filters</a>
+    @endif
 
-        @if (request()->hasAny(['category', 'status', 'priority', 'assigned_to', 'due_today', 'overdue']))
-            <a href="{{ route('admin.tasks.index') }}" class="text-sm text-gray-500 hover:text-gray-700 underline pb-1">Clear filters</a>
-        @endif
+    {{-- Divider --}}
+    <span class="self-center h-5 w-px bg-gray-200 mx-1 shrink-0"></span>
 
-    </form>
-
-    {{-- Row 2: Task Category badges --}}
-    <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 shrink-0">Task Categories</span>
+    {{-- Task Categories badge group --}}
+    <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Task Categories</span>
 
         <a href="{{ $taskUrl(['category' => null, 'page' => null]) }}"
            class="{{ !request('category') ? $badgeBase . ' bg-sky-600 text-white border-sky-600' : $badgeInactive }}">
@@ -108,27 +110,29 @@
         @endforeach
     </div>
 
-    {{-- Row 3: Assigned To badges --}}
+    {{-- Divider + Assigned To badge group --}}
     @if ($badgeUsers->isNotEmpty())
-    <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 shrink-0">Assigned To</span>
+        <span class="self-center h-5 w-px bg-gray-200 mx-1 shrink-0"></span>
 
-        <a href="{{ $taskUrl(['assigned_to' => null, 'page' => null]) }}"
-           class="{{ !request('assigned_to') ? $badgeBase . ' bg-emerald-600 text-white border-emerald-600' : $badgeInactive }}">
-            All ({{ $userAllCount }})
-        </a>
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Assigned To</span>
 
-        @foreach ($badgeUsers as $bUser)
-            @php $isActive = request('assigned_to') == $bUser->id; @endphp
-            <a href="{{ $taskUrl(['assigned_to' => $bUser->id, 'page' => null]) }}"
-               class="{{ $isActive ? $badgeBase . ' bg-violet-600 text-white border-violet-600' : $badgeInactive }}">
-                {{ $bUser->full_name }} ({{ $userCountsRaw->get($bUser->id, 0) }})
+            <a href="{{ $taskUrl(['assigned_to' => null, 'page' => null]) }}"
+               class="{{ !request('assigned_to') ? $badgeBase . ' bg-emerald-600 text-white border-emerald-600' : $badgeInactive }}">
+                All ({{ $userAllCount }})
             </a>
-        @endforeach
-    </div>
+
+            @foreach ($badgeUsers as $bUser)
+                @php $isActive = request('assigned_to') == $bUser->id; @endphp
+                <a href="{{ $taskUrl(['assigned_to' => $bUser->id, 'page' => null]) }}"
+                   class="{{ $isActive ? $badgeBase . ' bg-violet-600 text-white border-violet-600' : $badgeInactive }}">
+                    {{ $bUser->full_name }} ({{ $userCountsRaw->get($bUser->id, 0) }})
+                </a>
+            @endforeach
+        </div>
     @endif
 
-</div>
+</form>
 
 {{-- Table --}}
 <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">

@@ -171,8 +171,8 @@
                     </td>
                     <td class="px-4 py-3">
                         @if ($task->equipment)
-                            <span class="font-medium text-gray-800 text-xs">{{ $task->equipment->equipment_id }}</span>
-                            <div class="text-xs text-gray-500 truncate max-w-[120px]">{{ $task->equipment->equipment_name }}</div>
+                            <div class="text-sm text-gray-800 truncate max-w-[120px]">{{ $task->equipment->equipment_name }}</div>
+                            <div class="text-xs text-gray-400">{{ $task->equipment->equipment_id }}</div>
                         @else
                             <span class="text-gray-400">—</span>
                         @endif

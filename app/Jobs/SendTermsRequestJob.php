@@ -29,7 +29,7 @@ class SendTermsRequestJob implements ShouldQueue
     {
         $order = Order::find($this->orderId);
         if (! $order) return;
-        if ($order->terms_signed_at) return;
+        if ($order->terms_accepted_at) return;
         if ($order->reference_order_number) return;
         app(TermsService::class)->sendTermsRequest($order, $this->sendNumber, $this->source);
     }

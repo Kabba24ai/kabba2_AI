@@ -22,7 +22,7 @@ class OrderTermsSignedListener
             'action_by' => OrderHistoryActionBy::Customer,
             'action_date' => now(),
             'action' => OrderHistoryAction::TermsSigned,
-            'description' => "Order {$order->order_number} terms and conditions signed by customer",
+            'description' => 'Terms accepted by customer.',
         ]);
 
     }

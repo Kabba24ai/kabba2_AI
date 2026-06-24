@@ -54,13 +54,17 @@ class TermsService
             2 => \App\Enums\Orders\OrderHistoryAction::TermsSecondRequest,
             3 => \App\Enums\Orders\OrderHistoryAction::TermsThirdRequest,
         };
+        $historyDescription = match ($sendNumber) {
+            1 => 'Terms request SMS sent.',
+            2, 3 => 'Terms reminder SMS sent.',
+        };
         $order->history()->create([
             'customer_id' => $order->customer_id,
             'user_id' => null,
             'action_date' => now(),
             'action_by' => \App\Enums\Orders\OrderHistoryActionBy::System,
             'action' => $action,
-            'description' => $message,
+            'description' => $historyDescription,
         ]);
     }
 }

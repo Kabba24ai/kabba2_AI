@@ -138,14 +138,7 @@
         time_24hr: false,
     });
 
-    const allEquipment = @json($equipmentList->map(fn($e) => [
-        'id'          => $e->id,
-        'equipment_id'=> $e->equipment_id,
-        'name'        => $e->equipment_name,
-        'category_id' => $e->product_category_id,
-        'status'      => $e->current_status?->label() ?? '',
-        'serial'      => $e->serial_number ?? '',
-    ]));
+    const allEquipment = @json($equipmentList);
 
     const savedEquipId  = {{ $task->related_equipment_id ?? 'null' }};
     const categoryFilter = document.getElementById('equip_category_filter');

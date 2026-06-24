@@ -26,14 +26,14 @@ class TaskController extends Controller
             ->when($request->boolean('overdue'),    fn($q) => $q->overdue());
 
         $tasks = $query
-            ->orderByRaw("CASE status
+            ->orderByRaw("CASE `status`
                 WHEN 'open'        THEN 1
                 WHEN 'in_progress' THEN 2
                 WHEN 'waiting'     THEN 3
                 WHEN 'completed'   THEN 4
                 WHEN 'cancelled'   THEN 5
                 ELSE 6 END")
-            ->orderByRaw("CASE priority
+            ->orderByRaw("CASE `priority`
                 WHEN 'urgent' THEN 1
                 WHEN 'high'   THEN 2
                 WHEN 'normal' THEN 3

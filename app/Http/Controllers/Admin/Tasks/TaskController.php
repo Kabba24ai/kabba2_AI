@@ -10,14 +10,35 @@ use App\Http\Requests\Admin\Tasks\StoreTaskCommentRequest;
 use App\Http\Requests\Admin\Tasks\StoreTaskRequest;
 use App\Http\Requests\Admin\Tasks\UpdateTaskRequest;
 use App\Models\Iam\Personnel\User;
+use App\Models\MaintenanceManagement\Equipment;
+use App\Models\ProductManagement\ProductCategory;
 use App\Models\Tasks\Task;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+    private function equipmentData(): array
+    {
+        $usedCategoryIds = Equipment::whereNotNull('product_category_id')
+            ->pluck('product_category_id')
+            ->unique();
+
+        $productCategories = ProductCategory::whereNull('parent_id')
+            ->whereIn('id', $usedCategoryIds)
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
+        $equipmentList = Equipment::with('productCategory:id,title')
+            ->whereNotNull('product_category_id')
+            ->orderBy('equipment_name')
+            ->get(['id', 'equipment_id', 'equipment_name', 'product_category_id', 'current_status', 'serial_number']);
+
+        return compact('productCategories', 'equipmentList');
+    }
+
     public function index(Request $request)
     {
-        $query = Task::with(['assignedTo', 'createdBy'])
+        $query = Task::with(['assignedTo', 'createdBy', 'equipment'])
             ->when($request->filled('category'), fn($q) => $q->where('category', $request->category))
             ->when($request->filled('status'),   fn($q) => $q->where('status', $request->status))
             ->when($request->filled('priority'), fn($q) => $q->where('priority', $request->priority))
@@ -57,8 +78,9 @@ class TaskController extends Controller
         $categories = TaskCategory::cases();
         $priorities = TaskPriority::cases();
         $statuses   = TaskStatus::cases();
+        ['productCategories' => $productCategories, 'equipmentList' => $equipmentList] = $this->equipmentData();
 
-        return view('admin.tasks.create', compact('users', 'categories', 'priorities', 'statuses'));
+        return view('admin.tasks.create', compact('users', 'categories', 'priorities', 'statuses', 'productCategories', 'equipmentList'));
     }
 
     public function store(StoreTaskRequest $request)
@@ -78,7 +100,7 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $task->load(['assignedTo', 'createdBy', 'comments.user', 'activityLogs.user']);
+        $task->load(['assignedTo', 'createdBy', 'equipment.productCategory', 'comments.user', 'activityLogs.user']);
 
         return view('admin.tasks.show', compact('task'));
     }
@@ -89,8 +111,9 @@ class TaskController extends Controller
         $categories = TaskCategory::cases();
         $priorities = TaskPriority::cases();
         $statuses   = TaskStatus::cases();
+        ['productCategories' => $productCategories, 'equipmentList' => $equipmentList] = $this->equipmentData();
 
-        return view('admin.tasks.edit', compact('task', 'users', 'categories', 'priorities', 'statuses'));
+        return view('admin.tasks.edit', compact('task', 'users', 'categories', 'priorities', 'statuses', 'productCategories', 'equipmentList'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)

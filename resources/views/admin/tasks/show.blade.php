@@ -100,6 +100,55 @@
     {{-- Sidebar --}}
     <div class="space-y-5">
 
+        {{-- Equipment Panel --}}
+        @if ($task->equipment)
+        <div class="bg-white rounded-lg border border-brand-200 shadow-sm p-5">
+            <h4 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <x-heroicon-o-wrench-screwdriver class="w-4 h-4 text-brand-500" />
+                Equipment
+            </h4>
+            <dl class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Equipment ID</dt>
+                    <dd class="font-semibold text-gray-900">{{ $task->equipment->equipment_id }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Name</dt>
+                    <dd class="font-medium text-gray-800 text-right max-w-[160px]">{{ $task->equipment->equipment_name }}</dd>
+                </div>
+                @if ($task->equipment->productCategory)
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Category</dt>
+                    <dd class="font-medium text-gray-800">{{ $task->equipment->productCategory->title }}</dd>
+                </div>
+                @endif
+                @if ($task->equipment->serial_number)
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Serial #</dt>
+                    <dd class="font-medium text-gray-800">{{ $task->equipment->serial_number }}</dd>
+                </div>
+                @endif
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Status</dt>
+                    <dd>
+                        @php
+                            $eqColor = match($task->equipment->current_status?->value) {
+                                'available'   => 'bg-green-100 text-green-700',
+                                'rented'      => 'bg-blue-100 text-blue-700',
+                                'maintenance' => 'bg-yellow-100 text-yellow-700',
+                                'damaged'     => 'bg-red-100 text-red-700',
+                                default       => 'bg-gray-100 text-gray-600',
+                            };
+                        @endphp
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $eqColor }}">
+                            {{ $task->equipment->status_label }}
+                        </span>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+        @endif
+
         {{-- Details --}}
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
             <h4 class="text-sm font-semibold text-gray-700 mb-4">Details</h4>

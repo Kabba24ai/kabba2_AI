@@ -94,7 +94,8 @@ Schedule::job(new \App\Jobs\SendMeetingReminderJob())
     ->name('send-meeting-reminder-job');
 
 Schedule::job(new \App\Jobs\ExpirePodPaymentLinksJob())
-    ->dailyAt('01:00')
+    // ->dailyAt('01:00')
+    ->dailyAt('02:00')
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()

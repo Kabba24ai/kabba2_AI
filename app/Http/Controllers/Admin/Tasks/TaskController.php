@@ -28,10 +28,24 @@ class TaskController extends Controller
             ->orderBy('title')
             ->get(['id', 'title']);
 
-        $equipmentList = Equipment::with('productCategory:id,title')
-            ->whereNotNull('product_category_id')
+        $statusLabels = [
+            'available'   => 'Available',
+            'rented'      => 'Rented',
+            'maintenance' => 'Maint. Hold',
+            'damaged'     => 'Damaged',
+        ];
+
+        $equipmentList = Equipment::whereNotNull('product_category_id')
             ->orderBy('equipment_name')
-            ->get(['id', 'equipment_id', 'equipment_name', 'product_category_id', 'current_status', 'serial_number']);
+            ->get(['id', 'equipment_id', 'equipment_name', 'product_category_id', 'current_status', 'serial_number'])
+            ->map(fn($e) => [
+                'id'          => $e->id,
+                'equipment_id' => $e->equipment_id,
+                'name'        => $e->equipment_name,
+                'category_id' => $e->product_category_id,
+                'status'      => $statusLabels[$e->getRawOriginal('current_status')] ?? '',
+                'serial'      => $e->serial_number ?? '',
+            ]);
 
         return compact('productCategories', 'equipmentList');
     }

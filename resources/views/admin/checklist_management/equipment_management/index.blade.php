@@ -662,22 +662,22 @@
 
                                     <div>
                                         <div class="font-medium text-gray-700">Model</div>
-                                        <div>- ${eq.model}</div>
+                                        <div>${eq.model || ''}</div>
                                     </div>
 
                                     <div>
                                         <div class="font-medium text-gray-700">Equipment ID</div>
-                                        <div>- ${eq.equipment_id}</div>
+                                        <div>${eq.equipment_id}</div>
                                     </div>
 
                                     <div>
                                         <div class="font-medium text-gray-700">Category</div>
-                                        <div>- ${eq.category}</div>
+                                        <div>${eq.category}</div>
                                     </div>
 
                                     <div>
                                         <div class="font-medium text-gray-700">Assigned Order</div>
-                                        <div>${eq.orderproduct ? '- ' + eq.orderproduct : '<span class="text-xs italic text-gray-400">None</span>'}</div>
+                                        <div>${eq.orderproduct ? eq.orderproduct : '<span class="text-xs italic text-gray-400">None</span>'}</div>
                                     </div>
 
                                     <div>
@@ -687,13 +687,13 @@
                                                 <circle cx="12" cy="12" r="10"/>
                                                 <polyline points="12 6 12 12 16 14"/>
                                             </svg>
-                                            - ${(eq.hours ?? 0).toLocaleString()}
+                                            ${(eq.hours ?? 0).toLocaleString()}
                                         </div>
                                     </div>
 
                                     <div>
                                         <div class="font-medium text-gray-700">Last Inspection</div>
-                                        <div>- ${eq.lastInspection}</div>
+                                        <div>${eq.lastInspection || 'Not Available'}</div>
                                     </div>
 
                                 </div>

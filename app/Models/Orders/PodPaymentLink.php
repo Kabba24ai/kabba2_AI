@@ -91,7 +91,11 @@ class PodPaymentLink extends Model
             })(),
 
         // No dedicated timestamp column — activity row is the record
-        PodPaymentLinkEvent::ManualResend => null,
+        PodPaymentLinkEvent::ManualResend,
+        PodPaymentLinkEvent::PaymentLinkSent,
+        PodPaymentLinkEvent::DayBeforeSent,
+        PodPaymentLinkEvent::FinalReminderSent,
+        PodPaymentLinkEvent::LastDitchSent     => null,
         };
 
         $this->save();

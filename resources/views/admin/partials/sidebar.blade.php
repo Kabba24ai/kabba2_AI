@@ -81,6 +81,7 @@
                     </li>
 
                     <!-- Tasks -->
+                    @if (Route::has('admin.tasks.index'))
                     <li>
                         <a href="{{ route('admin.tasks.index') }}"
                             class="menu-item group flex items-center gap-3 {{ Route::is('admin.tasks.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
@@ -90,6 +91,7 @@
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Tasks</span>
                         </a>
                     </li>
+                    @endif
 
                     <!-- Orders -->
                     <li x-data="{ open: {{ $ordersActive ? 'true' : 'false' }} }">

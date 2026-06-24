@@ -231,18 +231,18 @@ class SendPodPaymentReminderJob implements ShouldQueue
         $tag = '[POD Day Before 3PM]';
 
         // 3:00 PM day
-        
-        // if (now()->timezone('America/Chicago')->hour < 15) {
-        //     $this->log('info', "$tag Before 3:00 PM — skipping.");
-        //     return;
-        // }
 
-        $now = now()->timezone('America/Chicago');
-
-        if ($now->format('H:i') !== '01:35') {
-            $this->log('info', "$tag Not 1:35 AM — skipping.");
+        if (now()->timezone('America/Chicago')->hour < 15) {
+            $this->log('info', "$tag Before 3:00 PM — skipping.");
             return;
         }
+
+        // $now = now()->timezone('America/Chicago');
+
+        // if ($now->format('H:i') !== '01:35') {
+        //     $this->log('info', "$tag Not 1:35 AM — skipping.");
+        //     return;
+        // }
 
         $truckEnabled  = ($settings['pod_day_before_truck_message_enabled'] ?? null) == '1';
         $storeEnabled  = ($settings['pod_day_before_store_message_enabled'] ?? null) == '1';
@@ -282,8 +282,15 @@ class SendPodPaymentReminderJob implements ShouldQueue
     {
         $tag = '[POD Final Reminder 9AM]';
 
-        if (now()->timezone('America/Chicago')->hour < 9) {
-            $this->log('info', "$tag Before 9:00 AM — skipping.");
+        // if (now()->timezone('America/Chicago')->hour < 9) {
+        //     $this->log('info', "$tag Before 9:00 AM — skipping.");
+        //     return;
+        // }
+
+         $now = now()->timezone('America/Chicago');
+
+        if ($now->format('H:i') !== '01:40') {
+            $this->log('info', "$tag Not 1:40 AM — skipping.");
             return;
         }
 
@@ -325,10 +332,19 @@ class SendPodPaymentReminderJob implements ShouldQueue
     {
         $tag = '[POD Last Ditch 4PM]';
 
-        if (now()->timezone('America/Chicago')->hour < 16) {
-            $this->log('info', "$tag Before 4:00 PM — skipping.");
+        // if (now()->timezone('America/Chicago')->hour < 16) {
+        //     $this->log('info', "$tag Before 4:00 PM — skipping.");
+        //     return;
+        // }
+
+
+         $now = now()->timezone('America/Chicago');
+
+        if ($now->format('H:i') !== '01:42') {
+            $this->log('info', "$tag Not 1:42 AM — skipping.");
             return;
         }
+
 
         $truckEnabled  = ($settings['pod_last_ditch_truck_message_enabled'] ?? null) == '1';
         $storeEnabled  = ($settings['pod_last_ditch_store_message_enabled'] ?? null) == '1';

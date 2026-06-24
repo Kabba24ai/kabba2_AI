@@ -444,7 +444,7 @@
                     checklist_master_id: eq.checklist_master_id,
                     hours: eq.equipment_hours,
                     lastInspection: eq.last_inspection ?? '',
-                    orderproduct: eq.order_product?.product_name ?? '-',
+                    orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                     orderproductid: eq.order_product?.id ?? null,
                     order_route: eq.order?.view_link ?? null,
                     orderid: eq.order?.id ?? null,
@@ -549,7 +549,7 @@
                             checklist_master_id: eq.checklist_master_id,
                             hours: eq.equipment_hours,
                             lastInspection: eq.last_inspection ?? '',
-                            orderproduct: eq.order_product?.product_name ?? '-',
+                            orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                             orderproductid: eq.order_product?.id ?? null,
                             order_route: eq.order?.view_link ?? null,
                             orderid: eq.order?.id ?? null,
@@ -682,8 +682,8 @@
                                     </div>
 
                                     <div>
-                                        <div class="font-medium text-gray-700">Order Product</div>
-                                        <div>- ${eq.orderproduct ?? '-'}</div>
+                                        <div class="font-medium text-gray-700">Assigned Order</div>
+                                        <div>${eq.orderproduct ? '- ' + eq.orderproduct : '<span class="text-xs italic text-gray-400">None</span>'}</div>
                                     </div>
 
                                     <div>
@@ -775,7 +775,7 @@
                             checklist_master_id: eq.checklist_master_id,
                             hours: eq.equipment_hours,
                             lastInspection: eq.last_inspection ?? '',
-                            orderproduct: eq.order_product?.product_name ?? '-',
+                            orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                             orderproductid: eq.order_product?.id ?? null,
                             order_route: eq.order?.view_link ?? null,
                             orderid: eq.order?.id ?? null,

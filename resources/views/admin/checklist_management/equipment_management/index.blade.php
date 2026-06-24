@@ -453,11 +453,12 @@
                     is_tracked: eq.is_tracked ?? 'No',
                     customername: eq.order?.customer_name ?? ' ',
                     serviceStatus: eq.service_status,
-                    serviceStatusIcon: serviceIcon
+                    serviceStatusIcon: serviceIcon,
+                    is_assigned: eq.is_assigned ?? 0
                 };
             });
 
-           
+
             let groups = []; // use 'let' so you can reassign
 
             function renderChecklist(groups) {}
@@ -490,7 +491,6 @@
             equipmentCount.textContent = `${equipment.length} of ${totalEquipment}`;
 
             inspectionDateInput.value = new Date().toISOString().slice(0, 10);
-            renderEquipment();
 
             equipmentWrapper.addEventListener("scroll", () => {
                     const nearBottom =
@@ -631,7 +631,7 @@
                 }
 
             @else
-                renderEquipment();
+                if (!typeFromUrl) { applyFilters(); }
             @endif
 
 
@@ -640,64 +640,23 @@
 
 
             /* =================== LEFT LIST =================== */
-            // function renderEquipment(selectedId = null) {
-            function renderEquipment(selectedId = null, append = false) {
-               console.time("renderEquipment");
-                const searchValue = document.getElementById("searchInput").value.toLowerCase();
-                const selectedCategory = document.getElementById("categoryFilter").value;
-                const selectedStatus = document.getElementById("statusFilter").value;
+            function createEquipmentCard(eq, selectedId = null) {
+                const card = document.createElement("div");
+                card.className =
+                    "equipment-card p-4 rounded-md border-1 transition-all cursor-pointer hover:shadow-md border-gray-200 hover:border-gray-300";
 
-                // equipmentList.innerHTML = "";
-                if (!append) {
-                    equipmentList.innerHTML = "";
-                }
-
-                // Sort by assignment × status priority.
-                // Only maintenance/damaged equipment with an active assigned order is elevated.
-                // Rented and available are never elevated by assignment status.
-                const assignedFirst = document.getElementById('currentlyAssignedFilter')?.checked ?? true;
-
-                function getEquipmentPriority(eq) {
-                    if (!assignedFirst) {
-                        // Checkbox off: simple status order
-                        const rank = { "Damaged": 1, "Maint. Hold": 2, "Rented": 3, "Available": 4 };
-                        return rank[eq.badge] || 99;
-                    }
-                    // Checkbox on: assigned maintenance/damaged float to top;
-                    // rented and available always stay at the bottom regardless of assignment.
-                    const actionableAssigned = eq.is_assigned && (eq.badge === 'Maint. Hold' || eq.badge === 'Damaged');
-                    if (actionableAssigned && eq.badge === 'Maint. Hold') return 1;
-                    if (actionableAssigned && eq.badge === 'Damaged')     return 2;
-                    if (eq.badge === 'Damaged')                           return 3;
-                    if (eq.badge === 'Maint. Hold')                       return 4;
-                    if (eq.badge === 'Rented')                            return 5;
-                    if (eq.badge === 'Available')                         return 6;
-                    return 99;
-                }
-
-                equipment.sort((a, b) => {
-                    const aPriority = getEquipmentPriority(a);
-                    const bPriority = getEquipmentPriority(b);
-                    if (aPriority !== bPriority) return aPriority - bPriority;
-                    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
-                });
-                equipment.forEach(eq => {
-                    const card = document.createElement("div");
-                    card.className =
-                        "equipment-card p-4 rounded-md border-1 transition-all cursor-pointer hover:shadow-md border-gray-200 hover:border-gray-300";
-
-                    card.innerHTML = `
+                card.innerHTML = `
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
                                 <div class="flex flex-wrap items-start gap-2 mb-2">
                                     <div class="flex items-center gap-2 min-w-0 flex-1">
                                         <h3 class="font-medium text-sm sm:text-base text-gray-900 truncate">${eq.name}</h3>
-                                    
+
                                     </div>
 
                                     <div class="basis-full sm:basis-auto sm:ml-auto inline-flex items-center gap-1.5 whitespace-nowrap">
                                         ${eq.serviceStatusIcon}
-                                        ${eq.icon}   
+                                        ${eq.icon}
                                         <span class="inline-flex px-2 py-1 rounded text-xs font-medium border ${badgeColors(eq.badge)}">
                                             ${eq.badge}
                                         </span>
@@ -749,27 +708,31 @@
 
                     `;
 
-                    // Click behavior...
-                    card.addEventListener("click", () => {
-                        document.querySelectorAll(".equipment-card").forEach(c => {
-                            c.classList.remove("border-blue-500", "bg-blue-50");
-                            c.classList.add("border-gray-200");
-                        });
-                        card.classList.add("border-blue-500", "bg-blue-50");
-                        openChecklist(eq);
+                card.addEventListener("click", () => {
+                    document.querySelectorAll(".equipment-card").forEach(c => {
+                        c.classList.remove("border-blue-500", "bg-blue-50");
+                        c.classList.add("border-gray-200");
                     });
+                    card.classList.add("border-blue-500", "bg-blue-50");
+                    openChecklist(eq);
+                });
 
-                    equipmentList.appendChild(card);
+                if (selectedId && eq.unique_id == selectedId) {
+                    card.classList.add("border-blue-500", "bg-blue-50");
+                    openChecklist(eq);
+                }
 
-                    if (selectedId && eq.unique_id == selectedId) {
-                        card.classList.add("border-blue-500", "bg-blue-50");
-                        openChecklist(eq);
-                    }
+                return card;
+            }
+
+            function renderEquipment(selectedId = null) {
+                console.time("renderEquipment");
+                equipmentList.innerHTML = "";
+                equipment.forEach(eq => {
+                    equipmentList.appendChild(createEquipmentCard(eq, selectedId));
                 });
                 equipmentCount.textContent = `${equipment.length} of ${totalEquipment}`;
-
                 console.timeEnd("renderEquipment");
-
             }
 
 
@@ -827,10 +790,10 @@
                     });
 
                     equipment.push(...newItems);
-                    // Re-render the full (now combined) list in correct sort order.
-                    // Must NOT use append=true because the sort may move new items
-                    // anywhere in the list, not just at the bottom.
-                    renderEquipment();
+                    newItems.forEach(eq => {
+                        equipmentList.appendChild(createEquipmentCard(eq, null));
+                    });
+                    equipmentCount.textContent = `${equipment.length} of ${totalEquipment}`;
 
                 } catch (error) {
                     console.log("Load more equipment error:", error);

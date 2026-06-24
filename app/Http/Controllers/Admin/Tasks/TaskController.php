@@ -85,7 +85,7 @@ class TaskController extends Controller
 
     public function edit(Task $task)
     {
-        $users      = User::active()->orderBy('first_name')->get();
+        $users      = User::activeOrIds([$task->assigned_to_user_id])->orderBy('first_name')->get();
         $categories = TaskCategory::cases();
         $priorities = TaskPriority::cases();
         $statuses   = TaskStatus::cases();

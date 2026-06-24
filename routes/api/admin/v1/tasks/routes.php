@@ -10,9 +10,11 @@ use App\Http\Controllers\Api\Admin\V1\Tasks\StartController;
 use App\Http\Controllers\Api\Admin\V1\Tasks\CompleteController;
 use App\Http\Controllers\Api\Admin\V1\Tasks\CancelController;
 use App\Http\Controllers\Api\Admin\V1\Tasks\DashboardCountsController;
+use App\Http\Controllers\Api\Admin\V1\Tasks\EmployeesController;
 
 Route::prefix('tasks')->group(function () {
     Route::get('/dashboard-counts',    DashboardCountsController::class);
+    Route::get('/employees',           EmployeesController::class);
     Route::get('/',                    IndexController::class);
     Route::post('/',                   StoreController::class);
     Route::get('/{task}',              ShowController::class);

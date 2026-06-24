@@ -19,7 +19,8 @@ class IndexController extends BaseController
             ->when($request->boolean('assigned_to_me'), fn($q) => $q->where('assigned_to_user_id', $user->id))
             ->when($request->boolean('due_today'),  fn($q) => $q->dueToday())
             ->when($request->boolean('overdue'),    fn($q) => $q->overdue())
-            ->orderByRaw("CASE priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")
+            ->orderByRaw("CASE `status` WHEN 'open' THEN 1 WHEN 'in_progress' THEN 2 WHEN 'waiting' THEN 3 WHEN 'completed' THEN 4 WHEN 'cancelled' THEN 5 ELSE 6 END")
+            ->orderByRaw("CASE `priority` WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END")
             ->orderBy('due_date')
             ->paginate(30);
 

@@ -17,19 +17,39 @@
     </a>
 </div>
 
-{{-- Filters --}}
-<form method="GET" action="{{ route('admin.tasks.index') }}" class="mb-5">
-    <div class="flex flex-wrap gap-3 items-end">
+@php
+    // URL builder: merges current query params with overrides; null values are stripped (removes that param)
+    $taskUrl = fn(array $overrides) => route('admin.tasks.index') . '?' . http_build_query(
+        collect(request()->query())
+            ->merge($overrides)
+            ->filter(fn($v) => $v !== null && $v !== '')
+            ->toArray()
+    );
 
-        <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Category</label>
-            <select name="category" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
-                <option value="">All Categories</option>
-                @foreach ($categories as $cat)
-                    <option value="{{ $cat->value }}" {{ request('category') === $cat->value ? 'selected' : '' }}>{{ $cat->label() }}</option>
-                @endforeach
-            </select>
-        </div>
+    // Active solid colors for each category
+    $catActiveColor = [
+        'sales' => 'bg-blue-600 text-white border-blue-600',
+        'yard'  => 'bg-green-600 text-white border-green-600',
+        'shop'  => 'bg-orange-500 text-white border-orange-500',
+        'admin' => 'bg-purple-600 text-white border-purple-600',
+    ];
+    $badgeBase    = 'inline-flex items-center rounded-full px-3 py-1 text-sm font-medium border transition-colors cursor-pointer';
+    $badgeInactive = $badgeBase . ' bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
+@endphp
+
+{{-- Filters --}}
+<div class="mb-5 space-y-3">
+
+    {{-- Row 1: Status, Priority, Due Today, Overdue --}}
+    <form method="GET" action="{{ route('admin.tasks.index') }}" class="flex flex-wrap gap-3 items-end">
+
+        {{-- Preserve badge-selected filters when form dropdowns fire --}}
+        @if(request('category'))
+            <input type="hidden" name="category" value="{{ request('category') }}">
+        @endif
+        @if(request('assigned_to'))
+            <input type="hidden" name="assigned_to" value="{{ request('assigned_to') }}">
+        @endif
 
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
@@ -51,16 +71,6 @@
             </select>
         </div>
 
-        <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Assigned To</label>
-            <select name="assigned_to" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
-                <option value="">All Users</option>
-                @foreach ($users as $user)
-                    <option value="{{ $user->id }}" {{ request('assigned_to') == $user->id ? 'selected' : '' }}>{{ $user->full_name }}</option>
-                @endforeach
-            </select>
-        </div>
-
         <div class="flex items-center gap-4 pb-1">
             <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                 <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-brand-500">
@@ -76,8 +86,49 @@
             <a href="{{ route('admin.tasks.index') }}" class="text-sm text-gray-500 hover:text-gray-700 underline pb-1">Clear filters</a>
         @endif
 
+    </form>
+
+    {{-- Row 2: Task Category badges --}}
+    <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 shrink-0">Task Categories</span>
+
+        <a href="{{ $taskUrl(['category' => null, 'page' => null]) }}"
+           class="{{ !request('category') ? $badgeBase . ' bg-sky-600 text-white border-sky-600' : $badgeInactive }}">
+            All ({{ $categoryCounts->sum() }})
+        </a>
+
+        @foreach ($categories as $cat)
+            @if ($categoryCounts->has($cat->value))
+                @php $isActive = request('category') === $cat->value; @endphp
+                <a href="{{ $taskUrl(['category' => $cat->value, 'page' => null]) }}"
+                   class="{{ $isActive ? $badgeBase . ' ' . ($catActiveColor[$cat->value] ?? 'bg-gray-600 text-white border-gray-600') : $badgeInactive }}">
+                    {{ $cat->label() }} ({{ $categoryCounts->get($cat->value) }})
+                </a>
+            @endif
+        @endforeach
     </div>
-</form>
+
+    {{-- Row 3: Assigned To badges --}}
+    @if ($badgeUsers->isNotEmpty())
+    <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 shrink-0">Assigned To</span>
+
+        <a href="{{ $taskUrl(['assigned_to' => null, 'page' => null]) }}"
+           class="{{ !request('assigned_to') ? $badgeBase . ' bg-emerald-600 text-white border-emerald-600' : $badgeInactive }}">
+            All ({{ $userAllCount }})
+        </a>
+
+        @foreach ($badgeUsers as $bUser)
+            @php $isActive = request('assigned_to') == $bUser->id; @endphp
+            <a href="{{ $taskUrl(['assigned_to' => $bUser->id, 'page' => null]) }}"
+               class="{{ $isActive ? $badgeBase . ' bg-violet-600 text-white border-violet-600' : $badgeInactive }}">
+                {{ $bUser->full_name }} ({{ $userCountsRaw->get($bUser->id, 0) }})
+            </a>
+        @endforeach
+    </div>
+    @endif
+
+</div>
 
 {{-- Table --}}
 <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">

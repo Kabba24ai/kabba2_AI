@@ -27,7 +27,7 @@ class IndexController extends Controller
 
         $currentlyAssigned = $request->input('currently_assigned', '1') !== '0';
 
-        $query = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
+        $query = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'softAssignments.orderProduct', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
             ->where('not_for_rent', 0)
             ->selectRaw("equipment.*, (
                 CASE WHEN (

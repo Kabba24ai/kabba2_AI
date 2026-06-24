@@ -286,7 +286,7 @@ class Order extends Model
     public function getLastPaymentStatusAttribute()
     {
         $lastPayment = $this->lastPayment;
-        return $lastPayment ? $lastPayment->status->label() : null;
+        return $lastPayment ? $lastPayment->status->value : null;
     }
 
     public function getIsPaidAttribute()

@@ -226,9 +226,9 @@
     </div>
 
     {{-- Completed Today Widget --}}
-    <div class="w-72 shrink-0">
-        <div class="rounded-lg border border-emerald-200 bg-white shadow-sm">
-            <div class="px-4 py-3 border-b border-emerald-100 bg-emerald-50 rounded-t-lg">
+    <div class="w-[420px] shrink-0">
+        <div class="rounded-lg border border-emerald-200 bg-white shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b border-emerald-100 bg-emerald-50">
                 <h4 class="text-sm font-semibold text-emerald-800">
                     Tasks Completed ({{ now()->format('F j, Y') }})
                 </h4>
@@ -239,23 +239,37 @@
                     No tasks completed today.
                 </div>
             @else
-                <div class="divide-y divide-gray-100">
-                    @foreach ($completedToday as $ct)
-                        <div class="px-4 py-3">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="min-w-0 flex-1">
-                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $ct->category->color() }} mb-1">
+                <table class="min-w-full divide-y divide-gray-100 text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Category</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Title</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Assigned To</th>
+                            <th class="px-3 py-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach ($completedToday as $ct)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-2 whitespace-nowrap">
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $ct->category->color() }}">
                                         {{ $ct->category->label() }}
                                     </span>
-                                    <div class="text-sm font-medium text-gray-800 truncate">{{ $ct->title }}</div>
-                                    <div class="text-xs text-gray-500 mt-0.5">{{ $ct->assignedTo?->full_name ?? '—' }}</div>
-                                </div>
-                                <a href="{{ route('admin.tasks.show', $ct) }}"
-                                    class="text-xs text-blue-600 hover:underline shrink-0 mt-1">View</a>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
+                                </td>
+                                <td class="px-3 py-2 max-w-[140px]">
+                                    <span class="text-sm font-medium text-gray-800 truncate block">{{ $ct->title }}</span>
+                                </td>
+                                <td class="px-3 py-2 text-gray-600 whitespace-nowrap">
+                                    {{ $ct->assignedTo?->full_name ?? '—' }}
+                                </td>
+                                <td class="px-3 py-2 text-right whitespace-nowrap">
+                                    <a href="{{ route('admin.tasks.show', $ct) }}"
+                                        class="text-xs text-blue-600 hover:underline">View</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             @endif
         </div>
     </div>

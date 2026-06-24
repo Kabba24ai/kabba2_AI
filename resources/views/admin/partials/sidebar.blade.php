@@ -80,6 +80,17 @@
                         </a>
                     </li>
 
+                    <!-- Tasks -->
+                    <li>
+                        <a href="{{ route('admin.tasks.index') }}"
+                            class="menu-item group flex items-center gap-3 {{ Route::is('admin.tasks.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <span class="w-6 h-6 flex items-center justify-center {{ Route::is('admin.tasks.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}">
+                                <x-heroicon-o-check-circle class="w-6 h-6" />
+                            </span>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Tasks</span>
+                        </a>
+                    </li>
+
                     <!-- Orders -->
                     <li x-data="{ open: {{ $ordersActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"

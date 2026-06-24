@@ -33,6 +33,9 @@ Route::name('admin.')->group(function ($router) {
         // Dashboard
         require base_path('routes/admin/dashboard/routes.php');
 
+        // Tasks
+        require base_path('routes/admin/tasks/routes.php');
+
         // Product Management
         require base_path('routes/admin/product_management/routes.php');
 

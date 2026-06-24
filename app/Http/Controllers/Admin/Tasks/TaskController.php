@@ -13,6 +13,7 @@ use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\Tasks\Task;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -52,15 +53,40 @@ class TaskController extends Controller
 
     public function index(Request $request)
     {
-        $query = Task::with(['assignedTo', 'createdBy', 'equipment'])
-            ->when($request->filled('category'), fn($q) => $q->where('category', $request->category))
-            ->when($request->filled('status'),   fn($q) => $q->where('status', $request->status))
-            ->when($request->filled('priority'), fn($q) => $q->where('priority', $request->priority))
-            ->when($request->filled('assigned_to'), fn($q) => $q->where('assigned_to_user_id', $request->assigned_to))
-            ->when($request->boolean('due_today'),  fn($q) => $q->dueToday())
-            ->when($request->boolean('overdue'),    fn($q) => $q->overdue());
+        $categories = TaskCategory::cases();
+        $priorities = TaskPriority::cases();
+        $statuses   = TaskStatus::cases();
 
-        $tasks = $query
+        // Category badge counts: base filters + assigned_to (cross-filter: excludes category)
+        $categoryCounts = $this->baseTaskQuery($request)
+            ->when($request->filled('assigned_to'), fn($q) => $q->where('assigned_to_user_id', $request->assigned_to))
+            ->selectRaw('category, count(*) as cnt')
+            ->groupBy('category')
+            ->pluck('cnt', 'category');
+
+        // User badge counts: base filters + category (cross-filter: excludes assigned_to)
+        $userCountsRaw = $this->baseTaskQuery($request)
+            ->when($request->filled('category'), fn($q) => $q->where('category', $request->category))
+            ->whereNotNull('assigned_to_user_id')
+            ->selectRaw('assigned_to_user_id, count(*) as cnt')
+            ->groupBy('assigned_to_user_id')
+            ->pluck('cnt', 'assigned_to_user_id');
+
+        // Total for "All" user badge (base + category, including unassigned tasks)
+        $userAllCount = $this->baseTaskQuery($request)
+            ->when($request->filled('category'), fn($q) => $q->where('category', $request->category))
+            ->count();
+
+        // User names for badge labels
+        $badgeUsers = User::whereIn('id', $userCountsRaw->keys())
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name']);
+
+        // Full filtered task list
+        $tasks = $this->baseTaskQuery($request)
+            ->with(['assignedTo', 'createdBy', 'equipment'])
+            ->when($request->filled('category'),    fn($q) => $q->where('category', $request->category))
+            ->when($request->filled('assigned_to'), fn($q) => $q->where('assigned_to_user_id', $request->assigned_to))
             ->orderByRaw("CASE `status`
                 WHEN 'open'        THEN 1
                 WHEN 'in_progress' THEN 2
@@ -78,12 +104,21 @@ class TaskController extends Controller
             ->paginate(30)
             ->withQueryString();
 
-        $users      = User::active()->orderBy('first_name')->get();
-        $categories = TaskCategory::cases();
-        $priorities = TaskPriority::cases();
-        $statuses   = TaskStatus::cases();
+        $users = User::active()->orderBy('first_name')->get();
 
-        return view('admin.tasks.index', compact('tasks', 'users', 'categories', 'priorities', 'statuses'));
+        return view('admin.tasks.index', compact(
+            'tasks', 'users', 'categories', 'priorities', 'statuses',
+            'categoryCounts', 'userCountsRaw', 'userAllCount', 'badgeUsers'
+        ));
+    }
+
+    private function baseTaskQuery(Request $request): Builder
+    {
+        return Task::query()
+            ->when($request->filled('status'),      fn($q) => $q->where('status', $request->status))
+            ->when($request->filled('priority'),    fn($q) => $q->where('priority', $request->priority))
+            ->when($request->boolean('due_today'),  fn($q) => $q->dueToday())
+            ->when($request->boolean('overdue'),    fn($q) => $q->overdue());
     }
 
     public function create()

@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Admin\V1\Orders\PaymentController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\AssignDriverController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\DispatchController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\DriverChecklistController;
+use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\UpdateDeliveryPickupInputsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +48,7 @@ Route::group(['prefix' => 'orders'], function () {
         Route::post('/assign-driver', AssignDriverController::class)->name('assign-driver');
         Route::post('/update', SchedulesUpdateController::class);
         Route::post('/driver-checklist', DriverChecklistController::class);
+        Route::post('/update-delivery-pickup-inputs', UpdateDeliveryPickupInputsController::class);
     });
 
     Route::group(['prefix' => 'notes'], function () {

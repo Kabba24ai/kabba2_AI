@@ -1,5 +1,9 @@
 @extends('admin.layouts.app')
 
+@push('css')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+@endpush
+
 @section('title', 'Edit Task')
 
 @section('content')
@@ -76,8 +80,9 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                <input type="datetime-local" name="due_date"
-                    value="{{ old('due_date', $task->due_date?->format('Y-m-d\TH:i')) }}"
+                <input type="text" id="due_date" name="due_date"
+                    value="{{ old('due_date', $task->due_date?->format('Y-m-d H:i:s')) }}"
+                    placeholder="Select date & time"
                     class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
             </div>
         </div>
@@ -96,3 +101,16 @@
 </div>
 
 @endsection
+
+@push('js')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js"></script>
+<script>
+    flatpickr('#due_date', {
+        enableTime: true,
+        dateFormat: 'Y-m-d H:i:S',
+        altInput: true,
+        altFormat: 'F j, Y h:i K',
+        time_24hr: false,
+    });
+</script>
+@endpush

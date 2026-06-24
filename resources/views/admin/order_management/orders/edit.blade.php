@@ -122,6 +122,35 @@
                             {{ $podLabel }}
                         </span>
                     @endif
+                        
+                    {{-- POD Payment Link Status Badge --}}
+                    @if ($order->podPaymentLink)
+                        @php
+                            $podLink   = $order->podPaymentLink;
+                            $podStatus = $podLink->pod_status instanceof \App\Enums\Orders\PodPaymentLinkStatus
+                                ? $podLink->pod_status
+                                : \App\Enums\Orders\PodPaymentLinkStatus::from($podLink->pod_status);
+
+                            [$podBadgeColor, $podIcon, $podStatusLabel, $podTooltipExtra] = match ($podStatus) {
+                                \App\Enums\Orders\PodPaymentLinkStatus::Pending      => ['bg-yellow-100 text-yellow-800', 'heroicon-o-clock',               'POD: Pending',      ''],
+                                \App\Enums\Orders\PodPaymentLinkStatus::Opened       => ['bg-blue-100 text-blue-800',     'heroicon-o-eye',                'POD: Opened',       $podLink->payment_link_opened_at ? ' | Opened: ' . \Carbon\Carbon::parse($podLink->payment_link_opened_at)->format('m/d/Y h:i A') : ''],
+                                \App\Enums\Orders\PodPaymentLinkStatus::Expired      => ['bg-red-100 text-red-800',       'heroicon-o-x-circle',           'POD: Expired',      $podLink->pod_expired_at ? ' | Expired: ' . \Carbon\Carbon::parse($podLink->pod_expired_at)->format('m/d/Y h:i A') : ''],
+                                \App\Enums\Orders\PodPaymentLinkStatus::Reactivated  => ['bg-orange-100 text-orange-800', 'heroicon-o-arrow-path',         'POD: Reactivated',  $podLink->pod_reactivated_at ? ' | Reactivated: ' . \Carbon\Carbon::parse($podLink->pod_reactivated_at)->format('m/d/Y h:i A') : ''],
+                                \App\Enums\Orders\PodPaymentLinkStatus::Completed    => ['bg-green-100 text-green-800',   'heroicon-o-check-circle',       'POD: Completed',    $podLink->pod_payment_completed_at ? ' | Paid: ' . \Carbon\Carbon::parse($podLink->pod_payment_completed_at)->format('m/d/Y h:i A') : ''],
+                            };
+
+                            $podCreatedAt  = $podLink->payment_link_created_at
+                                ? 'Created: ' . \Carbon\Carbon::parse($podLink->payment_link_created_at)->format('m/d/Y h:i A')
+                                : '';
+                            $podBadgeTitle = trim($podCreatedAt . $podTooltipExtra, ' |');
+                        @endphp
+                        <span
+                            class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold {{ $podBadgeColor }} rounded-full"
+                            title="{{ $podBadgeTitle }}">
+                            <x-dynamic-component :component="$podIcon" class="w-3 h-3" />
+                            {{ $podStatusLabel }}
+                        </span>
+                    @endif
 
                     {{-- PO ID Field --}}
 
@@ -1683,6 +1712,112 @@
                     <div class=" max-h-60 overflow-y-auto">
                         <x-admin.order-management.orders.order-extra-payments-list :payments="$payments" />
                     </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- POD Payment Links History --}}
+        @if ($order->podPaymentLink)
+            @php
+                $podActivities = $order->podPaymentLink->activities ?? collect();
+                $podPaymentUrl = route('front.checkout.order-payment-form', ['order' => encrypt($order->unique_id)]);
+                $podLinkModel  = $order->podPaymentLink;
+                $podCurStatus  = $podLinkModel->pod_status instanceof \App\Enums\Orders\PodPaymentLinkStatus
+                    ? $podLinkModel->pod_status
+                    : \App\Enums\Orders\PodPaymentLinkStatus::from($podLinkModel->pod_status);
+                [$podCurBg, $podCurBorder, $podCurTextColor, $podCurIcon] = match ($podCurStatus) {
+                    \App\Enums\Orders\PodPaymentLinkStatus::Pending     => ['bg-yellow-50',  'border-yellow-300', 'text-yellow-800', 'heroicon-o-clock'],
+                    \App\Enums\Orders\PodPaymentLinkStatus::Opened      => ['bg-blue-50',    'border-blue-300',   'text-blue-800',   'heroicon-o-eye'],
+                    \App\Enums\Orders\PodPaymentLinkStatus::Expired     => ['bg-red-50',     'border-red-300',    'text-red-800',    'heroicon-o-x-circle'],
+                    \App\Enums\Orders\PodPaymentLinkStatus::Reactivated => ['bg-orange-50',  'border-orange-300', 'text-orange-800', 'heroicon-o-arrow-path'],
+                    \App\Enums\Orders\PodPaymentLinkStatus::Completed   => ['bg-green-50',   'border-green-300',  'text-green-800',  'heroicon-o-check-circle'],
+                };
+                $podTimestamps = array_filter([
+                    $podLinkModel->payment_link_created_at  ? 'Created: '     . \Carbon\Carbon::parse($podLinkModel->payment_link_created_at)->format('m/d/Y h:i A')  : null,
+                    $podLinkModel->payment_link_opened_at   ? 'Opened: '      . \Carbon\Carbon::parse($podLinkModel->payment_link_opened_at)->format('m/d/Y h:i A')   : null,
+                    $podLinkModel->pod_expired_at           ? 'Expired: '     . \Carbon\Carbon::parse($podLinkModel->pod_expired_at)->format('m/d/Y h:i A')           : null,
+                    $podLinkModel->pod_reactivated_at       ? 'Reactivated: ' . \Carbon\Carbon::parse($podLinkModel->pod_reactivated_at)->format('m/d/Y h:i A')       : null,
+                    $podLinkModel->pod_payment_completed_at ? 'Paid: '        . \Carbon\Carbon::parse($podLinkModel->pod_payment_completed_at)->format('m/d/Y h:i A') : null,
+                ]);
+            @endphp
+            <div class="grid md:grid-cols-1 gap-4">
+                <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <h2 class="text-black font-semibold text-lg mb-3">POD Payment Links</h2>
+
+                    {{-- Current Status Banner --}}
+                    <div class="flex flex-wrap items-center gap-3 mb-4 p-3 rounded-lg border {{ $podCurBg }} {{ $podCurBorder }}">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold {{ $podCurTextColor }} {{ $podCurBg }} border {{ $podCurBorder }}">
+                            <x-dynamic-component :component="$podCurIcon" class="w-4 h-4" />
+                            {{ ucfirst($podCurStatus->value) }}
+                        </span>
+                        @foreach ($podTimestamps as $ts)
+                            <span class="text-xs text-gray-500">{{ $ts }}</span>
+                            @if (!$loop->last)<span class="text-gray-300 text-xs">|</span>@endif
+                        @endforeach
+                        @if ($podLinkModel->payment_link_open_count > 0)
+                            <span class="ml-auto text-xs text-gray-500">Opened {{ $podLinkModel->payment_link_open_count }}×</span>
+                        @endif
+                    </div>
+                    @if ($podActivities->isNotEmpty())
+                        <div class="overflow-x-auto max-h-60 overflow-y-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
+                                        <th class="pb-2 pr-4">#</th>
+                                        <th class="pb-2 pr-4">Time</th>
+                                        <th class="pb-2 pr-4">Status / Event</th>
+                                        <th class="pb-2">Payment Link</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($podActivities->sortBy('id') as $i => $activity)
+                                        <tr>
+                                            <td class="py-2 pr-4 text-gray-400 text-xs">{{ $i + 1 }}</td>
+                                            <td class="py-2 pr-4 text-gray-600 whitespace-nowrap text-xs">
+                                                {{ \Carbon\Carbon::parse($activity->created_at)->format('m/d/Y h:i A') }}
+                                            </td>
+                                            <td class="py-2 pr-4">
+                                                @php
+                                                    $evt = $activity->event instanceof \App\Enums\Orders\PodPaymentLinkEvent
+                                                        ? $activity->event
+                                                        : \App\Enums\Orders\PodPaymentLinkEvent::from($activity->event);
+                                                    [$evtBg, $evtText] = match ($evt) {
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::LinkCreated       => ['bg-gray-100',   'text-gray-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::PaymentLinkSent   => ['bg-blue-100',   'text-blue-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::LinkOpened        => ['bg-indigo-100', 'text-indigo-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::Reminder1Sent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::Reminder2Sent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::Reminder3Sent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::Reminder4Sent     => ['bg-yellow-100', 'text-yellow-800'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::DayBeforeSent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::FinalReminderSent,
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::LastDitchSent     => ['bg-orange-100', 'text-orange-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::ManualResend      => ['bg-teal-100',   'text-teal-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::PaymentCompleted  => ['bg-green-100',  'text-green-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::OrderExpired      => ['bg-red-100',    'text-red-700'],
+                                                        \App\Enums\Orders\PodPaymentLinkEvent::OrderReactivated  => ['bg-purple-100', 'text-purple-700'],
+                                                    };
+                                                @endphp
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $evtBg }} {{ $evtText }}">
+                                                    {{ $evt->label() }}
+                                                </span>
+                                            </td>
+                                            <td class="py-2">
+                                                <a href="{{ $podPaymentUrl }}"
+                                                   target="_blank"
+                                                   class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                                                    <x-heroicon-o-link class="w-3.5 h-3.5" />
+                                                    Open Payment Page
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-sm text-gray-400">No activity recorded yet.</p>
+                    @endif
                 </div>
             </div>
         @endif

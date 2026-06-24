@@ -12,7 +12,7 @@ class IndexController extends BaseController
     {
         $user = auth('api_user')->user();
 
-        $tasks = Task::with(['assignedTo', 'createdBy'])
+        $tasks = Task::with(['assignedTo', 'createdBy', 'equipment.productCategory'])
             ->when($request->filled('category'),    fn($q) => $q->where('category', $request->category))
             ->when($request->filled('status'),      fn($q) => $q->where('status', $request->status))
             ->when($request->filled('priority'),    fn($q) => $q->where('priority', $request->priority))
@@ -49,6 +49,14 @@ class IndexController extends BaseController
             'status_label' => $task->status->label(),
             'assigned_to'  => $task->assignedTo ? ['id' => $task->assignedTo->id, 'name' => $task->assignedTo->full_name] : null,
             'created_by'   => $task->createdBy  ? ['id' => $task->createdBy->id,  'name' => $task->createdBy->full_name]  : null,
+            'equipment'    => $task->equipment ? [
+                'id'           => $task->equipment->id,
+                'equipment_id' => $task->equipment->equipment_id,
+                'name'         => $task->equipment->equipment_name,
+                'category'     => $task->equipment->productCategory?->title,
+                'serial'       => $task->equipment->serial_number,
+                'status'       => $task->equipment->status_label,
+            ] : null,
             'due_date'     => $task->due_date?->toDateTimeString(),
             'completed_at' => $task->completed_at?->toDateTimeString(),
             'is_overdue'   => $task->isOverdue(),

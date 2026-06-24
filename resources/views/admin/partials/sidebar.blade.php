@@ -88,7 +88,7 @@
                             <span class="w-6 h-6 flex items-center justify-center {{ Route::is('admin.tasks.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}">
                                 <x-heroicon-o-check-circle class="w-6 h-6" />
                             </span>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Tasks</span>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Task Mgr</span>
                         </a>
                     </li>
                     @endif

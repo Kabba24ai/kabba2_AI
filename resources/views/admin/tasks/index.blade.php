@@ -87,6 +87,7 @@
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Title</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
+                <th class="px-4 py-3 text-left font-medium text-gray-600">Equipment</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Priority</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Status</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Due Date</th>
@@ -114,6 +115,14 @@
                         {{ $task->assignedTo?->full_name ?? '—' }}
                     </td>
                     <td class="px-4 py-3">
+                        @if ($task->equipment)
+                            <span class="font-medium text-gray-800 text-xs">{{ $task->equipment->equipment_id }}</span>
+                            <div class="text-xs text-gray-500 truncate max-w-[120px]">{{ $task->equipment->equipment_name }}</div>
+                        @else
+                            <span class="text-gray-400">—</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3">
                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->priority->color() }}">
                             {{ $task->priority->label() }}
                         </span>
@@ -136,7 +145,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
+                    <td colspan="9" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
                 </tr>
             @endforelse
         </tbody>

@@ -24,9 +24,9 @@
 
         {{-- Category --}}
         <div class="mb-5">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Task Category <span class="text-red-500">*</span></label>
             <select name="category" required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
-                <option value="">Select Category</option>
+                <option value="">Select Task Category</option>
                 @foreach ($categories as $cat)
                     <option value="{{ $cat->value }}" {{ old('category') === $cat->value ? 'selected' : '' }}>{{ $cat->label() }}</option>
                 @endforeach
@@ -39,6 +39,31 @@
             <input type="text" name="title" value="{{ old('title') }}" required
                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                 placeholder="What needs to be done?">
+        </div>
+
+        {{-- Assign Equipment to Task --}}
+        <div class="mb-5 rounded-md border border-gray-200 bg-gray-50 p-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-3">Assign Equipment to Task <span class="text-xs font-normal text-gray-400">(optional)</span></label>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Equipment Category</label>
+                    <select id="equip_category_filter" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="">All Categories</option>
+                        @foreach ($productCategories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Equipment Unit</label>
+                    <select id="equip_unit_select" name="related_equipment_id" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="">Select Equipment</option>
+                    </select>
+                </div>
+            </div>
+            <div id="equip_summary" class="hidden text-xs text-gray-600 bg-white border border-gray-200 rounded px-3 py-2">
+                <span id="equip_summary_text"></span>
+            </div>
         </div>
 
         {{-- Description --}}
@@ -114,5 +139,53 @@
         minDate: 'today',
         time_24hr: false,
     });
+
+    const allEquipment = @json($equipmentList->map(fn($e) => [
+        'id'          => $e->id,
+        'equipment_id'=> $e->equipment_id,
+        'name'        => $e->equipment_name,
+        'category_id' => $e->product_category_id,
+        'status'      => $e->current_status?->label() ?? '',
+        'serial'      => $e->serial_number ?? '',
+    ]));
+
+    const categoryFilter = document.getElementById('equip_category_filter');
+    const unitSelect     = document.getElementById('equip_unit_select');
+    const summary        = document.getElementById('equip_summary');
+    const summaryText    = document.getElementById('equip_summary_text');
+
+    function rebuildEquipmentDropdown(selectedEquipId) {
+        const catId = categoryFilter.value ? parseInt(categoryFilter.value) : null;
+        const filtered = catId ? allEquipment.filter(e => e.category_id === catId) : allEquipment;
+
+        unitSelect.innerHTML = '<option value="">Select Equipment</option>';
+        filtered.forEach(e => {
+            const opt = document.createElement('option');
+            opt.value = e.id;
+            opt.textContent = e.equipment_id + ' — ' + e.name;
+            if (selectedEquipId && parseInt(selectedEquipId) === e.id) opt.selected = true;
+            unitSelect.appendChild(opt);
+        });
+        updateSummary();
+    }
+
+    function updateSummary() {
+        const id = parseInt(unitSelect.value);
+        const eq = allEquipment.find(e => e.id === id);
+        if (eq) {
+            let txt = '<strong>' + eq.equipment_id + '</strong> — ' + eq.name;
+            if (eq.serial) txt += ' &nbsp;·&nbsp; S/N: ' + eq.serial;
+            if (eq.status) txt += ' &nbsp;·&nbsp; Status: ' + eq.status;
+            summaryText.innerHTML = txt;
+            summary.classList.remove('hidden');
+        } else {
+            summary.classList.add('hidden');
+        }
+    }
+
+    categoryFilter.addEventListener('change', () => rebuildEquipmentDropdown(null));
+    unitSelect.addEventListener('change', updateSummary);
+
+    rebuildEquipmentDropdown('{{ old('related_equipment_id') }}');
 </script>
 @endpush

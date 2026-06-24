@@ -6,6 +6,7 @@ use App\Enums\Tasks\TaskCategory;
 use App\Enums\Tasks\TaskPriority;
 use App\Enums\Tasks\TaskStatus;
 use App\Models\Iam\Personnel\User;
+use App\Models\MaintenanceManagement\Equipment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -24,6 +25,7 @@ class Task extends Model
         'due_date',
         'related_order_id',
         'related_customer_id',
+        'related_equipment_id',
         'completed_at',
     ];
 
@@ -45,6 +47,11 @@ class Task extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function equipment()
+    {
+        return $this->belongsTo(Equipment::class, 'related_equipment_id');
     }
 
     public function comments()

@@ -21,8 +21,9 @@ class StoreTaskRequest extends FormRequest
             'status'              => ['required', 'in:open,in_progress,waiting,completed,cancelled'],
             'assigned_to_user_id' => ['nullable', 'exists:users,id'],
             'due_date'            => ['nullable', 'date'],
-            'related_order_id'    => ['nullable', 'integer'],
-            'related_customer_id' => ['nullable', 'integer'],
+            'related_order_id'      => ['nullable', 'integer'],
+            'related_customer_id'   => ['nullable', 'integer'],
+            'related_equipment_id'  => ['nullable', 'exists:equipment,id'],
         ];
     }
 }

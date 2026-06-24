@@ -9,7 +9,7 @@ class ShowController extends BaseController
 {
     public function __invoke(Task $task)
     {
-        $task->load(['assignedTo', 'createdBy', 'comments.user', 'activityLogs.user']);
+        $task->load(['assignedTo', 'createdBy', 'equipment.productCategory', 'comments.user', 'activityLogs.user']);
 
         return response()->json([
             'success' => true,
@@ -25,6 +25,14 @@ class ShowController extends BaseController
                 'status_label'   => $task->status->label(),
                 'assigned_to'    => $task->assignedTo ? ['id' => $task->assignedTo->id, 'name' => $task->assignedTo->full_name] : null,
                 'created_by'     => $task->createdBy  ? ['id' => $task->createdBy->id,  'name' => $task->createdBy->full_name]  : null,
+                'equipment'      => $task->equipment ? [
+                    'id'           => $task->equipment->id,
+                    'equipment_id' => $task->equipment->equipment_id,
+                    'name'         => $task->equipment->equipment_name,
+                    'category'     => $task->equipment->productCategory?->title,
+                    'serial'       => $task->equipment->serial_number,
+                    'status'       => $task->equipment->status_label,
+                ] : null,
                 'due_date'       => $task->due_date?->toDateTimeString(),
                 'completed_at'   => $task->completed_at?->toDateTimeString(),
                 'is_overdue'     => $task->isOverdue(),

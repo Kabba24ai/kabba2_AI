@@ -1331,16 +1331,9 @@
                                         || $orderProduct->pickup_drivers_license_status !== null
                                         || $orderProduct->pickup_video_status !== null
                                         || $orderProduct->pickup_checklist_status !== null;
-                                    $deliveryComplete = $orderProduct->delivery_inputs_date !== null
-                                        && $orderProduct->delivery_tnc_status !== null
-                                        && $orderProduct->delivery_drivers_license_status !== null
-                                        && $orderProduct->delivery_video_status !== null
-                                        && $orderProduct->delivery_checklist_status !== null;
-                                    $pickupComplete = $orderProduct->pickup_inputs_date !== null
-                                        && $orderProduct->pickup_tnc_status !== null
-                                        && $orderProduct->pickup_drivers_license_status !== null
-                                        && $orderProduct->pickup_video_status !== null
-                                        && $orderProduct->pickup_checklist_status !== null;
+                                    // Trophy: no issues reported AND the job is marked complete
+                                    $showDeliveryTrophy = !$deliveryHasData && $orderProduct->is_delivered == 1;
+                                    $showPickupTrophy   = !$pickupHasData   && $orderProduct->is_returned  == 1;
                                 @endphp
                                 <div class="flex gap-3 flex-wrap items-stretch">
                                     {{-- Checklist / Video badges --}}
@@ -1387,13 +1380,18 @@
                                     <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
                                         <div class="flex items-center justify-between mb-2">
                                             <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Delivery Inputs</span>
-                                            @if($deliveryComplete)
-                                                <span class="text-base leading-none" title="Delivery Complete">🏆</span>
-                                            @endif
                                         </div>
-                                        @if(!$deliveryHasData)
-                                            <p class="text-xs text-gray-400 italic text-center py-1">No data recorded</p>
+                                        @if($showDeliveryTrophy)
+                                            {{-- Completed with no issues --}}
+                                            <div class="flex flex-col items-center justify-center py-1 gap-0.5">
+                                                <span class="text-2xl leading-none">🏆</span>
+                                                <span class="text-[10px] text-gray-400">No issues recorded</span>
+                                            </div>
+                                        @elseif(!$deliveryHasData)
+                                            {{-- Not yet completed, no data --}}
+                                            <p class="text-xs text-gray-400 italic text-center py-1">Not completed</p>
                                         @else
+                                            {{-- Reason / issues recorded --}}
                                             <div class="flex flex-col gap-0.5 text-xs">
                                                 @if($orderProduct->delivery_inputs_date)
                                                     <div class="flex justify-between gap-2">
@@ -1404,25 +1402,25 @@
                                                 @if($orderProduct->delivery_tnc_status)
                                                     <div class="flex justify-between gap-2">
                                                         <span class="text-gray-400">T&amp;C</span>
-                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->delivery_tnc_status), 'accept') || str_contains(strtolower($orderProduct->delivery_tnc_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->delivery_tnc_status }}</span>
+                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->delivery_tnc_status }}</span>
                                                     </div>
                                                 @endif
                                                 @if($orderProduct->delivery_drivers_license_status)
                                                     <div class="flex justify-between gap-2">
                                                         <span class="text-gray-400">License</span>
-                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->delivery_drivers_license_status), 'verif') || str_contains(strtolower($orderProduct->delivery_drivers_license_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->delivery_drivers_license_status }}</span>
+                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->delivery_drivers_license_status }}</span>
                                                     </div>
                                                 @endif
                                                 @if($orderProduct->delivery_video_status)
                                                     <div class="flex justify-between gap-2">
                                                         <span class="text-gray-400">Video</span>
-                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->delivery_video_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->delivery_video_status }}</span>
+                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->delivery_video_status }}</span>
                                                     </div>
                                                 @endif
                                                 @if($orderProduct->delivery_checklist_status)
                                                     <div class="flex justify-between gap-2">
                                                         <span class="text-gray-400">Checklist</span>
-                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->delivery_checklist_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->delivery_checklist_status }}</span>
+                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->delivery_checklist_status }}</span>
                                                     </div>
                                                 @endif
                                             </div>
@@ -1433,13 +1431,18 @@
                                     <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
                                         <div class="flex items-center justify-between mb-2">
                                             <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Pickup Inputs</span>
-                                            @if($pickupComplete)
-                                                <span class="text-base leading-none" title="Pickup Complete">🏆</span>
-                                            @endif
                                         </div>
-                                        @if(!$pickupHasData)
-                                            <p class="text-xs text-gray-400 italic text-center py-1">No data recorded</p>
+                                        @if($showPickupTrophy)
+                                            {{-- Completed with no issues --}}
+                                            <div class="flex flex-col items-center justify-center py-1 gap-0.5">
+                                                <span class="text-2xl leading-none">🏆</span>
+                                                <span class="text-[10px] text-gray-400">No issues recorded</span>
+                                            </div>
+                                        @elseif(!$pickupHasData)
+                                            {{-- Not yet completed, no data --}}
+                                            <p class="text-xs text-gray-400 italic text-center py-1">Not completed</p>
                                         @else
+                                            {{-- Reason / issues recorded --}}
                                             <div class="flex flex-col gap-0.5 text-xs">
                                                 @if($orderProduct->pickup_inputs_date)
                                                     <div class="flex justify-between gap-2">
@@ -1450,25 +1453,25 @@
                                                 @if($orderProduct->pickup_tnc_status)
                                                     <div class="flex justify-between gap-2">
                                                         <span class="text-gray-400">T&amp;C</span>
-                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->pickup_tnc_status), 'accept') || str_contains(strtolower($orderProduct->pickup_tnc_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->pickup_tnc_status }}</span>
+                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->pickup_tnc_status }}</span>
                                                     </div>
                                                 @endif
                                                 @if($orderProduct->pickup_drivers_license_status)
                                                     <div class="flex justify-between gap-2">
                                                         <span class="text-gray-400">License</span>
-                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->pickup_drivers_license_status), 'verif') || str_contains(strtolower($orderProduct->pickup_drivers_license_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->pickup_drivers_license_status }}</span>
+                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->pickup_drivers_license_status }}</span>
                                                     </div>
                                                 @endif
                                                 @if($orderProduct->pickup_video_status)
                                                     <div class="flex justify-between gap-2">
                                                         <span class="text-gray-400">Video</span>
-                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->pickup_video_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->pickup_video_status }}</span>
+                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->pickup_video_status }}</span>
                                                     </div>
                                                 @endif
                                                 @if($orderProduct->pickup_checklist_status)
                                                     <div class="flex justify-between gap-2">
                                                         <span class="text-gray-400">Checklist</span>
-                                                        <span class="capitalize font-medium {{ str_contains(strtolower($orderProduct->pickup_checklist_status), 'complet') ? 'text-green-600' : 'text-orange-500' }}">{{ $orderProduct->pickup_checklist_status }}</span>
+                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->pickup_checklist_status }}</span>
                                                     </div>
                                                 @endif
                                             </div>

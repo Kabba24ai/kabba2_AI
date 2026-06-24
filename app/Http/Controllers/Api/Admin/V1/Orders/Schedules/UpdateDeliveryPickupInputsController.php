@@ -37,6 +37,18 @@ class UpdateDeliveryPickupInputsController extends Controller
                 }
             }
 
+            // Mark delivery/pickup as complete when this endpoint is called,
+            // regardless of whether the input fields have values.
+            if ($prefix === 'delivery') {
+                $fields['is_delivered']        = 1;
+                $fields['delivery_is_delivered'] = true;
+                $fields['delivery_status']       = 'Completed';
+            } else {
+                $fields['is_returned']        = 1;
+                $fields['pickup_is_delivered']  = true;
+                $fields['pickup_status']        = 'Completed';
+            }
+
             $schedule->fill($fields);
             $schedule->save();
         } catch (\Throwable $th) {

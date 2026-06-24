@@ -140,11 +140,11 @@
 
 </form>
 
-{{-- Main layout: task table (left) + Completed Today widget (right) --}}
-<div class="flex gap-6 items-start">
+{{-- Main layout: task table (left, 70%) + Completed Today widget (right, 30%) --}}
+<div class="grid grid-cols-[7fr_3fr] gap-6 items-start">
 
-    {{-- Task table (flex-grow) --}}
-    <div class="flex-1 min-w-0">
+    {{-- Task table --}}
+    <div class="min-w-0">
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
@@ -226,7 +226,7 @@
     </div>
 
     {{-- Completed Today Widget --}}
-    <div class="w-[420px] shrink-0">
+    <div class="min-w-0">
         <div class="rounded-lg border border-emerald-200 bg-white shadow-sm overflow-hidden">
             <div class="px-4 py-3 border-b border-emerald-100 bg-emerald-50">
                 <h4 class="text-sm font-semibold text-emerald-800">

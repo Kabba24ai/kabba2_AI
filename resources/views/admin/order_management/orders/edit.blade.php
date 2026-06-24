@@ -1717,7 +1717,7 @@
         @endif
 
         {{-- POD Payment Links History --}}
-        @if ($order->podPaymentLink)
+        {{-- @if ($order->podPaymentLink)
             @php
                 $podActivities = $order->podPaymentLink->activities ?? collect();
                 $podPaymentUrl = route('front.checkout.order-payment-form', ['order' => encrypt($order->unique_id)]);
@@ -1744,7 +1744,7 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                     <h2 class="text-black font-semibold text-lg mb-3">POD Payment Links</h2>
 
-                    {{-- Current Status Banner --}}
+                    
                     <div class="flex flex-wrap items-center gap-3 mb-4 p-3 rounded-lg border {{ $podCurBg }} {{ $podCurBorder }}">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold {{ $podCurTextColor }} {{ $podCurBg }} border {{ $podCurBorder }}">
                             <x-dynamic-component :component="$podCurIcon" class="w-4 h-4" />
@@ -1821,6 +1821,7 @@
                 </div>
             </div>
         @endif
+        --}}
 
         {{-- Additional Charges (Fuel & Damage from customer_accounts) --}}
         @include('admin.order_management.orders.partials._additional_charges', ['additionalCharges' => $additionalCharges])

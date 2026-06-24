@@ -232,7 +232,7 @@ class AutoLunchBreakJob implements ShouldQueue
                 //  ROUND END (IMPORTANT)
                 $roundedEnd = TimeTrackerHelper::roundNearest($endRaw, $payIncrement);
 
-                if ($now->gte($roundedEnd)) {
+                /*if ($now->gte($roundedEnd)) {
 
                     $activeBreak->update([
                         'end_time' => $roundedEnd,
@@ -244,7 +244,7 @@ class AutoLunchBreakJob implements ShouldQueue
                         'original_end' => $endRaw->toDateTimeString(),
                         'rounded_end' => $roundedEnd->toDateTimeString(),
                     ]);
-                }
+                }*/
             }
         }
 

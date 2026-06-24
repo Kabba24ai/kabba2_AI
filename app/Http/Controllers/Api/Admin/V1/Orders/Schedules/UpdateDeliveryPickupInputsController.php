@@ -24,10 +24,18 @@ class UpdateDeliveryPickupInputsController extends Controller
                 ->where('unique_id', $validated['order_product_unique_id'])
                 ->firstOrFail();
 
-            $fields = array_filter(
-                array_diff_key($validated, ['order_product_unique_id' => null]),
-                fn($v) => !is_null($v)
-            );
+            $prefix = $validated['type'];
+            $inputFields = array_diff_key($validated, [
+                'order_product_unique_id' => null,
+                'type'                    => null,
+            ]);
+
+            $fields = [];
+            foreach ($inputFields as $key => $value) {
+                if (!is_null($value)) {
+                    $fields["{$prefix}_{$key}"] = $value;
+                }
+            }
 
             $schedule->fill($fields);
             $schedule->save();

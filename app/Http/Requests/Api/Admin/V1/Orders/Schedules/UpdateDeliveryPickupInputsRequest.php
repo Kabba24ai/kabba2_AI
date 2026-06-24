@@ -3,25 +3,21 @@
 namespace App\Http\Requests\Api\Admin\V1\Orders\Schedules;
 
 use App\Http\Requests\ApiBaseFormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateDeliveryPickupInputsRequest extends ApiBaseFormRequest
 {
     public function rules(): array
     {
         return [
-            'order_product_unique_id'          => 'required|string|max:255|exists:order_products,unique_id',
+            'order_product_unique_id' => 'required|string|max:255|exists:order_products,unique_id',
+            'type'                    => ['required', Rule::in(['delivery', 'pickup'])],
 
-            'delivery_inputs_date'             => 'nullable|date',
-            'delivery_tnc_status'              => 'nullable|string|max:255',
-            'delivery_drivers_license_status'  => 'nullable|string|max:255',
-            'delivery_video_status'            => 'nullable|string|max:255',
-            'delivery_checklist_status'        => 'nullable|string|max:255',
-
-            'pickup_inputs_date'               => 'nullable|date',
-            'pickup_tnc_status'                => 'nullable|string|max:255',
-            'pickup_drivers_license_status'    => 'nullable|string|max:255',
-            'pickup_video_status'              => 'nullable|string|max:255',
-            'pickup_checklist_status'          => 'nullable|string|max:255',
+            'inputs_date'             => 'nullable|date',
+            'tnc_status'              => 'nullable|string|max:255',
+            'drivers_license_status'  => 'nullable|string|max:255',
+            'video_status'            => 'nullable|string|max:255',
+            'checklist_status'        => 'nullable|string|max:255',
         ];
     }
 
@@ -33,53 +29,33 @@ class UpdateDeliveryPickupInputsRequest extends ApiBaseFormRequest
                 'example'     => 'ORD-SCH-URXP-LX5R',
                 'type'        => 'string',
             ],
-            'delivery_inputs_date' => [
-                'description' => 'The datetime when delivery inputs were recorded.',
+            'type' => [
+                'description' => 'Whether to update delivery or pickup fields. Allowed: delivery, pickup.',
+                'example'     => 'delivery',
+                'type'        => 'string',
+            ],
+            'inputs_date' => [
+                'description' => 'The datetime when inputs were recorded.',
                 'example'     => '2026-06-24 10:30:00',
                 'type'        => 'string',
             ],
-            'delivery_tnc_status' => [
-                'description' => 'Delivery terms and conditions status.',
+            'tnc_status' => [
+                'description' => 'Terms and conditions status.',
                 'example'     => 'accepted',
                 'type'        => 'string',
             ],
-            'delivery_drivers_license_status' => [
-                'description' => 'Delivery driver\'s license verification status.',
+            'drivers_license_status' => [
+                'description' => 'Driver\'s license verification status.',
                 'example'     => 'verified',
                 'type'        => 'string',
             ],
-            'delivery_video_status' => [
-                'description' => 'Delivery video status.',
+            'video_status' => [
+                'description' => 'Video status.',
                 'example'     => 'completed',
                 'type'        => 'string',
             ],
-            'delivery_checklist_status' => [
-                'description' => 'Delivery checklist completion status.',
-                'example'     => 'completed',
-                'type'        => 'string',
-            ],
-            'pickup_inputs_date' => [
-                'description' => 'The datetime when pickup inputs were recorded.',
-                'example'     => '2026-06-25 14:00:00',
-                'type'        => 'string',
-            ],
-            'pickup_tnc_status' => [
-                'description' => 'Pickup terms and conditions status.',
-                'example'     => 'accepted',
-                'type'        => 'string',
-            ],
-            'pickup_drivers_license_status' => [
-                'description' => 'Pickup driver\'s license verification status.',
-                'example'     => 'verified',
-                'type'        => 'string',
-            ],
-            'pickup_video_status' => [
-                'description' => 'Pickup video status.',
-                'example'     => 'completed',
-                'type'        => 'string',
-            ],
-            'pickup_checklist_status' => [
-                'description' => 'Pickup checklist completion status.',
+            'checklist_status' => [
+                'description' => 'Checklist completion status.',
                 'example'     => 'completed',
                 'type'        => 'string',
             ],

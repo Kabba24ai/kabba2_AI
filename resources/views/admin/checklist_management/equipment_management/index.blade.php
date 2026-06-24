@@ -491,7 +491,6 @@
             equipmentCount.textContent = `${equipment.length} of ${totalEquipment}`;
 
             inspectionDateInput.value = new Date().toISOString().slice(0, 10);
-            renderEquipment();
 
             equipmentWrapper.addEventListener("scroll", () => {
                     const nearBottom =
@@ -632,7 +631,7 @@
                 }
 
             @else
-                renderEquipment();
+                if (!typeFromUrl) { applyFilters(); }
             @endif
 
 

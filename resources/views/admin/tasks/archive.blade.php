@@ -14,7 +14,7 @@
             </a>
             <h3 class="text-xl font-semibold text-gray-800">Task Archive</h3>
         </div>
-        <p class="text-sm text-gray-500 ml-8">Historical record of all completed tasks.</p>
+        <p class="text-sm text-gray-500 ml-8">Historical record of all completed tasks and calls.</p>
     </div>
 </div>
 
@@ -27,7 +27,7 @@
         <div class="lg:col-span-2">
             <label class="block text-xs font-medium text-gray-600 mb-1">Search</label>
             <input type="text" name="search" value="{{ request('search') }}"
-                placeholder="Search title or description..."
+                placeholder="Search title, description, or reason..."
                 class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
         </div>
 
@@ -91,7 +91,7 @@
 {{-- Results summary --}}
 <div class="flex items-center justify-between mb-3">
     <p class="text-sm text-gray-500">
-        {{ $tasks->total() }} completed {{ Str::plural('task', $tasks->total()) }} found
+        {{ $tasks->total() }} completed {{ Str::plural('record', $tasks->total()) }} found
     </p>
 </div>
 
@@ -101,8 +101,9 @@
         <thead class="bg-gray-50">
             <tr>
                 <th class="px-4 py-3 text-left font-medium text-gray-600 whitespace-nowrap">Completed Date</th>
+                <th class="px-4 py-3 text-left font-medium text-gray-600">Type</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
-                <th class="px-4 py-3 text-left font-medium text-gray-600">Title</th>
+                <th class="px-4 py-3 text-left font-medium text-gray-600">Title / Reason</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Equipment</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-600">Created By</th>
@@ -111,46 +112,61 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-            @forelse ($tasks as $task)
+            @forelse ($tasks as $item)
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
-                        {{ $task->completed_at?->format('M j, Y') ?? '—' }}
-                        <div class="text-xs text-gray-400">{{ $task->completed_at?->format('g:i A') }}</div>
+                        {{ $item->completed_at?->format('M j, Y') ?? '—' }}
+                        <div class="text-xs text-gray-400">{{ $item->completed_at?->format('g:i A') }}</div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        @if ($item->type === 'call')
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-sky-100 text-sky-700">
+                                Call
+                            </span>
+                        @else
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">
+                                Task
+                            </span>
+                        @endif
                     </td>
                     <td class="px-4 py-3">
-                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->category->color() }}">
-                            {{ $task->category->label() }}
-                        </span>
+                        @if ($item->category)
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $item->category->color() }}">
+                                {{ $item->category->label() }}
+                            </span>
+                        @else
+                            <span class="text-gray-400">—</span>
+                        @endif
                     </td>
                     <td class="px-4 py-3 max-w-xs">
-                        <a href="{{ route('admin.tasks.show', $task) }}" class="font-medium text-gray-900 hover:text-brand-600 truncate block">
-                            {{ $task->title }}
+                        <a href="{{ $item->view_url }}" class="font-medium text-gray-900 hover:text-brand-600 truncate block">
+                            {{ $item->title }}
                         </a>
                     </td>
                     <td class="px-4 py-3 text-gray-700">
-                        {{ $task->assignedTo?->full_name ?? '—' }}
+                        {{ $item->assignee_name ?? '—' }}
                     </td>
                     <td class="px-4 py-3">
-                        @if ($task->equipment)
-                            <div class="text-sm text-gray-800 truncate max-w-[120px]">{{ $task->equipment->equipment_name }}</div>
-                            <div class="text-xs text-gray-400">{{ $task->equipment->equipment_id }}</div>
+                        @if ($item->equipment)
+                            <div class="text-sm text-gray-800 truncate max-w-[120px]">{{ $item->equipment->equipment_name }}</div>
+                            <div class="text-xs text-gray-400">{{ $item->equipment->equipment_id }}</div>
                         @else
                             <span class="text-gray-400">—</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 text-gray-600">
-                        {{ $task->createdBy?->full_name ?? '—' }}
+                        {{ $item->creator_name ?? '—' }}
                     </td>
                     <td class="px-4 py-3 text-gray-600">
-                        {{ $task->completedBy?->full_name ?? '—' }}
+                        {{ $item->completed_by_name ?? '—' }}
                     </td>
                     <td class="px-4 py-3 text-right whitespace-nowrap">
-                        <a href="{{ route('admin.tasks.show', $task) }}" class="text-blue-600 hover:underline text-xs">View</a>
+                        <a href="{{ $item->view_url }}" class="text-blue-600 hover:underline text-xs">View</a>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-10 text-center text-gray-400">No completed tasks found.</td>
+                    <td colspan="9" class="px-4 py-10 text-center text-gray-400">No completed records found.</td>
                 </tr>
             @endforelse
         </tbody>

@@ -370,55 +370,72 @@
     {{-- Completed Today Widget --}}
     <div style="flex:2.5; min-width:0;">
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-            @if ($completedToday->isEmpty())
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
-                            <th class="px-4 py-3 text-left font-medium text-gray-600">Title</th>
-                            <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
-                            <th class="px-4 py-3"></th>
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Title</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse ($completedToday as $ct)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $ct->category->color() }}">
+                                    {{ $ct->category->label() }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-sm font-medium text-gray-800 truncate block">{{ $ct->title }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
+                                {{ $ct->assignedTo?->full_name ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <a href="{{ route('admin.tasks.show', $ct) }}"
+                                    class="text-xs text-blue-600 hover:underline">View</a>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
+                    @empty
+                    @endforelse
+
+                    @foreach ($callsCompletedToday as $cc)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                @if ($cc->category)
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $cc->category->color() }}">
+                                        {{ $cc->category->label() }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-sky-100 text-sky-700">
+                                        Call
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-sm font-medium text-gray-800 truncate block">
+                                    {{ \App\Helpers\CustomHelper::formatCallReason($cc->reason) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
+                                {{ $cc->assignee?->full_name ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <a href="{{ route('admin.tasks.call.show', $cc->id) }}"
+                                    class="text-xs text-blue-600 hover:underline">View</a>
+                            </td>
+                        </tr>
+                    @endforeach
+
+                    @if ($completedToday->isEmpty() && $callsCompletedToday->isEmpty())
                         <tr>
                             <td colspan="4" class="px-4 py-10 text-center text-gray-400">No tasks completed today.</td>
                         </tr>
-                    </tbody>
-                </table>
-            @else
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
-                            <th class="px-4 py-3 text-left font-medium text-gray-600">Title</th>
-                            <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
-                            <th class="px-4 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach ($completedToday as $ct)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $ct->category->color() }}">
-                                        {{ $ct->category->label() }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="text-sm font-medium text-gray-800 truncate block">{{ $ct->title }}</span>
-                                </td>
-                                <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
-                                    {{ $ct->assignedTo?->full_name ?? '—' }}
-                                </td>
-                                <td class="px-4 py-3 text-right whitespace-nowrap">
-                                    <a href="{{ route('admin.tasks.show', $ct) }}"
-                                        class="text-xs text-blue-600 hover:underline">View</a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
+                    @endif
+                </tbody>
+            </table>
         </div>
     </div>
 

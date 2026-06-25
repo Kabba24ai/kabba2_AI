@@ -124,6 +124,12 @@ class TaskController extends Controller
             ->orderByDesc('completed_at')
             ->get();
 
+        $callsCompletedToday = CustomerCallNeeded::where('status', 'clear')
+            ->whereDate('completed_at', today())
+            ->with(['assignee'])
+            ->orderByDesc('completed_at')
+            ->get();
+
         $customers = Customer::whereIn('status', ['Active', 'Archived'])
             ->orderBy('first_name')
             ->orderBy('last_name')
@@ -147,7 +153,7 @@ class TaskController extends Controller
         return view('admin.tasks.index', compact(
             'tasks', 'users', 'categories', 'priorities', 'statuses',
             'categoryCounts', 'userCountsRaw', 'userAllCount', 'badgeUsers',
-            'completedToday', 'customers', 'suppliers', 'callReminders',
+            'completedToday', 'callsCompletedToday', 'customers', 'suppliers', 'callReminders',
             'productCategories', 'equipmentList'
         ));
     }
@@ -354,34 +360,105 @@ class TaskController extends Controller
         return redirect()->route('admin.tasks.index')->with('success', 'Task marked as completed.');
     }
 
+    private static function callReasonLabels(): array
+    {
+        return [
+            'contract_renewal'       => 'Contract Renewal',
+            'delivery_pickup'        => 'Delivery / Pickup',
+            'equipment_availability' => 'Equipment Availability',
+            'equipment_return'       => 'Equipment Return',
+            'general_followup'       => 'General Follow-up',
+            'maintenance_request'    => 'Maintenance Request',
+            'order_review'           => 'Order Review',
+            'payment_followup'       => 'Payment Follow-up',
+            'rental_inquiry'         => 'Rental Inquiry',
+            'returning_call'         => 'Returning Their Call',
+            'availability_lead_time' => 'Availability / Lead Time',
+            'equipment_service'      => 'Equipment Service / Technical Support',
+            'invoice_billing'        => 'Invoice / Billing Question',
+            'order_parts'            => 'Order Parts',
+            'order_status'           => 'Order Status',
+            'other'                  => 'Other',
+            'price_quote'            => 'Price Quote',
+            'return_exchange'        => 'Return / Exchange',
+            'warranty_defective'     => 'Warranty / Defective Item',
+        ];
+    }
+
     public function archive(Request $request)
     {
-        $query = Task::with(['assignedTo', 'createdBy', 'completedBy', 'equipment'])
+        $search     = $request->filled('search')      ? $request->search      : null;
+        $category   = $request->filled('category')    ? $request->category    : null;
+        $assignedTo = $request->filled('assigned_to') ? $request->assigned_to : null;
+        $dateFrom   = $request->filled('date_from')   ? $request->date_from   : null;
+        $dateTo     = $request->filled('date_to')     ? $request->date_to     : null;
+
+        // Tasks
+        $taskQuery = Task::with(['assignedTo', 'createdBy', 'completedBy', 'equipment'])
             ->where('status', 'completed');
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(fn($q) => $q->where('title', 'like', "%{$search}%")
+        if ($search) {
+            $taskQuery->where(fn($q) => $q->where('title', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%"));
         }
+        if ($category)   { $taskQuery->where('category', $category); }
+        if ($assignedTo) { $taskQuery->where('assigned_to_user_id', $assignedTo); }
+        if ($dateFrom)   { $taskQuery->whereDate('completed_at', '>=', $dateFrom); }
+        if ($dateTo)     { $taskQuery->whereDate('completed_at', '<=', $dateTo); }
 
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
+        // Completed calls
+        $callQuery = CustomerCallNeeded::with(['assignee', 'creator', 'completedBy'])
+            ->where('status', 'clear')
+            ->whereNotNull('completed_at');
+
+        if ($search) {
+            $callQuery->where(fn($q) => $q->where('reason', 'like', "%{$search}%")
+                ->orWhere('notes', 'like', "%{$search}%"));
         }
+        if ($category)   { $callQuery->where('category', $category); }
+        if ($assignedTo) { $callQuery->where('created_by', $assignedTo); }
+        if ($dateFrom)   { $callQuery->whereDate('completed_at', '>=', $dateFrom); }
+        if ($dateTo)     { $callQuery->whereDate('completed_at', '<=', $dateTo); }
 
-        if ($request->filled('assigned_to')) {
-            $query->where('assigned_to_user_id', $request->assigned_to);
-        }
+        $reasonLabels = self::callReasonLabels();
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('completed_at', '>=', $request->date_from);
-        }
+        $taskItems = $taskQuery->get()->map(fn($t) => (object)[
+            'type'              => 'task',
+            'completed_at'      => $t->completed_at,
+            'category'          => $t->category,
+            'title'             => $t->title,
+            'assignee_name'     => $t->assignedTo?->full_name,
+            'creator_name'      => $t->createdBy?->full_name,
+            'completed_by_name' => $t->completedBy?->full_name,
+            'equipment'         => $t->equipment,
+            'view_url'          => route('admin.tasks.show', $t),
+        ]);
 
-        if ($request->filled('date_to')) {
-            $query->whereDate('completed_at', '<=', $request->date_to);
-        }
+        $callItems = $callQuery->get()->map(fn($c) => (object)[
+            'type'              => 'call',
+            'completed_at'      => $c->completed_at,
+            'category'          => $c->category,
+            'title'             => $reasonLabels[$c->reason] ?? ucwords(str_replace('_', ' ', $c->reason ?? '')),
+            'assignee_name'     => $c->assignee?->full_name,
+            'creator_name'      => $c->creator?->full_name,
+            'completed_by_name' => $c->completedBy?->full_name,
+            'equipment'         => null,
+            'view_url'          => route('admin.tasks.call.show', $c->id),
+        ]);
 
-        $tasks = $query->orderByDesc('completed_at')->paginate(30)->withQueryString();
+        $perPage = 30;
+        $page    = (int) $request->input('page', 1);
+        $all     = $taskItems->concat($callItems)->sortByDesc(fn($i) => $i->completed_at?->timestamp ?? 0)->values();
+        $total   = $all->count();
+        $items   = $all->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $tasks = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         $categories = TaskCategory::cases();
         $users      = User::active()->orderBy('first_name')->get();

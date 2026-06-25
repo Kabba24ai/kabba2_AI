@@ -31,6 +31,8 @@ class CustomerCallNeeded extends Model
         'follow_up_note',
         'rescheduled_by',
         'rescheduled_at',
+        'completed_at',
+        'completed_by',
     ];
 
     protected $casts = [
@@ -39,6 +41,7 @@ class CustomerCallNeeded extends Model
         'priority'       => TaskPriority::class,
         'category'       => TaskCategory::class,
         'due_date'       => 'datetime',
+        'completed_at'   => 'datetime',
     ];
 
     public function customer()
@@ -59,6 +62,11 @@ class CustomerCallNeeded extends Model
 public function assignee()
 {
     return $this->belongsTo(User::class, 'created_by');
+}
+
+public function completedBy()
+{
+    return $this->belongsTo(User::class, 'completed_by');
 }
 
 public function notes()

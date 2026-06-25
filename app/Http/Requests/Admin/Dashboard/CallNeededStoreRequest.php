@@ -41,9 +41,10 @@ class CallNeededStoreRequest extends FormRequest
                 'string',
             ],
 
-            'is_urgent' => [
+            'priority' => [
                 'nullable',
-                'boolean',
+                'string',
+                'in:low,normal,high,urgent',
             ],
             'contact_name'  => 'required_without_all:customer_id,supplier_id|nullable|string|max:255',
             'contact_phone' => 'required_without_all:customer_id,supplier_id|nullable',

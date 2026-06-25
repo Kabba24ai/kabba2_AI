@@ -2,6 +2,7 @@
 
 namespace App\Models\Customers;
 
+use App\Enums\Tasks\TaskPriority;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Iam\Personnel\User;
@@ -18,6 +19,7 @@ class CustomerCallNeeded extends Model
         'status',
         'created_by',
         'is_urgent',
+        'priority',
         'auth_by',
         'contact_name',
         'contact_email',
@@ -31,6 +33,7 @@ class CustomerCallNeeded extends Model
     protected $casts = [
         'follow_up_at'   => 'datetime',
         'rescheduled_at' => 'datetime',
+        'priority'       => TaskPriority::class,
     ];
 
     public function customer()

@@ -27,7 +27,7 @@ class CallNeededStoreController extends Controller
 
                 'reason'      => $request->reason,
                 'notes'       => $request->notes,
-                'is_urgent'   => $request->boolean('is_urgent'),
+                'priority'    => $request->input('priority', 'normal'),
                 'status'      => 'active',
                 'created_by'  => $request->assigned_to,
                 'auth_by'     => auth()->id(),
@@ -44,8 +44,9 @@ class CallNeededStoreController extends Controller
             $description .= ' Reason: ' .
                 ucwords(str_replace('_', ' ', $request->reason)) . '.';
 
-            if ($request->boolean('is_urgent')) {
-                $description .= ' Priority: Urgent.';
+            $priority = $request->input('priority', 'normal');
+            if ($priority !== 'normal') {
+                $description .= ' Priority: ' . ucfirst($priority) . '.';
             }
 
             if ($request->filled('notes')) {

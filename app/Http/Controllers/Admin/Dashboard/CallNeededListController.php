@@ -32,7 +32,7 @@ class CallNeededListController extends Controller
                     'id' => $call->id,
                     'reason' => $call->reason,
                     'notes' => $call->notes,
-                    'is_urgent' => (bool) $call->is_urgent,
+                    'priority' => $call->priority?->value ?? 'normal',
                     'created_at' => CustomHelper::formatDateTime($call->created_at),
                     'was_rescheduled' => $call->follow_up_at !== null,
                     'follow_up_at_label' => $call->follow_up_at

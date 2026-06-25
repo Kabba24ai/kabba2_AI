@@ -209,9 +209,6 @@
                                    class="font-medium text-gray-900 hover:text-brand-600 truncate block">
                                     {{ ucwords(str_replace('_', ' ', $call->reason)) }}
                                 </a>
-                                @if ($call->is_urgent)
-                                    <span class="text-xs text-red-600 font-medium">Urgent</span>
-                                @endif
                             </td>
                             <td class="px-4 py-3 text-gray-700">
                                 {{ $call->assignee?->full_name ?? '—' }}
@@ -230,15 +227,9 @@
                                 {{ $call->creator?->full_name ?? '—' }}
                             </td>
                             <td class="px-4 py-3">
-                                @if ($call->is_urgent)
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">
-                                        Urgent
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">
-                                        Normal
-                                    </span>
-                                @endif
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->priority->color() }}">
+                                    {{ $call->priority->label() }}
+                                </span>
                             </td>
                             <td class="px-4 py-3 text-right whitespace-nowrap">
                                 <a href="{{ route('admin.tasks.call.show', $call->id) }}" class="text-blue-600 hover:underline text-xs">View</a>

@@ -210,40 +210,15 @@
                     !!}
                 </div>
 
-                <div class="flex items-center rounded-lg border border-gray-200 p-3 bg-gray-50">
-
-                    <input
-                        type="checkbox"
-                        id="call_is_urgent"
-                        class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500">
-
-                    <label
-                            for="call_is_urgent"
-                            class="ml-3 text-sm font-medium text-gray-700">
-
-                            <span class="flex items-center gap-2">
-
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="2"
-                                    stroke="currentColor"
-                                    class="w-4 h-4 text-red-600">
-                                    <path stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M12 9v3.75m0 3.75h.007v.008H12v-.008zM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />
-                                </svg>
-
-                                <span>Mark as Urgent</span>
-
-                            </span>
-
-                            <span class="block text-xs text-gray-500 font-normal mt-1">
-                                High priority call reminder
-                            </span>
-
-                        </label>
-
+                <div class="w-full">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <select id="call_priority" name="priority"
+                        class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="low">Low</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
                 </div>
 
                 {{-- Notes --}}
@@ -810,7 +785,7 @@ function openCallNeededModal()
     document.getElementById('customer-section').classList.remove('hidden');
     document.getElementById('manual-contact-section').classList.add('hidden');
 
-    document.getElementById('call_is_urgent').checked = false;
+    document.getElementById('call_priority').value = 'normal';
 
     if (window.callAssigneeChoices) window.callAssigneeChoices.removeActiveItems();
     if (window.callReasonChoices)   window.callReasonChoices.removeActiveItems();
@@ -840,7 +815,7 @@ function saveCallNeeded() {
     const reason       = document.getElementById('call_reason').value;
     const notes        = document.getElementById('call_notes').value;
     const assignedTo   = document.getElementById('call_assigned_to').value;
-    const isUrgent     = document.getElementById('call_is_urgent').checked;
+    const priority     = document.getElementById('call_priority').value;
 
     if (contactType === 'customer') {
 
@@ -911,7 +886,7 @@ function saveCallNeeded() {
             assigned_to:   assignedTo,
             reason:        reason,
             notes:         notes,
-            is_urgent:     isUrgent ? 1 : 0,
+            priority:      priority,
         }),
     })
     .then(res => res.json())
@@ -1045,6 +1020,18 @@ function filterCallsByAssignee(assigneeId) {
     renderCallNeededList(filtered, true);
 }
 
+function priorityBadgeClass(priority) {
+    return {
+        urgent: 'bg-red-50 text-red-700 border-red-200',
+        high:   'bg-yellow-50 text-yellow-700 border-yellow-200',
+        low:    'bg-gray-50 text-gray-500 border-gray-200',
+    }[priority] ?? 'bg-blue-50 text-blue-700 border-blue-200';
+}
+
+function priorityLabel(priority) {
+    return { urgent: 'Urgent', high: 'High', normal: 'Normal', low: 'Low' }[priority] ?? priority;
+}
+
 function renderCallNeededList(calls, skipFilters = false)
 {
     const container = document.getElementById('call-needed-list');
@@ -1091,9 +1078,9 @@ function renderCallNeededList(calls, skipFilters = false)
                     </span>
                 ` : ''}
 
-                ${call.is_urgent ? `
-                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-700 text-xs font-semibold border border-red-200">
-                        Urgent
+                ${call.priority && call.priority !== 'normal' ? `
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border ${priorityBadgeClass(call.priority)}">
+                        ${priorityLabel(call.priority)}
                     </span>
                 ` : ''}
 
@@ -1367,8 +1354,8 @@ function viewCallNeeded(id)
         document.getElementById('call_notes').value =
             call.notes ?? '';
 
-        document.getElementById('call_is_urgent').checked =
-            Boolean(call.is_urgent);
+        document.getElementById('call_priority').value =
+            call.priority ?? 'normal';
 
         document.getElementById('callModalTitle').innerText =
             'Edit Call Reminder';

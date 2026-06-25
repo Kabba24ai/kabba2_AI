@@ -22,7 +22,7 @@ class CallNeededUpdateController extends Controller
             'contact_phone' => $isManual ? $request->contact_phone : null,
             'created_by'    => $request->assigned_to,
             'reason'        => $request->reason,
-            'is_urgent'     => $request->boolean('is_urgent'),
+            'priority'      => $request->input('priority', 'normal'),
             'notes'         => $request->notes,
         ]);
 

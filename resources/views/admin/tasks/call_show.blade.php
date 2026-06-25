@@ -31,15 +31,9 @@
                             <x-heroicon-o-phone class="w-3 h-3" />
                             Call Reminder
                         </span>
-                        @if ($callReminder->is_urgent)
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 border border-red-200">
-                                Urgent
-                            </span>
-                        @else
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">
-                                Normal Priority
-                            </span>
-                        @endif
+                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $callReminder->priority->color() }} border border-transparent">
+                            {{ $callReminder->priority->label() }}
+                        </span>
                         @if ($callReminder->status === 'active')
                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-700">
                                 Active
@@ -213,11 +207,9 @@
                 <div class="flex justify-between">
                     <dt class="text-gray-500">Priority</dt>
                     <dd>
-                        @if ($callReminder->is_urgent)
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">Urgent</span>
-                        @else
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">Normal</span>
-                        @endif
+                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $callReminder->priority->color() }}">
+                            {{ $callReminder->priority->label() }}
+                        </span>
                     </dd>
                 </div>
             </dl>

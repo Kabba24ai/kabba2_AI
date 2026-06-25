@@ -212,11 +212,18 @@
 
                 <div class="w-full">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Due Date <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input
-                        type="date"
-                        id="call_due_date"
-                        name="due_date"
-                        class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="call_due_date"
+                            name="due_date"
+                            placeholder="Select date"
+                            readonly
+                            class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer bg-white">
+                        <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
                 </div>
 
                 <div class="w-full">
@@ -511,6 +518,7 @@ let _rescheduleCallId = null;
 let _rescheduleCallStatus = null;
 let _rescheduleCallNote = null;
 let _rescheduleFlatpickr = null;
+let _callDueDateFlatpickr = null;
 
 function initRescheduleDatePicker()
 {
@@ -794,7 +802,8 @@ function openCallNeededModal()
     document.getElementById('customer-section').classList.remove('hidden');
     document.getElementById('manual-contact-section').classList.add('hidden');
 
-    document.getElementById('call_due_date').value  = '';
+    if (_callDueDateFlatpickr) _callDueDateFlatpickr.clear();
+    else document.getElementById('call_due_date').value = '';
     document.getElementById('call_priority').value  = 'normal';
 
     if (window.callAssigneeChoices) window.callAssigneeChoices.removeActiveItems();
@@ -1366,8 +1375,12 @@ function viewCallNeeded(id)
         document.getElementById('call_notes').value =
             call.notes ?? '';
 
-        document.getElementById('call_due_date').value =
-            call.due_date ?? '';
+        if (_callDueDateFlatpickr) {
+            if (call.due_date) _callDueDateFlatpickr.setDate(call.due_date, false, 'Y-m-d');
+            else _callDueDateFlatpickr.clear();
+        } else {
+            document.getElementById('call_due_date').value = call.due_date ?? '';
+        }
 
         document.getElementById('call_priority').value =
             call.priority ?? 'normal';
@@ -1439,6 +1452,41 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!window.taskManagerMode) {
         loadCallNeededList();
     }
+
+    // Flatpickr for Call Needed due date — lazy-load CDN if not already present
+    (function () {
+        function doInitCallDueDatePicker() {
+            if (_callDueDateFlatpickr) return;
+            _callDueDateFlatpickr = flatpickr('#call_due_date', {
+                dateFormat:    'Y-m-d',
+                altInput:      true,
+                altFormat:     'F j, Y',
+                minDate:       'today',
+                disableMobile: true,
+                onReady: function (sel, str, instance) {
+                    instance.calendarContainer.style.zIndex = '200000';
+                },
+            });
+        }
+
+        if (window.flatpickr) {
+            doInitCallDueDatePicker();
+            return;
+        }
+
+        if (!document.getElementById('flatpickr-css')) {
+            var link = document.createElement('link');
+            link.id  = 'flatpickr-css';
+            link.rel = 'stylesheet';
+            link.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+            document.head.appendChild(link);
+        }
+
+        var s    = document.createElement('script');
+        s.src    = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js';
+        s.onload = doInitCallDueDatePicker;
+        document.head.appendChild(s);
+    }());
 });
 
 document.addEventListener('change', function (e) {

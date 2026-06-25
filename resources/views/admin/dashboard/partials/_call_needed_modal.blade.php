@@ -191,18 +191,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1 required">
                             Reason
                         </label>
-                        {!! html()->select('reason', [
-                            '' => 'Select Reason',
-                            'contract_renewal'       => 'Contract Renewal',
-                            'delivery_pickup'        => 'Delivery / Pickup',
-                            'equipment_availability' => 'Equipment Availability',
-                            'equipment_return'       => 'Equipment Return',
-                            'general_followup'       => 'General Follow-up',
-                            'maintenance_request'    => 'Maintenance Request',
-                            'order_review'           => 'Order Review',
-                            'payment_followup'       => 'Payment Follow-up',
-                            'rental_inquiry'         => 'Rental Inquiry',
-                        ], old('reason'))
+                        {!! html()->select('reason', ['' => 'Select Reason'], old('reason'))
                         ->id('call_reason')
                         ->class('choices-select w-full')
                         ->required()
@@ -533,9 +522,9 @@ let _rescheduleFlatpickr = null;
 let _callDueDateFlatpickr = null;
 
 // Reason lists per contact type — add new types here without touching anything else
+// No placeholder entry in these lists — Choices.js placeholder is set via init config
 const CALL_REASON_LISTS = {
     customer: [
-        { value: '',                       label: 'Select Reason',           placeholder: true, selected: true, disabled: true },
         { value: 'contract_renewal',       label: 'Contract Renewal' },
         { value: 'delivery_pickup',        label: 'Delivery / Pickup' },
         { value: 'equipment_availability', label: 'Equipment Availability' },
@@ -545,9 +534,9 @@ const CALL_REASON_LISTS = {
         { value: 'order_review',           label: 'Order Review' },
         { value: 'payment_followup',       label: 'Payment Follow-up' },
         { value: 'rental_inquiry',         label: 'Rental Inquiry' },
+        { value: 'returning_call',         label: 'Returning Their Call' },
     ],
     supplier: [
-        { value: '',                       label: 'Select Reason',                              placeholder: true, selected: true, disabled: true },
         { value: 'availability_lead_time', label: 'Availability / Lead Time' },
         { value: 'order_parts',            label: 'Order Parts' },
         { value: 'order_status',           label: 'Order Status' },
@@ -557,6 +546,7 @@ const CALL_REASON_LISTS = {
         { value: 'equipment_service',      label: 'Equipment Service / Technical Support' },
         { value: 'return_exchange',        label: 'Return / Exchange' },
         { value: 'general_followup',       label: 'General Follow-up' },
+        { value: 'returning_call',         label: 'Returning Their Call' },
         { value: 'other',                  label: 'Other' },
     ],
 };
@@ -1486,13 +1476,15 @@ document.addEventListener('DOMContentLoaded', function () {
         window.callReasonChoices = new Choices(
             document.getElementById('call_reason'),
             {
-                searchEnabled: true,
-                shouldSort: false,
-                itemSelectText: '',
-                searchResultLimit: 1000,
-                renderChoiceLimit: -1,
+                searchEnabled:    false,
+                shouldSort:       false,
+                itemSelectText:   '',
+                placeholder:      true,
+                placeholderValue: 'Select Reason',
             }
         );
+        // Load the default (customer) list immediately, clearing the HTML options
+        setCallReasonChoices('customer');
     }
 
     if (!window.callSupplierChoices) {

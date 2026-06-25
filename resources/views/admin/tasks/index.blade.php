@@ -12,14 +12,6 @@
         <p class="text-sm text-gray-500 mt-1">Daily operational tasks for Sales, Yard, Shop, and Admin teams.</p>
     </div>
     <div class="flex items-center gap-3">
-        <a href="{{ route('admin.tasks.archive') }}"
-            class="inline-flex items-center justify-center rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white shadow hover:bg-gray-800">
-            Task Archive
-        </a>
-        <a href="{{ route('admin.tasks.create') }}"
-            class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
-            + New Task
-        </a>
         <button
             type="button"
             onclick="openCallNeededModal()"
@@ -27,6 +19,14 @@
             <x-heroicon-o-phone class="w-4 h-4" />
             Call Needed
         </button>
+        <a href="{{ route('admin.tasks.create') }}"
+            class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
+            + New Task
+        </a>
+        <a href="{{ route('admin.tasks.archive') }}"
+            class="inline-flex items-center justify-center rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white shadow hover:bg-gray-800">
+            Task Archive
+        </a>
     </div>
 </div>
 
@@ -48,15 +48,14 @@
     $badgeBase     = 'inline-flex items-center rounded-full px-3 py-1 text-sm font-medium border transition-colors cursor-pointer';
     $badgeInactive = $badgeBase . ' bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
 
-    $typeParam  = request('type', 'all');
+    $typeParam  = request('type') ?: 'all';
     $showTasks  = $typeParam !== 'calls';
     $showCalls  = $typeParam !== 'tasks';
 @endphp
 
-{{-- Header row: filters (70%) | completed widget title (30%) --}}
-<div style="display:flex; gap:1.5rem; align-items:flex-start; margin-bottom:1.25rem;">
-<div style="flex:7; min-width:0;">
-<form method="GET" action="{{ route('admin.tasks.index') }}" class="space-y-2">
+{{-- Filters --}}
+<div class="mb-5">
+<form method="GET" action="{{ route('admin.tasks.index') }}" class="space-y-4">
 
     {{-- Hidden: preserve badge-selected filters when form dropdowns submit --}}
     @if(request('category'))
@@ -64,9 +63,6 @@
     @endif
     @if(request('assigned_to'))
         <input type="hidden" name="assigned_to" value="{{ request('assigned_to') }}">
-    @endif
-    @if(request('type') && request('type') !== 'all')
-        <input type="hidden" name="type" value="{{ request('type') }}">
     @endif
 
     {{-- Row 1: Status | Priority | Due Today | Overdue | Type | Clear --}}
@@ -106,28 +102,25 @@
             </label>
         </div>
 
-        {{-- Type segmented control --}}
+        {{-- Type --}}
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
-            <div class="inline-flex rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm text-sm font-medium" role="group">
-                <a href="{{ $taskUrl(['type' => null, 'page' => null]) }}"
-                   class="px-3 py-1.5 border-r border-gray-200 whitespace-nowrap transition-colors {{ $typeParam === 'all' ? 'bg-gray-700 text-white' : 'text-gray-600 hover:bg-gray-50' }}">
-                    All ({{ $tasks->total() + $callReminders->count() }})
-                </a>
-                <a href="{{ $taskUrl(['type' => 'tasks', 'page' => null]) }}"
-                   class="px-3 py-1.5 border-r border-gray-200 whitespace-nowrap transition-colors {{ $typeParam === 'tasks' ? 'bg-gray-700 text-white' : 'text-gray-600 hover:bg-gray-50' }}">
-                    Tasks ({{ $tasks->total() }})
-                </a>
-                <a href="{{ $taskUrl(['type' => 'calls', 'page' => null]) }}"
-                   class="px-3 py-1.5 whitespace-nowrap transition-colors {{ $typeParam === 'calls' ? 'bg-gray-700 text-white' : 'text-gray-600 hover:bg-gray-50' }}">
-                    Calls ({{ $callReminders->count() }})
-                </a>
-            </div>
+            <select name="type" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
+                <option value="">All ({{ $tasks->total() + $callReminders->count() }})</option>
+                <option value="tasks" {{ request('type') === 'tasks' ? 'selected' : '' }}>Tasks ({{ $tasks->total() }})</option>
+                <option value="calls" {{ request('type') === 'calls' ? 'selected' : '' }}>Calls ({{ $callReminders->count() }})</option>
+            </select>
         </div>
 
         {{-- Clear filters --}}
         @if (request()->hasAny(['category', 'status', 'priority', 'assigned_to', 'due_today', 'overdue', 'type']))
-            <a href="{{ route('admin.tasks.index') }}" class="text-sm text-gray-500 hover:text-gray-700 underline pb-1">Clear filters</a>
+            <a href="{{ route('admin.tasks.index') }}"
+               class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-50 hover:text-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Clear filters
+            </a>
         @endif
 
     </div>
@@ -181,13 +174,7 @@
     </div>
 
 </form>
-</div>{{-- /filters column --}}
-
-{{-- Widget title — sits beside the filters, in the right 30% column --}}
-<div style="flex:3; min-width:0; padding-top:0.25rem;">
-    <span class="text-sm font-semibold text-gray-700">Tasks Completed - {{ now()->format('F j, Y') }}</span>
-</div>
-</div>{{-- /header row --}}
+</div>{{-- /filters --}}
 
 {{-- Main layout: task table (left, 70%) + Completed Today widget (right, 30%) --}}
 <div style="display:flex; gap:1.5rem; align-items:flex-start;">
@@ -365,6 +352,7 @@
 
     {{-- Completed Today Widget --}}
     <div style="flex:3; min-width:0;">
+        <p class="text-sm font-semibold text-gray-700 mb-2">Tasks Completed - {{ now()->format('F j, Y') }}</p>
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
             @if ($completedToday->isEmpty())
                 <table class="min-w-full divide-y divide-gray-200 text-sm">

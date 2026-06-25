@@ -54,13 +54,17 @@ class UpdateDeliveryPickupInputsController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Failed to update delivery/pickup inputs.',
+                'message' => $validated['type'] === 'delivery'
+                    ? 'Failed to update delivery.'
+                    : 'Failed to update pickup.',
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'status'  => true,
-            'message' => 'Delivery/pickup inputs updated successfully.',
+            'message' => $validated['type'] === 'delivery'
+                ? 'Delivery successfully.'
+                : 'Pickup successfully.',
         ]);
     }
 }

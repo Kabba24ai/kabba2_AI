@@ -532,6 +532,47 @@ let _rescheduleCallNote = null;
 let _rescheduleFlatpickr = null;
 let _callDueDateFlatpickr = null;
 
+// Reason lists per contact type — add new types here without touching anything else
+const CALL_REASON_LISTS = {
+    customer: [
+        { value: '',                       label: 'Select Reason',           placeholder: true, selected: true, disabled: true },
+        { value: 'contract_renewal',       label: 'Contract Renewal' },
+        { value: 'delivery_pickup',        label: 'Delivery / Pickup' },
+        { value: 'equipment_availability', label: 'Equipment Availability' },
+        { value: 'equipment_return',       label: 'Equipment Return' },
+        { value: 'general_followup',       label: 'General Follow-up' },
+        { value: 'maintenance_request',    label: 'Maintenance Request' },
+        { value: 'order_review',           label: 'Order Review' },
+        { value: 'payment_followup',       label: 'Payment Follow-up' },
+        { value: 'rental_inquiry',         label: 'Rental Inquiry' },
+    ],
+    supplier: [
+        { value: '',                       label: 'Select Reason',                              placeholder: true, selected: true, disabled: true },
+        { value: 'availability_lead_time', label: 'Availability / Lead Time' },
+        { value: 'order_parts',            label: 'Order Parts' },
+        { value: 'order_status',           label: 'Order Status' },
+        { value: 'price_quote',            label: 'Price Quote' },
+        { value: 'warranty_defective',     label: 'Warranty / Defective Item' },
+        { value: 'invoice_billing',        label: 'Invoice / Billing Question' },
+        { value: 'equipment_service',      label: 'Equipment Service / Technical Support' },
+        { value: 'return_exchange',        label: 'Return / Exchange' },
+        { value: 'general_followup',       label: 'General Follow-up' },
+        { value: 'other',                  label: 'Other' },
+    ],
+};
+
+// Full label map — used by formatReason() for display in call cards
+const REASON_LABELS = {};
+Object.values(CALL_REASON_LISTS).forEach(list =>
+    list.forEach(({ value, label }) => { if (value) REASON_LABELS[value] = label; })
+);
+
+function setCallReasonChoices(type) {
+    if (!window.callReasonChoices) return;
+    const list = CALL_REASON_LISTS[type] ?? CALL_REASON_LISTS.customer;
+    window.callReasonChoices.setChoices(list, 'value', 'label', true);
+}
+
 function initRescheduleDatePicker()
 {
     function doInit() {
@@ -820,6 +861,7 @@ function openCallNeededModal()
     document.getElementById('call_priority').value  = 'normal';
 
     if (window.callAssigneeChoices) window.callAssigneeChoices.removeActiveItems();
+    setCallReasonChoices('customer');
     if (window.callReasonChoices)   window.callReasonChoices.removeActiveItems();
 
     const modal = document.getElementById('CallNeededModal');
@@ -1319,10 +1361,8 @@ function clearCallNeeded(id)
 
 function formatReason(reason) {
     if (!reason) return '';
-
-    return reason
-        .replaceAll('_', ' ')
-        .replace(/\b\w/g, char => char.toUpperCase());
+    return REASON_LABELS[reason]
+        ?? reason.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function viewCallNeeded(id)
@@ -1383,6 +1423,7 @@ function viewCallNeeded(id)
             String(call.created_by)
         );
 
+        setCallReasonChoices(call.supplier_id ? 'supplier' : 'customer');
         window.callReasonChoices.setChoiceByValue(
             call.reason
         );
@@ -1520,6 +1561,10 @@ document.addEventListener('change', function (e) {
     document.getElementById('customer-section').classList.toggle('hidden', val !== 'customer');
     document.getElementById('supplier-section').classList.toggle('hidden', val !== 'supplier');
     document.getElementById('manual-contact-section').classList.toggle('hidden', val !== 'manual');
+
+    // Swap reason list and clear any selected reason when contact type changes
+    setCallReasonChoices(val === 'supplier' ? 'supplier' : 'customer');
+    if (window.callReasonChoices) window.callReasonChoices.removeActiveItems();
 });
 </script>
 

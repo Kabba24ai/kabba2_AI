@@ -55,7 +55,7 @@
 
 {{-- Filters --}}
 <div class="mb-5">
-<form method="GET" action="{{ route('admin.tasks.index') }}" class="space-y-4">
+<form id="task-filter-zone" method="GET" action="{{ route('admin.tasks.index') }}" class="space-y-4">
 
     {{-- Hidden: preserve badge-selected filters when form dropdowns submit --}}
     @if(request('category'))
@@ -71,7 +71,7 @@
         {{-- Status --}}
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-            <select name="status" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
+            <select name="status" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.requestSubmit()">
                 <option value="">All Statuses</option>
                 @foreach ($statuses as $st)
                     <option value="{{ $st->value }}" {{ request('status') === $st->value ? 'selected' : '' }}>{{ $st->label() }}</option>
@@ -82,7 +82,7 @@
         {{-- Priority --}}
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Priority</label>
-            <select name="priority" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
+            <select name="priority" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.requestSubmit()">
                 <option value="">All Priorities</option>
                 @foreach ($priorities as $pri)
                     <option value="{{ $pri->value }}" {{ request('priority') === $pri->value ? 'selected' : '' }}>{{ $pri->label() }}</option>
@@ -93,11 +93,11 @@
         {{-- Due Today / Overdue --}}
         <div class="flex items-center gap-3 pb-1">
             <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-brand-500">
+                <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.requestSubmit()" class="rounded border-gray-300 text-brand-500">
                 Due Today
             </label>
             <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-red-500">
+                <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }} onchange="this.form.requestSubmit()" class="rounded border-gray-300 text-red-500">
                 Overdue
             </label>
         </div>
@@ -105,7 +105,7 @@
         {{-- Type --}}
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
-            <select name="type" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
+            <select name="type" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.requestSubmit()">
                 <option value="">All ({{ $tasks->total() + $callReminders->count() }})</option>
                 <option value="tasks" {{ request('type') === 'tasks' ? 'selected' : '' }}>Tasks ({{ $tasks->total() }})</option>
                 <option value="calls" {{ request('type') === 'calls' ? 'selected' : '' }}>Calls ({{ $callReminders->count() }})</option>
@@ -180,7 +180,7 @@
 <div style="display:flex; gap:1.5rem; align-items:flex-start;">
 
     {{-- Task / Call table --}}
-    <div style="flex:7; min-width:0;">
+    <div id="task-list-zone" style="flex:7; min-width:0;">
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
@@ -411,5 +411,97 @@
 {{-- Task manager mode flag + shared Call Needed modal --}}
 <script>window.taskManagerMode = true;</script>
 @include('admin.dashboard.partials._call_needed_modal')
+
+@push('js')
+<script>
+(function () {
+    'use strict';
+
+    var _fetching = false;
+
+    async function doFilter(url) {
+        if (_fetching) return;
+        _fetching = true;
+
+        var listZone = document.getElementById('task-list-zone');
+        if (listZone) {
+            listZone.style.opacity = '0.45';
+            listZone.style.pointerEvents = 'none';
+        }
+
+        try {
+            var res = await fetch(url.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+
+            var html = await res.text();
+            var doc  = new DOMParser().parseFromString(html, 'text/html');
+
+            var newFilter = doc.getElementById('task-filter-zone');
+            var newList   = doc.getElementById('task-list-zone');
+
+            if (newFilter) document.getElementById('task-filter-zone').replaceWith(newFilter);
+            if (newList)   document.getElementById('task-list-zone').replaceWith(newList);
+
+            history.pushState(null, '', url.toString());
+
+        } catch (err) {
+            console.error('Task filter error:', err);
+            window.location.href = url.toString();
+        } finally {
+            _fetching = false;
+            var zone = document.getElementById('task-list-zone');
+            if (zone) {
+                zone.style.opacity = '';
+                zone.style.pointerEvents = '';
+            }
+        }
+    }
+
+    function buildFormUrl(form) {
+        var params = new URLSearchParams();
+        new FormData(form).forEach(function (v, k) {
+            if (v !== '' && v !== null) params.append(k, v);
+        });
+        var qs = params.toString();
+        return new URL(form.action + (qs ? '?' + qs : ''));
+    }
+
+    // Dropdown / checkbox changes — requestSubmit() fires the submit event so we can intercept it
+    document.addEventListener('submit', function (e) {
+        if (e.target.id !== 'task-filter-zone') return;
+        e.preventDefault();
+        doFilter(buildFormUrl(e.target));
+    });
+
+    // Badge link clicks (filter zone) and pagination link clicks (list zone)
+    document.addEventListener('click', function (e) {
+        var filterLink = e.target.closest('#task-filter-zone a[href]');
+        if (filterLink) {
+            e.preventDefault();
+            doFilter(new URL(filterLink.href));
+            return;
+        }
+
+        var listLink = e.target.closest('#task-list-zone a[href]');
+        if (listLink) {
+            // Only intercept pagination — links that point back to the same page path
+            var filterForm = document.getElementById('task-filter-zone');
+            var basePath   = filterForm ? new URL(filterForm.action).pathname : null;
+            if (basePath && new URL(listLink.href).pathname === basePath) {
+                e.preventDefault();
+                doFilter(new URL(listLink.href));
+            }
+        }
+    });
+
+    // Browser back / forward
+    window.addEventListener('popstate', function () {
+        doFilter(new URL(window.location.href));
+    });
+}());
+</script>
+@endpush
 
 @endsection

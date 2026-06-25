@@ -1379,13 +1379,17 @@
                                     {{-- Delivery Inputs --}}
                                     <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
                                         <div class="flex items-center justify-between mb-2">
-                                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Delivery Inputs</span>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Delivery Inputs</span>
                                         </div>
                                         @if($showDeliveryTrophy)
                                             {{-- Completed with no issues --}}
                                             <div class="flex flex-col items-center justify-center py-1 gap-0.5">
                                                 <span class="text-2xl leading-none">🏆</span>
-                                                <span class="text-[10px] text-gray-400">No issues recorded</span>
+                                                @if($orderProduct->deliveryEmployee)
+                                                    <span class="text-lg text-gray-600 font-medium text-center">{{ $orderProduct->deliveryEmployee->first_name }} {{ $orderProduct->deliveryEmployee->last_name }}</span>
+                                                @else
+                                                    <span class="text-xs text-gray-400">No issues recorded</span>
+                                                @endif
                                             </div>
                                         @elseif(!$deliveryHasData)
                                             {{-- Not yet completed, no data --}}
@@ -1430,13 +1434,17 @@
                                     {{-- Pickup Inputs --}}
                                     <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
                                         <div class="flex items-center justify-between mb-2">
-                                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Pickup Inputs</span>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Pickup Inputs</span>
                                         </div>
                                         @if($showPickupTrophy)
                                             {{-- Completed with no issues --}}
                                             <div class="flex flex-col items-center justify-center py-1 gap-0.5">
                                                 <span class="text-2xl leading-none">🏆</span>
-                                                <span class="text-[10px] text-gray-400">No issues recorded</span>
+                                                @if($orderProduct->pickupEmployee)
+                                                    <span class="text-lg text-gray-600 font-medium text-center">{{ $orderProduct->pickupEmployee->first_name }} {{ $orderProduct->pickupEmployee->last_name }}</span>
+                                                @else
+                                                    <span class="text-xs text-gray-400">No issues recorded</span>
+                                                @endif
                                             </div>
                                         @elseif(!$pickupHasData)
                                             {{-- Not yet completed, no data --}}

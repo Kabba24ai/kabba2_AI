@@ -53,8 +53,9 @@
     $showCalls  = $typeParam !== 'tasks';
 @endphp
 
-{{-- Filters --}}
-<div class="mb-5">
+{{-- Filter bar + widget title: flex row, stretch-aligned so title sits at badge-row level --}}
+<div class="mb-5" style="display:flex; gap:1.5rem; align-items:stretch;">
+<div style="flex:7.5; min-width:0;">
 <form id="task-filter-zone" method="GET" action="{{ route('admin.tasks.index') }}" class="space-y-4">
 
     {{-- Hidden: preserve badge-selected filters when form dropdowns submit --}}
@@ -187,9 +188,13 @@
     </div>
 
 </form>
-</div>{{-- /filters --}}
+</div>{{-- /filter left col --}}
+<div style="flex:2.5; min-width:0; display:flex; flex-direction:column; justify-content:flex-end;">
+    <p class="text-sm font-semibold text-gray-700 text-center">Tasks Completed - {{ now()->format('F j, Y') }}</p>
+</div>{{-- /title right col --}}
+</div>{{-- /filter+title row --}}
 
-{{-- Main layout: task table (left, 70%) + Completed Today widget (right, 30%) --}}
+{{-- Main layout: task table (75%) + Completed Today widget (25%) --}}
 <div style="display:flex; gap:1.5rem; align-items:flex-start;">
 
     {{-- Task / Call table --}}
@@ -365,7 +370,6 @@
 
     {{-- Completed Today Widget --}}
     <div style="flex:2.5; min-width:0;">
-        <p class="text-sm font-semibold text-gray-700 mb-2">Tasks Completed - {{ now()->format('F j, Y') }}</p>
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
             @if ($completedToday->isEmpty())
                 <table class="min-w-full divide-y divide-gray-200 text-sm">

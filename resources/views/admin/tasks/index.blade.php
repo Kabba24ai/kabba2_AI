@@ -102,14 +102,27 @@
             </label>
         </div>
 
-        {{-- Type --}}
+        {{-- Type 3-way toggle --}}
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
-            <select name="type" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.requestSubmit()">
-                <option value="">All ({{ $tasks->total() + $callReminders->count() }})</option>
-                <option value="tasks" {{ request('type') === 'tasks' ? 'selected' : '' }}>Tasks ({{ $tasks->total() }})</option>
-                <option value="calls" {{ request('type') === 'calls' ? 'selected' : '' }}>Calls ({{ $callReminders->count() }})</option>
-            </select>
+            <input type="hidden" name="type" id="task-type-val" value="{{ request('type', '') }}">
+            <div class="inline-flex items-center bg-gray-100 rounded-lg p-0.5 gap-0.5">
+                <button type="button"
+                    onclick="document.getElementById('task-type-val').value=''; this.closest('form').requestSubmit()"
+                    class="{{ $typeParam === 'all' ? 'bg-white shadow-sm text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700 font-medium' }} px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap">
+                    All ({{ $tasks->total() + $callReminders->count() }})
+                </button>
+                <button type="button"
+                    onclick="document.getElementById('task-type-val').value='tasks'; this.closest('form').requestSubmit()"
+                    class="{{ $typeParam === 'tasks' ? 'bg-white shadow-sm text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700 font-medium' }} px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap">
+                    Tasks ({{ $tasks->total() }})
+                </button>
+                <button type="button"
+                    onclick="document.getElementById('task-type-val').value='calls'; this.closest('form').requestSubmit()"
+                    class="{{ $typeParam === 'calls' ? 'bg-white shadow-sm text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700 font-medium' }} px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap">
+                    Calls ({{ $callReminders->count() }})
+                </button>
+            </div>
         </div>
 
         {{-- Clear filters --}}

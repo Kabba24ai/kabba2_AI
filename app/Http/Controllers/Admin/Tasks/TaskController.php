@@ -9,8 +9,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Tasks\StoreTaskCommentRequest;
 use App\Http\Requests\Admin\Tasks\StoreTaskRequest;
 use App\Http\Requests\Admin\Tasks\UpdateTaskRequest;
+use App\Models\Customers\Customer;
+use App\Models\Customers\CustomerCallNeeded;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\MaintenanceManagement\Supplier;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\Tasks\Task;
 use Illuminate\Database\Eloquent\Builder;
@@ -111,10 +114,25 @@ class TaskController extends Controller
             ->orderByDesc('completed_at')
             ->get();
 
+        $customers = Customer::whereIn('status', ['Active', 'Archived'])
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+
+        $suppliers = Supplier::active()->orderBy('name')->get(['id', 'name', 'phone', 'email', 'primary_contact_name', 'primary_contact_phone']);
+
+        $callReminders = CustomerCallNeeded::with(['customer', 'supplier', 'assignee', 'creator'])
+            ->where('status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('follow_up_at')->orWhere('follow_up_at', '<=', now());
+            })
+            ->latest()
+            ->get();
+
         return view('admin.tasks.index', compact(
             'tasks', 'users', 'categories', 'priorities', 'statuses',
             'categoryCounts', 'userCountsRaw', 'userAllCount', 'badgeUsers',
-            'completedToday'
+            'completedToday', 'customers', 'suppliers', 'callReminders'
         ));
     }
 
@@ -289,5 +307,22 @@ class TaskController extends Controller
         $users      = User::active()->orderBy('first_name')->get();
 
         return view('admin.tasks.archive', compact('tasks', 'categories', 'users'));
+    }
+
+    public function showCall(int $id)
+    {
+        $callReminder = CustomerCallNeeded::with(['customer', 'supplier', 'assignee', 'creator', 'activities.user'])
+            ->findOrFail($id);
+
+        $customers = Customer::whereIn('status', ['Active', 'Archived'])
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+
+        $suppliers = Supplier::active()->orderBy('name')->get(['id', 'name', 'phone', 'email', 'primary_contact_name', 'primary_contact_phone']);
+
+        $users = User::active()->orderBy('first_name')->get();
+
+        return view('admin.tasks.call_show', compact('callReminder', 'customers', 'suppliers', 'users'));
     }
 }

@@ -20,6 +20,13 @@
             class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
             + New Task
         </a>
+        <button
+            type="button"
+            onclick="openCallNeededModal()"
+            class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-red-700">
+            <x-heroicon-o-phone class="w-4 h-4" />
+            Call Needed
+        </button>
     </div>
 </div>
 
@@ -153,26 +160,100 @@
 {{-- Main layout: task table (left, 70%) + Completed Today widget (right, 30%) --}}
 <div style="display:flex; gap:1.5rem; align-items:flex-start;">
 
-    {{-- Task table --}}
+    {{-- Task / Call table --}}
     <div style="flex:7; min-width:0;">
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
                     <tr>
+                        <th class="px-3 py-3 w-8"></th>
                         <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Title</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Title / Reason</th>
                         <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
                         <th class="px-4 py-3 text-left font-medium text-gray-600">Equipment</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Priority</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Status</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Customer</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Supplier / Other</th>
                         <th class="px-4 py-3 text-left font-medium text-gray-600">Due Date</th>
                         <th class="px-4 py-3 text-left font-medium text-gray-600">Created By</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600">Priority</th>
                         <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
+
+                    {{-- Call Reminder rows --}}
+                    @foreach ($callReminders as $call)
+                        @php
+                            $contactType = $call->customer_id ? 'customer' : ($call->supplier_id ? 'supplier' : 'other');
+                            $customerName = match($contactType) {
+                                'customer' => $call->customer?->full_name,
+                                default    => null,
+                            };
+                            $supplierOther = match($contactType) {
+                                'supplier' => $call->supplier?->name,
+                                'other'    => $call->contact_name,
+                                default    => null,
+                            };
+                        @endphp
+                        <tr class="hover:bg-red-50/20 bg-red-50/10">
+                            <td class="px-3 py-3 text-center">
+                                <span title="Call Reminder">
+                                    <x-heroicon-o-phone class="w-4 h-4 text-red-500 mx-auto" />
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs text-gray-400 italic">—</span>
+                            </td>
+                            <td class="px-4 py-3 max-w-xs">
+                                <a href="{{ route('admin.tasks.call.show', $call->id) }}"
+                                   class="font-medium text-gray-900 hover:text-brand-600 truncate block">
+                                    {{ ucwords(str_replace('_', ' ', $call->reason)) }}
+                                </a>
+                                @if ($call->is_urgent)
+                                    <span class="text-xs text-red-600 font-medium">Urgent</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-gray-700">
+                                {{ $call->assignee?->full_name ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-gray-400">—</span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-700">
+                                {{ $customerName ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-700">
+                                {{ $supplierOther ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-400">—</td>
+                            <td class="px-4 py-3 text-gray-700">
+                                {{ $call->creator?->full_name ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3">
+                                @if ($call->is_urgent)
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">
+                                        Urgent
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">
+                                        Normal
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <a href="{{ route('admin.tasks.call.show', $call->id) }}" class="text-blue-600 hover:underline text-xs">View</a>
+                            </td>
+                        </tr>
+                    @endforeach
+
+                    {{-- Task rows --}}
                     @forelse ($tasks as $task)
                         <tr class="hover:bg-gray-50 {{ $task->isOverdue() ? 'bg-red-50/40' : '' }}">
+                            <td class="px-3 py-3 text-center">
+                                <span title="Task">
+                                    <x-heroicon-o-clipboard-document-list class="w-4 h-4 text-gray-400 mx-auto" />
+                                </span>
+                            </td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->category->color() }}">
                                     {{ $task->category->label() }}
@@ -198,14 +279,10 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->priority->color() }}">
-                                    {{ $task->priority->label() }}
-                                </span>
+                                <span class="text-gray-400">—</span>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->status->color() }}">
-                                    {{ $task->status->label() }}
-                                </span>
+                                <span class="text-gray-400">—</span>
                             </td>
                             <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
                                 {{ $task->due_date?->format('M j, Y') ?? '—' }}
@@ -213,16 +290,24 @@
                             <td class="px-4 py-3 text-gray-600">
                                 {{ $task->createdBy?->full_name ?? '—' }}
                             </td>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->priority->color() }}">
+                                    {{ $task->priority->label() }}
+                                </span>
+                            </td>
                             <td class="px-4 py-3 text-right whitespace-nowrap">
                                 <a href="{{ route('admin.tasks.show', $task) }}" class="text-blue-600 hover:underline text-xs mr-3">View</a>
                                 <a href="{{ route('admin.tasks.edit', $task) }}" class="text-gray-600 hover:underline text-xs">Edit</a>
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="9" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
-                        </tr>
+                        @if ($callReminders->isEmpty())
+                            <tr>
+                                <td colspan="11" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
+                            </tr>
+                        @endif
                     @endforelse
+
                 </tbody>
             </table>
         </div>
@@ -291,5 +376,9 @@
     </div>
 
 </div>
+
+{{-- Task manager mode flag + shared Call Needed modal --}}
+<script>window.taskManagerMode = true;</script>
+@include('admin.dashboard.partials._call_needed_modal')
 
 @endsection

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Tasks\TaskController;
 Route::prefix('tasks')->name('tasks.')->group(function () {
     Route::get('/',                              [TaskController::class, 'index'])->name('index');
     Route::get('/archive',                       [TaskController::class, 'archive'])->name('archive');
+    Route::get('/call/{id}',                     [TaskController::class, 'showCall'])->name('call.show');
     Route::get('/create',                        [TaskController::class, 'create'])->name('create');
     Route::post('/',                             [TaskController::class, 'store'])->name('store');
     Route::get('/{task}',                        [TaskController::class, 'show'])->name('show');

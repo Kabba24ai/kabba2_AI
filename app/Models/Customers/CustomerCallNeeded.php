@@ -35,7 +35,7 @@ class CustomerCallNeeded extends Model
         'follow_up_at'   => 'datetime',
         'rescheduled_at' => 'datetime',
         'priority'       => TaskPriority::class,
-        'due_date'       => 'date',
+        'due_date'       => 'datetime',
     ];
 
     public function customer()

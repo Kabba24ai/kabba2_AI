@@ -1376,7 +1376,7 @@ function viewCallNeeded(id)
             call.notes ?? '';
 
         if (_callDueDateFlatpickr) {
-            if (call.due_date) _callDueDateFlatpickr.setDate(call.due_date, false, 'Y-m-d');
+            if (call.due_date) _callDueDateFlatpickr.setDate(call.due_date, false, 'Y-m-d H:i:S');
             else _callDueDateFlatpickr.clear();
         } else {
             document.getElementById('call_due_date').value = call.due_date ?? '';
@@ -1458,10 +1458,12 @@ document.addEventListener('DOMContentLoaded', function () {
         function doInitCallDueDatePicker() {
             if (_callDueDateFlatpickr) return;
             _callDueDateFlatpickr = flatpickr('#call_due_date', {
-                dateFormat:    'Y-m-d',
+                enableTime:    true,
+                dateFormat:    'Y-m-d H:i:S',
                 altInput:      true,
-                altFormat:     'F j, Y',
+                altFormat:     'F j, Y h:i K',
                 minDate:       'today',
+                time_24hr:     false,
                 disableMobile: true,
                 onReady: function (sel, str, instance) {
                     instance.calendarContainer.style.zIndex = '200000';

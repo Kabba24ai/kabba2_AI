@@ -19,10 +19,10 @@
             <x-heroicon-o-phone class="w-4 h-4" />
             Call Needed
         </button>
-        <a href="{{ route('admin.tasks.create') }}"
+        <button type="button" onclick="openNewTaskModal()"
             class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
             + New Task
-        </a>
+        </button>
         <a href="{{ route('admin.tasks.archive') }}"
             class="inline-flex items-center justify-center rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white shadow hover:bg-gray-800">
             Task Archive
@@ -426,6 +426,7 @@
 
 {{-- Task manager mode flag + shared Call Needed modal --}}
 <script>window.taskManagerMode = true;</script>
+@include('admin.tasks.partials._new_task_modal')
 @include('admin.dashboard.partials._call_needed_modal')
 
 @push('js')

@@ -117,6 +117,8 @@ class TaskController extends Controller
 
         $users = User::active()->orderBy('first_name')->get();
 
+        ['productCategories' => $productCategories, 'equipmentList' => $equipmentList] = $this->equipmentData();
+
         $completedToday = Task::completedToday()
             ->with(['assignedTo'])
             ->orderByDesc('completed_at')
@@ -145,7 +147,8 @@ class TaskController extends Controller
         return view('admin.tasks.index', compact(
             'tasks', 'users', 'categories', 'priorities', 'statuses',
             'categoryCounts', 'userCountsRaw', 'userAllCount', 'badgeUsers',
-            'completedToday', 'customers', 'suppliers', 'callReminders'
+            'completedToday', 'customers', 'suppliers', 'callReminders',
+            'productCategories', 'equipmentList'
         ));
     }
 
@@ -193,6 +196,10 @@ class TaskController extends Controller
 
         $task = Task::create($data);
         $task->logActivity('task_created', null, $task->title);
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Task created successfully.']);
+        }
 
         return redirect()->route('admin.tasks.show', $task)->with('success', 'Task created successfully.');
     }

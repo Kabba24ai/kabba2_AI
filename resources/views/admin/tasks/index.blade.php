@@ -141,10 +141,10 @@
 </form>
 
 {{-- Main layout: task table (left, 70%) + Completed Today widget (right, 30%) --}}
-<div class="grid grid-cols-[7fr_3fr] gap-6 items-start">
+<div style="display:flex; gap:1.5rem; align-items:flex-start;">
 
     {{-- Task table --}}
-    <div class="min-w-0">
+    <div style="flex:7; min-width:0;">
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
@@ -226,7 +226,7 @@
     </div>
 
     {{-- Completed Today Widget --}}
-    <div class="min-w-0">
+    <div style="flex:3; min-width:0;">
         <div class="rounded-lg border border-emerald-200 bg-white shadow-sm overflow-hidden">
             <div class="px-4 py-3 border-b border-emerald-100 bg-emerald-50">
                 <h4 class="text-sm font-semibold text-emerald-800">

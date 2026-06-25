@@ -124,35 +124,6 @@
                         </span>
                     @endif
 
-                    {{-- POD Payment Link Status Badge --}}
-                    @if ($order->podPaymentLink)
-                        @php
-                            $podLink   = $order->podPaymentLink;
-                            $podStatus = $podLink->pod_status instanceof \App\Enums\Orders\PodPaymentLinkStatus
-                                ? $podLink->pod_status
-                                : \App\Enums\Orders\PodPaymentLinkStatus::from($podLink->pod_status);
-
-                            [$podBadgeColor, $podIcon, $podStatusLabel, $podTooltipExtra] = match ($podStatus) {
-                                \App\Enums\Orders\PodPaymentLinkStatus::Pending      => ['bg-yellow-100 text-yellow-800', 'heroicon-o-clock',               'POD: Pending',      ''],
-                                \App\Enums\Orders\PodPaymentLinkStatus::Opened       => ['bg-blue-100 text-blue-800',     'heroicon-o-eye',                'POD: Opened',       $podLink->payment_link_opened_at ? ' | Opened: ' . \Carbon\Carbon::parse($podLink->payment_link_opened_at)->format('m/d/Y h:i A') : ''],
-                                \App\Enums\Orders\PodPaymentLinkStatus::Expired      => ['bg-red-100 text-red-800',       'heroicon-o-x-circle',           'POD: Expired',      $podLink->pod_expired_at ? ' | Expired: ' . \Carbon\Carbon::parse($podLink->pod_expired_at)->format('m/d/Y h:i A') : ''],
-                                \App\Enums\Orders\PodPaymentLinkStatus::Reactivated  => ['bg-orange-100 text-orange-800', 'heroicon-o-arrow-path',         'POD: Reactivated',  $podLink->pod_reactivated_at ? ' | Reactivated: ' . \Carbon\Carbon::parse($podLink->pod_reactivated_at)->format('m/d/Y h:i A') : ''],
-                                \App\Enums\Orders\PodPaymentLinkStatus::Completed    => ['bg-green-100 text-green-800',   'heroicon-o-check-circle',       'POD: Completed',    $podLink->pod_payment_completed_at ? ' | Paid: ' . \Carbon\Carbon::parse($podLink->pod_payment_completed_at)->format('m/d/Y h:i A') : ''],
-                            };
-
-                            $podCreatedAt  = $podLink->payment_link_created_at
-                                ? 'Created: ' . \Carbon\Carbon::parse($podLink->payment_link_created_at)->format('m/d/Y h:i A')
-                                : '';
-                            $podBadgeTitle = trim($podCreatedAt . $podTooltipExtra, ' |');
-                        @endphp
-                        <span
-                            class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold {{ $podBadgeColor }} rounded-full"
-                            title="{{ $podBadgeTitle }}">
-                            <x-dynamic-component :component="$podIcon" class="w-3 h-3" />
-                            {{ $podStatusLabel }}
-                        </span>
-                    @endif
-
                     {{-- PO ID Field --}}
 
                     <div class="flex gap-2 items-center">

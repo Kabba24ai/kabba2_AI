@@ -39,120 +39,152 @@
             ->toArray()
     );
 
-    // Active solid colors for each category
     $catActiveColor = [
         'sales' => 'bg-blue-600 text-white border-blue-600',
         'yard'  => 'bg-green-600 text-white border-green-600',
         'shop'  => 'bg-orange-500 text-white border-orange-500',
         'admin' => 'bg-purple-600 text-white border-purple-600',
     ];
-    $badgeBase    = 'inline-flex items-center rounded-full px-3 py-1 text-sm font-medium border transition-colors cursor-pointer';
+    $badgeBase     = 'inline-flex items-center rounded-full px-3 py-1 text-sm font-medium border transition-colors cursor-pointer';
     $badgeInactive = $badgeBase . ' bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
+
+    $typeParam  = request('type', 'all');
+    $showTasks  = $typeParam !== 'calls';
+    $showCalls  = $typeParam !== 'tasks';
 @endphp
 
 {{-- Header row: filters (70%) | completed widget title (30%) --}}
-<div style="display:flex; gap:1.5rem; align-items:flex-end; margin-bottom:1.25rem;">
+<div style="display:flex; gap:1.5rem; align-items:flex-start; margin-bottom:1.25rem;">
 <div style="flex:7; min-width:0;">
-{{-- Filters: single flex row — form wraps everything so hidden inputs are preserved on dropdown submit --}}
-<form method="GET" action="{{ route('admin.tasks.index') }}"
-      class="flex flex-wrap items-end gap-x-3 gap-y-2">
+<form method="GET" action="{{ route('admin.tasks.index') }}" class="space-y-2">
 
-    {{-- Preserve badge-selected filters when form dropdowns fire --}}
+    {{-- Hidden: preserve badge-selected filters when form dropdowns submit --}}
     @if(request('category'))
         <input type="hidden" name="category" value="{{ request('category') }}">
     @endif
     @if(request('assigned_to'))
         <input type="hidden" name="assigned_to" value="{{ request('assigned_to') }}">
     @endif
-
-    {{-- Status --}}
-    <div>
-        <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-        <select name="status" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
-            <option value="">All Statuses</option>
-            @foreach ($statuses as $st)
-                <option value="{{ $st->value }}" {{ request('status') === $st->value ? 'selected' : '' }}>{{ $st->label() }}</option>
-            @endforeach
-        </select>
-    </div>
-
-    {{-- Priority --}}
-    <div>
-        <label class="block text-xs font-medium text-gray-600 mb-1">Priority</label>
-        <select name="priority" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
-            <option value="">All Priorities</option>
-            @foreach ($priorities as $pri)
-                <option value="{{ $pri->value }}" {{ request('priority') === $pri->value ? 'selected' : '' }}>{{ $pri->label() }}</option>
-            @endforeach
-        </select>
-    </div>
-
-    {{-- Due Today / Overdue --}}
-    <div class="flex items-center gap-3 pb-1">
-        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-            <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-brand-500">
-            Due Today
-        </label>
-        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-            <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-red-500">
-            Overdue
-        </label>
-    </div>
-
-    @if (request()->hasAny(['category', 'status', 'priority', 'assigned_to', 'due_today', 'overdue']))
-        <a href="{{ route('admin.tasks.index') }}" class="text-sm text-gray-500 hover:text-gray-700 underline pb-1">Clear filters</a>
+    @if(request('type') && request('type') !== 'all')
+        <input type="hidden" name="type" value="{{ request('type') }}">
     @endif
 
-    {{-- Divider --}}
-    <span class="self-center h-5 w-px bg-gray-200 mx-1 shrink-0"></span>
+    {{-- Row 1: Status | Priority | Due Today | Overdue | Type | Clear --}}
+    <div class="flex flex-wrap items-end gap-x-3 gap-y-2">
 
-    {{-- Task Categories badge group --}}
-    <div class="flex items-center gap-2">
-        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Task Categories</span>
+        {{-- Status --}}
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+            <select name="status" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                @foreach ($statuses as $st)
+                    <option value="{{ $st->value }}" {{ request('status') === $st->value ? 'selected' : '' }}>{{ $st->label() }}</option>
+                @endforeach
+            </select>
+        </div>
 
-        <a href="{{ $taskUrl(['category' => null, 'page' => null]) }}"
-           class="{{ !request('category') ? $badgeBase . ' bg-sky-600 text-white border-sky-600' : $badgeInactive }}">
-            All ({{ $categoryCounts->sum() }})
-        </a>
+        {{-- Priority --}}
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Priority</label>
+            <select name="priority" class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" onchange="this.form.submit()">
+                <option value="">All Priorities</option>
+                @foreach ($priorities as $pri)
+                    <option value="{{ $pri->value }}" {{ request('priority') === $pri->value ? 'selected' : '' }}>{{ $pri->label() }}</option>
+                @endforeach
+            </select>
+        </div>
 
-        @foreach ($categories as $cat)
-            @if ($categoryCounts->has($cat->value))
-                @php $isActive = request('category') === $cat->value; @endphp
-                <a href="{{ $taskUrl(['category' => $cat->value, 'page' => null]) }}"
-                   class="{{ $isActive ? $badgeBase . ' ' . ($catActiveColor[$cat->value] ?? 'bg-gray-600 text-white border-gray-600') : $badgeInactive }}">
-                    {{ $cat->label() }} ({{ $categoryCounts->get($cat->value) }})
+        {{-- Due Today / Overdue --}}
+        <div class="flex items-center gap-3 pb-1">
+            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-brand-500">
+                Due Today
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }} onchange="this.form.submit()" class="rounded border-gray-300 text-red-500">
+                Overdue
+            </label>
+        </div>
+
+        {{-- Type segmented control --}}
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
+            <div class="inline-flex rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm text-sm font-medium" role="group">
+                <a href="{{ $taskUrl(['type' => null, 'page' => null]) }}"
+                   class="px-3 py-1.5 border-r border-gray-200 whitespace-nowrap transition-colors {{ $typeParam === 'all' ? 'bg-gray-700 text-white' : 'text-gray-600 hover:bg-gray-50' }}">
+                    All ({{ $tasks->total() + $callReminders->count() }})
                 </a>
-            @endif
-        @endforeach
+                <a href="{{ $taskUrl(['type' => 'tasks', 'page' => null]) }}"
+                   class="px-3 py-1.5 border-r border-gray-200 whitespace-nowrap transition-colors {{ $typeParam === 'tasks' ? 'bg-gray-700 text-white' : 'text-gray-600 hover:bg-gray-50' }}">
+                    Tasks ({{ $tasks->total() }})
+                </a>
+                <a href="{{ $taskUrl(['type' => 'calls', 'page' => null]) }}"
+                   class="px-3 py-1.5 whitespace-nowrap transition-colors {{ $typeParam === 'calls' ? 'bg-gray-700 text-white' : 'text-gray-600 hover:bg-gray-50' }}">
+                    Calls ({{ $callReminders->count() }})
+                </a>
+            </div>
+        </div>
+
+        {{-- Clear filters --}}
+        @if (request()->hasAny(['category', 'status', 'priority', 'assigned_to', 'due_today', 'overdue', 'type']))
+            <a href="{{ route('admin.tasks.index') }}" class="text-sm text-gray-500 hover:text-gray-700 underline pb-1">Clear filters</a>
+        @endif
+
     </div>
 
-    {{-- Divider + Assigned To badge group --}}
-    @if ($badgeUsers->isNotEmpty())
-        <span class="self-center h-5 w-px bg-gray-200 mx-1 shrink-0"></span>
+    {{-- Row 2: Task Categories + Assigned To badge groups --}}
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
 
+        {{-- Task Categories --}}
         <div class="flex items-center gap-2">
-            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Assigned To</span>
+            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Task Categories</span>
 
-            <a href="{{ $taskUrl(['assigned_to' => null, 'page' => null]) }}"
-               class="{{ !request('assigned_to') ? $badgeBase . ' bg-emerald-600 text-white border-emerald-600' : $badgeInactive }}">
-                All ({{ $userAllCount }})
+            <a href="{{ $taskUrl(['category' => null, 'page' => null]) }}"
+               class="{{ !request('category') ? $badgeBase . ' bg-sky-600 text-white border-sky-600' : $badgeInactive }}">
+                All ({{ $categoryCounts->sum() }})
             </a>
 
-            @foreach ($badgeUsers as $bUser)
-                @php $isActive = request('assigned_to') == $bUser->id; @endphp
-                <a href="{{ $taskUrl(['assigned_to' => $bUser->id, 'page' => null]) }}"
-                   class="{{ $isActive ? $badgeBase . ' bg-violet-600 text-white border-violet-600' : $badgeInactive }}">
-                    {{ $bUser->full_name }} ({{ $userCountsRaw->get($bUser->id, 0) }})
-                </a>
+            @foreach ($categories as $cat)
+                @if ($categoryCounts->has($cat->value))
+                    @php $isActive = request('category') === $cat->value; @endphp
+                    <a href="{{ $taskUrl(['category' => $cat->value, 'page' => null]) }}"
+                       class="{{ $isActive ? $badgeBase . ' ' . ($catActiveColor[$cat->value] ?? 'bg-gray-600 text-white border-gray-600') : $badgeInactive }}">
+                        {{ $cat->label() }} ({{ $categoryCounts->get($cat->value) }})
+                    </a>
+                @endif
             @endforeach
         </div>
-    @endif
+
+        {{-- Assigned To badge group --}}
+        @if ($badgeUsers->isNotEmpty())
+            <span class="self-center h-5 w-px bg-gray-200 mx-1 shrink-0"></span>
+
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Assigned To</span>
+
+                <a href="{{ $taskUrl(['assigned_to' => null, 'page' => null]) }}"
+                   class="{{ !request('assigned_to') ? $badgeBase . ' bg-emerald-600 text-white border-emerald-600' : $badgeInactive }}">
+                    All ({{ $userAllCount }})
+                </a>
+
+                @foreach ($badgeUsers as $bUser)
+                    @php $isActiveUser = request('assigned_to') == $bUser->id; @endphp
+                    <a href="{{ $taskUrl(['assigned_to' => $bUser->id, 'page' => null]) }}"
+                       class="{{ $badgeBase }} {{ $isActiveUser ? 'border-emerald-300' : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200' }}"
+                       style="{{ $isActiveUser ? 'background-color:#d1fae5; color:#065f46;' : '' }}">
+                        {{ $bUser->full_name }} ({{ $userCountsRaw->get($bUser->id, 0) }})
+                    </a>
+                @endforeach
+            </div>
+        @endif
+
+    </div>
 
 </form>
 </div>{{-- /filters column --}}
 
-{{-- Widget title — sits beside the filters, aligned to the right 30% column --}}
-<div style="flex:3; min-width:0; padding-bottom:0.375rem;">
+{{-- Widget title — sits beside the filters, in the right 30% column --}}
+<div style="flex:3; min-width:0; padding-top:0.25rem;">
     <span class="text-sm font-semibold text-gray-700">Tasks Completed - {{ now()->format('F j, Y') }}</span>
 </div>
 </div>{{-- /header row --}}
@@ -182,6 +214,7 @@
                 <tbody class="divide-y divide-gray-100">
 
                     {{-- Call Reminder rows --}}
+                    @if ($showCalls)
                     @foreach ($callReminders as $call)
                         @php
                             $contactType = $call->customer_id ? 'customer' : ($call->supplier_id ? 'supplier' : 'other');
@@ -248,8 +281,10 @@
                             </td>
                         </tr>
                     @endforeach
+                    @endif
 
                     {{-- Task rows --}}
+                    @if ($showTasks)
                     @forelse ($tasks as $task)
                         <tr class="hover:bg-gray-50 {{ $task->isOverdue() ? 'bg-red-50/40' : '' }}">
                             <td class="px-3 py-3 text-center">
@@ -304,12 +339,17 @@
                             </td>
                         </tr>
                     @empty
-                        @if ($callReminders->isEmpty())
+                        @if (!$showCalls || $callReminders->isEmpty())
                             <tr>
                                 <td colspan="11" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
                             </tr>
                         @endif
                     @endforelse
+                    @elseif ($showCalls && $callReminders->isEmpty())
+                        <tr>
+                            <td colspan="11" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
+                        </tr>
+                    @endif
 
                 </tbody>
             </table>

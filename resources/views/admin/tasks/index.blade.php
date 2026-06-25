@@ -339,8 +339,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-right whitespace-nowrap">
-                                <a href="{{ route('admin.tasks.show', $task) }}" class="text-blue-600 hover:underline text-xs mr-3">View</a>
-                                <a href="{{ route('admin.tasks.edit', $task) }}" class="text-gray-600 hover:underline text-xs">Edit</a>
+                                <a href="{{ route('admin.tasks.show', $task) }}" class="text-blue-600 hover:underline text-xs">View</a>
                             </td>
                         </tr>
                     @empty

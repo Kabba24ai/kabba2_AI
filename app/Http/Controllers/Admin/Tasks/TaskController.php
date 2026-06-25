@@ -207,8 +207,51 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'comments.user', 'activityLogs.user']);
+        $users = User::active()->orderBy('first_name')->get();
 
-        return view('admin.tasks.show', compact('task'));
+        return view('admin.tasks.show', compact('task', 'users'));
+    }
+
+    public function reassign(Request $request, Task $task)
+    {
+        $request->validate(['assigned_to_user_id' => 'nullable|exists:users,id']);
+
+        $oldAssignee = $task->assignedTo?->full_name ?? 'Unassigned';
+        $task->update(['assigned_to_user_id' => $request->assigned_to_user_id ?: null]);
+        $task->refresh();
+        $newAssignee = $task->assignedTo?->full_name ?? 'Unassigned';
+        $task->logActivity('reassigned', $oldAssignee, $newAssignee);
+
+        return response()->json(['success' => true, 'message' => 'Task reassigned to ' . $newAssignee . '.', 'assignee' => $newAssignee]);
+    }
+
+    public function reassignCall(Request $request, int $id)
+    {
+        $request->validate(['assigned_to_user_id' => 'nullable|exists:users,id']);
+
+        $call = CustomerCallNeeded::findOrFail($id);
+        $call->update(['created_by' => $request->assigned_to_user_id ?: null]);
+        $call->refresh();
+        $assigneeName = $call->assignee?->full_name ?? 'Unassigned';
+
+        return response()->json(['success' => true, 'message' => 'Call reassigned to ' . $assigneeName . '.', 'assignee' => $assigneeName]);
+    }
+
+    public function storeCallNote(Request $request, int $id)
+    {
+        $request->validate(['notes' => 'required|string|max:2000']);
+
+        $call = CustomerCallNeeded::findOrFail($id);
+
+        \App\Models\Customers\CustomerCallNeededActivity::create([
+            'customer_call_needed_id' => $call->id,
+            'status'                  => 'note',
+            'notes'                   => $request->notes,
+            'follow_up_date'          => now(),
+            'created_by'              => auth()->id(),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Note added to call history.']);
     }
 
     public function edit(Task $task)

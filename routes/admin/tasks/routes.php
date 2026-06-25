@@ -15,4 +15,7 @@ Route::prefix('tasks')->name('tasks.')->group(function () {
     Route::delete('/{task}',                     [TaskController::class, 'destroy'])->name('destroy');
     Route::post('/{task}/comments',              [TaskController::class, 'storeComment'])->name('comments.store');
     Route::post('/{task}/complete',              [TaskController::class, 'completeWithComment'])->name('complete');
+    Route::post('/{task}/reassign',              [TaskController::class, 'reassign'])->name('reassign');
+    Route::post('/call/{id}/reassign',           [TaskController::class, 'reassignCall'])->name('call.reassign');
+    Route::post('/call/{id}/note',               [TaskController::class, 'storeCallNote'])->name('call.note');
 });

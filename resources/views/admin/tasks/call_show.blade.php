@@ -75,9 +75,15 @@
         </div>
 
         {{-- Activity Log --}}
-        @if ($callReminder->activities->isNotEmpty())
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-            <h4 class="text-sm font-semibold text-gray-700 mb-4">Call Activity History</h4>
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-sm font-semibold text-gray-700">Call Activity History</h4>
+                <button type="button" onclick="openCallNoteModal()"
+                    class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50">
+                    + Add Note
+                </button>
+            </div>
+            @if ($callReminder->activities->isNotEmpty())
             <div class="space-y-4">
                 @foreach ($callReminder->activities as $activity)
                     <div class="relative pl-6 pb-4 border-l-2 border-blue-200">
@@ -98,8 +104,10 @@
                     </div>
                 @endforeach
             </div>
+            @else
+                <p class="text-sm text-gray-400 italic">No activity recorded yet.</p>
+            @endif
         </div>
-        @endif
 
     </div>
 
@@ -184,11 +192,17 @@
 
         {{-- Details --}}
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-            <h4 class="text-sm font-semibold text-gray-700 mb-4">Details</h4>
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-sm font-semibold text-gray-700">Details</h4>
+                <button type="button" onclick="openCallReassignModal()"
+                    class="inline-flex items-center rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50">
+                    Reassign
+                </button>
+            </div>
             <dl class="space-y-3 text-sm">
                 <div class="flex justify-between">
                     <dt class="text-gray-500">Assigned To</dt>
-                    <dd class="font-medium text-gray-800">{{ $callReminder->assignee?->full_name ?? '—' }}</dd>
+                    <dd id="call-assignee-display" class="font-medium text-gray-800">{{ $callReminder->assignee?->full_name ?? '—' }}</dd>
                 </div>
                 <div class="flex justify-between">
                     <dt class="text-gray-500">Created By</dt>
@@ -230,11 +244,124 @@
 <script>window.taskManagerMode = true;</script>
 @include('admin.dashboard.partials._call_needed_modal')
 
+{{-- Reassign Modal --}}
+<div id="CallReassignModal" style="display:none;"
+    class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-gray-900">Reassign Call</h2>
+            <button type="button" onclick="closeCallReassignModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Assign To</label>
+            <select id="call_reassign_user"
+                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                <option value="">Unassigned</option>
+                @foreach ($users as $user)
+                    <option value="{{ $user->id }}" {{ $callReminder->assignee?->id == $user->id ? 'selected' : '' }}>{{ $user->full_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeCallReassignModal()"
+                class="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
+            <button type="button" id="call-reassign-btn" onclick="submitCallReassign()"
+                class="px-4 py-2 text-sm rounded-lg bg-brand-500 text-white hover:bg-brand-600">Confirm</button>
+        </div>
+    </div>
+</div>
+
+{{-- Add Note Modal --}}
+<div id="CallNoteModal" style="display:none;"
+    class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-gray-900">Add Note</h2>
+            <button type="button" onclick="closeCallNoteModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+            <textarea id="call_note_text" rows="4" placeholder="Enter note..."
+                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 resize-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeCallNoteModal()"
+                class="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
+            <button type="button" id="call-note-btn" onclick="submitCallNote()"
+                class="px-4 py-2 text-sm rounded-lg bg-brand-500 text-white hover:bg-brand-600">Add Note</button>
+        </div>
+    </div>
+</div>
+
 @push('js')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Auto-open in edit mode if user navigated here via "Edit" from call list
-    // (edit button on this page uses viewCallNeeded() which opens the modal)
+var _callId = {{ $callReminder->id }};
+var _csrf   = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+// ── Reassign ──────────────────────────────────────────────────────────────
+function openCallReassignModal() {
+    var m = document.getElementById('CallReassignModal');
+    m.style.display = 'flex'; m.classList.remove('hidden');
+}
+function closeCallReassignModal() {
+    var m = document.getElementById('CallReassignModal');
+    m.style.display = 'none'; m.classList.add('hidden');
+}
+function submitCallReassign() {
+    var btn = document.getElementById('call-reassign-btn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    fetch("{{ route('admin.tasks.call.reassign', $callReminder->id) }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': _csrf },
+        body: JSON.stringify({ assigned_to_user_id: document.getElementById('call_reassign_user').value || null }),
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+        if (!d.success) throw new Error(d.message || 'Error');
+        notyf.success(d.message);
+        document.getElementById('call-assignee-display').textContent = d.assignee;
+        closeCallReassignModal();
+    })
+    .catch(function (e) { notyf.error(e.message); })
+    .finally(function () { btn.disabled = false; btn.textContent = 'Confirm'; });
+}
+document.getElementById('CallReassignModal').addEventListener('click', function (e) {
+    if (e.target === this) closeCallReassignModal();
+});
+
+// ── Add Note ──────────────────────────────────────────────────────────────
+function openCallNoteModal() {
+    document.getElementById('call_note_text').value = '';
+    var m = document.getElementById('CallNoteModal');
+    m.style.display = 'flex'; m.classList.remove('hidden');
+    setTimeout(function () { document.getElementById('call_note_text').focus(); }, 80);
+}
+function closeCallNoteModal() {
+    var m = document.getElementById('CallNoteModal');
+    m.style.display = 'none'; m.classList.add('hidden');
+}
+function submitCallNote() {
+    var notes = document.getElementById('call_note_text').value.trim();
+    if (!notes) { notyf.error('Please enter a note.'); return; }
+    var btn = document.getElementById('call-note-btn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    fetch("{{ route('admin.tasks.call.note', $callReminder->id) }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': _csrf },
+        body: JSON.stringify({ notes: notes }),
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+        if (!d.success) throw new Error(d.message || 'Error');
+        notyf.success(d.message);
+        closeCallNoteModal();
+        window.location.reload();
+    })
+    .catch(function (e) { notyf.error(e.message); })
+    .finally(function () { btn.disabled = false; btn.textContent = 'Add Note'; });
+}
+document.getElementById('CallNoteModal').addEventListener('click', function (e) {
+    if (e.target === this) closeCallNoteModal();
 });
 </script>
 @endpush

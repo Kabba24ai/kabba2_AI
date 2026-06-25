@@ -42,7 +42,15 @@ class IndexController extends Controller
                           AND (op2.delivery_status = 'Pending' OR op2.pickup_status = 'Pending')
                     )
                 ) THEN 1 ELSE 0 END
-            ) AS is_assigned");
+            ) AS is_assigned, (
+                SELECT MIN(CASE
+                    WHEN op3.delivery_status = 'Pending' THEN op3.delivery_date
+                    WHEN op3.pickup_status = 'Pending'   THEN op3.pickup_date
+                END)
+                FROM order_products op3
+                WHERE op3.equipment_id = equipment.id
+                  AND (op3.delivery_status = 'Pending' OR op3.pickup_status = 'Pending')
+            ) AS earliest_pending_date");
 
         if ($request->search) {
             $search = $request->search;
@@ -77,24 +85,8 @@ class IndexController extends Controller
         $start = microtime(true);
 
         if ($currentlyAssigned) {
-            // Priority order (uses the is_assigned alias computed in selectRaw):
-            // 1 — assigned + maintenance hold (needs work before next rental)
-            // 2 — assigned + damaged          (needs work before next rental)
-            // 3 — maintenance, no active order
-            // 4 — damaged,     no active order
-            // 5 — rented   (out on rent; never elevated by assignment)
-            // 6 — available (never elevated by assignment)
-            $query->orderByRaw("
-                CASE
-                    WHEN is_assigned = 1 AND current_status = 'maintenance' THEN 1
-                    WHEN is_assigned = 1 AND current_status = 'damaged'     THEN 2
-                    WHEN current_status = 'maintenance'                     THEN 3
-                    WHEN current_status = 'damaged'                         THEN 4
-                    WHEN current_status = 'rented'                          THEN 5
-                    WHEN current_status = 'available'                       THEN 6
-                    ELSE 7
-                END
-            ");
+            // Order by earliest pending date — matches schedule screen (delivery_date ASC)
+            $query->orderByRaw("earliest_pending_date IS NULL, earliest_pending_date ASC");
         } else {
             $query->orderByRaw("CASE current_status
                 WHEN 'maintenance' THEN 1

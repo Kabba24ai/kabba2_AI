@@ -104,20 +104,14 @@ class TaskController extends Controller
             ->with(['assignedTo', 'createdBy', 'equipment'])
             ->when($request->filled('category'),    fn($q) => $q->where('category', $request->category))
             ->when($request->filled('assigned_to'), fn($q) => $q->where('assigned_to_user_id', $request->assigned_to))
-            ->orderByRaw("CASE `status`
-                WHEN 'open'        THEN 1
-                WHEN 'in_progress' THEN 2
-                WHEN 'waiting'     THEN 3
-                WHEN 'completed'   THEN 4
-                WHEN 'cancelled'   THEN 5
-                ELSE 6 END")
+            ->orderByRaw("CASE WHEN `due_date` IS NULL THEN 1 ELSE 0 END")
+            ->orderBy('due_date')
             ->orderByRaw("CASE `priority`
                 WHEN 'urgent' THEN 1
                 WHEN 'high'   THEN 2
                 WHEN 'normal' THEN 3
                 WHEN 'low'    THEN 4
                 ELSE 5 END")
-            ->orderBy('due_date')
             ->paginate(30)
             ->withQueryString();
 
@@ -138,7 +132,14 @@ class TaskController extends Controller
         $callReminders = $this->baseCallQuery($request)
             ->with(['customer', 'supplier', 'assignee', 'creator'])
             ->when($request->filled('assigned_to'), fn($q) => $q->where('created_by', $request->assigned_to))
-            ->latest()
+            ->orderByRaw("CASE WHEN `due_date` IS NULL THEN 1 ELSE 0 END")
+            ->orderBy('due_date')
+            ->orderByRaw("CASE `priority`
+                WHEN 'urgent' THEN 1
+                WHEN 'high'   THEN 2
+                WHEN 'normal' THEN 3
+                WHEN 'low'    THEN 4
+                ELSE 5 END")
             ->get();
 
         return view('admin.tasks.index', compact(

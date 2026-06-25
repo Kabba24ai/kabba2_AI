@@ -26,6 +26,7 @@ class CallNeededStoreController extends Controller
                 'contact_phone' => $isManual ? $request->contact_phone : null,
 
                 'reason'      => $request->reason,
+                'category'    => $request->category ?: null,
                 'notes'       => $request->notes,
                 'priority'    => $request->input('priority', 'normal'),
                 'due_date'    => $request->due_date ?: null,

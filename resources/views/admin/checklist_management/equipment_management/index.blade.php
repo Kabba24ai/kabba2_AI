@@ -677,7 +677,10 @@
 
                                     <div>
                                         <div class="font-medium text-gray-700">Assigned Order</div>
-                                        <div>${eq.orderproduct ? eq.orderproduct : '<span class="text-xs italic text-gray-400">None</span>'}</div>
+                                        <div class="flex flex-col gap-0.5">
+                                            ${eq.order_route ? eq.order_route.replace('<a ', '<a target="_blank" rel="noopener noreferrer" ') : '<span class="text-xs italic text-gray-400">None</span>'}
+                                            ${eq.order_route && eq.orderproduct ? `<span class="text-xs text-gray-500">${eq.orderproduct}</span>` : ''}
+                                        </div>
                                     </div>
 
                                     <div>

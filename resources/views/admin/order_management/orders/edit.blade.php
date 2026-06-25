@@ -1379,17 +1379,21 @@
                                     {{-- Delivery Inputs --}}
                                     <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
                                         <div class="flex items-center justify-between mb-2">
-                                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Delivery Inputs</span>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Delivery Inputs</span>
                                         </div>
                                         @if($showDeliveryTrophy)
                                             {{-- Completed with no issues --}}
                                             <div class="flex flex-col items-center justify-center py-1 gap-0.5">
                                                 <span class="text-2xl leading-none">🏆</span>
-                                                <span class="text-[10px] text-gray-400">No issues recorded</span>
+                                                @if($orderProduct->deliveryEmployee)
+                                                    <span class="text-lg text-gray-600 font-medium text-center">{{ $orderProduct->deliveryEmployee->first_name }} {{ $orderProduct->deliveryEmployee->last_name }}</span>
+                                                @else
+                                                    <span class="text-xs text-gray-400">No issues recorded</span>
+                                                @endif
                                             </div>
                                         @elseif(!$deliveryHasData)
                                             {{-- Not yet completed, no data --}}
-                                            <p class="text-xs text-gray-400 italic text-center py-1">Not completed</p>
+                                            <p class="text-xs text-gray-400 italic text-center py-1">Pending</p>
                                         @else
                                             {{-- Reason / issues recorded --}}
                                             <div class="flex flex-col gap-0.5 text-xs">
@@ -1430,17 +1434,21 @@
                                     {{-- Pickup Inputs --}}
                                     <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
                                         <div class="flex items-center justify-between mb-2">
-                                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Pickup Inputs</span>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Pickup Inputs</span>
                                         </div>
                                         @if($showPickupTrophy)
                                             {{-- Completed with no issues --}}
                                             <div class="flex flex-col items-center justify-center py-1 gap-0.5">
                                                 <span class="text-2xl leading-none">🏆</span>
-                                                <span class="text-[10px] text-gray-400">No issues recorded</span>
+                                                @if($orderProduct->pickupEmployee)
+                                                    <span class="text-lg text-gray-600 font-medium text-center">{{ $orderProduct->pickupEmployee->first_name }} {{ $orderProduct->pickupEmployee->last_name }}</span>
+                                                @else
+                                                    <span class="text-xs text-gray-400">No issues recorded</span>
+                                                @endif
                                             </div>
                                         @elseif(!$pickupHasData)
                                             {{-- Not yet completed, no data --}}
-                                            <p class="text-xs text-gray-400 italic text-center py-1">Not completed</p>
+                                            <p class="text-xs text-gray-400 italic text-center py-1">Pending</p>
                                         @else
                                             {{-- Reason / issues recorded --}}
                                             <div class="flex flex-col gap-0.5 text-xs">
@@ -1781,7 +1789,7 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                     <h2 class="text-black font-semibold text-lg mb-3">POD Payment Links</h2>
 
-                    
+
                     <div class="flex flex-wrap items-center gap-3 mb-4 p-3 rounded-lg border {{ $podCurBg }} {{ $podCurBorder }}">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold {{ $podCurTextColor }} {{ $podCurBg }} border {{ $podCurBorder }}">
                             <x-dynamic-component :component="$podCurIcon" class="w-4 h-4" />

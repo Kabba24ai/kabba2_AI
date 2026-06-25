@@ -96,6 +96,17 @@ class DispatchController extends BaseController
             });
         }
 
+        // Only show assigned orders — at least the relevant driver slot must be filled
+        $query->where(function ($q) use ($isDeliveryOnly, $isReturnOnly) {
+            if ($isDeliveryOnly) {
+                $q->whereNotNull('delivery_by');
+            } elseif ($isReturnOnly) {
+                $q->whereNotNull('pickup_by');
+            } else {
+                $q->whereNotNull('delivery_by')->orWhereNotNull('pickup_by');
+            }
+        });
+
         // Driver filter — scope by slot(s) matching the schedule type selection
         if ($driverId) {
             $driverId = (int) $driverId;

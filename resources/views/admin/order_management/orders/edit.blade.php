@@ -1393,7 +1393,7 @@
                                             </div>
                                         @elseif(!$deliveryHasData)
                                             {{-- Not yet completed, no data --}}
-                                            <p class="text-xs text-gray-400 italic text-center py-1">Not completed</p>
+                                            <p class="text-xs text-gray-400 italic text-center py-1">Pending</p>
                                         @else
                                             {{-- Reason / issues recorded --}}
                                             <div class="flex flex-col gap-0.5 text-xs">
@@ -1448,7 +1448,7 @@
                                             </div>
                                         @elseif(!$pickupHasData)
                                             {{-- Not yet completed, no data --}}
-                                            <p class="text-xs text-gray-400 italic text-center py-1">Not completed</p>
+                                            <p class="text-xs text-gray-400 italic text-center py-1">Pending</p>
                                         @else
                                             {{-- Reason / issues recorded --}}
                                             <div class="flex flex-col gap-0.5 text-xs">
@@ -1789,7 +1789,7 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                     <h2 class="text-black font-semibold text-lg mb-3">POD Payment Links</h2>
 
-                    
+
                     <div class="flex flex-wrap items-center gap-3 mb-4 p-3 rounded-lg border {{ $podCurBg }} {{ $podCurBorder }}">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold {{ $podCurTextColor }} {{ $podCurBg }} border {{ $podCurBorder }}">
                             <x-dynamic-component :component="$podCurIcon" class="w-4 h-4" />

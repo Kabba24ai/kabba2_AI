@@ -202,7 +202,7 @@
                     <div class="flex justify-between">
                         <dt class="text-gray-500">Due Date</dt>
                         <dd class="font-medium {{ $callReminder->due_date->lt(today()) ? 'text-red-600' : 'text-gray-800' }}">
-                            {{ $callReminder->due_date->format('M j, Y') }}
+                            {{ $callReminder->due_date->format('M j, Y g:i A') }}
                         </dd>
                     </div>
                 @endif

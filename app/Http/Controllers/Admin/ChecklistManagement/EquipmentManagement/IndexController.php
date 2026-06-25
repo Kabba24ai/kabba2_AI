@@ -25,8 +25,6 @@ class IndexController extends Controller
         // $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0)->orderBy('equipment_name', 'asc')->paginate(5);
         // ->get();
 
-        $currentlyAssigned = $request->input('currently_assigned', '1') !== '0';
-
         $query = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'softAssignments.orderProduct', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
             ->where('not_for_rent', 0)
             ->selectRaw("equipment.*, (
@@ -84,21 +82,48 @@ class IndexController extends Controller
 
         $start = microtime(true);
 
+        $currentlyAssigned = $request->input('currently_assigned', '1') !== '0';
+
+        $query->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id');
+
         if ($currentlyAssigned) {
-            // Order by earliest pending date — matches schedule screen (delivery_date ASC)
-            $query->orderByRaw("earliest_pending_date IS NULL, earliest_pending_date ASC");
+            // Assigned equipment first, then sorted by nearest pending date; unassigned fall to bottom
+            $query->orderByRaw("(
+                CASE WHEN (
+                    EXISTS (
+                        SELECT 1 FROM order_products _op
+                        WHERE _op.equipment_id = equipment.id
+                          AND (_op.delivery_status = 'Pending' OR _op.pickup_status = 'Pending')
+                    ) OR EXISTS (
+                        SELECT 1 FROM equipment_soft_assigns _esa
+                        INNER JOIN order_products _op2 ON _op2.id = _esa.order_product_id
+                        WHERE _esa.equipment_id = equipment.id
+                          AND (_op2.delivery_status = 'Pending' OR _op2.pickup_status = 'Pending')
+                    )
+                ) THEN 1 ELSE 0 END
+            ) DESC")
+            ->orderByRaw("(
+                SELECT MIN(_op3.delivery_date)
+                FROM order_products _op3
+                WHERE _op3.equipment_id = equipment.id
+                  AND _op3.delivery_status = 'Pending'
+            ) IS NULL ASC")
+            ->orderByRaw("(
+                SELECT MIN(_op3.delivery_date)
+                FROM order_products _op3
+                WHERE _op3.equipment_id = equipment.id
+                  AND _op3.delivery_status = 'Pending'
+            ) ASC");
         } else {
             $query->orderByRaw("CASE current_status
                 WHEN 'maintenance' THEN 1
                 WHEN 'damaged'     THEN 2
                 WHEN 'rented'      THEN 3
                 WHEN 'available'   THEN 4
-                ELSE 5 END");
+                ELSE 5 END")->orderBy('equipment_name', 'asc');
         }
 
-        $equipments = $query
-            ->orderBy('equipment_name', 'asc')
-            ->paginate(10);
+        $equipments = $query->paginate(10);
         // logger('EQUIPMENT QUERY: ' . (microtime(true) - $start) . ' sec');
 
         $start = microtime(true);

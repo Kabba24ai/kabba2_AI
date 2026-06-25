@@ -65,7 +65,7 @@
         <input type="hidden" name="assigned_to" value="{{ request('assigned_to') }}">
     @endif
 
-    {{-- Row 1: Status | Priority | Due Today | Overdue | Type | Clear --}}
+    {{-- Row 1: Status | Priority | Type | Due Today | Overdue | Clear --}}
     <div class="flex flex-wrap items-end gap-x-3 gap-y-2">
 
         {{-- Status --}}
@@ -90,18 +90,6 @@
             </select>
         </div>
 
-        {{-- Due Today / Overdue --}}
-        <div class="flex items-center gap-3 pb-1">
-            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.requestSubmit()" class="rounded border-gray-300 text-brand-500">
-                Due Today
-            </label>
-            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }} onchange="this.form.requestSubmit()" class="rounded border-gray-300 text-red-500">
-                Overdue
-            </label>
-        </div>
-
         {{-- Type 3-way toggle --}}
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
@@ -123,6 +111,18 @@
                     Calls ({{ $callReminders->count() }})
                 </button>
             </div>
+        </div>
+
+        {{-- Due Today / Overdue --}}
+        <div class="flex items-center gap-3 pb-1">
+            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.requestSubmit()" class="rounded border-gray-300 text-brand-500">
+                Due Today
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }} onchange="this.form.requestSubmit()" class="rounded border-gray-300 text-red-500">
+                Overdue
+            </label>
         </div>
 
         {{-- Clear filters --}}

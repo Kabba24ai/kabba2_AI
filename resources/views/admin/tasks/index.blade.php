@@ -204,16 +204,16 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-3 py-3 w-8"></th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-24">Category</th>
                         <th class="px-4 py-3 text-left font-medium text-gray-600">Title / Reason</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-32">Assigned To</th>
                         <th class="px-4 py-3 text-left font-medium text-gray-600">Equipment</th>
                         <th class="px-4 py-3 text-left font-medium text-gray-600">Customer</th>
                         <th class="px-4 py-3 text-left font-medium text-gray-600">Supplier / Other</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Due Date</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Created By</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Priority</th>
-                        <th class="px-4 py-3"></th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-28 whitespace-nowrap">Due Date</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-28 whitespace-nowrap">Created By</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-24">Priority</th>
+                        <th class="px-4 py-3 w-16"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">

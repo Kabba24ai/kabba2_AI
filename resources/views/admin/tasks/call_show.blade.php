@@ -55,12 +55,14 @@
                         class="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
                         Edit
                     </button>
-                    <button
-                        type="button"
-                        onclick="openCompleteCallModal({{ $callReminder->id }})"
-                        class="inline-flex items-center rounded-md border border-emerald-300 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50">
-                        Complete Call
-                    </button>
+                    <form method="POST" action="{{ route('admin.tasks.call.destroy', $callReminder->id) }}"
+                        onsubmit="return confirm('Delete this call reminder? This cannot be undone.')">
+                        @csrf @method('DELETE')
+                        <button type="submit"
+                            class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                            Delete
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -106,6 +108,17 @@
             </div>
             @else
                 <p class="text-sm text-gray-400 italic">No activity recorded yet.</p>
+            @endif
+
+            @if ($callReminder->status === 'active')
+                <div class="flex justify-end mt-4">
+                    <button
+                        type="button"
+                        onclick="openCompleteCallModal({{ $callReminder->id }})"
+                        class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-emerald-700">
+                        Complete Call
+                    </button>
+                </div>
             @endif
         </div>
 

@@ -93,7 +93,7 @@
                     Please enter a completion note before marking this task complete.
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex items-center justify-end gap-3">
                     <button type="submit"
                         class="inline-flex items-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
                         Add Comment

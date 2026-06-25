@@ -254,6 +254,14 @@ class TaskController extends Controller
         return response()->json(['success' => true, 'message' => 'Note added to call history.']);
     }
 
+    public function destroyCall(int $id)
+    {
+        $call = CustomerCallNeeded::findOrFail($id);
+        $call->delete();
+
+        return redirect()->route('admin.tasks.index')->with('success', 'Call reminder deleted.');
+    }
+
     public function edit(Task $task)
     {
         $users      = User::activeOrIds([$task->assigned_to_user_id])->orderBy('first_name')->get();

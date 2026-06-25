@@ -67,20 +67,34 @@ class TaskController extends Controller
             ->groupBy('category')
             ->pluck('cnt', 'category');
 
-        // User badge counts: base filters + category (cross-filter: excludes assigned_to)
-        $userCountsRaw = $this->baseTaskQuery($request)
+        // Task user counts: base filters + category (cross-filter: excludes assigned_to)
+        $taskUserCounts = $this->baseTaskQuery($request)
             ->when($request->filled('category'), fn($q) => $q->where('category', $request->category))
             ->whereNotNull('assigned_to_user_id')
             ->selectRaw('assigned_to_user_id, count(*) as cnt')
             ->groupBy('assigned_to_user_id')
             ->pluck('cnt', 'assigned_to_user_id');
 
-        // Total for "All" user badge (base + category, including unassigned tasks)
+        // Call reminder counts by assignee (cross-filter: excludes assigned_to)
+        $callUserCounts = $this->baseCallQuery($request)
+            ->whereNotNull('created_by')
+            ->selectRaw('created_by, count(*) as cnt')
+            ->groupBy('created_by')
+            ->pluck('cnt', 'created_by');
+
+        // Merge task + call counts per user for Assigned To badges
+        $allBadgeUserIds = $taskUserCounts->keys()->merge($callUserCounts->keys())->unique();
+        $userCountsRaw   = $allBadgeUserIds->mapWithKeys(fn($id) => [
+            $id => $taskUserCounts->get($id, 0) + $callUserCounts->get($id, 0),
+        ]);
+
+        // Total for "All" user badge: tasks + calls (both applying their base filters)
         $userAllCount = $this->baseTaskQuery($request)
             ->when($request->filled('category'), fn($q) => $q->where('category', $request->category))
-            ->count();
+            ->count()
+            + $this->baseCallQuery($request)->count();
 
-        // User names for badge labels
+        // User names for badge labels (includes call reminder assignees)
         $badgeUsers = User::whereIn('id', $userCountsRaw->keys())
             ->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);
@@ -121,11 +135,9 @@ class TaskController extends Controller
 
         $suppliers = Supplier::active()->orderBy('name')->get(['id', 'name', 'phone', 'email', 'primary_contact_name', 'primary_contact_phone']);
 
-        $callReminders = CustomerCallNeeded::with(['customer', 'supplier', 'assignee', 'creator'])
-            ->where('status', 'active')
-            ->where(function ($q) {
-                $q->whereNull('follow_up_at')->orWhere('follow_up_at', '<=', now());
-            })
+        $callReminders = $this->baseCallQuery($request)
+            ->with(['customer', 'supplier', 'assignee', 'creator'])
+            ->when($request->filled('assigned_to'), fn($q) => $q->where('created_by', $request->assigned_to))
             ->latest()
             ->get();
 
@@ -147,6 +159,15 @@ class TaskController extends Controller
             ->when($request->filled('priority'),    fn($q) => $q->where('priority', $request->priority))
             ->when($request->boolean('due_today'),  fn($q) => $q->dueToday())
             ->when($request->boolean('overdue'),    fn($q) => $q->overdue());
+    }
+
+    private function baseCallQuery(Request $request): Builder
+    {
+        return CustomerCallNeeded::where('status', 'active')
+            ->where(fn($q) => $q->whereNull('follow_up_at')->orWhere('follow_up_at', '<=', now()))
+            ->when($request->filled('priority'),   fn($q) => $q->where('priority', $request->priority))
+            ->when($request->boolean('due_today'), fn($q) => $q->whereDate('due_date', today()))
+            ->when($request->boolean('overdue'),   fn($q) => $q->whereNotNull('due_date')->whereDate('due_date', '<', today()));
     }
 
     public function create()

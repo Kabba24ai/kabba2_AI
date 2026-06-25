@@ -28,6 +28,7 @@ class CallNeededStoreController extends Controller
                 'reason'      => $request->reason,
                 'notes'       => $request->notes,
                 'priority'    => $request->input('priority', 'normal'),
+                'due_date'    => $request->due_date ?: null,
                 'status'      => 'active',
                 'created_by'  => $request->assigned_to,
                 'auth_by'     => auth()->id(),

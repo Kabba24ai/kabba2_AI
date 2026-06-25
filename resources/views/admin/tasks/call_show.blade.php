@@ -198,6 +198,14 @@
                     <dt class="text-gray-500">Created</dt>
                     <dd class="font-medium text-gray-800">{{ $callReminder->created_at->format('M j, Y g:i A') }}</dd>
                 </div>
+                @if ($callReminder->due_date)
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Due Date</dt>
+                        <dd class="font-medium {{ $callReminder->due_date->lt(today()) ? 'text-red-600' : 'text-gray-800' }}">
+                            {{ $callReminder->due_date->format('M j, Y') }}
+                        </dd>
+                    </div>
+                @endif
                 @if ($callReminder->follow_up_at)
                     <div class="flex justify-between">
                         <dt class="text-gray-500">Follow-up At</dt>

@@ -23,6 +23,7 @@ class CallNeededUpdateController extends Controller
             'created_by'    => $request->assigned_to,
             'reason'        => $request->reason,
             'priority'      => $request->input('priority', 'normal'),
+            'due_date'      => $request->due_date ?: null,
             'notes'         => $request->notes,
         ]);
 

@@ -195,7 +195,8 @@
                                 default    => null,
                             };
                         @endphp
-                        <tr class="hover:bg-red-50/20 bg-red-50/10">
+                        @php $callIsOverdue = $call->due_date && $call->due_date->lt(today()); @endphp
+                        <tr class="{{ $callIsOverdue ? 'bg-red-50/40 hover:bg-red-50/50' : 'hover:bg-red-50/20 bg-red-50/10' }}">
                             <td class="px-3 py-3 text-center">
                                 <span title="Call Reminder">
                                     <x-heroicon-o-phone class="w-4 h-4 text-red-500 mx-auto" />
@@ -222,7 +223,18 @@
                             <td class="px-4 py-3 text-gray-700">
                                 {{ $supplierOther ?? '—' }}
                             </td>
-                            <td class="px-4 py-3 text-gray-400">—</td>
+                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                @if ($call->due_date)
+                                    <span class="{{ $callIsOverdue ? 'text-red-600 font-medium' : '' }}">
+                                        {{ $call->due_date->format('M j, Y') }}
+                                    </span>
+                                    @if ($callIsOverdue)
+                                        <span class="block text-xs text-red-600 font-medium">Overdue</span>
+                                    @endif
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-gray-700">
                                 {{ $call->creator?->full_name ?? '—' }}
                             </td>

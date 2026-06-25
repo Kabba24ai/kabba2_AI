@@ -211,6 +211,15 @@
                 </div>
 
                 <div class="w-full">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Due Date <span class="text-gray-400 font-normal">(optional)</span></label>
+                    <input
+                        type="date"
+                        id="call_due_date"
+                        name="due_date"
+                        class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+
+                <div class="w-full">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
                     <select id="call_priority" name="priority"
                         class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
@@ -785,7 +794,8 @@ function openCallNeededModal()
     document.getElementById('customer-section').classList.remove('hidden');
     document.getElementById('manual-contact-section').classList.add('hidden');
 
-    document.getElementById('call_priority').value = 'normal';
+    document.getElementById('call_due_date').value  = '';
+    document.getElementById('call_priority').value  = 'normal';
 
     if (window.callAssigneeChoices) window.callAssigneeChoices.removeActiveItems();
     if (window.callReasonChoices)   window.callReasonChoices.removeActiveItems();
@@ -816,6 +826,7 @@ function saveCallNeeded() {
     const notes        = document.getElementById('call_notes').value;
     const assignedTo   = document.getElementById('call_assigned_to').value;
     const priority     = document.getElementById('call_priority').value;
+    const dueDate      = document.getElementById('call_due_date').value || null;
 
     if (contactType === 'customer') {
 
@@ -887,6 +898,7 @@ function saveCallNeeded() {
             reason:        reason,
             notes:         notes,
             priority:      priority,
+            due_date:      dueDate,
         }),
     })
     .then(res => res.json())
@@ -1353,6 +1365,9 @@ function viewCallNeeded(id)
 
         document.getElementById('call_notes').value =
             call.notes ?? '';
+
+        document.getElementById('call_due_date').value =
+            call.due_date ?? '';
 
         document.getElementById('call_priority').value =
             call.priority ?? 'normal';

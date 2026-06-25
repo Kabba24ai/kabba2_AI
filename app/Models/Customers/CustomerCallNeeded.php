@@ -20,6 +20,7 @@ class CustomerCallNeeded extends Model
         'created_by',
         'is_urgent',
         'priority',
+        'due_date',
         'auth_by',
         'contact_name',
         'contact_email',
@@ -34,6 +35,7 @@ class CustomerCallNeeded extends Model
         'follow_up_at'   => 'datetime',
         'rescheduled_at' => 'datetime',
         'priority'       => TaskPriority::class,
+        'due_date'       => 'date',
     ];
 
     public function customer()

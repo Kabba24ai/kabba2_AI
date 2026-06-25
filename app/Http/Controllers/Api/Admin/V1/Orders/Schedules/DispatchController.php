@@ -3,16 +3,12 @@
 namespace App\Http\Controllers\Api\Admin\V1\Orders\Schedules;
 
 use App\Http\Controllers\Api\BaseController;
-use Illuminate\Http\JsonResponse;
-
-// Requests
 use App\Http\Requests\Api\Admin\V1\Orders\Schedules\DispatchRequest;
-
-// Resources
 use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource;
-
-// Model
+use App\Http\Resources\Api\Admin\V1\Users\ListResource as UsersListResource;
+use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
+use Illuminate\Http\JsonResponse;
 
 class DispatchController extends BaseController
 {
@@ -26,13 +22,17 @@ class DispatchController extends BaseController
     {
         $validatedData = $request->validated();
 
-        $perPage = $validatedData['per_page'] ?? 10;
-        $search = $validatedData['search'] ?? null;
-        $categoryId = $validatedData['category_id'] ?? null;
+        $perPage      = $validatedData['per_page']      ?? 10;
+        $search       = $validatedData['search']        ?? null;
+        $categoryId   = $validatedData['category_id']   ?? null;
         $scheduleType = $validatedData['schedule_type'] ?? null;
-        $dateFilter = $validatedData['date_filter'] ?? null;
-        $driverId = $validatedData['driver_id'] ?? null;
+        $dateFilter   = $validatedData['date_filter']   ?? null;
+        $driverId     = $validatedData['driver_id']     ?? null;
         $scheduleTypes = [];
+
+        // Fetch active drivers and use their IDs to scope the order query
+        $drivers   = User::active()->where('is_driver', true)->orderBy('first_name')->get();
+        $driverIds = $drivers->pluck('id');
 
         $query = OrderProduct::query()->with('equipment', 'equipment.store', 'equipment.productcategory', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.billingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee',  'deliveryStore', 'pickupStore')->where('product_data->product_type', 'Rental')->whereHas('order')->whereNotNull('delivery_date');
 
@@ -96,14 +96,14 @@ class DispatchController extends BaseController
             });
         }
 
-        // Only show assigned orders — at least the relevant driver slot must be filled
-        $query->where(function ($q) use ($isDeliveryOnly, $isReturnOnly) {
+        // Scope to active drivers only
+        $query->where(function ($q) use ($driverIds, $isDeliveryOnly, $isReturnOnly) {
             if ($isDeliveryOnly) {
-                $q->whereNotNull('delivery_by');
+                $q->whereIn('delivery_by', $driverIds);
             } elseif ($isReturnOnly) {
-                $q->whereNotNull('pickup_by');
+                $q->whereIn('pickup_by', $driverIds);
             } else {
-                $q->whereNotNull('delivery_by')->orWhereNotNull('pickup_by');
+                $q->whereIn('delivery_by', $driverIds)->orWhereIn('pickup_by', $driverIds);
             }
         });
 
@@ -198,7 +198,7 @@ class DispatchController extends BaseController
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.orders.dispatch_schedules_found'),
-            'orders' => ListResource::collection($orderProducts),
+            'orders'  => ListResource::collection($orderProducts),
             'pagination' => [
                 'current_page' => $orderProducts->currentPage(),
                 'last_page' => $orderProducts->lastPage(),

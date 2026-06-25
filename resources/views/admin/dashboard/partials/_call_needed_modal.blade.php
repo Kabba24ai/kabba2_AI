@@ -780,12 +780,20 @@ function submitCompleteCall(action)
 
         if (data.success) {
 
-            notyf.success(data.message);
             closeCompleteCallModal();
 
             if (window.taskManagerMode) {
-                window.location.reload();
+                if (action === 'complete' && window.callDetailMode) {
+                    notyf.success('Call Successfully Updated');
+                    setTimeout(function () {
+                        window.location.href = '{{ route("admin.tasks.index") }}';
+                    }, 1200);
+                } else {
+                    notyf.success(data.message);
+                    window.location.reload();
+                }
             } else {
+                notyf.success(data.message);
                 if (action === 'complete') {
                     const card = document.querySelector(`[data-call-id="${id}"]`);
                     if (card) card.remove();

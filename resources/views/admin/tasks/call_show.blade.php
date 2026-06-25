@@ -254,7 +254,7 @@
 </div>
 
 {{-- Modals needed for Edit and Complete actions --}}
-<script>window.taskManagerMode = true;</script>
+<script>window.taskManagerMode = true; window.callDetailMode = true;</script>
 @include('admin.dashboard.partials._call_needed_modal')
 
 {{-- Reassign Modal --}}

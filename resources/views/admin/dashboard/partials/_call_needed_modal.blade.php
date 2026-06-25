@@ -696,9 +696,7 @@ function submitRescheduleCall()
             if (window.taskManagerMode) {
                 window.location.reload();
             } else {
-                const card = document.querySelector(`[data-call-id="${callId}"]`);
-                if (card) card.remove();
-                loadCallNeededList();
+                window.location.reload();
             }
         } else {
             notyf.error(data.message || 'Something went wrong');
@@ -789,11 +787,7 @@ function submitCompleteCall(action)
                 }
             } else {
                 notyf.success(data.message);
-                if (action === 'complete') {
-                    const card = document.querySelector(`[data-call-id="${id}"]`);
-                    if (card) card.remove();
-                }
-                loadCallNeededList();
+                window.location.reload();
             }
 
         } else {
@@ -977,7 +971,7 @@ function saveCallNeeded() {
             if (window.taskManagerMode) {
                 window.location.reload();
             } else {
-                loadCallNeededList();
+                window.location.reload();
             }
 
         } else {
@@ -1345,8 +1339,7 @@ function clearCallNeeded(id)
             if (data.success) {
 
                 notyf.success(data.message);
-                document.getElementById('call_needed_id').value = '';
-                loadCallNeededList();
+                window.location.reload();
             }
         });
     });
@@ -1501,10 +1494,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderChoiceLimit: -1,
             }
         );
-    }
-
-    if (!window.taskManagerMode) {
-        loadCallNeededList();
     }
 
     // Flatpickr for Call Needed due date — lazy-load CDN if not already present

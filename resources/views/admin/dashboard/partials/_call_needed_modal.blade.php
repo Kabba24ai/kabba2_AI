@@ -541,6 +541,11 @@ function initRescheduleDatePicker()
             altFormat:     'F j, Y',
             minDate:       'today',
             disableMobile: true,
+            onReady: function(selectedDates, dateStr, instance) {
+                // Calendar appends to <body> but has no z-index by default,
+                // so it renders behind modals (z-[100000]). Set it above all modals.
+                instance.calendarContainer.style.zIndex = '200000';
+            },
         });
     }
 

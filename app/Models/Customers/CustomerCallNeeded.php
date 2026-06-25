@@ -2,6 +2,7 @@
 
 namespace App\Models\Customers;
 
+use App\Enums\Tasks\TaskCategory;
 use App\Enums\Tasks\TaskPriority;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,6 +16,7 @@ class CustomerCallNeeded extends Model
         'customer_id',
         'supplier_id',
         'reason',
+        'category',
         'notes',
         'status',
         'created_by',
@@ -35,6 +37,7 @@ class CustomerCallNeeded extends Model
         'follow_up_at'   => 'datetime',
         'rescheduled_at' => 'datetime',
         'priority'       => TaskPriority::class,
+        'category'       => TaskCategory::class,
         'due_date'       => 'datetime',
     ];
 

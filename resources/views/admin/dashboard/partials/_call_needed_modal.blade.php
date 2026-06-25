@@ -185,56 +185,68 @@
                     </select>
                 </div>
 
-                {{-- Reason --}}
-                <div class="w-full">
-                    <label class="block text-sm font-medium text-gray-700 mb-1 required">
-                        Reason
-                    </label>
-
-                   {!! html()->select('reason', [
-                        '' => 'Select Reason',
-                        'contract_renewal'       => 'Contract Renewal',
-                        'delivery_pickup'        => 'Delivery / Pickup',
-                        'equipment_availability' => 'Equipment Availability',
-                        'equipment_return'       => 'Equipment Return',
-                        'general_followup'       => 'General Follow-up',
-                        'maintenance_request'    => 'Maintenance Request',
-                        'order_review'           => 'Order Review',
-                        'payment_followup'       => 'Payment Follow-up',
-                        'rental_inquiry'         => 'Rental Inquiry',
-
-                    ], old('reason'))
-                    ->id('call_reason')
-                    ->class('choices-select w-full')
-                    ->required()
-                    !!}
-                </div>
-
-                <div class="w-full">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Due Date <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <div class="relative">
-                        <input
-                            type="text"
-                            id="call_due_date"
-                            name="due_date"
-                            placeholder="Select date"
-                            readonly
-                            class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer bg-white">
-                        <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
+                {{-- Reason | Task Category --}}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">
+                            Reason
+                        </label>
+                        {!! html()->select('reason', [
+                            '' => 'Select Reason',
+                            'contract_renewal'       => 'Contract Renewal',
+                            'delivery_pickup'        => 'Delivery / Pickup',
+                            'equipment_availability' => 'Equipment Availability',
+                            'equipment_return'       => 'Equipment Return',
+                            'general_followup'       => 'General Follow-up',
+                            'maintenance_request'    => 'Maintenance Request',
+                            'order_review'           => 'Order Review',
+                            'payment_followup'       => 'Payment Follow-up',
+                            'rental_inquiry'         => 'Rental Inquiry',
+                        ], old('reason'))
+                        ->id('call_reason')
+                        ->class('choices-select w-full')
+                        ->required()
+                        !!}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Task Category</label>
+                        <select id="call_category" name="category"
+                            class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                            <option value="">Select Reason</option>
+                            @foreach (\App\Enums\Tasks\TaskCategory::cases() as $cat)
+                                <option value="{{ $cat->value }}">{{ $cat->label() }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
-                <div class="w-full">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                    <select id="call_priority" name="priority"
-                        class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
-                        <option value="low">Low</option>
-                        <option value="normal" selected>Normal</option>
-                        <option value="high">High</option>
-                        <option value="urgent">Urgent</option>
-                    </select>
+                {{-- Due Date | Priority --}}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Due Date <span class="text-gray-400 font-normal">(optional)</span></label>
+                        <div class="relative">
+                            <input
+                                type="text"
+                                id="call_due_date"
+                                name="due_date"
+                                placeholder="Select date"
+                                readonly
+                                class="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer bg-white">
+                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                        <select id="call_priority" name="priority"
+                            class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                            <option value="low">Low</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
                 </div>
 
                 {{-- Notes --}}
@@ -804,6 +816,7 @@ function openCallNeededModal()
 
     if (_callDueDateFlatpickr) _callDueDateFlatpickr.clear();
     else document.getElementById('call_due_date').value = '';
+    document.getElementById('call_category').value = '';
     document.getElementById('call_priority').value  = 'normal';
 
     if (window.callAssigneeChoices) window.callAssigneeChoices.removeActiveItems();
@@ -832,6 +845,7 @@ function saveCallNeeded() {
     const contactEmail = document.getElementById('contact_email')?.value.trim();
     const contactPhone = document.getElementById('contact_phone')?.value.trim();
     const reason       = document.getElementById('call_reason').value;
+    const category     = document.getElementById('call_category').value || null;
     const notes        = document.getElementById('call_notes').value;
     const assignedTo   = document.getElementById('call_assigned_to').value;
     const priority     = document.getElementById('call_priority').value;
@@ -905,6 +919,7 @@ function saveCallNeeded() {
             contact_phone: contactType === 'manual' ? contactPhone : null,
             assigned_to:   assignedTo,
             reason:        reason,
+            category:      category,
             notes:         notes,
             priority:      priority,
             due_date:      dueDate,
@@ -1381,6 +1396,9 @@ function viewCallNeeded(id)
         } else {
             document.getElementById('call_due_date').value = call.due_date ?? '';
         }
+
+        document.getElementById('call_category').value =
+            call.category ?? '';
 
         document.getElementById('call_priority').value =
             call.priority ?? 'normal';

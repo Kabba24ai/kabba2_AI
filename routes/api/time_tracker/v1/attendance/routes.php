@@ -15,5 +15,16 @@ use App\Http\Controllers\Api\TimeTracker\V1\Attendance\UpdateAchievementGoalCont
 Route::get('/attendance', GetAttendanceController::class);
 
 Route::get('/achievement-goals', GetAchievementGoalsController::class);
-Route::post('/achievement-goals/store', StoreAchievementGoalController::class);
-Route::put('/achievement-goals/update/{goal}', UpdateAchievementGoalController::class);
+
+/*
+|--------------------------------------------------------------------------
+| Admin-Only Achievement Goal Mutations
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['role.short:master_admin'])->group(function () {
+
+    Route::post('/achievement-goals/store', StoreAchievementGoalController::class);
+
+    Route::put('/achievement-goals/update/{goal}', UpdateAchievementGoalController::class);
+
+});

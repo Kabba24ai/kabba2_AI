@@ -21,11 +21,19 @@ Route::group(['prefix' => 'work-schedule'], function () {
 
    Route::get('/work-schedule', GetWorkScheduleController::class);
 
-   Route::post('/work-schedule/save', SaveWorkScheduleController::class);
-
-   Route::post('/work-schedule/update', UpdateWorkScheduleController::class);
-
    Route::get('/start-date', GetStartWeekController::class);
 
+   /*
+   |--------------------------------------------------------------------------
+   | Admin-Only Work Schedule Mutations
+   |--------------------------------------------------------------------------
+   */
+   Route::middleware(['role.short:master_admin'])->group(function () {
+
+       Route::post('/work-schedule/save', SaveWorkScheduleController::class);
+
+       Route::post('/work-schedule/update', UpdateWorkScheduleController::class);
+
+   });
 
 });

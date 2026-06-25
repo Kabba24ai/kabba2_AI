@@ -193,7 +193,7 @@
 <div style="display:flex; gap:1.5rem; align-items:flex-start;">
 
     {{-- Task / Call table --}}
-    <div id="task-list-zone" style="flex:7; min-width:0;">
+    <div id="task-list-zone" style="flex:7.5; min-width:0;">
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
@@ -364,7 +364,7 @@
     </div>
 
     {{-- Completed Today Widget --}}
-    <div style="flex:3; min-width:0;">
+    <div style="flex:2.5; min-width:0;">
         <p class="text-sm font-semibold text-gray-700 mb-2">Tasks Completed - {{ now()->format('F j, Y') }}</p>
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
             @if ($completedToday->isEmpty())

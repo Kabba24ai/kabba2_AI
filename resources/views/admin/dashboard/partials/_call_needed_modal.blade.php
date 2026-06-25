@@ -744,11 +744,6 @@ function submitCompleteCall(action)
         return;
     }
 
-    if (!description) {
-        notyf.error('Please enter call summary.');
-        return;
-    }
-
     const btn = document.getElementById('call-action-save-btn');
     const btnText = document.getElementById('callActionBtnText');
     const spinner = document.getElementById('callActionBtnSpinner');

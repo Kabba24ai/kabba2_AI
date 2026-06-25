@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\Admin\V1\Orders\RentalReadyChecklists\SaveControlle
 use App\Http\Controllers\Api\Admin\V1\Orders\PaymentController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\AssignDriverController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\DispatchController;
+use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\DispatchDriverController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\DriverChecklistController;
 use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\UpdateDeliveryPickupInputsController;
 
@@ -45,6 +46,7 @@ Route::group(['prefix' => 'orders'], function () {
     Route::group(['prefix' => 'schedules'], function () {
         Route::post('/', SchedulesIndexController::class);
         Route::post('/dispatch', DispatchController::class);
+        Route::post('/dispatch-drivers', DispatchDriverController::class);
         Route::post('/assign-driver', AssignDriverController::class)->name('assign-driver');
         Route::post('/update', SchedulesUpdateController::class);
         Route::post('/driver-checklist', DriverChecklistController::class);

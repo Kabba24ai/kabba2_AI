@@ -31,7 +31,7 @@
         </button>
     </div>
     @if ($showAll ?? false)
-        <span class="text-xs text-blue-600 font-medium">Showing all assigned (incl. future)</span>
+        <span class="text-xs text-gray-400 font-medium">Showing all assigned (incl. future)</span>
     @else
         <span class="text-xs text-gray-400 font-medium">Today + past due</span>
     @endif

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\ViewController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\DeleteController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\EditController;
 use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\UpdateController;
+use App\Http\Controllers\Admin\MaintenanceManagement\Suppliers\UpdateTagsController;
 
 
 
@@ -25,6 +26,8 @@ Route::prefix('suppliers')
     Route::get('/edit/{id}', EditController::class)->name('edit');
 
     Route::post('/update/{supplier}', UpdateController::class)->name('update');
+
+    Route::post('/{supplier}/update-tags', UpdateTagsController::class)->name('update-tags');
 
     Route::delete('/delete/{supplier}', DeleteController::class)->name('delete');
 

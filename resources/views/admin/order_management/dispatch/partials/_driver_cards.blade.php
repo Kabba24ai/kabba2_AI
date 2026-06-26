@@ -202,40 +202,47 @@
                 $isLatePickup    = !$isDelivery && $job->dispatch_return_date && $job->pickup_date
                                    && \Carbon\Carbon::parse($job->dispatch_return_date)->gt(\Carbon\Carbon::parse($job->pickup_date));
             @endphp
-            <button type="button"
-                class="w-full text-left space-y-1 border-l-2 {{ $isDelivery ? 'border-blue-300 hover:bg-blue-50' : 'border-purple-300 hover:bg-purple-50' }} pl-3 py-1 rounded-r transition-colors dispatch-card-jump"
-                data-order-number="{{ $job->order?->order_number }}"
-                title="Filter table to {{ $job->order?->order_number }}">
-                <div class="flex items-start gap-2">
-                    <span class="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full {{ $isDelivery ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }} text-[10px] font-bold mt-0.5">
-                        {{ $priority ?? '—' }}
-                    </span>
-                    <div class="min-w-0 flex-1">
-                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1 flex-wrap">
-                            @if($isOverdue)<x-heroicon-s-exclamation-triangle class="w-3.5 h-3.5 text-red-500 shrink-0" />@endif
-                            <span class="{{ $isDelivery ? 'text-blue-600' : 'text-purple-600' }} mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
-                            <span class="ml-1 text-[10px] font-normal {{ $isDelivery ? 'text-blue-400' : 'text-purple-400' }}">{{ $isDelivery ? '↑ Del' : '↓ Ret' }}</span>
-                            @if($isEarly)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">EARLY</span>@endif
-                            @if($isLatePickup)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">LATE PICKUP</span>@endif
+            {{-- Job row: priority badge + jump button as siblings (not nested) --}}
+            <div class="flex items-start gap-2">
+                {{-- Editable priority badge — same system as Separate View --}}
+                <button type="button"
+                    class="dispatch-priority-badge shrink-0 w-7 h-7 rounded-full text-[10px] font-bold flex items-center justify-center leading-none mt-0.5
+                        {{ $priority
+                            ? ($isDelivery ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-purple-100 text-purple-700 hover:bg-purple-200')
+                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200' }}"
+                    data-uid="{{ $job->unique_id }}"
+                    data-type="{{ $isDelivery ? 'delivery' : 'return' }}"
+                    data-priority="{{ $priority ?? '' }}"
+                    title="Set {{ $isDelivery ? 'delivery' : 'return' }} priority">{{ $priority ?? '—' }}</button>
+                {{-- Job detail (click to jump to table row) --}}
+                <button type="button"
+                    class="flex-1 text-left space-y-1 border-l-2 {{ $isDelivery ? 'border-blue-300 hover:bg-blue-50' : 'border-purple-300 hover:bg-purple-50' }} pl-3 py-1 rounded-r transition-colors dispatch-card-jump"
+                    data-order-number="{{ $job->order?->order_number }}"
+                    title="Filter table to {{ $job->order?->order_number }}">
+                    <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1 flex-wrap">
+                        @if($isOverdue)<x-heroicon-s-exclamation-triangle class="w-3.5 h-3.5 text-red-500 shrink-0" />@endif
+                        <span class="{{ $isDelivery ? 'text-blue-600' : 'text-purple-600' }} mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
+                        <span class="ml-1 text-[10px] font-normal {{ $isDelivery ? 'text-blue-400' : 'text-purple-400' }}">{{ $isDelivery ? '↑ Del' : '↓ Ret' }}</span>
+                        @if($isEarly)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">EARLY</span>@endif
+                        @if($isLatePickup)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">LATE PICKUP</span>@endif
+                    </p>
+                    @if($showAll ?? false)
+                        <p class="text-[10px] {{ $isDelivery ? 'text-blue-500' : 'text-purple-500' }} font-medium leading-snug">
+                            {{ $effectiveDate ? \Carbon\Carbon::parse($effectiveDate)->format('M j') : '—' }}
+                            @if($isEarly || $isLatePickup)
+                                <span class="text-gray-400 line-through ml-1">{{ $rentalDate ? \Carbon\Carbon::parse($rentalDate)->format('M j') : '' }}</span>
+                            @endif
                         </p>
-                        @if($showAll ?? false)
-                            <p class="text-[10px] {{ $isDelivery ? 'text-blue-500' : 'text-purple-500' }} font-medium leading-snug">
-                                {{ $effectiveDate ? \Carbon\Carbon::parse($effectiveDate)->format('M j') : '—' }}
-                                @if($isEarly || $isLatePickup)
-                                    <span class="text-gray-400 line-through ml-1">{{ $rentalDate ? \Carbon\Carbon::parse($rentalDate)->format('M j') : '' }}</span>
-                                @endif
-                            </p>
-                        @endif
-                        <p class="text-gray-600 leading-snug">{{ $job->equipment?->equipment_name ?? $job->softAssignment?->equipment?->equipment_name ?? $job->product_name }}</p>
-                        @if ($isDelivery)
-                            <p class="text-gray-400 leading-snug">From: {{ $job->deliveryStore?->store_name ?? 'Custom' }}</p>
-                        @else
-                            <p class="text-gray-400 leading-snug">To: {{ $job->pickupStore?->store_name ?? 'Custom' }}</p>
-                        @endif
-                        <p class="text-gray-500 leading-snug">{{ $addr?->address ?? '' }}{{ $addr?->address && $addr?->city ? ', ' : '' }}{{ $addr?->city ?? '—' }}</p>
-                    </div>
-                </div>
-            </button>
+                    @endif
+                    <p class="text-gray-600 leading-snug">{{ $job->equipment?->equipment_name ?? $job->softAssignment?->equipment?->equipment_name ?? $job->product_name }}</p>
+                    @if ($isDelivery)
+                        <p class="text-gray-400 leading-snug">From: {{ $job->deliveryStore?->store_name ?? 'Custom' }}</p>
+                    @else
+                        <p class="text-gray-400 leading-snug">To: {{ $job->pickupStore?->store_name ?? 'Custom' }}</p>
+                    @endif
+                    <p class="text-gray-500 leading-snug">{{ $addr?->address ?? '' }}{{ $addr?->address && $addr?->city ? ', ' : '' }}{{ $addr?->city ?? '—' }}</p>
+                </button>
+            </div>
             @empty
                 <p class="text-gray-300 italic">No jobs scheduled</p>
             @endforelse

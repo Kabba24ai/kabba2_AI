@@ -1461,11 +1461,10 @@
                     return;
                 }
 
-                // Detect collision: any other badge across BOTH columns in this driver card
-                // badge → job-entry div → column div → driver-card-separate div (contains both columns)
-                const cardSeparate = badge.parentElement?.parentElement?.parentElement;
-                const siblings = cardSeparate
-                    ? Array.from(cardSeparate.querySelectorAll('.dispatch-priority-badge')).filter(b => b !== badge)
+                // Detect collision within the active card section (separate OR combined)
+                const cardSection = badge.closest('.driver-card-separate, .driver-card-combined');
+                const siblings = cardSection
+                    ? Array.from(cardSection.querySelectorAll('.dispatch-priority-badge')).filter(b => b !== badge)
                     : [];
                 const collision = siblings.some(b => b.dataset.priority !== '' && parseInt(b.dataset.priority) === priority);
 

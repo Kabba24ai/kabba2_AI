@@ -34,6 +34,11 @@
                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $callReminder->priority->color() }} border border-transparent">
                             {{ $callReminder->priority->label() }}
                         </span>
+                        @if ($callReminder->category)
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $callReminder->category->color() }}">
+                                {{ $callReminder->category->label() }}
+                            </span>
+                        @endif
                         @if ($callReminder->status === 'active')
                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-700">
                                 Active

@@ -241,7 +241,13 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="text-xs text-gray-400 italic">—</span>
+                                @if ($call->category)
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->category->color() }}">
+                                        {{ $call->category->label() }}
+                                    </span>
+                                @else
+                                    <span class="text-xs text-gray-400 italic">—</span>
+                                @endif
                             </td>
                             <td class="px-4 py-3 max-w-xs">
                                 <a href="{{ route('admin.tasks.call.show', $call->id) }}"

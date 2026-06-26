@@ -198,10 +198,10 @@
                         !!}
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Task Category</label>
-                        <select id="call_category" name="category"
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Task Category</label>
+                        <select id="call_category" name="category" required
                             class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
-                            <option value="">Select Reason</option>
+                            <option value="">Select Category</option>
                             @foreach (\App\Enums\Tasks\TaskCategory::cases() as $cat)
                                 <option value="{{ $cat->value }}">{{ $cat->label() }}</option>
                             @endforeach
@@ -909,6 +909,11 @@ function saveCallNeeded() {
 
     if (!reason) {
         notyf.error('Please select reason.');
+        return;
+    }
+
+    if (!category) {
+        notyf.error('Please select a task category.');
         return;
     }
 

@@ -1140,8 +1140,9 @@
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="delivery_by_{{ $orderProduct->unique_id }}">Driver</label>
                                                 <select id="delivery_by_{{ $orderProduct->unique_id }}"
-                                                    class="delivery_by border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="" disabled selected>Select Driver</option>
+                                                    class="delivery_by border rounded px-3 py-3 text-xs w-full"
+                                                    {{ !empty($orderProduct->delivery_by) ? 'disabled' : '' }}>
+                                                    <option value="" disabled {{ empty($orderProduct->delivery_by) ? 'selected' : '' }}>There is no driver selected</option>
                                                     @foreach ($drivers as $driver)
                                                         <option value="{{ $driver->id }}"
                                                             {{ $orderProduct->delivery_by == $driver->id ? 'selected' : '' }}>
@@ -1276,8 +1277,9 @@
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
                                                     for="pickup_by_{{ $orderProduct->unique_id }}">Driver</label>
                                                 <select id="pickup_by_{{ $orderProduct->unique_id }}"
-                                                    class="pickup_by border rounded px-3 py-3 text-xs w-full">
-                                                    <option value="" disabled selected>Select Driver</option>
+                                                    class="pickup_by border rounded px-3 py-3 text-xs w-full"
+                                                    {{ !empty($orderProduct->pickup_by) ? 'disabled' : '' }}>
+                                                    <option value="" disabled {{ empty($orderProduct->pickup_by) ? 'selected' : '' }}>There is no driver selected</option>
                                                     @foreach ($drivers as $driver)
                                                         <option value="{{ $driver->id }}"
                                                             {{ $orderProduct->pickup_by == $driver->id ? 'selected' : '' }}>
@@ -4033,6 +4035,9 @@
                 if (deliveryTechnician) {
                     deliveryTechnician.addEventListener('change', function() {
                         updateScheduleField('delivery', 'delivery_by', deliveryTechnician.value);
+                        if (deliveryTechnician.value) {
+                            deliveryTechnician.disabled = true;
+                        }
                     });
                 }
 
@@ -4137,6 +4142,9 @@
                 if (returnTechnician) {
                     returnTechnician.addEventListener('change', function() {
                         updateScheduleField('return', 'pickup_by', returnTechnician.value);
+                        if (returnTechnician.value) {
+                            returnTechnician.disabled = true;
+                        }
                     });
                 }
             });

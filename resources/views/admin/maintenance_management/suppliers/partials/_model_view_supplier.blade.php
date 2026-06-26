@@ -336,18 +336,49 @@
 
                         {{-- Inline tag assignment panel --}}
                         <div id="viewTagAssignPanel" class="hidden mt-4 border border-gray-200 rounded-lg p-3 bg-white">
-                            <label class="block text-xs font-medium text-gray-600 mb-2">Select Tags to Assign</label>
-                            <select id="viewTagSelect" multiple class="w-full text-sm border border-gray-300 rounded-md"></select>
-                            <div class="flex gap-2 mt-3">
-                                <button type="button" onclick="saveViewSupplierTags()"
-                                    class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
-                                    Save Tags
-                                </button>
-                                <button type="button" onclick="toggleViewTagAssign()"
-                                    class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
-                                    Cancel
-                                </button>
+
+                            {{-- Assign existing tags --}}
+                            <div id="viewTagAssignSection">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-xs font-medium text-gray-600">Select Tags to Assign</label>
+                                    <button type="button" onclick="toggleViewNewTagForm()"
+                                        class="text-blue-600 hover:text-blue-800 text-xs font-medium flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        +New Tag
+                                    </button>
+                                </div>
+                                <select id="viewTagSelect" multiple class="w-full text-sm border border-gray-300 rounded-md"></select>
+                                <div class="flex gap-2 mt-3">
+                                    <button type="button" onclick="saveViewSupplierTags()"
+                                        class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
+                                        Save Tags
+                                    </button>
+                                    <button type="button" onclick="toggleViewTagAssign()"
+                                        class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
+
+                            {{-- Create new tag inline --}}
+                            <div id="viewNewTagForm" class="hidden">
+                                <label class="block text-xs font-medium text-gray-600 mb-2">New Tag Name</label>
+                                <input id="viewNewTagInput" type="text" placeholder="Enter tag name..."
+                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <div class="flex gap-2 mt-3">
+                                    <button type="button" onclick="createViewTag()"
+                                        class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
+                                        Create Tag
+                                    </button>
+                                    <button type="button" onclick="toggleViewNewTagForm()"
+                                        class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+                                        Back
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -487,6 +518,58 @@
             }
         })
         .catch(() => notyf.error('Failed to update tags.'));
+    };
+
+    window.toggleViewNewTagForm = function() {
+        const assignSection = document.getElementById('viewTagAssignSection');
+        const newTagForm    = document.getElementById('viewNewTagForm');
+        const isFormHidden  = newTagForm.classList.contains('hidden');
+        if (isFormHidden) {
+            assignSection.classList.add('hidden');
+            newTagForm.classList.remove('hidden');
+            document.getElementById('viewNewTagInput').value = '';
+            document.getElementById('viewNewTagInput').focus();
+        } else {
+            newTagForm.classList.add('hidden');
+            assignSection.classList.remove('hidden');
+        }
+    };
+
+    window.createViewTag = function() {
+        const input = document.getElementById('viewNewTagInput');
+        const name  = input.value.trim();
+        if (!name) {
+            notyf.error('Please enter a tag name.');
+            return;
+        }
+
+        const url = "{{ route('admin.maintenance-management.suppliers.tag.store') }}";
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({ name }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                notyf.success(data.message);
+                fetchTags().then(() => {
+                    const newId = String(data.tag.id);
+                    if (!_currentViewSupplierTagIds.includes(newId)) {
+                        _currentViewSupplierTagIds.push(newId);
+                    }
+                    document.getElementById('viewNewTagForm').classList.add('hidden');
+                    document.getElementById('viewTagAssignSection').classList.remove('hidden');
+                    initViewTagChoices();
+                });
+            } else {
+                notyf.error(data.message || 'Failed to create tag.');
+            }
+        })
+        .catch(() => notyf.error('Failed to create tag.'));
     };
 
     // === New Function: Fetch and View Supplier ===

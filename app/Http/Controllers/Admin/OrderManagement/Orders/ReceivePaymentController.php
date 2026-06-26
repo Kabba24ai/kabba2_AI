@@ -191,6 +191,16 @@ class ReceivePaymentController extends Controller
                 ]);
 
             }
+            // When full payment is recorded via any method other than COD itself,
+            // the original COD Pending row must also be closed — otherwise the
+            // POD SMS reminder job still sees a COD+Pending row and keeps firing.
+            // if ($targetStatus === OrderPaymentStatus::Paid) {
+            //     $order->payments()
+            //         ->where('payment_method', OrderPaymentMethod::COD->value)
+            //         ->where('status', OrderPaymentStatus::Pending->value)
+            //         ->update(['status' => OrderPaymentStatus::Paid->value]);
+            // }
+
             DB::commit();
 
             event(new PaymentInitiateEvent($order, $user, $payment));

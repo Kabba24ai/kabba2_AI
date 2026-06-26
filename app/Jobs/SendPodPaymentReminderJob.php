@@ -29,11 +29,15 @@ class SendPodPaymentReminderJob implements ShouldQueue
 
     private function log(string $level, string $message, array $context = []): void
     {
-        Log::channel('jobs')->{$level}($message, $context);
+        // Log::channel('jobs')->{$level}($message, $context);
+                Log::{$level}($message, $context);
+
     }
 
     public function handle(): void
     {
+        Log::info('[SendPodPaymentReminderJob] handle() fired');
+
         $startedAt = now();
         $this->log('info', '[POD Reminder] Job started at ' . $startedAt->toDateTimeString());
 
@@ -120,11 +124,11 @@ class SendPodPaymentReminderJob implements ShouldQueue
             }
 
             // TEMP TEST ONLY — only send to this specific customer; remove before go-live
-            // if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
-            //     $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
-            //     $skipped++;
-            //     continue;
-            // }
+            if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
+                $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
+                $skipped++;
+                continue;
+            }
 
             // TEMP DATE GUARD — only process orders on/after 2026-06-21; intentional, do not remove
             if ($order->created_at->toDateString() < '2026-06-21') {
@@ -133,6 +137,13 @@ class SendPodPaymentReminderJob implements ShouldQueue
                 continue;
             }
             // END TEMP DATE GUARD
+
+            // Re-check at loop time — payment may have been completed since the query ran
+            if (!$order->payments()->where('payment_method', 'COD')->where('status', 'Pending')->exists()) {
+                $this->log('info', "$tag Order {$order->unique_id} already paid — skipping.");
+                $skipped++;
+                continue;
+            }
 
             $firstProduct = $order->products->first();
             $isTruck      = $firstProduct && strtolower($firstProduct->delivery_transport_mode ?? '') === 'truck';
@@ -181,12 +192,21 @@ class SendPodPaymentReminderJob implements ShouldQueue
             ]);
 
             try {
+
                 $result = $this->twilio->sendSms($customer->phone, $message, [], [
                     'order_id'            => $order->id,
                     'customer_id'         => $customer->id,
                     'sms_type'            => SmsType::POD_PAYMENT_LINK->value,
                     'pod_payment_link_id' => $podLink->id,
                 ]);
+
+
+                // for local test 
+                // $result = [
+                //     'success' => true,
+                //     'sid' => 'TEST_' . $order->id,
+                // ];
+
 
                 if ($result['success'] ?? false) {
                     $this->log('info', "$tag SMS sent for order {$order->unique_id}", [
@@ -198,6 +218,24 @@ class SendPodPaymentReminderJob implements ShouldQueue
                         'phone'      => $customer->phone,
                         'sms_type'   => SmsType::POD_PAYMENT_LINK->value,
                     ]);
+
+                    // Guarantee the sms_log row exists so the next job run's whereNotExists
+                    // skips this order. TwilioService also attempts this, but its save is
+                    // wrapped in a silent try/catch — if it fails the order gets re-queued.
+                    DB::table('sms_logs')->updateOrInsert(
+                        ['order_id' => $order->id, 'sms_type' => SmsType::POD_PAYMENT_LINK->value],
+                        [
+                            'customer_id'         => $customer->id,
+                            'pod_payment_link_id' => $podLink->id,
+                            'status'              => 'sent',
+                            'phone'               => $customer->phone,
+                            'message'             => $message,
+                            'twilio_sid'          => $result['sid'] ?? null,
+                            'sms_sent_at'         => now(),
+                            'created_at'          => now(),
+                            'updated_at'          => now(),
+                        ]
+                    );
 
                     $sent++;
                 } else {
@@ -277,7 +315,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
             $this->log('info', "$tag Before 9:00 AM — skipping.");
             return;
         }
-
+        $this->log('info', "$tag Before 9:00 AM — start .");
         $truckEnabled  = ($settings['pod_final_reminder_truck_message_enabled'] ?? null) == '1';
         $storeEnabled  = ($settings['pod_final_reminder_store_message_enabled'] ?? null) == '1';
         $truckTemplate = $settings['pod_final_reminder_truck_message'] ?? null;
@@ -385,11 +423,11 @@ class SendPodPaymentReminderJob implements ShouldQueue
             }
 
             // TEMP TEST ONLY — only send to this specific customer; remove before go-live
-            // if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
-            //     $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
-            //     $skipped++;
-            //     continue;
-            // }
+            if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
+                $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
+                $skipped++;
+                continue;
+            }
 
             // TEMP DATE GUARD — only process orders on/after 2026-06-21; intentional, do not remove
             if ($order->created_at->toDateString() < '2026-06-21') {
@@ -453,6 +491,12 @@ class SendPodPaymentReminderJob implements ShouldQueue
                     'pod_payment_link_id' => $podLink->id,
                 ]);
 
+
+                // $result = [
+                //     'success' => true,
+                //     'sid' => 'TEST_SID'. time()
+                // ];
+
                 if ($result['success'] ?? false) {
                     $this->log('info', "$tag SMS sent for order {$order->unique_id}", [
                         'twilio_sid' => $result['sid'] ?? null,
@@ -463,6 +507,25 @@ class SendPodPaymentReminderJob implements ShouldQueue
                         'phone'      => $customer->phone,
                         'sms_type'   => $smsType->value,
                     ]);
+
+
+                    // Guarantee the sms_log row exists so the next job run's whereNotExists
+                    // skips this order. TwilioService also attempts this, but its save is
+                    // wrapped in a silent try/catch — if it fails the order gets re-queued.
+                    DB::table('sms_logs')->updateOrInsert(
+                        ['order_id' => $order->id, 'sms_type' => $smsType->value],
+                        [
+                            'customer_id'         => $customer->id,
+                            'pod_payment_link_id' => $podLink->id,
+                            'status'              => 'sent',
+                            'phone'               => $customer->phone,
+                            'message'             => $message,
+                            'twilio_sid'          => $result['sid'] ?? null,
+                            'sms_sent_at'         => now(),
+                            'created_at'          => now(),
+                            'updated_at'          => now(),
+                        ]
+                    );
 
                     $sent++;
                 } else {
@@ -527,11 +590,11 @@ class SendPodPaymentReminderJob implements ShouldQueue
             }
 
             // TEMP TEST ONLY — only send to this specific customer; remove before go-live
-            // if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
-            //     $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
-            //     $skipped++;
-            //     continue;
-            // }
+            if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
+                $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
+                $skipped++;
+                continue;
+            }
 
             // TEMP DATE GUARD — only process orders on/after 2026-06-21; remove before go-live
             if ($order->created_at->toDateString() < '2026-06-21') {
@@ -577,6 +640,11 @@ class SendPodPaymentReminderJob implements ShouldQueue
                     'sms_type'            => $smsType->value,
                     'pod_payment_link_id' => $podLink->id,
                 ]);
+
+                // $result = [
+                //     'success' => true,
+                //     'sid' => 'TEST_SID'. time()
+                // ];
 
                 if ($result['success'] ?? false) {
                     $this->log('info', "$tag SMS sent for order {$order->unique_id}", [

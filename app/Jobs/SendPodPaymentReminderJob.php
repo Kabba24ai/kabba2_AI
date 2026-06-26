@@ -354,7 +354,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
     {
         $tag = '[POD Last Ditch 4PM]';
 
-        if (now()->timezone('America/Chicago')->hour < 3) {
+        if (now()->timezone('America/Chicago')->hour < 16) {
             $this->log('info', "$tag Before 4:00 PM — skipping.");
             return;
         }

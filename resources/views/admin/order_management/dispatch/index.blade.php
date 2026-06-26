@@ -390,8 +390,14 @@
                         <label id="driver-modal-dispatch-label" for="driver-dispatch-date-input"
                             class="font-semibold text-gray-500 w-32 shrink-0 cursor-pointer">Dispatch Delivery:</label>
                         <div class="flex items-center gap-2">
-                            <input type="date" id="driver-dispatch-date-input"
-                                class="border border-gray-300 rounded px-2 py-1 text-xs w-38 bg-white focus:ring-blue-500 focus:border-blue-500">
+                            <div class="relative">
+                                <input type="date" id="driver-dispatch-date-input"
+                                    placeholder="Select Date"
+                                    class="border border-gray-300 rounded px-3 py-1.5 text-xs pr-8 w-40 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                                <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+                                    <x-heroicon-o-calendar class="w-4 h-4 text-gray-400" />
+                                </div>
+                            </div>
                             <button type="button" id="driver-dispatch-date-clear"
                                 class="text-gray-400 hover:text-red-500 text-xs hidden" title="Clear dispatch date">✕ Clear</button>
                             <span id="driver-dispatch-date-badge" class="hidden text-[9px] font-bold px-1.5 py-0.5 rounded"></span>
@@ -1126,6 +1132,8 @@
                     dateFormat:    'Y-m-d',
                     altInput:      true,
                     altFormat:     'M j, Y',
+                    placeholder:   'Select Date',
+                    altInputClass: 'border border-gray-300 rounded px-3 py-1.5 text-xs pr-8 w-40 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer',
                     allowInput:    false,
                     disableMobile: true,
                     onReady: function (sel, str, instance) {

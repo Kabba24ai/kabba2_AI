@@ -1063,6 +1063,7 @@
             const dispatchDateInput     = document.getElementById('driver-dispatch-date-input');
             const dispatchDateClear     = document.getElementById('driver-dispatch-date-clear');
             const dispatchDateBadge     = document.getElementById('driver-dispatch-date-badge');
+            let   _dispatchDatePicker   = null;
             const alsoAssignCheck       = document.getElementById('driver-modal-also-assign');
             const alsoAssignLabel       = document.getElementById('driver-modal-also-assign-label');
             const otherDriverNote       = document.getElementById('driver-modal-other-driver-note');
@@ -1118,9 +1119,44 @@
                 }
             }
 
-            dispatchDateInput?.addEventListener('input', updateDispatchBadge);
+            // ---- Flatpickr for dispatch date ----
+            function initDispatchDatePicker() {
+                if (_dispatchDatePicker) return;
+                _dispatchDatePicker = flatpickr(dispatchDateInput, {
+                    dateFormat:    'Y-m-d',
+                    altInput:      true,
+                    altFormat:     'M j, Y',
+                    allowInput:    false,
+                    disableMobile: true,
+                    onReady: function (sel, str, instance) {
+                        instance.calendarContainer.style.zIndex = '999999';
+                    },
+                    onChange: function () {
+                        updateDispatchBadge();
+                    },
+                });
+            }
+
+            function loadFlatpickrThen(cb) {
+                if (window.flatpickr) { cb(); return; }
+                if (!document.getElementById('flatpickr-css')) {
+                    var link = document.createElement('link');
+                    link.id = 'flatpickr-css'; link.rel = 'stylesheet';
+                    link.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+                    document.head.appendChild(link);
+                }
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js';
+                s.onload = cb;
+                document.head.appendChild(s);
+            }
+
+            // Load + init on first modal open (deferred)
+            loadFlatpickrThen(initDispatchDatePicker);
+
             dispatchDateClear?.addEventListener('click', function () {
-                dispatchDateInput.value = '';
+                if (_dispatchDatePicker) _dispatchDatePicker.clear();
+                else dispatchDateInput.value = '';
                 updateDispatchBadge();
             });
 
@@ -1169,20 +1205,24 @@
                 otherSlotDriverNameIn.value = otherDriverName;
 
                 // Dispatch date section
+                const dispatchVal = isDelivery ? dispatchDelivery : dispatchReturn;
                 if (isDelivery) {
-                    rentalLabel.textContent        = 'Rental Start:';
-                    dispatchLabel.textContent      = 'Dispatch Delivery:';
-                    rentalDateDisplay.textContent  = rentalDelivery ? fmtDate(rentalDelivery) : '-';
-                    dispatchDateInput.value        = dispatchDelivery;
-                    alsoAssignLabel.textContent    = 'Also assign same driver to return/pickup';
+                    rentalLabel.textContent       = 'Rental Start:';
+                    dispatchLabel.textContent     = 'Dispatch Delivery:';
+                    rentalDateDisplay.textContent = rentalDelivery ? fmtDate(rentalDelivery) : '-';
+                    alsoAssignLabel.textContent   = 'Also assign same driver to return/pickup';
                 } else {
-                    rentalLabel.textContent        = 'Rental Return:';
-                    dispatchLabel.textContent      = 'Dispatch Return:';
-                    rentalDateDisplay.textContent  = rentalReturn ? fmtDate(rentalReturn) : '-';
-                    dispatchDateInput.value        = dispatchReturn;
-                    alsoAssignLabel.textContent    = 'Also assign same driver to delivery';
+                    rentalLabel.textContent       = 'Rental Return:';
+                    dispatchLabel.textContent     = 'Dispatch Return:';
+                    rentalDateDisplay.textContent = rentalReturn ? fmtDate(rentalReturn) : '-';
+                    alsoAssignLabel.textContent   = 'Also assign same driver to delivery';
                 }
-                originalDispatchIn.value = dispatchDateInput.value;
+                if (_dispatchDatePicker) {
+                    _dispatchDatePicker.setDate(dispatchVal || null, false);
+                } else {
+                    dispatchDateInput.value = dispatchVal;
+                }
+                originalDispatchIn.value = dispatchVal;
                 updateDispatchBadge();
 
                 // Other driver note
@@ -1219,8 +1259,9 @@
             });
             function closeDriverModal() {
                 driverModal.classList.add('hidden');
-                driverSelect.value      = '';
-                dispatchDateInput.value = '';
+                driverSelect.value = '';
+                if (_dispatchDatePicker) { _dispatchDatePicker.clear(); _dispatchDatePicker.close(); }
+                else dispatchDateInput.value = '';
                 dispatchDateBadge.className = 'hidden';
                 dispatchDateClear.classList.add('hidden');
                 otherDriverNote.classList.add('hidden');

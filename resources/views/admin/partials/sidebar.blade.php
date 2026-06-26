@@ -387,6 +387,14 @@
                                         Dash Reports
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('admin.reports.operation.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.reports.operation.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-chart-pie class="w-6 h-6" />
+                                        Operation
+                                    </a>
+                                </li>
                                 <li x-data="{ openSalesReport: {{ Route::is('admin.reports.sales-reports.*') ? 'true' : 'false' }} }">
                                     <a href="#" @click.prevent="openSalesReport = !openSalesReport"
                                         class="menu-dropdown-item group

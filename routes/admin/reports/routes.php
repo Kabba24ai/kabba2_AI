@@ -32,4 +32,7 @@ Route::prefix('reports')
     // new damage alerts
     require base_path('routes/admin/reports/new_damage_alerts/routes.php');
 
+    // operation
+    require base_path('routes/admin/reports/operation/routes.php');
+
 });

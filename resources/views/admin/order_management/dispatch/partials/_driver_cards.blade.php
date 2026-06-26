@@ -27,11 +27,11 @@
         </button>
         <button type="button" id="daf-today"
             class="px-3 py-1.5 font-semibold border-l border-gray-300 {{ ($showAll ?? false) ? 'bg-white text-gray-600 hover:bg-gray-50' : 'bg-blue-600 text-white' }}">
-            Today Only
+            Due + Overdue
         </button>
     </div>
     @if ($showAll ?? false)
-        <span class="text-xs text-blue-600 font-medium">Showing all assigned (future + past)</span>
+        <span class="text-xs text-blue-600 font-medium">Showing all assigned (incl. future)</span>
     @endif
 </div>
 

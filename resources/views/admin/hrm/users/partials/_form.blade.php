@@ -1288,29 +1288,29 @@ document.addEventListener('DOMContentLoaded', function () {
         const data = await response.json();
 
         if (data.success) {
-                    const field = document.getElementById(targetFieldId);
+            const field = document.getElementById(targetFieldId);
 
             if (!field) return;
 
-            // Set decrypted value
-            field.value = data.ssn || '';
+            if (data.ssn) {
+                field.value = data.ssn;
+                field.removeAttribute('disabled');
+                field.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                field.type = 'text';
 
-            field.removeAttribute('disabled');
-            field.classList.remove('bg-gray-100', 'cursor-not-allowed');
-            field.type = 'text';
+                if (window.$ && $(field).parsley) {
+                    $(field).parsley().reset();
+                }
 
-            // Re-bind parsley validation
-            if (window.$ && $(field).parsley) {
-                $(field).parsley().reset();
-            }
-
-            // Optional: remove lock button after verification
-            const lockBtn = document.querySelector(
-                `[data-open-verify][data-field-id="${targetFieldId}"]`
-            );
-
-            if (lockBtn) {
-                lockBtn.remove();
+                const lockBtn = document.querySelector(
+                    `[data-open-verify][data-field-id="${targetFieldId}"]`
+                );
+                if (lockBtn) lockBtn.remove();
+            } else {
+                verifyError.textContent = 'SSN not on file for this employee.';
+                verifyError.classList.remove('hidden');
+                setTimeout(() => verifyInput.focus(), 0);
+                return;
             }
 
             modal.classList.add('hidden');

@@ -67,7 +67,7 @@
     @endif
 
     {{-- Row 1: Status | Priority | Type | Due Today | Overdue | Clear --}}
-    <div class="flex flex-wrap items-end gap-x-3 gap-y-2">
+    <div class="flex flex-wrap items-end gap-x-3 gap-y-2 pb-[7px]">
 
         {{-- Status --}}
         <div>

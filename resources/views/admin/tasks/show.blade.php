@@ -198,6 +198,10 @@
                     <dd class="font-medium text-gray-800">{{ $task->createdBy?->full_name ?? '—' }}</dd>
                 </div>
                 <div class="flex justify-between">
+                    <dt class="text-gray-500">Created</dt>
+                    <dd class="font-medium text-gray-800">{{ $task->created_at->format('M j, Y') }}</dd>
+                </div>
+                <div class="flex justify-between">
                     <dt class="text-gray-500">Due Date</dt>
                     <dd class="font-medium {{ $task->isOverdue() ? 'text-red-600' : 'text-gray-800' }}">
                         {{ $task->due_date?->format('M j, Y g:i A') ?? '—' }}
@@ -213,10 +217,6 @@
                     <dd class="font-medium text-gray-800">{{ $task->completedBy->full_name }}</dd>
                 </div>
                 @endif
-                <div class="flex justify-between">
-                    <dt class="text-gray-500">Created</dt>
-                    <dd class="font-medium text-gray-800">{{ $task->created_at->format('M j, Y') }}</dd>
-                </div>
             </dl>
         </div>
 

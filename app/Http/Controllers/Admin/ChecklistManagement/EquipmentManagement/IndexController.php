@@ -96,13 +96,37 @@ class IndexController extends Controller
             //   6. Available
             // Within each priority tier, sort by the nearest pending event (delivery or pickup),
             // nulls last, then alphabetically by name.
+            // NOTE: the assignment check is inlined (not aliased) to guarantee MySQL resolves it
+            // correctly inside the CASE expression.
             $query->orderByRaw("CASE
-                WHEN is_assigned = 1 AND current_status = 'maintenance' THEN 1
-                WHEN is_assigned = 1 AND current_status = 'damaged'     THEN 2
-                WHEN current_status = 'damaged'                          THEN 3
-                WHEN current_status = 'maintenance'                      THEN 4
-                WHEN current_status = 'rented'                           THEN 5
-                WHEN current_status = 'available'                        THEN 6
+                WHEN (
+                    EXISTS (
+                        SELECT 1 FROM order_products _chk
+                        WHERE _chk.equipment_id = equipment.id
+                          AND (_chk.delivery_status = 'Pending' OR _chk.pickup_status = 'Pending')
+                    ) OR EXISTS (
+                        SELECT 1 FROM equipment_soft_assigns _csa
+                        INNER JOIN order_products _cop ON _cop.id = _csa.order_product_id
+                        WHERE _csa.equipment_id = equipment.id
+                          AND (_cop.delivery_status = 'Pending' OR _cop.pickup_status = 'Pending')
+                    )
+                ) AND current_status = 'maintenance' THEN 1
+                WHEN (
+                    EXISTS (
+                        SELECT 1 FROM order_products _chk
+                        WHERE _chk.equipment_id = equipment.id
+                          AND (_chk.delivery_status = 'Pending' OR _chk.pickup_status = 'Pending')
+                    ) OR EXISTS (
+                        SELECT 1 FROM equipment_soft_assigns _csa
+                        INNER JOIN order_products _cop ON _cop.id = _csa.order_product_id
+                        WHERE _csa.equipment_id = equipment.id
+                          AND (_cop.delivery_status = 'Pending' OR _cop.pickup_status = 'Pending')
+                    )
+                ) AND current_status = 'damaged' THEN 2
+                WHEN current_status = 'damaged'     THEN 3
+                WHEN current_status = 'maintenance' THEN 4
+                WHEN current_status = 'rented'      THEN 5
+                WHEN current_status = 'available'   THEN 6
                 ELSE 7
             END ASC")
             ->orderByRaw("(

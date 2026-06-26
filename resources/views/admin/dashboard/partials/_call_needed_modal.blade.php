@@ -348,14 +348,15 @@
             <div>
 
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Notes
+                    Notes <span class="text-red-500">*</span>
                 </label>
 
                 <textarea
                     id="complete_call_description"
                     rows="4"
                     class="w-full rounded-md border border-gray-300 px-3 py-3 text-sm"
-                    placeholder="Write what happened during the call..."></textarea>
+                    placeholder="Write what happened during the call..."
+                    required></textarea>
             </div>
 
             <div class="flex items-center justify-between gap-3 pt-3 flex-wrap">
@@ -739,6 +740,11 @@ function submitCompleteCall(action)
 
     if (!status) {
         notyf.error('Please select call status.');
+        return;
+    }
+
+    if (!description) {
+        notyf.error('Notes are required.');
         return;
     }
 

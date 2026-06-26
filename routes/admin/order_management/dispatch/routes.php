@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\Intelligence\Upd
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\Intelligence\DestroyController as IntelRuleDestroyController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\Intelligence\ApproveController as IntelRuleApproveController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\Intelligence\AiGenerateController as IntelRuleAiGenerateController;
+use App\Http\Controllers\Admin\OrderManagement\Dispatch\DispatchDateController;
 
 Route::prefix('dispatch')
 ->name('dispatch.')
@@ -57,4 +58,5 @@ Route::prefix('dispatch')
     Route::get('/{unique_id}', [ShowController::class, 'show'])->name('show');
     Route::post('/{unique_id}/checklist', [ShowController::class, 'saveChecklist'])->name('checklist.save');
     Route::post('/{unique_id}/priority', PriorityController::class)->name('priority');
+    Route::post('/{unique_id}/dispatch-date', DispatchDateController::class)->name('dispatch-date');
 });

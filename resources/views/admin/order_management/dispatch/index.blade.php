@@ -45,7 +45,7 @@
 
     {{-- ===== Driver Workload Summary ===== --}}
     <div id="driver-cards-wrapper" class="mb-4">
-        @include('admin.order_management.dispatch.partials._driver_cards', ['driverCards' => $driverCards])
+        @include('admin.order_management.dispatch.partials._driver_cards', ['driverCards' => $driverCards, 'showAll' => $showAll ?? false])
     </div>
 
     {{-- ===== AI Draft Panel ===== --}}
@@ -548,15 +548,23 @@
             // Expose globally so driver modal JS can call it after saving a driver
             window.fetchDispatch = fetchDispatch;
 
-            // Apply saved card view mode on page load (after initial card render)
-            setTimeout(() => applyDriverCardMode(localStorage.getItem('driver_card_view') || 'separate'), 0);
+            // Apply saved card view mode and show-assigned filter on page load
+            const savedDaf = localStorage.getItem('driver_assign_filter') || 'today';
+            if (savedDaf === 'all') {
+                // Server-rendered cards default to Today Only; re-fetch to match stored preference
+                setTimeout(() => window.refreshDriverCards(), 50);
+            } else {
+                setTimeout(() => applyDriverCardMode(localStorage.getItem('driver_card_view') || 'separate'), 0);
+            }
 
             // Refresh driver workload cards without reloading the page
             window.refreshDriverCards = function (targetMode) {
                 const wrapper = document.getElementById('driver-cards-wrapper');
                 if (!wrapper) return;
                 wrapper.classList.add('opacity-50');
-                apiFetch("{{ route('admin.order-management.dispatch.driver-cards') }}", {
+                const showAll = localStorage.getItem('driver_assign_filter') === 'all';
+                const cardsUrl = "{{ route('admin.order-management.dispatch.driver-cards') }}" + (showAll ? '?show_all=1' : '');
+                apiFetch(cardsUrl, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
                 .then(data => {
@@ -569,6 +577,12 @@
                 })
                 .finally(() => wrapper.classList.remove('opacity-50'));
             };
+
+            // Switch Show Assigned filter (Today Only / All) and re-fetch driver cards
+            function applyDriverAssignFilter(filter) {
+                localStorage.setItem('driver_assign_filter', filter);
+                window.refreshDriverCards();
+            }
 
             // Apply card view mode (separate/combined) — works on freshly injected DOM too
             function applyDriverCardMode(mode) {
@@ -595,7 +609,7 @@
                 localStorage.setItem('driver_card_view', mode);
             }
 
-            // Persistent event delegation for the driver card view toggle (survives innerHTML replacement)
+            // Persistent event delegation for all driver card toggles (survives innerHTML replacement)
             document.addEventListener('click', function (e) {
                 if (e.target.closest('#dcv-separate')) {
                     applyDriverCardMode('separate');
@@ -603,6 +617,14 @@
                 }
                 if (e.target.closest('#dcv-combined')) {
                     window.refreshDriverCards('combined');
+                    return;
+                }
+                if (e.target.closest('#daf-all')) {
+                    applyDriverAssignFilter('all');
+                    return;
+                }
+                if (e.target.closest('#daf-today')) {
+                    applyDriverAssignFilter('today');
                     return;
                 }
 

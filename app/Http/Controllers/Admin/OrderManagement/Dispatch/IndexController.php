@@ -20,38 +20,49 @@ class IndexController extends Controller
      * Dispatch is a driver-focused view of the schedule — Truck deliveries/returns only.
      * In-Store transport mode, Rescheduled Pending, and Overdue filters are excluded.
      */
-    public function driverCards()
+    public function driverCards(Request $request)
     {
-        $driverCards = $this->buildDriverCards();
-        $html = view('admin.order_management.dispatch.partials._driver_cards', compact('driverCards'))->render();
+        $showAll     = $request->boolean('show_all', false);
+        $driverCards = $this->buildDriverCards($showAll);
+        $html        = view('admin.order_management.dispatch.partials._driver_cards', compact('driverCards', 'showAll'))->render();
         return response()->json(['success' => true, 'html' => $html]);
     }
 
-    private function buildDriverCards(): \Illuminate\Support\Collection
+    private function buildDriverCards(bool $showAll = false): \Illuminate\Support\Collection
     {
         $drivers   = User::active()->where('is_driver', true)->orderBy('first_name')->get();
         $driverIds = $drivers->pluck('id');
 
-        $deliveryJobs = OrderProduct::with(['order.customer', 'order.shippingAddress', 'deliveryStore', 'equipment', 'softAssignment.equipment'])
+        $deliveryQuery = OrderProduct::with(['order.customer', 'order.shippingAddress', 'deliveryStore', 'equipment', 'softAssignment.equipment'])
             ->whereIn('delivery_by', $driverIds)
             ->where('delivery_status', 'Pending')
             ->where('delivery_transport_mode', 'Truck')
-            ->whereDate('delivery_date', '<=', today())
             ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
-            ->orderBy('delivery_date')
-            ->get()
-            ->groupBy('delivery_by');
+            ->orderByRaw('COALESCE(dispatch_delivery_date, delivery_date) ASC');
 
-        $returnJobs = OrderProduct::with(['order.customer', 'order.shippingAddress', 'pickupStore', 'equipment', 'softAssignment.equipment'])
+        if (!$showAll) {
+            $deliveryQuery->whereDate(
+                \DB::raw('COALESCE(dispatch_delivery_date, delivery_date)'), '<=', today()
+            );
+        }
+
+        $deliveryJobs = $deliveryQuery->get()->groupBy('delivery_by');
+
+        $returnQuery = OrderProduct::with(['order.customer', 'order.shippingAddress', 'pickupStore', 'equipment', 'softAssignment.equipment'])
             ->whereIn('pickup_by', $driverIds)
             ->where('pickup_status', 'Pending')
             ->where('pickup_transport_mode', 'Truck')
             ->whereNotNull('pickup_date')
-            ->whereDate('pickup_date', '<=', today())
             ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
-            ->orderBy('pickup_date')
-            ->get()
-            ->groupBy('pickup_by');
+            ->orderByRaw('COALESCE(dispatch_return_date, pickup_date) ASC');
+
+        if (!$showAll) {
+            $returnQuery->whereDate(
+                \DB::raw('COALESCE(dispatch_return_date, pickup_date)'), '<=', today()
+            );
+        }
+
+        $returnJobs = $returnQuery->get()->groupBy('pickup_by');
 
         return $drivers->map(function ($driver) use ($deliveryJobs, $returnJobs) {
             $deliveries = $deliveryJobs->get($driver->id, collect());
@@ -340,8 +351,9 @@ class IndexController extends Controller
             $u->id => $u->mobile_phone ?: $u->phone_number ?: '',
         ]);
 
-        // --- Driver workload cards (top of page) ---
-        $driverCards = $this->buildDriverCards();
+        // --- Driver workload cards (top of page, default Today Only) ---
+        $showAll     = false;
+        $driverCards = $this->buildDriverCards($showAll);
 
         // --- Latest AI draft (today or most recent) ---
         $latestDraft = DispatchAiDraft::with(['assignments.orderProduct.order', 'assignments.recommendedDriver'])
@@ -356,6 +368,7 @@ class IndexController extends Controller
             'driverEmployees' => $driverEmployees,
             'driverPhones'    => $driverPhones,
             'driverCards'     => $driverCards,
+            'showAll'         => $showAll,
             'latestDraft'     => $latestDraft,
         ]);
     }

@@ -1,8 +1,10 @@
 @if ($driverCards->isNotEmpty())
 
-{{-- Section header: toggle controls all cards --}}
-<div class="flex items-center gap-3 mb-3">
+{{-- Section header: view toggles + show assigned filter --}}
+<div class="flex items-center gap-3 mb-3 flex-wrap">
     <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Driver Workload</span>
+
+    {{-- Separate / Combined toggle --}}
     <div id="driver-card-view-toggle" class="flex rounded-lg border border-gray-300 overflow-hidden text-xs">
         <button type="button" id="dcv-separate"
             class="px-3 py-1.5 font-semibold bg-blue-600 text-white flex items-center gap-1">
@@ -15,6 +17,22 @@
             Combined
         </button>
     </div>
+
+    {{-- Show Assigned: Today Only / All --}}
+    <div class="flex items-center rounded-lg border border-gray-300 overflow-hidden text-xs">
+        <span class="px-2 py-1.5 text-gray-400 font-medium border-r border-gray-300 bg-gray-50">Show:</span>
+        <button type="button" id="daf-all"
+            class="px-3 py-1.5 font-semibold {{ ($showAll ?? false) ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50' }}">
+            All
+        </button>
+        <button type="button" id="daf-today"
+            class="px-3 py-1.5 font-semibold border-l border-gray-300 {{ ($showAll ?? false) ? 'bg-white text-gray-600 hover:bg-gray-50' : 'bg-blue-600 text-white' }}">
+            Today Only
+        </button>
+    </div>
+    @if ($showAll ?? false)
+        <span class="text-xs text-blue-600 font-medium">Showing all assigned (future + past)</span>
+    @endif
 </div>
 
 {{-- Cards grid — data-card-mode drives which inner section is visible --}}
@@ -72,7 +90,10 @@
                 @forelse ($driver->delivery_jobs as $job)
                 @php
                     $addr = $job->order?->shippingAddress;
-                    $isOverdue = $job->delivery_date && \Carbon\Carbon::parse($job->delivery_date)->lt(today());
+                    $effectiveDeliveryDate = $job->dispatch_delivery_date ?? $job->delivery_date;
+                    $isOverdue = $effectiveDeliveryDate && \Carbon\Carbon::parse($effectiveDeliveryDate)->lt(today());
+                    $isEarly   = $job->dispatch_delivery_date && $job->delivery_date
+                                 && \Carbon\Carbon::parse($job->dispatch_delivery_date)->lt(\Carbon\Carbon::parse($job->delivery_date));
                 @endphp
                 <div class="flex items-start gap-2">
                     {{-- Editable priority circle --}}
@@ -86,10 +107,17 @@
                     <button type="button"
                         class="flex-1 text-left space-y-0.5 py-1 hover:bg-blue-50 rounded transition-colors dispatch-card-jump min-w-0"
                         data-order-number="{{ $job->order?->order_number }}">
-                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1">
+                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1 flex-wrap">
                             @if($isOverdue)<x-heroicon-s-exclamation-triangle class="w-3.5 h-3.5 text-red-500 shrink-0" />@endif
                             <span class="text-blue-600 mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
+                            @if($isEarly)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 shrink-0">EARLY</span>@endif
                         </p>
+                        @if($showAll ?? false)
+                            <p class="text-[10px] text-blue-500 font-medium leading-snug">
+                                {{ $effectiveDeliveryDate ? \Carbon\Carbon::parse($effectiveDeliveryDate)->format('M j') : '—' }}
+                                @if($isEarly)<span class="text-gray-400 line-through ml-1">{{ \Carbon\Carbon::parse($job->delivery_date)->format('M j') }}</span>@endif
+                            </p>
+                        @endif
                         <p class="text-gray-600 leading-snug">{{ $job->equipment?->equipment_name ?? $job->softAssignment?->equipment?->equipment_name ?? $job->product_name }}</p>
                         <p class="text-gray-400 leading-snug">From: {{ $job->deliveryStore?->store_name ?? 'Custom' }}</p>
                         <p class="text-gray-500 leading-snug">{{ $addr?->address ?? '' }}{{ $addr?->address && $addr?->city ? ', ' : '' }}{{ $addr?->city ?? '—' }}</p>
@@ -110,7 +138,10 @@
                 @forelse ($driver->return_jobs as $job)
                 @php
                     $addr = $job->order?->shippingAddress;
-                    $isOverdue = $job->pickup_date && \Carbon\Carbon::parse($job->pickup_date)->lt(today());
+                    $effectivePickupDate = $job->dispatch_return_date ?? $job->pickup_date;
+                    $isOverdue  = $effectivePickupDate && \Carbon\Carbon::parse($effectivePickupDate)->lt(today());
+                    $isLatePickup = $job->dispatch_return_date && $job->pickup_date
+                                    && \Carbon\Carbon::parse($job->dispatch_return_date)->gt(\Carbon\Carbon::parse($job->pickup_date));
                 @endphp
                 <div class="flex items-start gap-2">
                     {{-- Editable priority circle --}}
@@ -124,10 +155,17 @@
                     <button type="button"
                         class="flex-1 text-left space-y-0.5 py-1 hover:bg-purple-50 rounded transition-colors dispatch-card-jump min-w-0"
                         data-order-number="{{ $job->order?->order_number }}">
-                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1">
+                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1 flex-wrap">
                             @if($isOverdue)<x-heroicon-s-exclamation-triangle class="w-3.5 h-3.5 text-red-500 shrink-0" />@endif
                             <span class="text-purple-600 mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
+                            @if($isLatePickup)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 shrink-0">LATE PICKUP</span>@endif
                         </p>
+                        @if($showAll ?? false)
+                            <p class="text-[10px] text-purple-500 font-medium leading-snug">
+                                {{ $effectivePickupDate ? \Carbon\Carbon::parse($effectivePickupDate)->format('M j') : '—' }}
+                                @if($isLatePickup)<span class="text-gray-400 line-through ml-1">{{ \Carbon\Carbon::parse($job->pickup_date)->format('M j') }}</span>@endif
+                            </p>
+                        @endif
                         <p class="text-gray-600 leading-snug">{{ $job->equipment?->equipment_name ?? $job->softAssignment?->equipment?->equipment_name ?? $job->product_name }}</p>
                         <p class="text-gray-500 leading-snug">{{ $addr?->address ?? '' }}{{ $addr?->address && $addr?->city ? ', ' : '' }}{{ $addr?->city ?? '—' }}</p>
                         <p class="text-gray-400 leading-snug">To: {{ $job->pickupStore?->store_name ?? 'Custom' }}</p>
@@ -149,11 +187,18 @@
             </p>
             @forelse ($driver->combined_jobs as $job)
             @php
-                $isDelivery = $job->getAttribute('_slot') === 'delivery';
-                $priority   = $isDelivery ? $job->delivery_priority : $job->pickup_priority;
-                $addr       = $job->order?->shippingAddress;
-                $jobDate    = $isDelivery ? $job->delivery_date : $job->pickup_date;
-                $isOverdue  = $jobDate && \Carbon\Carbon::parse($jobDate)->lt(today());
+                $isDelivery      = $job->getAttribute('_slot') === 'delivery';
+                $priority        = $isDelivery ? $job->delivery_priority : $job->pickup_priority;
+                $addr            = $job->order?->shippingAddress;
+                $effectiveDate   = $isDelivery
+                    ? ($job->dispatch_delivery_date ?? $job->delivery_date)
+                    : ($job->dispatch_return_date   ?? $job->pickup_date);
+                $rentalDate      = $isDelivery ? $job->delivery_date : $job->pickup_date;
+                $isOverdue       = $effectiveDate && \Carbon\Carbon::parse($effectiveDate)->lt(today());
+                $isEarly         = $isDelivery && $job->dispatch_delivery_date && $job->delivery_date
+                                   && \Carbon\Carbon::parse($job->dispatch_delivery_date)->lt(\Carbon\Carbon::parse($job->delivery_date));
+                $isLatePickup    = !$isDelivery && $job->dispatch_return_date && $job->pickup_date
+                                   && \Carbon\Carbon::parse($job->dispatch_return_date)->gt(\Carbon\Carbon::parse($job->pickup_date));
             @endphp
             <button type="button"
                 class="w-full text-left space-y-1 border-l-2 {{ $isDelivery ? 'border-blue-300 hover:bg-blue-50' : 'border-purple-300 hover:bg-purple-50' }} pl-3 py-1 rounded-r transition-colors dispatch-card-jump"
@@ -164,11 +209,21 @@
                         {{ $priority ?? '—' }}
                     </span>
                     <div class="min-w-0 flex-1">
-                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1">
+                        <p class="font-semibold text-gray-800 leading-tight flex items-center gap-1 flex-wrap">
                             @if($isOverdue)<x-heroicon-s-exclamation-triangle class="w-3.5 h-3.5 text-red-500 shrink-0" />@endif
                             <span class="{{ $isDelivery ? 'text-blue-600' : 'text-purple-600' }} mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
                             <span class="ml-1 text-[10px] font-normal {{ $isDelivery ? 'text-blue-400' : 'text-purple-400' }}">{{ $isDelivery ? '↑ Del' : '↓ Ret' }}</span>
+                            @if($isEarly)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">EARLY</span>@endif
+                            @if($isLatePickup)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">LATE PICKUP</span>@endif
                         </p>
+                        @if($showAll ?? false)
+                            <p class="text-[10px] {{ $isDelivery ? 'text-blue-500' : 'text-purple-500' }} font-medium leading-snug">
+                                {{ $effectiveDate ? \Carbon\Carbon::parse($effectiveDate)->format('M j') : '—' }}
+                                @if($isEarly || $isLatePickup)
+                                    <span class="text-gray-400 line-through ml-1">{{ $rentalDate ? \Carbon\Carbon::parse($rentalDate)->format('M j') : '' }}</span>
+                                @endif
+                            </p>
+                        @endif
                         <p class="text-gray-600 leading-snug">{{ $job->equipment?->equipment_name ?? $job->softAssignment?->equipment?->equipment_name ?? $job->product_name }}</p>
                         @if ($isDelivery)
                             <p class="text-gray-400 leading-snug">From: {{ $job->deliveryStore?->store_name ?? 'Custom' }}</p>

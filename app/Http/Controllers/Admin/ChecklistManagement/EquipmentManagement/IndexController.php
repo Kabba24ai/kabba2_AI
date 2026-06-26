@@ -87,33 +87,43 @@ class IndexController extends Controller
         $query->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id');
 
         if ($currentlyAssigned) {
-            // Assigned equipment first, then sorted by nearest pending date; unassigned fall to bottom
-            $query->orderByRaw("(
-                CASE WHEN (
-                    EXISTS (
-                        SELECT 1 FROM order_products _op
-                        WHERE _op.equipment_id = equipment.id
-                          AND (_op.delivery_status = 'Pending' OR _op.pickup_status = 'Pending')
-                    ) OR EXISTS (
-                        SELECT 1 FROM equipment_soft_assigns _esa
-                        INNER JOIN order_products _op2 ON _op2.id = _esa.order_product_id
-                        WHERE _esa.equipment_id = equipment.id
-                          AND (_op2.delivery_status = 'Pending' OR _op2.pickup_status = 'Pending')
-                    )
-                ) THEN 1 ELSE 0 END
-            ) DESC")
+            // 6-level revenue-protection priority:
+            //   1. Assigned + Maintenance Hold — quickest to return to service; revenue already booked
+            //   2. Assigned + Damaged          — revenue at risk; longer repair time than Maint. Hold
+            //   3. Damaged (no assigned order) — needs attention but no immediate booking at stake
+            //   4. Maintenance Hold (no order) — routine; can wait behind unassigned damaged
+            //   5. Rented
+            //   6. Available
+            // Within each priority tier, sort by the nearest pending event (delivery or pickup),
+            // nulls last, then alphabetically by name.
+            $query->orderByRaw("CASE
+                WHEN is_assigned = 1 AND current_status = 'maintenance' THEN 1
+                WHEN is_assigned = 1 AND current_status = 'damaged'     THEN 2
+                WHEN current_status = 'damaged'                          THEN 3
+                WHEN current_status = 'maintenance'                      THEN 4
+                WHEN current_status = 'rented'                           THEN 5
+                WHEN current_status = 'available'                        THEN 6
+                ELSE 7
+            END ASC")
             ->orderByRaw("(
-                SELECT MIN(_op3.delivery_date)
+                SELECT MIN(CASE
+                    WHEN _op3.delivery_status = 'Pending' THEN _op3.delivery_date
+                    WHEN _op3.pickup_status   = 'Pending' THEN _op3.pickup_date
+                END)
                 FROM order_products _op3
                 WHERE _op3.equipment_id = equipment.id
-                  AND _op3.delivery_status = 'Pending'
+                  AND (_op3.delivery_status = 'Pending' OR _op3.pickup_status = 'Pending')
             ) IS NULL ASC")
             ->orderByRaw("(
-                SELECT MIN(_op3.delivery_date)
+                SELECT MIN(CASE
+                    WHEN _op3.delivery_status = 'Pending' THEN _op3.delivery_date
+                    WHEN _op3.pickup_status   = 'Pending' THEN _op3.pickup_date
+                END)
                 FROM order_products _op3
                 WHERE _op3.equipment_id = equipment.id
-                  AND _op3.delivery_status = 'Pending'
-            ) ASC");
+                  AND (_op3.delivery_status = 'Pending' OR _op3.pickup_status = 'Pending')
+            ) ASC")
+            ->orderBy('equipment_name', 'asc');
         } else {
             $query->orderByRaw("CASE current_status
                 WHEN 'maintenance' THEN 1

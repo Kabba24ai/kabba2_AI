@@ -454,8 +454,8 @@
     window.toggleViewTagAssign = function() {
         const panel = document.getElementById('viewTagAssignPanel');
         if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');   // show panel FIRST so Choices.js can measure dimensions
             initViewTagChoices();
-            panel.classList.remove('hidden');
         } else {
             panel.classList.add('hidden');
         }
@@ -470,14 +470,6 @@
         }
 
         selectEl.innerHTML = '';
-        const allTags = window.tags || [];
-        allTags.forEach(tag => {
-            const opt = document.createElement('option');
-            opt.value = String(tag.id);
-            opt.textContent = '#' + tag.name;
-            opt.selected = _currentViewSupplierTagIds.includes(String(tag.id));
-            selectEl.appendChild(opt);
-        });
 
         _viewTagChoices = new Choices(selectEl, {
             removeItemButton: true,
@@ -485,6 +477,20 @@
             itemSelectText: '',
             searchEnabled: true,
             searchResultLimit: 100,
+            placeholderValue: 'Select or type tags',
+        });
+
+        // Load all tags using setChoices — same pattern as Edit modal's updateTagSelect()
+        const choicesArray = (window.tags || []).map(tag => ({
+            value: String(tag.id),
+            label: '#' + tag.name,
+            selected: false,
+        }));
+        _viewTagChoices.setChoices(choicesArray, 'value', 'label', true);
+
+        // Pre-select current supplier's tags — same pattern as Edit modal's setSupplierTags()
+        _currentViewSupplierTagIds.forEach(id => {
+            _viewTagChoices.setChoiceByValue(id);
         });
     }
 

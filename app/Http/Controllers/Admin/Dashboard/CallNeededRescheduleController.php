@@ -21,30 +21,47 @@ class CallNeededRescheduleController extends Controller
 
         $call = CustomerCallNeeded::findOrFail($id);
 
+        $originalDueDate  = $call->due_date ? $call->due_date->format('M j, Y g:i A') : null;
+        $newDate          = Carbon::parse($request->follow_up_at);
+        $newDateFormatted = $newDate->format('M j, Y g:i A');
+        $statusLabel      = ucwords(str_replace('_', ' ', $request->call_status));
+
+        // Build a rich audit note so history captures the full context
+        $activityNote = 'Rescheduled';
+        if ($originalDueDate) {
+            $activityNote .= " from {$originalDueDate}";
+        }
+        $activityNote .= " to {$newDateFormatted}. Action: {$statusLabel}.";
+        if ($request->filled('completion_note')) {
+            $activityNote .= " Notes: {$request->completion_note}";
+        }
+        if ($request->filled('follow_up_note')) {
+            $activityNote .= " Reminder note: {$request->follow_up_note}";
+        }
+
         CustomerCallNeededActivity::create([
             'customer_call_needed_id' => $call->id,
-            'status'                  => $request->call_status,
-            'notes'                   => $request->completion_note,
-            'follow_up_date'          => $request->follow_up_at,
+            'status'                  => 'rescheduled',
+            'notes'                   => $activityNote,
+            'follow_up_date'          => $newDate->toDateString(),
             'created_by'              => auth()->id(),
         ]);
 
+        // Move due_date to the new date and clear follow_up_at so the task
+        // is immediately visible in the active list sorted under the new date.
         $call->update([
-            'follow_up_at'   => $request->follow_up_at,
+            'due_date'       => $newDate,
+            'follow_up_at'   => null,
             'follow_up_note' => $request->follow_up_note,
             'rescheduled_by' => auth()->id(),
             'rescheduled_at' => now(),
         ]);
 
         if ($call->customer) {
-            $statusLabel       = ucwords(str_replace('_', ' ', $request->call_status));
-            $followUpFormatted = Carbon::parse($request->follow_up_at)->format('M j, Y g:i A');
-            $description       = "Call rescheduled. Follow-up at: {$followUpFormatted}. Action: {$statusLabel}.";
-
+            $description = "Call rescheduled to {$newDateFormatted}. Action: {$statusLabel}.";
             if ($request->filled('completion_note')) {
                 $description .= " Notes: {$request->completion_note}";
             }
-
             if ($request->filled('follow_up_note')) {
                 $description .= " Follow-up reminder: {$request->follow_up_note}";
             }
@@ -56,11 +73,9 @@ class CallNeededRescheduleController extends Controller
             ]);
         }
 
-        $followUpFormatted = Carbon::parse($request->follow_up_at)->format('M j, Y g:i A');
-
         return response()->json([
             'success' => true,
-            'message' => "Call rescheduled. It will reappear on {$followUpFormatted}.",
+            'message' => "Call rescheduled to {$newDateFormatted}.",
         ]);
     }
 }

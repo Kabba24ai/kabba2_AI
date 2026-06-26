@@ -97,7 +97,12 @@
                         <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-4 border-white shadow"></div>
                         <div class="bg-gray-50 rounded-lg border border-gray-100 p-3">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                                @php
+                                    $badgeClass = $activity->status === 'rescheduled'
+                                        ? 'bg-amber-100 text-amber-700'
+                                        : 'bg-blue-100 text-blue-700';
+                                @endphp
+                                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $badgeClass }}">
                                     {{ ucwords(str_replace('_', ' ', $activity->status)) }}
                                 </span>
                                 <span class="text-xs text-gray-400">

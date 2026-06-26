@@ -37,6 +37,20 @@
                         $dispatchDeliveryStore = $orderProduct->deliveryStore?->store_name;
                     }
                     $dispatchReturnStore = $orderProduct->pickupStore?->store_name;
+
+                    // Dispatch date overrides (raw ISO for data attributes + badge logic)
+                    $rentalDeliveryDateRaw   = $orderProduct->delivery_date
+                        ? \Carbon\Carbon::parse($orderProduct->delivery_date)->format('Y-m-d') : '';
+                    $rentalReturnDateRaw     = $orderProduct->pickup_date
+                        ? \Carbon\Carbon::parse($orderProduct->pickup_date)->format('Y-m-d') : '';
+                    $dispatchDeliveryDateRaw = $orderProduct->dispatch_delivery_date
+                        ? \Carbon\Carbon::parse($orderProduct->dispatch_delivery_date)->format('Y-m-d') : '';
+                    $dispatchReturnDateRaw   = $orderProduct->dispatch_return_date
+                        ? \Carbon\Carbon::parse($orderProduct->dispatch_return_date)->format('Y-m-d') : '';
+                    $isEarlyDelivery   = $dispatchDeliveryDateRaw && $rentalDeliveryDateRaw
+                        && $dispatchDeliveryDateRaw < $rentalDeliveryDateRaw;
+                    $isLateReturnPickup = $dispatchReturnDateRaw && $rentalReturnDateRaw
+                        && $dispatchReturnDateRaw > $rentalReturnDateRaw;
                 @endphp
                 <tr id="order-row-{{ $orderProduct->id }}"
                     class="hover:bg-gray-50 {{ $fullyDone ? 'bg-green-50/60' : '' }}">
@@ -175,6 +189,12 @@
                             <span class="text-xs text-gray-500 mt-1">
                                 {{ $orderProduct->delivery_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->delivery_time) : ' ' }}
                             </span>
+                            @if ($isEarlyDelivery)
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">EARLY</span>
+                                    <span class="text-[10px] text-blue-600">{{ \Carbon\Carbon::parse($dispatchDeliveryDateRaw)->format('M j') }}</span>
+                                </div>
+                            @endif
                         </div>
                     </td>
 
@@ -192,7 +212,13 @@
                                 data-product-name="{{ $orderProduct->product_name }}"
                                 data-delivery-date="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date, 'M d, y') : '' }}"
                                 data-current-driver-id="{{ $orderProduct->delivery_by }}"
-                                data-current-driver-name="{{ $orderProduct->deliveryEmployee->full_name }}">
+                                data-current-driver-name="{{ $orderProduct->deliveryEmployee->full_name }}"
+                                data-rental-delivery-date="{{ $rentalDeliveryDateRaw }}"
+                                data-rental-return-date="{{ $rentalReturnDateRaw }}"
+                                data-dispatch-delivery-date="{{ $dispatchDeliveryDateRaw }}"
+                                data-dispatch-return-date="{{ $dispatchReturnDateRaw }}"
+                                data-other-slot-driver-id="{{ $orderProduct->pickup_by ?? '' }}"
+                                data-other-slot-driver-name="{{ $orderProduct->pickupEmployee?->full_name ?? '' }}">
                                 {{ $orderProduct->deliveryEmployee->full_name }}
                             </button>
                         @else
@@ -207,7 +233,13 @@
                                 data-product-name="{{ $orderProduct->product_name }}"
                                 data-delivery-date="{{ $orderProduct->delivery_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->delivery_date, 'M d, y') : '' }}"
                                 data-current-driver-id=""
-                                data-current-driver-name="">
+                                data-current-driver-name=""
+                                data-rental-delivery-date="{{ $rentalDeliveryDateRaw }}"
+                                data-rental-return-date="{{ $rentalReturnDateRaw }}"
+                                data-dispatch-delivery-date="{{ $dispatchDeliveryDateRaw }}"
+                                data-dispatch-return-date="{{ $dispatchReturnDateRaw }}"
+                                data-other-slot-driver-id="{{ $orderProduct->pickup_by ?? '' }}"
+                                data-other-slot-driver-name="{{ $orderProduct->pickupEmployee?->full_name ?? '' }}">
                                 @if ($orderProduct->delivery_transport_mode === 'Truck')
                                     <x-heroicon-o-truck class="w-3.5 h-3.5" />
                                 @else
@@ -239,6 +271,12 @@
                             <span class="text-xs text-gray-500 mt-1">
                                 {{ $orderProduct->pickup_time ? \App\Helpers\CustomHelper::formatTime($orderProduct->pickup_time) : ' ' }}
                             </span>
+                            @if ($isLateReturnPickup)
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">LATE PICKUP</span>
+                                    <span class="text-[10px] text-orange-600">{{ \Carbon\Carbon::parse($dispatchReturnDateRaw)->format('M j') }}</span>
+                                </div>
+                            @endif
                         </div>
                     </td>
 
@@ -256,7 +294,13 @@
                                 data-product-name="{{ $orderProduct->product_name }}"
                                 data-delivery-date="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date, 'M d, y') : '' }}"
                                 data-current-driver-id="{{ $orderProduct->pickup_by }}"
-                                data-current-driver-name="{{ $orderProduct->pickupEmployee->full_name }}">
+                                data-current-driver-name="{{ $orderProduct->pickupEmployee->full_name }}"
+                                data-rental-delivery-date="{{ $rentalDeliveryDateRaw }}"
+                                data-rental-return-date="{{ $rentalReturnDateRaw }}"
+                                data-dispatch-delivery-date="{{ $dispatchDeliveryDateRaw }}"
+                                data-dispatch-return-date="{{ $dispatchReturnDateRaw }}"
+                                data-other-slot-driver-id="{{ $orderProduct->delivery_by ?? '' }}"
+                                data-other-slot-driver-name="{{ $orderProduct->deliveryEmployee?->full_name ?? '' }}">
                                 {{ $orderProduct->pickupEmployee->full_name }}
                             </button>
                         @else
@@ -271,7 +315,13 @@
                                 data-product-name="{{ $orderProduct->product_name }}"
                                 data-delivery-date="{{ $orderProduct->pickup_date ? \App\Helpers\CustomHelper::formatDate($orderProduct->pickup_date, 'M d, y') : '' }}"
                                 data-current-driver-id=""
-                                data-current-driver-name="">
+                                data-current-driver-name=""
+                                data-rental-delivery-date="{{ $rentalDeliveryDateRaw }}"
+                                data-rental-return-date="{{ $rentalReturnDateRaw }}"
+                                data-dispatch-delivery-date="{{ $dispatchDeliveryDateRaw }}"
+                                data-dispatch-return-date="{{ $dispatchReturnDateRaw }}"
+                                data-other-slot-driver-id="{{ $orderProduct->delivery_by ?? '' }}"
+                                data-other-slot-driver-name="{{ $orderProduct->deliveryEmployee?->full_name ?? '' }}">
                                 @if ($orderProduct->pickup_transport_mode === 'Truck')
                                     <x-heroicon-o-truck class="w-3.5 h-3.5" />
                                 @else

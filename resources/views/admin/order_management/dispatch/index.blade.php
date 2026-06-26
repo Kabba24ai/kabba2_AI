@@ -366,7 +366,7 @@
             </div>
 
             <!-- Driver Select -->
-            <div class="px-6 py-4">
+            <div class="px-6 pt-4 pb-3">
                 <label class="block text-sm font-medium text-gray-700 mb-1" for="driver-select">
                     Select Driver
                 </label>
@@ -379,10 +379,46 @@
                 </select>
             </div>
 
+            <!-- Dispatch Date Override -->
+            <div id="driver-modal-dispatch-section" class="px-6 pb-3">
+                <div class="rounded-lg border border-gray-100 bg-gray-50 p-3 space-y-2 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span id="driver-modal-rental-label" class="font-semibold text-gray-500 w-32 shrink-0">Rental Start:</span>
+                        <span id="driver-modal-rental-date-display" class="text-gray-700">-</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label id="driver-modal-dispatch-label" for="driver-dispatch-date-input"
+                            class="font-semibold text-gray-500 w-32 shrink-0 cursor-pointer">Dispatch Delivery:</label>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="driver-dispatch-date-input"
+                                class="border border-gray-300 rounded px-2 py-1 text-xs w-38 bg-white focus:ring-blue-500 focus:border-blue-500">
+                            <button type="button" id="driver-dispatch-date-clear"
+                                class="text-gray-400 hover:text-red-500 text-xs hidden" title="Clear dispatch date">✕ Clear</button>
+                            <span id="driver-dispatch-date-badge" class="hidden text-[9px] font-bold px-1.5 py-0.5 rounded"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Also assign checkbox -->
+            <div class="px-6 pb-4">
+                <label class="flex items-start gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                    <input type="checkbox" id="driver-modal-also-assign"
+                        class="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                    <span id="driver-modal-also-assign-label">Also assign same driver to return/pickup</span>
+                </label>
+                <p id="driver-modal-other-driver-note" class="text-xs text-amber-700 mt-1 ml-5 hidden"></p>
+            </div>
+
             <!-- Hidden state -->
             <input type="hidden" id="driver-modal-slot" value="">
             <input type="hidden" id="driver-modal-order-product-uid" value="">
             <input type="hidden" id="driver-modal-order-uid" value="">
+            <input type="hidden" id="driver-modal-other-slot-driver-id" value="">
+            <input type="hidden" id="driver-modal-other-slot-driver-name" value="">
+            <input type="hidden" id="driver-modal-original-dispatch-date" value="">
+            <input type="hidden" id="driver-modal-rental-delivery-date-raw" value="">
+            <input type="hidden" id="driver-modal-rental-return-date-raw" value="">
 
             <!-- Footer -->
             <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
@@ -1006,64 +1042,157 @@
     {{-- ===== Driver Assignment Modal JS ===== --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const driverModal         = document.getElementById('driverAssignModal');
-            const driverModalTitle    = document.getElementById('driver-modal-title');
-            const driverModalSlotLabel= document.getElementById('driver-modal-slot-label');
-            const driverModalOrder    = document.getElementById('driver-modal-order-number');
-            const driverModalCustomer = document.getElementById('driver-modal-customer');
-            const driverModalProduct  = document.getElementById('driver-modal-product');
-            const driverModalDate     = document.getElementById('driver-modal-date');
-            const driverModalPhone    = document.getElementById('driver-modal-phone');
-            const driverSelect        = document.getElementById('driver-select');
-            const driverSlotInput     = document.getElementById('driver-modal-slot');
-            const driverOPUidInput    = document.getElementById('driver-modal-order-product-uid');
-            const driverOrderUidInput = document.getElementById('driver-modal-order-uid');
-            const driverSubmitBtn     = document.getElementById('driver-assign-submit');
+            const driverModal          = document.getElementById('driverAssignModal');
+            const driverModalTitle     = document.getElementById('driver-modal-title');
+            const driverModalSlotLabel = document.getElementById('driver-modal-slot-label');
+            const driverModalOrder     = document.getElementById('driver-modal-order-number');
+            const driverModalCustomer  = document.getElementById('driver-modal-customer');
+            const driverModalProduct   = document.getElementById('driver-modal-product');
+            const driverModalDate      = document.getElementById('driver-modal-date');
+            const driverModalPhone     = document.getElementById('driver-modal-phone');
+            const driverSelect         = document.getElementById('driver-select');
+            const driverSlotInput      = document.getElementById('driver-modal-slot');
+            const driverOPUidInput     = document.getElementById('driver-modal-order-product-uid');
+            const driverOrderUidInput  = document.getElementById('driver-modal-order-uid');
+            const driverSubmitBtn      = document.getElementById('driver-assign-submit');
 
-            // Phone lookup: driverId (numeric) → phone string
+            // Dispatch date section
+            const rentalLabel           = document.getElementById('driver-modal-rental-label');
+            const rentalDateDisplay     = document.getElementById('driver-modal-rental-date-display');
+            const dispatchLabel         = document.getElementById('driver-modal-dispatch-label');
+            const dispatchDateInput     = document.getElementById('driver-dispatch-date-input');
+            const dispatchDateClear     = document.getElementById('driver-dispatch-date-clear');
+            const dispatchDateBadge     = document.getElementById('driver-dispatch-date-badge');
+            const alsoAssignCheck       = document.getElementById('driver-modal-also-assign');
+            const alsoAssignLabel       = document.getElementById('driver-modal-also-assign-label');
+            const otherDriverNote       = document.getElementById('driver-modal-other-driver-note');
+            const otherSlotDriverIdIn   = document.getElementById('driver-modal-other-slot-driver-id');
+            const otherSlotDriverNameIn = document.getElementById('driver-modal-other-slot-driver-name');
+            const originalDispatchIn    = document.getElementById('driver-modal-original-dispatch-date');
+            const rentalDeliveryRawIn   = document.getElementById('driver-modal-rental-delivery-date-raw');
+            const rentalReturnRawIn     = document.getElementById('driver-modal-rental-return-date-raw');
+
             const driverPhones = @json($driverPhones ?? []);
 
-            // Build the URL template for update-product-schedule
             const updateScheduleUrlTemplate =
                 '{{ route('admin.order-management.orders.update-product-schedule', [':order_uid', ':op_uid']) }}';
+            const dispatchDateUrlTemplate =
+                '{{ route("admin.order-management.dispatch.dispatch-date", [":op_uid"]) }}';
 
-            // ---- Open modal via event delegation (works after AJAX table reload) ----
+            // ---- Date display helper ----
+            function fmtDate(iso) {
+                if (!iso) return '-';
+                const [y, m, d] = iso.split('-');
+                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                return `${months[parseInt(m,10)-1]} ${parseInt(d,10)}, ${y}`;
+            }
+
+            // ---- Live dispatch date badge ----
+            function updateDispatchBadge() {
+                const slot      = driverSlotInput.value;
+                const dateVal   = dispatchDateInput.value;
+                const rentalDel = rentalDeliveryRawIn.value;
+                const rentalRet = rentalReturnRawIn.value;
+
+                dispatchDateBadge.className = 'hidden';
+                dispatchDateClear.classList.toggle('hidden', !dateVal);
+
+                if (!dateVal) return;
+
+                if (slot === 'delivery' && rentalDel) {
+                    if (dateVal < rentalDel) {
+                        dispatchDateBadge.textContent = 'EARLY';
+                        dispatchDateBadge.className   = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700';
+                    } else if (dateVal > rentalDel) {
+                        dispatchDateBadge.textContent = 'LATE';
+                        dispatchDateBadge.className   = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700';
+                    }
+                } else if (slot === 'return' && rentalRet) {
+                    if (dateVal > rentalRet) {
+                        dispatchDateBadge.textContent = 'LATE PICKUP';
+                        dispatchDateBadge.className   = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700';
+                    } else if (dateVal < rentalRet) {
+                        dispatchDateBadge.textContent = 'EARLY';
+                        dispatchDateBadge.className   = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700';
+                    }
+                }
+            }
+
+            dispatchDateInput?.addEventListener('input', updateDispatchBadge);
+            dispatchDateClear?.addEventListener('click', function () {
+                dispatchDateInput.value = '';
+                updateDispatchBadge();
+            });
+
+            // ---- Open modal ----
             document.addEventListener('click', function (e) {
                 const btn = e.target.closest('.assign-driver-btn');
                 if (!btn) return;
 
-                const slot          = btn.dataset.slot;          // 'delivery' | 'return'
-                const opUid         = btn.dataset.orderProductUniqueId;
-                const orderUid      = btn.dataset.orderUniqueId;
-                const orderNum      = btn.dataset.orderNumber;
-                const customerName  = btn.dataset.customerName;
-                const productName   = btn.dataset.productName;
-                const date          = btn.dataset.deliveryDate;
-                const currentDriver = btn.dataset.currentDriverId;
+                const slot               = btn.dataset.slot;
+                const opUid             = btn.dataset.orderProductUniqueId;
+                const orderUid          = btn.dataset.orderUniqueId;
+                const orderNum          = btn.dataset.orderNumber;
+                const customerName      = btn.dataset.customerName;
+                const productName       = btn.dataset.productName;
+                const date              = btn.dataset.deliveryDate;
+                const currentDriver     = btn.dataset.currentDriverId;
+                const rentalDelivery    = btn.dataset.rentalDeliveryDate    || '';
+                const rentalReturn      = btn.dataset.rentalReturnDate      || '';
+                const dispatchDelivery  = btn.dataset.dispatchDeliveryDate  || '';
+                const dispatchReturn    = btn.dataset.dispatchReturnDate    || '';
+                const otherDriverId     = btn.dataset.otherSlotDriverId     || '';
+                const otherDriverName   = btn.dataset.otherSlotDriverName   || '';
 
-                // Populate modal
                 const isDelivery = slot === 'delivery';
-                driverModalTitle.textContent    = isDelivery ? 'Assign Delivery Driver' : 'Assign Return Driver';
+
+                // Existing summary fields
+                driverModalTitle.textContent     = isDelivery ? 'Assign Delivery Driver' : 'Assign Return Driver';
                 driverModalSlotLabel.textContent = isDelivery ? '🚛 Delivery' : '↩ Return';
                 driverModalSlotLabel.className   = isDelivery
                     ? 'inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700'
                     : 'inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700';
-
                 driverModalOrder.textContent    = orderNum    || '-';
-                driverModalCustomer.textContent = customerName|| '-';
-                driverModalProduct.textContent  = productName || '-';
-                driverModalDate.textContent     = date        || '-';
-
-                // Pre-select current driver (driver ID is a numeric users.id)
-                driverSelect.value = currentDriver || '';
-
-                // Show current driver's phone
+                driverModalCustomer.textContent = customerName || '-';
+                driverModalProduct.textContent  = productName  || '-';
+                driverModalDate.textContent     = date         || '-';
+                driverSelect.value              = currentDriver || '';
                 updateDriverPhone(currentDriver);
 
-                // Store context
-                driverSlotInput.value     = slot;
-                driverOPUidInput.value    = opUid;
-                driverOrderUidInput.value = orderUid;
+                // Hidden context
+                driverSlotInput.value      = slot;
+                driverOPUidInput.value     = opUid;
+                driverOrderUidInput.value  = orderUid;
+                rentalDeliveryRawIn.value  = rentalDelivery;
+                rentalReturnRawIn.value    = rentalReturn;
+                otherSlotDriverIdIn.value  = otherDriverId;
+                otherSlotDriverNameIn.value = otherDriverName;
+
+                // Dispatch date section
+                if (isDelivery) {
+                    rentalLabel.textContent        = 'Rental Start:';
+                    dispatchLabel.textContent      = 'Dispatch Delivery:';
+                    rentalDateDisplay.textContent  = rentalDelivery ? fmtDate(rentalDelivery) : '-';
+                    dispatchDateInput.value        = dispatchDelivery;
+                    alsoAssignLabel.textContent    = 'Also assign same driver to return/pickup';
+                } else {
+                    rentalLabel.textContent        = 'Rental Return:';
+                    dispatchLabel.textContent      = 'Dispatch Return:';
+                    rentalDateDisplay.textContent  = rentalReturn ? fmtDate(rentalReturn) : '-';
+                    dispatchDateInput.value        = dispatchReturn;
+                    alsoAssignLabel.textContent    = 'Also assign same driver to delivery';
+                }
+                originalDispatchIn.value = dispatchDateInput.value;
+                updateDispatchBadge();
+
+                // Other driver note
+                if (otherDriverName) {
+                    otherDriverNote.textContent = `Currently assigned: ${otherDriverName}`;
+                    otherDriverNote.classList.remove('hidden');
+                } else {
+                    otherDriverNote.classList.add('hidden');
+                }
+                alsoAssignCheck.checked = true;
 
                 driverModal.classList.remove('hidden');
             });
@@ -1080,82 +1209,122 @@
                     driverModalPhone.removeAttribute('href');
                 }
             }
-
-            // Update phone when driver selection changes
-            driverSelect?.addEventListener('change', function () {
-                updateDriverPhone(this.value);
-            });
+            driverSelect?.addEventListener('change', function () { updateDriverPhone(this.value); });
 
             // ---- Close modal ----
-            document.getElementById('close-driver-modal')?.addEventListener('click',       closeDriverModal);
+            document.getElementById('close-driver-modal')?.addEventListener('click',        closeDriverModal);
             document.getElementById('close-driver-modal-footer')?.addEventListener('click', closeDriverModal);
             driverModal?.addEventListener('click', function (e) {
                 if (e.target === driverModal) closeDriverModal();
             });
-
             function closeDriverModal() {
                 driverModal.classList.add('hidden');
-                driverSelect.value = '';
+                driverSelect.value      = '';
+                dispatchDateInput.value = '';
+                dispatchDateBadge.className = 'hidden';
+                dispatchDateClear.classList.add('hidden');
+                otherDriverNote.classList.add('hidden');
+                alsoAssignCheck.checked = true;
                 updateDriverPhone('');
             }
 
-            // ---- Save driver ----
-            driverSubmitBtn?.addEventListener('click', function () {
-                const slot    = driverSlotInput.value;
-                const opUid   = driverOPUidInput.value;
-                const orderUid= driverOrderUidInput.value;
-                const driverId= driverSelect.value;   // numeric user id or ''
+            // ---- API helpers ----
+            const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            function apiSaveDriver(orderUid, opUid, slot, driverId) {
+                const isDelivery = slot === 'delivery';
+                const url = updateScheduleUrlTemplate
+                    .replace(':order_uid', orderUid)
+                    .replace(':op_uid',    opUid);
+                return apiFetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _method: 'PUT',
+                        type: isDelivery ? 'delivery' : 'return',
+                        [isDelivery ? 'delivery_by' : 'pickup_by']: driverId === '' ? null : parseInt(driverId, 10),
+                    }),
+                });
+            }
+
+            function apiSaveDispatchDate(opUid, type, date) {
+                const url = dispatchDateUrlTemplate.replace(':op_uid', opUid);
+                return apiFetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json' },
+                    body: JSON.stringify({ type, date: date || null }),
+                });
+            }
+
+            // ---- Save ----
+            driverSubmitBtn?.addEventListener('click', async function () {
+                const slot          = driverSlotInput.value;
+                const opUid         = driverOPUidInput.value;
+                const orderUid      = driverOrderUidInput.value;
+                const driverId      = driverSelect.value;
+                const dispatchDate  = dispatchDateInput.value;
+                const originalDate  = originalDispatchIn.value;
+                const alsoAssign    = alsoAssignCheck.checked;
+                const otherDriverId = otherSlotDriverIdIn.value;
+                const otherDriverName = otherSlotDriverNameIn.value;
+                const isDelivery    = slot === 'delivery';
+                const otherSlot     = isDelivery ? 'return' : 'delivery';
 
                 if (!opUid || !orderUid) {
                     if (window.notyf) notyf.error('Missing order context. Please try again.');
                     return;
                 }
 
-                const url = updateScheduleUrlTemplate
-                    .replace(':order_uid', orderUid)
-                    .replace(':op_uid',    opUid);
+                // Confirm before overwriting a different driver on the other slot
+                if (alsoAssign && driverId && otherDriverId && otherDriverId !== driverId) {
+                    const selectedName = driverSelect.options[driverSelect.selectedIndex]?.text || 'this driver';
+                    const confirmed = confirm(
+                        `The ${otherSlot} is already assigned to ${otherDriverName}. Replace with ${selectedName}?`
+                    );
+                    if (!confirmed) return;
+                }
 
-                // Map slot → DB field names
-                const isDelivery = slot === 'delivery';
-                const typeParam  = isDelivery ? 'delivery' : 'return';
-                const fieldParam = isDelivery ? 'delivery_by' : 'pickup_by';
+                driverSubmitBtn.disabled    = true;
+                driverSubmitBtn.textContent = 'Saving…';
 
-                const payload = {
-                    _method: 'PUT',
-                    type: typeParam,
-                    [fieldParam]: driverId === '' ? null : parseInt(driverId, 10),
-                };
-
-                driverSubmitBtn.disabled     = true;
-                driverSubmitBtn.textContent  = 'Saving…';
-
-                apiFetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                })
-                .then(data => {
-                    if (data?.success) {
-                        closeDriverModal();
-                        if (window.notyf) notyf.success('Driver updated.');
-                        // Re-fetch the dispatch table and driver workload cards
-                        if (typeof window.fetchDispatch === 'function') window.fetchDispatch();
-                        if (typeof window.refreshDriverCards === 'function') window.refreshDriverCards();
-                    } else {
-                        if (window.notyf) notyf.error(data?.message || 'Failed to update driver.');
+                try {
+                    // 1. Save dispatch date override if changed
+                    if (dispatchDate !== originalDate) {
+                        const dateType = isDelivery ? 'delivery' : 'return';
+                        const res = await apiSaveDispatchDate(opUid, dateType, dispatchDate);
+                        if (!res?.success) {
+                            if (window.notyf) notyf.error(res?.message || 'Failed to save dispatch date.');
+                            return;
+                        }
                     }
-                })
-                .catch(() => {
+
+                    // 2. Save primary driver assignment
+                    const res2 = await apiSaveDriver(orderUid, opUid, slot, driverId);
+                    if (!res2?.success) {
+                        if (window.notyf) notyf.error(res2?.message || 'Failed to update driver.');
+                        return;
+                    }
+
+                    // 3. Also assign same driver to other slot (delivery only when driverId is set)
+                    if (alsoAssign && driverId) {
+                        const res3 = await apiSaveDriver(orderUid, opUid, otherSlot, driverId);
+                        if (!res3?.success) {
+                            if (window.notyf) notyf.error(res3?.message || `Failed to assign ${otherSlot} driver.`);
+                            // Primary already saved — close and refresh anyway
+                        }
+                    }
+
+                    closeDriverModal();
+                    if (window.notyf) notyf.success('Driver updated.');
+                    if (typeof window.fetchDispatch   === 'function') window.fetchDispatch();
+                    if (typeof window.refreshDriverCards === 'function') window.refreshDriverCards();
+
+                } catch (err) {
                     if (window.notyf) notyf.error('Something went wrong. Please try again.');
-                })
-                .finally(() => {
+                } finally {
                     driverSubmitBtn.disabled    = false;
                     driverSubmitBtn.textContent = 'Save Driver';
-                });
+                }
             });
         });
     </script>

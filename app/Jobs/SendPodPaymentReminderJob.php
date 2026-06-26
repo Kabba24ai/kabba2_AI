@@ -124,11 +124,11 @@ class SendPodPaymentReminderJob implements ShouldQueue
             }
 
             // TEMP TEST ONLY — only send to this specific customer; remove before go-live
-            if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
-                $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
-                $skipped++;
-                continue;
-            }
+            // if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
+            //     $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
+            //     $skipped++;
+            //     continue;
+            // }
 
             // TEMP DATE GUARD — only process orders on/after 2026-06-21; intentional, do not remove
             if ($order->created_at->toDateString() < '2026-06-21') {
@@ -311,7 +311,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
     {
         $tag = '[POD Final Reminder 9AM]';
 
-        if (now()->timezone('America/Chicago')->hour < 3) {
+        if (now()->timezone('America/Chicago')->hour < 9) {
             $this->log('info', "$tag Before 9:00 AM — skipping.");
             return;
         }
@@ -354,7 +354,7 @@ class SendPodPaymentReminderJob implements ShouldQueue
     {
         $tag = '[POD Last Ditch 4PM]';
 
-        if (now()->timezone('America/Chicago')->hour < 16) {
+        if (now()->timezone('America/Chicago')->hour < 3) {
             $this->log('info', "$tag Before 4:00 PM — skipping.");
             return;
         }
@@ -423,11 +423,11 @@ class SendPodPaymentReminderJob implements ShouldQueue
             }
 
             // TEMP TEST ONLY — only send to this specific customer; remove before go-live
-            if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
-                $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
-                $skipped++;
-                continue;
-            }
+            // if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
+            //     $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
+            //     $skipped++;
+            //     continue;
+            // }
 
             // TEMP DATE GUARD — only process orders on/after 2026-06-21; intentional, do not remove
             if ($order->created_at->toDateString() < '2026-06-21') {
@@ -590,11 +590,11 @@ class SendPodPaymentReminderJob implements ShouldQueue
             }
 
             // TEMP TEST ONLY — only send to this specific customer; remove before go-live
-            if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
-                $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
-                $skipped++;
-                continue;
-            }
+            // if ($customer->unique_id !== 'CUS-LKNW-UNUM') {
+            //     $this->log('info', "$tag TEMP SKIP — order {$order->unique_id} skipped (test mode, customer {$customer->unique_id} is not CUS-LKNW-UNUM).");
+            //     $skipped++;
+            //     continue;
+            // }
 
             // TEMP DATE GUARD — only process orders on/after 2026-06-21; remove before go-live
             if ($order->created_at->toDateString() < '2026-06-21') {

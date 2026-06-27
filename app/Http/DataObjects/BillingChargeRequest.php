@@ -16,8 +16,11 @@ final class BillingChargeRequest
         /** The charge type (fuel, damage, extension, etc.) */
         public readonly string $type,
 
-        /** FK → orders.id (the original rental order, not the child extension order) */
-        public readonly int $orderId,
+        /**
+         * FK → orders.id (the original rental order, not the child extension order).
+         * Nullable: Dashboard-level charges (fuel/damage modal) have no order context.
+         */
+        public readonly ?int $orderId,
 
         /** FK → customers.id */
         public readonly int $customerId,

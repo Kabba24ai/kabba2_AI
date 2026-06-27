@@ -66,11 +66,23 @@ class TimeEntryTimeUpdateRequest extends ApiBaseFormRequest
                     'break_id',
                     'The selected break does not belong to the given time entry.'
                 );
-            } else {
-                // Log::info('[BreakOwnership:update] PASS', [
-                //     'entry_id' => $entryId,
-                //     'break_id' => $breakId,
-                // ]);
+            } elseif ($break) {
+                $entryType    = $this->input('entry_type');
+                $expectedType = in_array($entryType, ['lunch_in', 'lunch_out']) ? 'lunch' : 'other';
+
+                if ($break->type !== $expectedType) {
+                    Log::warning('[BreakType:update] MISMATCH — 422 will be returned', [
+                        'entry_id'      => $entryId,
+                        'break_id'      => $breakId,
+                        'break.type'    => $break->type,
+                        'entry_type'    => $entryType,
+                        'expected_type' => $expectedType,
+                    ]);
+                    $validator->errors()->add(
+                        'break_id',
+                        'Break type does not match the requested action.'
+                    );
+                }
             }
         });
     }

@@ -73,12 +73,24 @@ class TimeEntryBulkUpdateRequest extends ApiBaseFormRequest
                         "updates.{$index}.break_id",
                         'The selected break does not belong to the given time entry.'
                     );
-                } else {
-                    // Log::info('[BreakOwnership:bulk] PASS', [
-                    //     'index'    => $index,
-                    //     'entry_id' => $entryId,
-                    //     'break_id' => $breakId,
-                    // ]);
+                } elseif ($break) {
+                    $entryType    = $item['entry_type'] ?? null;
+                    $expectedType = in_array($entryType, ['lunch_in', 'lunch_out']) ? 'lunch' : 'other';
+
+                    if ($break->type !== $expectedType) {
+                        Log::warning('[BreakType:bulk] MISMATCH — 422 will be returned', [
+                            'index'         => $index,
+                            'entry_id'      => $entryId,
+                            'break_id'      => $breakId,
+                            'break.type'    => $break->type,
+                            'entry_type'    => $entryType,
+                            'expected_type' => $expectedType,
+                        ]);
+                        $validator->errors()->add(
+                            "updates.{$index}.break_id",
+                            'Break type does not match the requested action.'
+                        );
+                    }
                 }
             }
         });

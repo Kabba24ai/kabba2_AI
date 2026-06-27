@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
+use App\Enums\Billing\BillingChargeType;
+use App\Enums\Billing\BillingSourceEvent;
+use App\Enums\Billing\BillingSourceModule;
 use App\Http\Controllers\Controller;
+use App\Http\DataObjects\BillingChargeRequest;
 use App\Helpers\CustomHelper;
 use App\Models\Customers\CustomerAccount;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
+use App\Services\BillingEngine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AlertChargeController extends Controller
 {
@@ -68,6 +74,39 @@ class AlertChargeController extends Controller
             }
 
             DB::commit();
+
+            // ── Billing Engine bridge (Phase 3B) — fuel only ───────────────
+            if ($request->type === 'fuel') {
+                try {
+                    BillingEngine::charge(new BillingChargeRequest(
+                        type:                BillingChargeType::Fuel->value,
+                        orderId:             $order->id,
+                        customerId:          (int) $order->customer_id,
+                        amount:              (float) $record->amount,
+                        taxType:             $record->sales_tax_type,
+                        responsiblePersonId: $user->id,
+                        notes:               $record->notes,
+                        sourceModule:        BillingSourceModule::AdminFuelCharge->value,
+                        sourceEvent:         BillingSourceEvent::AdminFuelChargeCreated->value,
+                        sourceReferenceType: 'CustomerAccount',
+                        sourceReferenceId:   $record->id,
+                        metadata: [
+                            'legacy_controller'          => 'AlertChargeController',
+                            'legacy_customer_account_id' => $record->id,
+                            'order_id'                   => $order->id,
+                            'order_unique_id'            => $uniqueId,
+                            'sales_tax_type'             => $record->sales_tax_type,
+                        ],
+                        idempotencyKey: "admin_fuel_alert_charge:{$record->id}",
+                    ));
+                } catch (\Throwable $e) {
+                    Log::channel('billing_engine')->error(
+                        "BillingEngine bridge failed | controller=AlertChargeController " .
+                        "| customer_account_id={$record->id} | order_id={$order->id} " .
+                        "| error=" . $e->getMessage()
+                    );
+                }
+            }
 
             return response()->json([
                 'success' => true,

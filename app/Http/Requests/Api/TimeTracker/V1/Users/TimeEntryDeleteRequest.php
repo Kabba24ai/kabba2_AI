@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Api\TimeTracker\V1\Users;
 
 use App\Http\Requests\ApiBaseFormRequest;
+use App\Models\Iam\Personnel\TimeEntryBreak;
+use Illuminate\Support\Facades\Log;
 
 class TimeEntryDeleteRequest extends ApiBaseFormRequest
 {
@@ -34,5 +36,40 @@ class TimeEntryDeleteRequest extends ApiBaseFormRequest
             ],
 
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $breakId = $this->input('break_id');
+            $entryId = $this->input('entry_id');
+
+            if (!$breakId || !$entryId) {
+                Log::info('[BreakOwnership:delete] skipped — no break_id in payload', [
+                    'entry_id' => $entryId,
+                    'break_id' => $breakId,
+                ]);
+                return;
+            }
+
+            $break = TimeEntryBreak::find($breakId);
+
+            if ($break && (int) $break->time_entry_id !== (int) $entryId) {
+                Log::warning('[BreakOwnership:delete] MISMATCH — 422 will be returned', [
+                    'entry_id'            => $entryId,
+                    'break_id'            => $breakId,
+                    'break.time_entry_id' => $break->time_entry_id,
+                ]);
+                $validator->errors()->add(
+                    'break_id',
+                    'The selected break does not belong to the given time entry.'
+                );
+            } else {
+                // Log::info('[BreakOwnership:delete] PASS', [
+                //     'entry_id' => $entryId,
+                //     'break_id' => $breakId,
+                // ]);
+            }
+        });
     }
 }

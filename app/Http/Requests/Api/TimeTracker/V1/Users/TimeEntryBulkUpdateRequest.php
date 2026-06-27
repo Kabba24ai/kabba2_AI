@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Api\TimeTracker\V1\Users;
 
 use App\Http\Requests\ApiBaseFormRequest;
+use App\Models\Iam\Personnel\TimeEntryBreak;
+use Illuminate\Support\Facades\Log;
 
 class TimeEntryBulkUpdateRequest extends ApiBaseFormRequest
 {
@@ -45,6 +47,41 @@ class TimeEntryBulkUpdateRequest extends ApiBaseFormRequest
             ]
 
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            foreach ($this->input('updates', []) as $index => $item) {
+                $breakId = $item['break_id'] ?? null;
+                $entryId = $item['entry_id'] ?? null;
+
+                if (!$breakId || !$entryId) {
+                    continue;
+                }
+
+                $break = TimeEntryBreak::find($breakId);
+
+                if ($break && (int) $break->time_entry_id !== (int) $entryId) {
+                    Log::warning('[BreakOwnership:bulk] MISMATCH — 422 will be returned', [
+                        'index'               => $index,
+                        'entry_id'            => $entryId,
+                        'break_id'            => $breakId,
+                        'break.time_entry_id' => $break->time_entry_id,
+                    ]);
+                    $validator->errors()->add(
+                        "updates.{$index}.break_id",
+                        'The selected break does not belong to the given time entry.'
+                    );
+                } else {
+                    // Log::info('[BreakOwnership:bulk] PASS', [
+                    //     'index'    => $index,
+                    //     'entry_id' => $entryId,
+                    //     'break_id' => $breakId,
+                    // ]);
+                }
+            }
+        });
     }
 
     public function bodyParameters(): array

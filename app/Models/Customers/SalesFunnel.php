@@ -19,6 +19,7 @@ class SalesFunnel extends Model
         'sales_funnel_category_id',
         'trigger_type',   // retail_order | rental_schedule | lead_added
         'status',
+        'funnel_order_type',  // all | cod | paid
     ];
 
     // Auto-generate UUID when creating

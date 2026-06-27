@@ -21,6 +21,7 @@ enum SettingType: string
 
     case INVOICE_SETTINGS = 'Invoice Settings';
 
+    case TIMEZONE = 'Time Zone Settings';
 
     case OTHER = 'Other Settings';
 
@@ -39,6 +40,7 @@ enum SettingType: string
             self::DEFAULT_SALES_FUNNEL_SETTINGS => 'Default Sales Funnel Settings',
             self::MAIL_SEND_SETTINGS => 'Mail Send Settings',
             self::INVOICE_SETTINGS => 'Invoice Settings',
+            self::TIMEZONE => 'Time Zone Settings',
         };
     }
 }

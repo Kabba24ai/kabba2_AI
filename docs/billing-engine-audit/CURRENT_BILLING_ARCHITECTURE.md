@@ -270,14 +270,97 @@ orders.order_number = '#047'
 
 ---
 
+## 11. Mobile Checklist Charge Sources
+
+### Entry point
+
+`POST /api/admin/v1/orders/customer-checklists/save-return`  
+Controller: `App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists\SaveReturnController`
+
+This is the mobile app's return checklist submission endpoint. It is called by the iOS driver app when a rental is returned in the field.
+
+### Fuel charges from mobile
+
+The controller reads `fuel_total_charge` from the request payload. If this value is greater than zero, it calls:
+
+```php
+ChargeService::createFromOrderProduct($orderProduct, 'fuel', $validated['user_id']);
+```
+
+This is the same `ChargeService` path used by admin checklist completion. The resulting `CustomerAccount` charge row is identical to one created from the admin dashboard.
+
+**Tables written by a mobile return submission:**
+
+| Table | What is written |
+|-------|----------------|
+| `order_products` | `fuel_total_charge`, `fuel_final_reading`, `is_returned`, `pickup_date`, `pickup_time`, `pickup_by`, `pickup_status`, `end_hours` |
+| `customer_accounts` | Fuel charge row if `fuel_total_charge > 0` (via ChargeService) |
+
+`order_extra_charges` is NOT written. `order_product_fuel_charge_logs` is NOT written (that table is only for admin-side amount adjustments via `AmountUpdateController`).
+
+### Damage charges from mobile
+
+**Not implemented.** The `SaveReturnController` payload does not accept a `damage_charge` field and does not call `ChargeService::createFromOrderProduct()` for damage. The `damage_charge` column on `order_products` is only populated through the admin Dashboard and is not part of the return checklist API.
+
+Damage charges from the mobile side are a **future addition** — the Billing Engine must be designed to accept them.
+
+### Duplicate prevention (offline sync protection)
+
+The mobile app may operate offline and retry the return checklist submission on reconnect. Two layers prevent duplicate charges:
+
+**Layer 1 — Endpoint guard (HTTP 409):**
+```php
+if ($orderProduct->returnSignatureMedia) {
+    return response()->json(['message' => '...checklist_already_exists'], 409);
+}
+```
+If a signature has already been uploaded for this OrderProduct, the entire request is rejected. This prevents the charge creation path from running a second time.
+
+**Layer 2 — ChargeService duplicate guard:**
+```php
+$exists = CustomerAccount::where('order_product_id', $orderProduct->id)
+    ->where('reason', 'Fuel Charge')
+    ->where('type', 'charge')
+    ->whereIn('fuel_alert_status', ['pending', 'completed'])
+    ->exists();
+if ($exists) { return null; }
+```
+Even if Layer 1 is bypassed, the `ChargeService` will not create a second charge row if one already exists for the same `order_product_id`.
+
+**Gap:** There is no `idempotency_key` or `source_reference_id` stored on the charge record. If the same mobile submission reaches the server twice before the signature is saved (race condition), the duplicate guard depends entirely on the `customer_accounts` row from the first attempt being committed before the second attempt checks. In practice this is safe because both the signature save and the charge creation are synchronous in the same request, but an explicit idempotency key would make this bulletproof.
+
+### Checklist identifiers available for metadata
+
+When the Billing Engine eventually handles mobile-originated fuel charges, these identifiers are available in the request context:
+
+| Identifier | Source |
+|-----------|--------|
+| `order_product_unique_id` | Request payload; links to `order_products.unique_id` |
+| `order_product_id` | Resolved from `order_product_unique_id` lookup |
+| `user_id` | Request payload (the driver who submitted the checklist) |
+| `checklist[].question_unique_id` | Links to `order_product_checklist_questions.unique_id` |
+| `checklist[].answer_unique_id` | Links to `order_product_checklist_question_answers.unique_id` |
+| `fuel_initial_reading` | Set on delivery (not available on return, but on the OP) |
+| `fuel_final_reading` | Set on return; the basis for the fuel charge calculation |
+
+### No server-side offline sync queue
+
+The server has no offline sync queue or replay mechanism. The mobile app handles retries. The server's only offline protection is the two layers described above.
+
+---
+
 ## Key Duplication and Problems
 
 1. **Dual write system for Fuel and Damage**: Every charge potentially creates rows in BOTH `customer_accounts` AND `order_extra_charges`. The two tables represent different things (ledger entry vs. payment receipt) but there is no formal relationship between them.
 
 2. **Four independent controllers do the same thing**: `AlertChargeController`, `FuelChargeStoreController`, `DamageChargeStoreController`, and `ChargeStoreController` all create `CustomerAccount` charge rows with nearly identical code. Adding a new charge field requires changes in all four places.
 
-3. **Order numbering is unsafe**: Soft-deleted extensions still consume suffix slots. Reorders inflate the count. There is no protection against suffix collisions.
+3. **Mobile damage charges are not implemented**: The return checklist API only creates fuel charges. Damage charges from mobile have no code path and no duplicate guard. When this is added, it must route through the Billing Engine from the start.
 
-4. **Tax never gets stored for fuel/damage**: `sales_tax = 0` always. The `sales_tax_type` flag is captured but never materialized. The Sales Tax report uses `OrderExtraCharges` (the payment side) rather than the charge side, which may miss charges that haven't been paid yet.
+4. **Order numbering is unsafe**: Soft-deleted extensions still consume suffix slots. Reorders inflate the count. There is no protection against suffix collisions.
 
-5. **Three confusingly named UI sections on the Order Edit page** with different data sources and different meanings, with no explanatory grouping.
+5. **Tax never gets stored for fuel/damage**: `sales_tax = 0` always. The `sales_tax_type` flag is captured but never materialized. The Sales Tax report uses `OrderExtraCharges` (the payment side) rather than the charge side, which may miss charges that haven't been paid yet.
+
+6. **Three confusingly named UI sections on the Order Edit page** with different data sources and different meanings, with no explanatory grouping.
+
+7. **No idempotency key on charges**: Mobile-originated charges rely on a two-layer guard (signature existence + CA row existence). A race condition during offline reconnect could theoretically create a duplicate. An explicit `idempotency_key` field would close this gap.

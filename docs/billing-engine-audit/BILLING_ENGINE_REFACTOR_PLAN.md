@@ -43,22 +43,68 @@ All modules (Fuel checklist, Damage checklist, Rental extension, Service ticket)
 
 ```
 id
-unique_id              — unique identifier (prefix: BLC-)
-billing_charge_type    — ENUM: fuel | damage | extension | service_ticket | cleaning | delivery | misc
-status                 — ENUM: pending | paid | resolved | uncollectible | voided
-parent_order_id        — FK → orders.id (the original rental order)
-child_order_id         — FK → orders.id nullable (for extension-type charges that spawn an Order)
-customer_id            — FK → customers.id
-order_product_id       — FK → order_products.id nullable
-amount                 — DECIMAL(12,2)
-tax_amount             — DECIMAL(12,2) default 0
-tax_type               — ENUM: add | free | reverse
-responsible_person_id  — FK → users.id nullable
+unique_id               — unique identifier (prefix: BLC-)
+billing_charge_type     — ENUM: fuel | damage | extension | service_ticket | cleaning | delivery | misc
+status                  — ENUM: pending | paid | resolved | uncollectible | voided
+parent_order_id         — FK → orders.id (the original rental order)
+child_order_id          — FK → orders.id nullable (for extension-type charges that spawn an Order)
+customer_id             — FK → customers.id
+order_product_id        — FK → order_products.id nullable
+amount                  — DECIMAL(12,2)
+tax_amount              — DECIMAL(12,2) default 0
+tax_type                — ENUM: add | free | reverse
+responsible_person_id   — FK → users.id nullable
 responsible_person_name — VARCHAR
-notes                  — TEXT nullable
-customer_account_id    — FK → customer_accounts.id nullable (bridge to legacy ledger while migrating)
-created_by_id          — FK → users.id
+notes                   — TEXT nullable
+customer_account_id     — FK → customer_accounts.id nullable (bridge to legacy ledger while migrating)
+created_by_id           — FK → users.id
+
+— Source tracking (who/what created this charge)
+source_module           — VARCHAR nullable (admin_dashboard | admin_order_edit | admin_crm | mobile_checklist | mobile_offline_sync | billing_engine_internal)
+source_event            — VARCHAR nullable (e.g. return_checklist_fuel_charge | return_checklist_damage_charge | dashboard_modal | extension_created)
+source_reference_type   — VARCHAR nullable (polymorphic: OrderProduct | ChecklistAnswer | ServiceTicket | etc.)
+source_reference_id     — BIGINT nullable (the ID of the source record)
+metadata                — JSON nullable (arbitrary key/value from the source; e.g. fuel_initial_reading, fuel_final_reading, checklist_question_ids)
+
+— Duplicate prevention
+idempotency_key         — VARCHAR(128) nullable UNIQUE (caller-supplied key; prevents double-charge from offline retries)
+
 created_at / updated_at / deleted_at
+```
+
+**Valid `source_module` values:**
+
+| Value | Description |
+|-------|-------------|
+| `admin_dashboard` | Admin clicked "Fuel Charge" or "Damage Alert" from the Dashboard modal |
+| `admin_order_edit` | Admin used the Order Edit page alert-charge button |
+| `admin_crm` | Admin created a charge from the CRM Customer Account tab |
+| `mobile_checklist` | iOS driver app submitted a return checklist with a fuel or damage amount |
+| `mobile_offline_sync` | Same as `mobile_checklist` but the submission was queued and retried after reconnect |
+| `billing_engine_internal` | The BillingEngine itself created a charge (e.g. as part of an extension flow) |
+
+**`idempotency_key` format for mobile:**  
+`mobile_checklist:{order_product_id}:{type}:{fuel_final_reading}` — enough to uniquely identify a specific return event without relying on a server-generated ID that the mobile app doesn't have yet.
+
+**`metadata` for mobile fuel charges:**
+```json
+{
+  "order_product_unique_id": "OP-...",
+  "fuel_initial_reading": "3/4",
+  "fuel_final_reading": "1/4",
+  "submitted_by_user_id": 42,
+  "checklist_submitted_at": "2026-06-27T14:30:00Z"
+}
+```
+
+**`metadata` for mobile damage charges (future):**
+```json
+{
+  "order_product_unique_id": "OP-...",
+  "checklist_question_ids": ["CQ-...", "CQ-..."],
+  "checklist_answer_ids": ["CA-...", "CA-..."],
+  "submitted_by_user_id": 42
+}
 ```
 
 ### 1.2 New service: `App\Services\BillingEngine`
@@ -74,18 +120,30 @@ BillingEngine::markUncollectible(BillingCharge $charge, int $userId): void
 `BillingChargeRequest` is a plain PHP object (not a Laravel FormRequest):
 ```php
 class BillingChargeRequest {
-    public string $type;        // fuel | damage | extension | etc.
-    public int    $orderId;
-    public int    $customerId;
-    public float  $amount;
-    public string $taxType;     // add | free | reverse
-    public ?int   $orderProductId;
-    public ?int   $responsiblePersonId;
+    public string  $type;               // fuel | damage | extension | etc.
+    public int     $orderId;
+    public int     $customerId;
+    public float   $amount;
+    public string  $taxType;            // add | free | reverse
+    public ?int    $orderProductId;
+    public ?int    $responsiblePersonId;
     public ?string $notes;
-    public bool   $createChildOrder = false;  // true for extension
-    public ?array  $childOrderData;
+    public bool    $createChildOrder = false;  // true for extension
+
+    // Source tracking
+    public ?string $sourceModule;       // admin_dashboard | mobile_checklist | etc.
+    public ?string $sourceEvent;        // return_checklist_fuel_charge | dashboard_modal | etc.
+    public ?string $sourceReferenceType; // OrderProduct | ServiceTicket | etc.
+    public ?int    $sourceReferenceId;
+    public ?array  $metadata;           // arbitrary context stored as JSON
+
+    // Duplicate prevention
+    public ?string $idempotencyKey;     // unique per charge attempt; collision returns existing charge
 }
 ```
+
+**Idempotency behaviour in `BillingEngine::charge()`:**  
+If `$request->idempotencyKey` is set, the engine first checks `billing_charges` for an existing row with that key. If found, it returns the existing `BillingCharge` without creating a duplicate. This makes mobile offline retries safe by design.
 
 ### 1.3 New model: `App\Models\Orders\BillingCharge`
 
@@ -103,11 +161,34 @@ class BillingChargeRequest {
 
 ### 2.1 Route all fuel charge creation through BillingEngine
 
-Update these four controllers to call `BillingEngine::charge()` instead of writing `CustomerAccount` directly:
-- `AlertChargeController` (type=fuel)
-- `FuelChargeStoreController`
-- `ChargeStoreController` (reason=Fuel Charge)
-- `ChargeService::createFromOrderProduct()` (type=fuel)
+Update these **five** entry points to call `BillingEngine::charge()` instead of writing `CustomerAccount` directly:
+
+| Entry point | Controller | source_module |
+|------------|-----------|---------------|
+| Order Edit "Fuel Charge Alert" | `AlertChargeController` (type=fuel) | `admin_order_edit` |
+| Dashboard modal | `FuelChargeStoreController` | `admin_dashboard` |
+| CRM Customer Account tab | `ChargeStoreController` (reason=Fuel Charge) | `admin_crm` |
+| Mobile return checklist | `SaveReturnController` → `ChargeService::createFromOrderProduct()` | `mobile_checklist` |
+| Mobile offline retry (same endpoint) | `SaveReturnController` (retry path) | `mobile_offline_sync` |
+
+For the mobile path, pass an `idempotencyKey`:
+```php
+BillingEngine::charge(new BillingChargeRequest(
+    type: 'fuel',
+    sourceModule: 'mobile_checklist',
+    sourceEvent: 'return_checklist_fuel_charge',
+    sourceReferenceType: 'OrderProduct',
+    sourceReferenceId: $orderProduct->id,
+    idempotencyKey: "mobile_checklist:{$orderProduct->id}:fuel:{$validated['fuel_final_reading']}",
+    metadata: [
+        'order_product_unique_id' => $orderProduct->unique_id,
+        'fuel_initial_reading'    => $orderProduct->fuel_initial_reading,
+        'fuel_final_reading'      => $validated['fuel_final_reading'],
+        'submitted_by_user_id'    => $validated['user_id'],
+    ],
+    // ... amount, orderId, customerId, etc.
+));
+```
 
 BillingEngine internally still writes the `CustomerAccount` row (bridge mode) so the existing `updateCreditBalance()` flow and all existing reports continue to work unchanged.
 
@@ -131,12 +212,28 @@ Update `PaymentStoreController` (Dashboard) to call `BillingEngine::recordPaymen
 
 ## Phase 3 — Convert Damage Charges
 
-Identical to Phase 2 with `type = 'damage'`. Damage and Fuel share the same `ChargeService` so this requires minimal new work. After Phase 2 is complete, Phase 3 is primarily a type-flag change.
+### 3.1 Admin damage charges (mirrors Phase 2)
 
-### Validate
+Route the three admin entry points through `BillingEngine::charge(type: 'damage')`:
+- `AlertChargeController` (type=damage) — `source_module: admin_order_edit`
+- `DamageChargeStoreController` — `source_module: admin_dashboard`
+- `ChargeStoreController` (reason=Damages) — `source_module: admin_crm`
 
-- New Damage Alerts report unchanged
-- Checklist-originated damage charges appear in `billing_charges`
+Damage and Fuel share `ChargeService`, so this is primarily a type-flag change after Phase 2 is complete.
+
+### 3.2 Mobile damage charges — NEW addition (not yet implemented)
+
+**Current state:** `SaveReturnController` has no damage charge logic. The `damage_charge` column on `order_products` is never set by mobile.
+
+**Billing Engine work required:** Add a damage path to `SaveReturnController` when mobile damage reporting is built. Because no legacy code exists, this can go directly through `BillingEngine::charge()` from day one — no legacy bridge needed.
+
+Mobile idempotency key for damage: `"mobile_checklist:{order_product_id}:damage"` — damage is binary (found or not found) so no reading value is needed in the key.
+
+### 3.3 Validate
+
+- New Damage Alerts report unchanged (admin path)
+- Admin-created damage charges appear in `billing_charges` with correct `source_module`
+- Mobile damage charges (when added) appear in `billing_charges` with `source_module = mobile_checklist`
 - `damage_alert_status` lifecycle (pending → paid / resolved / uncollectible) unchanged
 
 ---

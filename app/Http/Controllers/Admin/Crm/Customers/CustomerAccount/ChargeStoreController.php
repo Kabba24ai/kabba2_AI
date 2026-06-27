@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers\Admin\Crm\Customers\CustomerAccount;
 
+use App\Enums\Billing\BillingChargeType;
+use App\Enums\Billing\BillingSourceEvent;
+use App\Enums\Billing\BillingSourceModule;
 use App\Http\Controllers\Controller;
+use App\Http\DataObjects\BillingChargeRequest;
 use App\Http\Requests\Admin\Crm\Customers\CustomerAccount\ChargeStoreRequest;
 use App\Models\Customers\CustomerAccount;
+use App\Services\BillingEngine;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Iam\Personnel\User ;
@@ -50,6 +55,38 @@ class ChargeStoreController extends Controller
             CustomHelper::updateCreditBalance($record);
 
             DB::commit();
+
+            // ── Billing Engine bridge (Phase 3C) — fuel only ───────────────
+            if ($validated['reason'] === 'Fuel Charge') {
+                try {
+                    BillingEngine::charge(new BillingChargeRequest(
+                        type:                BillingChargeType::Fuel->value,
+                        orderId:             null, // CRM charge modal: no order context
+                        customerId:          (int) $record->customer_id,
+                        amount:              (float) $record->amount,
+                        taxType:             $record->sales_tax_type ?? 'free',
+                        responsiblePersonId: $user->id,
+                        notes:               $record->notes,
+                        sourceModule:        BillingSourceModule::AdminFuelCharge->value,
+                        sourceEvent:         BillingSourceEvent::AdminFuelChargeCreated->value,
+                        sourceReferenceType: 'CustomerAccount',
+                        sourceReferenceId:   $record->id,
+                        metadata: [
+                            'legacy_controller'          => 'ChargeStoreController',
+                            'legacy_customer_account_id' => $record->id,
+                            'customer_id'                => $record->customer_id,
+                            'sales_tax_type'             => $record->sales_tax_type,
+                        ],
+                        idempotencyKey: "crm_fuel_charge:{$record->id}",
+                    ));
+                } catch (\Throwable $e) {
+                    Log::channel('billing_engine')->error(
+                        "BillingEngine bridge failed | controller=ChargeStoreController " .
+                        "| customer_account_id={$record->id} | customer_id={$record->customer_id} " .
+                        "| error=" . $e->getMessage()
+                    );
+                }
+            }
 
             flash('Charge successfully added')->success();
             // session()->flash('active_tab', 'credit');

@@ -356,9 +356,9 @@ public function getEligibleWorkedHours(int $year): float
 }
 
 
-public function isMasterAdmin(): bool
-{
-    return $this->hasRole('master_admin');
-}
+    public function isMasterAdmin(): bool
+    {
+        return $this->hasRole('Master Admin');
+    }
 
 }

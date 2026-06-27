@@ -5,15 +5,23 @@ namespace App\Http\Controllers\Api\TimeTracker\V1\WorkSchedule;
 use App\Http\Controllers\Api\BaseController;
 use App\Models\Iam\Personnel\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class ListUsersController extends BaseController
 {
     public function __invoke(): JsonResponse
     {
-        $employees = User::with(['store.hours', 'roles'])
+        $currentUser = Auth::user();
+
+        $query = User::with(['store.hours', 'roles'])
             ->active()
-            ->orderBy('first_name', 'ASC')
-            ->get()
+            ->orderBy('first_name', 'ASC');
+
+        if (! $currentUser->isMasterAdmin()) {
+            $query->where('store_id', $currentUser->store_id);
+        }
+
+        $employees = $query->get()
             ->map(function ($user) {
                 return [
                     'id' => $user->id,

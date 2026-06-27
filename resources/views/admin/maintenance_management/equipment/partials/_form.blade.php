@@ -113,7 +113,7 @@
 
                 <div>
                     <label for="store_id" class="block text-sm font-medium text-gray-700 mb-1 required">
-                        Store
+                        Equipment Location
                     </label>
                     {!! html()->select('store_id', ['' => 'Select Store'] + $stores)->class([
                             'choices-select w-full px-2 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white',

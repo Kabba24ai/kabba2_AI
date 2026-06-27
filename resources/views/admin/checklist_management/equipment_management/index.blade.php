@@ -38,55 +38,49 @@
                             class="w-full border pl-10 pr-3 py-2 rounded-md text-sm">
                     </div>
 
-                    <!-- Category -->
-                    <div class="mb-3">
-                        <label class="text-sm font-medium text-gray-700 mb-1 block">Category</label>
-
-                        <select id="categoryFilter" class="w-full border px-3 py-2 rounded-md text-sm"
-                            onchange="applyFilters()">
-                            <option value="All Categories">All Categories</option>
-                            @foreach ($categories as $id => $name)
-                                <option value="{{ $name }}">{{ $name }}</option>
-                            @endforeach
-                        </select>
-
-
+                    <!-- Category + Status row -->
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 mb-1 block">Category</label>
+                            <select id="categoryFilter" class="w-full border px-3 py-2 rounded-md text-sm"
+                                onchange="applyFilters()">
+                                <option value="All Categories">All Categories</option>
+                                @foreach ($categories as $id => $name)
+                                    <option value="{{ $name }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 mb-1 block">Status</label>
+                            <select class="w-full border px-3 py-2 rounded-md text-sm" id="statusFilter"
+                                onchange="applyFilters()">
+                                <option>All</option>
+                                <option>Damaged</option>
+                                <option>Maint. Hold</option>
+                                <option>Rented</option>
+                                <option>Available</option>
+                                <option>Service Due</option>
+                                <option>Service OverDue</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <!-- Status -->
-                    <div class="mb-4">
-                        <label class="text-sm font-medium text-gray-700 mb-1 block">Status</label>
-                        <select class="w-full border px-3 py-2 rounded-md text-sm" id="statusFilter"
-                            onchange="applyFilters()">
-                            <option>All Statuses</option>
-                            <option>Damaged</option>
-                            <option>Maint. Hold</option>
-                            <option>Rented</option>
-                            <option>Available</option>
-                            <option>Service Due</option>
-                            <option>Service OverDue</option>
-
-                        </select>
-                    </div>
-
-                    <!-- Currently Assigned -->
-                    <div class="mb-4 flex items-center gap-2">
-                        <input type="checkbox" id="currentlyAssignedFilter" onchange="applyFilters()"
-                            class="w-4 h-4 text-blue-600 rounded border-gray-300 cursor-pointer" checked>
-                        <label for="currentlyAssignedFilter" class="text-sm text-gray-700 cursor-pointer select-none flex items-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
-                            Currently Assigned
-                        </label>
-                    </div>
-
-                    <!-- Clear Filter Button -->
-                    <div class="mb-4 flex justify-end">
-                        <button type="button" onclick="clearFilters()" 
+                    <!-- Currently Assigned + Clear Filters row -->
+                    <div class="mb-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="currentlyAssignedFilter" onchange="applyFilters()"
+                                class="w-4 h-4 text-blue-600 rounded border-gray-300 cursor-pointer" checked>
+                            <label for="currentlyAssignedFilter" class="text-sm text-gray-700 cursor-pointer select-none flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                Currently Assigned
+                            </label>
+                        </div>
+                        <button type="button" onclick="clearFilters()"
                                 class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -444,7 +438,7 @@
                     checklist_master_id: eq.checklist_master_id,
                     hours: eq.equipment_hours,
                     lastInspection: eq.last_inspection ?? '',
-                    orderproduct: eq.order_product?.product_name ?? '-',
+                    orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                     orderproductid: eq.order_product?.id ?? null,
                     order_route: eq.order?.view_link ?? null,
                     orderid: eq.order?.id ?? null,
@@ -549,7 +543,7 @@
                             checklist_master_id: eq.checklist_master_id,
                             hours: eq.equipment_hours,
                             lastInspection: eq.last_inspection ?? '',
-                            orderproduct: eq.order_product?.product_name ?? '-',
+                            orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                             orderproductid: eq.order_product?.id ?? null,
                             order_route: eq.order?.view_link ?? null,
                             orderid: eq.order?.id ?? null,
@@ -668,22 +662,25 @@
 
                                     <div>
                                         <div class="font-medium text-gray-700">Model</div>
-                                        <div>- ${eq.model}</div>
+                                        <div>${eq.model || ''}</div>
                                     </div>
 
                                     <div>
                                         <div class="font-medium text-gray-700">Equipment ID</div>
-                                        <div>- ${eq.equipment_id}</div>
+                                        <div>${eq.equipment_id}</div>
                                     </div>
 
                                     <div>
                                         <div class="font-medium text-gray-700">Category</div>
-                                        <div>- ${eq.category}</div>
+                                        <div>${eq.category}</div>
                                     </div>
 
                                     <div>
-                                        <div class="font-medium text-gray-700">Order Product</div>
-                                        <div>- ${eq.orderproduct ?? '-'}</div>
+                                        <div class="font-medium text-gray-700">Assigned Order</div>
+                                        <div class="flex flex-col gap-0.5">
+                                            ${eq.order_route ? eq.order_route.replace('<a ', '<a target="_blank" rel="noopener noreferrer" ') : '<span class="text-xs italic text-gray-400">None</span>'}
+                                            ${eq.order_route && eq.orderproduct ? `<span class="text-xs text-gray-500">${eq.orderproduct}</span>` : ''}
+                                        </div>
                                     </div>
 
                                     <div>
@@ -693,13 +690,13 @@
                                                 <circle cx="12" cy="12" r="10"/>
                                                 <polyline points="12 6 12 12 16 14"/>
                                             </svg>
-                                            - ${(eq.hours ?? 0).toLocaleString()}
+                                            ${(eq.hours ?? 0).toLocaleString()}
                                         </div>
                                     </div>
 
                                     <div>
                                         <div class="font-medium text-gray-700">Last Inspection</div>
-                                        <div>- ${eq.lastInspection}</div>
+                                        <div>${eq.lastInspection || 'Not Available'}</div>
                                     </div>
 
                                 </div>
@@ -775,7 +772,7 @@
                             checklist_master_id: eq.checklist_master_id,
                             hours: eq.equipment_hours,
                             lastInspection: eq.last_inspection ?? '',
-                            orderproduct: eq.order_product?.product_name ?? '-',
+                            orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                             orderproductid: eq.order_product?.id ?? null,
                             order_route: eq.order?.view_link ?? null,
                             orderid: eq.order?.id ?? null,

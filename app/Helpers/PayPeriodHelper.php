@@ -40,39 +40,6 @@ class PayPeriodHelper
         return [$start, $end];
     }
 
-    // public static function listPeriods(int $count = 12): array
-    // {
-    //     $type = TimeTrackerHelper::getTimeTrackerSetting(
-    //         'pay_period_type',
-    //         'biweekly'
-    //     );
-
-    //     $startDateSetting = TimeTrackerHelper::getTimeTrackerSetting(
-    //         'pay_period_start_date',
-    //         '2026-01-01'
-    //     );
-
-    //     $length = $type === 'weekly' ? 7 : 14;
-
-    //     $periods = [];
-    //     $currentStart = self::carbon($startDateSetting);
-
-    //     for ($i = 1; $i <= $count; $i++) {
-    //         $end = $currentStart->copy()->addDays($length - 1);
-
-    //         $periods[] = [
-    //             'number'     => $i,
-    //             'start_date' => $currentStart->toDateString(),
-    //             'end_date'   => $end->toDateString(),
-    //             'label'      => "Period {$i}: {$currentStart->format('n/j/Y')} - {$end->format('n/j/Y')}",
-    //         ];
-
-    //         $currentStart = $end->addDay();
-    //     }
-
-    //     return $periods;
-    // }
-
 
     public static function listPeriods(int $count = 12): array
 {
@@ -89,29 +56,54 @@ class PayPeriodHelper
     $length = $type === 'weekly' ? 7 : 14;
 
     $periods = [];
+
     $currentStart = self::carbon($startDateSetting);
-    $today = now();
 
-    for ($i = 1; $i <= $count; $i++) {
+    // Generate periods until the end of next month
+    $limitDate = now()->addMonth()->endOfMonth();
 
-        // stop if this period hasn't started yet
-        if ($currentStart->gt($today)) {
-            break;
-        }
+    $periodNumber = 1;
+
+    while ($currentStart->lte($limitDate)) {
 
         $end = $currentStart->copy()->addDays($length - 1);
 
         $periods[] = [
-            'number'     => $i,
+            'number'     => $periodNumber,
             'start_date' => $currentStart->toDateString(),
             'end_date'   => $end->toDateString(),
-            'label'      => "Period {$i}: {$currentStart->format('n/j/Y')} - {$end->format('n/j/Y')}",
+            'label'      => "Period {$periodNumber}: {$currentStart->format('n/j/Y')} - {$end->format('n/j/Y')}",
         ];
 
-        $currentStart = $end->addDay();
+        $currentStart = $end->copy()->addDay();
+        $periodNumber++;
     }
 
     return $periods;
+
+    // $currentStart = self::carbon($startDateSetting);
+    // $today = now();
+
+    // for ($i = 1; $i <= $count; $i++) {
+
+    //     // stop if this period hasn't started yet
+    //     if ($currentStart->gt($today)) {
+    //         break;
+    //     }
+
+    //     $end = $currentStart->copy()->addDays($length - 1);
+
+    //     $periods[] = [
+    //         'number'     => $i,
+    //         'start_date' => $currentStart->toDateString(),
+    //         'end_date'   => $end->toDateString(),
+    //         'label'      => "Period {$i}: {$currentStart->format('n/j/Y')} - {$end->format('n/j/Y')}",
+    //     ];
+
+    //     $currentStart = $end->addDay();
+    // }
+
+    // return $periods;
 }
 
     public static function currentPeriod(): int

@@ -84,15 +84,45 @@
                 @endforelse
             </div>
 
-            <form method="POST" action="{{ route('admin.tasks.comments.store', $task) }}">
+            <form id="comment-form" method="POST" action="{{ route('admin.tasks.comments.store', $task) }}">
                 @csrf
-                <textarea name="comment" rows="3" required placeholder="Add a comment..."
+                <textarea id="task-comment" name="comment" rows="3" placeholder="Add a comment..."
                     class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 mb-3"></textarea>
-                <button type="submit"
-                    class="inline-flex items-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
-                    Add Comment
-                </button>
+
+                <div id="comment-validation-msg" class="hidden mb-2 text-sm text-red-600 font-medium">
+                    Please enter a completion note before marking this task complete.
+                </div>
+
+                <div class="flex items-center justify-end gap-3">
+                    <button type="submit"
+                        class="inline-flex items-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
+                        Add Comment
+                    </button>
+
+                    @if (!$task->status->isTerminal())
+                        <button type="submit"
+                            formaction="{{ route('admin.tasks.complete', $task) }}"
+                            onclick="return validateAndComplete()"
+                            class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-emerald-700">
+                            Add Comment &amp; Mark Complete
+                        </button>
+                    @endif
+                </div>
             </form>
+
+            <script>
+            function validateAndComplete() {
+                var comment = document.getElementById('task-comment').value.trim();
+                var msg = document.getElementById('comment-validation-msg');
+                if (!comment) {
+                    msg.classList.remove('hidden');
+                    document.getElementById('task-comment').focus();
+                    return false;
+                }
+                msg.classList.add('hidden');
+                return true;
+            }
+            </script>
         </div>
 
     </div>
@@ -151,15 +181,25 @@
 
         {{-- Details --}}
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-            <h4 class="text-sm font-semibold text-gray-700 mb-4">Details</h4>
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-sm font-semibold text-gray-700">Details</h4>
+                <button type="button" onclick="openTaskReassignModal()"
+                    class="inline-flex items-center rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50">
+                    Reassign
+                </button>
+            </div>
             <dl class="space-y-3 text-sm">
                 <div class="flex justify-between">
                     <dt class="text-gray-500">Assigned To</dt>
-                    <dd class="font-medium text-gray-800">{{ $task->assignedTo?->full_name ?? '—' }}</dd>
+                    <dd id="task-assignee-display" class="font-medium text-gray-800">{{ $task->assignedTo?->full_name ?? '—' }}</dd>
                 </div>
                 <div class="flex justify-between">
                     <dt class="text-gray-500">Created By</dt>
                     <dd class="font-medium text-gray-800">{{ $task->createdBy?->full_name ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Created</dt>
+                    <dd class="font-medium text-gray-800">{{ $task->created_at->format('M j, Y') }}</dd>
                 </div>
                 <div class="flex justify-between">
                     <dt class="text-gray-500">Due Date</dt>
@@ -171,10 +211,12 @@
                     <dt class="text-gray-500">Completed At</dt>
                     <dd class="font-medium text-gray-800">{{ $task->completed_at?->format('M j, Y g:i A') ?? '—' }}</dd>
                 </div>
+                @if ($task->completedBy)
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Created</dt>
-                    <dd class="font-medium text-gray-800">{{ $task->created_at->format('M j, Y') }}</dd>
+                    <dt class="text-gray-500">Completed By</dt>
+                    <dd class="font-medium text-gray-800">{{ $task->completedBy->full_name }}</dd>
                 </div>
+                @endif
             </dl>
         </div>
 
@@ -203,5 +245,70 @@
 
     </div>
 </div>
+
+{{-- Task Reassign Modal --}}
+<div id="TaskReassignModal" style="display:none;"
+    class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-gray-900">Reassign Task</h2>
+            <button type="button" onclick="closeTaskReassignModal()" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Assign To</label>
+            <select id="task_reassign_user"
+                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                <option value="">Unassigned</option>
+                @foreach ($users as $user)
+                    <option value="{{ $user->id }}" {{ $task->assigned_to_user_id == $user->id ? 'selected' : '' }}>{{ $user->full_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeTaskReassignModal()"
+                class="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
+            <button type="button" id="task-reassign-btn" onclick="submitTaskReassign()"
+                class="px-4 py-2 text-sm rounded-lg bg-brand-500 text-white hover:bg-brand-600">Confirm</button>
+        </div>
+    </div>
+</div>
+
+@push('js')
+<script>
+function openTaskReassignModal() {
+    var m = document.getElementById('TaskReassignModal');
+    m.style.display = 'flex'; m.classList.remove('hidden');
+}
+function closeTaskReassignModal() {
+    var m = document.getElementById('TaskReassignModal');
+    m.style.display = 'none'; m.classList.add('hidden');
+}
+function submitTaskReassign() {
+    var btn = document.getElementById('task-reassign-btn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    fetch("{{ route('admin.tasks.reassign', $task) }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+        body: JSON.stringify({ assigned_to_user_id: document.getElementById('task_reassign_user').value || null }),
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+        if (!data.success) throw new Error(data.message || 'Error');
+        notyf.success(data.message);
+        document.getElementById('task-assignee-display').textContent = data.assignee;
+        closeTaskReassignModal();
+    })
+    .catch(function (err) { notyf.error(err.message); })
+    .finally(function () { btn.disabled = false; btn.textContent = 'Confirm'; });
+}
+document.getElementById('TaskReassignModal').addEventListener('click', function (e) {
+    if (e.target === this) closeTaskReassignModal();
+});
+</script>
+@endpush
 
 @endsection

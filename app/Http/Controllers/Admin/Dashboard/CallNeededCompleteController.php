@@ -30,7 +30,9 @@ class CallNeededCompleteController extends Controller
         if ($request->action === 'complete') {
 
             $call->update([
-                'status' => 'clear',
+                'status'       => 'clear',
+                'completed_at' => now(),
+                'completed_by' => auth()->id(),
             ]);
 
             if ($call->customer) {

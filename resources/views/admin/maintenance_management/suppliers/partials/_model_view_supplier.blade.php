@@ -316,17 +316,69 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
                     <div class="bg-purple-50 p-6 rounded-xl">
-                        <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-5">
-                            <div class="bg-purple-600 p-2 rounded-lg mr-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><path d="M7 7h.01"></path></svg>
-                            </div>
-                            Tags
-                        </h1>
+                        <div class="flex items-center justify-between mb-5">
+                            <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                                <div class="bg-purple-600 p-2 rounded-lg mr-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><path d="M7 7h.01"></path></svg>
+                                </div>
+                                Tags
+                            </h1>
+                            <button type="button" onclick="toggleViewTagAssign()"
+                                class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Tag
+                            </button>
+                        </div>
 
-                        <div class="flex flex-wrap gap-2" id="viewSupplierTags">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">#eco-friendly</span>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">#sustainable</span>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">#packaging</span>
+                        <div class="flex flex-wrap gap-2" id="viewSupplierTags"></div>
+
+                        {{-- Inline tag assignment panel --}}
+                        <div id="viewTagAssignPanel" class="hidden mt-4 border border-gray-200 rounded-lg p-3 bg-white">
+
+                            {{-- Assign existing tags --}}
+                            <div id="viewTagAssignSection">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-xs font-medium text-gray-600">Select Tags to Assign</label>
+                                    <button type="button" onclick="toggleViewNewTagForm()"
+                                        class="text-blue-600 hover:text-blue-800 text-xs font-medium flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        +New Tag
+                                    </button>
+                                </div>
+                                <select id="viewTagSelect" multiple class="w-full text-sm border border-gray-300 rounded-md"></select>
+                                <div class="flex gap-2 mt-3">
+                                    <button type="button" onclick="saveViewSupplierTags()"
+                                        class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
+                                        Save Tags
+                                    </button>
+                                    <button type="button" onclick="toggleViewTagAssign()"
+                                        class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Create new tag inline --}}
+                            <div id="viewNewTagForm" class="hidden">
+                                <label class="block text-xs font-medium text-gray-600 mb-2">New Tag Name</label>
+                                <input id="viewNewTagInput" type="text" placeholder="Enter tag name..."
+                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <div class="flex gap-2 mt-3">
+                                    <button type="button" onclick="createViewTag()"
+                                        class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
+                                        Create Tag
+                                    </button>
+                                    <button type="button" onclick="toggleViewNewTagForm()"
+                                        class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+                                        Back
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -378,6 +430,154 @@
 @push('js')
 
 <script>
+    // Tag assignment state for the view modal
+    let _currentViewSupplierId = null;
+    let _currentViewSupplierTagIds = [];
+    let _viewTagChoices = null;
+
+    function renderViewSupplierTags(tagObjects) {
+        const container = document.getElementById('viewSupplierTags');
+        container.innerHTML = '';
+        const tagIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-1 text-gray-500"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><path d="M7 7h.01"></path></svg>`;
+        if (tagObjects && tagObjects.length > 0) {
+            tagObjects.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700';
+                span.innerHTML = `${tagIcon} #${tag.name}`;
+                container.appendChild(span);
+            });
+        } else {
+            container.innerHTML = '<span class="text-gray-400 text-xs italic">No tags</span>';
+        }
+    }
+
+    window.toggleViewTagAssign = function() {
+        const panel = document.getElementById('viewTagAssignPanel');
+        if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');   // show panel FIRST so Choices.js can measure dimensions
+            initViewTagChoices();
+        } else {
+            panel.classList.add('hidden');
+        }
+    };
+
+    function initViewTagChoices() {
+        const selectEl = document.getElementById('viewTagSelect');
+
+        if (_viewTagChoices) {
+            _viewTagChoices.destroy();
+            _viewTagChoices = null;
+        }
+
+        selectEl.innerHTML = '';
+
+        _viewTagChoices = new Choices(selectEl, {
+            removeItemButton: true,
+            shouldSort: false,
+            itemSelectText: '',
+            searchEnabled: true,
+            searchResultLimit: 100,
+            placeholderValue: 'Select or type tags',
+        });
+
+        // Load all tags using setChoices — same pattern as Edit modal's updateTagSelect()
+        const choicesArray = (window.tags || []).map(tag => ({
+            value: String(tag.id),
+            label: '#' + tag.name,
+            selected: false,
+        }));
+        _viewTagChoices.setChoices(choicesArray, 'value', 'label', true);
+
+        // Pre-select current supplier's tags — same pattern as Edit modal's setSupplierTags()
+        _currentViewSupplierTagIds.forEach(id => {
+            _viewTagChoices.setChoiceByValue(id);
+        });
+    }
+
+    window.saveViewSupplierTags = function() {
+        if (!_currentViewSupplierId) return;
+
+        const selectedIds = _viewTagChoices
+            ? _viewTagChoices.getValue(true).map(v => parseInt(v))
+            : [];
+
+        const url = "{{ route('admin.maintenance-management.suppliers.update-tags', ':id') }}"
+            .replace(':id', _currentViewSupplierId);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({ tags: selectedIds }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                notyf.success(data.message);
+                _currentViewSupplierTagIds = selectedIds.map(String);
+                renderViewSupplierTags(data.tag_objects);
+                document.getElementById('viewTagAssignPanel').classList.add('hidden');
+            } else {
+                notyf.error('Failed to update tags.');
+            }
+        })
+        .catch(() => notyf.error('Failed to update tags.'));
+    };
+
+    window.toggleViewNewTagForm = function() {
+        const assignSection = document.getElementById('viewTagAssignSection');
+        const newTagForm    = document.getElementById('viewNewTagForm');
+        const isFormHidden  = newTagForm.classList.contains('hidden');
+        if (isFormHidden) {
+            assignSection.classList.add('hidden');
+            newTagForm.classList.remove('hidden');
+            document.getElementById('viewNewTagInput').value = '';
+            document.getElementById('viewNewTagInput').focus();
+        } else {
+            newTagForm.classList.add('hidden');
+            assignSection.classList.remove('hidden');
+        }
+    };
+
+    window.createViewTag = function() {
+        const input = document.getElementById('viewNewTagInput');
+        const name  = input.value.trim();
+        if (!name) {
+            notyf.error('Please enter a tag name.');
+            return;
+        }
+
+        const url = "{{ route('admin.maintenance-management.suppliers.tag.store') }}";
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({ name }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                notyf.success(data.message);
+                fetchTags().then(() => {
+                    const newId = String(data.tag.id);
+                    if (!_currentViewSupplierTagIds.includes(newId)) {
+                        _currentViewSupplierTagIds.push(newId);
+                    }
+                    document.getElementById('viewNewTagForm').classList.add('hidden');
+                    document.getElementById('viewTagAssignSection').classList.remove('hidden');
+                    initViewTagChoices();
+                });
+            } else {
+                notyf.error(data.message || 'Failed to create tag.');
+            }
+        })
+        .catch(() => notyf.error('Failed to create tag.'));
+    };
+
     // === New Function: Fetch and View Supplier ===
     window.viewSupplier = async function(id) {
         try {
@@ -517,38 +717,13 @@ console.log(s);
                 document.getElementById('viewSupplierPaymentTerms').textContent = s.payment_terms || '—';
 
                 // Tags
+                _currentViewSupplierId = id;
+                _currentViewSupplierTagIds = (s.tag_objects || []).map(t => String(t.id));
 
-                const tagsContainer = document.getElementById('viewSupplierTags');
-                tagsContainer.innerHTML = '';
+                // Close assignment panel when switching suppliers
+                document.getElementById('viewTagAssignPanel').classList.add('hidden');
 
-                // Ensure tags is always an array
-                let tags = s.tag_objects;
-
-
-                if (tags.length > 0) {
-                    tags.forEach(tag => {
-                        const span = document.createElement('span');
-                        span.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700';
-
-                        // Create the SVG icon
-                        const icon = `
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 width="14" height="14" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round"
-                 class="w-3 h-3 mr-1 text-gray-500">
-                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
-                <path d="M7 7h.01"></path>
-            </svg>
-        `;
-
-                        // Add icon + text
-                        span.innerHTML = `${icon} #${tag.name}`;
-                        tagsContainer.appendChild(span);
-                    });
-                } else {
-                    tagsContainer.innerHTML = '<span class="text-gray-400 text-xs italic">No tags</span>';
-                }
+                renderViewSupplierTags(s.tag_objects || []);
 
                 document.getElementById('PrimaryContactName').textContent = s.primary_contact_name || 'N/A';
                 document.getElementById('SecondaryContactName').textContent = s.inside_sales_name || 'N/A';

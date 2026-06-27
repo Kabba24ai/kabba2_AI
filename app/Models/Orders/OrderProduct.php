@@ -87,6 +87,8 @@ class OrderProduct extends Model
         'assigned_at',
 
         'dispatch_checklist',   // JSON: driver pre-delivery checklist state
+        'dispatch_delivery_date',
+        'dispatch_return_date',
 
         'delivery_equipment_fuel',
         'delivery_equipment_key_location',
@@ -126,6 +128,8 @@ class OrderProduct extends Model
         'pickup_priority_locked'   => 'boolean',
         'delivery_equipment_driver_status' => EquipmentDriverStatus::class,
         'pickup_equipment_driver_status'   => EquipmentDriverStatus::class,
+        'dispatch_delivery_date' => 'date',
+        'dispatch_return_date'   => 'date',
         'delivery_ready_to_go_at' => 'datetime',
         'delivery_arrived_at'     => 'datetime',
         'delivery_is_delivered'   => 'boolean',

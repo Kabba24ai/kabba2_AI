@@ -27,12 +27,12 @@ class AutoClockOutEmployeesJob implements ShouldQueue
             0
         );
 
-        // Log::info('[AUTO CLOCK OUT] auto_clock_out_limit_minutes', [
-        //     'minutes' => $autoLimitMinutes,
-        //    ]);
+        Log::info('[AUTO CLOCK OUT] auto_clock_out_limit_minutes', [
+            'minutes' => $autoLimitMinutes,
+           ]);
 
         if ($autoLimitMinutes <= 0) {
-            // Log::warning('[AUTO CLOCK OUT] Disabled (limit <= 0)');
+            Log::warning('[AUTO CLOCK OUT] Disabled (limit <= 0)');
             return;
         }
 
@@ -50,49 +50,49 @@ class AutoClockOutEmployeesJob implements ShouldQueue
 
         $twilio = new TwilioService();
         $now = Carbon::now();
-        // Log::info('[AUTO CLOCK OUT] Current time', [
-        //     'now' => $now->toDateTimeString(),
-        // ]);
+        Log::info('[AUTO CLOCK OUT] Current time', [
+            'now' => $now->toDateTimeString(),
+        ]);
 
         // 2. Fetch employees with active time entry
         $employees = User::active()
             ->whereHas('activeTimeEntry')
-            ->with('activeTimeEntry')
+            ->with(['activeTimeEntry.breaks', 'store.hoursOfOperation'])
             ->get();
 
-        // Log::info('[AUTO CLOCK OUT] Active employees found', [
-        //     'count' => $employees->count(),
-        // ]);
+        Log::info('[AUTO CLOCK OUT] Active employees found', [
+            'count' => $employees->count(),
+        ]);
 
         
         foreach ($employees as $employee) {
 
-            // Log::info('[AUTO CLOCK OUT] Processing employee', [
-            //     'employee_id' => $employee->id,
-            //     'name' => $employee->full_name,
-            // ]);
+            Log::info('[AUTO CLOCK OUT] Processing employee', [
+                'employee_id' => $employee->id,
+                'name' => $employee->full_name,
+            ]);
 
             if ($employee->limit_end_time != 1) {
-                // Log::info('[AUTO CLOCK OUT] Skipped - limit_end_time disabled', [
-                //     'employee_id' => $employee->id,
-                // ]);
+                Log::info('[AUTO CLOCK OUT] Skipped - limit_end_time disabled', [
+                    'employee_id' => $employee->id,
+                ]);
                 continue;
             }
 
             $entry = $employee->activeTimeEntry;
 
             if (!$entry) {
-                // Log::warning('[AUTO CLOCK OUT] Skipped - no active time entry', [
-                //     'employee_id' => $employee->id,
-                // ]);
+                Log::warning('[AUTO CLOCK OUT] Skipped - no active time entry', [
+                    'employee_id' => $employee->id,
+                ]);
                 continue;
             }
 
             //  Check if employee assigned to store
             if (!$employee->store) {
-                // Log::warning('[AUTO CLOCK OUT] Employee has no store assigned', [
-                //     'employee_id' => $employee->id,
-                // ]);
+                Log::warning('[AUTO CLOCK OUT] Employee has no store assigned', [
+                    'employee_id' => $employee->id,
+                ]);
                 continue;
             }
 
@@ -105,10 +105,10 @@ class AutoClockOutEmployeesJob implements ShouldQueue
                 ->first();
 
             if (!$storeHours || $storeHours->is_closed) {
-                // Log::warning('[AUTO CLOCK OUT] Store closed or no hours found', [
-                //     'employee_id' => $employee->id,
-                //     'day' => $dayName,
-                // ]);
+                Log::warning('[AUTO CLOCK OUT] Store closed or no hours found', [
+                    'employee_id' => $employee->id,
+                    'day' => $dayName,
+                ]);
                 continue;
             }
 
@@ -129,16 +129,46 @@ class AutoClockOutEmployeesJob implements ShouldQueue
                 $finalClockOutTime = $now;
             }
 
+
+            // Check active break before rounding
+           $activeBreak = $entry->breaks()
+            ->whereNotNull('start_time')
+            ->whereNull('end_time')
+            ->latest()
+            ->first();
+
             // Auto clock trigger time
             $autoClockOutAt = $storeEndTime->copy()
                 ->addMinutes($autoLimitMinutes);
 
             if ($now->lt($autoClockOutAt)) {
-                //  Log::info('[AUTO CLOCK OUT] Skipped - not reached auto clock out time', [
-                //     'employee_id' => $employee->id,
-                //     'auto_clock_out_at' => $autoClockOutAt->toDateTimeString(),
-                // ]);
+                 Log::info('[AUTO CLOCK OUT] Skipped - not reached auto clock out time', [
+                    'employee_id' => $employee->id,
+                    'auto_clock_out_at' => $autoClockOutAt->toDateTimeString(),
+                ]);
                 continue;
+            }
+
+            if ($activeBreak) {
+
+                Log::info('[AUTO CLOCK OUT] Active break detected', [
+                    'employee_id' => $employee->id,
+                    'break_id' => $activeBreak->id,
+                    'type' => $activeBreak->type,
+                    'start_time' => $activeBreak->start_time,
+                ]);
+
+                // Employee never returned from break.
+                // Treat break start as the actual clock-out time.
+                $finalClockOutTime = Carbon::parse($activeBreak->start_time);
+
+                $activeBreak->delete();
+
+                Log::info('[AUTO CLOCK OUT] Incomplete break removed', [
+                    'employee_id' => $employee->id,
+                    'break_id' => $activeBreak->id,
+                    'final_clock_out' => $finalClockOutTime->toDateTimeString(),
+                ]);
             }
 
             //  APPLY ROUNDING
@@ -149,10 +179,30 @@ class AutoClockOutEmployeesJob implements ShouldQueue
                 (int) $payIncrement
             );
 
-            // Log::info('[AUTO CLOCK OUT] After rounding', [
-            //     'employee_id' => $employee->id,
-            //     'final_clock_out' => $finalClockOutTime->toDateTimeString(),
-            // ]);
+            Log::info('[AUTO CLOCK OUT] After rounding', [
+                'employee_id' => $employee->id,
+                'final_clock_out' => $finalClockOutTime->toDateTimeString(),
+            ]);
+
+
+            if ($activeBreak) {
+
+               $systemNote = sprintf(
+                    'System Auto Clock-Out: Active %s break was not completed. The break record was removed and the employee was clocked out using the break start time (%s).',
+                    ucfirst($activeBreak->type),
+                    $finalClockOutTime->format('h:i A')
+                );
+
+                if (!empty(trim($entry->notes))) {
+                    $entry->notes .= PHP_EOL . PHP_EOL . $systemNote;
+                } else {
+                    $entry->notes = $systemNote;
+                }
+                Log::info('[AUTO CLOCK OUT] Note added to time entry', [
+                    'employee_id' => $employee->id,
+                    'note' => $systemNote,
+                ]);
+            }
 
             //  Save auto clock out
             $entry->clock_out = $finalClockOutTime;
@@ -160,12 +210,7 @@ class AutoClockOutEmployeesJob implements ShouldQueue
             $entry->updated_at = $finalClockOutTime;
             $entry->save();
 
-            // Log::info('[AUTO CLOCK OUT] SUCCESS - Employee auto clocked out', [
-            //     'employee_id' => $employee->id,
-            //     'clock_in' => $entry->clock_in,
-            //     'clock_out' => $finalClockOutTime->toDateTimeString(),
-            // ]);
-
+          
             //  SEND SMS AFTER AUTO CLOCK OUT
 
             $phoneNumber = $employee->mobile_phone ?? $employee->phone_number;
@@ -208,7 +253,7 @@ class AutoClockOutEmployeesJob implements ShouldQueue
 
         }
 
-        // Log::info('[AUTO CLOCK OUT] Job completed');
+        Log::info('[AUTO CLOCK OUT] Job completed');
 
     }
 }

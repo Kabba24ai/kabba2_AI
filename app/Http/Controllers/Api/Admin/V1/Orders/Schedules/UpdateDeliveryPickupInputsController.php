@@ -37,18 +37,34 @@ class UpdateDeliveryPickupInputsController extends Controller
                 }
             }
 
+            // Mark delivery/pickup as complete when this endpoint is called,
+            // regardless of whether the input fields have values.
+            if ($prefix === 'delivery') {
+                $fields['is_delivered']        = 1;
+                $fields['delivery_is_delivered'] = true;
+                $fields['delivery_status']       = 'Completed';
+            } else {
+                $fields['is_returned']        = 1;
+                $fields['pickup_is_delivered']  = true;
+                $fields['pickup_status']        = 'Completed';
+            }
+
             $schedule->fill($fields);
             $schedule->save();
         } catch (\Throwable $th) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Failed to update delivery/pickup inputs.',
+                'message' => $validated['type'] === 'delivery'
+                    ? 'Failed to update delivery.'
+                    : 'Failed to update pickup.',
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'status'  => true,
-            'message' => 'Delivery/pickup inputs updated successfully.',
+            'message' => $validated['type'] === 'delivery'
+                ? 'Delivery successfully.'
+                : 'Pickup successfully.',
         ]);
     }
 }

@@ -30,22 +30,30 @@ Route::group(['prefix' => 'users'], function () {
 
         Route::get('/vacation-Option', VacationOptionController::class);
 
-            //  UPDATE vacation settings
-        Route::put('/{user}/vacation', UpdateUserVacationController::class);
-
         Route::get('/attendance/summary', GetAdminAttendanceSummaryController::class);
 
         Route::get('/time-entries-list/{user}', TimeEntryListController::class);
 
         Route::get('/{user}/time-entries/export', ExportEmployeeTimeEntriesController::class);
 
-        Route::post('/time-entries/update', TimeEntryUpdateController::class);
+        /*
+        |--------------------------------------------------------------------------
+        | Admin-Only Mutations
+        |--------------------------------------------------------------------------
+        */
+        Route::middleware(['role.short:master_admin'])->group(function () {
 
-        Route::post('/time-entries/create', TimeEntryCreateController::class);
+            Route::put('/{user}/vacation', UpdateUserVacationController::class);
 
-        Route::post('/time-entries/create-empty', CreateEmptyTimeEntryController::class);
+            Route::post('/time-entries/update', TimeEntryUpdateController::class);
 
-        Route::post('/time-entries/bulk-update', TimeEntryBulkUpdateController::class);
+            Route::post('/time-entries/create', TimeEntryCreateController::class);
 
-        Route::post('/time-entries/delete', TimeEntryDeleteController::class);
+            Route::post('/time-entries/create-empty', CreateEmptyTimeEntryController::class);
+
+            Route::post('/time-entries/bulk-update', TimeEntryBulkUpdateController::class);
+
+            Route::post('/time-entries/delete', TimeEntryDeleteController::class);
+
+        });
 });

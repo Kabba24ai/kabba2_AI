@@ -27,6 +27,7 @@ class Task extends Model
         'related_customer_id',
         'related_equipment_id',
         'completed_at',
+        'completed_by_user_id',
     ];
 
     protected $casts = [
@@ -47,6 +48,11 @@ class Task extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function completedBy()
+    {
+        return $this->belongsTo(User::class, 'completed_by_user_id');
     }
 
     public function equipment()
@@ -82,6 +88,12 @@ class Task extends Model
     {
         return $query->whereDate('due_date', today())
             ->whereNotIn('status', ['completed', 'cancelled']);
+    }
+
+    public function scopeCompletedToday(Builder $query): Builder
+    {
+        return $query->where('status', 'completed')
+            ->whereDate('completed_at', today());
     }
 
     // ── Helpers ─────────────────────────────────────────────────────

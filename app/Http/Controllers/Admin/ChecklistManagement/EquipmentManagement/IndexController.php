@@ -25,9 +25,7 @@ class IndexController extends Controller
         // $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0)->orderBy('equipment_name', 'asc')->paginate(5);
         // ->get();
 
-        $currentlyAssigned = $request->input('currently_assigned', '1') !== '0';
-
-        $query = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
+        $query = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'softAssignments.orderProduct', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
             ->where('not_for_rent', 0)
             ->selectRaw("equipment.*, (
                 CASE WHEN (
@@ -42,7 +40,15 @@ class IndexController extends Controller
                           AND (op2.delivery_status = 'Pending' OR op2.pickup_status = 'Pending')
                     )
                 ) THEN 1 ELSE 0 END
-            ) AS is_assigned");
+            ) AS is_assigned, (
+                SELECT MIN(CASE
+                    WHEN op3.delivery_status = 'Pending' THEN op3.delivery_date
+                    WHEN op3.pickup_status = 'Pending'   THEN op3.pickup_date
+                END)
+                FROM order_products op3
+                WHERE op3.equipment_id = equipment.id
+                  AND (op3.delivery_status = 'Pending' OR op3.pickup_status = 'Pending')
+            ) AS earliest_pending_date");
 
         if ($request->search) {
             $search = $request->search;
@@ -76,37 +82,82 @@ class IndexController extends Controller
 
         $start = microtime(true);
 
+        $currentlyAssigned = $request->input('currently_assigned', '1') !== '0';
+
+        $query->leftJoin('product_categories', 'product_categories.id', '=', 'equipment.product_category_id');
+
         if ($currentlyAssigned) {
-            // Priority order (uses the is_assigned alias computed in selectRaw):
-            // 1 — assigned + maintenance hold (needs work before next rental)
-            // 2 — assigned + damaged          (needs work before next rental)
-            // 3 — maintenance, no active order
-            // 4 — damaged,     no active order
-            // 5 — rented   (out on rent; never elevated by assignment)
-            // 6 — available (never elevated by assignment)
-            $query->orderByRaw("
-                CASE
-                    WHEN is_assigned = 1 AND current_status = 'maintenance' THEN 1
-                    WHEN is_assigned = 1 AND current_status = 'damaged'     THEN 2
-                    WHEN current_status = 'maintenance'                     THEN 3
-                    WHEN current_status = 'damaged'                         THEN 4
-                    WHEN current_status = 'rented'                          THEN 5
-                    WHEN current_status = 'available'                       THEN 6
-                    ELSE 7
-                END
-            ");
+            // 6-level revenue-protection priority:
+            //   1. Assigned + Maintenance Hold — quickest to return to service; revenue already booked
+            //   2. Assigned + Damaged          — revenue at risk; longer repair time than Maint. Hold
+            //   3. Damaged (no assigned order) — needs attention but no immediate booking at stake
+            //   4. Maintenance Hold (no order) — routine; can wait behind unassigned damaged
+            //   5. Rented
+            //   6. Available
+            // Within each priority tier, sort by the nearest pending event (delivery or pickup),
+            // nulls last, then alphabetically by name.
+            // NOTE: the assignment check is inlined (not aliased) to guarantee MySQL resolves it
+            // correctly inside the CASE expression.
+            $query->orderByRaw("CASE
+                WHEN (
+                    EXISTS (
+                        SELECT 1 FROM order_products _chk
+                        WHERE _chk.equipment_id = equipment.id
+                          AND (_chk.delivery_status = 'Pending' OR _chk.pickup_status = 'Pending')
+                    ) OR EXISTS (
+                        SELECT 1 FROM equipment_soft_assigns _csa
+                        INNER JOIN order_products _cop ON _cop.id = _csa.order_product_id
+                        WHERE _csa.equipment_id = equipment.id
+                          AND (_cop.delivery_status = 'Pending' OR _cop.pickup_status = 'Pending')
+                    )
+                ) AND current_status = 'maintenance' THEN 1
+                WHEN (
+                    EXISTS (
+                        SELECT 1 FROM order_products _chk
+                        WHERE _chk.equipment_id = equipment.id
+                          AND (_chk.delivery_status = 'Pending' OR _chk.pickup_status = 'Pending')
+                    ) OR EXISTS (
+                        SELECT 1 FROM equipment_soft_assigns _csa
+                        INNER JOIN order_products _cop ON _cop.id = _csa.order_product_id
+                        WHERE _csa.equipment_id = equipment.id
+                          AND (_cop.delivery_status = 'Pending' OR _cop.pickup_status = 'Pending')
+                    )
+                ) AND current_status = 'damaged' THEN 2
+                WHEN current_status = 'damaged'     THEN 3
+                WHEN current_status = 'maintenance' THEN 4
+                WHEN current_status = 'rented'      THEN 5
+                WHEN current_status = 'available'   THEN 6
+                ELSE 7
+            END ASC")
+            ->orderByRaw("(
+                SELECT MIN(CASE
+                    WHEN _op3.delivery_status = 'Pending' THEN _op3.delivery_date
+                    WHEN _op3.pickup_status   = 'Pending' THEN _op3.pickup_date
+                END)
+                FROM order_products _op3
+                WHERE _op3.equipment_id = equipment.id
+                  AND (_op3.delivery_status = 'Pending' OR _op3.pickup_status = 'Pending')
+            ) IS NULL ASC")
+            ->orderByRaw("(
+                SELECT MIN(CASE
+                    WHEN _op3.delivery_status = 'Pending' THEN _op3.delivery_date
+                    WHEN _op3.pickup_status   = 'Pending' THEN _op3.pickup_date
+                END)
+                FROM order_products _op3
+                WHERE _op3.equipment_id = equipment.id
+                  AND (_op3.delivery_status = 'Pending' OR _op3.pickup_status = 'Pending')
+            ) ASC")
+            ->orderBy('equipment_name', 'asc');
         } else {
             $query->orderByRaw("CASE current_status
                 WHEN 'maintenance' THEN 1
                 WHEN 'damaged'     THEN 2
                 WHEN 'rented'      THEN 3
                 WHEN 'available'   THEN 4
-                ELSE 5 END");
+                ELSE 5 END")->orderBy('equipment_name', 'asc');
         }
 
-        $equipments = $query
-            ->orderBy('equipment_name', 'asc')
-            ->paginate(10);
+        $equipments = $query->paginate(10);
         // logger('EQUIPMENT QUERY: ' . (microtime(true) - $start) . ' sec');
 
         $start = microtime(true);

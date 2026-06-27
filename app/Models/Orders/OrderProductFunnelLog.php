@@ -17,8 +17,15 @@ class OrderProductFunnelLog extends Model
         'step_type',
         'step_name',
         'message',
+        'notes',
         'status',
         'sent_at',
+        'twilio_sid',
+        'sms_timezone',
+    ];
+
+    protected $casts = [
+        'sent_at' => 'datetime',
     ];
 
     public function orderProduct()

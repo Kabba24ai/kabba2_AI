@@ -24,7 +24,13 @@ use App\Models\Dashboard\FuelNotePreset;
 
 use App\Helpers\CustomHelper;
 use App\Models\MaintenanceManagement\Supplier;
-
+use App\Models\Customers\CustomerCallNeeded;
+use App\Models\Tasks\Task;
+use App\Enums\Tasks\TaskCategory;
+use App\Enums\Tasks\TaskPriority;
+use App\Enums\Tasks\TaskStatus;
+use App\Models\ProductManagement\ProductCategory;
+use Illuminate\Support\Collection;
 
 use Illuminate\Support\Facades\DB;
 
@@ -344,7 +350,14 @@ class IndexController extends Controller
 
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 
-        return view('admin.dashboard.index', compact('salesData','customers','suppliers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets','fuelNotePresets','sales_tax'));
+        $teamWorkload = $this->getTeamWorkloadSummary();
+
+        $categories = TaskCategory::cases();
+        $priorities = TaskPriority::cases();
+        $statuses   = TaskStatus::cases();
+        ['productCategories' => $productCategories, 'equipmentList' => $equipmentList] = $this->getEquipmentDataForDashboard();
+
+        return view('admin.dashboard.index', compact('salesData','customers','suppliers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets','fuelNotePresets','sales_tax','teamWorkload','categories','priorities','statuses','productCategories','equipmentList'));
 
     }
 
@@ -794,6 +807,76 @@ private function getRevenueRows(Carbon $start, Carbon $end)
       return $orderRows
         ->concat($orderRefundedPayments)
         ->concat($payments);
+}
+
+private function getTeamWorkloadSummary(): Collection
+{
+    $openTasks = Task::open()
+        ->whereNotNull('assigned_to_user_id')
+        ->with('assignedTo')
+        ->get();
+
+    $openCalls = CustomerCallNeeded::where('status', 'active')
+        ->where(fn($q) => $q->whereNull('follow_up_at')->orWhere('follow_up_at', '<=', now()))
+        ->whereNotNull('created_by')
+        ->with('assignee')
+        ->get();
+
+    $summary = [];
+
+    foreach ($openTasks as $task) {
+        $uid = $task->assigned_to_user_id;
+        if (!isset($summary[$uid])) {
+            $summary[$uid] = ['user' => $task->assignedTo, 'task_count' => 0, 'call_count' => 0, 'urgent_count' => 0, 'overdue_count' => 0];
+        }
+        $summary[$uid]['task_count']++;
+        if ($task->priority?->value === 'urgent') $summary[$uid]['urgent_count']++;
+        if ($task->isOverdue()) $summary[$uid]['overdue_count']++;
+    }
+
+    foreach ($openCalls as $call) {
+        $uid = $call->created_by;
+        if (!isset($summary[$uid])) {
+            $summary[$uid] = ['user' => $call->assignee, 'task_count' => 0, 'call_count' => 0, 'urgent_count' => 0, 'overdue_count' => 0];
+        }
+        $summary[$uid]['call_count']++;
+        if (($call->priority?->value === 'urgent') || $call->is_urgent) $summary[$uid]['urgent_count']++;
+        if ($call->due_date && $call->due_date->isPast()) $summary[$uid]['overdue_count']++;
+    }
+
+    return collect(array_values($summary))->sort(function ($a, $b) {
+        if ($b['urgent_count'] !== $a['urgent_count']) return $b['urgent_count'] - $a['urgent_count'];
+        if ($b['overdue_count'] !== $a['overdue_count']) return $b['overdue_count'] - $a['overdue_count'];
+        $totalDiff = ($b['task_count'] + $b['call_count']) - ($a['task_count'] + $a['call_count']);
+        if ($totalDiff !== 0) return $totalDiff;
+        return strcmp($a['user']?->full_name ?? '', $b['user']?->full_name ?? '');
+    })->values();
+}
+
+private function getEquipmentDataForDashboard(): array
+{
+    $usedCategoryIds = Equipment::whereNotNull('product_category_id')->pluck('product_category_id')->unique();
+
+    $productCategories = ProductCategory::whereNull('parent_id')
+        ->whereIn('id', $usedCategoryIds)
+        ->orderBy('title')
+        ->get(['id', 'title']);
+
+    $statusLabels = ['available' => 'Available', 'rented' => 'Rented', 'maintenance' => 'Maint. Hold', 'damaged' => 'Damaged'];
+
+    $equipmentList = Equipment::whereNotNull('product_category_id')
+        ->orderBy('equipment_name')
+        ->get(['id', 'equipment_id', 'equipment_name', 'product_category_id', 'current_status', 'serial_number'])
+        ->map(fn($e) => [
+            'id'           => $e->id,
+            'equipment_id' => $e->equipment_id,
+            'name'         => $e->equipment_name,
+            'category_id'  => $e->product_category_id,
+            'status'       => $statusLabels[$e->getRawOriginal('current_status')] ?? '',
+            'serial'       => $e->serial_number ?? '',
+        ]);
+
+    return compact('productCategories', 'equipmentList');
 }
 
 private function getServiceStatusCounts()

@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\Configurations\NotificationSettings\SaveControlle
 use App\Http\Controllers\Admin\Configurations\NotificationSettings\SaveManualController as SaveManualNotificationController;
 
 use App\Http\Controllers\Admin\Configurations\ApplicationCodeSettings\SaveController as SaveApplicationCodeController;
+use App\Http\Controllers\Admin\Configurations\TimezoneSettings\SaveController as SaveTimezoneSettingsController;
 
 
 use App\Http\Controllers\Admin\Configurations\NotificationSettings\DeleteController as DeleteNotificationSettingsController;
@@ -51,6 +52,7 @@ Route::prefix('configurations')
     Route::post('/profile-settings', SaveProfileSettingsController::class)->name('save-profile-settings');
 Route::post('/application-code-settings', SaveApplicationCodeController::class)
     ->name('save-application-code-settings');
+    Route::post('/timezone-settings', SaveTimezoneSettingsController::class)->name('save-timezone-settings');
 
     Route::post('/verify-master', VerifyMasterController::class)->name('verify-master');
     Route::post('/settings/reset', SettingsResetController::class)->name('reset-settings');

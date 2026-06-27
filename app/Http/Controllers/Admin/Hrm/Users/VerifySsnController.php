@@ -27,19 +27,26 @@ class VerifySsnController extends Controller
             ], 403);
         }
 
-         $decryptedSsn = null;
+        if (!$user->social_security) {
+            return response()->json([
+                'success'     => true,
+                'ssn'         => null,
+                'ssn_missing' => true,
+            ]);
+        }
 
-        if ($user->social_security) {
-            try {
-                $decryptedSsn = Crypt::decryptString($user->social_security);
-            } catch (\Exception $e) {
-                $decryptedSsn = null;
-            }
+        try {
+            $decryptedSsn = Crypt::decryptString($user->social_security);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to decrypt SSN. The stored value may be corrupted.',
+            ], 422);
         }
 
         return response()->json([
             'success' => true,
-            'ssn' => $decryptedSsn, // original SSN
+            'ssn'     => $decryptedSsn,
         ]);
     }
 }

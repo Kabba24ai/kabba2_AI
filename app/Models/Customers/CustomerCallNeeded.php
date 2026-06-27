@@ -2,6 +2,8 @@
 
 namespace App\Models\Customers;
 
+use App\Enums\Tasks\TaskCategory;
+use App\Enums\Tasks\TaskPriority;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Iam\Personnel\User;
@@ -14,10 +16,13 @@ class CustomerCallNeeded extends Model
         'customer_id',
         'supplier_id',
         'reason',
+        'category',
         'notes',
         'status',
         'created_by',
         'is_urgent',
+        'priority',
+        'due_date',
         'auth_by',
         'contact_name',
         'contact_email',
@@ -26,11 +31,17 @@ class CustomerCallNeeded extends Model
         'follow_up_note',
         'rescheduled_by',
         'rescheduled_at',
+        'completed_at',
+        'completed_by',
     ];
 
     protected $casts = [
         'follow_up_at'   => 'datetime',
         'rescheduled_at' => 'datetime',
+        'priority'       => TaskPriority::class,
+        'category'       => TaskCategory::class,
+        'due_date'       => 'datetime',
+        'completed_at'   => 'datetime',
     ];
 
     public function customer()
@@ -51,6 +62,11 @@ class CustomerCallNeeded extends Model
 public function assignee()
 {
     return $this->belongsTo(User::class, 'created_by');
+}
+
+public function completedBy()
+{
+    return $this->belongsTo(User::class, 'completed_by');
 }
 
 public function notes()

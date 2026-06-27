@@ -65,7 +65,7 @@
                         @empty
                             <tr>
                                 <td colspan="4" class="px-3 py-6 text-center text-gray-400 text-sm italic">
-                                    No equipment
+                                    No inventory found
                                 </td>
                             </tr>
                         @endforelse

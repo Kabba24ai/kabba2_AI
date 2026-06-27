@@ -191,7 +191,7 @@ class CustomHelper
         return Carbon::parse($date)->format($format);
     }
 
-    public static function formatTime($time, $format = 'H:i A')
+    public static function formatTime($time, $format = 'H:i')
     {
         if (empty($time)) {
             return null;
@@ -902,5 +902,32 @@ class CustomHelper
         $refundAmount - ($refundAmount / (1 + $taxRate)),
         2
     );
+}
+
+public static function formatCallReason(?string $reason): string
+{
+    $labels = [
+        'contract_renewal'       => 'Contract Renewal',
+        'delivery_pickup'        => 'Delivery / Pickup',
+        'equipment_availability' => 'Equipment Availability',
+        'equipment_return'       => 'Equipment Return',
+        'general_followup'       => 'General Follow-up',
+        'maintenance_request'    => 'Maintenance Request',
+        'order_review'           => 'Order Review',
+        'payment_followup'       => 'Payment Follow-up',
+        'rental_inquiry'         => 'Rental Inquiry',
+        'returning_call'         => 'Returning Their Call',
+        'availability_lead_time' => 'Availability / Lead Time',
+        'equipment_service'      => 'Equipment Service / Technical Support',
+        'invoice_billing'        => 'Invoice / Billing Question',
+        'order_parts'            => 'Order Parts',
+        'order_status'           => 'Order Status',
+        'other'                  => 'Other',
+        'price_quote'            => 'Price Quote',
+        'return_exchange'        => 'Return / Exchange',
+        'warranty_defective'     => 'Warranty / Defective Item',
+    ];
+
+    return $labels[$reason] ?? ucwords(str_replace('_', ' ', $reason ?? ''));
 }
 }

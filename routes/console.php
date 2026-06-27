@@ -46,13 +46,16 @@ Schedule::job(new \App\Jobs\SendReturnSameDayRentalReminderJob())
 
 Schedule::job(new \App\Jobs\AutoClockOutEmployeesJob())
     ->cron('*/20 * * * *')
+    // ->everyMinute()
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()
     ->name('auto-clock-out-employees');
 
 Schedule::job(new \App\Jobs\AutoLunchReminderJob())
-    ->everyFiveMinutes()
+    // ->everyFiveMinutes()
+    ->everyMinute()
+
     ->timezone('America/Chicago')
     ->withoutOverlapping()
     ->onOneServer()

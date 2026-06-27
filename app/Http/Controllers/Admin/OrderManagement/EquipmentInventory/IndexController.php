@@ -146,8 +146,7 @@ class IndexController extends Controller
                         ->get();
                 }
 
-                $storeIds        = $allEquipment->pluck('store_id')->unique()->filter();
-                $storeViewStores = Store::whereIn('id', $storeIds)->orderBy('store_name')->get();
+                $storeViewStores = Store::active()->orderBy('store_name')->get();
 
                 $html = view('admin.order_management.equipment_inventory.partials._store_view', [
                     'allEquipment'    => $allEquipment,

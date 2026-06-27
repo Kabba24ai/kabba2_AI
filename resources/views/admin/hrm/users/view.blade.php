@@ -290,7 +290,7 @@
             </div>
 
             <div class="px-5 pb-4">
-                <p class="text-sm text-gray-600 mb-3">Enter your Master Password to edit the Admin Code.</p>
+                <p class="text-sm text-gray-600 mb-3">Enter your Master Password to reveal the Social Security Number.</p>
 
                 <div class="relative">
                     <input id="verify-password" type="password" autocomplete="current-password"
@@ -312,7 +312,7 @@
                         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-60"
                         id="verify-submit">
                         <x-heroicon-o-lock-closed class="w-4 h-4" />
-                        Verify & Edit
+                        Verify & Reveal
                     </button>
                     <button type="button"
                         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -442,9 +442,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const field = document.getElementById(targetFieldId);
 
             if (field.tagName === 'P') {
-                field.textContent = data.field_value || data.ssn;
+                if (data.ssn) {
+                    field.textContent = data.ssn;
+                    field.classList.remove('text-gray-400', 'italic');
+                } else {
+                    field.textContent = 'SSN not on file';
+                    field.classList.add('text-gray-400', 'italic');
+                }
             } else {
-                field.value = data.field_value || '';
+                field.value = data.ssn || data.field_value || '';
                 field.removeAttribute('disabled');
                 field.type = 'text';
             }

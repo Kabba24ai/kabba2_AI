@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists;
 
+use App\Enums\Billing\BillingChargeType;
+use App\Enums\Billing\BillingSourceEvent;
+use App\Enums\Billing\BillingSourceModule;
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
+use App\Http\DataObjects\BillingChargeRequest;
+use App\Services\BillingEngine;
 use App\Services\ChargeService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists\SaveReturnRequest;
@@ -131,7 +137,49 @@ class SaveReturnController extends BaseController
         // If the checklist recorded a fuel charge, create the CA ledger entry
         if (!empty($orderProductData['fuel_total_charge']) && $orderProductData['fuel_total_charge'] > 0) {
             $orderProduct->refresh();
-            ChargeService::createFromOrderProduct($orderProduct, 'fuel', $validated['user_id'] ?? null);
+            $legacyCa = ChargeService::createFromOrderProduct($orderProduct, 'fuel', $validated['user_id'] ?? null);
+
+            // ── Billing Engine bridge (Phase 3D) — fires only when legacy CA was created ──
+            if ($legacyCa !== null) {
+                try {
+                    BillingEngine::charge(new BillingChargeRequest(
+                        type:                BillingChargeType::Fuel->value,
+                        orderId:             $orderProduct->order_id,
+                        customerId:          (int) $legacyCa->customer_id,
+                        amount:              (float) $orderProduct->fuel_total_charge,
+                        taxType:             'free',
+                        orderProductId:      $orderProduct->id,
+                        responsiblePersonId: isset($validated['user_id']) ? (int) $validated['user_id'] : null,
+                        sourceModule:        BillingSourceModule::MobileChecklist->value,
+                        sourceEvent:         BillingSourceEvent::ReturnChecklistFuelCharge->value,
+                        sourceReferenceType: 'OrderProduct',
+                        sourceReferenceId:   $orderProduct->id,
+                        metadata: [
+                            'legacy_controller'          => 'SaveReturnController',
+                            'legacy_service'             => 'ChargeService::createFromOrderProduct',
+                            'legacy_customer_account_id' => $legacyCa->id,
+                            'order_id'                   => $orderProduct->order_id,
+                            'order_product_id'           => $orderProduct->id,
+                            'customer_id'                => $legacyCa->customer_id,
+                            'fuel_initial_reading'       => $orderProduct->fuel_initial_reading,
+                            'fuel_final_reading'         => $orderProduct->fuel_final_reading,
+                            'fuel_total_charge'          => $orderProduct->fuel_total_charge,
+                            'product_id'                 => $orderProduct->product_id,
+                            'equipment_id'               => $orderProduct->equipment_id,
+                            'submitted_by_user_id'       => $validated['user_id'] ?? null,
+                            'mobile_source'              => true,
+                        ],
+                        idempotencyKey:    "mobile_return_fuel:{$orderProduct->id}:{$orderProduct->fuel_final_reading}",
+                        customerAccountId: $legacyCa->id,
+                    ));
+                } catch (\Throwable $e) {
+                    Log::channel('billing_engine')->error(
+                        "BillingEngine bridge failed | controller=SaveReturnController " .
+                        "| order_product_id={$orderProduct->id} | customer_account_id={$legacyCa->id} " .
+                        "| error=" . $e->getMessage()
+                    );
+                }
+            }
         }
 
         if ($equipment) {

@@ -183,62 +183,44 @@ const salesDataFromServer = @json($salesData);
                     if (alert.orderLink) window.location.href = alert.orderLink;
                 };
 
-                // Edit amount — hide for CRM alerts (no order_product context)
-                const editAmountBtn = item.querySelector("[data-edit-amount]");
+                // Make Payment — always shown for all fuel alerts
+                item.querySelector("[data-pay-btn]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "paid");
+
+                // Mark Resolved — non-CRM only
+                const resolveBtn = item.querySelector("[data-resolve-btn]");
                 if (isCrm) {
-                    editAmountBtn.classList.add("hidden");
+                    resolveBtn.classList.add("hidden");
                 } else {
-                    editAmountBtn.onclick = () => {
+                    resolveBtn.onclick = () => this.openResolvedModal(alert);
+                }
+
+                // Mark Uncollectible — non-CRM only
+                const uncollectibleBtn = item.querySelector("[data-uncollectible-btn]");
+                if (isCrm) {
+                    uncollectibleBtn.classList.add("hidden");
+                } else {
+                    uncollectibleBtn.onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
+                }
+
+                // Add Note — always shown
+                item.querySelector("[data-note-btn]").onclick = () => {
+                    this.editingAlert = alert;
+                    this.tempNotes = "";
+                    this.activeOrderUniqueId = alert.orderId;
+                    this.openNotesModal(alert);
+                };
+
+                // Adjust — non-CRM only (CRM has no order_product context)
+                const adjustBtn = item.querySelector("[data-adjust-btn]");
+                if (isCrm) {
+                    adjustBtn.classList.add("hidden");
+                } else {
+                    adjustBtn.onclick = () => {
                         this.editingAlert = alert;
                         this.tempAmount = alert.amountOwed === "Pending" ? "" : alert.amountOwed.replace("$", "");
                         this.openAmountModal(alert);
                     };
                 }
-
-                // Status dropdown toggle
-                const dropdown = item.querySelector("[data-status-dropdown]");
-                item.querySelector("[data-status-btn]").onclick = () => {
-                    dropdown.classList.toggle("hidden");
-                };
-
-                // Status actions
-                item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "paid");
-
-                // Hide "Mark as Resolved" and "Mark as Uncollectable" for CRM-originated charges
-                if (isCrm) {
-                    item.querySelector("[data-resolved]")?.remove();
-                    item.querySelector("[data-uncollectible]")?.remove();
-                } else {
-                    item.querySelector("[data-uncollectible]").onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
-                    item.querySelector("[data-resolved]").onclick = () => {
-                        dropdown.classList.add("hidden");
-                        this.openResolvedModal(alert);
-                    };
-                }
-
-                // Edit notes
-                // item.querySelector("[data-edit-notes]").onclick = () => {
-                //     this.editingAlert = alert;
-                //     // this.tempNotes = alert.notes || "";
-
-                //     this.tempNotes = alert.notes || "";
-                    
-                //     this.activeOrderUniqueId = alert.orderId;
-
-                //     this.openNotesModal(alert);
-
-                // };
-
-
-                item.querySelector("[data-edit-notes]").onclick = () => {
-                    this.editingAlert = alert;
-                    this.tempNotes = "";
-                    // this.showNotesModal = true;
-                    this.activeOrderUniqueId = alert.orderId;
-
-                    this.openNotesModal(alert);
-
-                };
 
                 // Amount display
                 const amountEl = item.querySelector("[data-amount]");

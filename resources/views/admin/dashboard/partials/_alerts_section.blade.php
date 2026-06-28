@@ -47,27 +47,40 @@
                                     </button>
                                 </div>
 
-                                <div class="px-1">
-                                    <button data-edit-amount class="p-1.5 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"><svg  fill="currentColor" class="w-5 h-5 " xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M296 88C296 74.7 306.7 64 320 64C333.3 64 344 74.7 344 88L344 128L400 128C417.7 128 432 142.3 432 160C432 177.7 417.7 192 400 192L285.1 192C260.2 192 240 212.2 240 237.1C240 259.6 256.5 278.6 278.7 281.8L370.3 294.9C424.1 302.6 464 348.6 464 402.9C464 463.2 415.1 512 354.9 512L344 512L344 552C344 565.3 333.3 576 320 576C306.7 576 296 565.3 296 552L296 512L224 512C206.3 512 192 497.7 192 480C192 462.3 206.3 448 224 448L354.9 448C379.8 448 400 427.8 400 402.9C400 380.4 383.5 361.4 361.3 358.2L269.7 345.1C215.9 337.5 176 291.4 176 237.1C176 176.9 224.9 128 285.1 128L296 128L296 88z"/></svg> </button>
-                                </div>
-
-                                <div class="px-1 relative">
-                                    <button data-status-btn class="p-1.5 text-sm text-green-600 hover:text-green-800 hover:bg-green-100 rounded transition-colors"><svg fill="currentColor" class="w-5 h-5 " xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M297.4 470.6C309.9 483.1 330.2 483.1 342.7 470.6L534.7 278.6C547.2 266.1 547.2 245.8 534.7 233.3C522.2 220.8 501.9 220.8 489.4 233.3L320 402.7L150.6 233.4C138.1 220.9 117.8 220.9 105.3 233.4C92.8 245.9 92.8 266.2 105.3 278.7L297.3 470.7z"/></svg> </button>
-
-                                    <div data-status-dropdown class="hidden absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[160px]">
-
-                                        <button data-paid class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Make a Payment</button>
-
-                                        <button data-resolved class="w-full px-3 py-2 text-left text-sm text-green-700 hover:bg-green-50">Mark as Resolved</button>
-
-                                        <button data-uncollectible class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Mark as Uncollectible</button>
-                                    </div>
-                                </div>
-
-                                <div class="px-1 flex items-center gap-0.5">
-                                    <button data-edit-notes class="p-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors" title="Add Note">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.966 8.966 0 0 0-6 2.292m0-14.25v14.25" />
+                                <div class="flex items-center gap-1">
+                                    {{-- Make Payment: green --}}
+                                    <button data-pay-btn title="Make a Payment" aria-label="Make a Payment"
+                                        class="w-6 h-6 rounded flex items-center justify-center text-green-600 hover:bg-green-100 transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                        </svg>
+                                    </button>
+                                    {{-- Mark Resolved: blue (hidden for CRM via JS) --}}
+                                    <button data-resolve-btn title="Mark as Resolved" aria-label="Mark as Resolved"
+                                        class="w-6 h-6 rounded flex items-center justify-center text-blue-600 hover:bg-blue-100 transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                        </svg>
+                                    </button>
+                                    {{-- Mark Uncollectible: red (hidden for CRM via JS) --}}
+                                    <button data-uncollectible-btn title="Mark as Uncollectible" aria-label="Mark as Uncollectible"
+                                        class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                        </svg>
+                                    </button>
+                                    {{-- Add Note: gray (always visible) --}}
+                                    <button data-note-btn title="Add Note" aria-label="Add Note"
+                                        class="w-6 h-6 rounded flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
+                                    </button>
+                                    {{-- Adjust: amber (hidden for CRM via JS) --}}
+                                    <button data-adjust-btn title="Adjust Fuel Charge" aria-label="Adjust Fuel Charge"
+                                        class="w-6 h-6 rounded flex items-center justify-center text-amber-500 hover:bg-amber-100 transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                                         </svg>
                                     </button>
                                     <span data-notes-count class="hidden text-xs font-semibold text-blue-600 hover:text-blue-800 cursor-pointer px-0.5" title="View notes"></span>

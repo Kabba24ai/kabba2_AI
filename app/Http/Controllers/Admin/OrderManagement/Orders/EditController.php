@@ -67,7 +67,7 @@ class EditController extends Controller
 
         // Billing Engine charges for this order
         $billingCharges = \App\Models\Orders\BillingCharge::where('parent_order_id', $order->id)
-            ->with(['createdBy:id,first_name,last_name', 'responsiblePerson:id,first_name,last_name', 'childOrder:id,unique_id,order_number', 'legacyCustomerAccount:id,unique_id'])
+            ->with(['createdBy:id,first_name,last_name', 'responsiblePerson:id,first_name,last_name', 'childOrder:id,unique_id,order_number', 'legacyCustomerAccount:id,unique_id', 'orderProduct:id'])
             ->latest()
             ->get();
 

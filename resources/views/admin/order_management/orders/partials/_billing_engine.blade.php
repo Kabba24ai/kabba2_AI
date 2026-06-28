@@ -6,9 +6,11 @@
     Both billing_charge_type and status are cast to backed enums on the model.
     All enum usage goes through ->value, ->label(), ->badgeClass(), ->isOpen().
 
-    Action icons appear on fuel_charge rows only (not damage, extension, or other types).
+    Action icons appear on fuel and damage rows. Extension rows show no actions.
     Payment modal is a standard form POST to admin.dashboard.paymentstore (source=crm).
-    Resolve / Uncollectible / Note / Adjust use AJAX via new billing-engine-specific routes.
+    Resolve / Uncollectible / Note / Adjust use AJAX via billing-engine-specific routes.
+    View Damage Details (damage only): shown when BillingCharge has an orderProduct linked.
+    Icon order matches Dashboard Damage Alerts: Pay → Resolve → Uncollectible → View → Adjust → Note.
 --}}
 @if($billingCharges->isNotEmpty())
 <div class="bg-white rounded-xl border border-green-200 shadow-sm mb-4">
@@ -63,11 +65,14 @@
                         $tax         = $charge->tax_amount ?? 0.0;
                         $total       = $base + $tax;
 
-                        $isFuel      = $typeValue === 'fuel';
-                        $addedBy     = $charge->createdBy?->full_name ?? $charge->responsiblePerson?->full_name ?? '—';
+                        $isFuel          = $typeValue === 'fuel';
+                        $isDamage        = $typeValue === 'damage';
+                        $addedBy         = $charge->createdBy?->full_name ?? $charge->responsiblePerson?->full_name ?? '—';
 
                         // Payment needs the legacy CA unique_id
-                        $caUniqueId  = $charge->legacyCustomerAccount?->unique_id ?? '';
+                        $caUniqueId      = $charge->legacyCustomerAccount?->unique_id ?? '';
+                        // View Damage Details requires a linked OrderProduct (only mobile-checklist damage charges set this)
+                        $hasOrderProduct = $isDamage && $charge->orderProduct !== null;
                     @endphp
 
                     <tr class="hover:bg-gray-50 transition-colors">
@@ -146,7 +151,8 @@
                                      data-be-base="{{ $base }}"
                                      data-be-total="{{ $total }}"
                                      data-be-is-open="{{ $isOpen ? '1' : '0' }}"
-                                     data-be-type="{{ $typeValue }}">
+                                     data-be-type="{{ $typeValue }}"
+                                     data-be-order-product-id="{{ $charge->orderProduct?->id ?? '' }}">
 
                                     @if($isOpen)
                                         {{-- Make a Payment --}}
@@ -176,17 +182,28 @@
                                             <x-heroicon-o-x-circle class="w-4 h-4" />
                                         </button>
 
-                                        {{-- Adjust Fuel Charge --}}
+                                        {{-- View Damage Details (damage only, requires linked OrderProduct) --}}
+                                        @if($hasOrderProduct)
+                                            <button type="button"
+                                                onclick="beOpenViewDamage(this.closest('[data-be-unique-id]'))"
+                                                title="View Damage Details"
+                                                class="w-6 h-6 rounded flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition"
+                                                aria-label="View Damage Details">
+                                                <x-heroicon-o-eye class="w-4 h-4" />
+                                            </button>
+                                        @endif
+
+                                        {{-- Adjust Charge --}}
                                         <button type="button"
                                             onclick="beOpenAdjust(this.closest('[data-be-unique-id]'))"
-                                            title="Adjust Fuel Charge"
+                                            title="{{ $isDamage ? 'Adjust Damage Charge' : 'Adjust Fuel Charge' }}"
                                             class="w-6 h-6 rounded flex items-center justify-center text-amber-500 hover:bg-amber-100 transition"
-                                            aria-label="Adjust Fuel Charge">
+                                            aria-label="{{ $isDamage ? 'Adjust Damage Charge' : 'Adjust Fuel Charge' }}">
                                             <x-heroicon-o-adjustments-horizontal class="w-4 h-4" />
                                         </button>
                                     @endif
 
-                                    {{-- Add Note (always available for fuel rows) --}}
+                                    {{-- Add Note (always visible) --}}
                                     <button type="button"
                                         onclick="beOpenNote(this.closest('[data-be-unique-id]'))"
                                         title="Add Note"

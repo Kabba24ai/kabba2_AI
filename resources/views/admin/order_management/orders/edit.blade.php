@@ -3394,6 +3394,40 @@
         </div>
     </div>
 
+{{-- View Damage Details modal (damage charges with a linked OrderProduct) --}}
+<div id="beViewDamageModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-xl border border-gray-200 overflow-hidden flex flex-col max-h-[80vh]">
+        <div class="px-6 pt-4 border-b flex justify-between items-center pb-3">
+            <div>
+                <h3 class="text-base font-semibold text-gray-800">Damage Details</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Checklist items and damage charges</p>
+            </div>
+            <button type="button" onclick="beCloseModal('beViewDamageModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+        <div class="px-6 py-4 overflow-auto">
+            <div id="beViewDamageLoading" class="text-sm text-gray-500 py-4">Loading…</div>
+            <div id="beViewDamageEmpty" class="hidden text-sm text-gray-500 text-center py-4">No damage detail records found.</div>
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50 text-gray-600">
+                    <tr class="text-left border-b">
+                        <th class="py-2 px-2 text-xs">Checklist Item</th>
+                        <th class="py-2 px-2 text-xs">Delivered</th>
+                        <th class="py-2 px-2 text-xs">Returned</th>
+                        <th class="py-2 px-2 text-xs text-right">Customer Owes</th>
+                    </tr>
+                </thead>
+                <tbody id="beViewDamageTbody" class="text-gray-800"></tbody>
+            </table>
+        </div>
+        <div class="px-6 py-3 border-t flex justify-end">
+            <button type="button" onclick="beCloseModal('beViewDamageModal')"
+                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
 {{-- ╔══════════════════════════════════════════════════════════════════════╗
      ║  Billing Engine — Charge Action Modals                              ║
      ║  Shown for billing_charges.billing_charge_type = 'fuel' or         ║
@@ -6393,7 +6427,8 @@
 
     // ── Billing Engine — Charge Actions ──────────────────────────────────────
     (function () {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken      = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const beCurrentOrderId = {{ $order->id }};
         let beActiveUniqueId = '';
         let beActiveCaUniqueId = '';
         let beActiveCustomerId = '';
@@ -6465,6 +6500,54 @@
                 preview.textContent = '$' + next.toFixed(2);
             };
             beOpenModal('beFuelAdjustModal');
+        };
+
+        window.beOpenViewDamage = function(row) {
+            beSetActive(row);
+
+            const modal   = document.getElementById('beViewDamageModal');
+            const loading = document.getElementById('beViewDamageLoading');
+            const empty   = document.getElementById('beViewDamageEmpty');
+            const tbody   = document.getElementById('beViewDamageTbody');
+
+            tbody.innerHTML = '';
+            empty.classList.add('hidden');
+            loading.classList.remove('hidden');
+            beOpenModal('beViewDamageModal');
+
+            // ExtraChargesShowController expects the Order's integer PK
+            const url = '{{ route('admin.dashboard.extra-charges.show', ':id') }}'.replace(':id', beCurrentOrderId);
+            fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                loading.classList.add('hidden');
+                const rows = data?.checklist?.rows || [];
+                const hasDamage = data?.damage?.final > 0;
+                if (!rows.length && !hasDamage) { empty.classList.remove('hidden'); return; }
+                rows.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b';
+                    tr.innerHTML = `
+                        <td class="py-2 px-2 text-xs">${row.item ?? ''}</td>
+                        <td class="py-2 px-2 text-xs">${row.delivered ?? 'Admin Override'}</td>
+                        <td class="py-2 px-2 text-xs">${row.returned ?? '—'}</td>
+                        <td class="py-2 px-2 text-xs text-right text-red-600">$${parseFloat(row.amount ?? 0).toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                if (hasDamage) {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-t-2 font-semibold';
+                    tr.innerHTML = `
+                        <td class="py-2 px-2 text-xs" colspan="3">Total Damage</td>
+                        <td class="py-2 px-2 text-xs text-right text-red-700">$${parseFloat(data.damage.final).toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            })
+            .catch(() => { loading.classList.add('hidden'); empty.classList.remove('hidden'); });
         };
 
         function bePost(url, payload, btnId, successMsg) {

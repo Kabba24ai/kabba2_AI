@@ -140,63 +140,75 @@
                     <template id="damage-alert-item-template">
                         <div class="alert-item bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
 
-                            <div class="flex items-center justify-between p-3">
-                                <div class="flex-1 min-w-0">
+                            <div class="flex items-center p-3 gap-2">
+
+                                {{-- Col 1: Fixed-width customer name (matches Fuel Charge Alerts) --}}
+                                <div class="w-36 flex-shrink-0 overflow-hidden">
                                     <h4 class="text-sm font-semibold text-gray-800 truncate" data-customer></h4>
                                 </div>
 
-                                <div class="flex-1 min-w-0 px-2 truncate flex justify-center">
-                                    <button data-order-btn class="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors ">
-                                        <span data-order-id></span>
-                                     <svg fill="currentColor" class="w-4 h-4 ml-1 text-xs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M354.4 83.8C359.4 71.8 371.1 64 384 64L544 64C561.7 64 576 78.3 576 96L576 256C576 268.9 568.2 280.6 556.2 285.6C544.2 290.6 530.5 287.8 521.3 278.7L464 221.3L310.6 374.6C298.1 387.1 277.8 387.1 265.3 374.6C252.8 362.1 252.8 341.8 265.3 329.3L418.7 176L361.4 118.6C352.2 109.4 349.5 95.7 354.5 83.7zM64 240C64 195.8 99.8 160 144 160L224 160C241.7 160 256 174.3 256 192C256 209.7 241.7 224 224 224L144 224C135.2 224 128 231.2 128 240L128 496C128 504.8 135.2 512 144 512L400 512C408.8 512 416 504.8 416 496L416 416C416 398.3 430.3 384 448 384C465.7 384 480 398.3 480 416L480 496C480 540.2 444.2 576 400 576L144 576C99.8 576 64 540.2 64 496L64 240z"/></svg>
-                                    </button>
-                                </div>
+                                {{-- Col 2: Order ID · icons · amount --}}
+                                <div class="flex-1 min-w-0 flex items-center">
 
-                                <div class="px-1">
-                                    <button data-edit-amount class="p-1.5 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-5 h-5 " viewBox="0 0 640 640"><path d="M296 88C296 74.7 306.7 64 320 64C333.3 64 344 74.7 344 88L344 128L400 128C417.7 128 432 142.3 432 160C432 177.7 417.7 192 400 192L285.1 192C260.2 192 240 212.2 240 237.1C240 259.6 256.5 278.6 278.7 281.8L370.3 294.9C424.1 302.6 464 348.6 464 402.9C464 463.2 415.1 512 354.9 512L344 512L344 552C344 565.3 333.3 576 320 576C306.7 576 296 565.3 296 552L296 512L224 512C206.3 512 192 497.7 192 480C192 462.3 206.3 448 224 448L354.9 448C379.8 448 400 427.8 400 402.9C400 380.4 383.5 361.4 361.3 358.2L269.7 345.1C215.9 337.5 176 291.4 176 237.1C176 176.9 224.9 128 285.1 128L296 128L296 88z"/></svg>
-                                    </button>
-                                </div>
-
-                                <div class="px-1">
-                                    <button
-                                        data-view-charges
-                                        class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded transition-colors"
-                                        title="View Charges"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-5 h-5" viewBox="0 0 640 640">
-                                            <path d="M160 64C124.7 64 96 92.7 96 128L96 576L160 544L224 576L288 544L352 576L416 544L480 576L544 544L544 128C544 92.7 515.3 64 480 64L160 64zM208 176C208 158.3 222.3 144 240 144L400 144C417.7 144 432 158.3 432 176C432 193.7 417.7 208 400 208L240 208C222.3 208 208 193.7 208 176zM208 272C208 254.3 222.3 240 240 240L400 240C417.7 240 432 254.3 432 272C432 289.7 417.7 304 400 304L240 304C222.3 304 208 289.7 208 272zM208 368C208 350.3 222.3 336 240 336L336 336C353.7 336 368 350.3 368 368C368 385.7 353.7 400 336 400L240 400C222.3 400 208 385.7 208 368z"/>
-                                        </svg>
-                                    </button>
-                                </div>
-
-
-
-                                <div class="px-1 relative">
-                                    <button data-status-btn class="p-1.5 text-sm text-green-600 hover:text-green-800 hover:bg-green-100 rounded">
-                                      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-5 h-5 " viewBox="0 0 640 640"><path d="M297.4 470.6C309.9 483.1 330.2 483.1 342.7 470.6L534.7 278.6C547.2 266.1 547.2 245.8 534.7 233.3C522.2 220.8 501.9 220.8 489.4 233.3L320 402.7L150.6 233.4C138.1 220.9 117.8 220.9 105.3 233.4C92.8 245.9 92.8 266.2 105.3 278.7L297.3 470.7z"/></svg>
-                                    </button>
-                                    <div data-status-dropdown class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[160px]">
-                                        <button data-paid class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Make a Payment</button>
-                                        <button data-resolved class="w-full px-3 py-2 text-left text-sm text-green-700 hover:bg-green-50">Mark as Resolved</button>
-                                        <button data-uncollectible class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">Mark as Uncollectible</button>
+                                    <div class="flex-shrink-0">
+                                        <button data-order-btn class="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                                            <span data-order-id></span>
+                                            <svg fill="currentColor" class="w-4 h-4 ml-1 text-xs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M354.4 83.8C359.4 71.8 371.1 64 384 64L544 64C561.7 64 576 78.3 576 96L576 256C576 268.9 568.2 280.6 556.2 285.6C544.2 290.6 530.5 287.8 521.3 278.7L464 221.3L310.6 374.6C298.1 387.1 277.8 387.1 265.3 374.6C252.8 362.1 252.8 341.8 265.3 329.3L418.7 176L361.4 118.6C352.2 109.4 349.5 95.7 354.5 83.7zM64 240C64 195.8 99.8 160 144 160L224 160C241.7 160 256 174.3 256 192C256 209.7 241.7 224 224 224L144 224C135.2 224 128 231.2 128 240L128 496C128 504.8 135.2 512 144 512L400 512C408.8 512 416 504.8 416 496L416 416C416 398.3 430.3 384 448 384C465.7 384 480 398.3 480 416L480 496C480 540.2 444.2 576 400 576L144 576C99.8 576 64 540.2 64 496L64 240z"/></svg>
+                                        </button>
                                     </div>
+
+                                    <div class="flex items-center gap-1" style="margin-left:75px">
+                                        {{-- Payment: green --}}
+                                        <button data-paid title="Make a Payment" aria-label="Make a Payment"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-green-600 hover:bg-green-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                        </button>
+                                        {{-- Resolve: blue (removed for CRM by JS) --}}
+                                        <button data-resolved title="Mark as Resolved" aria-label="Mark as Resolved"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-blue-600 hover:bg-blue-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                        </button>
+                                        {{-- Uncollectible: red (removed for CRM by JS) --}}
+                                        <button data-uncollectible title="Mark as Uncollectible" aria-label="Mark as Uncollectible"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                        </button>
+                                        {{-- View Damage Details: indigo eye icon (hidden for CRM by JS) --}}
+                                        <button data-view-charges title="View Damage Details" aria-label="View Damage Details"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                            </svg>
+                                        </button>
+                                        {{-- Add Note: gray (always visible, always last) --}}
+                                        <button data-edit-notes title="Add Note" aria-label="Add Note"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                            </svg>
+                                        </button>
+                                        <span data-notes-count class="hidden text-xs font-semibold text-blue-600 hover:text-blue-800 cursor-pointer px-0.5" title="View notes"></span>
+                                    </div>
+
+                                    <div class="ml-auto flex-shrink-0 text-sm text-right min-w-[80px]">
+                                        <span data-amount></span>
+                                    </div>
+
                                 </div>
 
-                                <div class="px-1 flex items-center gap-0.5">
-                                    <button data-edit-notes class="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded" title="Add Note">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.966 8.966 0 0 0-6 2.292m0-14.25v14.25" />
-                                        </svg>
-                                    </button>
-                                    <span data-notes-count class="hidden text-xs font-semibold text-blue-600 hover:text-blue-800 cursor-pointer px-0.5" title="View notes"></span>
-                                </div>
-
-                                <div class="flex-shrink-0 text-sm text-right min-w-[80px]">
-                                    <span data-amount></span>
-                                </div>
                             </div>
 
+                            {{-- Ghost elements: required by JS querySelector — not visible --}}
+                            <div data-status-dropdown class="hidden"></div>
+                            <button data-status-btn type="button" class="hidden"></button>
+                            <button data-edit-amount type="button" class="hidden"></button>
 
                         </div>
                     </template>

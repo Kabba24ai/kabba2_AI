@@ -194,6 +194,7 @@ class AlertsSection extends Component
             ->where('type', 'charge')
             ->where('reason', 'Damages')
             ->where('damage_alert_status', 'pending')
+            ->whereNull('order_product_id')
             ->latest()
             ->get();
 
@@ -253,6 +254,7 @@ class AlertsSection extends Component
             ->where('type', 'charge')
             ->where('reason', 'Fuel Charge')
             ->where('fuel_alert_status', 'pending')
+            ->whereNull('order_product_id')
             ->latest()
             ->get();
 

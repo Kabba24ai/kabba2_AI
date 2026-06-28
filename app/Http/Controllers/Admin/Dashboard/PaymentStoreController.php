@@ -124,6 +124,14 @@ if (
                         (int) $validated['responsible_person'],
                         $gatewayData
                     );
+
+                    // Mark any linked BillingCharge as paid so the Billing Engine stays in sync.
+                    // Mobile checklist charges link the BillingCharge via order_product_id.
+                    BillingCharge::where('order_product_id', $orderProduct->id)
+                        ->where('billing_charge_type', $chargeType)
+                        ->where('status', 'pending')
+                        ->get()
+                        ->each(fn ($bc) => BillingEngine::markPaid($bc));
                 }
             }
 
@@ -324,7 +332,7 @@ if (
             $payment->notes                   = $validated['notes'] ?? null;
             $payment->date                    = now();
             $payment->payment_number_id       = $validated['cheque_number'] ?? null;
-            $payment->reason                  = 'Fuel Charge';
+            $payment->reason                  = 'Payment — ' . ($chargeAccount->reason ?? 'Charge');
             $payment->sales_tax               = 0;
             $payment->type                    = 'payment';
             $payment->save();

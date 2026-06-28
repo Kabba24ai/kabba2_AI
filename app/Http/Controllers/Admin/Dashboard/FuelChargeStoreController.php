@@ -83,12 +83,29 @@ class FuelChargeStoreController extends Controller
         //
         // Note: this controller has no order context (Dashboard modal is
         // customer-level). parent_order_id is null for this charge path.
+
+        // updateCreditBalance() sets $record->sales_tax to the actual rate.
+        $enteredAmount = (float) $record->amount;
+        $taxRate       = (float) $record->sales_tax;
+
+        if ($record->sales_tax_type === 'add') {
+            $billingBaseAmount = $enteredAmount;
+            $billingTaxAmount  = round($enteredAmount * $taxRate, 2);
+        } elseif ($record->sales_tax_type === 'reverse') {
+            $divisor           = $taxRate > 0 ? (1 + $taxRate) : 1;
+            $billingBaseAmount = round($enteredAmount / $divisor, 2);
+            $billingTaxAmount  = round($enteredAmount - $billingBaseAmount, 2);
+        } else {
+            $billingBaseAmount = $enteredAmount;
+            $billingTaxAmount  = 0.0;
+        }
+
         try {
             BillingEngine::charge(new BillingChargeRequest(
                 type:                BillingChargeType::Fuel->value,
                 orderId:             null, // Dashboard modal: no order context
                 customerId:          (int) $record->customer_id,
-                amount:              (float) $record->amount,
+                amount:              $billingBaseAmount,
                 taxType:             $record->sales_tax_type,
                 responsiblePersonId: $user->id,
                 notes:               $record->notes,
@@ -103,6 +120,7 @@ class FuelChargeStoreController extends Controller
                 ],
                 idempotencyKey:      "admin_fuel_charge:{$record->id}",
                 customerAccountId:   $record->id,
+                taxAmount:           $billingTaxAmount,
             ));
         } catch (\Throwable $e) {
             Log::channel('billing_engine')->error(

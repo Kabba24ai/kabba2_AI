@@ -6,6 +6,7 @@ use App\Enums\Billing\BillingChargeStatus;
 use App\Enums\Billing\BillingChargeType;
 use App\Enums\Billing\BillingSourceEvent;
 use App\Enums\Billing\BillingSourceModule;
+use App\Models\Configurations\Setting;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAccount;
 use App\Models\Iam\Personnel\User;
@@ -247,6 +248,45 @@ class FuelChargeBridgeTest extends TestCase
         $charge = BillingCharge::first();
 
         $this->assertEquals($ca->id, $charge->customer_account_id);
+    }
+
+    // ── Tax amount calculation ─────────────────────────────────────────────
+
+    public function test_billing_charge_stores_correct_tax_amount_for_add_type(): void
+    {
+        Setting::firstOrCreate(['setting_name' => 'sales_tax'], ['setting_value' => '0.0975']);
+
+        $this->postFuelCharge(['amount' => '100.00', 'sales_tax_type' => 'add']);
+
+        $charge = BillingCharge::first();
+
+        $this->assertEquals(100.00, $charge->amount);
+        $this->assertEquals(9.75, $charge->tax_amount);
+    }
+
+    public function test_billing_charge_stores_zero_tax_for_free_type(): void
+    {
+        Setting::firstOrCreate(['setting_name' => 'sales_tax'], ['setting_value' => '0.0975']);
+
+        $this->postFuelCharge(['amount' => '100.00', 'sales_tax_type' => 'free']);
+
+        $charge = BillingCharge::first();
+
+        $this->assertEquals(100.00, $charge->amount);
+        $this->assertEquals(0.0, $charge->tax_amount);
+    }
+
+    public function test_billing_charge_splits_base_and_tax_for_reverse_type(): void
+    {
+        Setting::firstOrCreate(['setting_name' => 'sales_tax'], ['setting_value' => '0.0975']);
+
+        $this->postFuelCharge(['amount' => '100.00', 'sales_tax_type' => 'reverse']);
+
+        $charge = BillingCharge::first();
+
+        $this->assertEquals(91.12, $charge->amount);
+        $this->assertEquals(8.88, $charge->tax_amount);
+        $this->assertEquals(100.00, round($charge->amount + $charge->tax_amount, 2));
     }
 
     // ── No side effects ────────────────────────────────────────────────────

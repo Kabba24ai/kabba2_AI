@@ -6124,12 +6124,8 @@
                 if (data.success) {
                     notyf.success(data.message);
                     closeModal(type === 'fuel' ? 'orderFuelChargeModal' : 'orderDamageAlertModal');
-                    document.getElementById(amountId).value = '';
-                    document.getElementById(personId).value = '';
-                    document.getElementById(notesId).value = '';
-                    const resetRadioName = type === 'fuel' ? 'orderFuelSalesTax' : 'orderDamageSalesTax';
-                    const resetRadio = document.querySelector(`input[name="${resetRadioName}"][value="add"]`);
-                    if (resetRadio) resetRadio.checked = true;
+                    // Reload so the Billing Engine block reflects the new charge immediately.
+                    setTimeout(() => window.location.reload(), 1500);
                 } else {
                     notyf.error(data.message || 'Something went wrong.');
                 }

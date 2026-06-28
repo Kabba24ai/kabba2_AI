@@ -75,6 +75,26 @@ class AlertChargeController extends Controller
 
             DB::commit();
 
+            // ── Resolve billing amounts from the settled CustomerAccount record ──
+            // updateCreditBalance() sets $record->sales_tax to the actual rate (e.g. 0.0975).
+            // For 'add':     base = entered, tax = entered * rate
+            // For 'reverse': entered = total; base = total / (1+rate), tax = total - base
+            // For 'free':    base = entered, tax = 0
+            $enteredAmount = (float) $record->amount;
+            $taxRate       = (float) $record->sales_tax;
+
+            if ($record->sales_tax_type === 'add') {
+                $billingBaseAmount = $enteredAmount;
+                $billingTaxAmount  = round($enteredAmount * $taxRate, 2);
+            } elseif ($record->sales_tax_type === 'reverse') {
+                $divisor           = $taxRate > 0 ? (1 + $taxRate) : 1;
+                $billingBaseAmount = round($enteredAmount / $divisor, 2);
+                $billingTaxAmount  = round($enteredAmount - $billingBaseAmount, 2);
+            } else {
+                $billingBaseAmount = $enteredAmount;
+                $billingTaxAmount  = 0.0;
+            }
+
             // ── Billing Engine bridge ──────────────────────────────────────
             if ($request->type === 'fuel') {
                 // Phase 3B
@@ -83,7 +103,7 @@ class AlertChargeController extends Controller
                         type:                BillingChargeType::Fuel->value,
                         orderId:             $order->id,
                         customerId:          (int) $order->customer_id,
-                        amount:              (float) $record->amount,
+                        amount:              $billingBaseAmount,
                         taxType:             $record->sales_tax_type,
                         responsiblePersonId: $user->id,
                         notes:               $record->notes,
@@ -100,6 +120,7 @@ class AlertChargeController extends Controller
                         ],
                         idempotencyKey:    "admin_fuel_alert_charge:{$record->id}",
                         customerAccountId: $record->id,
+                        taxAmount:         $billingTaxAmount,
                     ));
                 } catch (\Throwable $e) {
                     Log::channel('billing_engine')->error(
@@ -115,7 +136,7 @@ class AlertChargeController extends Controller
                         type:                BillingChargeType::Damage->value,
                         orderId:             $order->id,
                         customerId:          (int) $order->customer_id,
-                        amount:              (float) $record->amount,
+                        amount:              $billingBaseAmount,
                         taxType:             $record->sales_tax_type,
                         responsiblePersonId: $user->id,
                         notes:               $record->notes,
@@ -134,6 +155,7 @@ class AlertChargeController extends Controller
                         ],
                         idempotencyKey:    "admin_damage_alert_charge:{$record->id}",
                         customerAccountId: $record->id,
+                        taxAmount:         $billingTaxAmount,
                     ));
                 } catch (\Throwable $e) {
                     Log::channel('billing_engine')->error(

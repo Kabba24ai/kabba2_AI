@@ -64,6 +64,11 @@ const salesDataFromServer = @json($salesData);
 
     window.chartData = @json($chartData);
 
+// Billing Engine action routes (used when a CA fuel charge has a linked billing_charge_unique_id)
+const beRouteResolve       = '{{ route("admin.order-management.orders.billing-charges.resolve", "__ID__") }}';
+const beRouteUncollectible = '{{ route("admin.order-management.orders.billing-charges.uncollectible", "__ID__") }}';
+const beRouteAdjust        = '{{ route("admin.order-management.orders.billing-charges.adjust", "__ID__") }}';
+
 /**
  * Vanilla JavaScript Dashboard Controller
  * Replaces Alpine.js completely.
@@ -495,13 +500,22 @@ if (isFuel) {
             }
 
             const orderProductId = this.editingAlert.order_product?.id;
-            if (!orderProductId) {
+            const bcUniqueId     = this.editingAlert.billing_charge_unique_id;
+
+            let url, fetchBody;
+            if (bcUniqueId && !orderProductId) {
+                // Billing Engine path: order-linked CA charge with no OrderProduct
+                url       = beRouteResolve.replace('__ID__', bcUniqueId);
+                fetchBody = JSON.stringify({ resolution_note: note, resolved_by: resolvedBy });
+            } else if (orderProductId) {
+                // Legacy OrderProduct path
+                url       = "{{ route('admin.dashboard.extra-charges.resolved', ':id') }}"
+                    .replace(':id', orderProductId);
+                fetchBody = JSON.stringify({ type: this.editingAlert.type, resolution_note: note, resolved_by: resolvedBy });
+            } else {
                 notyf.error("Order product not found.");
                 return;
             }
-
-            const url = "{{ route('admin.dashboard.extra-charges.resolved', ':id') }}"
-                .replace(':id', orderProductId);
 
             const saveBtn = document.getElementById("resolved-save-btn");
             const originalText = saveBtn.textContent;
@@ -514,11 +528,7 @@ if (isFuel) {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
-                body: JSON.stringify({
-                    type:            this.editingAlert.type,
-                    resolution_note: note,
-                    resolved_by:     resolvedBy,
-                }),
+                body: fetchBody,
             })
             .then(res => res.json())
             .then(data => {
@@ -833,7 +843,9 @@ if (status === "uncollectible") {
             ? this.fuelAlerts.find(a => a.id === id)
             : this.damageAlerts.find(a => a.id === id);
 
-    if (!alertItem || !alertItem.order_product?.id) {
+    const hasOrderProduct  = !!alertItem?.order_product?.id;
+    const hasBillingCharge = !!alertItem?.billing_charge_unique_id;
+    if (!alertItem || (!hasOrderProduct && !hasBillingCharge)) {
         notyf.error("Unable to process this payment.");
         return;
     }
@@ -843,12 +855,10 @@ if (status === "uncollectible") {
         'Mark Payment Uncollectible'
     ).then((result) => {
         if (result.isConfirmed) {
-
-            //  send real order_product.id
             this.markPaymentUncollectible(
                 type,
-                alertItem.order_product.id, // correct ID
-                id 
+                alertItem.order_product?.id ?? null,
+                id
             );
         }
     });
@@ -1026,29 +1036,34 @@ if (status === "uncollectible") {
   }
 
    markPaymentUncollectible(type, orderProductId, alertId) {
+    const alertItem   = type === 'fuel'
+        ? this.fuelAlerts.find(a => a.id === alertId)
+        : this.damageAlerts.find(a => a.id === alertId);
+    const bcUniqueId  = alertItem?.billing_charge_unique_id;
+    const csrfToken   = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    const url =
-        "{{ route('admin.dashboard.extra-charges.uncollectible', ':id') }}"
+    let url, body;
+    if (bcUniqueId && !orderProductId) {
+        // Billing Engine path: order-linked CA charge with no OrderProduct
+        url  = beRouteUncollectible.replace('__ID__', bcUniqueId);
+        body = JSON.stringify({ resolved_by: window.AUTH_USER_ID });
+    } else {
+        // Legacy OrderProduct path
+        url  = "{{ route('admin.dashboard.extra-charges.uncollectible', ':id') }}"
             .replace(':id', orderProductId);
+        body = JSON.stringify({ type });
+    }
 
     fetch(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document
-                .querySelector('meta[name="csrf-token"]')
-                .getAttribute('content')
-        },
-        body: JSON.stringify({
-            type: type // fuel | damage
-        })
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+        body,
     })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
             notyf.success(data.message || 'Marked as uncollectible');
 
-            // Remove alert from UI
             if (type === "fuel") {
                 this.fuelAlerts = this.fuelAlerts.filter(a => a.id !== alertId);
                 this.renderFuelAlerts();
@@ -1186,9 +1201,21 @@ if (status === "uncollectible") {
 
 
     
-     const url =
-        "{{ route('admin.dashboard.amount.update', ':unique_id') }}"
-            .replace(":unique_id", this.editingAlert.order_product.unique_id);
+        const orderProductUniqueId = this.editingAlert.order_product?.unique_id;
+        const bcUniqueId           = this.editingAlert.billing_charge_unique_id;
+
+        let url;
+        if (bcUniqueId && !orderProductUniqueId) {
+            // Billing Engine path: order-linked CA charge with no OrderProduct
+            url = beRouteAdjust.replace('__ID__', bcUniqueId);
+        } else if (orderProductUniqueId) {
+            // Legacy OrderProduct path
+            url = "{{ route('admin.dashboard.amount.update', ':unique_id') }}"
+                .replace(":unique_id", orderProductUniqueId);
+        } else {
+            notyf.error("Cannot adjust this charge.");
+            return;
+        }
 
         const saveBtn = document.querySelector("#amount-modal #save-btn-amount");
         const originalText = saveBtn.textContent;

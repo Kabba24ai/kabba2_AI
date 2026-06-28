@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Dashboard;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Orders\BillingCharge;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderPayment;
 use App\Enums\Orders\OrderPaymentStatus;
@@ -249,50 +250,67 @@ class IndexController extends Controller
 
         $damagedOrderAlerts = $damagedOrderAlerts->concat($crmDamageCharges)->sortByDesc('_sort_ts')->values();
 
-        // Merge CRM-originated Fuel Charge alerts (CustomerAccount records)
-        $crmFuelCharges = CustomerAccount::with(['customer.cards', 'order'])
+        // CustomerAccount fuel charge alerts — covers both CRM-originated and order-linked records.
+        // Classification: order_id IS NULL → pure CRM (limited actions), order_id IS NOT NULL → order-linked (full actions).
+        $crmFuelAccounts = CustomerAccount::with(['customer.cards', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Fuel Charge')
             ->where('fuel_alert_status', 'pending')
             ->latest()
-            ->get()
-            ->map(function ($account) {
-                $base     = (float) ($account->amount ?? 0);
-                $taxRate  = (float) ($account->sales_tax ?? 0);
-                $total    = ($account->sales_tax_type === 'add' && $taxRate > 0)
-                    ? $base + $base * $taxRate
-                    : $base;
-                $hasOrder = $account->order !== null;
+            ->get();
 
-                return [
-                    'id'             => 10000 + $account->id,
-                    'source'         => 'crm',
-                    '_sort_ts'       => ($account->date ?? $account->created_at)?->timestamp ?? 0,
-                    'customer'       => [
-                        'id'        => $account->customer_id,
-                        'full_name' => $account->customer?->full_name,
-                        'cards'     => $account->customer?->cards?->map(fn ($c) => [
-                            'id'    => $c->unique_id,
-                            'label' => $c->card_number,
-                        ])->values() ?? [],
-                    ],
-                    'customerName'   => $account->customer?->full_name ?? '—',
-                    'orderId'        => $hasOrder ? $account->order->unique_id : null,
-                    'order_number'   => $hasOrder ? $account->order->order_number : null,
-                    'orderLink'      => $hasOrder
-                        ? route('admin.order-management.orders.edit', $account->order->unique_id)
-                        : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
-                    'amountOwed'     => '$' . number_format($total, 2),
-                    'date'           => optional($account->date)->toDateString(),
-                    'type'           => 'fuel',
-                    'notes'          => $hasOrder
-                        ? $account->order->notes()->dashboard()->latest()->get(['id', 'note', 'created_at'])
-                        : collect(),
-                    'equipment'      => null,
-                    'order_product'  => null,
-                    'customer_account_id' => $account->unique_id,
-                ];
-            });
+        // Batch-load associated BillingCharge records (keyed by customer_account_id) to avoid N+1.
+        // Order-linked records created via AlertChargeController always have a matching BillingCharge.
+        $fuelBillingCharges = BillingCharge::whereIn('customer_account_id', $crmFuelAccounts->pluck('id'))
+            ->where('billing_charge_type', 'fuel')
+            ->get()
+            ->keyBy('customer_account_id');
+
+        $crmFuelCharges = $crmFuelAccounts->map(function ($account) use ($fuelBillingCharges) {
+            $base          = (float) ($account->amount ?? 0);
+            $taxRate       = (float) ($account->sales_tax ?? 0);
+            $total         = ($account->sales_tax_type === 'add' && $taxRate > 0)
+                ? $base + $base * $taxRate
+                : $base;
+            $hasOrder      = $account->order !== null;
+            $isCrmOrigin   = $account->order_id === null;
+            $billingCharge = $fuelBillingCharges->get($account->id);
+
+            return [
+                'id'             => 10000 + $account->id,
+                'source'         => $isCrmOrigin ? 'crm' : 'order',
+                '_sort_ts'       => ($account->date ?? $account->created_at)?->timestamp ?? 0,
+                'customer'       => [
+                    'id'        => $account->customer_id,
+                    'full_name' => $account->customer?->full_name,
+                    'cards'     => $account->customer?->cards?->map(fn ($c) => [
+                        'id'    => $c->unique_id,
+                        'label' => $c->card_number,
+                    ])->values() ?? [],
+                ],
+                'customerName'   => $account->customer?->full_name ?? '—',
+                'orderId'        => $hasOrder ? $account->order->unique_id : null,
+                'order_number'   => $hasOrder ? $account->order->order_number : null,
+                'orderLink'      => $hasOrder
+                    ? route('admin.order-management.orders.edit', $account->order->unique_id)
+                    : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
+                'amountOwed'     => '$' . number_format($total, 2),
+                'date'           => optional($account->date)->toDateString(),
+                'type'           => 'fuel',
+                'notes'          => $hasOrder
+                    ? $account->order->notes()->dashboard()->latest()->get(['id', 'note', 'created_at'])
+                    : collect(),
+                'equipment'      => null,
+                // Populate amounts from BillingCharge for order-linked records (used by Adjust modal).
+                // CRM records have this null; Adjust button is hidden for them anyway.
+                'order_product'  => $billingCharge ? [
+                    'base_fuel_charge'    => (float) ($billingCharge->amount ?? 0),
+                    'current_fuel_charge' => (float) ($billingCharge->amount ?? 0),
+                ] : null,
+                'billing_charge_unique_id' => $billingCharge?->unique_id,
+                'customer_account_id'      => $account->unique_id,
+            ];
+        });
 
         $fuelChargeAlerts = $fuelChargeAlerts->concat($crmFuelCharges)->sortByDesc('_sort_ts')->values();
 

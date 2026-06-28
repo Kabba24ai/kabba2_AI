@@ -28,10 +28,10 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Charge</th>
+                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-44">Charge</th>
                     <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Details</th>
                     <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Added By</th>
-                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Date Added</th>
+                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Date</th>
                     <th class="text-right px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-36">Amount</th>
                     <th class="text-center px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Status</th>
                     <th class="text-right px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Outstanding</th>
@@ -41,18 +41,19 @@
             <tbody class="divide-y divide-gray-100">
                 @foreach($billingCharges as $charge)
                     @php
-                        $typeIcons = [
-                            'fuel'      => ['icon' => 'heroicon-o-fire',                'bg' => 'bg-orange-100', 'color' => 'text-orange-600'],
-                            'damage'    => ['icon' => 'heroicon-o-exclamation-triangle', 'bg' => 'bg-red-100',    'color' => 'text-red-600'],
-                            'extension' => ['icon' => 'heroicon-o-calendar',            'bg' => 'bg-blue-100',   'color' => 'text-blue-600'],
+                        // 'fuel' uses the gas pump SVG (same as Additional Charges and Dashboard alerts)
+                        $typeIconClasses = [
+                            'damage'    => ['heroicon' => 'heroicon-o-exclamation-triangle', 'bg' => 'bg-red-100',  'color' => 'text-red-600'],
+                            'extension' => ['heroicon' => 'heroicon-o-calendar',             'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
                         ];
 
                         $typeEnum   = $charge->billing_charge_type;
                         $statusEnum = $charge->status;
 
-                        $typeLabel   = $typeEnum?->label()       ?? 'Charge';
-                        $typeValue   = $typeEnum?->value          ?? '';
-                        $iconDef     = $typeIcons[$typeValue]     ?? ['icon' => 'heroicon-o-currency-dollar', 'bg' => 'bg-gray-100', 'color' => 'text-gray-500'];
+                        $typeLabel   = $typeEnum?->label()           ?? 'Charge';
+                        $typeValue   = $typeEnum?->value              ?? '';
+                        $isFuelIcon  = $typeValue === 'fuel';
+                        $iconDef     = $typeIconClasses[$typeValue]   ?? ['heroicon' => 'heroicon-o-currency-dollar', 'bg' => 'bg-gray-100', 'color' => 'text-gray-500'];
 
                         $statusLabel = $statusEnum?->label()      ?? 'Pending';
                         $statusBadge = $statusEnum?->badgeClass()  ?? 'bg-amber-100 text-amber-800';
@@ -63,6 +64,7 @@
                         $total       = $base + $tax;
 
                         $isFuel      = $typeValue === 'fuel';
+                        $addedBy     = $charge->createdBy?->full_name ?? $charge->responsiblePerson?->full_name ?? '—';
 
                         // Payment needs the legacy CA unique_id
                         $caUniqueId  = $charge->legacyCustomerAccount?->unique_id ?? '';
@@ -70,20 +72,25 @@
 
                     <tr class="hover:bg-gray-50 transition-colors">
                         {{-- Charge --}}
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-3 whitespace-nowrap">
                             <div class="flex items-center gap-2">
-                                <span class="flex-shrink-0 w-7 h-7 rounded-full {{ $iconDef['bg'] }} flex items-center justify-center">
-                                    <x-dynamic-component :component="$iconDef['icon']" class="w-3.5 h-3.5 {{ $iconDef['color'] }}" />
-                                </span>
+                                @if($isFuelIcon)
+                                    <span class="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center">
+                                        <svg fill="currentColor" class="w-3.5 h-3.5 text-orange-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                            <path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128zM160 144L160 240C160 248.8 167.2 256 176 256L304 256C312.8 256 320 248.8 320 240L320 144C320 135.2 312.8 128 304 128L176 128C167.2 128 160 135.2 160 144z"/>
+                                        </svg>
+                                    </span>
+                                @else
+                                    <span class="flex-shrink-0 w-7 h-7 rounded-full {{ $iconDef['bg'] }} flex items-center justify-center">
+                                        <x-dynamic-component :component="$iconDef['heroicon']" class="w-3.5 h-3.5 {{ $iconDef['color'] }}" />
+                                    </span>
+                                @endif
                                 <span class="font-semibold text-gray-900 text-xs">{{ $typeLabel }}</span>
                             </div>
                         </td>
 
                         {{-- Details --}}
                         <td class="px-4 py-3 max-w-xs">
-                            @if($charge->source_module)
-                                <span class="text-xs text-gray-400 italic block">{{ $charge->source_module }}</span>
-                            @endif
                             @if($charge->notes)
                                 <span class="text-xs text-gray-600 block truncate" title="{{ $charge->notes }}">{{ $charge->notes }}</span>
                             @endif
@@ -98,12 +105,10 @@
 
                         {{-- Added By --}}
                         <td class="px-4 py-3">
-                            <span class="text-xs text-gray-700">
-                                {{ $charge->createdBy?->full_name ?? '—' }}
-                            </span>
+                            <span class="text-xs text-gray-700">{{ $addedBy }}</span>
                         </td>
 
-                        {{-- Date Added --}}
+                        {{-- Date --}}
                         <td class="px-4 py-3">
                             <span class="text-xs text-gray-700">{{ $charge->created_at?->format('M j, Y') }}</span>
                         </td>

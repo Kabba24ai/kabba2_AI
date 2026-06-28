@@ -224,12 +224,11 @@ class IndexController extends Controller
                     ? $base + $base * $taxRate
                     : $base;
                 $hasOrder      = $account->order !== null;
-                $isCrmOrigin   = $account->order_id === null;
                 $billingCharge = $damageBillingCharges->get($account->id);
 
                 return [
                     'id'                       => 20000 + $account->id,
-                    'source'                   => $isCrmOrigin ? 'crm' : 'order',
+                    'source'                   => 'crm',
                     '_sort_ts'                 => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                     'customer'                 => [
                         'id'        => $account->customer_id,
@@ -286,12 +285,11 @@ class IndexController extends Controller
                 ? $base + $base * $taxRate
                 : $base;
             $hasOrder      = $account->order !== null;
-            $isCrmOrigin   = $account->order_id === null;
             $billingCharge = $fuelBillingCharges->get($account->id);
 
             return [
                 'id'             => 10000 + $account->id,
-                'source'         => $isCrmOrigin ? 'crm' : 'order',
+                'source'         => 'crm',
                 '_sort_ts'       => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                 'customer'       => [
                     'id'        => $account->customer_id,

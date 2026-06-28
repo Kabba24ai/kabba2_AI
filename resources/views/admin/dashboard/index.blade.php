@@ -1101,6 +1101,7 @@ if (status === "uncollectible") {
         document.getElementById('type').value = alert.type;
         document.getElementById('payment_source').value = alert.source ?? 'order';
         document.getElementById('payment_customer_account_id').value = alert.customer_account_id ?? '';
+        document.getElementById('payment_billing_charge_unique_id').value = alert.billing_charge_unique_id ?? '';
 
         // console.log(alert.customer.id);
         // Prefill amount

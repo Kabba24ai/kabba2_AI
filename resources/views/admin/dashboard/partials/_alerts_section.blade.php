@@ -527,6 +527,7 @@
                     <input type="hidden" name="type" id="type" value="">
                     <input type="hidden" name="source" id="payment_source" value="order">
                     <input type="hidden" name="customer_account_id" id="payment_customer_account_id" value="">
+                    <input type="hidden" name="billing_charge_unique_id" id="payment_billing_charge_unique_id" value="">
 
                    <!-- Payment Amount -->
                    <div class="mb-4">

@@ -315,6 +315,11 @@ if (
 
     private function handleCrmPayment(array $validated)
     {
+        // Extension charges have no CustomerAccount row — route to a lighter path
+        if (empty($validated['customer_account_id']) && !empty($validated['billing_charge_unique_id'])) {
+            return $this->handleExtensionPayment($validated);
+        }
+
         $chargeAccount = CustomerAccount::where('unique_id', $validated['customer_account_id'])->firstOrFail();
         $customer      = Customer::findOrFail($validated['customer_id']);
 
@@ -443,6 +448,108 @@ if (
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('CRM fuel payment error:', ['message' => $e->getMessage()]);
+            report($e);
+
+            flash('Something went wrong while recording the payment.')->error();
+            return redirect()->back()->withInput()->withErrors([
+                'error' => 'An error occurred while recording the payment.',
+            ]);
+        }
+    }
+
+    private function handleExtensionPayment(array $validated)
+    {
+        $billingCharge = BillingCharge::where('unique_id', $validated['billing_charge_unique_id'])->firstOrFail();
+        $customer      = Customer::findOrFail($validated['customer_id']);
+
+        DB::beginTransaction();
+
+        try {
+            $user = User::findOrFail($validated['responsible_person']);
+
+            if (strtolower($validated['payment_type']) === 'creditcard') {
+                $amount = $validated['amount'];
+
+                if (!empty($validated['existing_card_id'])) {
+                    $cardDetail = $customer->cards()->where('unique_id', $validated['existing_card_id'])->first();
+                    if (!$cardDetail) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Saved card not found.');
+                    }
+
+                    $customerProfileId = $customer->authorize_profile_id;
+                    if (!$customerProfileId) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Customer profile not found for saved card.');
+                    }
+
+                    $paymentResult = (new AuthorizeNetService())->chargeCustomerProfile(
+                        $customerProfileId, $cardDetail->payment_profile_id, $amount, ['customer' => $customer->toArray()]
+                    );
+
+                    if (($paymentResult['status'] ?? null) !== 'success') {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    }
+                } else {
+                    $opaqueDataValue      = $validated['opaqueDataValue'] ?? null;
+                    $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
+
+                    if (!$opaqueDataValue || !$opaqueDataDescriptor) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Payment data missing or invalid.');
+                    }
+
+                    $svc = new AuthorizeNetService();
+                    if (!$svc->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Payment token invalid.');
+                    }
+
+                    $paymentResult = $svc->createOpaqueDataTransaction($opaqueDataValue, $amount, ['customer' => $customer->toArray()]);
+
+                    if (($paymentResult['status'] ?? null) !== 'success') {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    }
+
+                    if (empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
+                        $customer->authorize_profile_id = $paymentResult['customer_profile_id'];
+                        $customer->saveQuietly();
+                    }
+
+                    if (!empty($paymentResult['payment_profile_id'])) {
+                        $customer->cards()->updateOrCreate(
+                            ['payment_profile_id' => $paymentResult['payment_profile_id']],
+                            [
+                                'first_name'  => $validated['firstName'] ?? null,
+                                'last_name'   => $validated['lastName'] ?? null,
+                                'card_number' => $paymentResult['card_number'] ?? null,
+                                'card_type'   => $paymentResult['card_type'] ?? null,
+                            ]
+                        );
+                    }
+                }
+            }
+
+            if ($billingCharge->status?->isOpen()) {
+                BillingEngine::markPaid($billingCharge);
+            }
+
+            // Mark the linked child extension Order's pending payment as paid
+            if ($billingCharge->childOrder) {
+                $billingCharge->childOrder->payments()
+                    ->where('status', 'Pending')
+                    ->update(['status' => 'Paid']);
+            }
+
+            flash('Payment recorded successfully.')->success();
+            DB::commit();
+
+            return redirect()->back();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Extension payment error:', ['message' => $e->getMessage()]);
             report($e);
 
             flash('Something went wrong while recording the payment.')->error();

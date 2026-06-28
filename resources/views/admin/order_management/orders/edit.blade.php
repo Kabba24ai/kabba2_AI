@@ -6664,6 +6664,28 @@
             beOpenModal('beFuelAdjustModal');
         };
 
+        window.beOpenDelete = function(row) {
+            beSetActive(row);
+            showConfirm('This will permanently delete the extension charge and the linked extension order. This cannot be undone.', 'Delete Extension Charge?').then(result => {
+                if (!result.isConfirmed) return;
+                fetch(beRouteDelete.replace('__ID__', beActiveUniqueId), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify({}),
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        notyf.success(data.message || 'Extension charge deleted.');
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        notyf.error(data.message || 'Something went wrong.');
+                    }
+                })
+                .catch(() => notyf.error('Request failed. Please try again.'));
+            });
+        };
+
         window.beOpenViewDamage = function(row) {
             beSetActive(row);
 
@@ -6741,6 +6763,7 @@
         const beRouteUncollectible = '{{ route('admin.order-management.orders.billing-charges.uncollectible', '__ID__') }}';
         const beRouteNote          = '{{ route('admin.order-management.orders.billing-charges.note', '__ID__') }}';
         const beRouteAdjust        = '{{ route('admin.order-management.orders.billing-charges.adjust', '__ID__') }}';
+        const beRouteDelete        = '{{ route('admin.order-management.orders.billing-charges.delete', '__ID__') }}';
 
         window.beSubmitResolve = function() {
             const note = document.getElementById('beResolveNote').value.trim();

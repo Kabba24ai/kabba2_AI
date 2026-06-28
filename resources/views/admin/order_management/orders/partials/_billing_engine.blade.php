@@ -95,9 +95,10 @@
 
                         $isFuel          = $typeValue === 'fuel';
                         $isDamage        = $typeValue === 'damage';
+                        $isExtension     = $typeValue === 'extension';
                         $addedBy         = $charge->createdBy?->full_name ?? $charge->responsiblePerson?->full_name ?? '—';
 
-                        // Payment needs the legacy CA unique_id
+                        // Payment needs the legacy CA unique_id (null for extension charges)
                         $caUniqueId      = $charge->legacyCustomerAccount?->unique_id ?? '';
                         // View Damage Details requires a linked OrderProduct (only mobile-checklist damage charges set this)
                         $hasOrderProduct = $isDamage && $charge->orderProduct !== null;
@@ -169,9 +170,9 @@
                             @endif
                         </td>
 
-                        {{-- Actions (fuel and damage rows) --}}
+                        {{-- Actions (fuel, damage, and extension rows) --}}
                         <td class="px-4 py-3 text-center">
-                            @if($isFuel || $typeValue === 'damage')
+                            @if($isFuel || $isDamage || $isExtension)
                                 <div class="flex items-center justify-center gap-1.5"
                                      data-be-unique-id="{{ $charge->unique_id }}"
                                      data-be-ca-unique="{{ $caUniqueId }}"
@@ -183,7 +184,7 @@
                                      data-be-order-product-id="{{ $charge->orderProduct?->id ?? '' }}">
 
                                     @if($isOpen)
-                                        {{-- Make a Payment --}}
+                                        {{-- Make a Payment (all types) --}}
                                         <button type="button"
                                             onclick="beOpenPayment(this.closest('[data-be-unique-id]'))"
                                             title="Make a Payment"
@@ -192,23 +193,25 @@
                                             <x-heroicon-o-currency-dollar class="w-4 h-4" />
                                         </button>
 
-                                        {{-- Mark as Resolved --}}
-                                        <button type="button"
-                                            onclick="beOpenResolve(this.closest('[data-be-unique-id]'))"
-                                            title="Mark as Resolved"
-                                            class="w-6 h-6 rounded flex items-center justify-center text-blue-600 hover:bg-blue-100 transition"
-                                            aria-label="Mark as Resolved">
-                                            <x-heroicon-o-check-circle class="w-4 h-4" />
-                                        </button>
+                                        @if(!$isExtension)
+                                            {{-- Mark as Resolved (fuel/damage only) --}}
+                                            <button type="button"
+                                                onclick="beOpenResolve(this.closest('[data-be-unique-id]'))"
+                                                title="Mark as Resolved"
+                                                class="w-6 h-6 rounded flex items-center justify-center text-blue-600 hover:bg-blue-100 transition"
+                                                aria-label="Mark as Resolved">
+                                                <x-heroicon-o-check-circle class="w-4 h-4" />
+                                            </button>
 
-                                        {{-- Mark as Uncollectible --}}
-                                        <button type="button"
-                                            onclick="beOpenUncollectible(this.closest('[data-be-unique-id]'))"
-                                            title="Mark as Uncollectible"
-                                            class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition"
-                                            aria-label="Mark as Uncollectible">
-                                            <x-heroicon-o-x-circle class="w-4 h-4" />
-                                        </button>
+                                            {{-- Mark as Uncollectible (fuel/damage only) --}}
+                                            <button type="button"
+                                                onclick="beOpenUncollectible(this.closest('[data-be-unique-id]'))"
+                                                title="Mark as Uncollectible"
+                                                class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition"
+                                                aria-label="Mark as Uncollectible">
+                                                <x-heroicon-o-x-circle class="w-4 h-4" />
+                                            </button>
+                                        @endif
 
                                         {{-- View Damage Details (damage only, requires linked OrderProduct) --}}
                                         @if($hasOrderProduct)
@@ -221,17 +224,17 @@
                                             </button>
                                         @endif
 
-                                        {{-- Adjust Charge --}}
+                                        {{-- Adjust Charge (all types) --}}
                                         <button type="button"
                                             onclick="beOpenAdjust(this.closest('[data-be-unique-id]'))"
-                                            title="{{ $isDamage ? 'Adjust Damage Charge' : 'Adjust Fuel Charge' }}"
+                                            title="{{ $isExtension ? 'Adjust Extension Amount' : ($isDamage ? 'Adjust Damage Charge' : 'Adjust Fuel Charge') }}"
                                             class="w-6 h-6 rounded flex items-center justify-center text-amber-500 hover:bg-amber-100 transition"
-                                            aria-label="{{ $isDamage ? 'Adjust Damage Charge' : 'Adjust Fuel Charge' }}">
+                                            aria-label="Adjust Charge">
                                             <x-heroicon-o-adjustments-horizontal class="w-4 h-4" />
                                         </button>
                                     @endif
 
-                                    {{-- Add Note (always visible) --}}
+                                    {{-- Add Note (all types, always visible) --}}
                                     <button type="button"
                                         onclick="beOpenNote(this.closest('[data-be-unique-id]'))"
                                         title="Add Note"
@@ -239,6 +242,17 @@
                                         aria-label="Add Note">
                                         <x-heroicon-o-pencil-square class="w-4 h-4" />
                                     </button>
+
+                                    @if($isExtension)
+                                        {{-- Delete Extension (extension only, always visible) --}}
+                                        <button type="button"
+                                            onclick="beOpenDelete(this.closest('[data-be-unique-id]'))"
+                                            title="Delete Extension"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition"
+                                            aria-label="Delete Extension">
+                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                        </button>
+                                    @endif
                                 </div>
                             @endif
                         </td>

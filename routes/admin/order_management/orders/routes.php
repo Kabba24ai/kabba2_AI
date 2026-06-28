@@ -40,6 +40,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\ResolveContr
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\UncollectibleController as BEUncollectibleController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\NoteController as BENoteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\AdjustController as BEAdjustController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\DeleteController as BEDeleteController;
 
 
 Route::prefix('orders')
@@ -109,6 +110,7 @@ Route::prefix('orders')
                 Route::post('/{chargeUniqueId}/uncollectible', BEUncollectibleController::class)->name('uncollectible');
                 Route::post('/{chargeUniqueId}/note',          BENoteController::class)->name('note');
                 Route::post('/{chargeUniqueId}/adjust',        BEAdjustController::class)->name('adjust');
+                Route::post('/{chargeUniqueId}/delete',        BEDeleteController::class)->name('delete');
             });
 
         // Route::get('repair-deleted-orders', RepairDeletedOrdersController::class)->name('repair-deleted-orders');

@@ -3584,37 +3584,52 @@
 
 {{-- Adjust Fuel Charge --}}
 <div id="beFuelAdjustModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
-        <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h3 class="text-base font-semibold text-gray-900">Adjust Fuel Charge</h3>
-            <button type="button" onclick="beCloseModal('beFuelAdjustModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg border border-gray-200 overflow-hidden flex flex-col">
+        <!-- Header -->
+        <div class="px-6 pt-4 border-b">
+            <h3 class="text-lg font-semibold text-gray-800">Adjust Fuel Charge</h3>
+            <p class="text-xs text-gray-500 mt-1 pb-4">Add or subtract an adjustment from the original fuel charge amount</p>
         </div>
-        <div class="px-6 py-4 space-y-4">
-            <p class="text-sm text-gray-600">
-                Current total: <strong id="beAdjustCurrent"></strong><br>
-                Enter a positive value to increase or negative to decrease.
+        <!-- Amount Summary -->
+        <div class="px-6 py-4 bg-gray-50 space-y-2 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-600">Base Fuel Amount</span>
+                <span class="font-medium text-gray-900" id="beAdjustBase">$0.00</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Current Total (after adjustments)</span>
+                <span class="font-semibold text-gray-900" id="beAdjustCurrent">$0.00</span>
+            </div>
+        </div>
+        <!-- Adjustment Input -->
+        <div class="px-6 py-4 space-y-3">
+            <label class="block text-sm font-medium text-gray-700">Adjustment Amount</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">$</span>
+                <input id="beAdjustAmount" type="number" step="0.01"
+                       class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="e.g. 100 or -50">
+            </div>
+            <p class="text-xs text-gray-500">
+                Use a <strong>positive</strong> value to increase, or <strong>negative</strong> value to reduce the charge.
             </p>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Adjustment Amount</label>
-                <input type="number" id="beAdjustAmount" step="0.01"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:outline-none"
-                       placeholder="e.g. 10.00 or -5.00">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
-                <input type="text" id="beAdjustNote"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:outline-none"
-                       placeholder="Reason for adjustment">
+        </div>
+        <!-- Live Preview -->
+        <div class="px-6 py-3 bg-blue-50 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-700 font-medium">New Total After Adjustment</span>
+                <span class="font-bold text-blue-700" id="beAdjustPreview">$0.00</span>
             </div>
         </div>
-        <div class="px-6 py-4 border-t flex justify-end gap-3">
+        <!-- Actions -->
+        <div class="flex justify-end gap-2 px-6 py-4 border-t">
             <button type="button" onclick="beCloseModal('beFuelAdjustModal')"
-                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
+                    class="px-6 py-2 rounded-lg border border-gray-300 bg-white text-gray-700">
                 Cancel
             </button>
             <button type="button" id="beAdjustSaveBtn" onclick="beSubmitAdjust()"
-                    class="px-4 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition">
-                Apply Adjustment
+                    class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                Save Adjustment
             </button>
         </div>
     </div>
@@ -6381,6 +6396,7 @@
         let beActiveUniqueId = '';
         let beActiveCaUniqueId = '';
         let beActiveCustomerId = '';
+        let beActiveBase = 0;
         let beActiveTotal = 0;
 
         window.beCloseModal = function(id) {
@@ -6397,6 +6413,7 @@
             beActiveUniqueId   = row.dataset.beUniqueId   || '';
             beActiveCaUniqueId = row.dataset.beCaUnique   || '';
             beActiveCustomerId = row.dataset.beCustomerId  || '';
+            beActiveBase       = parseFloat(row.dataset.beBase  || 0);
             beActiveTotal      = parseFloat(row.dataset.beTotal || 0);
         }
 
@@ -6432,9 +6449,17 @@
 
         window.beOpenAdjust = function(row) {
             beSetActive(row);
-            document.getElementById('beAdjustAmount').value = '';
-            document.getElementById('beAdjustNote').value   = '';
+            const input   = document.getElementById('beAdjustAmount');
+            const preview = document.getElementById('beAdjustPreview');
+            input.value = '';
+            document.getElementById('beAdjustBase').textContent    = '$' + beActiveBase.toFixed(2);
             document.getElementById('beAdjustCurrent').textContent = '$' + beActiveTotal.toFixed(2);
+            preview.textContent = '$' + beActiveTotal.toFixed(2);
+            input.oninput = () => {
+                const delta = parseFloat(input.value || 0);
+                const next  = Math.max(0, beActiveTotal + delta);
+                preview.textContent = '$' + next.toFixed(2);
+            };
             beOpenModal('beFuelAdjustModal');
         };
 
@@ -6505,11 +6530,10 @@
 
         window.beSubmitAdjust = function() {
             const amount = document.getElementById('beAdjustAmount').value.trim();
-            const note   = document.getElementById('beAdjustNote').value.trim();
-            if (!amount || isNaN(parseFloat(amount))) { notyf.error('Please enter a valid adjustment amount.'); return; }
+            if (!amount || isNaN(parseFloat(amount))) { notyf.error('Please enter a valid amount.'); return; }
             bePost(
                 beRouteAdjust.replace('__ID__', beActiveUniqueId),
-                { amount: parseFloat(amount), note: note || null },
+                { amount: parseFloat(amount) },
                 'beAdjustSaveBtn',
                 'Charge adjusted.'
             );

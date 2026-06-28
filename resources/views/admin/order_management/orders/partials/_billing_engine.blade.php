@@ -143,6 +143,7 @@
                                      data-be-unique-id="{{ $charge->unique_id }}"
                                      data-be-ca-unique="{{ $caUniqueId }}"
                                      data-be-customer-id="{{ $charge->customer_id }}"
+                                     data-be-base="{{ $base }}"
                                      data-be-total="{{ $total }}"
                                      data-be-is-open="{{ $isOpen ? '1' : '0' }}">
 

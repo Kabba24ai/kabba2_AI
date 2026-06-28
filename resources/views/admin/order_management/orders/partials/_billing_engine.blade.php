@@ -2,6 +2,9 @@
     Billing Engine — consolidated charge display for Order Details.
     Variable: $billingCharges — Collection<BillingCharge>
     Source: billing_charges WHERE parent_order_id = order.id
+
+    Both billing_charge_type and status are cast to backed enums on the model.
+    All enum usage goes through ->value, ->label(), ->badgeClass(), ->isOpen().
 --}}
 @if($billingCharges->isNotEmpty())
 <div class="bg-white rounded-xl border border-green-200 shadow-sm mb-4">
@@ -25,26 +28,19 @@
                     'damage'    => ['icon' => 'heroicon-o-exclamation-triangle', 'bg' => 'bg-red-100',    'color' => 'text-red-600'],
                     'extension' => ['icon' => 'heroicon-o-calendar',            'bg' => 'bg-blue-100',   'color' => 'text-blue-600'],
                 ];
-                // billing_charge_type is cast to BillingChargeType enum — use ->value for key, ->label() for display
-                $typeEnum = $charge->billing_charge_type;
-                $typeKey  = $typeEnum?->value ?? 'misc';
-                $typeLabel = $typeEnum?->label() ?? 'Charge';
-                $iconDef  = $typeIcons[$typeKey] ?? ['icon' => 'heroicon-o-currency-dollar', 'bg' => 'bg-gray-100', 'color' => 'text-gray-500'];
 
-                $status      = strtolower($charge->status ?? 'pending');
-                $statusBadge = match($status) {
-                    'paid'     => 'bg-green-100 text-green-700',
-                    'resolved' => 'bg-blue-100 text-blue-700',
-                    default    => 'bg-amber-100 text-amber-800',
-                };
-                $statusLabel = match($status) {
-                    'paid'     => 'Paid',
-                    'resolved' => 'Resolved',
-                    default    => 'Pending',
-                };
+                // Both are backed enums — use their own methods, never cast to string
+                $typeEnum   = $charge->billing_charge_type;   // BillingChargeType enum
+                $statusEnum = $charge->status;                  // BillingChargeStatus enum
 
-                $amount    = (float) ($charge->amount ?? 0);
-                $taxAmount = (float) ($charge->tax_amount ?? 0);
+                $typeLabel   = $typeEnum?->label()      ?? 'Charge';
+                $iconDef     = $typeIcons[$typeEnum?->value ?? ''] ?? ['icon' => 'heroicon-o-currency-dollar', 'bg' => 'bg-gray-100', 'color' => 'text-gray-500'];
+
+                $statusLabel = $statusEnum?->label()     ?? 'Pending';
+                $statusBadge = $statusEnum?->badgeClass() ?? 'bg-amber-100 text-amber-800';
+
+                $amount    = $charge->amount    ?? 0.0;
+                $taxAmount = $charge->tax_amount ?? 0.0;
                 $total     = $amount + $taxAmount;
             @endphp
 
@@ -95,11 +91,11 @@
         @endforeach
     </div>
 
-    {{-- Outstanding total footer --}}
+    {{-- Outstanding total footer (uses enum's isOpen() instead of string compare) --}}
     @php
         $outstanding = $billingCharges
-            ->filter(fn($c) => strtolower($c->status ?? 'pending') === 'pending')
-            ->sum(fn($c) => (float) $c->amount + (float) $c->tax_amount);
+            ->filter(fn($c) => $c->status?->isOpen())
+            ->sum(fn($c) => ($c->amount ?? 0.0) + ($c->tax_amount ?? 0.0));
     @endphp
     @if($outstanding > 0)
         <div class="px-4 py-2.5 bg-green-50 border-t border-green-100 rounded-b-xl flex justify-end items-center gap-2">

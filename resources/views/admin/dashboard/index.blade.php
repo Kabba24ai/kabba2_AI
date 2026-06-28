@@ -1135,19 +1135,17 @@ if (status === "uncollectible") {
 
        cardSelect.innerHTML = `<option value="">-- Select a saved card --</option>`;
 
-        if (paymentType.value === 'CreditCard' && Array.isArray(alert.customer.cards) && alert.customer.cards.length > 0) {
+        if (Array.isArray(alert.customer.cards) && alert.customer.cards.length > 0) {
             alert.customer.cards.forEach(card => {
                 cardSelect.insertAdjacentHTML(
                     'beforeend',
                     `<option value="${card.id}">${card.label}</option>`
                 );
             });
-
+            // Pre-select CardOnFile so the paymentType change handler shows the dropdown
+            // when the user selects Credit / Debit Card. Don't show the dropdown yet.
             cardOption.value = 'CardOnFile';
-
-
-            cardOnFileDropdown.classList.remove('hidden');
-            
+            cardOnFileDropdown.classList.add('hidden');
         } else {
             cardOption.value = 'NewCard';
             cardOnFileDropdown.classList.add('hidden');

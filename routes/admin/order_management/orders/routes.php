@@ -36,6 +36,10 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\RepairDeletedOrdersControl
 use App\Http\Controllers\Admin\OrderManagement\Orders\AlertChargeController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\Extension\StoreController as ExtensionStoreController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\ResendPodPaymentLinkController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\ResolveController as BEResolveController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\UncollectibleController as BEUncollectibleController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\NoteController as BENoteController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\AdjustController as BEAdjustController;
 
 
 Route::prefix('orders')
@@ -96,6 +100,16 @@ Route::prefix('orders')
 
         // POD Payment Link — manual resend
         Route::post('/{unique_id}/resend-pod-payment-link', ResendPodPaymentLinkController::class)->name('resend-pod-payment-link');
+
+        // Billing Engine — fuel charge actions (operate on billing_charges.unique_id, not order_product_id)
+        Route::prefix('billing-charges')
+            ->name('billing-charges.')
+            ->group(function () {
+                Route::post('/{chargeUniqueId}/resolve',       BEResolveController::class)->name('resolve');
+                Route::post('/{chargeUniqueId}/uncollectible', BEUncollectibleController::class)->name('uncollectible');
+                Route::post('/{chargeUniqueId}/note',          BENoteController::class)->name('note');
+                Route::post('/{chargeUniqueId}/adjust',        BEAdjustController::class)->name('adjust');
+            });
 
         // Route::get('repair-deleted-orders', RepairDeletedOrdersController::class)->name('repair-deleted-orders');
 

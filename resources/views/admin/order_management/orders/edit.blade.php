@@ -3394,6 +3394,232 @@
         </div>
     </div>
 
+{{-- ╔══════════════════════════════════════════════════════════════════════╗
+     ║  Billing Engine — Fuel Charge Action Modals                         ║
+     ║  Only shown for billing_charges.billing_charge_type = 'fuel'.       ║
+     ╚══════════════════════════════════════════════════════════════════════╝ --}}
+
+{{-- Make a Payment (standard form POST → admin.dashboard.paymentstore with source=crm) --}}
+<div id="beFuelPaymentModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h3 class="text-base font-semibold text-gray-900">Make a Payment — Fuel Charge</h3>
+            <button type="button" onclick="beCloseModal('beFuelPaymentModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+        <form method="POST" action="{{ route('admin.dashboard.paymentstore') }}">
+            @csrf
+            <input type="hidden" name="source" value="crm">
+            <input type="hidden" name="type" value="fuel">
+            <input type="hidden" name="customer_id" id="bePayCustomerId" value="">
+            <input type="hidden" name="customer_account_id" id="bePayCaUniqueId" value="">
+            <input type="hidden" name="billing_charge_unique_id" id="bePayChargeUniqueId" value="">
+            <div class="px-6 py-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
+                    <input type="number" name="amount" id="bePayAmount" min="0.01" step="0.01"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+                           placeholder="0.00" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Type</label>
+                    <select name="payment_type"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" required>
+                        <option value="">Select type...</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="BankTransfer">Bank Transfer</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Responsible Person</label>
+                    <select name="responsible_person"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" required>
+                        <option value="">Select person...</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea name="notes" rows="2"
+                              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+                              placeholder="Optional notes..."></textarea>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t flex justify-end gap-3">
+                <button type="button" onclick="beCloseModal('beFuelPaymentModal')"
+                        class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition">
+                    Record Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Mark as Resolved --}}
+<div id="beFuelResolveModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h3 class="text-base font-semibold text-gray-900">Mark as Resolved</h3>
+            <button type="button" onclick="beCloseModal('beFuelResolveModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+        <div class="px-6 py-4 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Resolution Note</label>
+                @if($resolutionPresets->isNotEmpty())
+                <select id="beResolvePreset" onchange="if(this.value) document.getElementById('beResolveNote').value = this.value;"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">Select preset...</option>
+                    @foreach($resolutionPresets as $preset)
+                        <option value="{{ $preset->label }}">{{ $preset->label }}</option>
+                    @endforeach
+                </select>
+                @endif
+                <textarea id="beResolveNote" rows="3"
+                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Enter resolution note..."></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Resolved By</label>
+                <select id="beResolveBy"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">Select person...</option>
+                    @foreach($employees as $emp)
+                        <option value="{{ $emp->id }}" {{ auth()->id() == $emp->id ? 'selected' : '' }}>{{ $emp->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="px-6 py-4 border-t flex justify-end gap-3">
+            <button type="button" onclick="beCloseModal('beFuelResolveModal')"
+                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
+                Cancel
+            </button>
+            <button type="button" id="beResolveSaveBtn" onclick="beSubmitResolve()"
+                    class="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition">
+                Mark as Resolved
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- Mark as Uncollectible --}}
+<div id="beFuelUncollectibleModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h3 class="text-base font-semibold text-gray-900">Mark as Uncollectible</h3>
+            <button type="button" onclick="beCloseModal('beFuelUncollectibleModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+        <div class="px-6 py-4 space-y-4">
+            <p class="text-sm text-gray-600">This will mark the fuel charge as uncollectible. This action cannot be undone.</p>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Resolved By</label>
+                <select id="beUncollectibleBy"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+                    <option value="">Select person...</option>
+                    @foreach($employees as $emp)
+                        <option value="{{ $emp->id }}" {{ auth()->id() == $emp->id ? 'selected' : '' }}>{{ $emp->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="px-6 py-4 border-t flex justify-end gap-3">
+            <button type="button" onclick="beCloseModal('beFuelUncollectibleModal')"
+                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
+                Cancel
+            </button>
+            <button type="button" id="beUncollectibleSaveBtn" onclick="beSubmitUncollectible()"
+                    class="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition">
+                Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- Add Note --}}
+<div id="beFuelNoteModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h3 class="text-base font-semibold text-gray-900">Add Note</h3>
+            <button type="button" onclick="beCloseModal('beFuelNoteModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+        <div class="px-6 py-4 space-y-4">
+            @if($fuelNotePresets->isNotEmpty())
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Preset</label>
+                <select id="beNotePreset" onchange="if(this.value) document.getElementById('beNoteText').value = this.value;"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 focus:outline-none">
+                    <option value="">Select preset...</option>
+                    @foreach($fuelNotePresets as $preset)
+                        <option value="{{ $preset->label }}">{{ $preset->label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+                <textarea id="beNoteText" rows="4"
+                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 focus:outline-none"
+                          placeholder="Enter note..."></textarea>
+            </div>
+        </div>
+        <div class="px-6 py-4 border-t flex justify-end gap-3">
+            <button type="button" onclick="beCloseModal('beFuelNoteModal')"
+                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
+                Cancel
+            </button>
+            <button type="button" id="beNoteSaveBtn" onclick="beSubmitNote()"
+                    class="px-4 py-2 rounded-lg text-sm font-medium bg-gray-800 text-white hover:bg-gray-900 transition">
+                Save Note
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- Adjust Fuel Charge --}}
+<div id="beFuelAdjustModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h3 class="text-base font-semibold text-gray-900">Adjust Fuel Charge</h3>
+            <button type="button" onclick="beCloseModal('beFuelAdjustModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+        <div class="px-6 py-4 space-y-4">
+            <p class="text-sm text-gray-600">
+                Current total: <strong id="beAdjustCurrent"></strong><br>
+                Enter a positive value to increase or negative to decrease.
+            </p>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Adjustment Amount</label>
+                <input type="number" id="beAdjustAmount" step="0.01"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:outline-none"
+                       placeholder="e.g. 10.00 or -5.00">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
+                <input type="text" id="beAdjustNote"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:outline-none"
+                       placeholder="Reason for adjustment">
+            </div>
+        </div>
+        <div class="px-6 py-4 border-t flex justify-end gap-3">
+            <button type="button" onclick="beCloseModal('beFuelAdjustModal')"
+                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
+                Cancel
+            </button>
+            <button type="button" id="beAdjustSaveBtn" onclick="beSubmitAdjust()"
+                    class="px-4 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition">
+                Apply Adjustment
+            </button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('js')
@@ -6147,6 +6373,147 @@
 
         document.getElementById('orderDamageSubmitBtn').addEventListener('click', () =>
             submitAlertCharge('damage', 'orderDamageAmount', 'orderDamagePerson', 'orderDamageNotes', 'orderDamageSubmitBtn'));
+    })();
+
+    // ── Billing Engine — Fuel Charge Actions ──────────────────────────────────
+    (function () {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let beActiveUniqueId = '';
+        let beActiveCaUniqueId = '';
+        let beActiveCustomerId = '';
+        let beActiveTotal = 0;
+
+        window.beCloseModal = function(id) {
+            const el = document.getElementById(id);
+            if (el) { el.classList.remove('flex'); el.classList.add('hidden'); }
+        };
+
+        function beOpenModal(id) {
+            const el = document.getElementById(id);
+            if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
+        }
+
+        function beSetActive(row) {
+            beActiveUniqueId   = row.dataset.beUniqueId   || '';
+            beActiveCaUniqueId = row.dataset.beCaUnique   || '';
+            beActiveCustomerId = row.dataset.beCustomerId  || '';
+            beActiveTotal      = parseFloat(row.dataset.beTotal || 0);
+        }
+
+        window.beOpenPayment = function(row) {
+            beSetActive(row);
+            document.getElementById('bePayChargeUniqueId').value = beActiveUniqueId;
+            document.getElementById('bePayCaUniqueId').value     = beActiveCaUniqueId;
+            document.getElementById('bePayCustomerId').value     = beActiveCustomerId;
+            document.getElementById('bePayAmount').value         = beActiveTotal.toFixed(2);
+            beOpenModal('beFuelPaymentModal');
+        };
+
+        window.beOpenResolve = function(row) {
+            beSetActive(row);
+            document.getElementById('beResolveNote').value = '';
+            const preset = document.getElementById('beResolvePreset');
+            if (preset) preset.value = '';
+            beOpenModal('beFuelResolveModal');
+        };
+
+        window.beOpenUncollectible = function(row) {
+            beSetActive(row);
+            beOpenModal('beFuelUncollectibleModal');
+        };
+
+        window.beOpenNote = function(row) {
+            beSetActive(row);
+            document.getElementById('beNoteText').value = '';
+            const preset = document.getElementById('beNotePreset');
+            if (preset) preset.value = '';
+            beOpenModal('beFuelNoteModal');
+        };
+
+        window.beOpenAdjust = function(row) {
+            beSetActive(row);
+            document.getElementById('beAdjustAmount').value = '';
+            document.getElementById('beAdjustNote').value   = '';
+            document.getElementById('beAdjustCurrent').textContent = '$' + beActiveTotal.toFixed(2);
+            beOpenModal('beFuelAdjustModal');
+        };
+
+        function bePost(url, payload, btnId, successMsg) {
+            const btn = document.getElementById(btnId);
+            if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify(payload),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    notyf.success(data.message || successMsg);
+                    ['beFuelResolveModal','beFuelUncollectibleModal','beFuelNoteModal','beFuelAdjustModal'].forEach(id => beCloseModal(id));
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    notyf.error(data.message || 'Something went wrong.');
+                }
+            })
+            .catch(() => notyf.error('Request failed. Please try again.'))
+            .finally(() => {
+                if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Save'; }
+            });
+        }
+
+        const beRouteResolve       = '{{ route('admin.order-management.orders.billing-charges.resolve', '__ID__') }}';
+        const beRouteUncollectible = '{{ route('admin.order-management.orders.billing-charges.uncollectible', '__ID__') }}';
+        const beRouteNote          = '{{ route('admin.order-management.orders.billing-charges.note', '__ID__') }}';
+        const beRouteAdjust        = '{{ route('admin.order-management.orders.billing-charges.adjust', '__ID__') }}';
+
+        window.beSubmitResolve = function() {
+            const note = document.getElementById('beResolveNote').value.trim();
+            const by   = document.getElementById('beResolveBy').value;
+            if (!note) { notyf.error('Please enter a resolution note.'); return; }
+            if (!by)   { notyf.error('Please select a person.'); return; }
+            bePost(
+                beRouteResolve.replace('__ID__', beActiveUniqueId),
+                { resolution_note: note, resolved_by: by },
+                'beResolveSaveBtn',
+                'Charge marked as resolved.'
+            );
+        };
+
+        window.beSubmitUncollectible = function() {
+            const by = document.getElementById('beUncollectibleBy').value;
+            if (!by) { notyf.error('Please select a person.'); return; }
+            bePost(
+                beRouteUncollectible.replace('__ID__', beActiveUniqueId),
+                { resolved_by: by },
+                'beUncollectibleSaveBtn',
+                'Charge marked as uncollectible.'
+            );
+        };
+
+        window.beSubmitNote = function() {
+            const note = document.getElementById('beNoteText').value.trim();
+            if (!note) { notyf.error('Please enter a note.'); return; }
+            bePost(
+                beRouteNote.replace('__ID__', beActiveUniqueId),
+                { note },
+                'beNoteSaveBtn',
+                'Note saved.'
+            );
+        };
+
+        window.beSubmitAdjust = function() {
+            const amount = document.getElementById('beAdjustAmount').value.trim();
+            const note   = document.getElementById('beAdjustNote').value.trim();
+            if (!amount || isNaN(parseFloat(amount))) { notyf.error('Please enter a valid adjustment amount.'); return; }
+            bePost(
+                beRouteAdjust.replace('__ID__', beActiveUniqueId),
+                { amount: parseFloat(amount), note: note || null },
+                'beAdjustSaveBtn',
+                'Charge adjusted.'
+            );
+        };
     })();
 
     // ── Extension Charges ──────────────────────────────────────────────────────

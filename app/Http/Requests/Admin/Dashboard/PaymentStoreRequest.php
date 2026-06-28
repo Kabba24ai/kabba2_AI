@@ -70,6 +70,7 @@ class PaymentStoreRequest extends FormRequest
 
             'source'               => ['nullable', 'string', Rule::in(['order', 'crm'])],
             'customer_account_id'  => ['nullable', 'string', 'exists:customer_accounts,unique_id'],
+            'billing_charge_unique_id' => ['nullable', 'string', 'exists:billing_charges,unique_id'],
         ];
     }
 

@@ -23,6 +23,8 @@ use App\Models\Orders\OrderProduct;
 
 use App\Events\Admin\Orders\OrderExtraChargeEvent;
 use App\Services\ChargeService;
+use App\Models\Orders\BillingCharge;
+use App\Services\BillingEngine;
 
 class PaymentStoreController extends Controller
 {
@@ -417,6 +419,14 @@ if (
                 $chargeAccount->damage_alert_status = 'completed';
             }
             $chargeAccount->save();
+
+            // If this payment is for a specific billing charge, mark it paid
+            if (! empty($validated['billing_charge_unique_id'])) {
+                $bc = BillingCharge::where('unique_id', $validated['billing_charge_unique_id'])->first();
+                if ($bc && $bc->status?->isOpen()) {
+                    BillingEngine::markPaid($bc);
+                }
+            }
 
             flash('Payment recorded successfully.')->success();
             DB::commit();

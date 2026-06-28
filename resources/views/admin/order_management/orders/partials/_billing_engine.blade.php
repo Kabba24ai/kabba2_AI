@@ -5,6 +5,10 @@
 
     Both billing_charge_type and status are cast to backed enums on the model.
     All enum usage goes through ->value, ->label(), ->badgeClass(), ->isOpen().
+
+    Action icons appear on fuel_charge rows only (not damage, extension, or other types).
+    Payment modal is a standard form POST to admin.dashboard.paymentstore (source=crm).
+    Resolve / Uncollectible / Note / Adjust use AJAX via new billing-engine-specific routes.
 --}}
 @if($billingCharges->isNotEmpty())
 <div class="bg-white rounded-xl border border-green-200 shadow-sm mb-4">
@@ -19,79 +23,180 @@
         </span>
     </div>
 
-    {{-- Charge rows --}}
-    <div class="divide-y divide-gray-100">
-        @foreach($billingCharges as $charge)
-            @php
-                $typeIcons = [
-                    'fuel'      => ['icon' => 'heroicon-o-fire',                'bg' => 'bg-orange-100', 'color' => 'text-orange-600'],
-                    'damage'    => ['icon' => 'heroicon-o-exclamation-triangle', 'bg' => 'bg-red-100',    'color' => 'text-red-600'],
-                    'extension' => ['icon' => 'heroicon-o-calendar',            'bg' => 'bg-blue-100',   'color' => 'text-blue-600'],
-                ];
+    {{-- Table --}}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Charge</th>
+                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Details</th>
+                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Added By</th>
+                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Date Added</th>
+                    <th class="text-right px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-36">Amount</th>
+                    <th class="text-center px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Status</th>
+                    <th class="text-right px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Outstanding</th>
+                    <th class="text-center px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @foreach($billingCharges as $charge)
+                    @php
+                        $typeIcons = [
+                            'fuel'      => ['icon' => 'heroicon-o-fire',                'bg' => 'bg-orange-100', 'color' => 'text-orange-600'],
+                            'damage'    => ['icon' => 'heroicon-o-exclamation-triangle', 'bg' => 'bg-red-100',    'color' => 'text-red-600'],
+                            'extension' => ['icon' => 'heroicon-o-calendar',            'bg' => 'bg-blue-100',   'color' => 'text-blue-600'],
+                        ];
 
-                // Both are backed enums — use their own methods, never cast to string
-                $typeEnum   = $charge->billing_charge_type;   // BillingChargeType enum
-                $statusEnum = $charge->status;                  // BillingChargeStatus enum
+                        $typeEnum   = $charge->billing_charge_type;
+                        $statusEnum = $charge->status;
 
-                $typeLabel   = $typeEnum?->label()      ?? 'Charge';
-                $iconDef     = $typeIcons[$typeEnum?->value ?? ''] ?? ['icon' => 'heroicon-o-currency-dollar', 'bg' => 'bg-gray-100', 'color' => 'text-gray-500'];
+                        $typeLabel   = $typeEnum?->label()       ?? 'Charge';
+                        $typeValue   = $typeEnum?->value          ?? '';
+                        $iconDef     = $typeIcons[$typeValue]     ?? ['icon' => 'heroicon-o-currency-dollar', 'bg' => 'bg-gray-100', 'color' => 'text-gray-500'];
 
-                $statusLabel = $statusEnum?->label()     ?? 'Pending';
-                $statusBadge = $statusEnum?->badgeClass() ?? 'bg-amber-100 text-amber-800';
+                        $statusLabel = $statusEnum?->label()      ?? 'Pending';
+                        $statusBadge = $statusEnum?->badgeClass()  ?? 'bg-amber-100 text-amber-800';
+                        $isOpen      = $statusEnum?->isOpen()      ?? false;
 
-                $amount    = $charge->amount    ?? 0.0;
-                $taxAmount = $charge->tax_amount ?? 0.0;
-                $total     = $amount + $taxAmount;
-            @endphp
+                        $base        = $charge->amount    ?? 0.0;
+                        $tax         = $charge->tax_amount ?? 0.0;
+                        $total       = $base + $tax;
 
-            <div class="flex items-center justify-between gap-4 px-4 py-3">
-                {{-- Left: icon + details --}}
-                <div class="flex items-center gap-3 min-w-0">
-                    <span class="flex-shrink-0 w-8 h-8 rounded-full {{ $iconDef['bg'] }} flex items-center justify-center">
-                        <x-dynamic-component :component="$iconDef['icon']" class="w-4 h-4 {{ $iconDef['color'] }}" />
-                    </span>
+                        $isFuel      = $typeValue === 'fuel';
 
-                    <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-900">{{ $typeLabel }}</p>
-                        <p class="text-xs text-gray-500">
-                            {{ $charge->created_at?->format('M j, Y') }}
-                            @if($charge->createdBy)
-                                &middot; {{ $charge->createdBy->full_name }}
-                            @endif
+                        // Payment needs the legacy CA unique_id
+                        $caUniqueId  = $charge->legacyCustomerAccount?->unique_id ?? '';
+                    @endphp
+
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        {{-- Charge --}}
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full {{ $iconDef['bg'] }} flex items-center justify-center">
+                                    <x-dynamic-component :component="$iconDef['icon']" class="w-3.5 h-3.5 {{ $iconDef['color'] }}" />
+                                </span>
+                                <span class="font-semibold text-gray-900 text-xs">{{ $typeLabel }}</span>
+                            </div>
+                        </td>
+
+                        {{-- Details --}}
+                        <td class="px-4 py-3 max-w-xs">
                             @if($charge->source_module)
-                                &middot; <span class="italic">{{ $charge->source_module }}</span>
+                                <span class="text-xs text-gray-400 italic block">{{ $charge->source_module }}</span>
                             @endif
-                        </p>
-                        @if($charge->notes)
-                            <p class="text-xs text-gray-400 truncate mt-0.5">{{ $charge->notes }}</p>
-                        @endif
-                        @if($charge->childOrder)
-                            <a href="{{ route('admin.order-management.orders.edit', $charge->childOrder->unique_id) }}"
-                               class="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-0.5">
-                                <x-heroicon-o-arrow-top-right-on-square class="w-3 h-3" />
-                                Child Order #{{ $charge->childOrder->order_number }}
-                            </a>
-                        @endif
-                    </div>
-                </div>
+                            @if($charge->notes)
+                                <span class="text-xs text-gray-600 block truncate" title="{{ $charge->notes }}">{{ $charge->notes }}</span>
+                            @endif
+                            @if($charge->childOrder)
+                                <a href="{{ route('admin.order-management.orders.edit', $charge->childOrder->unique_id) }}"
+                                   class="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-0.5">
+                                    <x-heroicon-o-arrow-top-right-on-square class="w-3 h-3" />
+                                    Child #{{ $charge->childOrder->order_number }}
+                                </a>
+                            @endif
+                        </td>
 
-                {{-- Right: amount + status --}}
-                <div class="flex items-center gap-3 flex-shrink-0">
-                    <div class="text-right">
-                        <p class="text-sm font-bold text-gray-900">${{ number_format($total, 2) }}</p>
-                        @if($taxAmount > 0)
-                            <p class="text-xs text-gray-400">+${{ number_format($taxAmount, 2) }} tax</p>
-                        @endif
-                    </div>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusBadge }}">
-                        {{ $statusLabel }}
-                    </span>
-                </div>
-            </div>
-        @endforeach
+                        {{-- Added By --}}
+                        <td class="px-4 py-3">
+                            <span class="text-xs text-gray-700">
+                                {{ $charge->createdBy?->full_name ?? '—' }}
+                            </span>
+                        </td>
+
+                        {{-- Date Added --}}
+                        <td class="px-4 py-3">
+                            <span class="text-xs text-gray-700">{{ $charge->created_at?->format('M j, Y') }}</span>
+                        </td>
+
+                        {{-- Amount Breakdown --}}
+                        <td class="px-4 py-3 text-right">
+                            <div class="text-xs text-gray-500">Base: ${{ number_format($base, 2) }}</div>
+                            <div class="text-xs text-gray-400">Tax: ${{ number_format($tax, 2) }}</div>
+                            <div class="text-sm font-bold text-gray-900">${{ number_format($total, 2) }}</div>
+                        </td>
+
+                        {{-- Status --}}
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusBadge }}">
+                                {{ $statusLabel }}
+                            </span>
+                        </td>
+
+                        {{-- Outstanding --}}
+                        <td class="px-4 py-3 text-right">
+                            @if($isOpen)
+                                <span class="text-sm font-semibold text-red-600">${{ number_format($total, 2) }}</span>
+                            @else
+                                <span class="text-xs text-gray-400">—</span>
+                            @endif
+                        </td>
+
+                        {{-- Actions (fuel rows only) --}}
+                        <td class="px-4 py-3 text-center">
+                            @if($isFuel)
+                                <div class="flex items-center justify-center gap-1.5"
+                                     data-be-unique-id="{{ $charge->unique_id }}"
+                                     data-be-ca-unique="{{ $caUniqueId }}"
+                                     data-be-customer-id="{{ $charge->customer_id }}"
+                                     data-be-total="{{ $total }}"
+                                     data-be-is-open="{{ $isOpen ? '1' : '0' }}">
+
+                                    @if($isOpen)
+                                        {{-- Make a Payment --}}
+                                        <button type="button"
+                                            onclick="beOpenPayment(this.closest('[data-be-unique-id]'))"
+                                            title="Make a Payment"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-green-600 hover:bg-green-100 transition"
+                                            aria-label="Make a Payment">
+                                            <x-heroicon-o-currency-dollar class="w-4 h-4" />
+                                        </button>
+
+                                        {{-- Mark as Resolved --}}
+                                        <button type="button"
+                                            onclick="beOpenResolve(this.closest('[data-be-unique-id]'))"
+                                            title="Mark as Resolved"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-blue-600 hover:bg-blue-100 transition"
+                                            aria-label="Mark as Resolved">
+                                            <x-heroicon-o-check-circle class="w-4 h-4" />
+                                        </button>
+
+                                        {{-- Mark as Uncollectible --}}
+                                        <button type="button"
+                                            onclick="beOpenUncollectible(this.closest('[data-be-unique-id]'))"
+                                            title="Mark as Uncollectible"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition"
+                                            aria-label="Mark as Uncollectible">
+                                            <x-heroicon-o-x-circle class="w-4 h-4" />
+                                        </button>
+
+                                        {{-- Adjust Fuel Charge --}}
+                                        <button type="button"
+                                            onclick="beOpenAdjust(this.closest('[data-be-unique-id]'))"
+                                            title="Adjust Fuel Charge"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-amber-500 hover:bg-amber-100 transition"
+                                            aria-label="Adjust Fuel Charge">
+                                            <x-heroicon-o-adjustments-horizontal class="w-4 h-4" />
+                                        </button>
+                                    @endif
+
+                                    {{-- Add Note (always available for fuel rows) --}}
+                                    <button type="button"
+                                        onclick="beOpenNote(this.closest('[data-be-unique-id]'))"
+                                        title="Add Note"
+                                        class="w-6 h-6 rounded flex items-center justify-center text-gray-500 hover:bg-gray-100 transition"
+                                        aria-label="Add Note">
+                                        <x-heroicon-o-pencil-square class="w-4 h-4" />
+                                    </button>
+                                </div>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
 
-    {{-- Outstanding total footer (uses enum's isOpen() instead of string compare) --}}
+    {{-- Outstanding total footer --}}
     @php
         $outstanding = $billingCharges
             ->filter(fn($c) => $c->status?->isOpen())

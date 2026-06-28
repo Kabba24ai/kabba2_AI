@@ -217,6 +217,13 @@ class Order extends Model
             if (!$model->isForceDeleting()) {
                 $model->deleted_by = auth()->id();
                 $model->saveQuietly();
+
+                // Stop all CRM Funnel SMS for this order BEFORE products are deleted.
+                // Creates permanent 'Stopped' log entries so communication history is preserved.
+                \App\Services\FunnelLifecycleService::stopFunnelsForOrder(
+                    $model,
+                    \App\Services\FunnelLifecycleService::REASON_ORDER_DELETED
+                );
             }
 
             $model->products()->with('equipment')->get()->each(function ($product) use ($model) {

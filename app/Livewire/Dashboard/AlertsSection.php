@@ -209,11 +209,10 @@ class AlertsSection extends Component
                     ? $base + $base * $taxRate
                     : $base;
                 $hasOrder      = $account->order !== null;
-                $isCrmOrigin   = $account->order_id === null;
                 $billingCharge = $damageBillingCharges->get($account->id);
                 return [
                     'id'                       => 20000 + $account->id,
-                    'source'                   => $isCrmOrigin ? 'crm' : 'order',
+                    'source'                   => 'crm',
                     'customer'                 => [
                         'id'        => $account->customer_id,
                         'full_name' => $account->customer?->full_name,
@@ -269,11 +268,10 @@ class AlertsSection extends Component
                     ? $base + $base * $taxRate
                     : $base;
                 $hasOrder      = $account->order !== null;
-                $isCrmOrigin   = $account->order_id === null;
                 $billingCharge = $fuelBillingCharges->get($account->id);
                 return [
                     'id'                       => 10000 + $account->id,
-                    'source'                   => $isCrmOrigin ? 'crm' : 'order',
+                    'source'                   => 'crm',
                     'customer'                 => [
                         'id'        => $account->customer_id,
                         'full_name' => $account->customer?->full_name,

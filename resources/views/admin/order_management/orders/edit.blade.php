@@ -3434,38 +3434,80 @@
      ║  'damage'. Type is set dynamically via beActiveType.               ║
      ╚══════════════════════════════════════════════════════════════════════╝ --}}
 
-{{-- Make a Payment (standard form POST → admin.dashboard.paymentstore with source=crm) --}}
+{{-- Make a Payment — Cash/Cheque/BankTransfer/Other + Credit/Debit Card with Authorize.net --}}
 <div id="beFuelPaymentModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh]">
         <div class="flex items-center justify-between px-6 py-4 border-b">
             <h3 class="text-base font-semibold text-gray-900">Make a Payment</h3>
             <button type="button" onclick="beCloseModal('beFuelPaymentModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
         </div>
-        <form method="POST" action="{{ route('admin.dashboard.paymentstore') }}">
+        <form id="bePayForm" method="POST" action="{{ route('admin.dashboard.paymentstore') }}">
             @csrf
             <input type="hidden" name="source" value="crm">
             <input type="hidden" name="type" id="bePayType" value="">
             <input type="hidden" name="customer_id" id="bePayCustomerId" value="">
             <input type="hidden" name="customer_account_id" id="bePayCaUniqueId" value="">
             <input type="hidden" name="billing_charge_unique_id" id="bePayChargeUniqueId" value="">
+            <input type="hidden" name="opaqueDataValue" id="beOpaqueDataValue">
+            <input type="hidden" name="opaqueDataDescriptor" id="beOpaqueDataDescriptor">
             <div class="px-6 py-4 space-y-4">
+                {{-- Amount --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
                     <input type="number" name="amount" id="bePayAmount" min="0.01" step="0.01"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
                            placeholder="0.00" required>
                 </div>
+                {{-- Payment Type --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Type</label>
-                    <select name="payment_type"
+                    <select name="payment_type" id="bePaymentType"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" required>
-                        <option value="">Select type...</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="BankTransfer">Bank Transfer</option>
-                        <option value="Other">Other</option>
+                        @foreach(\App\Enums\Customers\PaymentMethod::options() as $val => $label)
+                            <option value="{{ $val }}">{{ $label }}</option>
+                        @endforeach
                     </select>
                 </div>
+                {{-- Check Number (shown when Cheque selected) --}}
+                <div id="bePayChequeField" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Check Number</label>
+                    <input type="text" name="cheque_number" id="bePayChequeNumber"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+                           placeholder="Enter check number">
+                </div>
+                {{-- Card Options (shown when CreditCard selected) --}}
+                <div id="bePayCardOptions" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Options</label>
+                    <select id="bePayCardOption" name="card_option"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="NewCard">New Card</option>
+                        <option value="CardOnFile">Card on File</option>
+                    </select>
+                </div>
+                {{-- New Card Fields (shown when card_option = NewCard) --}}
+                <div id="bePayNewCardFields" class="hidden">
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="text" name="firstName" placeholder="First name"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
+                        <input type="text" name="lastName" placeholder="Last name"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
+                        <input type="text" id="bePayCardNumber" name="cardNumber" placeholder="Card number" maxlength="19"
+                               class="col-span-2 border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
+                        <input type="text" id="bePayExpiry" name="expiry" placeholder="MM/YY" maxlength="5"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
+                        <input type="text" id="bePayCvc" name="cvc" placeholder="CVC" maxlength="4"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
+                    </div>
+                </div>
+                {{-- Card on File dropdown (shown when card_option = CardOnFile) --}}
+                <div id="bePayCardOnFile" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Saved Card</label>
+                    <select name="existing_card_id" id="bePayExistingCard"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="">-- Select a saved card --</option>
+                    </select>
+                </div>
+                {{-- Responsible Person --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Responsible Person</label>
                     <select name="responsible_person"
@@ -3476,6 +3518,7 @@
                         @endforeach
                     </select>
                 </div>
+                {{-- Notes --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                     <textarea name="notes" rows="2"
@@ -3488,9 +3531,13 @@
                         class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
                     Cancel
                 </button>
-                <button type="submit"
-                        class="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition">
-                    Record Payment
+                <button type="submit" id="bePaySubmitBtn"
+                        class="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition flex items-center gap-2">
+                    <span id="bePayBtnText">Record Payment</span>
+                    <svg id="bePayBtnSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
                 </button>
             </div>
         </form>
@@ -6455,13 +6502,159 @@
             beActiveType       = row.dataset.beType        || 'fuel';
         }
 
+        // Saved cards for this order's customer — populated by PHP at render time
+        const beCustomerCards = @json($order->customer?->cards?->map(fn($c) => ['id' => $c->unique_id, 'label' => $c->card_number])->values() ?? []);
+
+        function resetBePaymentState() {
+            const paymentType   = document.getElementById('bePaymentType');
+            const chequeField   = document.getElementById('bePayChequeField');
+            const cardOptions   = document.getElementById('bePayCardOptions');
+            const newCardFields = document.getElementById('bePayNewCardFields');
+            const cardOnFile    = document.getElementById('bePayCardOnFile');
+            const cardOption    = document.getElementById('bePayCardOption');
+            if (paymentType)   paymentType.value = '';
+            if (chequeField)   chequeField.classList.add('hidden');
+            if (cardOptions)   cardOptions.classList.add('hidden');
+            if (newCardFields) newCardFields.classList.add('hidden');
+            if (cardOnFile)    cardOnFile.classList.add('hidden');
+            if (cardOption)    cardOption.value = 'NewCard';
+            const n = document.getElementById('bePayCardNumber');
+            const x = document.getElementById('bePayExpiry');
+            const v = document.getElementById('bePayCvc');
+            if (n) n.value = '';
+            if (x) x.value = '';
+            if (v) v.value = '';
+            document.getElementById('beOpaqueDataValue').value      = '';
+            document.getElementById('beOpaqueDataDescriptor').value = '';
+            document.getElementById('bePayChequeNumber').value      = '';
+            const sb = document.getElementById('bePaySubmitBtn');
+            const bt = document.getElementById('bePayBtnText');
+            const sp = document.getElementById('bePayBtnSpinner');
+            if (sb) sb.disabled = false;
+            if (bt) bt.textContent = 'Record Payment';
+            if (sp) sp.classList.add('hidden');
+        }
+
+        // Payment type → show/hide conditional sections
+        document.getElementById('bePaymentType')?.addEventListener('change', function() {
+            document.getElementById('bePayChequeField').classList.add('hidden');
+            document.getElementById('bePayCardOptions').classList.add('hidden');
+            document.getElementById('bePayNewCardFields').classList.add('hidden');
+            document.getElementById('bePayCardOnFile').classList.add('hidden');
+            if (this.value === 'CreditCard') {
+                document.getElementById('bePayCardOptions').classList.remove('hidden');
+                document.getElementById('bePayCardOption').dispatchEvent(new Event('change'));
+            } else if (this.value === 'Cheque') {
+                document.getElementById('bePayChequeField').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('bePayCardOption')?.addEventListener('change', function() {
+            if (this.value === 'NewCard') {
+                document.getElementById('bePayNewCardFields').classList.remove('hidden');
+                document.getElementById('bePayCardOnFile').classList.add('hidden');
+            } else {
+                document.getElementById('bePayNewCardFields').classList.add('hidden');
+                document.getElementById('bePayCardOnFile').classList.remove('hidden');
+            }
+        });
+
+        // Card number / expiry / cvc formatting
+        document.getElementById('bePayCardNumber')?.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim();
+        });
+        document.getElementById('bePayExpiry')?.addEventListener('input', function() {
+            let val = this.value.replace(/[^0-9]/g, '').substring(0, 4);
+            if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2);
+            this.value = val;
+        });
+        document.getElementById('bePayCvc')?.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').substring(0, 4);
+        });
+
+        // Submit handler — tokenize new card via Accept.js before POSTing
+        document.getElementById('bePayForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const payType   = document.getElementById('bePaymentType').value;
+            const cardOpt   = document.getElementById('bePayCardOption').value;
+            const submitBtn = document.getElementById('bePaySubmitBtn');
+            const btnText   = document.getElementById('bePayBtnText');
+            const btnSpinner = document.getElementById('bePayBtnSpinner');
+
+            if (payType !== 'CreditCard' || cardOpt === 'CardOnFile') {
+                submitBtn.disabled = true;
+                btnText.textContent = 'Processing...';
+                btnSpinner.classList.remove('hidden');
+                this.submit();
+                return;
+            }
+
+            // New card — tokenize first via Authorize.net Accept.js
+            submitBtn.disabled = true;
+            btnText.textContent = 'Processing...';
+            btnSpinner.classList.remove('hidden');
+
+            const expiry = document.getElementById('bePayExpiry').value;
+            let [expMonth, expYearShort] = expiry.split('/');
+            expMonth     = expMonth?.trim();
+            expYearShort = expYearShort?.trim();
+            const expYear = expYearShort?.length === 2 ? '20' + expYearShort : expYearShort;
+
+            try {
+                Accept.dispatchData({
+                    authData: {
+                        clientKey:  '{{ safe_decrypt($paymentSetting['payment_api_public_key']) }}',
+                        apiLoginID: '{{ safe_decrypt($paymentSetting['payment_api_key']) }}'
+                    },
+                    cardData: {
+                        cardNumber: document.getElementById('bePayCardNumber').value.replace(/\s/g, ''),
+                        month:      expMonth,
+                        year:       expYear,
+                        cardCode:   document.getElementById('bePayCvc').value,
+                    }
+                }, function(response) {
+                    if (response.messages.resultCode === 'Error') {
+                        const msg = response.messages.message?.[0]?.text || 'Tokenization failed.';
+                        notyf.error(msg);
+                        submitBtn.disabled = false;
+                        btnText.textContent = 'Record Payment';
+                        btnSpinner.classList.add('hidden');
+                        return;
+                    }
+                    notyf.success('Payment details validated successfully!');
+                    document.getElementById('beOpaqueDataValue').value      = response.opaqueData.dataValue;
+                    document.getElementById('beOpaqueDataDescriptor').value = response.opaqueData.dataDescriptor;
+                    document.getElementById('bePayForm').submit();
+                });
+            } catch (err) {
+                notyf.error('Something went wrong during payment processing.');
+                submitBtn.disabled = false;
+                btnText.textContent = 'Record Payment';
+                btnSpinner.classList.add('hidden');
+            }
+        });
+
         window.beOpenPayment = function(row) {
             beSetActive(row);
+            resetBePaymentState();
             document.getElementById('bePayChargeUniqueId').value = beActiveUniqueId;
             document.getElementById('bePayCaUniqueId').value     = beActiveCaUniqueId;
             document.getElementById('bePayCustomerId').value     = beActiveCustomerId;
             document.getElementById('bePayAmount').value         = beActiveTotal.toFixed(2);
             document.getElementById('bePayType').value           = beActiveType;
+
+            // Populate saved cards for this order's customer
+            const cardSelect = document.getElementById('bePayExistingCard');
+            const cardOption = document.getElementById('bePayCardOption');
+            cardSelect.innerHTML = '<option value="">-- Select a saved card --</option>';
+            if (Array.isArray(beCustomerCards) && beCustomerCards.length > 0) {
+                beCustomerCards.forEach(card => {
+                    cardSelect.insertAdjacentHTML('beforeend', `<option value="${card.id}">${card.label}</option>`);
+                });
+                cardOption.value = 'CardOnFile';
+            } else {
+                cardOption.value = 'NewCard';
+            }
             beOpenModal('beFuelPaymentModal');
         };
 

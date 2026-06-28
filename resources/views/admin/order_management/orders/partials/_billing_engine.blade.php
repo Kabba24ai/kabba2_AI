@@ -21,11 +21,14 @@
         @foreach($billingCharges as $charge)
             @php
                 $typeIcons = [
-                    'Fuel'      => ['icon' => 'heroicon-o-fire',           'bg' => 'bg-orange-100', 'color' => 'text-orange-600'],
-                    'Damage'    => ['icon' => 'heroicon-o-exclamation-triangle', 'bg' => 'bg-red-100', 'color' => 'text-red-600'],
-                    'Extension' => ['icon' => 'heroicon-o-calendar',       'bg' => 'bg-blue-100',   'color' => 'text-blue-600'],
+                    'fuel'      => ['icon' => 'heroicon-o-fire',                'bg' => 'bg-orange-100', 'color' => 'text-orange-600'],
+                    'damage'    => ['icon' => 'heroicon-o-exclamation-triangle', 'bg' => 'bg-red-100',    'color' => 'text-red-600'],
+                    'extension' => ['icon' => 'heroicon-o-calendar',            'bg' => 'bg-blue-100',   'color' => 'text-blue-600'],
                 ];
-                $typeKey  = $charge->billing_charge_type ?? 'Other';
+                // billing_charge_type is cast to BillingChargeType enum — use ->value for key, ->label() for display
+                $typeEnum = $charge->billing_charge_type;
+                $typeKey  = $typeEnum?->value ?? 'misc';
+                $typeLabel = $typeEnum?->label() ?? 'Charge';
                 $iconDef  = $typeIcons[$typeKey] ?? ['icon' => 'heroicon-o-currency-dollar', 'bg' => 'bg-gray-100', 'color' => 'text-gray-500'];
 
                 $status      = strtolower($charge->status ?? 'pending');
@@ -53,7 +56,7 @@
                     </span>
 
                     <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-900">{{ $typeKey }} Charge</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ $typeLabel }}</p>
                         <p class="text-xs text-gray-500">
                             {{ $charge->created_at?->format('M j, Y') }}
                             @if($charge->createdBy)

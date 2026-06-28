@@ -3395,21 +3395,22 @@
     </div>
 
 {{-- ╔══════════════════════════════════════════════════════════════════════╗
-     ║  Billing Engine — Fuel Charge Action Modals                         ║
-     ║  Only shown for billing_charges.billing_charge_type = 'fuel'.       ║
+     ║  Billing Engine — Charge Action Modals                              ║
+     ║  Shown for billing_charges.billing_charge_type = 'fuel' or         ║
+     ║  'damage'. Type is set dynamically via beActiveType.               ║
      ╚══════════════════════════════════════════════════════════════════════╝ --}}
 
 {{-- Make a Payment (standard form POST → admin.dashboard.paymentstore with source=crm) --}}
 <div id="beFuelPaymentModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
         <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h3 class="text-base font-semibold text-gray-900">Make a Payment — Fuel Charge</h3>
+            <h3 class="text-base font-semibold text-gray-900">Make a Payment</h3>
             <button type="button" onclick="beCloseModal('beFuelPaymentModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
         </div>
         <form method="POST" action="{{ route('admin.dashboard.paymentstore') }}">
             @csrf
             <input type="hidden" name="source" value="crm">
-            <input type="hidden" name="type" value="fuel">
+            <input type="hidden" name="type" id="bePayType" value="">
             <input type="hidden" name="customer_id" id="bePayCustomerId" value="">
             <input type="hidden" name="customer_account_id" id="bePayCaUniqueId" value="">
             <input type="hidden" name="billing_charge_unique_id" id="bePayChargeUniqueId" value="">
@@ -3517,7 +3518,7 @@
             <button type="button" onclick="beCloseModal('beFuelUncollectibleModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
         </div>
         <div class="px-6 py-4 space-y-4">
-            <p class="text-sm text-gray-600">This will mark the fuel charge as uncollectible. This action cannot be undone.</p>
+            <p class="text-sm text-gray-600">This will mark the charge as uncollectible. This action cannot be undone.</p>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Resolved By</label>
                 <select id="beUncollectibleBy"
@@ -3587,8 +3588,8 @@
     <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg border border-gray-200 overflow-hidden flex flex-col">
         <!-- Header -->
         <div class="px-6 pt-4 border-b">
-            <h3 class="text-lg font-semibold text-gray-800">Adjust Fuel Charge</h3>
-            <p class="text-xs text-gray-500 mt-1 pb-4">Add or subtract an adjustment from the original fuel charge amount</p>
+            <h3 class="text-lg font-semibold text-gray-800">Adjust Charge</h3>
+            <p class="text-xs text-gray-500 mt-1 pb-4">Add or subtract an adjustment from the original charge amount</p>
         </div>
         <!-- Amount Summary -->
         <div class="px-6 py-4 bg-gray-50 space-y-2 text-sm">
@@ -6390,7 +6391,7 @@
             submitAlertCharge('damage', 'orderDamageAmount', 'orderDamagePerson', 'orderDamageNotes', 'orderDamageSubmitBtn'));
     })();
 
-    // ── Billing Engine — Fuel Charge Actions ──────────────────────────────────
+    // ── Billing Engine — Charge Actions ──────────────────────────────────────
     (function () {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         let beActiveUniqueId = '';
@@ -6398,6 +6399,7 @@
         let beActiveCustomerId = '';
         let beActiveBase = 0;
         let beActiveTotal = 0;
+        let beActiveType = 'fuel';
 
         window.beCloseModal = function(id) {
             const el = document.getElementById(id);
@@ -6415,6 +6417,7 @@
             beActiveCustomerId = row.dataset.beCustomerId  || '';
             beActiveBase       = parseFloat(row.dataset.beBase  || 0);
             beActiveTotal      = parseFloat(row.dataset.beTotal || 0);
+            beActiveType       = row.dataset.beType        || 'fuel';
         }
 
         window.beOpenPayment = function(row) {
@@ -6423,6 +6426,7 @@
             document.getElementById('bePayCaUniqueId').value     = beActiveCaUniqueId;
             document.getElementById('bePayCustomerId').value     = beActiveCustomerId;
             document.getElementById('bePayAmount').value         = beActiveTotal.toFixed(2);
+            document.getElementById('bePayType').value           = beActiveType;
             beOpenModal('beFuelPaymentModal');
         };
 

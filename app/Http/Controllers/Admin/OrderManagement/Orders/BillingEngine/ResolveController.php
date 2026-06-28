@@ -29,9 +29,12 @@ class ResolveController extends Controller
             if ($ca->fuel_alert_status === 'pending') {
                 $ca->fuel_alert_status = 'resolved';
                 $ca->save();
+            } elseif ($ca->damage_alert_status === 'pending') {
+                $ca->damage_alert_status = 'resolved';
+                $ca->save();
             }
         }
 
-        return response()->json(['success' => true, 'message' => 'Fuel charge marked as resolved.']);
+        return response()->json(['success' => true, 'message' => 'Charge marked as resolved.']);
     }
 }

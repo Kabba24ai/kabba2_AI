@@ -28,9 +28,12 @@ class UncollectibleController extends Controller
             if ($ca->fuel_alert_status === 'pending') {
                 $ca->fuel_alert_status = 'uncollectible';
                 $ca->save();
+            } elseif ($ca->damage_alert_status === 'pending') {
+                $ca->damage_alert_status = 'uncollectible';
+                $ca->save();
             }
         }
 
-        return response()->json(['success' => true, 'message' => 'Fuel charge marked as uncollectible.']);
+        return response()->json(['success' => true, 'message' => 'Charge marked as uncollectible.']);
     }
 }

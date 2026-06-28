@@ -136,16 +136,17 @@
                             @endif
                         </td>
 
-                        {{-- Actions (fuel rows only) --}}
+                        {{-- Actions (fuel and damage rows) --}}
                         <td class="px-4 py-3 text-center">
-                            @if($isFuel)
+                            @if($isFuel || $typeValue === 'damage')
                                 <div class="flex items-center justify-center gap-1.5"
                                      data-be-unique-id="{{ $charge->unique_id }}"
                                      data-be-ca-unique="{{ $caUniqueId }}"
                                      data-be-customer-id="{{ $charge->customer_id }}"
                                      data-be-base="{{ $base }}"
                                      data-be-total="{{ $total }}"
-                                     data-be-is-open="{{ $isOpen ? '1' : '0' }}">
+                                     data-be-is-open="{{ $isOpen ? '1' : '0' }}"
+                                     data-be-type="{{ $typeValue }}">
 
                                     @if($isOpen)
                                         {{-- Make a Payment --}}

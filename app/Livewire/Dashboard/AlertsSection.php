@@ -9,6 +9,7 @@ use App\Enums\Equipments\EquipmentCurrentStatus;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\ConfigurationHelper;
 use App\Models\MaintenanceManagement\EquipmentSoftAssign;
+use App\Models\Orders\BillingCharge;
 
 class AlertsSection extends Component
 {
@@ -232,24 +233,34 @@ class AlertsSection extends Component
 
         $alerts = $alerts->concat($crmDamageCharges)->sortByDesc('_sort_ts')->values();
 
-        // Merge CRM-originated fuel alerts so the poll doesn't drop them
-        $crmFuelCharges = CustomerAccount::with(['customer.cards', 'order'])
+        // Merge CRM-originated fuel alerts so the poll doesn't drop them.
+        // Batch-load linked BillingCharge records to classify source and
+        // supply billing_charge_unique_id for action routing in the JS.
+        $crmFuelAccounts = CustomerAccount::with(['customer.cards', 'order'])
             ->where('type', 'charge')
             ->where('reason', 'Fuel Charge')
             ->where('fuel_alert_status', 'pending')
             ->latest()
+            ->get();
+
+        $fuelBillingCharges = BillingCharge::whereIn('customer_account_id', $crmFuelAccounts->pluck('id'))
+            ->where('billing_charge_type', 'fuel')
             ->get()
-            ->map(function ($account) {
+            ->keyBy('customer_account_id');
+
+        $crmFuelCharges = $crmFuelAccounts->map(function ($account) use ($fuelBillingCharges) {
                 $base    = (float) ($account->amount ?? 0);
                 $taxRate = (float) ($account->sales_tax ?? 0);
                 $total   = ($account->sales_tax_type === 'add' && $taxRate > 0)
                     ? $base + $base * $taxRate
                     : $base;
-                $hasOrder = $account->order !== null;
+                $hasOrder      = $account->order !== null;
+                $isCrmOrigin   = $account->order_id === null;
+                $billingCharge = $fuelBillingCharges->get($account->id);
                 return [
-                    'id'                  => 10000 + $account->id,
-                    'source'              => 'crm',
-                    'customer'            => [
+                    'id'                       => 10000 + $account->id,
+                    'source'                   => $isCrmOrigin ? 'crm' : 'order',
+                    'customer'                 => [
                         'id'        => $account->customer_id,
                         'full_name' => $account->customer?->full_name,
                         'cards'     => $account->customer?->cards?->map(fn ($c) => [
@@ -257,22 +268,26 @@ class AlertsSection extends Component
                             'label' => $c->card_number,
                         ])->values() ?? [],
                     ],
-                    'customerName'        => $account->customer?->full_name ?? '—',
-                    'orderId'             => $hasOrder ? $account->order->unique_id : null,
-                    'order_number'        => $hasOrder ? $account->order->order_number : null,
-                    'orderLink'           => $hasOrder
+                    'customerName'             => $account->customer?->full_name ?? '—',
+                    'orderId'                  => $hasOrder ? $account->order->unique_id : null,
+                    'order_number'             => $hasOrder ? $account->order->order_number : null,
+                    'orderLink'                => $hasOrder
                         ? route('admin.order-management.orders.edit', $account->order->unique_id)
                         : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
-                    'amountOwed'          => '$' . number_format($total, 2),
-                    'date'                => optional($account->date)->toDateString(),
-                    '_sort_ts'            => ($account->date ?? $account->created_at)?->timestamp ?? 0,
-                    'type'                => 'fuel',
-                    'notes'               => $hasOrder
+                    'amountOwed'               => '$' . number_format($total, 2),
+                    'date'                     => optional($account->date)->toDateString(),
+                    '_sort_ts'                 => ($account->date ?? $account->created_at)?->timestamp ?? 0,
+                    'type'                     => 'fuel',
+                    'notes'                    => $hasOrder
                         ? $account->order->notes()->dashboard()->latest()->get(['id', 'note', 'created_at'])
                         : collect(),
-                    'equipment'           => null,
-                    'order_product'       => null,
-                    'customer_account_id' => $account->unique_id,
+                    'equipment'                => null,
+                    'order_product'            => $billingCharge ? [
+                        'base_fuel_charge'    => (float) ($billingCharge->amount ?? 0),
+                        'current_fuel_charge' => (float) ($billingCharge->amount ?? 0),
+                    ] : null,
+                    'billing_charge_unique_id' => $billingCharge?->unique_id,
+                    'customer_account_id'      => $account->unique_id,
                 ];
             });
 

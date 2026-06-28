@@ -51,7 +51,7 @@
                                         </button>
                                     </div>
 
-                                    <div class="flex items-center gap-1 ml-[75px]">
+                                    <div class="flex items-center gap-1" style="margin-left:75px">
                                         {{-- Make Payment: green --}}
                                         <button data-pay-btn title="Make a Payment" aria-label="Make a Payment"
                                             class="w-6 h-6 rounded flex items-center justify-center text-green-600 hover:bg-green-100 transition">

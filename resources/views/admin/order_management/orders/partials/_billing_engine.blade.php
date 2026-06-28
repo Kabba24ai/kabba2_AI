@@ -31,7 +31,7 @@
                     <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-44">Charge</th>
                     <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Details</th>
                     <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Added By</th>
-                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Date</th>
+                    <th class="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Date</th>
                     <th class="text-right px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-36">Amount</th>
                     <th class="text-center px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Status</th>
                     <th class="text-right px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Outstanding</th>
@@ -109,7 +109,7 @@
                         </td>
 
                         {{-- Date --}}
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-3 whitespace-nowrap">
                             <span class="text-xs text-gray-700">{{ $charge->created_at?->format('M j, Y') }}</span>
                         </td>
 

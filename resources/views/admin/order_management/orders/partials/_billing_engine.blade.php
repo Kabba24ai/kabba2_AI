@@ -12,7 +12,6 @@
     View Damage Details (damage only): shown when BillingCharge has an orderProduct linked.
     Icon order matches Dashboard Damage Alerts: Pay → Resolve → Uncollectible → View → Adjust → Note.
 --}}
-@if($billingCharges->isNotEmpty())
 <div class="bg-white rounded-xl border border-green-200 shadow-sm mb-4">
     {{-- Header --}}
     <div class="flex items-center justify-between px-4 py-3 border-b border-green-100 bg-green-50 rounded-t-xl">
@@ -20,11 +19,40 @@
             <x-heroicon-o-bolt class="w-4 h-4 text-green-600" />
             Billing Engine
         </h2>
-        <span class="text-xs text-green-700 font-medium">
-            {{ $billingCharges->count() }} {{ Str::plural('charge', $billingCharges->count()) }}
-        </span>
+        <div class="flex items-center gap-2">
+            {{-- Fuel Charge --}}
+            <button type="button" title="Add Fuel Charge Alert"
+                onclick="document.getElementById('orderFuelChargeModal').classList.remove('hidden');document.getElementById('orderFuelChargeModal').classList.add('flex')"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold transition-colors">
+                <svg fill="currentColor" class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                    <path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128zM160 144L160 240C160 248.8 167.2 256 176 256L304 256C312.8 256 320 248.8 320 240L320 144C320 135.2 312.8 128 304 128L176 128C167.2 128 160 135.2 160 144z"/>
+                </svg>
+                Fuel Charge
+            </button>
+            {{-- Damage Charge --}}
+            <button type="button" title="Add Damage Alert"
+                onclick="document.getElementById('orderDamageAlertModal').classList.remove('hidden');document.getElementById('orderDamageAlertModal').classList.add('flex')"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-3.5 h-3.5">
+                    <path d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/>
+                </svg>
+                Damage Charge
+            </button>
+            {{-- Order Extension --}}
+            <button type="button" title="Add Order Extension" onclick="openExtensionModal()"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors">
+                <x-heroicon-o-calendar class="w-3.5 h-3.5" />
+                Order Extension
+            </button>
+            @if($billingCharges->isNotEmpty())
+            <span class="text-xs text-green-700 font-medium pl-1 border-l border-green-200">
+                {{ $billingCharges->count() }} {{ Str::plural('charge', $billingCharges->count()) }}
+            </span>
+            @endif
+        </div>
     </div>
 
+    @if($billingCharges->isNotEmpty())
     {{-- Table --}}
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -232,5 +260,7 @@
             <span class="text-sm font-bold text-green-900">${{ number_format($outstanding, 2) }}</span>
         </div>
     @endif
+    @else
+    <div class="px-4 py-6 text-center text-sm text-gray-400">No billing charges yet.</div>
+    @endif
 </div>
-@endif

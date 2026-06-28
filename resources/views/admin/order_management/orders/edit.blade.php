@@ -1841,6 +1841,9 @@
         @endif
         --}}
 
+        {{-- Billing Engine — consolidated view of billing_charges for this order --}}
+        @include('admin.order_management.orders.partials._billing_engine', ['billingCharges' => $billingCharges])
+
         {{-- Additional Charges (Fuel & Damage from customer_accounts) --}}
         @include('admin.order_management.orders.partials._additional_charges', ['additionalCharges' => $additionalCharges])
 

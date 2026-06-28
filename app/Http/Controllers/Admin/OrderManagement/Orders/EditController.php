@@ -63,6 +63,12 @@ class EditController extends Controller
             ->latest('id')
             ->get();
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'drivers', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges'));
+        // Billing Engine charges for this order (new consolidated view — read-only display)
+        $billingCharges = \App\Models\Orders\BillingCharge::where('parent_order_id', $order->id)
+            ->with(['createdBy:id,first_name,last_name', 'responsiblePerson:id,first_name,last_name', 'childOrder:id,unique_id,order_number'])
+            ->latest()
+            ->get();
+
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'drivers', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges', 'billingCharges'));
     }
 }

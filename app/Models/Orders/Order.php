@@ -343,6 +343,11 @@ class Order extends Model
         return $this->hasMany(OrderExtraCharges::class, 'order_id', 'id')->latest();
     }
 
+    public function billingCharges()
+    {
+        return $this->hasMany(\App\Models\Orders\BillingCharge::class, 'parent_order_id')->latest();
+    }
+
     public function softAssignments()
     {
         return $this->hasMany(EquipmentSoftAssign::class, 'order_id', 'id');

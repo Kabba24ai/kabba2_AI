@@ -269,11 +269,11 @@ const beRouteAdjust        = '{{ route("admin.order-management.orders.billing-ch
        let baseAmount, currentAmount;
 
 if (isFuel) {
-    baseAmount = Number(alert.order_product.base_fuel_charge ?? 0);
-    currentAmount = Number(alert.order_product.current_fuel_charge ?? baseAmount);
+    baseAmount = Number(alert.order_product?.base_fuel_charge ?? 0);
+    currentAmount = Number(alert.order_product?.current_fuel_charge ?? baseAmount);
 } else {
-    baseAmount = Number(alert.order_product.base_damage_charge ?? 0);
-    currentAmount = Number(alert.order_product.current_damage_charge ?? baseAmount);
+    baseAmount = Number(alert.order_product?.base_damage_charge ?? 0);
+    currentAmount = Number(alert.order_product?.current_damage_charge ?? baseAmount);
 }
 
 
@@ -374,10 +374,10 @@ if (isFuel) {
 
                 const viewBtn = item.querySelector('[data-view-charges]');
                 if (viewBtn) {
-                    if (isCrm) {
-                        viewBtn.classList.add("hidden");
-                    } else {
+                    if (alert.order_product?.id) {
                         viewBtn.addEventListener('click', () => this.openChargesModal(alert));
+                    } else {
+                        viewBtn.classList.add("hidden");
                     }
                 }
 

@@ -11,6 +11,8 @@ class OrderProductFunnelLog extends Model
 
     protected $fillable = [
         'order_product_id',
+        'order_id',
+        'customer_id',
         'product_id',
         'sales_funnel_id',
         'sales_funnel_step_id',
@@ -22,10 +24,13 @@ class OrderProductFunnelLog extends Model
         'sent_at',
         'twilio_sid',
         'sms_timezone',
+        'lifecycle_reason',
+        'stopped_at',
     ];
 
     protected $casts = [
-        'sent_at' => 'datetime',
+        'sent_at'    => 'datetime',
+        'stopped_at' => 'datetime',
     ];
 
     public function orderProduct()

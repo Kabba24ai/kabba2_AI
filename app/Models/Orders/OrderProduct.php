@@ -223,6 +223,14 @@ class OrderProduct extends Model
                 return;
             }
 
+            // Stop funnel SMS for this product. If the parent Order::deleting hook already
+            // created 'Stopped' entries (order deletion path), the service's exists() check
+            // prevents duplicates. If this is a standalone product removal, it creates them.
+            \App\Services\FunnelLifecycleService::stopAllFunnelsForProduct(
+                $model,
+                \App\Services\FunnelLifecycleService::REASON_PRODUCT_REMOVED
+            );
+
             $model->softAssignment()->delete();
             $model->orderMedia()->delete();
 
@@ -231,6 +239,27 @@ class OrderProduct extends Model
             });
 
             $model->checklistQuestions()->delete();
+        });
+
+        // When delivery_status changes to Completed, stop all delivery-reminder funnels.
+        // Delivery reminders are before-event steps (offset_direction = 'before') only.
+        // Post-delivery funnels (review requests, return reminders) are intentionally unaffected.
+        static::updated(function ($model) {
+            if ($model->wasChanged('delivery_status') && $model->delivery_status === 'Completed') {
+                // Determine early vs on-schedule delivery
+                $originalDate = $model->getOriginal('delivery_date');
+                $originalTime = $model->getOriginal('delivery_time');
+                $reason       = \App\Services\FunnelLifecycleService::REASON_DELIVERY_COMPLETED;
+
+                if ($originalDate && $originalTime) {
+                    $scheduled = \Carbon\Carbon::parse("{$originalDate} {$originalTime}");
+                    if (now()->lt($scheduled)) {
+                        $reason = \App\Services\FunnelLifecycleService::REASON_DELIVERY_COMPLETED_EARLY;
+                    }
+                }
+
+                \App\Services\FunnelLifecycleService::stopDeliveryReminderFunnels($model, $reason);
+            }
         });
 
         static::restoring(function ($model) {

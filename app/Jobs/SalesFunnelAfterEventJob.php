@@ -100,6 +100,8 @@ class SalesFunnelAfterEventJob implements ShouldQueue
                     ->with(['order.customer', 'order.shippingAddress'])
                     ->whereIn('product_id', $productIds)
                     ->where('delivery_status', 'Pending')
+                    // Safety: skip products whose parent order has been soft-deleted
+                    ->whereHas('order', fn($q) => $q->whereNull('deleted_at'))
                     ->whereDoesntHave('funnelLogs', function ($q) use ($funnel, $step) {
                         $q->where('sales_funnel_id', $funnel->id);
                         if ($step->id) {
@@ -133,6 +135,22 @@ class SalesFunnelAfterEventJob implements ShouldQueue
 
                 $baseQuery->chunkById(500, function ($orderProducts) use ($funnel, $step, $twilio, $smsTimezone, $offsetMinutes, $startDelivery, $endDelivery) {
                     foreach ($orderProducts as $op) {
+                        // Race-condition guard: order may have been soft-deleted between query and chunk processing
+                        if (!$op->order || $op->order->deleted_at !== null) {
+                            \Log::channel('sales_funnel')->warning(
+                                "Skipping OP={$op->id}: order is missing or deleted (race condition guard)."
+                            );
+                            continue;
+                        }
+
+                        // Guard: customer must exist
+                        if (!$op->order->customer) {
+                            \Log::channel('sales_funnel')->warning(
+                                "Skipping OP={$op->id}: customer not found on order {$op->order_id}."
+                            );
+                            continue;
+                        }
+
                         $customer    = $op->order->customer;
                         $phoneNumber = $op->order->shippingAddress->phone ?? $op->order->customer_phone ?? null;
                         $message     = $step->message ?: $funnel->description;

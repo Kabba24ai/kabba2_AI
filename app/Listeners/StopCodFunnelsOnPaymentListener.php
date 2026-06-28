@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\Admin\Orders\PaymentInitiateEvent;
-use App\Services\FunnelConversionService;
+use App\Services\FunnelLifecycleService;
 
 class StopCodFunnelsOnPaymentListener
 {
@@ -27,7 +27,7 @@ class StopCodFunnelsOnPaymentListener
             return;
         }
 
-        FunnelConversionService::handleCodToPaidConversion(
+        FunnelLifecycleService::handleCodToPaidConversion(
             $order,
             $payment->created_at?->toDateTimeString() ?? now()->toDateTimeString()
         );

@@ -339,6 +339,18 @@ class MobileReturnFuelBridgeTest extends TestCase
         $this->postSaveReturn();
     }
 
+    // ── Phase 5D: customer_account_id ─────────────────────────────────────
+
+    public function test_billing_charge_stores_customer_account_id(): void
+    {
+        $this->postSaveReturn();
+
+        $ca     = CustomerAccount::first();
+        $charge = BillingCharge::first();
+
+        $this->assertEquals($ca->id, $charge->customer_account_id);
+    }
+
     // ── No side effects ────────────────────────────────────────────────────
 
     public function test_billing_charge_does_not_interfere_with_legacy_fuel_alert_query(): void

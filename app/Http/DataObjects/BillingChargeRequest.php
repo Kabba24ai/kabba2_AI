@@ -44,6 +44,27 @@ final class BillingChargeRequest
         public readonly bool $createChildOrder = false,
 
         /**
+         * FK → orders.id — the extension child order created by Extension\StoreController.
+         * Only populated for BillingChargeType::Extension charges.
+         * Null for all other charge types.
+         */
+        public readonly ?int $childOrderId = null,
+
+        /**
+         * FK → customer_accounts.id — the legacy CustomerAccount row created by the
+         * bridged controller before BillingEngine::charge() is called.
+         * Null for rental extensions (they do not create a CustomerAccount row).
+         */
+        public readonly ?int $customerAccountId = null,
+
+        /**
+         * Actual tax dollar amount.
+         * Defaults to null (stored as 0) for all charge paths that do not calculate tax.
+         * Currently only populated by the rental extension bridge (Phase 5B / 5D).
+         */
+        public readonly ?float $taxAmount = null,
+
+        /**
          * Which module created this charge.
          * Use BillingSourceModule enum values.
          * Example: BillingSourceModule::MobileChecklist->value

@@ -169,7 +169,8 @@ class SaveReturnController extends BaseController
                             'submitted_by_user_id'       => $validated['user_id'] ?? null,
                             'mobile_source'              => true,
                         ],
-                        idempotencyKey: "mobile_return_fuel:{$orderProduct->id}:{$orderProduct->fuel_final_reading}",
+                        idempotencyKey:    "mobile_return_fuel:{$orderProduct->id}:{$orderProduct->fuel_final_reading}",
+                        customerAccountId: $legacyCa->id,
                     ));
                 } catch (\Throwable $e) {
                     Log::channel('billing_engine')->error(

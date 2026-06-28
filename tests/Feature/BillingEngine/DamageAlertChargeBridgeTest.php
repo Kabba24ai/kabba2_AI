@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
-class FuelAlertChargeBridgeTest extends TestCase
+class DamageAlertChargeBridgeTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -31,21 +31,21 @@ class FuelAlertChargeBridgeTest extends TestCase
         parent::setUp();
 
         $this->customer = Customer::create([
-            'first_name' => 'Test',
-            'last_name'  => 'Customer',
-            'email'      => 'alert-bridge-test@example.com',
+            'first_name' => 'Damage',
+            'last_name'  => 'Alert',
+            'email'      => 'damage-alert-bridge@example.com',
             'status'     => 'Active',
         ]);
 
         $this->user = User::create([
             'first_name' => 'Admin',
             'last_name'  => 'User',
-            'email'      => 'admin-alert-bridge@example.com',
+            'email'      => 'admin-damage-alert-bridge@example.com',
             'password'   => bcrypt('password'),
         ]);
 
         $this->order = Order::create([
-            'order_number'    => 'ORD-ALERT-TEST-001',
+            'order_number'    => 'ORD-DMG-ALERT-001',
             'order_date'      => now()->toDateString(),
             'customer_id'     => $this->customer->id,
             'customer_name'   => $this->customer->first_name . ' ' . $this->customer->last_name,
@@ -56,16 +56,16 @@ class FuelAlertChargeBridgeTest extends TestCase
         ]);
     }
 
-    private function postAlertCharge(array $overrides = []): \Illuminate\Testing\TestResponse
+    private function postDamageAlertCharge(array $overrides = []): \Illuminate\Testing\TestResponse
     {
         return $this->withoutMiddleware()
             ->actingAs($this->user)
             ->postJson(
                 route('admin.order-management.orders.alert-charge', ['unique_id' => $this->order->unique_id]),
                 array_merge([
-                    'type'               => 'fuel',
-                    'amount'             => '95.00',
-                    'notes'              => 'Test fuel alert charge',
+                    'type'               => 'damage',
+                    'amount'             => '350.00',
+                    'notes'              => 'Test damage alert charge',
                     'responsible_person' => $this->user->id,
                     'sales_tax_type'     => 'free',
                 ], $overrides)
@@ -74,98 +74,73 @@ class FuelAlertChargeBridgeTest extends TestCase
 
     // ── Legacy behavior unchanged ─────────────────────────────────────────
 
-    public function test_fuel_alert_charge_creates_customer_account_record(): void
+    public function test_damage_alert_charge_creates_customer_account_record(): void
     {
-        $this->postAlertCharge()->assertOk()->assertJson(['success' => true]);
+        $this->postDamageAlertCharge()->assertOk()->assertJson(['success' => true]);
 
         $this->assertDatabaseHas('customer_accounts', [
-            'customer_id'       => $this->customer->id,
-            'order_id'          => $this->order->id,
-            'amount'            => 95.00,
-            'reason'            => 'Fuel Charge',
-            'type'              => 'charge',
-            'fuel_alert_status' => 'pending',
-            'sales_tax_type'    => 'free',
-            'sales_tax'         => 0,
+            'customer_id'         => $this->customer->id,
+            'order_id'            => $this->order->id,
+            'amount'              => 350.00,
+            'reason'              => 'Damages',
+            'type'                => 'charge',
+            'damage_alert_status' => 'pending',
+            'fuel_alert_status'   => null,
+            'sales_tax_type'      => 'free',
+            'sales_tax'           => 0,
         ]);
     }
 
-    public function test_fuel_alert_charge_response_is_success(): void
+    public function test_damage_alert_charge_response_is_success(): void
     {
-        $response = $this->postAlertCharge();
+        $response = $this->postDamageAlertCharge();
 
         $response->assertOk()->assertJson([
             'success' => true,
-            'message' => 'Fuel Charge created successfully.',
+            'message' => 'Damage Alert created successfully.',
         ]);
     }
 
-    public function test_damage_alert_charge_creates_customer_account_with_correct_fields(): void
-    {
-        $response = $this->postAlertCharge(['type' => 'damage', 'amount' => '200.00']);
-
-        $response->assertOk()->assertJson(['success' => true]);
-
-        $this->assertDatabaseHas('customer_accounts', [
-            'customer_id'          => $this->customer->id,
-            'order_id'             => $this->order->id,
-            'amount'               => 200.00,
-            'reason'               => 'Damages',
-            'type'                 => 'charge',
-            'damage_alert_status'  => 'pending',
-            'fuel_alert_status'    => null,
-        ]);
-    }
+    // ── Bridge creates BillingCharge ──────────────────────────────────────
 
     public function test_damage_alert_charge_also_creates_billing_charge(): void
     {
-        $this->postAlertCharge(['type' => 'damage']);
-
-        // Phase 4C bridges the damage arm — BillingCharge is created with type=damage
-        $this->assertEquals(1, BillingCharge::count());
-        $this->assertEquals(BillingChargeType::Damage, BillingCharge::first()->billing_charge_type);
-    }
-
-    // ── Bridge creates BillingCharge (fuel only) ──────────────────────────
-
-    public function test_fuel_alert_charge_also_creates_billing_charge_record(): void
-    {
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
 
         $this->assertEquals(1, BillingCharge::count());
     }
 
     public function test_billing_charge_has_correct_type_and_status(): void
     {
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
 
         $charge = BillingCharge::first();
 
-        $this->assertEquals(BillingChargeType::Fuel, $charge->billing_charge_type);
+        $this->assertEquals(BillingChargeType::Damage, $charge->billing_charge_type);
         $this->assertEquals(BillingChargeStatus::Pending, $charge->status);
     }
 
     public function test_billing_charge_has_correct_amount_and_customer(): void
     {
-        $this->postAlertCharge(['amount' => '150.75']);
+        $this->postDamageAlertCharge(['amount' => '500.00']);
 
         $charge = BillingCharge::first();
 
-        $this->assertEquals(150.75, $charge->amount);
+        $this->assertEquals(500.00, $charge->amount);
         $this->assertEquals($this->customer->id, $charge->customer_id);
     }
 
     public function test_billing_charge_has_populated_parent_order_id(): void
     {
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
 
-        // Phase 3B key assertion: order_id IS available (unlike Phase 3A dashboard modal)
+        // Phase 4C key assertion: order context IS available (unlike Phase 4B dashboard modal)
         $this->assertEquals($this->order->id, BillingCharge::first()->parent_order_id);
     }
 
     public function test_billing_charge_has_null_order_product_id(): void
     {
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
 
         // AlertChargeController has no order_product_id context
         $this->assertNull(BillingCharge::first()->order_product_id);
@@ -173,70 +148,72 @@ class FuelAlertChargeBridgeTest extends TestCase
 
     public function test_billing_charge_stores_source_module_and_event(): void
     {
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
 
         $charge = BillingCharge::first();
 
-        $this->assertEquals(BillingSourceModule::AdminFuelCharge->value, $charge->source_module);
-        $this->assertEquals(BillingSourceEvent::AdminFuelChargeCreated->value, $charge->source_event);
+        $this->assertEquals(BillingSourceModule::AdminDamageCharge->value, $charge->source_module);
+        $this->assertEquals(BillingSourceEvent::AdminDamageChargeCreated->value, $charge->source_event);
     }
 
-    public function test_billing_charge_stores_legacy_customer_account_id(): void
+    public function test_billing_charge_stores_customer_account_as_source_reference(): void
     {
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
 
         $ca     = CustomerAccount::first();
         $charge = BillingCharge::first();
 
-        $this->assertEquals($ca->id, $charge->source_reference_id);
         $this->assertEquals('CustomerAccount', $charge->source_reference_type);
+        $this->assertEquals($ca->id, $charge->source_reference_id);
     }
 
     public function test_billing_charge_stores_order_context_in_metadata(): void
     {
-        $this->postAlertCharge();
-
-        $charge = BillingCharge::first();
-
-        $this->assertIsArray($charge->metadata);
-        $this->assertEquals('AlertChargeController', $charge->metadata['legacy_controller']);
-        $this->assertEquals($this->order->id, $charge->metadata['order_id']);
-        $this->assertEquals($this->order->unique_id, $charge->metadata['order_unique_id']);
-        $this->assertArrayHasKey('legacy_customer_account_id', $charge->metadata);
-    }
-
-    public function test_billing_charge_has_blc_prefixed_unique_id(): void
-    {
-        $this->postAlertCharge();
-
-        $this->assertStringStartsWith('BLC', BillingCharge::first()->unique_id);
-    }
-
-    public function test_billing_charge_idempotency_key_uses_customer_account_id(): void
-    {
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
 
         $ca     = CustomerAccount::first();
         $charge = BillingCharge::first();
 
-        $this->assertEquals("admin_fuel_alert_charge:{$ca->id}", $charge->idempotency_key);
+        $this->assertIsArray($charge->metadata);
+        $this->assertEquals('AlertChargeController', $charge->metadata['legacy_controller']);
+        $this->assertEquals($ca->id, $charge->metadata['legacy_customer_account_id']);
+        $this->assertEquals($this->order->id, $charge->metadata['order_id']);
+        $this->assertEquals($this->order->unique_id, $charge->metadata['order_unique_id']);
+        $this->assertEquals($this->customer->id, $charge->metadata['customer_id']);
+        $this->assertTrue($charge->metadata['alert_context']);
+    }
+
+    public function test_billing_charge_has_blc_prefixed_unique_id(): void
+    {
+        $this->postDamageAlertCharge();
+
+        $this->assertStringStartsWith('BLC', BillingCharge::first()->unique_id);
+    }
+
+    public function test_billing_charge_idempotency_key_uses_damage_alert_prefix(): void
+    {
+        $this->postDamageAlertCharge();
+
+        $ca     = CustomerAccount::first();
+        $charge = BillingCharge::first();
+
+        $this->assertEquals("admin_damage_alert_charge:{$ca->id}", $charge->idempotency_key);
     }
 
     // ── Idempotency ────────────────────────────────────────────────────────
 
-    public function test_duplicate_idempotency_key_does_not_create_second_billing_charge(): void
+    public function test_duplicate_key_does_not_create_second_billing_charge(): void
     {
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
 
         $ca = CustomerAccount::first();
 
-        // Simulate a retry with the same idempotency key
         BillingEngine::charge(new BillingChargeRequest(
-            type:           BillingChargeType::Fuel->value,
+            type:           BillingChargeType::Damage->value,
             orderId:        $this->order->id,
             customerId:     $this->customer->id,
-            amount:         95.00,
-            idempotencyKey: "admin_fuel_alert_charge:{$ca->id}",
+            amount:         350.00,
+            idempotencyKey: "admin_damage_alert_charge:{$ca->id}",
         ));
 
         $this->assertEquals(1, BillingCharge::count());
@@ -248,15 +225,16 @@ class FuelAlertChargeBridgeTest extends TestCase
     {
         Schema::drop('billing_charges');
 
-        $response = $this->postAlertCharge();
+        $response = $this->postDamageAlertCharge();
 
         $response->assertOk()->assertJson(['success' => true]);
 
         $this->assertDatabaseHas('customer_accounts', [
-            'customer_id' => $this->customer->id,
-            'order_id'    => $this->order->id,
-            'reason'      => 'Fuel Charge',
-            'type'        => 'charge',
+            'customer_id'         => $this->customer->id,
+            'order_id'            => $this->order->id,
+            'reason'              => 'Damages',
+            'type'                => 'charge',
+            'damage_alert_status' => 'pending',
         ]);
     }
 
@@ -268,30 +246,72 @@ class FuelAlertChargeBridgeTest extends TestCase
 
         Schema::drop('billing_charges');
 
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
     }
 
     // ── Tax type mapping ───────────────────────────────────────────────────
 
     public function test_tax_type_is_stored_on_billing_charge(): void
     {
-        $this->postAlertCharge(['sales_tax_type' => 'add']);
+        $this->postDamageAlertCharge(['sales_tax_type' => 'add']);
 
         $this->assertEquals('add', BillingCharge::first()->tax_type);
     }
 
     public function test_tax_type_defaults_to_free_when_not_provided(): void
     {
-        $this->postAlertCharge(['sales_tax_type' => null]);
+        $this->postDamageAlertCharge(['sales_tax_type' => null]);
 
         $this->assertEquals('free', BillingCharge::first()->tax_type);
+    }
+
+    // ── Fuel arm regression ───────────────────────────────────────────────
+
+    public function test_fuel_arm_still_creates_fuel_billing_charge(): void
+    {
+        // Verify Phase 3B fuel bridge is not broken by Phase 4C damage bridge addition
+        $this->withoutMiddleware()
+            ->actingAs($this->user)
+            ->postJson(
+                route('admin.order-management.orders.alert-charge', ['unique_id' => $this->order->unique_id]),
+                [
+                    'type'               => 'fuel',
+                    'amount'             => '85.00',
+                    'notes'              => 'Fuel regression check',
+                    'responsible_person' => $this->user->id,
+                    'sales_tax_type'     => 'free',
+                ]
+            )
+            ->assertOk();
+
+        $this->assertEquals(1, BillingCharge::count());
+        $this->assertEquals(BillingChargeType::Fuel, BillingCharge::first()->billing_charge_type);
+    }
+
+    public function test_fuel_bridge_uses_fuel_source_module_and_event(): void
+    {
+        $this->withoutMiddleware()
+            ->actingAs($this->user)
+            ->postJson(
+                route('admin.order-management.orders.alert-charge', ['unique_id' => $this->order->unique_id]),
+                [
+                    'type'               => 'fuel',
+                    'amount'             => '85.00',
+                    'responsible_person' => $this->user->id,
+                ]
+            );
+
+        $charge = BillingCharge::first();
+
+        $this->assertEquals(BillingSourceModule::AdminFuelCharge->value, $charge->source_module);
+        $this->assertEquals(BillingSourceEvent::AdminFuelChargeCreated->value, $charge->source_event);
     }
 
     // ── Phase 5D: customer_account_id ─────────────────────────────────────
 
     public function test_billing_charge_stores_customer_account_id(): void
     {
-        $this->postAlertCharge(['type' => 'fuel']);
+        $this->postDamageAlertCharge();
 
         $ca     = CustomerAccount::first();
         $charge = BillingCharge::first();
@@ -301,12 +321,12 @@ class FuelAlertChargeBridgeTest extends TestCase
 
     // ── No side effects ────────────────────────────────────────────────────
 
-    public function test_billing_charge_does_not_interfere_with_legacy_alert_query(): void
+    public function test_billing_charge_does_not_interfere_with_damage_alert_query(): void
     {
-        $this->postAlertCharge();
+        $this->postDamageAlertCharge();
 
-        $alertCount = CustomerAccount::where('reason', 'Fuel Charge')
-            ->where('fuel_alert_status', 'pending')
+        $alertCount = CustomerAccount::where('reason', 'Damages')
+            ->where('damage_alert_status', 'pending')
             ->count();
 
         $this->assertEquals(1, $alertCount);

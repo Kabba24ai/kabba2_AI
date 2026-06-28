@@ -28,15 +28,17 @@ class BillingEngineTest extends TestCase
             customerId: $overrides['customerId'] ?? 1,
             amount:     $overrides['amount']     ?? 75.00,
             taxType:    $overrides['taxType']    ?? 'free',
-            orderProductId:     $overrides['orderProductId']     ?? null,
+            orderProductId:      $overrides['orderProductId']     ?? null,
             responsiblePersonId: $overrides['responsiblePersonId'] ?? null,
-            notes:              $overrides['notes']              ?? null,
-            sourceModule:       $overrides['sourceModule']       ?? null,
-            sourceEvent:        $overrides['sourceEvent']        ?? null,
+            notes:               $overrides['notes']              ?? null,
+            sourceModule:        $overrides['sourceModule']       ?? null,
+            sourceEvent:         $overrides['sourceEvent']        ?? null,
             sourceReferenceType: $overrides['sourceReferenceType'] ?? null,
-            sourceReferenceId:  $overrides['sourceReferenceId']  ?? null,
-            metadata:           $overrides['metadata']           ?? null,
-            idempotencyKey:     $overrides['idempotencyKey']     ?? null,
+            sourceReferenceId:   $overrides['sourceReferenceId']  ?? null,
+            metadata:            $overrides['metadata']           ?? null,
+            idempotencyKey:      $overrides['idempotencyKey']     ?? null,
+            customerAccountId:   $overrides['customerAccountId']  ?? null,
+            taxAmount:           $overrides['taxAmount']          ?? null,
         );
     }
 
@@ -179,6 +181,31 @@ class BillingEngineTest extends TestCase
         $this->assertEquals(42, $request->sourceReferenceId);
         $this->assertEquals('mobile_checklist:42:fuel:1/4', $request->idempotencyKey);
         $this->assertEquals('3/4', $request->metadata['fuel_initial_reading']);
+    }
+
+    // ── Phase 5D: customer_account_id and tax_amount ──────────────────────
+
+    public function test_charge_stores_customer_account_id_when_provided(): void
+    {
+        $charge = BillingEngine::charge($this->makeRequest(['customerAccountId' => 99]));
+
+        $this->assertEquals(99, $charge->customer_account_id);
+        $this->assertDatabaseHas('billing_charges', ['customer_account_id' => 99]);
+    }
+
+    public function test_charge_stores_tax_amount_when_provided(): void
+    {
+        $charge = BillingEngine::charge($this->makeRequest(['taxAmount' => 18.50]));
+
+        $this->assertEquals(18.50, $charge->tax_amount);
+        $this->assertDatabaseHas('billing_charges', ['tax_amount' => 18.50]);
+    }
+
+    public function test_charge_defaults_tax_amount_to_zero_when_not_provided(): void
+    {
+        $charge = BillingEngine::charge($this->makeRequest());
+
+        $this->assertEquals(0.0, $charge->tax_amount);
     }
 
     // ── Idempotency ────────────────────────────────────────────────────────

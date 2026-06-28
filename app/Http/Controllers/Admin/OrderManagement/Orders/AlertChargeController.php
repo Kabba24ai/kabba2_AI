@@ -75,8 +75,9 @@ class AlertChargeController extends Controller
 
             DB::commit();
 
-            // ── Billing Engine bridge (Phase 3B) — fuel only ───────────────
+            // ── Billing Engine bridge ──────────────────────────────────────
             if ($request->type === 'fuel') {
+                // Phase 3B
                 try {
                     BillingEngine::charge(new BillingChargeRequest(
                         type:                BillingChargeType::Fuel->value,
@@ -97,7 +98,42 @@ class AlertChargeController extends Controller
                             'order_unique_id'            => $uniqueId,
                             'sales_tax_type'             => $record->sales_tax_type,
                         ],
-                        idempotencyKey: "admin_fuel_alert_charge:{$record->id}",
+                        idempotencyKey:    "admin_fuel_alert_charge:{$record->id}",
+                        customerAccountId: $record->id,
+                    ));
+                } catch (\Throwable $e) {
+                    Log::channel('billing_engine')->error(
+                        "BillingEngine bridge failed | controller=AlertChargeController " .
+                        "| customer_account_id={$record->id} | order_id={$order->id} " .
+                        "| error=" . $e->getMessage()
+                    );
+                }
+            } elseif ($request->type === 'damage') {
+                // Phase 4C
+                try {
+                    BillingEngine::charge(new BillingChargeRequest(
+                        type:                BillingChargeType::Damage->value,
+                        orderId:             $order->id,
+                        customerId:          (int) $order->customer_id,
+                        amount:              (float) $record->amount,
+                        taxType:             $record->sales_tax_type,
+                        responsiblePersonId: $user->id,
+                        notes:               $record->notes,
+                        sourceModule:        BillingSourceModule::AdminDamageCharge->value,
+                        sourceEvent:         BillingSourceEvent::AdminDamageChargeCreated->value,
+                        sourceReferenceType: 'CustomerAccount',
+                        sourceReferenceId:   $record->id,
+                        metadata: [
+                            'legacy_controller'          => 'AlertChargeController',
+                            'legacy_customer_account_id' => $record->id,
+                            'order_id'                   => $order->id,
+                            'order_unique_id'            => $uniqueId,
+                            'customer_id'                => $order->customer_id,
+                            'sales_tax_type'             => $record->sales_tax_type,
+                            'alert_context'              => true,
+                        ],
+                        idempotencyKey:    "admin_damage_alert_charge:{$record->id}",
+                        customerAccountId: $record->id,
                     ));
                 } catch (\Throwable $e) {
                     Log::channel('billing_engine')->error(

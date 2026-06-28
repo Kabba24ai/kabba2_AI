@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Orders\Extension;
 
+use App\Enums\Billing\BillingChargeType;
+use App\Enums\Billing\BillingSourceEvent;
+use App\Enums\Billing\BillingSourceModule;
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
 use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\DataObjects\BillingChargeRequest;
 use App\Http\Requests\Admin\OrderManagement\Orders\Extension\StoreRequest;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
+use App\Services\BillingEngine;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class StoreController extends Controller
 {
@@ -26,7 +32,15 @@ class StoreController extends Controller
 
         try {
             // Generate suffix: A for first extension, B for second, etc.
-            $existingCount = Order::where('reference_order_number', $order->order_number)->count();
+            // withTrashed() prevents the soft-delete collision bug: soft-deleted extensions
+            // are excluded from a plain count but still hold the UNIQUE order_number slot,
+            // causing a fatal duplicate-key error on the next creation attempt.
+            // The order_number LIKE filter excludes reorders (which share reference_order_number
+            // but receive a new sequential number, not a suffixed one).
+            $existingCount = Order::withTrashed()
+                ->where('reference_order_number', $order->order_number)
+                ->where('order_number', 'like', $order->order_number . '-%')
+                ->count();
             if ($existingCount >= 26) {
                 DB::rollBack();
                 return response()->json(['success' => false, 'message' => 'Maximum of 26 extensions per order reached.'], 422);
@@ -104,6 +118,45 @@ class StoreController extends Controller
             ]);
 
             DB::commit();
+
+            // ── Billing Engine bridge (Phase 5B) ───────────────────────────
+            try {
+                BillingEngine::charge(new BillingChargeRequest(
+                    type:                BillingChargeType::Extension->value,
+                    orderId:             $order->id,
+                    customerId:          (int) $order->customer_id,
+                    amount:              $grandTotal,
+                    taxType:             $validated['add_tax'] ? 'add' : 'free',
+                    responsiblePersonId: $user->id,
+                    notes:               $validated['notes'] ?? null,
+                    sourceModule:        BillingSourceModule::RentalExtension->value,
+                    sourceEvent:         BillingSourceEvent::RentalExtensionCreated->value,
+                    sourceReferenceType: 'Order',
+                    sourceReferenceId:   $extension->id,
+                    metadata: [
+                        'legacy_controller'   => 'Extension\\StoreController',
+                        'parent_order_id'     => $order->id,
+                        'parent_order_number' => $order->order_number,
+                        'child_order_id'      => $extension->id,
+                        'child_order_number'  => $extension->order_number,
+                        'base_amount'         => $baseAmount,
+                        'tax_amount'          => $taxAmount,
+                        'add_tax'             => $validated['add_tax'],
+                        'description'         => $validated['description'],
+                        'extension_context'   => true,
+                    ],
+                    idempotencyKey:    "rental_extension:{$extension->id}",
+                    childOrderId:      $extension->id,
+                    customerAccountId: null,  // extensions do not create a CustomerAccount row
+                    taxAmount:         $taxAmount > 0 ? $taxAmount : null,
+                ));
+            } catch (\Throwable $e) {
+                Log::channel('billing_engine')->error(
+                    "BillingEngine bridge failed | controller=Extension\\StoreController " .
+                    "| extension_order_id={$extension->id} | parent_order_id={$order->id} " .
+                    "| error=" . $e->getMessage()
+                );
+            }
 
             return response()->json([
                 'success'   => true,

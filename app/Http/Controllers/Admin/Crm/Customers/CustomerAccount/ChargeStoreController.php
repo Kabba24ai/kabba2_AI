@@ -56,8 +56,9 @@ class ChargeStoreController extends Controller
 
             DB::commit();
 
-            // ── Billing Engine bridge (Phase 3C) — fuel only ───────────────
+            // ── Billing Engine bridge ──────────────────────────────────────
             if ($validated['reason'] === 'Fuel Charge') {
+                // Phase 3C
                 try {
                     BillingEngine::charge(new BillingChargeRequest(
                         type:                BillingChargeType::Fuel->value,
@@ -77,7 +78,40 @@ class ChargeStoreController extends Controller
                             'customer_id'                => $record->customer_id,
                             'sales_tax_type'             => $record->sales_tax_type,
                         ],
-                        idempotencyKey: "crm_fuel_charge:{$record->id}",
+                        idempotencyKey:    "crm_fuel_charge:{$record->id}",
+                        customerAccountId: $record->id,
+                    ));
+                } catch (\Throwable $e) {
+                    Log::channel('billing_engine')->error(
+                        "BillingEngine bridge failed | controller=ChargeStoreController " .
+                        "| customer_account_id={$record->id} | customer_id={$record->customer_id} " .
+                        "| error=" . $e->getMessage()
+                    );
+                }
+            } elseif ($validated['reason'] === 'Damages') {
+                // Phase 4D
+                try {
+                    BillingEngine::charge(new BillingChargeRequest(
+                        type:                BillingChargeType::Damage->value,
+                        orderId:             null, // CRM charge modal: no order context
+                        customerId:          (int) $record->customer_id,
+                        amount:              (float) $record->amount,
+                        taxType:             $record->sales_tax_type ?? 'free',
+                        responsiblePersonId: $user->id,
+                        notes:               $record->notes,
+                        sourceModule:        BillingSourceModule::AdminDamageCharge->value,
+                        sourceEvent:         BillingSourceEvent::AdminDamageChargeCreated->value,
+                        sourceReferenceType: 'CustomerAccount',
+                        sourceReferenceId:   $record->id,
+                        metadata: [
+                            'legacy_controller'          => 'ChargeStoreController',
+                            'legacy_customer_account_id' => $record->id,
+                            'customer_id'                => $record->customer_id,
+                            'sales_tax_type'             => $record->sales_tax_type,
+                            'crm_context'                => true,
+                        ],
+                        idempotencyKey:    "crm_damage_charge:{$record->id}",
+                        customerAccountId: $record->id,
                     ));
                 } catch (\Throwable $e) {
                     Log::channel('billing_engine')->error(

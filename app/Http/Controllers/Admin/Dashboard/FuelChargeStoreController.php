@@ -102,6 +102,7 @@ class FuelChargeStoreController extends Controller
                     'sales_tax_type'             => $record->sales_tax_type,
                 ],
                 idempotencyKey:      "admin_fuel_charge:{$record->id}",
+                customerAccountId:   $record->id,
             ));
         } catch (\Throwable $e) {
             Log::channel('billing_engine')->error(

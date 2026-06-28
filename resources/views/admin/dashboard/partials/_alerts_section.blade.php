@@ -34,64 +34,69 @@
                     <!-- Hidden template (used by JS to clone items) -->
                     <template id="fuel-alert-item-template">
                         <div class="alert-item bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-                            <div class="flex items-center justify-between p-3">
-                                <div class="flex-1 min-w-0">
+                            <div class="flex items-center p-3 gap-2">
+
+                                {{-- Col 1: Fixed-width customer name (144px). Long names truncate with ellipsis. --}}
+                                <div class="w-36 flex-shrink-0 overflow-hidden">
                                     <h4 class="text-sm font-semibold text-gray-800 truncate" data-customer></h4>
                                 </div>
 
-                                <div class="flex-1 min-w-0 px-2 truncate flex justify-center">
-                                    <button data-order-btn class="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
-                                        <span data-order-id></span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-4 h-4 ml-1 text-xs"><path d="M354.4 83.8C359.4 71.8 371.1 64 384 64L544 64C561.7 64 576 78.3 576 96L576 256C576 268.9 568.2 280.6 556.2 285.6C544.2 290.6 530.5 287.8 521.3 278.7L464 221.3L310.6 374.6C298.1 387.1 277.8 387.1 265.3 374.6C252.8 362.1 252.8 341.8 265.3 329.3L418.7 176L361.4 118.6C352.2 109.4 349.5 95.7 354.5 83.7zM64 240C64 195.8 99.8 160 144 160L224 160C241.7 160 256 174.3 256 192C256 209.7 241.7 224 224 224L144 224C135.2 224 128 231.2 128 240L128 496C128 504.8 135.2 512 144 512L400 512C408.8 512 416 504.8 416 496L416 416C416 398.3 430.3 384 448 384C465.7 384 480 398.3 480 416L480 496C480 540.2 444.2 576 400 576L144 576C99.8 576 64 540.2 64 496L64 240z"/></svg>
+                                {{-- Col 2: Order ID / CRM badge · icons · amount (fills remaining space) --}}
+                                <div class="flex-1 min-w-0 flex items-center gap-1">
 
-                                    </button>
+                                    <div class="flex-shrink-0">
+                                        <button data-order-btn class="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                                            <span data-order-id></span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-4 h-4 ml-1 text-xs"><path d="M354.4 83.8C359.4 71.8 371.1 64 384 64L544 64C561.7 64 576 78.3 576 96L576 256C576 268.9 568.2 280.6 556.2 285.6C544.2 290.6 530.5 287.8 521.3 278.7L464 221.3L310.6 374.6C298.1 387.1 277.8 387.1 265.3 374.6C252.8 362.1 252.8 341.8 265.3 329.3L418.7 176L361.4 118.6C352.2 109.4 349.5 95.7 354.5 83.7zM64 240C64 195.8 99.8 160 144 160L224 160C241.7 160 256 174.3 256 192C256 209.7 241.7 224 224 224L144 224C135.2 224 128 231.2 128 240L128 496C128 504.8 135.2 512 144 512L400 512C408.8 512 416 504.8 416 496L416 416C416 398.3 430.3 384 448 384C465.7 384 480 398.3 480 416L480 496C480 540.2 444.2 576 400 576L144 576C99.8 576 64 540.2 64 496L64 240z"/></svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="flex items-center gap-1">
+                                        {{-- Make Payment: green --}}
+                                        <button data-pay-btn title="Make a Payment" aria-label="Make a Payment"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-green-600 hover:bg-green-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                        </button>
+                                        {{-- Mark Resolved: blue (hidden for CRM via JS) --}}
+                                        <button data-resolve-btn title="Mark as Resolved" aria-label="Mark as Resolved"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-blue-600 hover:bg-blue-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                        </button>
+                                        {{-- Mark Uncollectible: red (hidden for CRM via JS) --}}
+                                        <button data-uncollectible-btn title="Mark as Uncollectible" aria-label="Mark as Uncollectible"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                        </button>
+                                        {{-- Add Note: gray (always visible) --}}
+                                        <button data-note-btn title="Add Note" aria-label="Add Note"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                            </svg>
+                                        </button>
+                                        {{-- Adjust: amber (hidden for CRM via JS) --}}
+                                        <button data-adjust-btn title="Adjust Fuel Charge" aria-label="Adjust Fuel Charge"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-amber-500 hover:bg-amber-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                                            </svg>
+                                        </button>
+                                        <span data-notes-count class="hidden text-xs font-semibold text-blue-600 hover:text-blue-800 cursor-pointer px-0.5" title="View notes"></span>
+                                    </div>
+
+                                    <div class="ml-auto flex-shrink-0 text-sm text-right min-w-[80px]">
+                                        <span data-amount></span>
+                                    </div>
+
                                 </div>
 
-                                <div class="flex items-center gap-1">
-                                    {{-- Make Payment: green --}}
-                                    <button data-pay-btn title="Make a Payment" aria-label="Make a Payment"
-                                        class="w-6 h-6 rounded flex items-center justify-center text-green-600 hover:bg-green-100 transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                        </svg>
-                                    </button>
-                                    {{-- Mark Resolved: blue (hidden for CRM via JS) --}}
-                                    <button data-resolve-btn title="Mark as Resolved" aria-label="Mark as Resolved"
-                                        class="w-6 h-6 rounded flex items-center justify-center text-blue-600 hover:bg-blue-100 transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                        </svg>
-                                    </button>
-                                    {{-- Mark Uncollectible: red (hidden for CRM via JS) --}}
-                                    <button data-uncollectible-btn title="Mark as Uncollectible" aria-label="Mark as Uncollectible"
-                                        class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                        </svg>
-                                    </button>
-                                    {{-- Add Note: gray (always visible) --}}
-                                    <button data-note-btn title="Add Note" aria-label="Add Note"
-                                        class="w-6 h-6 rounded flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                        </svg>
-                                    </button>
-                                    {{-- Adjust: amber (hidden for CRM via JS) --}}
-                                    <button data-adjust-btn title="Adjust Fuel Charge" aria-label="Adjust Fuel Charge"
-                                        class="w-6 h-6 rounded flex items-center justify-center text-amber-500 hover:bg-amber-100 transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                                        </svg>
-                                    </button>
-                                    <span data-notes-count class="hidden text-xs font-semibold text-blue-600 hover:text-blue-800 cursor-pointer px-0.5" title="View notes"></span>
-                                </div>
-
-                                <div class="flex-shrink-0 text-sm text-right min-w-[80px]">
-                                    <span data-amount></span>
-                                </div>
                             </div>
-
-
                         </div>
                     </template>
 

@@ -214,6 +214,7 @@ class AlertsSection extends Component
                 return [
                     'id'                       => 20000 + $account->id,
                     'source'                   => 'crm',
+                    'show_full_actions'        => $hasOrder,
                     'customer'                 => [
                         'id'        => $account->customer_id,
                         'full_name' => $account->customer?->full_name,
@@ -274,6 +275,7 @@ class AlertsSection extends Component
                 return [
                     'id'                       => 10000 + $account->id,
                     'source'                   => 'crm',
+                    'show_full_actions'        => $hasOrder,
                     'customer'                 => [
                         'id'        => $account->customer_id,
                         'full_name' => $account->customer?->full_name,

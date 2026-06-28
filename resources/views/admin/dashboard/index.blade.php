@@ -171,13 +171,13 @@ const beRouteAdjust        = '{{ route("admin.order-management.orders.billing-ch
             list.forEach(alert => {
                 const item = document.importNode(template, true);
 
-                const isCrm = alert.source === 'crm';
+                const showFullActions = alert.show_full_actions !== false;
 
                 item.querySelector("[data-customer]").textContent = alert.customerName;
 
                 // Show order number or a "CRM" badge
                 const orderIdEl = item.querySelector("[data-order-id]");
-                if (isCrm && !alert.orderId) {
+                if (!alert.orderId) {
                     orderIdEl.innerHTML = `<span class="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-1.5 py-0.5 rounded">CRM</span>`;
                 } else {
                     orderIdEl.textContent = alert.order_number;
@@ -193,7 +193,7 @@ const beRouteAdjust        = '{{ route("admin.order-management.orders.billing-ch
 
                 // Mark Resolved — non-CRM only
                 const resolveBtn = item.querySelector("[data-resolve-btn]");
-                if (isCrm) {
+                if (!showFullActions) {
                     resolveBtn.classList.add("hidden");
                 } else {
                     resolveBtn.onclick = () => this.openResolvedModal(alert);
@@ -201,7 +201,7 @@ const beRouteAdjust        = '{{ route("admin.order-management.orders.billing-ch
 
                 // Mark Uncollectible — non-CRM only
                 const uncollectibleBtn = item.querySelector("[data-uncollectible-btn]");
-                if (isCrm) {
+                if (!showFullActions) {
                     uncollectibleBtn.classList.add("hidden");
                 } else {
                     uncollectibleBtn.onclick = () => this.handleStatusUpdate("fuel", alert.id, "uncollectible");
@@ -217,7 +217,7 @@ const beRouteAdjust        = '{{ route("admin.order-management.orders.billing-ch
 
                 // Adjust — non-CRM only (CRM has no order_product context)
                 const adjustBtn = item.querySelector("[data-adjust-btn]");
-                if (isCrm) {
+                if (!showFullActions) {
                     adjustBtn.classList.add("hidden");
                 } else {
                     adjustBtn.onclick = () => {
@@ -346,12 +346,12 @@ if (isFuel) {
             list.forEach(alert => {
                 const item = document.importNode(template, true);
 
-                const isCrm = alert.source === 'crm';
+                const showFullActions = alert.show_full_actions !== false;
 
                 item.querySelector("[data-customer]").textContent = alert.customerName;
 
                 const orderIdEl = item.querySelector("[data-order-id]");
-                if (isCrm && !alert.orderId) {
+                if (!alert.orderId) {
                     orderIdEl.innerHTML = `<span class="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-1.5 py-0.5 rounded">CRM</span>`;
                 } else {
                     orderIdEl.textContent = alert.order_number;
@@ -362,7 +362,7 @@ if (isFuel) {
                 };
 
                 const editAmountBtn = item.querySelector("[data-edit-amount]");
-                if (isCrm) {
+                if (!showFullActions) {
                     editAmountBtn.classList.add("hidden");
                 } else {
                     editAmountBtn.onclick = () => {
@@ -386,7 +386,7 @@ if (isFuel) {
 
                 item.querySelector("[data-paid]").onclick = () => this.handleStatusUpdate("damage", alert.id, "paid");
 
-                if (isCrm) {
+                if (!showFullActions) {
                     item.querySelector("[data-resolved]")?.remove();
                     item.querySelector("[data-uncollectible]")?.remove();
                 } else {

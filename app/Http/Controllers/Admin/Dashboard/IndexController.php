@@ -230,6 +230,7 @@ class IndexController extends Controller
                 return [
                     'id'                       => 20000 + $account->id,
                     'source'                   => 'crm',
+                    'show_full_actions'        => $hasOrder,
                     '_sort_ts'                 => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                     'customer'                 => [
                         'id'        => $account->customer_id,
@@ -292,6 +293,7 @@ class IndexController extends Controller
             return [
                 'id'             => 10000 + $account->id,
                 'source'         => 'crm',
+                'show_full_actions' => $hasOrder,
                 '_sort_ts'       => ($account->date ?? $account->created_at)?->timestamp ?? 0,
                 'customer'       => [
                     'id'        => $account->customer_id,

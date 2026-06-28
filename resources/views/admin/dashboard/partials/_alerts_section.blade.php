@@ -187,6 +187,13 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                             </svg>
                                         </button>
+                                        {{-- Adjust Damage Charge: amber (hidden for CRM by JS) --}}
+                                        <button data-edit-amount title="Adjust Damage Charge" aria-label="Adjust Damage Charge"
+                                            class="w-6 h-6 rounded flex items-center justify-center text-amber-500 hover:bg-amber-100 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                                            </svg>
+                                        </button>
                                         {{-- Add Note: gray (always visible, always last) --}}
                                         <button data-edit-notes title="Add Note" aria-label="Add Note"
                                             class="w-6 h-6 rounded flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
@@ -208,7 +215,6 @@
                             {{-- Ghost elements: required by JS querySelector — not visible --}}
                             <div data-status-dropdown class="hidden"></div>
                             <button data-status-btn type="button" class="hidden"></button>
-                            <button data-edit-amount type="button" class="hidden"></button>
 
                         </div>
                     </template>

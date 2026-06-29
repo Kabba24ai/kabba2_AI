@@ -22,6 +22,19 @@ class CreateController extends Controller
 
         $stores = Store::pluck('store_name', 'id')->toArray();
         $serviceTemplates = ServiceTemplate::oldest('name')->pluck('name', 'id')->toArray();
-        return view('admin.maintenance_management.equipment.create', compact('categories', 'checklistMasters', 'stores', 'serviceTemplates','partsLists'));
+
+        // Empty on create — no category selected yet; populated via AJAX after category is chosen.
+        $productAssignmentOptions = [];
+        $selectedPartsListId = null;
+
+        return view('admin.maintenance_management.equipment.create', compact(
+            'categories',
+            'checklistMasters',
+            'stores',
+            'serviceTemplates',
+            'partsLists',
+            'productAssignmentOptions',
+            'selectedPartsListId',
+        ));
     }
 }

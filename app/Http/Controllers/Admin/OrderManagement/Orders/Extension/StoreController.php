@@ -125,7 +125,7 @@ class StoreController extends Controller
                     type:                BillingChargeType::Extension->value,
                     orderId:             $order->id,
                     customerId:          (int) $order->customer_id,
-                    amount:              $grandTotal,
+                    amount:              $baseAmount,
                     taxType:             $validated['add_tax'] ? 'add' : 'free',
                     responsiblePersonId: $user->id,
                     notes:               $validated['notes'] ?? null,

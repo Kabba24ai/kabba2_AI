@@ -670,6 +670,25 @@
                     return;
                 }
 
+                // View All / Collapse for driver cards
+                const viewAllBtn = e.target.closest('.dc-view-all-btn');
+                if (viewAllBtn) {
+                    const card = viewAllBtn.closest('[data-driver-card]');
+                    if (!card) return;
+                    const sections   = card.querySelectorAll('.dc-scroll-section');
+                    const isExpanded = card.dataset.expanded === 'true';
+                    if (isExpanded) {
+                        sections.forEach(s => { s.style.maxHeight = '13rem'; s.style.overflowY = 'auto'; });
+                        card.dataset.expanded  = 'false';
+                        viewAllBtn.textContent = 'View All';
+                    } else {
+                        sections.forEach(s => { s.style.maxHeight = ''; s.style.overflowY = ''; });
+                        card.dataset.expanded  = 'true';
+                        viewAllBtn.textContent = 'Collapse';
+                    }
+                    return;
+                }
+
                 // Update button: sort both delivery and return columns of this card by priority
                 const updateBtn = e.target.closest('.dispatch-card-update-btn');
                 if (!updateBtn) return;
@@ -681,8 +700,10 @@
                 if (!separateView) return;
 
                 separateView.querySelectorAll('.flex-1.p-4').forEach(column => {
-                    // Job entries are DIV elements; the section header is a P
-                    const entries = Array.from(column.children).filter(el => el.tagName === 'DIV');
+                    // Job entries live inside the .dc-scroll-section wrapper
+                    const scrollSection = column.querySelector('.dc-scroll-section');
+                    const container     = scrollSection || column;
+                    const entries       = Array.from(container.children).filter(el => el.tagName === 'DIV');
                     if (entries.length < 2) return;
 
                     entries.sort((a, b) => {
@@ -693,7 +714,7 @@
                         return pa - pb;
                     });
 
-                    entries.forEach(el => column.appendChild(el));
+                    entries.forEach(el => container.appendChild(el));
                 });
 
                 // Brief success feedback on the button

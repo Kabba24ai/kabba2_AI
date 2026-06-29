@@ -31,6 +31,8 @@ class IndexController extends BaseController
         $users = User::active()->orderByDesc('id')->when(isset($validatedData['is_driver']), function ($query) use ($validatedData) {
                         $query->where('is_driver', $validatedData['is_driver']);
                     })->paginate($perPage);
+        
+        $users = User::active()->orderByDesc('id')->paginate($perPage);
 
         // if ($users->isEmpty()) {
         //     return response()->json([

@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\TimeTracker\V1\Users\TimeEntryCreateRequest;
 use App\Models\Iam\Personnel\TimeEntry;
 use App\Models\Iam\Personnel\TimeEntryBreak;
+use App\Models\Iam\Personnel\User;
+use App\Services\TimeTrackerAuditService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\TimeTrackerHelper;
@@ -32,6 +34,9 @@ class TimeEntryCreateController extends BaseController
 
             $baseDate = $entry->clock_in->toDateString();
 
+            // Resolve store once — reused in both branches
+            $storeId = User::where('id', $entry->employee_id)->value('store_id');
+
             /*
             |------------------------------------------------------------
             | INPUT LOG
@@ -44,7 +49,7 @@ class TimeEntryCreateController extends BaseController
                 'base_date' => $baseDate,
                 'app_timezone' => config('app.timezone'),
                 'server_now' => now()->toDateTimeString(),
-            ]); 
+            ]);
 
             /*
             |------------------------------------------------------------
@@ -87,8 +92,6 @@ class TimeEntryCreateController extends BaseController
                     'type' => $type,
                 ]);
 
-              
-
                 $break = new TimeEntryBreak();
 
                 $break->time_entry_id = $entryId;
@@ -104,6 +107,21 @@ class TimeEntryCreateController extends BaseController
                 Log::info('CREATE DEBUG - DB RESULT', [
                     'break_id' => $break->id,
                     'start_time' => $break->start_time,
+                ]);
+
+                TimeTrackerAuditService::log([
+                    'store_id'    => $storeId,
+                    'employee_id' => $entry->employee_id,
+                    'entity_type' => 'time_entry_break',
+                    'entity_id'   => $break->id,
+                    'action'      => 'create',
+                    'field'       => null,
+                    'old_value'   => null,
+                    'new_value'   => $roundedDateTime->toDateTimeString(),
+                    'metadata'    => [
+                        'entry_type'     => $type,
+                        'created_entity' => 'time_entry_break',
+                    ],
                 ]);
             }
 
@@ -131,7 +149,6 @@ class TimeEntryCreateController extends BaseController
                 $break->end_time   = $roundedDateTime;
                 $break->updated_at = $newDateTime;
 
-
                 $break->timestamps = false;
 
                 $break->save();
@@ -139,6 +156,21 @@ class TimeEntryCreateController extends BaseController
                 Log::info('CREATE DEBUG - DB RESULT', [
                     'break_id' => $break->id,
                     'end_time' => $break->end_time,
+                ]);
+
+                TimeTrackerAuditService::log([
+                    'store_id'    => $storeId,
+                    'employee_id' => $entry->employee_id,
+                    'entity_type' => 'time_entry_break',
+                    'entity_id'   => $break->id,
+                    'action'      => 'create',
+                    'field'       => null,
+                    'old_value'   => null,
+                    'new_value'   => $roundedDateTime->toDateTimeString(),
+                    'metadata'    => [
+                        'entry_type'     => $type,
+                        'created_entity' => 'time_entry_break',
+                    ],
                 ]);
             }
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseController;
 use App\Models\Iam\Personnel\TimeEntry;
 use App\Models\Iam\Personnel\User;
 use App\Http\Requests\Api\TimeTracker\V1\Users\CreateEmptyTimeEntryRequest;
+use App\Services\TimeTrackerAuditService;
 use Carbon\Carbon;
 use App\Helpers\TimeTrackerHelper;
 
@@ -53,7 +54,25 @@ class CreateEmptyTimeEntryController extends BaseController
 
                 $entry->save();
 
+                // New time entry row created — no old value, no change-guard
+                TimeTrackerAuditService::log([
+                    'store_id'    => $user->store_id,
+                    'employee_id' => $user->id,
+                    'entity_type' => 'time_entry',
+                    'entity_id'   => $entry->id,
+                    'action'      => 'create',
+                    'field'       => null,
+                    'old_value'   => null,
+                    'new_value'   => $roundedDateTime->toDateTimeString(),
+                    'metadata'    => [
+                        'entry_type'     => 'clock_in',
+                        'created_entity' => 'time_entry',
+                    ],
+                ]);
+
             } else {
+
+                $oldClockIn = $entry->clock_in; // capture BEFORE modification
 
                 $entry->clock_in   = $roundedDateTime;
                 $entry->created_at = $newDateTime;
@@ -63,6 +82,20 @@ class CreateEmptyTimeEntryController extends BaseController
                 $entry->timestamps = false;
 
                 $entry->save();
+
+                if ($oldClockIn === null || $oldClockIn->timestamp !== $roundedDateTime->timestamp) {
+                    TimeTrackerAuditService::log([
+                        'store_id'    => $user->store_id,
+                        'employee_id' => $user->id,
+                        'entity_type' => 'time_entry',
+                        'entity_id'   => $entry->id,
+                        'action'      => 'single_update',
+                        'field'       => 'clock_in',
+                        'old_value'   => $oldClockIn?->toDateTimeString(),
+                        'new_value'   => $roundedDateTime->toDateTimeString(),
+                        'metadata'    => ['entry_type' => 'clock_in'],
+                    ]);
+                }
             }
         }
 
@@ -80,6 +113,8 @@ class CreateEmptyTimeEntryController extends BaseController
                 ], 422);
             }
 
+            $oldClockOut = $entry->clock_out; // capture BEFORE adjustment and re-rounding
+
             $clockIn = $entry->clock_in;
 
             if ($newDateTime->lt($clockIn)) {
@@ -96,6 +131,20 @@ class CreateEmptyTimeEntryController extends BaseController
             $entry->timestamps = false;
 
             $entry->save();
+
+            if ($oldClockOut === null || $oldClockOut->timestamp !== $roundedDateTime->timestamp) {
+                TimeTrackerAuditService::log([
+                    'store_id'    => $user->store_id,
+                    'employee_id' => $user->id,
+                    'entity_type' => 'time_entry',
+                    'entity_id'   => $entry->id,
+                    'action'      => 'single_update',
+                    'field'       => 'clock_out',
+                    'old_value'   => $oldClockOut?->toDateTimeString(),
+                    'new_value'   => $roundedDateTime->toDateTimeString(),
+                    'metadata'    => ['entry_type' => 'clock_out'],
+                ]);
+            }
         }
 
         return response()->json([

@@ -69,7 +69,7 @@
                 </div>
                 <div class="min-w-0 flex-1">
                     <p class="font-semibold text-gray-600 truncate leading-tight text-[10px]">{{ $driver->full_name }}</p>
-                    <p class="text-gray-400 text-[9px] truncate leading-tight">{{ $cdlLabels->implode(' · ') }}</p>
+                    <p class="text-gray-400 text-[10px] truncate leading-tight">{{ $cdlLabels->implode(' | ') }}</p>
                 </div>
                 <span class="text-[9px] text-gray-300 italic shrink-0">idle</span>
             </div>

@@ -58,18 +58,38 @@
         const orderNumber = btn.dataset.orderNumber;
         if (!orderNumber) return;
 
-        // Fill the order number search input and trigger a fetch
+        // Clear all text search inputs
+        ['customer_name', 'customer_company_name', 'customer_phone'].forEach(name => {
+            const el = document.querySelector(`input[name="${name}"]`);
+            if (el) el.value = '';
+        });
+
+        // Reset all select filters to their default "All ..." state
+        ['select[name="category"]', '#payment_method', '#payment_status', '#date_filter', '#driver_filter'].forEach(sel => {
+            const el = document.querySelector(sel);
+            if (el) el.value = '';
+        });
+
+        // Force Schedule Type: Delivery + Return both checked
+        document.querySelectorAll('input[name="schedule_type[]"]').forEach(cb => { cb.checked = true; });
+
+        // Force all store locations checked
+        document.querySelectorAll('input[name="store_location[]"]').forEach(cb => { cb.checked = true; });
+
+        // Set the order number filter
         const orderInput = document.querySelector('input[name="order_number"]');
-        if (orderInput) {
-            orderInput.value = orderNumber;
-            orderInput.dispatchEvent(new Event('input', { bubbles: true }));
+        if (orderInput) orderInput.value = orderNumber;
+
+        // Run the search (window.fetchDispatch is exposed by the DOMContentLoaded block)
+        if (typeof window.fetchDispatch === 'function') {
+            window.fetchDispatch();
         }
 
-        // Scroll to the table after a brief delay for the fetch to fire
+        // Scroll to the dispatch table
         setTimeout(() => {
             const table = document.getElementById('dispatch-table-wrapper');
             if (table) table.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 150);
+        }, 200);
     });
     </script>
 
@@ -414,6 +434,7 @@
                     <span id="driver-modal-also-assign-label">Also assign same driver to return/pickup</span>
                 </label>
                 <p id="driver-modal-other-driver-note" class="text-xs text-amber-700 mt-1 ml-5 hidden"></p>
+                <p id="driver-modal-delivery-locked-note" class="text-xs text-gray-400 mt-1 ml-5 hidden">Delivery already completed — delivery driver is locked.</p>
             </div>
 
             <!-- Hidden state -->
@@ -1094,6 +1115,7 @@
             const alsoAssignCheck       = document.getElementById('driver-modal-also-assign');
             const alsoAssignLabel       = document.getElementById('driver-modal-also-assign-label');
             const otherDriverNote       = document.getElementById('driver-modal-other-driver-note');
+            const deliveryLockedNote    = document.getElementById('driver-modal-delivery-locked-note');
             const otherSlotDriverIdIn   = document.getElementById('driver-modal-other-slot-driver-id');
             const otherSlotDriverNameIn = document.getElementById('driver-modal-other-slot-driver-name');
             const originalDispatchIn    = document.getElementById('driver-modal-original-dispatch-date');
@@ -1263,6 +1285,19 @@
                 }
                 alsoAssignCheck.checked = true;
 
+                // Delivery-completed protection: lock out "also assign to delivery" when delivery is already done
+                const deliveryCompleted = btn.dataset.deliveryCompleted === '1';
+                if (!isDelivery && deliveryCompleted) {
+                    alsoAssignCheck.checked  = false;
+                    alsoAssignCheck.disabled = true;
+                    alsoAssignCheck.closest('label')?.classList.add('opacity-50', 'cursor-not-allowed');
+                    deliveryLockedNote?.classList.remove('hidden');
+                } else {
+                    alsoAssignCheck.disabled = false;
+                    alsoAssignCheck.closest('label')?.classList.remove('opacity-50', 'cursor-not-allowed');
+                    deliveryLockedNote?.classList.add('hidden');
+                }
+
                 driverModal.classList.remove('hidden');
             });
 
@@ -1294,7 +1329,10 @@
                 dispatchDateBadge.className = 'hidden';
                 dispatchDateClear.classList.add('hidden');
                 otherDriverNote.classList.add('hidden');
-                alsoAssignCheck.checked = true;
+                alsoAssignCheck.checked  = true;
+                alsoAssignCheck.disabled = false;
+                alsoAssignCheck.closest('label')?.classList.remove('opacity-50', 'cursor-not-allowed');
+                deliveryLockedNote?.classList.add('hidden');
                 updateDriverPhone('');
             }
 
@@ -1442,6 +1480,10 @@
             if (p) {
                 badge.className = badge.className
                     .replace('bg-gray-100 text-gray-400', isBlue ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700');
+            } else {
+                badge.className = badge.className
+                    .replace('bg-blue-100 text-blue-700',   'bg-gray-100 text-gray-400')
+                    .replace('bg-purple-100 text-purple-700', 'bg-gray-100 text-gray-400');
             }
         }
 
@@ -1470,7 +1512,32 @@
             input.focus();
             input.select();
 
+            // × button: lets dispatchers remove priority back to null without having to clear the field manually
+            let clearRef = null;
+            if (badge.parentElement) {
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.textContent = '×';
+                clearBtn.title = 'Remove priority';
+                clearBtn.style.cssText = 'font-size:14px;line-height:1;color:#9ca3af;font-weight:bold;cursor:pointer;margin-top:7px;padding:0 3px;';
+                badge.parentElement.insertBefore(clearBtn, badge.nextSibling);
+                clearRef = clearBtn;
+                clearBtn.addEventListener('mousedown', function(ev) {
+                    ev.preventDefault();
+                    input.value = '';
+                    save();
+                });
+            }
+
             let saving = false;
+
+            // Centralises badge restoration and × button cleanup for all save paths
+            function done(p) {
+                clearRef?.remove();
+                clearRef = null;
+                if (p !== undefined) { applyBadgeValue(badge, p, isBlue); resortJobColumn(badge); }
+                else                 { badge.textContent = current || '—'; }
+            }
 
             function save() {
                 if (saving) return;
@@ -1483,10 +1550,10 @@
                 if (priority === null) {
                     savePriorityToServer(uid, type, null)
                         .then(data => {
-                            if (data.success) { applyBadgeValue(badge, null, isBlue); resortJobColumn(badge); }
-                            else              { badge.textContent = current || '—'; }
+                            if (data.success) { done(null); }
+                            else              { done(); }
                         })
-                        .catch(() => { badge.textContent = current || '—'; });
+                        .catch(() => { done(); });
                     return;
                 }
 
@@ -1503,7 +1570,7 @@
                         `There is already an assignment at position ${priority}.\n\nWould you like to place this here and shift all assignments at position ${priority} and after up by 1?`
                     );
                     if (!proceed) {
-                        badge.textContent = current || '—';
+                        done();
                         saving = false;
                         return;
                     }
@@ -1530,24 +1597,24 @@
                     shiftChain.then(() => {
                         return savePriorityToServer(uid, type, priority);
                     }).then(data => {
-                        if (data.success) { applyBadgeValue(badge, data.priority, isBlue); resortJobColumn(badge); }
-                        else              { badge.textContent = current || '—'; }
-                    }).catch(() => { badge.textContent = current || '—'; });
+                        if (data.success) { done(data.priority); }
+                        else              { done(); }
+                    }).catch(() => { done(); });
 
                 } else {
                     savePriorityToServer(uid, type, priority)
                         .then(data => {
-                            if (data.success) { applyBadgeValue(badge, data.priority, isBlue); resortJobColumn(badge); }
-                            else              { badge.textContent = current || '—'; }
+                            if (data.success) { done(data.priority); }
+                            else              { done(); }
                         })
-                        .catch(() => { badge.textContent = current || '—'; });
+                        .catch(() => { done(); });
                 }
             }
 
             input.addEventListener('blur', save);
             input.addEventListener('keydown', e => {
                 if (e.key === 'Enter') { e.preventDefault(); save(); }
-                if (e.key === 'Escape') { badge.textContent = current || '—'; saving = true; }
+                if (e.key === 'Escape') { done(); saving = true; }
             });
         });
     })();

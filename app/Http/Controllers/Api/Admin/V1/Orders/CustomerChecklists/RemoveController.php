@@ -6,8 +6,8 @@ use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
-// Enums
-use App\Enums\Equipments\EquipmentCurrentStatus;
+// Services
+use App\Services\Equipment\EquipmentStatusService;
 use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists\RemoveRequest;
@@ -28,7 +28,11 @@ class RemoveController extends BaseController
     {
         $validated = $request->validated();
 
-        $order = Order::with(['products.checklistQuestions.answers', 'products.deliveryMedia'])
+        $order = Order::with([
+                'products.checklistQuestions.answers',
+                'products.deliveryMedia.media',
+                'products.deliverySignatureMedia',
+            ])
             ->where('unique_id', $validated['order_unique_id'])
             ->first();
 
@@ -62,18 +66,27 @@ class RemoveController extends BaseController
             }
 
             if ($equipment = Equipment::where('id', $orderProduct->equipment_id)->first()) {
-                $equipment->current_status = EquipmentCurrentStatus::Available->value;
-                $equipment->current_status_updated_by = auth('api_user')->id();
-                $equipment->current_status_changed_at = now();
-                $equipment->current_order_id = null;
-                $equipment->current_order_product_id = null;
-                $equipment->saveQuietly();
+                EquipmentStatusService::markAvailableOnChecklistRemove(
+                    $equipment,
+                    $orderProduct->order_id,
+                    $orderProduct->id,
+                    auth('api_user')->id()
+                );
             }
 
             $orderProduct->checklistQuestions()->delete();
 
-            if ($orderProduct->delivery_signature_media_id) {
-                MediaHelper::removeFile($orderProduct->deliveryMedia);
+            // Delete delivery photo files. deliveryMedia is a hasMany(OrderMedia) collection;
+            // forceDelete() on each item triggers the OrderMedia boot hook which calls
+            // MediaHelper::removeFile($model->media) and deletes the underlying Media record.
+            foreach ($orderProduct->deliveryMedia as $orderMedia) {
+                $orderMedia->forceDelete();
+            }
+
+            // Delete the delivery signature file. deliverySignatureMedia is a belongsTo(Media)
+            // single model — MediaHelper::removeFile() deletes the storage file and the Media row.
+            if ($orderProduct->delivery_signature_media_id && $orderProduct->deliverySignatureMedia) {
+                MediaHelper::removeFile($orderProduct->deliverySignatureMedia);
             }
 
             $orderProduct->update($orderProductData);

@@ -31,11 +31,12 @@ class AlertsSection extends Component
         })
         ->whereHas('order')
         ->whereHas('orderProduct', function ($q) {
-            $q->whereNotIn('damage_status', [
-                'completed',
-                'uncollectible',
-                'resolved',
-            ]);
+            // NULL damage_status means damage not yet processed — treat as active.
+            // whereNotIn alone silently excludes NULL rows in MySQL.
+            $q->where(function ($inner) {
+                $inner->whereNull('damage_status')
+                      ->orWhereNotIn('damage_status', ['completed', 'uncollectible', 'resolved']);
+            });
         })
         ->latest('id')
         ->get()

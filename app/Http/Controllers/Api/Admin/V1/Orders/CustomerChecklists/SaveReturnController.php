@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\Admin\V1\Orders\CustomerChecklists;
 use App\Enums\Billing\BillingChargeType;
 use App\Enums\Billing\BillingSourceEvent;
 use App\Enums\Billing\BillingSourceModule;
-use App\Enums\Equipments\EquipmentCurrentStatus;
+use App\Services\Equipment\EquipmentStatusService;
 use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
+use App\Enums\Api\ApiErrorCode;
+use App\Helpers\ApiResponseHelper;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\DataObjects\BillingChargeRequest;
@@ -20,6 +22,8 @@ use App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists\SaveReturnRequest;
 
 // Model
 use App\Models\Orders\OrderProduct;
+use App\Models\Orders\OrderProductChecklistQuestionAnswers;
+use App\Enums\Orders\OrderProductChargeStatus;
 
 class SaveReturnController extends BaseController
 {
@@ -33,66 +37,66 @@ class SaveReturnController extends BaseController
     {
         $validated = $request->validated();
 
-        $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'returnSignatureMedia', 'equipment'])
+        $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'returnSignatureMedia', 'equipment', 'order'])
             ->whereHas('order')
             ->where('unique_id', $validated['order_product_unique_id'])
             ->first();
 
         if (!$orderProduct) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.orders.no_order_product_found'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
+            return ApiResponseHelper::error(ApiErrorCode::OrderProductNotFound, [], [
+                'order_product_unique_id' => $validated['order_product_unique_id'],
+            ]);
         }
 
         $equipment = $orderProduct->equipment;
         if (!$equipment) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.orders.no_equipment_found'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
+            return ApiResponseHelper::error(ApiErrorCode::EquipmentNotFound, [], [
+                'order_product_id' => $orderProduct->id,
+                'order_id'         => $orderProduct->order_id,
+            ]);
         }
 
         if (!$equipment->current_status->isRented()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.orders.equipment_status', ['status' => $equipment->current_status->label()]),
-                ],
-                JsonResponse::HTTP_FORBIDDEN,
-            );
+            return ApiResponseHelper::error(ApiErrorCode::InvalidEquipmentStatus, ['status' => $equipment->current_status->label()], [
+                'equipment_id'             => $equipment->id,
+                'order_product_id'         => $orderProduct->id,
+                'order_id'                 => $orderProduct->order_id,
+                'current_equipment_status' => $equipment->current_status->value,
+            ]);
         }
 
         if ($orderProduct->returnSignatureMedia) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.orders.checklist_already_exists'),
-                ],
-                JsonResponse::HTTP_CONFLICT,
-            );
+            return ApiResponseHelper::error(ApiErrorCode::ChecklistAlreadySubmitted, [], [
+                'equipment_id'     => $equipment->id,
+                'order_product_id' => $orderProduct->id,
+                'order_id'         => $orderProduct->order_id,
+            ]);
         }
+
+        // Tracks whether any selected return answer has is_damaged=true.
+        // Set inside the checklist block; used to branch equipment status and damage_status below.
+        $hasDamagedReturn = false;
 
         if(isset($validated['checklist']) && !empty($validated['checklist'])) {
             $questions = optional($orderProduct->checklistQuestions) ?? collect();
 
             if ($questions->isEmpty()) {
-                return response()->json(
-                    [
-                        'success' => false,
-                        'message' => trans('messages.api.admin.v1.customer_checklists.no_questions_found'),
-                    ],
-                    JsonResponse::HTTP_NOT_FOUND,
-                );
+                return ApiResponseHelper::error(ApiErrorCode::NoQuestionsFound, [], [
+                    'equipment_id'     => $equipment->id,
+                    'order_product_id' => $orderProduct->id,
+                    'order_id'         => $orderProduct->order_id,
+                ]);
             }
 
             $validatedAnswers = collect($validated['checklist'])->keyBy('answer_unique_id');
+
+            // Clear stale return-selected flags for this order product's questions before
+            // applying the new selections. Prevents accumulation on mobile retry when no
+            // signature has been uploaded yet (the 409 guard only fires after signature upload).
+            $questionIds = $questions->pluck('id');
+            OrderProductChecklistQuestionAnswers::whereIn('order_product_checklist_question_id', $questionIds)
+                ->where('is_return_answer', true)
+                ->update(['is_return_answer' => false]);
 
             foreach ($validatedAnswers as $answer) {
                 // $questions is a Collection of OrderProductChecklistQuestion models with ->answers loaded
@@ -102,9 +106,50 @@ class SaveReturnController extends BaseController
                     ->firstWhere('unique_id', $answer['answer_unique_id'] ?? null);
 
                 if ($answer) {
-                    $answer->is_return_answer = true; // later if we save multiple time then need to false old ones
+                    $answer->is_return_answer = true;
                     $answer->user_return_amount = $validatedAnswers[$answer->unique_id]['amount'] ?? null;
                     $answer->save();
+                }
+            }
+
+            // After answers are saved, check whether any selected return answer is flagged
+            // as damaged on its master CustomerAdminQuestionAnswer record (is_damaged=true).
+            // One BillingCharge per order product return event — BillingEngine deduplicates
+            // on retry via the idempotency key built into mobileReturnDamage().
+            $damagedRows = OrderProductChecklistQuestionAnswers::whereIn('order_product_checklist_question_id', $questionIds)
+                ->where('is_return_answer', true)
+                ->whereHas('answer', fn($q) => $q->where('is_damaged', true))
+                ->get(['order_product_checklist_question_id', 'user_return_amount']);
+
+            $hasDamagedReturn = $damagedRows->isNotEmpty();
+
+            if ($hasDamagedReturn) {
+                // Sum driver-entered amounts; defaults to 0.0 — staff reviews and sets final amount.
+                $damageAmount       = $damagedRows->sum(fn($r) => (float) ($r->user_return_amount ?? 0));
+                $damagedQuestionIds = $damagedRows->pluck('order_product_checklist_question_id')->toArray();
+
+                try {
+                    BillingEngine::charge(BillingChargeRequest::mobileReturnDamage(
+                        orderId:              $orderProduct->order_id,
+                        customerId:           (int) $orderProduct->order->customer_id,
+                        orderProductId:       $orderProduct->id,
+                        amount:               $damageAmount,
+                        submittedByUserId:    isset($validated['user_id']) ? (int) $validated['user_id'] : null,
+                        checklistQuestionIds: $damagedQuestionIds,
+                    ));
+
+                    Log::channel('billing_engine')->info(
+                        "Mobile damage charge created | order_product_id={$orderProduct->id}" .
+                        " | order_id={$orderProduct->order_id}" .
+                        " | damaged_question_count=" . count($damagedQuestionIds) .
+                        " | amount={$damageAmount}"
+                    );
+                } catch (\Throwable $e) {
+                    Log::channel('billing_engine')->error(
+                        "Mobile damage charge failed | order_product_id={$orderProduct->id}" .
+                        " | order_id={$orderProduct->order_id}" .
+                        " | error=" . $e->getMessage()
+                    );
                 }
             }
         }
@@ -124,6 +169,10 @@ class SaveReturnController extends BaseController
             'fuel_total_charge' => $validated['fuel_total_charge'] ?? null,
             'total_charge' => $validated['total_charge'] ?? null,
         ];
+
+        if ($hasDamagedReturn) {
+            $orderProductData['damage_status'] = OrderProductChargeStatus::Pending->value;
+        }
 
         if ($request->hasFile('signature_media')) {
             $mediaData = MediaHelper::uploadStorageFile('Public Asset', $request->file('signature_media'), 'orders/schedules', $orderProduct);
@@ -184,11 +233,13 @@ class SaveReturnController extends BaseController
 
         if ($equipment) {
             $equipment->equipment_hours = $validated['end_hours'] ?? null;
-            $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
-            $equipment->current_status_updated_by = $validated['user_id'];
-            $equipment->current_status_changed_at = now();
-            $equipment->store_id = $validated['store_id'];
-            $equipment->saveQuietly();
+            $actorId  = isset($validated['user_id']) ? (int) $validated['user_id'] : null;
+            $storeId  = isset($validated['store_id']) ? (int) $validated['store_id'] : null;
+            if ($hasDamagedReturn) {
+                EquipmentStatusService::markReturnedDamaged($equipment, $orderProduct->order_id, $orderProduct->id, $storeId, $actorId);
+            } else {
+                EquipmentStatusService::markReturnedToMaintenance($equipment, $orderProduct->order_id, $orderProduct->id, $storeId, $actorId);
+            }
         }
 
         // fire event

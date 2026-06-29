@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Admin\V1\Orders\Schedules\UpdateDeliveryPickupInputsRequest;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class UpdateDeliveryPickupInputsController extends Controller
 {
@@ -22,6 +23,7 @@ class UpdateDeliveryPickupInputsController extends Controller
         try {
             $schedule = OrderProduct::whereHas('order')
                 ->where('unique_id', $validated['order_product_unique_id'])
+                ->select(['id', 'order_id', 'unique_id', 'delivery_by', 'pickup_by', 'is_delivered', 'is_returned'])
                 ->firstOrFail();
 
             $prefix = $validated['type'];
@@ -37,16 +39,39 @@ class UpdateDeliveryPickupInputsController extends Controller
                 }
             }
 
-            // Mark delivery/pickup as complete when this endpoint is called,
-            // regardless of whether the input fields have values.
+            // Only mark delivery/return complete if the primary workflow controller has
+            // already run. SaveDeliveryController sets delivery_by; SaveReturnController
+            // sets pickup_by. A null FK means the real workflow hasn't happened yet —
+            // updating T&C/license/video/checklist status strings is still allowed, but
+            // claiming completion is not.
             if ($prefix === 'delivery') {
-                $fields['is_delivered']        = 1;
-                $fields['delivery_is_delivered'] = true;
-                $fields['delivery_status']       = 'Completed';
+                if ($schedule->delivery_by !== null) {
+                    $fields['is_delivered']          = 1;
+                    $fields['delivery_is_delivered'] = true;
+                    $fields['delivery_status']       = 'Completed';
+                } else {
+                    Log::channel('api_errors')->warning('UpdateDeliveryPickupInputs: delivery completion blocked — delivery_by is null', [
+                        'order_product_id'        => $schedule->id,
+                        'order_id'                => $schedule->order_id,
+                        'order_product_unique_id' => $validated['order_product_unique_id'],
+                        'employee_id'             => auth('api_user')->id(),
+                        'endpoint'                => request()->path(),
+                    ]);
+                }
             } else {
-                $fields['is_returned']        = 1;
-                $fields['pickup_is_delivered']  = true;
-                $fields['pickup_status']        = 'Completed';
+                if ($schedule->pickup_by !== null) {
+                    $fields['is_returned']         = 1;
+                    $fields['pickup_is_delivered'] = true;
+                    $fields['pickup_status']        = 'Completed';
+                } else {
+                    Log::channel('api_errors')->warning('UpdateDeliveryPickupInputs: return completion blocked — pickup_by is null', [
+                        'order_product_id'        => $schedule->id,
+                        'order_id'                => $schedule->order_id,
+                        'order_product_unique_id' => $validated['order_product_unique_id'],
+                        'employee_id'             => auth('api_user')->id(),
+                        'endpoint'                => request()->path(),
+                    ]);
+                }
             }
 
             $schedule->fill($fields);

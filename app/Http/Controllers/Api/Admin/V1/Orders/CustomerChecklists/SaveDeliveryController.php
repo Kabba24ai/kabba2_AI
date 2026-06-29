@@ -6,8 +6,8 @@ use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
-// Enums
-use App\Enums\Equipments\EquipmentCurrentStatus;
+// Services
+use App\Services\Equipment\EquipmentStatusService;
 use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
 
 // Requests
@@ -176,12 +176,12 @@ class SaveDeliveryController extends BaseController
             $orderProductData['assigned_at'] = now();
 
             $equipment->equipment_hours = $validated['start_hours'] ?? null;
-            $equipment->current_status = EquipmentCurrentStatus::Rented->value;
-            $equipment->current_status_updated_by = $validated['user_id'];
-            $equipment->current_status_changed_at = now();
-            $equipment->current_order_id = $orderProduct->order_id;
-            $equipment->current_order_product_id = $orderProduct->id;
-            $equipment->saveQuietly();
+            EquipmentStatusService::markRented(
+                $equipment,
+                $orderProduct->order_id,
+                $orderProduct->id,
+                isset($validated['user_id']) ? (int) $validated['user_id'] : null
+            );
         }
 
         if ($request->hasFile('signature_media')) {

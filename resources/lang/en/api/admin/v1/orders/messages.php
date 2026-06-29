@@ -24,7 +24,7 @@ return [
     'no_order_product_found' => 'No order product found',
     'checklist_already_exists' => 'Checklist already exists for this order product',
     'no_equipment_found' => 'No equipment found',
-    'equipment_status' => 'Equipment Status is :status, it needs to be Rented',
+    'equipment_status' => 'This return checklist can only be submitted when the equipment is currently marked as rented.',
     'checklist_removed_successfully' => 'Checklist removed successfully',
     'equipment_is_rented' => 'This item is currently Rented, so it can not be assigned to this Order',
     'dispatch_schedules_found' => 'Dispatch schedules found successfully',

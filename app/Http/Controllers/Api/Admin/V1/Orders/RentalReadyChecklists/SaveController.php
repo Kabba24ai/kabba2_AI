@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api\Admin\V1\Orders\RentalReadyChecklists;
 
-use App\Enums\Equipments\EquipmentCurrentStatus;
+use App\Enums\Api\ApiErrorCode;
+use App\Services\Equipment\EquipmentStatusService;
+use App\Helpers\ApiResponseHelper;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 
@@ -32,15 +34,14 @@ class SaveController extends BaseController
 
         $equipment = Equipment::with(['lastRentalReadyTemplate','orderProduct','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])->where('unique_id', $uniqueId)->first();
 
-        // if ($equipment && (!$equipment->current_status->isAvailable())) {
-        //     return response()->json(
-        //         [
-        //             'success' => false,
-        //             'message' => trans('messages.api.admin.v1.rental_ready_checklists.invalid_equipment_status'),
-        //         ],
-        //         JsonResponse::HTTP_NOT_FOUND,
-        //     );
-        // }
+        // Rental Ready cannot overwrite equipment status while it is actively rented to a customer.
+        // Available, Maintenance, and Damaged are all valid states for a pre-rental inspection.
+        if ($equipment && $equipment->current_status->isRented()) {
+            return ApiResponseHelper::error(ApiErrorCode::EquipmentCurrentlyRented, [], [
+                'equipment_id'             => $equipment->id,
+                'current_equipment_status' => $equipment->current_status->value,
+            ]);
+        }
 
         if (isset($equipment->orderProduct->equipmentRentalReadyTemplate)) {
             // fetch questions from order products equipment template
@@ -55,13 +56,9 @@ class SaveController extends BaseController
         }else{
             // fetch questions from equipment's checklist master rental ready template
             if (!$equipment || !$equipment->checklistMaster?->rental_ready_template_id) {
-                return response()->json(
-                    [
-                        'success' => false,
-                        'message' => trans('messages.api.admin.v1.rental_ready_checklists.no_rental_ready_checklist_found'),
-                    ],
-                    JsonResponse::HTTP_NOT_FOUND,
-                );
+                return ApiResponseHelper::error(ApiErrorCode::NoChecklistFound, [], [
+                    'equipment_id' => $equipment?->id,
+                ]);
             }
 
             $questions = optional($equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)
@@ -72,24 +69,17 @@ class SaveController extends BaseController
 
 
         if ($questions->isEmpty()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.rental_ready_checklists.no_questions_found'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
+            return ApiResponseHelper::error(ApiErrorCode::NoQuestionsFound, [], [
+                'equipment_id' => $equipment->id,
+            ]);
         }
 
         $employee = User::where('id', $validated['user_id'])->first();
         if (!$employee) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.users.no_users_found'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
+            return ApiResponseHelper::error(ApiErrorCode::UserNotFound, [], [
+                'equipment_id' => $equipment->id,
+                'user_id'      => $validated['user_id'],
+            ]);
         }
 
         $validatedChecklist = $validated['checklist'] ?? [];
@@ -183,7 +173,6 @@ class SaveController extends BaseController
         // }
 
         $status = null;
-        $currentStatus = $equipment->current_status->value ?? null;
 
         // Flag: does any selected answer have type 'Damaged'?
         $hasDamaged = collect($newQuestions)
@@ -199,14 +188,10 @@ class SaveController extends BaseController
 
         if ($hasDamaged) {
             $status = 'Damaged';
-            $currentStatus = EquipmentCurrentStatus::Damaged->value;
         } elseif ($allRentalReady) {
             $status = 'Rental Ready';
-            $currentStatus = EquipmentCurrentStatus::Available->value;
         } else {
-            // if $hasMaintenance is true, set status to Maintenance, else Draft
             $status = 'Draft';
-            $currentStatus = EquipmentCurrentStatus::Maintenance->value;
         }
 
         if($template = EquipmentRentalReadyTemplate::with('checklistQuestions')->where('equipment_id', $equipment->id)
@@ -294,18 +279,13 @@ class SaveController extends BaseController
 
 
 
-        $equipmentData = [
-            'current_status' => $currentStatus,
-            'current_status_updated_by' => $employee->id,
-            'current_status_changed_at' => now(),
-        ];
-
-        if($currentStatus === EquipmentCurrentStatus::Available){
-            $equipmentData['current_order_id'] = null;
-            $equipmentData['current_order_product_id'] = null;
+        if ($hasDamaged) {
+            EquipmentStatusService::markDamagedFromRentalReady($equipment, $employee->id);
+        } elseif ($allRentalReady) {
+            EquipmentStatusService::markAvailableFromRentalReady($equipment, $employee->id);
+        } else {
+            EquipmentStatusService::markMaintenanceFromRentalReady($equipment, $employee->id);
         }
-
-        $equipment->update($equipmentData);
 
 
         return response()->json([

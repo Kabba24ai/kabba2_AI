@@ -28,9 +28,9 @@ class IndexController extends BaseController
 
         $perPage = $validatedData['per_page'] ?? 10;
 
-        $users = User::active()->orderByDesc('id')->when(isset($validatedData['is_driver']), function ($query) use ($validatedData) {
+        /*$users = User::active()->orderByDesc('id')->when(isset($validatedData['is_driver']), function ($query) use ($validatedData) {
                         $query->where('is_driver', $validatedData['is_driver']);
-                    })->paginate($perPage);
+                    })->paginate($perPage);*/
         
         $users = User::active()->orderByDesc('id')->paginate($perPage);
 

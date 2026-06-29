@@ -99,17 +99,17 @@
                 <button type="button"
                     onclick="document.getElementById('task-type-val').value=''; this.closest('form').requestSubmit()"
                     class="{{ $typeParam === 'all' ? 'bg-white shadow-sm text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700 font-medium' }} px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap">
-                    All ({{ $tasks->total() + $callReminders->count() }})
+                    All ({{ $taskCount + $callCount }})
                 </button>
                 <button type="button"
                     onclick="document.getElementById('task-type-val').value='tasks'; this.closest('form').requestSubmit()"
                     class="{{ $typeParam === 'tasks' ? 'bg-white shadow-sm text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700 font-medium' }} px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap">
-                    Tasks ({{ $tasks->total() }})
+                    Tasks ({{ $taskCount }})
                 </button>
                 <button type="button"
                     onclick="document.getElementById('task-type-val').value='calls'; this.closest('form').requestSubmit()"
                     class="{{ $typeParam === 'calls' ? 'bg-white shadow-sm text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700 font-medium' }} px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap">
-                    Calls ({{ $callReminders->count() }})
+                    Calls ({{ $callCount }})
                 </button>
             </div>
         </div>
@@ -218,148 +218,136 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
 
-                    {{-- Call Reminder rows --}}
-                    @if ($showCalls)
-                    @foreach ($callReminders as $call)
-                        @php
-                            $contactType = $call->customer_id ? 'customer' : ($call->supplier_id ? 'supplier' : 'other');
-                            $customerName = match($contactType) {
-                                'customer' => $call->customer?->full_name,
-                                default    => null,
-                            };
-                            $supplierOther = match($contactType) {
-                                'supplier' => $call->supplier?->name,
-                                'other'    => $call->contact_name,
-                                default    => null,
-                            };
-                        @endphp
-                        @php $callIsOverdue = $call->due_date && $call->due_date->lt(today()); @endphp
-                        <tr class="{{ $callIsOverdue ? 'bg-red-50/40 hover:bg-red-50/50' : 'hover:bg-red-50/20 bg-red-50/10' }}">
-                            <td class="px-3 py-3 text-center">
-                                <span title="Call Reminder">
-                                    <x-heroicon-o-phone class="w-4 h-4 text-red-500 mx-auto" />
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                @if ($call->category)
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->category->color() }}">
-                                        {{ $call->category->label() }}
+                    {{-- Unified task + call list sorted by due date then priority --}}
+                    @forelse ($tasks as $item)
+                        @if ($item->type === 'call')
+                            @php
+                                $call = $item->model;
+                                $contactType   = $call->customer_id ? 'customer' : ($call->supplier_id ? 'supplier' : 'other');
+                                $customerName  = $contactType === 'customer' ? $call->customer?->full_name : null;
+                                $supplierOther = match($contactType) {
+                                    'supplier' => $call->supplier?->name,
+                                    'other'    => $call->contact_name,
+                                    default    => null,
+                                };
+                                $callIsOverdue = $call->due_date && $call->due_date->lt(today());
+                            @endphp
+                            <tr class="{{ $callIsOverdue ? 'bg-red-50/40 hover:bg-red-50/50' : 'hover:bg-red-50/20 bg-red-50/10' }}">
+                                <td class="px-3 py-3 text-center">
+                                    <span title="Call Reminder">
+                                        <x-heroicon-o-phone class="w-4 h-4 text-red-500 mx-auto" />
                                     </span>
-                                @else
-                                    <span class="text-xs text-gray-400 italic">—</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3 max-w-xs">
-                                <a href="{{ route('admin.tasks.call.show', $call->id) }}"
-                                   class="font-medium text-gray-900 hover:text-brand-600 truncate block">
-                                    {{ ucwords(str_replace('_', ' ', $call->reason)) }}
-                                </a>
-                            </td>
-                            <td class="px-4 py-3 text-gray-700">
-                                {{ $call->assignee?->full_name ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="text-gray-400">—</span>
-                            </td>
-                            <td class="px-4 py-3 text-gray-700">
-                                {{ $customerName ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3 text-gray-700">
-                                {{ $supplierOther ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
-                                @if ($call->due_date)
-                                    <span class="{{ $callIsOverdue ? 'text-red-600 font-medium' : '' }}">
-                                        {{ $call->due_date->format('M j, Y g:i A') }}
-                                    </span>
-                                    @if ($callIsOverdue)
-                                        <span class="block text-xs text-red-600 font-medium">Overdue</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    @if ($call->category)
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->category->color() }}">
+                                            {{ $call->category->label() }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-gray-400 italic">—</span>
                                     @endif
-                                @else
+                                </td>
+                                <td class="px-4 py-3 max-w-xs">
+                                    <a href="{{ route('admin.tasks.call.show', $call->id) }}"
+                                       class="font-medium text-gray-900 hover:text-brand-600 truncate block">
+                                        {{ ucwords(str_replace('_', ' ', $call->reason)) }}
+                                    </a>
+                                </td>
+                                <td class="px-4 py-3 text-gray-700">
+                                    {{ $call->assignee?->full_name ?? '—' }}
+                                </td>
+                                <td class="px-4 py-3">
                                     <span class="text-gray-400">—</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3 text-gray-700">
-                                {{ $call->creator?->full_name ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->priority->color() }}">
-                                    {{ $call->priority->label() }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-right whitespace-nowrap">
-                                <a href="{{ route('admin.tasks.call.show', $call->id) }}" class="text-blue-600 hover:underline text-xs">View</a>
-                            </td>
-                        </tr>
-                    @endforeach
-                    @endif
-
-                    {{-- Task rows --}}
-                    @if ($showTasks)
-                    @forelse ($tasks as $task)
-                        <tr class="hover:bg-gray-50 {{ $task->isOverdue() ? 'bg-red-50/40' : '' }}">
-                            <td class="px-3 py-3 text-center">
-                                <span title="Task">
-                                    <x-heroicon-o-clipboard-document-list class="w-4 h-4 text-gray-400 mx-auto" />
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->category->color() }}">
-                                    {{ $task->category->label() }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 max-w-xs">
-                                <a href="{{ route('admin.tasks.show', $task) }}" class="font-medium text-gray-900 hover:text-brand-600 truncate block">
-                                    {{ $task->title }}
-                                </a>
-                                @if ($task->isOverdue())
-                                    <span class="text-xs text-red-600 font-medium">Overdue</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3 text-gray-700">
-                                {{ $task->assignedTo?->full_name ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3">
-                                @if ($task->equipment)
-                                    <div class="text-sm text-gray-800 truncate max-w-[120px]">{{ $task->equipment->equipment_name }}</div>
-                                    <div class="text-xs text-gray-400">{{ $task->equipment->equipment_id }}</div>
-                                @else
+                                </td>
+                                <td class="px-4 py-3 text-gray-700">
+                                    {{ $customerName ?? '—' }}
+                                </td>
+                                <td class="px-4 py-3 text-gray-700">
+                                    {{ $supplierOther ?? '—' }}
+                                </td>
+                                <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                    @if ($call->due_date)
+                                        <span class="{{ $callIsOverdue ? 'text-red-600 font-medium' : '' }}">
+                                            {{ $call->due_date->format('M j, Y g:i A') }}
+                                        </span>
+                                        @if ($callIsOverdue)
+                                            <span class="block text-xs text-red-600 font-medium">Overdue</span>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-400">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-gray-700">
+                                    {{ $call->creator?->full_name ?? '—' }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->priority->color() }}">
+                                        {{ $call->priority->label() }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <a href="{{ route('admin.tasks.call.show', $call->id) }}" class="text-blue-600 hover:underline text-xs">View</a>
+                                </td>
+                            </tr>
+                        @else
+                            @php $task = $item->model; @endphp
+                            <tr class="hover:bg-gray-50 {{ $task->isOverdue() ? 'bg-red-50/40' : '' }}">
+                                <td class="px-3 py-3 text-center">
+                                    <span title="Task">
+                                        <x-heroicon-o-clipboard-document-list class="w-4 h-4 text-gray-400 mx-auto" />
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->category->color() }}">
+                                        {{ $task->category->label() }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 max-w-xs">
+                                    <a href="{{ route('admin.tasks.show', $task) }}" class="font-medium text-gray-900 hover:text-brand-600 truncate block">
+                                        {{ $task->title }}
+                                    </a>
+                                    @if ($task->isOverdue())
+                                        <span class="text-xs text-red-600 font-medium">Overdue</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-gray-700">
+                                    {{ $task->assignedTo?->full_name ?? '—' }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    @if ($task->equipment)
+                                        <div class="text-sm text-gray-800 truncate max-w-[120px]">{{ $task->equipment->equipment_name }}</div>
+                                        <div class="text-xs text-gray-400">{{ $task->equipment->equipment_id }}</div>
+                                    @else
+                                        <span class="text-gray-400">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3">
                                     <span class="text-gray-400">—</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="text-gray-400">—</span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="text-gray-400">—</span>
-                            </td>
-                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
-                                {{ $task->due_date?->format('M j, Y') ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3 text-gray-600">
-                                {{ $task->createdBy?->full_name ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->priority->color() }}">
-                                    {{ $task->priority->label() }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-right whitespace-nowrap">
-                                <a href="{{ route('admin.tasks.show', $task) }}" class="text-blue-600 hover:underline text-xs">View</a>
-                            </td>
-                        </tr>
-                    @empty
-                        @if (!$showCalls || $callReminders->isEmpty())
-                            <tr>
-                                <td colspan="11" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="text-gray-400">—</span>
+                                </td>
+                                <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                    {{ $task->due_date?->format('M j, Y') ?? '—' }}
+                                </td>
+                                <td class="px-4 py-3 text-gray-600">
+                                    {{ $task->createdBy?->full_name ?? '—' }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->priority->color() }}">
+                                        {{ $task->priority->label() }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <a href="{{ route('admin.tasks.show', $task) }}" class="text-blue-600 hover:underline text-xs">View</a>
+                                </td>
                             </tr>
                         @endif
-                    @endforelse
-                    @elseif ($showCalls && $callReminders->isEmpty())
+                    @empty
                         <tr>
                             <td colspan="11" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
                         </tr>
-                    @endif
+                    @endforelse
 
                 </tbody>
             </table>

@@ -99,21 +99,76 @@ class TaskController extends Controller
             ->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);
 
-        // Full filtered task list
-        $tasks = $this->baseTaskQuery($request)
-            ->with(['assignedTo', 'createdBy', 'equipment'])
+        // Type filter — determines which item types to include in the unified list
+        $typeParam    = $request->input('type', 'all');
+        $includeTasks = $typeParam !== 'calls';
+        $includeCalls = $typeParam !== 'tasks';
+
+        // Tab badge counts — independent of the type filter so each tab always shows its real total
+        $taskCount = $this->baseTaskQuery($request)
             ->when($request->filled('category'),    fn($q) => $q->where('category', $request->category))
             ->when($request->filled('assigned_to'), fn($q) => $q->where('assigned_to_user_id', $request->assigned_to))
-            ->orderByRaw("CASE WHEN `due_date` IS NULL THEN 1 ELSE 0 END")
-            ->orderBy('due_date')
-            ->orderByRaw("CASE `priority`
-                WHEN 'urgent' THEN 1
-                WHEN 'high'   THEN 2
-                WHEN 'normal' THEN 3
-                WHEN 'low'    THEN 4
-                ELSE 5 END")
-            ->paginate(30)
-            ->withQueryString();
+            ->count();
+
+        $callCount = $this->baseCallQuery($request)
+            ->when($request->filled('assigned_to'), fn($q) => $q->where('created_by', $request->assigned_to))
+            ->count();
+
+        // Load the relevant model sets (skip a type when its tab is the active filter)
+        $taskModels = $includeTasks
+            ? $this->baseTaskQuery($request)
+                ->with(['assignedTo', 'createdBy', 'equipment'])
+                ->when($request->filled('category'),    fn($q) => $q->where('category', $request->category))
+                ->when($request->filled('assigned_to'), fn($q) => $q->where('assigned_to_user_id', $request->assigned_to))
+                ->get()
+            : collect();
+
+        $callModels = $includeCalls
+            ? $this->baseCallQuery($request)
+                ->with(['customer', 'supplier', 'assignee', 'creator'])
+                ->when($request->filled('assigned_to'), fn($q) => $q->where('created_by', $request->assigned_to))
+                ->get()
+            : collect();
+
+        // Merge both types into one flat list, then sort: due_date ASC (nulls last), then priority
+        $priorityRank = ['urgent' => 1, 'high' => 2, 'normal' => 3, 'low' => 4];
+
+        $unified = $taskModels
+            ->map(fn($t) => (object)[
+                'type'          => 'task',
+                'model'         => $t,
+                'due_ts'        => $t->due_date?->timestamp,
+                'priority_rank' => $priorityRank[$t->priority->value] ?? 5,
+            ])
+            ->concat($callModels->map(fn($c) => (object)[
+                'type'          => 'call',
+                'model'         => $c,
+                'due_ts'        => $c->due_date?->timestamp,
+                'priority_rank' => $priorityRank[$c->priority->value] ?? 5,
+            ]))
+            ->sort(function ($a, $b) {
+                // Null due dates always go last
+                if (($a->due_ts === null) !== ($b->due_ts === null)) {
+                    return $a->due_ts === null ? 1 : -1;
+                }
+                // Primary: due date ascending
+                $dateCmp = ($a->due_ts ?? PHP_INT_MAX) <=> ($b->due_ts ?? PHP_INT_MAX);
+                if ($dateCmp !== 0) return $dateCmp;
+                // Secondary: priority (Urgent → High → Normal → Low)
+                return $a->priority_rank <=> $b->priority_rank;
+            })
+            ->values();
+
+        // PHP-level pagination over the merged sorted collection
+        $perPage   = 30;
+        $page      = max(1, (int) $request->input('page', 1));
+        $total     = $unified->count();
+        $pageItems = $unified->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $tasks = new \Illuminate\Pagination\LengthAwarePaginator(
+            $pageItems, $total, $perPage, $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         $users = User::active()->orderBy('first_name')->get();
 
@@ -137,24 +192,11 @@ class TaskController extends Controller
 
         $suppliers = Supplier::active()->orderBy('name')->get(['id', 'name', 'phone', 'email', 'primary_contact_name', 'primary_contact_phone']);
 
-        $callReminders = $this->baseCallQuery($request)
-            ->with(['customer', 'supplier', 'assignee', 'creator'])
-            ->when($request->filled('assigned_to'), fn($q) => $q->where('created_by', $request->assigned_to))
-            ->orderByRaw("CASE WHEN `due_date` IS NULL THEN 1 ELSE 0 END")
-            ->orderBy('due_date')
-            ->orderByRaw("CASE `priority`
-                WHEN 'urgent' THEN 1
-                WHEN 'high'   THEN 2
-                WHEN 'normal' THEN 3
-                WHEN 'low'    THEN 4
-                ELSE 5 END")
-            ->get();
-
         return view('admin.tasks.index', compact(
             'tasks', 'users', 'categories', 'priorities', 'statuses',
             'categoryCounts', 'userCountsRaw', 'userAllCount', 'badgeUsers',
-            'completedToday', 'callsCompletedToday', 'customers', 'suppliers', 'callReminders',
-            'productCategories', 'equipmentList'
+            'completedToday', 'callsCompletedToday', 'customers', 'suppliers',
+            'taskCount', 'callCount', 'productCategories', 'equipmentList'
         ));
     }
 

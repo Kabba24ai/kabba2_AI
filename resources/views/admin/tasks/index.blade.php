@@ -306,9 +306,6 @@
                                     <a href="{{ route('admin.tasks.show', $task) }}" class="font-medium text-gray-900 hover:text-brand-600 truncate block">
                                         {{ $task->title }}
                                     </a>
-                                    @if ($task->isOverdue())
-                                        <span class="text-xs text-red-600 font-medium">Overdue</span>
-                                    @endif
                                 </td>
                                 <td class="px-4 py-3 text-gray-700">
                                     {{ $task->assignedTo?->full_name ?? '—' }}
@@ -328,7 +325,16 @@
                                     <span class="text-gray-400">—</span>
                                 </td>
                                 <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
-                                    {{ $task->due_date?->format('M j, Y') ?? '—' }}
+                                    @if ($task->due_date)
+                                        <span class="{{ $task->isOverdue() ? 'text-red-600 font-medium' : '' }}">
+                                            {{ $task->due_date->format('M j, Y') }}
+                                        </span>
+                                        @if ($task->isOverdue())
+                                            <span class="block text-xs text-red-600 font-medium">Overdue</span>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-400">—</span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3 text-gray-600">
                                     {{ $task->createdBy?->full_name ?? '—' }}

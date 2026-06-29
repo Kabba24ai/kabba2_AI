@@ -5,74 +5,80 @@
 
 @if ($driverCards->isNotEmpty())
 
-{{-- Section header: view toggles + show assigned filter --}}
-<div class="flex items-center gap-3 mb-3 flex-wrap">
-    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Driver Workload</span>
+{{-- 2-column header: Column 1 = workload controls | Column 2 = idle driver strip --}}
+<div class="flex items-center gap-0 mb-3">
 
-    {{-- Separate / Combined toggle --}}
-    <div id="driver-card-view-toggle" class="flex rounded-lg border border-gray-300 overflow-hidden text-xs">
-        <button type="button" id="dcv-separate"
-            class="px-3 py-1.5 font-semibold bg-blue-600 text-white flex items-center gap-1">
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
-            Separate
-        </button>
-        <button type="button" id="dcv-combined"
-            class="px-3 py-1.5 font-semibold bg-white text-gray-600 hover:bg-gray-50 border-l border-gray-300 flex items-center gap-1">
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-            Combined
-        </button>
-    </div>
+    {{-- Column 1: Driver Workload controls --}}
+    <div class="flex items-center gap-3 flex-wrap shrink-0 pr-5">
+        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Driver Workload</span>
 
-    {{-- Show Assigned: Today Only / All --}}
-    <div class="flex items-center rounded-lg border border-gray-300 overflow-hidden text-xs">
-        <span class="px-2 py-1.5 text-gray-400 font-medium border-r border-gray-300 bg-gray-50">Show:</span>
-        <button type="button" id="daf-all"
-            class="px-3 py-1.5 font-semibold {{ ($showAll ?? false) ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50' }}">
-            All
-        </button>
-        <button type="button" id="daf-today"
-            class="px-3 py-1.5 font-semibold border-l border-gray-300 {{ ($showAll ?? false) ? 'bg-white text-gray-600 hover:bg-gray-50' : 'bg-blue-600 text-white' }}">
-            Today
-        </button>
-    </div>
-    @if ($showAll ?? false)
-        <span class="text-xs text-gray-400 font-medium">Showing all assigned (incl. future)</span>
-    @else
-        <span class="text-xs text-gray-400 font-medium">Today + past due</span>
-    @endif
-</div>
-
-{{-- ===== Idle driver row (above active cards) ===== --}}
-@if ($idleDrivers->isNotEmpty())
-<div class="mb-3">
-    <div class="flex items-center gap-2 mb-2">
-        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Idle</span>
-        <span class="text-xs font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">{{ $idleDrivers->count() }}</span>
-    </div>
-    {{-- Horizontal scroll strip — each card is 1/5 of container width so 5 fit before scroll --}}
-    <div class="flex gap-2 overflow-x-auto pb-1">
-        @foreach ($idleDrivers as $driver)
-        @php
-            $initials  = strtoupper(substr($driver->first_name, 0, 1) . substr($driver->last_name, 0, 1));
-            $cdlLabels = collect(['Driver'])
-                ->when($driver->cdl_a, fn($c) => $c->push('CDL A'))
-                ->when($driver->cdl_b, fn($c) => $c->push('CDL B'));
-        @endphp
-        <div class="shrink-0 flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200"
-             style="min-width: calc(20% - 0.4rem); max-width: calc(20% - 0.4rem);">
-            <div class="w-7 h-7 rounded-full bg-gray-100 text-gray-400 text-[10px] font-bold flex items-center justify-center shrink-0">
-                {{ $initials }}
-            </div>
-            <div class="min-w-0 flex-1">
-                <p class="font-semibold text-gray-600 truncate leading-tight text-[11px]">{{ $driver->full_name }}</p>
-                <p class="text-gray-400 text-[9px] truncate leading-tight">{{ $cdlLabels->implode(' · ') }}</p>
-            </div>
-            <span class="text-[9px] text-gray-300 italic shrink-0">idle</span>
+        {{-- Separate / Combined toggle --}}
+        <div id="driver-card-view-toggle" class="flex rounded-lg border border-gray-300 overflow-hidden text-xs">
+            <button type="button" id="dcv-separate"
+                class="px-3 py-1.5 font-semibold bg-blue-600 text-white flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+                Separate
+            </button>
+            <button type="button" id="dcv-combined"
+                class="px-3 py-1.5 font-semibold bg-white text-gray-600 hover:bg-gray-50 border-l border-gray-300 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                Combined
+            </button>
         </div>
-        @endforeach
+
+        {{-- Show Assigned: Today Only / All --}}
+        <div class="flex items-center rounded-lg border border-gray-300 overflow-hidden text-xs">
+            <span class="px-2 py-1.5 text-gray-400 font-medium border-r border-gray-300 bg-gray-50">Show:</span>
+            <button type="button" id="daf-all"
+                class="px-3 py-1.5 font-semibold {{ ($showAll ?? false) ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50' }}">
+                All
+            </button>
+            <button type="button" id="daf-today"
+                class="px-3 py-1.5 font-semibold border-l border-gray-300 {{ ($showAll ?? false) ? 'bg-white text-gray-600 hover:bg-gray-50' : 'bg-blue-600 text-white' }}">
+                Today
+            </button>
+        </div>
+        @if ($showAll ?? false)
+            <span class="text-xs text-gray-400 font-medium">Showing all assigned (incl. future)</span>
+        @else
+            <span class="text-xs text-gray-400 font-medium">Today + past due</span>
+        @endif
     </div>
-</div>
-@endif
+
+    {{-- Vertical divider + Column 2: Idle drivers --}}
+    @if ($idleDrivers->isNotEmpty())
+    <div class="w-px self-stretch bg-gray-200 shrink-0 mx-4"></div>
+    <div class="flex-1 min-w-0 flex flex-col justify-center gap-1">
+        <div class="flex items-center gap-1.5">
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Idle</span>
+            <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full leading-none">{{ $idleDrivers->count() }}</span>
+        </div>
+        {{-- Horizontal scroll strip: 150px cards → 5 visible before scroll at typical desktop widths --}}
+        <div class="flex gap-2 overflow-x-auto pb-0.5">
+            @foreach ($idleDrivers as $driver)
+            @php
+                $initials  = strtoupper(substr($driver->first_name, 0, 1) . substr($driver->last_name, 0, 1));
+                $cdlLabels = collect(['Driver'])
+                    ->when($driver->cdl_a, fn($c) => $c->push('CDL A'))
+                    ->when($driver->cdl_b, fn($c) => $c->push('CDL B'));
+            @endphp
+            <div class="shrink-0 flex items-center gap-2 px-2.5 py-1.5 bg-white rounded-lg border border-gray-200"
+                 style="min-width: 150px; max-width: 150px;">
+                <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 text-[9px] font-bold flex items-center justify-center shrink-0">
+                    {{ $initials }}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-gray-600 truncate leading-tight text-[10px]">{{ $driver->full_name }}</p>
+                    <p class="text-gray-400 text-[9px] truncate leading-tight">{{ $cdlLabels->implode(' · ') }}</p>
+                </div>
+                <span class="text-[9px] text-gray-300 italic shrink-0">idle</span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+</div>{{-- end 2-column header --}}
 
 {{-- ===== Active driver cards grid (always 4 columns) ===== --}}
 <div class="mb-4">

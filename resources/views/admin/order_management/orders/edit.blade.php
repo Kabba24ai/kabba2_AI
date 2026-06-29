@@ -1110,11 +1110,11 @@
                                             <!-- Driver -->
                                             <div class="flex flex-col items-start min-w-[90px] flex-1">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                    for="delivery_by_{{ $orderProduct->unique_id }}">Driver</label>
+                                                    for="delivery_by_{{ $orderProduct->unique_id }}">Driver / Tech</label>
                                                 <select id="delivery_by_{{ $orderProduct->unique_id }}"
                                                     class="delivery_by border rounded px-3 py-3 text-xs w-full"
                                                     {{ !empty($orderProduct->delivery_by) ? 'disabled' : '' }}>
-                                                    <option value="" disabled {{ empty($orderProduct->delivery_by) ? 'selected' : '' }}>There is no driver selected</option>
+                                                    <option value="" disabled {{ empty($orderProduct->delivery_by) ? 'selected' : '' }}>Select</option>
                                                     @foreach ($drivers as $driver)
                                                         <option value="{{ $driver->id }}"
                                                             {{ $orderProduct->delivery_by == $driver->id ? 'selected' : '' }}>
@@ -1247,11 +1247,11 @@
                                             <!-- Driver -->
                                             <div class="flex flex-col items-start min-w-[90px] flex-1">
                                                 <label class="block text-xs font-medium text-gray-500 mb-0.5"
-                                                    for="pickup_by_{{ $orderProduct->unique_id }}">Driver</label>
+                                                    for="pickup_by_{{ $orderProduct->unique_id }}">Driver / Tech</label>
                                                 <select id="pickup_by_{{ $orderProduct->unique_id }}"
                                                     class="pickup_by border rounded px-3 py-3 text-xs w-full"
                                                     {{ !empty($orderProduct->pickup_by) ? 'disabled' : '' }}>
-                                                    <option value="" disabled {{ empty($orderProduct->pickup_by) ? 'selected' : '' }}>There is no driver selected</option>
+                                                    <option value="" disabled {{ empty($orderProduct->pickup_by) ? 'selected' : '' }}>Select</option>
                                                     @foreach ($drivers as $driver)
                                                         <option value="{{ $driver->id }}"
                                                             {{ $orderProduct->pickup_by == $driver->id ? 'selected' : '' }}>

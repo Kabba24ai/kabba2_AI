@@ -349,7 +349,7 @@
 
             <!-- Header -->
             <div class="relative px-6 pt-6 pb-4 border-b">
-                <h2 id="driver-modal-title" class="text-xl font-semibold text-gray-900 text-center">Assign Driver</h2>
+                <h2 id="driver-modal-title" class="text-xl font-semibold text-gray-900 text-center">Assign Driver / Tech</h2>
                 <button type="button" id="close-driver-modal"
                     class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none absolute right-6 top-6">&times;</button>
             </div>
@@ -388,7 +388,7 @@
             <!-- Driver Select -->
             <div class="px-6 pt-4 pb-3">
                 <label class="block text-sm font-medium text-gray-700 mb-1" for="driver-select">
-                    Select Driver
+                    Driver / Tech
                 </label>
                 <select id="driver-select"
                     class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700">
@@ -431,7 +431,7 @@
                 <label class="flex items-start gap-2 text-sm text-gray-700 cursor-pointer select-none">
                     <input type="checkbox" id="driver-modal-also-assign"
                         class="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
-                    <span id="driver-modal-also-assign-label">Also assign same driver to return/pickup</span>
+                    <span id="driver-modal-also-assign-label">Also assign same Driver / Tech to return/pickup</span>
                 </label>
                 <p id="driver-modal-other-driver-note" class="text-xs text-amber-700 mt-1 ml-5 hidden"></p>
                 <p id="driver-modal-delivery-locked-note" class="text-xs text-gray-400 mt-1 ml-5 hidden">Delivery already completed — delivery driver is locked.</p>
@@ -1261,12 +1261,12 @@
                     rentalLabel.textContent       = 'Rental Start:';
                     dispatchLabel.textContent     = 'Dispatch Delivery:';
                     rentalDateDisplay.textContent = rentalDelivery ? fmtDate(rentalDelivery) : '-';
-                    alsoAssignLabel.textContent   = 'Also assign same driver to return/pickup';
+                    alsoAssignLabel.textContent   = 'Also assign same Driver / Tech to return/pickup';
                 } else {
                     rentalLabel.textContent       = 'Rental Return:';
                     dispatchLabel.textContent     = 'Dispatch Return:';
                     rentalDateDisplay.textContent = rentalReturn ? fmtDate(rentalReturn) : '-';
-                    alsoAssignLabel.textContent   = 'Also assign same driver to delivery';
+                    alsoAssignLabel.textContent   = 'Also assign same Driver / Tech to delivery';
                 }
                 if (_dispatchDatePicker) {
                     _dispatchDatePicker.setDate(dispatchVal || null, false);

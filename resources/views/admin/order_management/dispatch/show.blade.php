@@ -107,7 +107,7 @@
         <div class="bg-white rounded-xl border-2 border-orange-300 shadow-sm px-5 py-4
                     flex items-center justify-between">
             <p class="text-sm font-semibold text-orange-600">
-                Driver Assigned:
+                Driver / Tech:
                 <span class="text-orange-700">
                     {{ $orderProduct->deliveryEmployee?->full_name ?? 'Not Assigned' }}
                 </span>
@@ -236,9 +236,9 @@
                     </div>
                     {{-- Technician --}}
                     <div class="flex flex-col items-start min-w-[90px] flex-1">
-                        <label class="block text-xs font-medium text-gray-500 mb-0.5">Technician</label>
+                        <label class="block text-xs font-medium text-gray-500 mb-0.5">Driver / Tech</label>
                         <select class="delivery_by border rounded px-3 py-3 text-xs w-full">
-                            <option value="" disabled>Select Technician</option>
+                            <option value="" disabled>Select</option>
                             @foreach ($employees as $emp)
                                 <option value="{{ $emp->id }}" {{ $op->delivery_by==$emp->id ? 'selected':'' }}>
                                     {{ $emp->first_name }} {{ $emp->last_name }}
@@ -343,9 +343,9 @@
                     </div>
                     {{-- Technician --}}
                     <div class="flex flex-col items-start min-w-[90px] flex-1">
-                        <label class="block text-xs font-medium text-gray-500 mb-0.5">Technician</label>
+                        <label class="block text-xs font-medium text-gray-500 mb-0.5">Driver / Tech</label>
                         <select class="pickup_by border rounded px-3 py-3 text-xs w-full">
-                            <option value="" disabled>Select Technician</option>
+                            <option value="" disabled>Select</option>
                             @foreach ($employees as $emp)
                                 <option value="{{ $emp->id }}" {{ $op->pickup_by==$emp->id ? 'selected':'' }}>
                                     {{ $emp->first_name }} {{ $emp->last_name }}
@@ -536,7 +536,7 @@
             <select id="completedBySelect"
                 class="border border-gray-300 rounded-lg px-3 py-2.5 text-sm w-full
                        focus:outline-none focus:ring-2 focus:ring-blue-400">
-                <option value="">— Select Driver —</option>
+                <option value="">Select</option>
                 @foreach ($employees as $emp)
                     <option value="{{ $emp->id }}" {{ $completedById == $emp->id ? 'selected' : '' }}>
                         {{ $emp->full_name }}

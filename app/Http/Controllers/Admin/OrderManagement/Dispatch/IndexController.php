@@ -343,11 +343,11 @@ class IndexController extends Controller
             ->pluck('full_name', 'unique_id')
             ->prepend('Select Employee', '');
 
-        // Driver assign modal: uses numeric id — designated drivers only
-        $driverEmployees = $driverUsers->pluck('full_name', 'id');
+        // Driver / Tech assign modal: uses numeric id — all active employees
+        $driverEmployees = $allUsers->pluck('full_name', 'id');
 
-        // Driver phone map (id → phone) — designated drivers only
-        $driverPhones = $driverUsers->mapWithKeys(fn($u) => [
+        // Employee phone map (id → phone) — all active employees
+        $driverPhones = $allUsers->mapWithKeys(fn($u) => [
             $u->id => $u->mobile_phone ?: $u->phone_number ?: '',
         ]);
 

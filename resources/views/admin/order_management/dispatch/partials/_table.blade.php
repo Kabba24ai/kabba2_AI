@@ -11,9 +11,9 @@
                 <th class="py-4 px-[19px] text-center">Equip. Location</th>
                 <th class="py-4 px-4 text-center">Delivery | Return</th>
                 <th class="py-4 px-[22px] text-center">Delivery Date</th>
-                <th class="py-4 px-[22px] text-center text-blue-700">Driver</th>
+                <th class="py-4 px-[22px] text-center text-blue-700">Driver / Tech</th>
                 <th class="py-4 px-[22px] text-center">Return Date</th>
-                <th class="py-4 px-[22px] text-center text-purple-700">Driver</th>
+                <th class="py-4 px-[22px] text-center text-purple-700">Driver / Tech</th>
                 <th class="py-4 px-2 text-center w-[80px]">Payment</th>
                 <th class="py-4 px-1 text-center w-8"></th>
             </tr>

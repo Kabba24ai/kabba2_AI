@@ -35,7 +35,7 @@ class EditController extends Controller
 
         $stores = Store::orderBy('store_name')->get();
         $employees = User::activeOrIds($assignedUserIds)->orderBy('first_name')->get();
-        $drivers = User::activeOrIds($assignedUserIds)->where('is_driver', true)->orderBy('first_name')->get();
+        $drivers = User::activeOrIds($assignedUserIds)->orderBy('first_name')->get();
         $states = State::orderBy('name')->get();
         $paymentSetting = ConfigurationHelper::getSettings('Payment Settings');
         $allocatedHoursSettings = ConfigurationHelper::getSettings('Allocated Hours Settings');

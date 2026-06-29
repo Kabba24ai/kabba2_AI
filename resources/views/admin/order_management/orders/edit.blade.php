@@ -1264,21 +1264,26 @@
                                     </div>
                                 </div>
 
-                                {{-- Status Checklist + Delivery & Pickup Input Status Boxes --}}
+                                {{-- Delivery Steps + Return Steps --}}
                                 @php
-                                    $deliveryHasData = $orderProduct->delivery_inputs_date !== null
-                                        || $orderProduct->delivery_tnc_status !== null
-                                        || $orderProduct->delivery_drivers_license_status !== null
-                                        || $orderProduct->delivery_video_status !== null
-                                        || $orderProduct->delivery_checklist_status !== null;
-                                    $pickupHasData = $orderProduct->pickup_inputs_date !== null
-                                        || $orderProduct->pickup_tnc_status !== null
-                                        || $orderProduct->pickup_drivers_license_status !== null
-                                        || $orderProduct->pickup_video_status !== null
-                                        || $orderProduct->pickup_checklist_status !== null;
-                                    // Trophy: no issues reported AND the job is marked complete
-                                    $showDeliveryTrophy = !$deliveryHasData && $orderProduct->is_delivered == 1;
-                                    $showPickupTrophy   = !$pickupHasData   && $orderProduct->is_returned  == 1;
+                                    // ── Delivery Steps: 4 required gates ──────────────────────────────────
+                                    $dlTermsComplete     = $order->terms_status?->isAccepted() || $order->terms_status?->isExempt();
+                                    $dlLicenseComplete   = $order->licenseMedia->isNotEmpty();
+                                    $dlChecklistComplete = $orderProduct->is_delivered == 1;
+                                    $dlVideoComplete     = $orderProduct->deliveryMedia->count() > 0;
+
+                                    $showDeliveryTrophy  = $dlTermsComplete && $dlLicenseComplete && $dlChecklistComplete && $dlVideoComplete;
+                                    $dlAnyDone           = $dlTermsComplete || $dlLicenseComplete || $dlChecklistComplete || $dlVideoComplete;
+                                    $dlInProgress        = $dlAnyDone && !$showDeliveryTrophy;
+
+                                    // ── Return Steps: 2 required gates; hidden until delivery is done ──────
+                                    $deliveryIsComplete  = $orderProduct->delivery_status === 'Completed' || $orderProduct->is_delivered == 1;
+                                    $rtChecklistComplete = $orderProduct->is_returned == 1;
+                                    $rtVideoComplete     = $orderProduct->pickupMedia->count() > 0;
+
+                                    $showReturnTrophy    = $rtChecklistComplete && $rtVideoComplete;
+                                    $rtAnyDone           = $rtChecklistComplete || $rtVideoComplete;
+                                    $rtInProgress        = $deliveryIsComplete && $rtAnyDone && !$showReturnTrophy;
                                 @endphp
                                 <div class="flex gap-3 flex-wrap items-stretch">
                                     {{-- Checklist / Video badges --}}
@@ -1319,118 +1324,87 @@
                                         </div>
                                     </div>
 
-                                    {{-- Delivery & Pickup input boxes --}}
+                                    {{-- Delivery Steps + Return Steps boxes --}}
                                     <div class="flex gap-3 flex-wrap flex-1">
-                                    {{-- Delivery Inputs --}}
+
+                                    {{-- Delivery Steps --}}
                                     <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
                                         <div class="flex items-center justify-between mb-2">
-                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Delivery Inputs</span>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Delivery Steps</span>
                                         </div>
                                         @if($showDeliveryTrophy)
-                                            {{-- Completed with no issues --}}
+                                            {{-- State 3: all 4 gates complete --}}
                                             <div class="flex flex-col items-center justify-center py-1 gap-0.5">
                                                 <span class="text-2xl leading-none">🏆</span>
                                                 @if($orderProduct->deliveryEmployee)
-                                                    <span class="text-lg text-gray-600 font-medium text-center">{{ $orderProduct->deliveryEmployee->first_name }} {{ $orderProduct->deliveryEmployee->last_name }}</span>
+                                                    <span class="text-lg text-gray-600 font-medium text-center">{{ $orderProduct->deliveryEmployee->full_name }}</span>
                                                 @else
-                                                    <span class="text-xs text-gray-400">No issues recorded</span>
+                                                    <span class="text-xs text-gray-400">Complete</span>
                                                 @endif
                                             </div>
-                                        @elseif(!$deliveryHasData)
-                                            {{-- Not yet completed, no data --}}
-                                            <p class="text-xs text-gray-400 italic text-center py-1">Pending</p>
-                                        @else
-                                            {{-- Reason / issues recorded --}}
+                                        @elseif($dlInProgress)
+                                            {{-- State 2: at least one gate done; show two-column checklist --}}
                                             <div class="flex flex-col gap-0.5 text-xs">
-                                                @if($orderProduct->delivery_inputs_date)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">Date</span>
-                                                        <span class="text-gray-700 font-medium">{{ \Carbon\Carbon::parse($orderProduct->delivery_inputs_date)->format('M d, Y H:i') }}</span>
-                                                    </div>
-                                                @endif
-                                                @if($orderProduct->delivery_tnc_status)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">T&amp;C</span>
-                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->delivery_tnc_status }}</span>
-                                                    </div>
-                                                @endif
-                                                @if($orderProduct->delivery_drivers_license_status)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">License</span>
-                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->delivery_drivers_license_status }}</span>
-                                                    </div>
-                                                @endif
-                                                @if($orderProduct->delivery_video_status)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">Video</span>
-                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->delivery_video_status }}</span>
-                                                    </div>
-                                                @endif
-                                                @if($orderProduct->delivery_checklist_status)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">Checklist</span>
-                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->delivery_checklist_status }}</span>
-                                                    </div>
-                                                @endif
+                                                <div class="flex justify-between gap-4">
+                                                    <span class="text-gray-500">Terms Signed</span>
+                                                    <span class="font-medium whitespace-nowrap {{ $dlTermsComplete ? 'text-green-600' : 'text-orange-500' }}">{{ $dlTermsComplete ? 'Completed' : 'Pending' }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4">
+                                                    <span class="text-gray-500">License Uploaded</span>
+                                                    <span class="font-medium whitespace-nowrap {{ $dlLicenseComplete ? 'text-green-600' : 'text-orange-500' }}">{{ $dlLicenseComplete ? 'Completed' : 'Pending' }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4">
+                                                    <span class="text-gray-500">Checklist Completed</span>
+                                                    <span class="font-medium whitespace-nowrap {{ $dlChecklistComplete ? 'text-green-600' : 'text-orange-500' }}">{{ $dlChecklistComplete ? 'Completed' : 'Pending' }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4">
+                                                    <span class="text-gray-500">Video Uploaded</span>
+                                                    <span class="font-medium whitespace-nowrap {{ $dlVideoComplete ? 'text-green-600' : 'text-orange-500' }}">{{ $dlVideoComplete ? 'Completed' : 'Pending' }}</span>
+                                                </div>
                                             </div>
+                                        @else
+                                            {{-- State 1: nothing started yet --}}
+                                            <p class="text-xs text-gray-400 italic text-center py-1">Pending</p>
                                         @endif
                                     </div>
 
-                                    {{-- Pickup Inputs --}}
+                                    {{-- Return Steps --}}
                                     <div class="border rounded-xl px-4 py-3 bg-white flex-1 min-w-[200px]">
                                         <div class="flex items-center justify-between mb-2">
-                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Pickup Inputs</span>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Return Steps</span>
                                         </div>
-                                        @if($showPickupTrophy)
-                                            {{-- Completed with no issues --}}
+                                        @if(!$deliveryIsComplete)
+                                            {{-- Delivery not done yet — keep panel quiet --}}
+                                            <p class="text-xs text-gray-400 italic text-center py-1">Pending</p>
+                                        @elseif($showReturnTrophy)
+                                            {{-- State 3: all return gates complete --}}
                                             <div class="flex flex-col items-center justify-center py-1 gap-0.5">
                                                 <span class="text-2xl leading-none">🏆</span>
                                                 @if($orderProduct->pickupEmployee)
-                                                    <span class="text-lg text-gray-600 font-medium text-center">{{ $orderProduct->pickupEmployee->first_name }} {{ $orderProduct->pickupEmployee->last_name }}</span>
+                                                    <span class="text-lg text-gray-600 font-medium text-center">{{ $orderProduct->pickupEmployee->full_name }}</span>
                                                 @else
-                                                    <span class="text-xs text-gray-400">No issues recorded</span>
+                                                    <span class="text-xs text-gray-400">Complete</span>
                                                 @endif
                                             </div>
-                                        @elseif(!$pickupHasData)
-                                            {{-- Not yet completed, no data --}}
-                                            <p class="text-xs text-gray-400 italic text-center py-1">Pending</p>
-                                        @else
-                                            {{-- Reason / issues recorded --}}
+                                        @elseif($rtInProgress)
+                                            {{-- State 2: at least one return gate done --}}
                                             <div class="flex flex-col gap-0.5 text-xs">
-                                                @if($orderProduct->pickup_inputs_date)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">Date</span>
-                                                        <span class="text-gray-700 font-medium">{{ \Carbon\Carbon::parse($orderProduct->pickup_inputs_date)->format('M d, Y H:i') }}</span>
-                                                    </div>
-                                                @endif
-                                                @if($orderProduct->pickup_tnc_status)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">T&amp;C</span>
-                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->pickup_tnc_status }}</span>
-                                                    </div>
-                                                @endif
-                                                @if($orderProduct->pickup_drivers_license_status)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">License</span>
-                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->pickup_drivers_license_status }}</span>
-                                                    </div>
-                                                @endif
-                                                @if($orderProduct->pickup_video_status)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">Video</span>
-                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->pickup_video_status }}</span>
-                                                    </div>
-                                                @endif
-                                                @if($orderProduct->pickup_checklist_status)
-                                                    <div class="flex justify-between gap-2">
-                                                        <span class="text-gray-400">Checklist</span>
-                                                        <span class="capitalize font-medium text-orange-500">{{ $orderProduct->pickup_checklist_status }}</span>
-                                                    </div>
-                                                @endif
+                                                <div class="flex justify-between gap-4">
+                                                    <span class="text-gray-500">Checklist Completed</span>
+                                                    <span class="font-medium whitespace-nowrap {{ $rtChecklistComplete ? 'text-green-600' : 'text-orange-500' }}">{{ $rtChecklistComplete ? 'Completed' : 'Pending' }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4">
+                                                    <span class="text-gray-500">Video Uploaded</span>
+                                                    <span class="font-medium whitespace-nowrap {{ $rtVideoComplete ? 'text-green-600' : 'text-orange-500' }}">{{ $rtVideoComplete ? 'Completed' : 'Pending' }}</span>
+                                                </div>
                                             </div>
+                                        @else
+                                            {{-- State 1: delivered but no return activity yet --}}
+                                            <p class="text-xs text-gray-400 italic text-center py-1">Pending</p>
                                         @endif
                                     </div>
-                                </div>
+
+                                    </div>
                                 </div>{{-- close flex gap-3 flex-wrap items-stretch --}}
 
                                 {{-- Hidden JSON for THIS product --}}

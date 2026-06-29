@@ -42,12 +42,42 @@
     @endif
 </div>
 
-{{-- Main layout: active driver cards grid + idle driver compact sidebar --}}
-<div class="flex gap-4 items-start mb-4">
+{{-- ===== Idle driver row (above active cards) ===== --}}
+@if ($idleDrivers->isNotEmpty())
+<div class="mb-3">
+    <div class="flex items-center gap-2 mb-2">
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Idle</span>
+        <span class="text-xs font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">{{ $idleDrivers->count() }}</span>
+    </div>
+    {{-- Horizontal scroll strip — each card is 1/5 of container width so 5 fit before scroll --}}
+    <div class="flex gap-2 overflow-x-auto pb-1">
+        @foreach ($idleDrivers as $driver)
+        @php
+            $initials  = strtoupper(substr($driver->first_name, 0, 1) . substr($driver->last_name, 0, 1));
+            $cdlLabels = collect(['Driver'])
+                ->when($driver->cdl_a, fn($c) => $c->push('CDL A'))
+                ->when($driver->cdl_b, fn($c) => $c->push('CDL B'));
+        @endphp
+        <div class="shrink-0 flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200"
+             style="min-width: calc(20% - 0.4rem); max-width: calc(20% - 0.4rem);">
+            <div class="w-7 h-7 rounded-full bg-gray-100 text-gray-400 text-[10px] font-bold flex items-center justify-center shrink-0">
+                {{ $initials }}
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="font-semibold text-gray-600 truncate leading-tight text-[11px]">{{ $driver->full_name }}</p>
+                <p class="text-gray-400 text-[9px] truncate leading-tight">{{ $cdlLabels->implode(' · ') }}</p>
+            </div>
+            <span class="text-[9px] text-gray-300 italic shrink-0">idle</span>
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
 
-    {{-- ===== Active driver cards ===== --}}
+{{-- ===== Active driver cards grid (always 4 columns) ===== --}}
+<div class="mb-4">
     <div id="driver-cards-container"
-         class="flex-1 min-w-0 grid gap-4 {{ $idleDrivers->isNotEmpty() ? 'grid-cols-3' : 'grid-cols-4' }}"
+         class="grid grid-cols-4 gap-4"
          data-card-mode="separate">
 
         @forelse ($activeDrivers as $driver)
@@ -276,37 +306,7 @@
         @endforelse
 
     </div>{{-- end active grid --}}
-
-    {{-- ===== Idle driver compact sidebar ===== --}}
-    @if ($idleDrivers->isNotEmpty())
-    <div class="w-44 shrink-0">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-            Idle &middot; {{ $idleDrivers->count() }}
-        </p>
-        <div class="space-y-1.5" style="max-height: 16rem; overflow-y: auto;">
-            @foreach ($idleDrivers as $driver)
-            @php
-                $initials  = strtoupper(substr($driver->first_name, 0, 1) . substr($driver->last_name, 0, 1));
-                $cdlLabels = collect(['Driver'])
-                    ->when($driver->cdl_a, fn($c) => $c->push('CDL A'))
-                    ->when($driver->cdl_b, fn($c) => $c->push('CDL B'));
-            @endphp
-            <div class="flex items-center gap-2 px-2.5 py-2 bg-white rounded-lg border border-gray-200">
-                <div class="w-7 h-7 rounded-full bg-gray-100 text-gray-400 text-[10px] font-bold flex items-center justify-center shrink-0">
-                    {{ $initials }}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-gray-600 truncate leading-tight text-[11px]">{{ $driver->full_name }}</p>
-                    <p class="text-gray-400 text-[9px] truncate leading-tight">{{ $cdlLabels->implode(' · ') }}</p>
-                </div>
-                <span class="text-[9px] text-gray-300 italic shrink-0">idle</span>
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
-
-</div>{{-- end flex wrapper --}}
+</div>{{-- end active section wrapper --}}
 
 {{-- Toggle logic handled by event delegation in index.blade.php --}}
 

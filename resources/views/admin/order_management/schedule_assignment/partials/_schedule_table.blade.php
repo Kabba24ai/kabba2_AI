@@ -98,7 +98,9 @@
                                 data-category-id="{{ $preferredCategoryId ?? '' }}"
                                 data-customer-name="{{ $orderProduct?->order?->customer_name }}"
                                 data-delivery-transport-mode="{{ $orderProduct->delivery_transport_mode ?? '' }}"
-                                data-pickup-transport-mode="{{ $orderProduct->pickup_transport_mode ?? '' }}">
+                                data-pickup-transport-mode="{{ $orderProduct->pickup_transport_mode ?? '' }}"
+                                data-assigned-equipment-name="{{ $orderProduct->equipment?->equipment_name }}"
+                                data-assigned-equipment-id="{{ $orderProduct->equipment?->equipment_id }}">
                                 {{ $orderProduct->equipment_details['equipment_name'] ?? 'Assign' }}
                             </button>
                             <button
@@ -121,7 +123,9 @@
                                 data-category-id="{{ $preferredCategoryId ?? '' }}"
                                 data-customer-name="{{ $orderProduct?->order?->customer_name }}"
                                 data-delivery-transport-mode="{{ $orderProduct->delivery_transport_mode ?? '' }}"
-                                data-pickup-transport-mode="{{ $orderProduct->pickup_transport_mode ?? '' }}">
+                                data-pickup-transport-mode="{{ $orderProduct->pickup_transport_mode ?? '' }}"
+                                data-assigned-equipment-name="{{ $orderProduct->softAssignment?->equipment?->equipment_name }}"
+                                data-assigned-equipment-id="{{ $orderProduct->softAssignment?->equipment?->equipment_id }}">
                                 {{ $orderProduct->softAssignment?->equipment?->equipment_name ?: 'Assign' }}
                             </button>
                             <button

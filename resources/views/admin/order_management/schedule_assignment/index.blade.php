@@ -289,6 +289,11 @@
                     </div>
                 </div>
 
+                <div class="bg-yellow-50 border border-yellow-300 rounded-lg px-4 py-2.5 text-sm">
+                    <span class="font-semibold text-yellow-700">Current Assignment:</span>
+                    <span id="assign-current-assignment-text" class="ml-1 text-yellow-900 font-medium">None</span>
+                </div>
+
                 <div id="assign-readonly-notice" class="hidden bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 flex items-start gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mt-0.5 shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
@@ -1131,6 +1136,13 @@
                     if (assignBtnEl)  assignBtnEl.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
 
+                const currentAssignEl = document.getElementById('assign-current-assignment-text');
+                if (currentAssignEl) {
+                    currentAssignEl.textContent = assignedEquipmentName
+                        ? assignedEquipmentName + (assignedEquipmentId ? ' | ' + assignedEquipmentId : '')
+                        : 'None';
+                }
+
                 modal.classList.remove('hidden');
                 applyPreferredCategory(preferredCategoryId);
 
@@ -1171,6 +1183,8 @@
                 const equipSelClear    = document.getElementById('equipment_unique_id');
                 if (equipInfoElClear) equipInfoElClear.classList.add('hidden');
                 if (readonlyElClear)  readonlyElClear.classList.add('hidden');
+                const currentAssignElClear = document.getElementById('assign-current-assignment-text');
+                if (currentAssignElClear) currentAssignElClear.textContent = 'None';
                 if (userSelClear)     userSelClear.disabled  = false;
                 if (catSelClear)      catSelClear.disabled   = false;
                 if (equipSelClear)    equipSelClear.disabled = false;

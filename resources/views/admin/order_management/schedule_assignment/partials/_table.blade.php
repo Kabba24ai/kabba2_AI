@@ -245,7 +245,9 @@
                                                     data-category-id="{{ $assignment->orderProduct?->product?->categories?->first()?->id ?? '' }}"
                                                     data-customer-name="{{ $assignment->orderProduct?->order?->customer_name }}"
                                                     data-delivery-transport-mode="{{ $assignment->orderProduct->delivery_transport_mode ?? '' }}"
-                                                    data-pickup-transport-mode="{{ $assignment->orderProduct->pickup_transport_mode ?? '' }}">
+                                                    data-pickup-transport-mode="{{ $assignment->orderProduct->pickup_transport_mode ?? '' }}"
+                                                    data-assigned-equipment-name="{{ $eq->equipment_name }}"
+                                                    data-assigned-equipment-id="{{ $eq->equipment_id }}">
                                                     {{ $assignment->order?->order_number ?? '-' }}
                                                 </button>
                                             @endif

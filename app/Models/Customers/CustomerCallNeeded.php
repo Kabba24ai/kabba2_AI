@@ -92,5 +92,10 @@ public function latestActivity()
     )->latestOfMany();
 }
 
-
+public function isOverdue(): bool
+{
+    return $this->due_date
+        && $this->due_date->isPast()
+        && $this->status !== 'clear';
+}
 }

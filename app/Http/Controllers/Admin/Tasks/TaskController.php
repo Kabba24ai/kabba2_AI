@@ -219,7 +219,7 @@ class TaskController extends Controller
             ->where(fn($q) => $q->whereNull('follow_up_at')->orWhere('follow_up_at', '<=', now()))
             ->when($request->filled('priority'),   fn($q) => $q->where('priority', $request->priority))
             ->when($request->boolean('due_today'), fn($q) => $q->whereDate('due_date', today()))
-            ->when($request->boolean('overdue'),   fn($q) => $q->whereNotNull('due_date')->whereDate('due_date', '<', today()));
+            ->when($request->boolean('overdue'),   fn($q) => $q->whereNotNull('due_date')->where('due_date', '<', now()));
     }
 
     public function create()

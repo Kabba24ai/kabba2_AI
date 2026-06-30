@@ -230,7 +230,7 @@
                                     'other'    => $call->contact_name,
                                     default    => null,
                                 };
-                                $callIsOverdue = $call->due_date && $call->due_date->lt(today());
+                                $callIsOverdue = $call->isOverdue();
                             @endphp
                             <tr class="{{ $callIsOverdue ? 'bg-red-50/40 hover:bg-red-50/50' : 'hover:bg-red-50/20 bg-red-50/10' }}">
                                 <td class="px-3 py-3 text-center">

@@ -79,8 +79,9 @@ class Task extends Model
 
     public function scopeOverdue(Builder $query): Builder
     {
+        // Tasks are date-only (midnight). Overdue threshold = due_date + 17 h (end of shift).
         return $query->whereNotNull('due_date')
-            ->where('due_date', '<', now())
+            ->whereRaw('DATE_ADD(due_date, INTERVAL ' . self::SHIFT_END_HOUR . ' HOUR) < NOW()')
             ->whereNotIn('status', ['completed', 'cancelled']);
     }
 
@@ -98,11 +99,17 @@ class Task extends Model
 
     // ── Helpers ─────────────────────────────────────────────────────
 
+    // Tasks are created date-only (stored at midnight 00:00:00). They are
+    // not considered overdue until end-of-shift on the due date, rather than
+    // triggering at midnight when the day starts.
+    public const SHIFT_END_HOUR = 17;
+
     public function isOverdue(): bool
     {
-        return $this->due_date
-            && $this->due_date->isPast()
-            && ! $this->status->isTerminal();
+        if (!$this->due_date || $this->status->isTerminal()) {
+            return false;
+        }
+        return $this->due_date->copy()->setTime(self::SHIFT_END_HOUR, 0, 0)->isPast();
     }
 
     public function logActivity(string $action, ?string $oldValue = null, ?string $newValue = null): void

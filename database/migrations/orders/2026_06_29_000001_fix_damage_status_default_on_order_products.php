@@ -9,7 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Clear false-positive defaults before changing the column definition.
+        // Make the column nullable first, then clear false-positive defaults.
+        Schema::table('order_products', function (Blueprint $table) {
+            $table->string('damage_status')->nullable()->default(null)->change();
+        });
+
         // Every order_product got damage_status = 'pending' as a column default when
         // the column was added, regardless of whether damage was ever reported.
         // Records with damage_charge = 0 have never had an actual damage event —
@@ -21,10 +25,6 @@ return new class extends Migration
             WHERE damage_status = 'pending'
             AND (damage_charge IS NULL OR damage_charge = 0)
         ");
-
-        Schema::table('order_products', function (Blueprint $table) {
-            $table->string('damage_status')->nullable()->default(null)->change();
-        });
     }
 
     public function down(): void

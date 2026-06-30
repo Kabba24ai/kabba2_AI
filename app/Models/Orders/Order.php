@@ -55,6 +55,12 @@ class Order extends Model
         'terms_accepted_at', // DateTime when terms were accepted
         'terms_status', // Accepted, Declined, Pending*, Exempt
         'last_terms_sms_sent_at',
+        'terms_first_sent_at',
+        'terms_first_message_id',
+        'terms_second_sent_at',
+        'terms_second_message_id',
+        'terms_third_sent_at',
+        'terms_third_message_id',
         'signature_image', // Base64 encoded image of signature
 
         'receipt_status',

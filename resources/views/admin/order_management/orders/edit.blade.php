@@ -1477,9 +1477,22 @@
                                     </a>
                                 @endif
                             </div>
-                            @if (!empty($order->last_terms_sms_sent_at))
-                                <span class="text-yellow-500 text-[10px] font-semibold">
-                                    {{ \App\Helpers\CustomHelper::formatDateTime($order->last_terms_sms_sent_at) }}
+                            @php
+                                $termsSendTimestamps = collect([
+                                    $order->terms_first_sent_at,
+                                    $order->terms_second_sent_at,
+                                    $order->terms_third_sent_at,
+                                    $order->last_terms_sms_sent_at,
+                                ])->filter()->unique()->sort()->values();
+                            @endphp
+                            @foreach ($termsSendTimestamps as $ts)
+                                <span class="text-yellow-600 text-[10px]">
+                                    {{ \App\Helpers\CustomHelper::formatDateTime12Hour($ts) }}
+                                </span>
+                            @endforeach
+                            @if (!$order->terms_status->isPending() && !empty($order->terms_accepted_at))
+                                <span class="text-green-600 text-[10px]">
+                                    Signed {{ \App\Helpers\CustomHelper::formatDateTime12Hour($order->terms_accepted_at) }}
                                 </span>
                             @endif
                         </div>

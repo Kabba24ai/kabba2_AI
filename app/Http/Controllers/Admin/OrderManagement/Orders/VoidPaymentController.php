@@ -52,6 +52,29 @@ class VoidPaymentController extends Controller
                 'FDSAuthorizedPendingReview',
             ];
 
+            // Gateway already shows voided — sync DB if our record is still Paid (prior void succeeded at gateway but DB update failed)
+            if ($details->status === 'voided') {
+                if ($payment->status === OrderPaymentStatus::Voided) {
+                    return response()->json(['success' => false, 'message' => 'This payment has already been voided.'], 422);
+                }
+
+                $payment->update([
+                    'status'    => OrderPaymentStatus::Voided,
+                    'voided_at' => now(),
+                ]);
+
+                $order->history()->create([
+                    'user_id'     => $user->id,
+                    'customer_id' => $order->customer_id,
+                    'action_date' => now(),
+                    'action_by'   => OrderHistoryActionBy::User,
+                    'action'      => OrderHistoryAction::TransactionVoided,
+                    'description' => 'Payment of $' . number_format((float) $payment->amount, 2) . ' voided by ' . $user->full_name . '.',
+                ]);
+
+                return response()->json(['success' => true, 'message' => 'Payment voided successfully.']);
+            }
+
             if (!in_array($details->status, $voidableStatuses, true)) {
                 return response()->json([
                     'success' => false,

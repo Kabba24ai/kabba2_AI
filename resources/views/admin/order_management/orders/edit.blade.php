@@ -104,6 +104,7 @@
                             && $lastPaidPayment->transaction_id
                             && $lastPaidPayment->payment_datetime?->isToday();
                     @endphp
+                    {{-- DEBUG-VOID: isPaid={{ $order->is_paid ? '1' : '0' }} lpp={{ $lastPaidPayment ? '1' : '0' }} url={{ $voidPaymentUrl ? '1' : '0' }} method={{ $lastPaidPayment?->payment_method?->value ?? 'null' }} txn={{ $lastPaidPayment?->transaction_id ? '1' : '0' }} today={{ $lastPaidPayment?->payment_datetime?->isToday() ? '1' : '0' }} --}}
 
                     @if ($canVoid)
                         <button id="voidPaymentBtn" type="button"

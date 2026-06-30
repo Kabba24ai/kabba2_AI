@@ -51,10 +51,11 @@ class IndexController extends Controller
             }));
         };
 
-        // ── Double Bookings ───────────────────────────────────────────────────
-        $doubleBookings = [];
+        // ── Double Bookings + Back-to-Back Alerts ────────────────────────────
+        $doubleBookings    = [];
+        $backToBackAlerts  = [];
 
-        if (!$section || $section === 'double_bookings') {
+        if (!$section || in_array($section, ['double_bookings', 'back_to_back'])) {
             // Hard-assigned: equipment_id set directly on the order product
             $hardOps = OrderProduct::with([
                 'order.customer', 'order.shippingAddress', 'order.lastPayment', 'order.notes',
@@ -120,28 +121,51 @@ class IndexController extends Controller
                         $a = $list[$i];
                         $b = $list[$j];
 
+                        // Use startOfDay for both boundaries so that a same-day
+                        // return/delivery pair is still detected as a touching pair.
                         $aStart = Carbon::parse($a->delivery_date)->startOfDay();
-                        $aEnd   = Carbon::parse($a->pickup_date)->endOfDay();
+                        $aEnd   = Carbon::parse($a->pickup_date)->startOfDay();
                         $bStart = Carbon::parse($b->delivery_date)->startOfDay();
-                        $bEnd   = Carbon::parse($b->pickup_date)->endOfDay();
+                        $bEnd   = Carbon::parse($b->pickup_date)->startOfDay();
 
                         if ($aStart->lte($bEnd) && $bStart->lte($aEnd)) {
                             $overlapStart = $aStart->gt($bStart) ? $aStart : $bStart;
                             $overlapEnd   = $aEnd->lt($bEnd) ? $aEnd : $bEnd;
 
-                            $doubleBookings[] = [
+                            $entry = [
                                 'equipment'     => $a->equipment ?? $a->softAssignment?->equipment,
                                 'a'             => $a,
                                 'b'             => $b,
                                 'overlap_start' => $overlapStart,
                                 'overlap_end'   => $overlapEnd,
                             ];
+
+                            // Back-to-back: one's pickup date equals the other's delivery date,
+                            // and the earlier rental's delivery is strictly before that shared day —
+                            // meaning the two periods only touch at a single boundary rather than
+                            // truly overlapping. These are operationally risky but not double bookings.
+                            $isBackToBack = ($aEnd->isSameDay($bStart) && $aStart->lt($bStart))
+                                         || ($bEnd->isSameDay($aStart) && $bStart->lt($aStart));
+
+                            if ($isBackToBack) {
+                                $backToBackAlerts[] = $entry;
+                            } else {
+                                $doubleBookings[] = $entry;
+                            }
                         }
                     }
                 }
             }
 
-            usort($doubleBookings, fn ($x, $y) => $x['overlap_start']->timestamp <=> $y['overlap_start']->timestamp);
+            usort($doubleBookings,   fn ($x, $y) => $x['overlap_start']->timestamp <=> $y['overlap_start']->timestamp);
+            usort($backToBackAlerts, fn ($x, $y) => $x['overlap_start']->timestamp <=> $y['overlap_start']->timestamp);
+
+            // When the user filters to a specific type, clear the other.
+            if ($section === 'double_bookings') {
+                $backToBackAlerts = [];
+            } elseif ($section === 'back_to_back') {
+                $doubleBookings = [];
+            }
         }
 
         // ── Damaged Equipment ─────────────────────────────────────────────────
@@ -342,6 +366,7 @@ class IndexController extends Controller
 
         // ── Totals & shared data ─────────────────────────────────────────────
         $totalConflicts = count($doubleBookings)
+            + count($backToBackAlerts)
             + count($damagedBookings)
             + count($noDirectAssignmentGroups)
             + count($overdueEquipmentConflicts);
@@ -363,6 +388,7 @@ class IndexController extends Controller
 
         return view('admin.order_management.schedule_conflicts.index', compact(
             'doubleBookings',
+            'backToBackAlerts',
             'damagedBookings',
             'noDirectAssignmentGroups',
             'overdueEquipmentConflicts',

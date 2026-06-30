@@ -91,11 +91,12 @@ class ConflictDetectionService
         $hardConflicts = $hardAssignedOps->filter(function ($op) use ($requestedStart, $requestedEnd) {
             $existingStart = DateRangeHelper::combine($op->delivery_date, $op->delivery_time);
 
-            // If a specific return time is recorded, use it; otherwise treat the entire
-            // return calendar day as occupied (equipment needs inspection before re-dispatch).
+            // If a specific return time is recorded, use it; otherwise use start-of-day on the
+            // pickup date. This allows a same-day delivery to proceed (back-to-back), which is
+            // flagged as a Back-to-Back Alert on the Schedule Conflicts page rather than blocked.
             $existingEnd = $op->pickup_time
                 ? DateRangeHelper::combine($op->pickup_date, $op->pickup_time)
-                : Carbon::parse($op->pickup_date)->endOfDay();
+                : Carbon::parse($op->pickup_date)->startOfDay();
 
             if (!$existingStart || !$existingEnd) {
                 return false;

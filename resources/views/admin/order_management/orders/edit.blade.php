@@ -92,8 +92,14 @@
 
                     @php
                         $lastPaidPayment = $order->lastPaidPayment;
+                        try {
+                            $voidPaymentUrl = route('admin.order-management.orders.void-payment', $order->unique_id);
+                        } catch (\Throwable $e) {
+                            $voidPaymentUrl = null;
+                        }
                         $canVoid = $order->is_paid
                             && $lastPaidPayment
+                            && $voidPaymentUrl
                             && $lastPaidPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Card
                             && $lastPaidPayment->transaction_id
                             && $lastPaidPayment->payment_datetime?->isToday();
@@ -101,7 +107,7 @@
 
                     @if ($canVoid)
                         <button id="voidPaymentBtn" type="button"
-                            data-url="{{ route('admin.order-management.orders.void-payment', $order->unique_id) }}"
+                            data-url="{{ $voidPaymentUrl }}"
                             data-amount="{{ $lastPaidPayment->amount }}"
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-800 hover:bg-orange-200 transition rounded-lg">
                             <x-heroicon-o-x-circle class="w-4 h-4 mr-1 text-orange-600" />

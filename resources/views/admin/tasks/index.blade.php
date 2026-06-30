@@ -268,10 +268,13 @@
                                 <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
                                     @if ($call->due_date)
                                         <span class="{{ $callIsOverdue ? 'text-red-600 font-medium' : '' }}">
-                                            {{ $call->due_date->format('M j, y  g:i A') }}
+                                            {{ $call->due_date->format('M j, Y') }}
+                                        </span>
+                                        <span class="block italic {{ $callIsOverdue ? 'text-red-600' : 'text-gray-500' }}" style="font-size:0.7em">
+                                            {{ $call->due_date->format('g:i A') }}
                                         </span>
                                         @if ($callIsOverdue)
-                                            <span class="block text-xs text-red-600 font-medium">Overdue</span>
+                                            <span class="block text-red-600 font-medium">Overdue</span>
                                         @endif
                                     @else
                                         <span class="text-gray-400">—</span>
@@ -327,10 +330,10 @@
                                 <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
                                     @if ($task->due_date)
                                         <span class="{{ $task->isOverdue() ? 'text-red-600 font-medium' : '' }}">
-                                            {{ $task->due_date->format('M j, y') }}
+                                            {{ $task->due_date->format('M j, Y') }}
                                         </span>
                                         @if ($task->isOverdue())
-                                            <span class="block text-xs text-red-600 font-medium">Overdue</span>
+                                            <span class="block text-red-600 font-medium">Overdue</span>
                                         @endif
                                     @else
                                         <span class="text-gray-400">—</span>

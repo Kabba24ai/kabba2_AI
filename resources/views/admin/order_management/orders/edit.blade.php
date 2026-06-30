@@ -90,7 +90,24 @@
                         </span>
                     @endif
 
-                    @if ($order->is_paid === true && $order->remaining_amount > 0)
+                    @php
+                        $lastPaidPayment = $order->lastPaidPayment;
+                        $canVoid = $order->is_paid
+                            && $lastPaidPayment
+                            && $lastPaidPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Card
+                            && $lastPaidPayment->transaction_id
+                            && $lastPaidPayment->payment_datetime?->isToday();
+                    @endphp
+
+                    @if ($canVoid)
+                        <button id="voidPaymentBtn" type="button"
+                            data-url="{{ route('admin.order-management.orders.void-payment', $order->unique_id) }}"
+                            data-amount="{{ $lastPaidPayment->amount }}"
+                            class="flex items-center px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-800 hover:bg-orange-200 transition rounded-lg">
+                            <x-heroicon-o-x-circle class="w-4 h-4 mr-1 text-orange-600" />
+                            Void
+                        </button>
+                    @elseif ($order->is_paid === true && $order->remaining_amount > 0)
                         <button id="refundPaymentBtn" type="button"
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
                             <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
@@ -2312,6 +2329,38 @@
                 </button>
             </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Void Payment Modal -->
+    <div id="voidModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">Void Payment</h2>
+                <button type="button" class="void-modal-close text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <div class="p-6 flex flex-col gap-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 flex gap-3">
+                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                    <div class="text-sm text-orange-800">
+                        <p class="font-semibold mb-1">Are you sure you want to void this payment?</p>
+                        <p>This will void the full payment transaction through Authorize.net and mark the order as voided. Voided orders are removed from the rental schedule and excluded from sales reports. This action cannot be undone.</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3 text-sm space-y-1 text-gray-600">
+                    <div>Order: <span class="font-medium text-gray-900">{{ $order->order_number }}</span></div>
+                    <div>Customer: <span class="font-medium text-gray-900">{{ $order->customer_name }}</span></div>
+                    <div>Amount: <span id="void_display_amount" class="font-medium text-gray-900"></span></div>
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" class="void-modal-close px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="button" id="confirmVoidBtn"
+                        class="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-lg hover:bg-orange-700 disabled:opacity-50">
+                        Yes, Void Payment
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -5306,6 +5355,56 @@
             });
 
         });
+
+        // ── Void Payment ──────────────────────────────────────────────────────────
+        (function () {
+            const voidBtn    = document.getElementById('voidPaymentBtn');
+            const voidModal  = document.getElementById('voidModal');
+            const confirmBtn = document.getElementById('confirmVoidBtn');
+
+            if (!voidBtn || !voidModal) return;
+
+            const voidUrl    = voidBtn.dataset.url;
+            const voidAmount = parseFloat(voidBtn.dataset.amount || '0').toFixed(2);
+            document.getElementById('void_display_amount').textContent = '$' + voidAmount;
+
+            function openVoid()  { voidModal.classList.remove('hidden'); }
+            function closeVoid() { voidModal.classList.add('hidden'); }
+
+            voidBtn.addEventListener('click', openVoid);
+            voidModal.querySelectorAll('.void-modal-close').forEach(el => el.addEventListener('click', closeVoid));
+            voidModal.addEventListener('click', function (e) { if (e.target === voidModal) closeVoid(); });
+
+            confirmBtn.addEventListener('click', function () {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Processing…';
+
+                fetch(voidUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        closeVoid();
+                        if (window.notyf) notyf.success(data.message || 'Payment voided successfully.');
+                        setTimeout(() => window.location.reload(), 800);
+                    } else {
+                        if (window.notyf) notyf.error(data.message || 'Void failed.');
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = 'Yes, Void Payment';
+                    }
+                })
+                .catch(() => {
+                    if (window.notyf) notyf.error('An unexpected error occurred. Please try again.');
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Yes, Void Payment';
+                });
+            });
+        })();
 
         // document.getElementById('send-terms').addEventListener('click', function() {
         //     const btn = this;

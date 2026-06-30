@@ -19,6 +19,8 @@ enum OrderPaymentStatus : string
 
     case PartialPayment = 'Partial Payment';
 
+    case Voided = 'Voided';
+
     public function label(): string
     {
        return match($this) {
@@ -34,6 +36,7 @@ enum OrderPaymentStatus : string
            self::InvoiceOnline => 'Paid by Direct Bank',
            self::InvoiceCheque => 'Paid by Check',
            self::InvoiceOther => 'Other Invoice Payment',
+           self::Voided => 'Voided',
        };
     }
 

@@ -35,6 +35,8 @@ enum OrderHistoryAction: string
     case ExtensionChargeCreated = 'extension_charge_created';
     case DriverChecklistUpdated = 'driver_checklist_updated';
 
+    case TransactionVoided = 'transaction_voided';
+
     public function label(): string
     {
         return match ($this) {
@@ -67,6 +69,7 @@ enum OrderHistoryAction: string
             self::PartialPaymentReceived => 'Partial Payment Received',
             self::ExtensionChargeCreated => 'Extension Charge Created',
             self::DriverChecklistUpdated => 'Driver Checklist Updated',
+            self::TransactionVoided => 'Transaction Voided',
         };
     }
 }

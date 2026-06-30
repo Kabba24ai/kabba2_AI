@@ -1,0 +1,93 @@
+<?php
+
+namespace App\Http\Controllers\Admin\OrderManagement\Orders;
+
+use App\Enums\Orders\OrderHistoryAction;
+use App\Enums\Orders\OrderHistoryActionBy;
+use App\Enums\Orders\OrderPaymentMethod;
+use App\Enums\Orders\OrderPaymentStatus;
+use App\Http\Controllers\Controller;
+use App\Models\Orders\Order;
+use App\Services\AuthorizeNetService;
+
+class VoidPaymentController extends Controller
+{
+    public function __invoke($uniqueId)
+    {
+        $user = auth()->user();
+
+        try {
+            $order = Order::with(['lastPaidPayment', 'customer'])
+                ->where('unique_id', $uniqueId)
+                ->firstOrFail();
+
+            $payment = $order->lastPaidPayment;
+
+            if (!$payment) {
+                return response()->json(['success' => false, 'message' => 'No paid transaction found.'], 422);
+            }
+
+            if ($payment->payment_method !== OrderPaymentMethod::Card) {
+                return response()->json(['success' => false, 'message' => 'Only card payments can be voided through this system.'], 422);
+            }
+
+            $transactionId = $payment->transaction_id;
+
+            if (!$transactionId) {
+                return response()->json(['success' => false, 'message' => 'No Authorize.net transaction ID found for this payment.'], 422);
+            }
+
+            // Confirm the transaction is still unsettled via the gateway before attempting void
+            $anet = new AuthorizeNetService();
+            $details = $anet->getTransactionDetails($transactionId);
+
+            if (!$details) {
+                return response()->json(['success' => false, 'message' => 'Could not retrieve transaction status from the payment gateway.'], 422);
+            }
+
+            $voidableStatuses = [
+                'authorizedPendingCapture',
+                'capturedPendingSettlement',
+                'FDSPendingReview',
+                'FDSAuthorizedPendingReview',
+            ];
+
+            if (!in_array($details->status, $voidableStatuses, true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This transaction cannot be voided (gateway status: ' . $details->status . '). If it has already settled, use Refund instead.',
+                ], 422);
+            }
+
+            $result = $anet->voidOrder($transactionId, ['order_number' => $order->order_number]);
+
+            if (($result['status'] ?? null) !== 'success') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Void failed: ' . ($result['message'] ?? 'Unknown error'),
+                ], 500);
+            }
+
+            // Mark original payment as voided — no new row, void is an in-place reversal
+            $payment->update([
+                'status'    => OrderPaymentStatus::Voided,
+                'voided_at' => now(),
+            ]);
+
+            $order->history()->create([
+                'user_id'     => $user->id,
+                'customer_id' => $order->customer_id,
+                'action_date' => now(),
+                'action_by'   => OrderHistoryActionBy::User,
+                'action'      => OrderHistoryAction::TransactionVoided,
+                'description' => 'Payment of $' . number_format((float) $payment->amount, 2) . ' voided by ' . $user->full_name . '.',
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Payment voided successfully.']);
+
+        } catch (\Exception $e) {
+            logger()->error('Void payment error for order ' . $uniqueId . ': ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'An error occurred while voiding the payment.'], 500);
+        }
+    }
+}

@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\ConfirmPaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\ChargeCreditCardController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\ReceivePaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\RefundPaymentController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\VoidPaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateNoteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateProductScheduleController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateOrderAddressController;
@@ -64,6 +65,7 @@ Route::prefix('orders')
         Route::put('/{unique_id}/charge-credit-card', ChargeCreditCardController::class)->name('charge-credit-card');
         Route::put('/{unique_id}/receive-payment', ReceivePaymentController::class)->name('receive-payment');
         Route::put('/{unique_id}/refund-payment', RefundPaymentController::class)->name('refund-payment');
+        Route::put('/{unique_id}/void-payment', VoidPaymentController::class)->name('void-payment');
         Route::put('/{unique_id}/add-to-account', AddToAccountPaymentController::class)->name('add-to-account');
 
         // Update Address

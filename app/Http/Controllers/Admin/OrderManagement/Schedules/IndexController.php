@@ -28,7 +28,10 @@ class IndexController extends Controller
                 ->with('equipment', 'equipment.productcategory', 'equipment.store', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes', 'deliveryStore', 'pickupStore', 'softAssignment.equipment.store')
                 ->where('product_data->product_type', 'Rental')
                 ->whereHas('order')
-                ->whereNotNull('delivery_date');
+                ->whereNotNull('delivery_date')
+                ->whereDoesntHave('order.payments', function ($q) {
+                    $q->where('status', \App\Enums\Orders\OrderPaymentStatus::Voided->value);
+                });
 
             // Exclude rescheduled-pending items from the active schedule by default.
             // They are only visible when the user explicitly enables the Rescheduled Pending filter.

@@ -40,6 +40,7 @@ class OrderPayment extends Model
         'tax_refunded',
         'refund_note',
         'payment_response',
+        'voided_at',
         'created_by_id',
         'created_by_type',
         'updated_by_id',
@@ -52,6 +53,7 @@ class OrderPayment extends Model
         'payment_response' => 'json',
         'payment_datetime' => 'datetime',
         'refunded_at'      => 'datetime',
+        'voided_at'        => 'datetime',
         'tax_refunded'     => 'decimal:2',
     ];
 

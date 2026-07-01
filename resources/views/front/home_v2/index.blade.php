@@ -9,11 +9,11 @@
     @include('front.home_v2.partials.contact-strip')
 
     @include('front.home_v2.partials.rental-specialists')
-{{-- 
+
     @include('front.home_v2.partials.featured-categories')
 
     @include('front.home_v2.partials.features')
 
-    @include('front.home_v2.partials.newsletter') --}}
+    @include('front.home_v2.partials.newsletter')
 
 @endsection

@@ -371,6 +371,14 @@ class OrderProduct extends Model
             ->where('type', 'charge');
     }
 
+    /**
+     * BillingCharge records linked to this OrderProduct.
+     */
+    public function billingCharges()
+    {
+        return $this->hasMany(\App\Models\Orders\BillingCharge::class, 'order_product_id');
+    }
+
 
 
 

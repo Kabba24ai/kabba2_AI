@@ -47,7 +47,8 @@ class IndexController extends Controller
             'order.customer.cards',
             'equipment',
             'orderProduct',
-              'orderProduct.damageChargeLogs',
+            'orderProduct.damageChargeLogs',
+            'orderProduct.billingCharges' => fn ($q) => $q->where('billing_charge_type', 'damage')->whereNull('customer_account_id'),
         ])
         ->whereHas('equipment', function ($q) {
             $q->where('current_status', EquipmentCurrentStatus::Damaged)
@@ -81,6 +82,15 @@ class IndexController extends Controller
                 $baseDamage = (float) ($orderProduct->damage_charge ?? 0);
                 $adjustments = $orderProduct->damageChargeLogs->sum('change_amount');
                 $currentDamage = max(0, $baseDamage + $adjustments);
+
+                // Mobile return checklist damage charges set damage_status but leave damage_charge=0.
+                // Fall back to the linked BillingCharge amount (customer_account_id IS NULL).
+                if ($currentDamage <= 0) {
+                    $mobileBc = $orderProduct->billingCharges->first();
+                    if ($mobileBc) {
+                        $currentDamage = (float) ($mobileBc->amount ?? 0);
+                    }
+                }
 
                 return [
                     'id' => $index + 1,
@@ -119,7 +129,7 @@ class IndexController extends Controller
                                 'order_product' => [
                                     'id' => $orderProduct?->id,
                                     'unique_id' => $orderProduct?->unique_id,
-                                    'base_damage_charge' => $baseDamage,
+                                    'base_damage_charge' => $currentDamage,
                                     'current_damage_charge' => $currentDamage,
                                 ],
                             ];

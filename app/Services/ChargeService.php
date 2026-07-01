@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\Orders\OrderProductChargeStatus;
 use App\Helpers\CustomHelper;
 use App\Models\Customers\CustomerAccount;
+use App\Models\Orders\BillingCharge;
 use App\Models\Orders\OrderExtraCharges;
 use App\Models\Orders\OrderProduct;
 use App\Models\Iam\Personnel\User;
@@ -195,6 +196,15 @@ class ChargeService
 
             CustomHelper::updateCreditBalance($reversal);
         }
+
+        // Sync any mobile-originated BillingCharges (customer_account_id IS NULL) that are
+        // linked to this OrderProduct — these have no CA record so the loop above misses them.
+        $bcType = $type === 'fuel' ? 'fuel' : 'damage';
+        BillingCharge::where('order_product_id', $orderProduct->id)
+            ->whereNull('customer_account_id')
+            ->where('billing_charge_type', $bcType)
+            ->where('status', 'pending')
+            ->each(fn ($bc) => BillingEngine::markResolved($bc, $resolutionNote, $resolvedByUserId));
     }
 
     /**
@@ -222,5 +232,13 @@ class ChargeService
             ->where('reason', $reason)
             ->where($alertField, 'pending')
             ->update([$alertField => 'uncollectible']);
+
+        // Sync any mobile-originated BillingCharges (customer_account_id IS NULL).
+        $bcType = $type === 'fuel' ? 'fuel' : 'damage';
+        BillingCharge::where('order_product_id', $orderProduct->id)
+            ->whereNull('customer_account_id')
+            ->where('billing_charge_type', $bcType)
+            ->where('status', 'pending')
+            ->each(fn ($bc) => BillingEngine::markUncollectible($bc, $markedByUserId));
     }
 }

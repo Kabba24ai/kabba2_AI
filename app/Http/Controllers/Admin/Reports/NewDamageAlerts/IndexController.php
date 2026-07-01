@@ -21,6 +21,7 @@ class IndexController extends Controller
     'order.customer:id,first_name,last_name,phone,unique_id',
     'equipment:id,equipment_name',
     'damageChargeLogs:id,order_product_id,change_amount',
+    'billingCharges' => fn ($q) => $q->select(['id', 'order_product_id', 'amount', 'status'])->where('billing_charge_type', 'damage')->whereNull('customer_account_id'),
 ])
         ->where(function ($q) {
             $q->where('damage_charge', '>', 0)

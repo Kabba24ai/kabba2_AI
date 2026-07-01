@@ -32,6 +32,15 @@
                     $damageAdjustments = $record->damageChargeLogs->sum('change_amount');
                     $currentDamage     = max(0, $baseDamage + $damageAdjustments);
 
+                    // Mobile return checklist damage charges leave damage_charge=0;
+                    // fall back to the linked BillingCharge amount.
+                    if ($currentDamage <= 0) {
+                        $mobileBc = $record->billingCharges->first();
+                        if ($mobileBc) {
+                            $currentDamage = (float) ($mobileBc->amount ?? 0);
+                        }
+                    }
+
                     $badge = $damageStatusBadge($record->damage_status);
                 @endphp
 

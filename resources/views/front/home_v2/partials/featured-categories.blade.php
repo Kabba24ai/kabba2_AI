@@ -48,7 +48,7 @@
                         <img
                             src="{{ $category->image_url }}"
                             alt="{{ $category->title }}"
-                            class="absolute inset-0 w-full h-full object-contain p-5
+                            class="absolute inset-0 w-full h-full object-contain p-2
                                    transition-opacity duration-500 ease-in-out
                                    group-hover:opacity-0"
                             loading="lazy"
@@ -58,7 +58,7 @@
                         <img
                             src="{{ $category->hover_image_url }}"
                             alt="{{ $category->title }} hover"
-                            class="absolute inset-0 w-full h-full object-contain p-5
+                            class="absolute inset-0 w-full h-full object-contain p-2
                                    opacity-0 transition-opacity duration-500 ease-in-out
                                    group-hover:opacity-100"
                             loading="lazy"

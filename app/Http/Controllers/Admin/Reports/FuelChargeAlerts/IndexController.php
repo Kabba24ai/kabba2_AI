@@ -7,105 +7,116 @@ use App\Models\Customers\CustomerAccount;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
 class IndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        // ── OrderProduct-based fuel charges (from rental checklist) ──────────
-        $query = OrderProduct::with([
-            'order.customer',
-            'equipment',
-            'fuelChargeLogs',
-        ])
-        ->whereNotNull('fuel_total_charge')
-        ->where('fuel_total_charge', '>', 0)
-        ->whereHas('order')
-        // Exclude OPs that already have a CA ledger record — those appear in the CRM source below
-        ->whereDoesntHave('customerAccountCharges', fn ($q) => $q->where('reason', 'Fuel Charge'))
-        ->latest('id');
-
-        if ($request->filled('search_name')) {
-            $query->whereHas('order.customer', function ($q) use ($request) {
-                $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$request->search_name}%"]);
-            });
+        if (! $request->ajax()) {
+            return response()->json(['success' => false], 405);
         }
 
-        if ($request->filled('search_order')) {
-            $query->whereHas('order', function ($q) use ($request) {
-                $q->where('order_number', 'like', '%' . $request->search_order . '%');
-            });
-        }
+        try {
+            // ── OrderProduct-based fuel charges (from rental checklist) ──────────
+            $query = OrderProduct::with([
+                'order.customer',
+                'equipment',
+                'fuelChargeLogs',
+            ])
+            ->whereNotNull('fuel_total_charge')
+            ->where('fuel_total_charge', '>', 0)
+            ->whereHas('order')
+            // Exclude OPs that already have a CA ledger record — those appear in the CRM source below
+            ->whereDoesntHave('customerAccountCharges', fn ($q) => $q->where('reason', 'Fuel Charge'))
+            ->latest('id');
 
-        if ($request->filled('search_status')) {
-            $status = $request->search_status;
-            if ($status === 'active') {
-                $query->where(function ($q) {
-                    $q->whereNull('fuel_charge_status')
-                      ->orWhereNotIn('fuel_charge_status', ['resolved', 'completed', 'uncollectible']);
+            if ($request->filled('search_name')) {
+                $query->whereHas('order.customer', function ($q) use ($request) {
+                    $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$request->search_name}%"]);
                 });
-            } else {
-                $query->where('fuel_charge_status', $status);
             }
-        }
 
-        $records = $query->get();
-
-        // ── CRM / manually-added fuel charges (from Dashboard or Order Edit) ─
-        $crmQuery = CustomerAccount::with(['customer', 'order'])
-            ->where('type', 'charge')
-            ->where('reason', 'Fuel Charge');
-
-        if ($request->filled('search_name')) {
-            $crmQuery->whereHas('customer', function ($q) use ($request) {
-                $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$request->search_name}%"]);
-            });
-        }
-
-        // search_order doesn't apply to CRM records (no order_number)
-        // Map status filter to the CRM column name
-        if ($request->filled('search_status')) {
-            $status = $request->search_status;
-            if ($status === 'active') {
-                $crmQuery->where(function ($q) {
-                    $q->whereNull('fuel_alert_status')
-                      ->orWhere('fuel_alert_status', 'pending');
+            if ($request->filled('search_order')) {
+                $query->whereHas('order', function ($q) use ($request) {
+                    $q->where('order_number', 'like', '%' . $request->search_order . '%');
                 });
-            } elseif ($status === 'completed') {
-                $crmQuery->where('fuel_alert_status', 'completed');
-            } else {
-                // 'resolved' / 'uncollectible' don't exist for CRM records
-                $crmQuery->whereRaw('0 = 1');
             }
-        }
 
-        $crmFuelRecords = $crmQuery->latest()->get();
+            if ($request->filled('search_status')) {
+                $status = $request->search_status;
+                if ($status === 'active') {
+                    $query->where(function ($q) {
+                        $q->whereNull('fuel_charge_status')
+                          ->orWhereNotIn('fuel_charge_status', ['resolved', 'completed', 'uncollectible']);
+                    });
+                } else {
+                    $query->where('fuel_charge_status', $status);
+                }
+            }
 
-        // ── Merge both sources into one sorted collection ────────────────────
-        $perPage = $request->input('per_page', 30);
-        $page    = max(1, (int) $request->input('page', 1));
+            $records = $query->get();
 
-        $merged = $records
-            ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
-            ->concat(
-                $crmFuelRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
-            )
-            ->sortByDesc('_sort_ts')
-            ->values();
+            // ── CRM / manually-added fuel charges (from Dashboard or Order Edit) ─
+            $crmQuery = CustomerAccount::with(['customer', 'order'])
+                ->where('type', 'charge')
+                ->where('reason', 'Fuel Charge');
 
-        $total  = $merged->count();
-        $items  = $merged->slice(($page - 1) * $perPage, $perPage)->values();
+            if ($request->filled('search_name')) {
+                $crmQuery->whereHas('customer', function ($q) use ($request) {
+                    $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$request->search_name}%"]);
+                });
+            }
 
-        $allFuelRecords = new LengthAwarePaginator($items, $total, $perPage, $page, [
-            'path'  => $request->url(),
-            'query' => $request->except('page'),
-        ]);
+            // search_order doesn't apply to CRM records (no order_number)
+            // Map status filter to the CRM column name
+            if ($request->filled('search_status')) {
+                $status = $request->search_status;
+                if ($status === 'active') {
+                    $crmQuery->where(function ($q) {
+                        $q->whereNull('fuel_alert_status')
+                          ->orWhere('fuel_alert_status', 'pending');
+                    });
+                } elseif ($status === 'completed') {
+                    $crmQuery->where('fuel_alert_status', 'completed');
+                } else {
+                    // 'resolved' / 'uncollectible' don't exist for CRM records
+                    $crmQuery->whereRaw('0 = 1');
+                }
+            }
 
-        if ($request->ajax()) {
+            $crmFuelRecords = $crmQuery->latest()->get();
+
+            // ── Merge both sources into one sorted collection ────────────────────
+            $perPage = $request->input('per_page', 30);
+            $page    = max(1, (int) $request->input('page', 1));
+
+            $merged = $records
+                ->map(fn ($r) => ['_source' => 'op',  '_sort_ts' => $r->created_at?->timestamp ?? 0, '_model' => $r])
+                ->concat(
+                    $crmFuelRecords->map(fn ($r) => ['_source' => 'crm', '_sort_ts' => ($r->date ?? $r->created_at)?->timestamp ?? 0, '_model' => $r])
+                )
+                ->sortByDesc('_sort_ts')
+                ->values();
+
+            $total  = $merged->count();
+            $items  = $merged->slice(($page - 1) * $perPage, $perPage)->values();
+
+            $allFuelRecords = new LengthAwarePaginator($items, $total, $perPage, $page, [
+                'path'  => $request->url(),
+                'query' => $request->except('page'),
+            ]);
+
             $html = view('admin.reports.fuel_charge_alerts.partials._table', compact('allFuelRecords'))->render();
             return response()->json(['success' => true, 'html' => $html]);
-        }
 
-        return response()->json(['success' => false], 405);
+        } catch (\Throwable $e) {
+            Log::error('FuelChargeAlerts AJAX error', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+            ]);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 }

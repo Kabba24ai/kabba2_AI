@@ -285,12 +285,84 @@
         <div id="psr-sales-chart" style="min-height: 350px;"></div>
     </div>
 
-    {{-- ── DETAIL GRID ──────────────────────────────────────────────────────── --}}
-     {{--<div id="detail-section">
-        @include('admin.reports.sales_reports.pure_sales_summary.partials._detail_table', [
-            'grid' => $grid,
-        ])
-    </div>--}}
+    {{-- ── PAYMENT RECONCILIATION LEDGER ──────────────────────────────────── --}}
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+
+        {{-- Ledger header --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Payment Reconciliation Ledger</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Every payment contributing to the Sales Summary totals — trace any dollar in the KPI cards to a specific transaction.
+                </p>
+            </div>
+            <button type="button" id="btn-reload-ledger"
+                class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600
+                       bg-white dark:bg-gray-700 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                <x-heroicon-o-arrow-path class="w-4 h-4" />
+                Refresh
+            </button>
+        </div>
+
+        {{-- Ledger controls: View By + Revenue Source + Payment Method filters --}}
+        <div class="flex flex-wrap items-end gap-3 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+
+            {{-- View By segmented toggle --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">View By</label>
+                <div id="ledger-view-group" class="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden text-sm">
+                    @foreach (['chronological' => 'Chronological', 'revenue_source' => 'Revenue Source', 'payment_method' => 'Payment Method'] as $val => $label)
+                    <button type="button" data-view="{{ $val }}"
+                        class="ledger-view-btn px-3 py-2 font-medium transition-colors
+                            {{ $val !== 'chronological' ? 'border-l border-gray-300 dark:border-gray-600' : '' }}
+                            {{ $val === 'chronological'
+                                ? 'bg-brand-500 text-white'
+                                : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600' }}">
+                        {{ $label }}
+                    </button>
+                    @endforeach
+                </div>
+                <input type="hidden" id="ledger-view" value="chronological">
+            </div>
+
+            {{-- Revenue Source filter --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Revenue Source</label>
+                <select id="ledger-source"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="">All Sources</option>
+                    @foreach (\App\Services\Reports\PaymentReconciliationLedger::revenueSourceOptions() as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Payment Method filter --}}
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Payment Method</label>
+                <select id="ledger-pm"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="">All Methods</option>
+                    @foreach (\App\Services\Reports\PaymentReconciliationLedger::paymentMethodOptions() as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+        </div>
+
+        {{-- Ledger content area --}}
+        <div id="ledger-content">
+            {{-- skeleton --}}
+            <div id="ledger-skeleton" class="space-y-2 py-4">
+                <div class="h-8 bg-gray-100 dark:bg-gray-700 rounded animate-pulse w-full"></div>
+                @foreach (range(1,6) as $i)
+                <div class="h-7 bg-gray-50 dark:bg-gray-700/50 rounded animate-pulse w-full" style="opacity: {{ 1 - ($i * 0.1) }}"></div>
+                @endforeach
+            </div>
+        </div>
+
+    </div>
 
 @endsection
 
@@ -626,7 +698,122 @@
     });
 
     // ── Init chart on page load ────────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', () => renderTrend(initialTrend));
+    document.addEventListener('DOMContentLoaded', () => {
+        renderTrend(initialTrend);
+        runLedger();
+    });
+
+    // ── Payment Reconciliation Ledger ─────────────────────────────────────────
+
+    const ledgerViewGroup = document.getElementById('ledger-view-group');
+    const ledgerViewInput = document.getElementById('ledger-view');
+    const ledgerSource    = document.getElementById('ledger-source');
+    const ledgerPm        = document.getElementById('ledger-pm');
+    const ledgerContent   = document.getElementById('ledger-content');
+    const ledgerSkeleton  = document.getElementById('ledger-skeleton');
+
+    function collectLedgerParams() {
+        const p = collectFilters();
+        p.set('tab', 'ledger');
+        if (ledgerViewInput.value) p.set('ledger_view', ledgerViewInput.value);
+        if (ledgerSource && ledgerSource.value) p.set('ledger_source', ledgerSource.value);
+        if (ledgerPm     && ledgerPm.value)     p.set('ledger_pm',     ledgerPm.value);
+        return p;
+    }
+
+    let ledgerDebounce = null;
+    function runLedger() {
+        if (!ledgerContent) return;
+
+        // Show skeleton while loading
+        if (ledgerSkeleton) ledgerSkeleton.style.display = '';
+        const existingTable = ledgerContent.querySelector('table, .overflow-x-auto, .mb-6');
+        if (existingTable) existingTable.remove();
+
+        fetch(ROUTE + '?' + collectLedgerParams().toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) throw new Error(data.error || 'Ledger load failed');
+            if (ledgerSkeleton) ledgerSkeleton.style.display = 'none';
+            ledgerContent.innerHTML = data.html;
+        })
+        .catch(err => {
+            if (ledgerSkeleton) ledgerSkeleton.style.display = 'none';
+            ledgerContent.innerHTML = `<div class="py-8 text-center text-red-500 text-sm">Failed to load ledger: ${err.message}</div>`;
+        });
+    }
+
+    function scheduleLedger() {
+        clearTimeout(ledgerDebounce);
+        ledgerDebounce = setTimeout(runLedger, 400);
+    }
+
+    // Re-run ledger when main filters change
+    const origRunReport = runReport;
+    window._origRunReport = origRunReport;
+
+    // Patch: after any filter change that calls scheduleRun(), also schedule the ledger.
+    // We intercept by watching the debounce — ledger runs shortly after main report.
+    const origScheduleRun = scheduleRun;
+
+    // View By toggle
+    if (ledgerViewGroup) {
+        ledgerViewGroup.addEventListener('click', function (e) {
+            const btn = e.target.closest('.ledger-view-btn');
+            if (!btn) return;
+            const val = btn.dataset.view;
+            ledgerViewInput.value = val;
+            ledgerViewGroup.querySelectorAll('.ledger-view-btn').forEach(b => {
+                const active = b.dataset.view === val;
+                b.classList.toggle('bg-brand-500', active);
+                b.classList.toggle('text-white',   active);
+                b.classList.toggle('bg-white',     !active && !b.classList.contains('dark\\:bg-gray-700'));
+                b.classList.toggle('dark:bg-gray-700', !active);
+                b.classList.toggle('text-gray-700', !active);
+                b.classList.toggle('dark:text-gray-200', !active);
+            });
+            scheduleLedger();
+        });
+    }
+
+    // Ledger-specific filter changes
+    [ledgerSource, ledgerPm].forEach(el => {
+        if (el) el.addEventListener('change', scheduleLedger);
+    });
+
+    // Reload button
+    const btnReloadLedger = document.getElementById('btn-reload-ledger');
+    if (btnReloadLedger) btnReloadLedger.addEventListener('click', runLedger);
+
+    // Re-run ledger whenever the main report refreshes (piggyback on filter changes)
+    // We override scheduleRun to also schedule the ledger with a slight delay.
+    (function patchScheduleRun() {
+        const allFilterEls = [
+            fDateRange, fStore, fItemType, fCategory, fProduct,
+            fExcludeDamageWaiver, fDamageWaiverOnly,
+            fExcludeTrackIns, fTrackInsOnly,
+            fExcludeDelivery, fDeliveryOnly, fExcludeShipping,
+        ];
+        allFilterEls.forEach(el => {
+            if (!el) return;
+            el.addEventListener('change', scheduleLedger);
+        });
+        fSaleTypeGroup && fSaleTypeGroup.addEventListener('click', scheduleLedger);
+        if (fStartDate) fStartDate.addEventListener('change', scheduleLedger);
+        if (fEndDate)   fEndDate.addEventListener('change', scheduleLedger);
+        if (fMonth)     fMonth.addEventListener('change', scheduleLedger);
+        if (fYear)      fYear.addEventListener('change', scheduleLedger);
+    })();
+
+    // Also re-run ledger when clear filters is clicked
+    document.getElementById('btn-clear-filters') &&
+        document.getElementById('btn-clear-filters').addEventListener('click', () => {
+            if (ledgerSource) ledgerSource.value = '';
+            if (ledgerPm)     ledgerPm.value     = '';
+            scheduleLedger();
+        });
 
 })();
 </script>

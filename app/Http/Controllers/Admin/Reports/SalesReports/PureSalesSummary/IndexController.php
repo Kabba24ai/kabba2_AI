@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Reports\SalesReports\PureSalesSummary;
 use App\Helpers\CustomHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Stores\Store;
+use App\Services\Reports\PaymentReconciliationLedger;
 use App\Services\Reports\PureSalesSummaryReport;
 use App\Services\Reports\SalesReportingService;
 use Illuminate\Http\Request;
@@ -12,8 +13,9 @@ use Illuminate\Http\Request;
 class IndexController extends Controller
 {
     public function __construct(
-        private PureSalesSummaryReport $report,
-        private SalesReportingService  $reporting,
+        private PureSalesSummaryReport       $report,
+        private SalesReportingService        $reporting,
+        private PaymentReconciliationLedger  $ledger,
     ) {}
 
     public function __invoke(Request $request)
@@ -63,6 +65,17 @@ class IndexController extends Controller
                 return response()->json(['success' => true, 'html' => $html, 'kpis' => $kpis]);
             }
 
+            if ($tab === 'ledger') {
+                $rows       = $this->ledger->rows($filters);
+                $ledgerView = $request->input('ledger_view', 'chronological');
+                $html = view('admin.reports.sales_reports.pure_sales_summary.partials._ledger', [
+                    'rows'        => $rows,
+                    'ledger_view' => $ledgerView,
+                    'filters'     => $filters,
+                ])->render();
+                return response()->json(['success' => true, 'html' => $html]);
+            }
+
             $grid  = $this->report->detailGrid($filters, $request->integer('page', 1), 50);
             $kpis  = $this->formatKpis($this->report->kpis($filters));
             $trend = $this->report->trendData($filters);
@@ -110,6 +123,10 @@ class IndexController extends Controller
             'shipping'        => $request->input('shipping', 'all'),
             'sale_type'       => $request->input('sale_type', 'all'),
             'payment_status'  => $request->input('payment_status', 'paid'),
+            // Ledger-specific filters (do not affect KPI cards)
+            'ledger_view'     => $request->input('ledger_view', 'chronological'),
+            'ledger_source'   => $request->input('ledger_source') ?: null,
+            'ledger_pm'       => $request->input('ledger_pm')     ?: null,
         ];
     }
 

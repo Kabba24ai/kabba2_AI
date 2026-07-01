@@ -48,6 +48,7 @@ class BillingEngine
                 'parent_order_id'        => $request->orderId,
                 'child_order_id'         => $request->childOrderId,
                 'customer_id'            => $request->customerId,
+                'store_id'               => $request->storeId,
                 'order_product_id'       => $request->orderProductId,
                 'amount'                 => $request->amount,
                 'tax_amount'             => $request->taxAmount ?? 0,
@@ -79,14 +80,18 @@ class BillingEngine
     /**
      * Mark a billing charge as paid.
      * Status transition: pending → paid
+     *
+     * paid_at is set to now() if not already populated — preserves the original
+     * payment date if markPaid() is called more than once (idempotent).
      */
     public static function markPaid(BillingCharge $charge): BillingCharge
     {
-        $charge->status = 'paid';
+        $charge->status  = 'paid';
+        $charge->paid_at = $charge->paid_at ?? now();
         $charge->save();
 
         Log::channel('billing_engine')->info(
-            "BillingEngine charge marked paid | unique_id={$charge->unique_id}"
+            "BillingEngine charge marked paid | unique_id={$charge->unique_id} | paid_at={$charge->paid_at}"
         );
 
         return $charge;

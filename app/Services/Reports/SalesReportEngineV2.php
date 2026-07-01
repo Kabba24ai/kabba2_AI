@@ -179,6 +179,18 @@ class SalesReportEngineV2
         $taxCollected += $accountPaymentsTax;
         $shippingRevenue = 0.0;
 
+        // 6.5. Billing Engine supplemental revenue — anchored on billing_charges.paid_at.
+        //   Includes: extension charges, mobile-originated damage charges, and any
+        //   billing_charges that have no customer_account_id (not already tracked
+        //   via the account stream above).
+        //   Excluded from POD and account-only views — those modes are order-payment scoped.
+        if (!in_array($paymentStatus, ['pod', 'account'])) {
+            [$billingGross, $billingTax]
+                = $this->queryBillingEngineRevenue($filters, $startDate, $endDate);
+            $grossSales   += $billingGross;
+            $taxCollected += $billingTax;
+        }
+
         // 7. Apply component-level revenue filters
         $c = $this->applyComponentFilters($filters, [
             'gross_sales'               => $grossSales,
@@ -281,18 +293,25 @@ class SalesReportEngineV2
             ? $this->queryDailyAccountPayments($filters, $startDate, $endDate)
             : collect();
 
+        // Daily billing engine revenue — billing_charges.paid_at anchor.
+        // Excluded in "only" (component-filter) mode and POD/account-only views.
+        $dailyBilling = (!in_array($paymentStatus, ['pod', 'account']) && !$anyOnly)
+            ? $this->queryDailyBillingEngineRevenue($filters, $startDate, $endDate)
+            : collect();
+
         $result = [];
         for ($i = 0; $i < $days; $i++) {
             $date = $start->copy()->addDays($i)->toDateString();
 
-            $dayRow  = $dailyOrder[$date] ?? null;
-            $dayGross = $this->applyDailyComponentFilter($filters, $dayRow);
-            $dayAcct  = (float) ($dailyAcct[$date]->daily_acct          ?? 0);
-            $dayDisc  = (float) ($dailyDiscounts[$date]->daily_discounts ?? 0);
-            $dayRef   = (float) ($dailyRefunds[$date]->daily_refunds     ?? 0);
+            $dayRow     = $dailyOrder[$date] ?? null;
+            $dayGross   = $this->applyDailyComponentFilter($filters, $dayRow);
+            $dayAcct    = (float) ($dailyAcct[$date]->daily_acct          ?? 0);
+            $dayBilling = (float) ($dailyBilling[$date]->daily_billing     ?? 0);
+            $dayDisc    = (float) ($dailyDiscounts[$date]->daily_discounts ?? 0);
+            $dayRef     = (float) ($dailyRefunds[$date]->daily_refunds     ?? 0);
 
             // No max(0.0) floor — required for sum(daily) == snapshot net_sales.
-            $result[$date] = $dayGross + $dayAcct - $dayDisc - $dayRef;
+            $result[$date] = $dayGross + $dayAcct + $dayBilling - $dayDisc - $dayRef;
         }
 
         return $result;
@@ -538,6 +557,101 @@ class SalesReportEngineV2
                 END
             ) AS daily_acct")
             ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+    }
+
+    // ─── Private: Billing Engine Revenue ─────────────────────────────────────
+
+    /**
+     * Aggregate paid Billing Engine charges for the date window.
+     * Returns [baseAmount, taxAmount].
+     *
+     * Date anchor: billing_charges.paid_at (payment transaction date).
+     *
+     * Double-count guard: customer_account_id IS NULL excludes fuel/damage charges
+     * that are already captured via queryAccountPayments() (customer_accounts type='payment').
+     * Extension and mobile-originated charges have no customer_account_id and are fully
+     * invisible to the order_products base query — they are only visible here.
+     *
+     * Store filter: prefers billing_charges.store_id (populated for new records);
+     * falls back to a join through parent_order_id → order_products for legacy records.
+     */
+    private function queryBillingEngineRevenue(array $filters, string $startDate, string $endDate): array
+    {
+        $query = DB::table('billing_charges')
+            ->where('status', 'paid')
+            ->whereNull('customer_account_id')
+            ->whereNull('deleted_at')
+            ->whereBetween(DB::raw('DATE(paid_at)'), [$startDate, $endDate]);
+
+        if (!empty($filters['store'])) {
+            $storeId = (int) $filters['store'];
+            $query->where(function ($q) use ($storeId) {
+                $q->where('store_id', $storeId)
+                  ->orWhere(function ($q2) use ($storeId) {
+                      $q2->whereNull('store_id')
+                         ->whereExists(function ($sub) use ($storeId) {
+                             $sub->selectRaw('1')
+                                 ->from('order_products as op_bc')
+                                 ->whereColumn('op_bc.order_id', 'billing_charges.parent_order_id')
+                                 ->whereNull('op_bc.deleted_at')
+                                 ->where(function ($s) use ($storeId) {
+                                     $s->where('op_bc.delivery_store_id', $storeId)
+                                       ->orWhere('op_bc.pickup_store_id', $storeId);
+                                 });
+                         });
+                  });
+            });
+        }
+
+        $row = $query->selectRaw('SUM(amount) AS billing_gross, SUM(tax_amount) AS billing_tax')->first();
+
+        return [
+            (float) ($row->billing_gross ?? 0),
+            (float) ($row->billing_tax   ?? 0),
+        ];
+    }
+
+    /**
+     * Daily billing engine revenue grouped by billing_charges.paid_at.
+     * Returns a Collection keyed by 'Y-m-d', each with a daily_billing float (base only, no tax).
+     *
+     * Mirrors queryBillingEngineRevenue() per-day for chart use.
+     * daily_billing excludes tax so that sum(daily_billing) == billingGross in snapshot(),
+     * preserving the reconciliation guarantee: sum(daily) == snapshot net_sales.
+     */
+    private function queryDailyBillingEngineRevenue(array $filters, string $startDate, string $endDate): \Illuminate\Support\Collection
+    {
+        $query = DB::table('billing_charges')
+            ->where('status', 'paid')
+            ->whereNull('customer_account_id')
+            ->whereNull('deleted_at')
+            ->whereBetween(DB::raw('DATE(paid_at)'), [$startDate, $endDate]);
+
+        if (!empty($filters['store'])) {
+            $storeId = (int) $filters['store'];
+            $query->where(function ($q) use ($storeId) {
+                $q->where('store_id', $storeId)
+                  ->orWhere(function ($q2) use ($storeId) {
+                      $q2->whereNull('store_id')
+                         ->whereExists(function ($sub) use ($storeId) {
+                             $sub->selectRaw('1')
+                                 ->from('order_products as op_bc')
+                                 ->whereColumn('op_bc.order_id', 'billing_charges.parent_order_id')
+                                 ->whereNull('op_bc.deleted_at')
+                                 ->where(function ($s) use ($storeId) {
+                                     $s->where('op_bc.delivery_store_id', $storeId)
+                                       ->orWhere('op_bc.pickup_store_id', $storeId);
+                                 });
+                         });
+                  });
+            });
+        }
+
+        return $query
+            ->selectRaw('DATE(paid_at) AS date, SUM(amount) AS daily_billing')
+            ->groupByRaw('DATE(paid_at)')
             ->get()
             ->keyBy('date');
     }

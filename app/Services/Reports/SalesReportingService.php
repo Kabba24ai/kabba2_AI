@@ -115,8 +115,10 @@ class SalesReportingService
                     ->whereRaw('order_payments.id = (SELECT MAX(op2.id) FROM order_payments op2 WHERE op2.order_id = orders.id)');
 
                 if ($paymentStatus === 'paid') {
-                    // Exclude Account; include all non-COD methods + COD that has been collected
+                    // Exclude Account and unpaid COD; also exclude Voided/Failed/Pending
+                    // card payments that were never actually collected.
                     $sub->where('order_payments.payment_method', '!=', 'Account')
+                        ->whereNotIn('order_payments.status', ['Voided', 'Failed', 'Pending'])
                         ->where(function ($q) {
                             $q->where('order_payments.payment_method', '!=', 'COD')
                               ->orWhere(function ($q2) {
@@ -125,9 +127,10 @@ class SalesReportingService
                               });
                         });
                 } elseif ($paymentStatus === 'paid_and_account') {
-                    // Includes paid + account; excludes only unpaid COD (POD).
+                    // Includes paid + account; excludes only unpaid COD (POD) and Voided/Failed.
                     // Used by Product Performance report where account-order demand counts.
-                    $sub->where(function ($q) {
+                    $sub->whereNotIn('order_payments.status', ['Voided', 'Failed'])
+                        ->where(function ($q) {
                         $q->where('order_payments.payment_method', 'Account')
                           ->orWhere(function ($q2) {
                               $q2->where('order_payments.payment_method', '!=', 'Account')

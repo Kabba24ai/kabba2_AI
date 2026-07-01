@@ -44,10 +44,14 @@ class SalesTaxReportEngine
                 'lastPayment',
             ])
             ->whereHas('lastPayment', function ($q) {
-                $q->where('payment_method', '!=', 'COD')
-                    ->orWhere(function ($q) {
-                        $q->where('payment_method', 'COD')->where('status', 'Paid');
-                    });
+                // Exclude Voided/Failed/Pending — tax was never actually collected on these.
+                $q->whereNotIn('status', ['Voided', 'Failed', 'Pending'])
+                  ->where(function ($inner) {
+                      $inner->where('payment_method', '!=', 'COD')
+                            ->orWhere(function ($q2) {
+                                $q2->where('payment_method', 'COD')->where('status', 'Paid');
+                            });
+                  });
             })
             ->whereRelation('lastPayment', 'payment_method', '!=', 'Account')
             ->whereBetween('order_date', [$start, $end]);
@@ -223,6 +227,113 @@ class SalesTaxReportEngine
                 'grand_total'     => $amount,
             ];
         });
+    }
+
+    /**
+     * Stream D: Billing Engine charge rows anchored on billing_charges.paid_at.
+     *
+     * Includes paid charges that have no customer_account_id — meaning they are NOT
+     * already captured via Stream C (accountRows). Specifically:
+     *   - Extension charges (type='extension')
+     *   - Mobile-originated damage/fuel charges (source_module='mobile_checklist')
+     *   - Any future billing_charges type that bypasses the customer_accounts system
+     *
+     * Fuel/damage charges routed through customer_accounts (Dashboard/Order-Edit paths)
+     * are excluded by the customer_account_id IS NULL guard.
+     */
+    public function billingRows(array $filters): \Illuminate\Support\Collection
+    {
+        [$start, $end] = $this->resolveDateRange($filters);
+
+        if (!$start || !$end) {
+            return collect();
+        }
+
+        $query = DB::table('billing_charges as bc')
+            ->leftJoin('customers as c', 'c.id', '=', 'bc.customer_id')
+            ->leftJoin('orders as o', 'o.id', '=', 'bc.parent_order_id')
+            ->where('bc.status', 'paid')
+            ->whereNull('bc.customer_account_id')
+            ->whereNull('bc.deleted_at')
+            ->whereBetween(DB::raw('DATE(bc.paid_at)'), [$start->toDateString(), $end->toDateString()]);
+
+        if (!empty($filters['store'])) {
+            $storeId = (int) $filters['store'];
+            $query->where(function ($q) use ($storeId) {
+                $q->where('bc.store_id', $storeId)
+                  ->orWhere(function ($q2) use ($storeId) {
+                      $q2->whereNull('bc.store_id')
+                         ->whereExists(function ($sub) use ($storeId) {
+                             $sub->selectRaw('1')
+                                 ->from('order_products as op_bc')
+                                 ->whereColumn('op_bc.order_id', 'bc.parent_order_id')
+                                 ->whereNull('op_bc.deleted_at')
+                                 ->where(function ($s) use ($storeId) {
+                                     $s->where('op_bc.delivery_store_id', $storeId)
+                                       ->orWhere('op_bc.pickup_store_id', $storeId);
+                                 });
+                         });
+                  });
+            });
+        }
+
+        if (!empty($filters['payment_method']) && $filters['payment_method'] !== 'All Methods') {
+            // Billing Engine charges are not method-filterable in Phase 1 — no payment_method
+            // column on billing_charges. Skip non-matching method filters; include for 'Card'
+            // and 'Account' since extensions are typically charged by card.
+            // Return empty for COD / Cheque / Cash / Other filters (billing charges are not these).
+            $skipMethods = ['COD', 'Cheque', 'Cash', 'Other', 'Online'];
+            if (in_array($filters['payment_method'], $skipMethods)) {
+                return collect();
+            }
+        }
+
+        return $query
+            ->select(
+                'bc.unique_id',
+                'bc.billing_charge_type',
+                'bc.amount',
+                'bc.tax_amount',
+                'bc.paid_at',
+                'o.order_number',
+                'o.unique_id as order_unique_id',
+                DB::raw("CONCAT_WS(' ', c.first_name, c.last_name) AS customer_name")
+            )
+            ->get()
+            ->map(function ($row) {
+                $amount     = (float) ($row->amount     ?? 0);
+                $taxAmount  = (float) ($row->tax_amount ?? 0);
+                $grandTotal = $amount + $taxAmount;
+
+                $typeLabel = match ($row->billing_charge_type) {
+                    'extension'      => 'Rental Extension',
+                    'fuel'           => 'Fuel Charge',
+                    'damage'         => 'Damage Charge',
+                    'cleaning'       => 'Cleaning Fee',
+                    'delivery'       => 'Delivery Fee',
+                    'misc'           => 'Miscellaneous',
+                    'service_ticket' => 'Service Ticket',
+                    default          => ucfirst($row->billing_charge_type ?? 'Charge'),
+                };
+
+                $link = $row->order_unique_id
+                    ? '<a href="' . route('admin.order-management.orders.edit', $row->order_unique_id) . '" class="text-brand-500 underline font-bold">View Order</a>'
+                    : '-';
+
+                return (object) [
+                    'type'            => 'billing',
+                    'unique_id'       => $row->unique_id ?? '-',
+                    'link'            => $link,
+                    'date'            => $row->paid_at,
+                    'customer_name'   => $row->customer_name ?: '-',
+                    'products'        => $typeLabel . ($row->order_number ? ' — ' . $row->order_number : ''),
+                    'payment_type'    => 'Billing Engine',
+                    'subtotal'        => $amount,
+                    'tax_amount'      => $taxAmount,
+                    'discount_amount' => 0.0,
+                    'grand_total'     => $grandTotal,
+                ];
+            });
     }
 
     // ─── Public Helper ────────────────────────────────────────────────────────

@@ -39,10 +39,13 @@ class IndexController extends Controller
             // Stream B is independent: a June refund on a May order appears
             // in June's report, not May's.
 
-            // Merge all three streams before any filtering so KPIs see the full dataset.
+            // Merge all four streams before any filtering so KPIs see the full dataset.
+            // Stream D (billingRows) adds Billing Engine revenue not already in A or C:
+            // extension charges and mobile-originated damage charges (customer_account_id IS NULL).
             $allRows = $this->engine->salesRows($filters)
                 ->concat($this->engine->refundRows($filters))
                 ->concat($this->engine->accountRows($filters))
+                ->concat($this->engine->billingRows($filters))
                 ->sortByDesc(fn($row) => $row->date)
                 ->values();
 

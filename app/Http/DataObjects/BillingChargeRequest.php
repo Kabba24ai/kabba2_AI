@@ -111,6 +111,13 @@ final class BillingChargeRequest
          *   "mobile_checklist:42:fuel:1/4"
          */
         public readonly ?string $idempotencyKey = null,
+
+        /**
+         * FK → stores.id — the store this charge is associated with.
+         * Populated at creation from the parent order's order_products.delivery_store_id.
+         * Required for store-filtered reporting. Null when store cannot be reliably determined.
+         */
+        public readonly ?int $storeId = null,
     ) {}
 
     /**

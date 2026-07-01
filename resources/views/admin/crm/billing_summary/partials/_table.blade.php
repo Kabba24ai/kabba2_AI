@@ -159,13 +159,7 @@
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-700">
 
-                                    {{ \App\Helpers\CustomHelper::formatCurrency(
-                                        optional($customer->last_payment)->amount +
-                                            optional($customer->last_payment)->amount * (optional($customer->last_payment)->sales_tax ?? 0),
-                                    ) }}
-
-
-                                    <!-- {{ \App\Helpers\CustomHelper::formatCurrency(optional($customer->last_payment)->amount) }}  -->
+                                    {{ \App\Helpers\CustomHelper::formatCurrency(optional($customer->last_payment)->amount) }}
 
 
                                 </div>

@@ -31,6 +31,7 @@ class IndexController extends BaseController
         $paymentMethod = $validatedData['payment_method'] ?? null;
         $search = $validatedData['search'] ?? null;
         $categoryId = $validatedData['category_id'] ?? null;
+        $orderIDSearch = $validatedData['orderIDSearch'] ?? null;
 
         $orders = Order::query()
             ->with('shippingAddress', 'billingAddress', 'licenseMedia', 'products.product', 'lastPayment', 'notes', 'products.deliveryMedia', 'products.pickupMedia', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.deliveryStore', 'products.pickupStore', 'products.softEquipment')
@@ -45,6 +46,7 @@ class IndexController extends BaseController
                     $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$search}%"]);
                 });
             })
+            ->when($orderIDSearch, fn($query) => $query->where('id', (int) $orderIDSearch))
             ->when(
                 $categoryId,
                 fn($query) => $query->whereHas('products.product.categories', function ($q) use ($categoryId) {

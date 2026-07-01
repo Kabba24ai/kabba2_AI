@@ -1,101 +1,74 @@
 {{-- ============================================================
-     Section: Featured Rental Categories
-     8 category cards — 4 col desktop · 2 col tablet · 1 col mobile
-     Gradient placeholders swap for real <img> when images are ready.
-     When connecting to DB, replace $categories with controller data.
+     Section: Featured Rentals
+     Horizontal cards — image LEFT · title CENTER · chevron RIGHT
+     Desktop: 4 cols · Tablet: 2 cols · Mobile: 1 col
+     Dynamic via $category_tree (ProductCategory)
 ============================================================ --}}
 
-@php
-    /**
-     * Placeholder data — replace with controller-passed $category_tree when ready.
-     * Each 'gradient' value must be a full Tailwind class string so JIT compiles it.
-     */
-    $categories = [
-        ['title' => 'Skid Steer Loaders', 'gradient' => 'from-slate-500 to-slate-800',   'slug' => 'skid-steer-loaders'],
-        ['title' => 'Excavators',          'gradient' => 'from-stone-500 to-stone-800',   'slug' => 'excavators'],
-        ['title' => 'Mini Skids',          'gradient' => 'from-zinc-500 to-zinc-700',     'slug' => 'mini-skids'],
-        ['title' => 'Bulldozers',          'gradient' => 'from-amber-500 to-amber-800',   'slug' => 'bulldozers'],
-        ['title' => 'Backhoes',            'gradient' => 'from-orange-500 to-orange-800', 'slug' => 'backhoes'],
-        ['title' => 'Rollers',             'gradient' => 'from-green-600 to-green-900',   'slug' => 'rollers'],
-        ['title' => 'Telehandlers',        'gradient' => 'from-blue-500 to-blue-800',     'slug' => 'telehandlers'],
-        ['title' => 'Boom Lifts',          'gradient' => 'from-sky-500 to-sky-800',       'slug' => 'boom-lifts'],
-    ];
-@endphp
-
-<section id="home-v2-featured-categories" class="bg-white pt-14 pb-16 md:pt-16 md:pb-20 lg:pt-20 lg:pb-24">
+<section id="home-v2-featured-categories" class="bg-white py-10 md:py-12 lg:py-14">
     <div class="container mx-auto px-4 md:px-6 lg:px-8">
 
-        {{-- ── Section header ──────────────────────────────────────── --}}
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8 md:mb-10 lg:mb-12">
-
-            <div>
-                <p class="text-xs font-semibold text-yellow-500 uppercase tracking-widest mb-2">
-                    Browse by Category
-                </p>
-                <h2 class="text-2xl md:text-3xl lg:text-4xl font-black text-gray-900 uppercase leading-tight">
-                    Featured Rental Categories
-                </h2>
-            </div>
-
-            <a
-                href="#"
-                class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500
-                       hover:text-yellow-500 transition-colors shrink-0 group"
-            >
-                View All Equipment
-                <x-heroicon-o-arrow-right class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-            </a>
-
+        {{-- ── Section header: ─── FEATURED RENTALS ─── ──────────── --}}
+        <div class="flex items-center justify-center gap-4 md:gap-6 mb-7 md:mb-9">
+            <div class="w-30 h-px bg-gray-300"></div>
+            <h2 class="mt-1 text-lg md:text-2xl font-semibold tracking-wide leading-none uppercase">
+                Featured Rentals
+            </h2>
+            <div class="w-30 h-px bg-gray-300"></div>
         </div>
 
         {{-- ── Category grid ───────────────────────────────────────── --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 lg:gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
 
-            @foreach ($categories as $category)
+            @foreach ($category_tree as $category)
 
-                {{-- ── Category card ───────────────────────────────── --}}
                 <a
-                    href="#"
-                    class="relative block overflow-hidden rounded-xl aspect-[4/3] group
-                           focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2"
-                    aria-label="Browse {{ $category['title'] }}"
+                    href="{{ route('front.categories.index', $category->slug) }}"
+                    class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white
+                           hover:border-yellow-400 hover:shadow-md transition-all duration-300 group"
                 >
 
-                    {{-- Placeholder background gradient
-                         ── Swap for a real image when ready:
-                            <img src="{{ asset('...') }}"
-                                 class="absolute inset-0 w-full h-full object-cover
-                                        group-hover:scale-110 transition-transform duration-500 ease-in-out"
-                                 alt="{{ $category['title'] }}">
-                    --}}
-                    <div class="absolute inset-0 bg-gradient-to-br {{ $category['gradient'] }}
-                                group-hover:scale-110 transition-transform duration-500 ease-in-out">
+                    {{-- Equipment image ─────────────────────────────── --}}
+                    <div class="relative shrink-0 w-28 h-20 bg-white flex items-center justify-center overflow-hidden">
+
+                        {{-- Default image --}}
+                        <img
+                            src="{{ $category->image_url }}"
+                            alt="{{ $category->title }}"
+                            class="absolute inset-0 w-full h-full object-contain p-1
+                                   transition-opacity duration-400 ease-in-out
+                                   group-hover:opacity-0"
+                            loading="lazy"
+                        >
+
+                        {{-- Hover image --}}
+                        <img
+                            src="{{ $category->hover_image_url }}"
+                            alt="{{ $category->title }}"
+                            class="absolute inset-0 w-full h-full object-contain p-1
+                                   opacity-0 transition-opacity duration-400 ease-in-out
+                                   group-hover:opacity-100"
+                            loading="lazy"
+                        >
+
                     </div>
 
-                    {{-- Bottom fade for text legibility --}}
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"></div>
+                    {{-- Divider line --}}
+                    <div class="self-stretch w-px bg-gray-200 shrink-0"></div>
 
-                    {{-- Subtle brightness on hover --}}
-                    <div class="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300"></div>
-
-                    {{-- Card footer: title + arrow ──────────────────── --}}
-                    <div class="absolute bottom-0 left-0 right-0 flex items-center justify-between p-5 md:p-5">
-
-                        <h3 class="text-white font-bold text-base leading-snug pr-3">
-                            {{ $category['title'] }}
+                    {{-- Title ──────────────────────────────────────── --}}
+                    <div class="flex-1 px-4 py-3 min-w-0">
+                        <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wide leading-snug">
+                            {{ $category->title }}
                         </h3>
+                    </div>
 
-                        <span
-                            class="shrink-0 flex items-center justify-center w-9 h-9 rounded-full
-                                   bg-yellow-400 group-hover:bg-yellow-500 transition-colors duration-300"
-                            aria-hidden="true"
-                        >
-                            <x-heroicon-o-arrow-right
-                                class="w-4 h-4 text-white
-                                       group-hover:translate-x-0.5 transition-transform duration-300"
-                            />
-                        </span>
-
+                    {{-- Chevron ─────────────────────────────────────── --}}
+                    <div class="pr-3 shrink-0">
+                        <x-heroicon-o-chevron-right
+                            class="w-4 h-4 text-gray-900 group-hover:text-yellow-500
+                                   group-hover:translate-x-0.5 transition-all duration-300"
+                        />
                     </div>
 
                 </a>

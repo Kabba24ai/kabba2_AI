@@ -58,13 +58,11 @@ class IndexController extends BaseController
             ->paginate($perPage);
 
         if ($orders->isEmpty()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.orders.no_orders_found'),
-                ],
-                JsonResponse::HTTP_NOT_FOUND,
-            );
+            return response()->json([
+                'success' => true,
+                'message' => trans('messages.api.admin.v1.orders.no_orders_found'),
+                'orders'  => [],
+            ], JsonResponse::HTTP_OK);
         }
 
         $orders->getCollection()->transform(function ($order) {

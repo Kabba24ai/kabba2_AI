@@ -8,7 +8,7 @@
 
     <div class="container mx-auto px-0">
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 lg:grid-cols-3">
 
             {{-- ── Block 1: Well Maintained Equipment ─────────────── --}}
             <div class="relative bg-[#171636] flex items-center gap-4 px-6 py-5 lg:px-8 lg:py-6">

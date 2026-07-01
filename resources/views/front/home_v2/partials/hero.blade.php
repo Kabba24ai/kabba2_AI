@@ -6,7 +6,7 @@
 ============================================================ --}}
 
 <section id="home-v2-hero"
-         class="relative h-[220px] md:h-[260px] lg:h-[450px] overflow-hidden">
+         class="relative h-72 md:h-80 lg:h-[450px] overflow-hidden">
 
     {{-- Background image --}}
     <img
@@ -20,10 +20,11 @@
     <div class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-black/10"></div>
 
     {{-- Content: vertically centered --}}
-    <div class="relative z-10 h-full container mx-auto px-6 lg:px-8 flex items-center">
+    <div class="relative z-10 h-full container mx-auto px-4 sm:px-6 lg:px-8
+                flex items-end pb-12 md:pb-16 lg:items-center lg:pb-0">
         <div class="w-full max-w-[620px]">
 
-            <h1 class="pt-[55px] text-[28px] sm:text-[36px] lg:text-[35px]
+            <h1 class="text-[28px] sm:text-[36px] lg:text-[35px]
                        font-semibold text-white uppercase leading-[0.95] tracking-tight">
                 The Right Equipment.<br>
                 The Right Support.

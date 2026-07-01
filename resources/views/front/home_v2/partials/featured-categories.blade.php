@@ -10,11 +10,11 @@
 
         {{-- ── Section header: ─── FEATURED RENTALS ─── ──────────── --}}
         <div class="flex items-center justify-center gap-4 md:gap-6 mb-7 md:mb-9">
-            <div class="w-30 h-px bg-gray-300"></div>
+            <div class="w-24 h-px bg-gray-300"></div>
             <h2 class="mt-1 text-lg md:text-2xl font-semibold tracking-wide leading-none uppercase">
                 Featured Rentals
             </h2>
-            <div class="w-30 h-px bg-gray-300"></div>
+            <div class="w-24 h-px bg-gray-300"></div>
         </div>
 
         {{-- ── Category grid ───────────────────────────────────────── --}}

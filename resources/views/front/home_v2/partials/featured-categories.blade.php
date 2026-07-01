@@ -42,13 +42,13 @@
                 >
 
                     {{-- ── Image area ───────────────────────────────── --}}
-                    <div class="relative w-full aspect-[4/3] bg-white overflow-hidden">
+                    <div class="relative w-full aspect-square bg-white overflow-hidden">
 
                         {{-- Default image (fades out on hover) --}}
                         <img
                             src="{{ $category->image_url }}"
                             alt="{{ $category->title }}"
-                            class="absolute inset-0 w-full h-full object-contain
+                            class="absolute inset-0 w-full h-full object-cover
                                    transition-opacity duration-500 ease-in-out
                                    group-hover:opacity-0"
                             loading="lazy"
@@ -58,7 +58,7 @@
                         <img
                             src="{{ $category->hover_image_url }}"
                             alt="{{ $category->title }} hover"
-                            class="absolute inset-0 w-full h-full object-contain
+                            class="absolute inset-0 w-full h-full object-cover
                                    opacity-0 transition-opacity duration-500 ease-in-out
                                    group-hover:opacity-100"
                             loading="lazy"

@@ -121,6 +121,14 @@ class StoreController extends Controller
 
             // ── Billing Engine bridge (Phase 5B) ───────────────────────────
             try {
+                // Derive the store from the parent order's first product so billing
+                // charges can participate in store-filtered reports without a join.
+                $storeId = \DB::table('order_products')
+                    ->where('order_id', $order->id)
+                    ->whereNotNull('delivery_store_id')
+                    ->whereNull('deleted_at')
+                    ->value('delivery_store_id');
+
                 BillingEngine::charge(new BillingChargeRequest(
                     type:                BillingChargeType::Extension->value,
                     orderId:             $order->id,
@@ -149,6 +157,7 @@ class StoreController extends Controller
                     childOrderId:      $extension->id,
                     customerAccountId: null,  // extensions do not create a CustomerAccount row
                     taxAmount:         $taxAmount > 0 ? $taxAmount : null,
+                    storeId:           $storeId ? (int) $storeId : null,
                 ));
             } catch (\Throwable $e) {
                 Log::channel('billing_engine')->error(

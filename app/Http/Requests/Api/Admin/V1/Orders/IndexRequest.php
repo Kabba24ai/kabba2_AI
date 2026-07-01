@@ -23,6 +23,7 @@ class IndexRequest extends ApiBaseFormRequest
             'search' => 'nullable|string|max:255', // Optional search parameter
             'category_id' => 'nullable|integer|exists:product_categories,id',
             'payment_method' => 'nullable|string|in:All,'. implode(',', OrderPaymentMethod::getValues()), // Enum validation for media type
+            'orderIDSearch' => 'nullable|integer|min:1',
 
         ];
     }
@@ -64,6 +65,11 @@ class IndexRequest extends ApiBaseFormRequest
                 'description' => 'The payment method to filter orders.',
                 'example' => 'All',
                 'type' => 'string',
+            ],
+            'orderIDSearch' => [
+                'description' => 'Search orders by order ID (partial match supported).',
+                'example' => '188',
+                'type' => 'integer',
             ],
         ];
     }

@@ -15,7 +15,10 @@ class IndexRequest extends ApiBaseFormRequest
     public function rules(): array
     {
         return [
-            'type' => 'nullable|string|in:RentalReady,Checklist',
+            'type'               => 'nullable|string|in:RentalReady,Checklist',
+            'search'             => 'nullable|string|max:255',
+            'search_by_id'       => 'nullable|string|max:255',
+            'currently_assigned' => 'nullable|in:0,1',
         ];
     }
 
@@ -32,6 +35,22 @@ class IndexRequest extends ApiBaseFormRequest
                 'example' => 'RentalReady',
                 'type' => 'string',
                 'enum' => ['RentalReady', 'Checklist'],
+            ],
+            'search' => [
+                'description' => 'Search by equipment name, model, or serial number.',
+                'example' => 'Vermeer',
+                'type' => 'string',
+            ],
+            'search_by_id' => [
+                'description' => 'Search by equipment ID (e.g. VER-WC-2).',
+                'example' => 'VER-WC-2',
+                'type' => 'string',
+            ],
+            'currently_assigned' => [
+                'description' => 'Sort by assignment priority (1 = on, 0 = off). Defaults to 1.',
+                'example' => '1',
+                'type' => 'string',
+                'enum' => ['0', '1'],
             ],
         ];
     }

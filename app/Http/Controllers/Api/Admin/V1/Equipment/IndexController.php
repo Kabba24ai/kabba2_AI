@@ -36,10 +36,94 @@ class IndexController extends BaseController
             $order = ['damaged', 'maintenance', 'rented', 'available'];
         }
 
-        $equipment = Equipment::with(['store', 'productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer', 'softAssignments','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category', 'orderProduct.equipmentRentalReadyTemplate.checklistQuestions'])
-            ->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')") // order by current_status based on the defined order
-            ->orderBy('equipment_name', 'ASC')
-            ->get();
+        $search            = $validated['search'] ?? null;
+        $searchById        = $validated['search_by_id'] ?? null;
+        $currentlyAssigned = isset($validated['currently_assigned'])
+                                ? ($validated['currently_assigned'] !== '0')
+                                : null; // null = not sent, use original FIELD sort
+
+        $query = Equipment::with(['store', 'productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer', 'softAssignments','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category', 'orderProduct.equipmentRentalReadyTemplate.checklistQuestions']);
+
+        // ── Filter: search by name / model / serial number ───────────────────
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('equipment_name', 'like', "%{$search}%")
+                  ->orWhere('model', 'like', "%{$search}%")
+                  ->orWhere('serial_number', 'like', "%{$search}%");
+            });
+        }
+
+        // ── Filter: search by Equipment ID ───────────────────────────────────
+        if ($searchById) {
+            $query->where('equipment_id', 'like', "%{$searchById}%");
+        }
+
+        // ── Sort order ───────────────────────────────────────────────────────
+        if ($currentlyAssigned === true) {
+            // 6-tier revenue-protection priority (same as web checklist page):
+            //  1. Currently Assigned + Maint. Hold
+            //  2. Currently Assigned + Damaged
+            //  3. Damaged  (no pending order)
+            //  4. Maint. Hold (no pending order)
+            //  5. Rented
+            //  6. Available
+            $query->orderByRaw("CASE
+                WHEN (
+                    EXISTS (
+                        SELECT 1 FROM order_products _chk
+                        WHERE _chk.equipment_id = equipment.id
+                          AND (_chk.delivery_status = 'Pending' OR _chk.pickup_status = 'Pending')
+                    ) OR EXISTS (
+                        SELECT 1 FROM equipment_soft_assigns _csa
+                        INNER JOIN order_products _cop ON _cop.id = _csa.order_product_id
+                        WHERE _csa.equipment_id = equipment.id
+                          AND (_cop.delivery_status = 'Pending' OR _cop.pickup_status = 'Pending')
+                    )
+                ) AND current_status = 'maintenance' THEN 1
+                WHEN (
+                    EXISTS (
+                        SELECT 1 FROM order_products _chk
+                        WHERE _chk.equipment_id = equipment.id
+                          AND (_chk.delivery_status = 'Pending' OR _chk.pickup_status = 'Pending')
+                    ) OR EXISTS (
+                        SELECT 1 FROM equipment_soft_assigns _csa
+                        INNER JOIN order_products _cop ON _cop.id = _csa.order_product_id
+                        WHERE _csa.equipment_id = equipment.id
+                          AND (_cop.delivery_status = 'Pending' OR _cop.pickup_status = 'Pending')
+                    )
+                ) AND current_status = 'damaged' THEN 2
+                WHEN current_status = 'damaged'     THEN 3
+                WHEN current_status = 'maintenance' THEN 4
+                WHEN current_status = 'rented'      THEN 5
+                WHEN current_status = 'available'   THEN 6
+                ELSE 7
+            END ASC")
+            ->orderByRaw("(
+                SELECT MIN(CASE
+                    WHEN _op3.delivery_status = 'Pending' THEN _op3.delivery_date
+                    WHEN _op3.pickup_status   = 'Pending' THEN _op3.pickup_date
+                END)
+                FROM order_products _op3
+                WHERE _op3.equipment_id = equipment.id
+                  AND (_op3.delivery_status = 'Pending' OR _op3.pickup_status = 'Pending')
+            ) IS NULL ASC")
+            ->orderByRaw("(
+                SELECT MIN(CASE
+                    WHEN _op3.delivery_status = 'Pending' THEN _op3.delivery_date
+                    WHEN _op3.pickup_status   = 'Pending' THEN _op3.pickup_date
+                END)
+                FROM order_products _op3
+                WHERE _op3.equipment_id = equipment.id
+                  AND (_op3.delivery_status = 'Pending' OR _op3.pickup_status = 'Pending')
+            ) ASC")
+            ->orderBy('equipment_name', 'ASC');
+        } else {
+            // Original sort — unchanged
+            $query->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')")
+                  ->orderBy('equipment_name', 'ASC');
+        }
+
+        $equipment = $query->get();
 
 
         $equipment->map(function($item) {

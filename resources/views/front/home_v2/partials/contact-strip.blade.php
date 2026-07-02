@@ -25,10 +25,10 @@
         </div>
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-gray-100">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 bg-gray-100 gap-px">
 
                 {{-- ── Column 1: Main Sales Line ──────────────────────── --}}
-                <div class="bg-white px-5 py-5 sm:py-7 lg:px-8 lg:py-8 flex items-start gap-4">
+                <div class="bg-white px-5 py-6 md:px-6 md:py-7 lg:px-8 lg:py-8 flex flex-col       sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
 
                     <div class="shrink-0 mt-0.5 w-11 h-11 rounded-full bg-[#1F1D4E] flex items-center justify-center">
                         <x-heroicon-s-phone class="w-5 h-5 text-white" />
@@ -52,7 +52,7 @@
                 </div>
 
                 {{-- ── Column 2: Store 1 ───────────────────────────────── --}}
-                <div class="bg-white px-5 py-5 sm:py-7 lg:px-8 lg:py-8 flex items-start gap-4">
+                <div class="bg-white px-5 py-6 md:px-6 md:py-7 lg:px-8 lg:py-8 flex flex-col       sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
 
                     <div class="shrink-0 mt-0.5 w-11 h-11 rounded-full bg-[#1F1D4E] flex items-center justify-center">
                         <x-heroicon-s-map-pin class="w-5 h-5 text-white" />
@@ -87,7 +87,7 @@
                 </div>
 
                 {{-- ── Column 3: Store 2 ───────────────────────────────── --}}
-                <div class="bg-white px-5 py-5 sm:py-7 lg:px-8 lg:py-8 flex items-start gap-4">
+                <div class="bg-white px-5 py-6 md:px-6 md:py-7 lg:px-8 lg:py-8 flex flex-col       sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
 
                     <div class="shrink-0 mt-0.5 w-11 h-11 rounded-full bg-[#1F1D4E] flex items-center justify-center">
                         <x-heroicon-s-map-pin class="w-5 h-5 text-white" />
@@ -122,7 +122,7 @@
                 </div>
 
                 {{-- ── Column 4: Search Equipment (CTA) ────────────────── --}}
-                <div class="bg-white px-5 py-5 sm:py-7 lg:px-8 lg:py-8 flex items-start gap-4">
+                <div class="bg-white px-5 py-6 md:px-6 md:py-7 lg:px-8 lg:py-8 flex flex-col       sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
 
                     <div class="shrink-0 mt-0.5 w-11 h-11 rounded-full bg-yellow-500 flex items-center justify-center">
                         <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-900" />

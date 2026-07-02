@@ -31,4 +31,7 @@ Route::prefix('website-management')
 
         // home_page
         require base_path('routes/admin/website_management/home_page/routes.php');
+
+        // home page builder
+        require base_path('routes/admin/website_management/home_page_builder/routes.php');
     });

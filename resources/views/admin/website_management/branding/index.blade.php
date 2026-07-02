@@ -32,8 +32,9 @@
             {{-- Branding Settings --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
                 @php
-                    $siteLogo = \App\Helpers\ConfigurationHelper::getBrandingLogo();
-                    $homeImage = \App\Helpers\ConfigurationHelper::getHomePageImage();
+                    $siteLogo    = \App\Helpers\ConfigurationHelper::getBrandingLogo();
+                    $siteFavicon = \App\Helpers\ConfigurationHelper::getBrandingFavicon();
+                    $homeImage   = \App\Helpers\ConfigurationHelper::getHomePageImage();
                 @endphp
                 {{-- Profile Section --}}
                 <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
@@ -45,7 +46,7 @@
                         {{-- Site Logo --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Upload Site Logo (Navbar & favicon)
+                                Upload Site Logo (Navbar)
                                 <span class="block text-red-600 text-xs mt-1">(Required Size: 64px x 64px)</span>
                             </label>
                             <div class="flex items-center space-x-4">
@@ -64,6 +65,31 @@
                                     ]) !!}
                             </div>
                             @error('site_logo')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        {{-- Site Favicon --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Upload Favicon (Browser Tab Icon)
+                                <span class="block text-red-600 text-xs mt-1">(Required Size: 64px x 64px)</span>
+                            </label>
+                            <div class="flex items-center space-x-4">
+                                @if (!empty($siteFavicon))
+                                    <img src="{{ $siteFavicon }}"
+                                        class="h-12 w-12 object-contain border rounded-md bg-gray-50 p-1">
+                                @endif
+                                {!! html()->file('site_favicon')->class([
+                                        'block w-full text-sm text-gray-500',
+                                        'file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0',
+                                        'file:text-sm file:font-semibold',
+                                        'file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100',
+                                        'border border-gray-300 rounded-md',
+                                    ])->attributes([
+                                        'accept' => 'image/*',
+                                    ]) !!}
+                            </div>
+                            @error('site_favicon')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

@@ -15,12 +15,16 @@ class CommonFrontDataHelper
         $contactUsSettings = self::contactUsSettings();
         $brandingSettings = self::brandingSettings();
 
-        $logo = \App\Helpers\ConfigurationHelper::getBrandingLogo();
+        $logo    = \App\Helpers\ConfigurationHelper::getBrandingLogo();
+        $favicon = \App\Helpers\ConfigurationHelper::getBrandingFavicon();
+        $hp      = app(\App\Services\Website\HomePageService::class)->getData();
         $data = [
             'frontCategoryTree' => $categoryTree,
             'contactUsSettings' => $contactUsSettings,
-            'brandingSettings' => $brandingSettings,
-            'logo'=> $logo,
+            'brandingSettings'  => $brandingSettings,
+            'logo'              => $logo,
+            'favicon'           => $favicon,
+            'footerHp'          => $hp->footer,
         ];
 
         view()->share($data);

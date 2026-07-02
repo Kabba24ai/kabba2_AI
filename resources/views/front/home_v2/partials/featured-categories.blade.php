@@ -14,7 +14,7 @@
             <h2 class="text-lg sm:text-xl md:text-2xl lg:text-[32px]
                        font-semibold uppercase tracking-wide leading-tight
                        text-center whitespace-nowrap">
-                Featured Rentals
+                {{ $hp->featuredRentals->title }}
             </h2>
             <div class="flex-1 max-w-[40px] sm:max-w-[80px] md:max-w-[100px] lg:max-w-[120px] h-px bg-gray-300"></div>
         </div>
@@ -22,7 +22,7 @@
         {{-- ── Category grid — same as live homepage ───────────────── --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
-            @foreach ($category_tree as $category)
+            @foreach ($featuredCategories as $category)
 
                 <div class="border py-5 px-5 md:px-1 lg:py-4 lg:px-4 rounded-lg text-center
                             shadow-[0_2px_5px_rgba(0,0,0,0.05)]

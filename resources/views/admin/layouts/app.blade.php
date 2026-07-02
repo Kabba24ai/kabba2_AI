@@ -10,8 +10,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!--Favicon icon-->
-
-    <link rel="shortcut icon" href="{{ asset('storage/admin/images/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ \App\Helpers\ConfigurationHelper::getBrandingFavicon() ?? asset('storage/admin/images/favicon.png') }}">
 
     <title>@yield('title', config('app.name')) | {{ config('app.name') }}</title>
 

@@ -100,6 +100,48 @@ class ConfigurationHelper
     }
 
 
+    public static function getBrandingFavicon(): ?string
+    {
+        $faviconId = self::getSettings('Website Management Branding', 'site_favicon');
+
+        if (empty($faviconId)) {
+            return null;
+        }
+
+        $media = \App\Models\Global\Media::find($faviconId);
+
+        return $media->url ?? null;
+    }
+
+
+    public static function getHpBuilderLogo(): ?string
+    {
+        $logoId = self::getSettings('Website Management Branding', 'hp_builder_logo');
+
+        if (empty($logoId)) {
+            return null;
+        }
+
+        $media = \App\Models\Global\Media::find($logoId);
+
+        return $media->url ?? null;
+    }
+
+
+    public static function getHpBuilderFavicon(): ?string
+    {
+        $faviconId = self::getSettings('Website Management Branding', 'hp_builder_favicon');
+
+        if (empty($faviconId)) {
+            return null;
+        }
+
+        $media = \App\Models\Global\Media::find($faviconId);
+
+        return $media->url ?? null;
+    }
+
+
     public static function getHomePageImage(): ?string
     {
         $imageId = self::getSettings('Website Management Branding', 'home_page_image');

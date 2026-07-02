@@ -30,7 +30,10 @@ class SaveRequest extends FormRequest
     {
         return [
 
-            'site_logo' => 'nullable|image|dimensions:width=64,height=64',
+            'site_logo'          => 'nullable|image|dimensions:width=64,height=64',
+            'site_favicon'       => 'nullable|image|dimensions:width=64,height=64',
+            'hp_builder_logo'    => 'nullable|image|dimensions:width=64,height=64',
+            'hp_builder_favicon' => 'nullable|image|dimensions:width=64,height=64',
 
             'site_name' => [
                 'nullable',
@@ -116,10 +119,16 @@ class SaveRequest extends FormRequest
     public function messages(): array
 {
     return [
-        'site_logo.dimensions' => 'The site logo must be exactly 64 x 64 pixels.',
-        'site_logo.image' => 'Please upload a valid site logo image file.',
+        'site_logo.dimensions'          => 'The site logo must be exactly 64 x 64 pixels.',
+        'site_logo.image'               => 'Please upload a valid site logo image file.',
+        'site_favicon.dimensions'       => 'The favicon must be exactly 64 x 64 pixels.',
+        'site_favicon.image'            => 'Please upload a valid favicon image file.',
+        'hp_builder_logo.dimensions'    => 'The home page logo must be exactly 64 x 64 pixels.',
+        'hp_builder_logo.image'         => 'Please upload a valid home page logo image file.',
+        'hp_builder_favicon.dimensions' => 'The home page favicon must be exactly 64 x 64 pixels.',
+        'hp_builder_favicon.image'      => 'Please upload a valid home page favicon image file.',
         'home_page_image.dimensions' => 'The home page image must be exactly 1900 × 430 pixels.',
-        'home_page_image.image' => 'Please upload a valid image file.',
+        'home_page_image.image'    => 'Please upload a valid image file.',
     ];
 }
 }

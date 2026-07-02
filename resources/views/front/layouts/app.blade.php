@@ -11,7 +11,7 @@
     <link rel="canonical" href="{{ url()->current() }}">
 
     <!-- Favicon icon-->
-    <link rel="shortcut icon" href="{{ $logo }}">
+    <link rel="shortcut icon" href="{{ $favicon ?? $logo }}">
 
     <title>@yield('title', config('app.name')) - {{ config('app.name') }}</title>
     @stack('meta')

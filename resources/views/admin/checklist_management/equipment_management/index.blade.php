@@ -68,14 +68,16 @@
                     <!-- Store Location filter -->
                     <div class="mb-4">
                         <label class="text-sm font-medium text-gray-700 mb-2 block">Store Location</label>
+                        {{-- Hidden span ensures Tailwind bundles active-store classes --}}
+                        <span class="hidden bg-green-100 text-green-800 border-green-300 text-gray-900"></span>
                         <div class="flex flex-wrap gap-2" id="storeFilterGroup">
                             <button type="button"
-                                class="store-filter-btn active px-3 py-1.5 rounded-full text-sm font-medium border transition-colors bg-gray-900 text-white border-gray-900"
-                                data-store-id="">All Stores</button>
+                                class="store-filter-btn px-3 py-1.5 rounded-full text-sm font-medium border transition-colors bg-gray-900 text-white border-gray-900"
+                                data-store-id="" data-store-type="all">All Stores</button>
                             @foreach($stores as $store)
                                 <button type="button"
                                     class="store-filter-btn px-3 py-1.5 rounded-full text-sm font-medium border transition-colors bg-white text-gray-700 border-gray-300 hover:border-gray-400"
-                                    data-store-id="{{ $store->id }}">{{ $store->store_name }}</button>
+                                    data-store-id="{{ $store->id }}" data-store-type="store">{{ $store->store_name }}</button>
                             @endforeach
                         </div>
                     </div>
@@ -439,19 +441,27 @@
             // Store location filter state
             let activeStoreId = '';
 
+            function setStoreFilterStyles() {
+                document.querySelectorAll('.store-filter-btn').forEach(btn => {
+                    const isActive = btn.dataset.storeId === activeStoreId;
+                    const base = 'store-filter-btn px-3 py-1.5 rounded-full text-sm font-medium border transition-colors';
+                    if (isActive) {
+                        if (btn.dataset.storeType === 'all') {
+                            btn.className = base + ' bg-gray-900 text-white border-gray-900';
+                        } else {
+                            btn.className = base + ' bg-green-100 text-green-800 border-green-300';
+                        }
+                    } else {
+                        btn.className = base + ' bg-white text-gray-900 border-gray-300 hover:border-gray-400';
+                    }
+                });
+            }
+
             document.getElementById('storeFilterGroup').addEventListener('click', function (e) {
                 const btn = e.target.closest('.store-filter-btn');
                 if (!btn) return;
                 activeStoreId = btn.dataset.storeId;
-                document.querySelectorAll('.store-filter-btn').forEach(b => {
-                    if (b === btn) {
-                        b.classList.add('bg-gray-900', 'text-white', 'border-gray-900');
-                        b.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
-                    } else {
-                        b.classList.remove('bg-gray-900', 'text-white', 'border-gray-900');
-                        b.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
-                    }
-                });
+                setStoreFilterStyles();
                 applyFilters();
             });
 
@@ -620,15 +630,7 @@
 
                     // Reset store location filter
                     activeStoreId = '';
-                    document.querySelectorAll('.store-filter-btn').forEach((btn, i) => {
-                        if (i === 0) {
-                            btn.classList.add('bg-gray-900', 'text-white', 'border-gray-900');
-                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
-                        } else {
-                            btn.classList.remove('bg-gray-900', 'text-white', 'border-gray-900');
-                            btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
-                        }
-                    });
+                    setStoreFilterStyles();
 
                     await applyFilters();
                 };

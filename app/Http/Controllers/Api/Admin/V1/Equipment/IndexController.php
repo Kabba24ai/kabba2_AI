@@ -37,30 +37,27 @@ class IndexController extends BaseController
         }
 
         $search            = $validated['search'] ?? null;
-        $searchById        = $validated['search_by_id'] ?? null;
+        // $searchById     = $validated['search_by_id'] ?? null;  // deprecated — merged into $search
+        $storeId           = $validated['store_id'] ?? null;
         $currentlyAssigned = isset($validated['currently_assigned'])
                                 ? ($validated['currently_assigned'] !== '0')
                                 : null; // null = not sent, use original FIELD sort
 
         $query = Equipment::with(['store', 'productCategory', 'orderProduct','checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category','orderProduct.checklistQuestions.answers', 'orderProduct.checklistQuestions.deliverySelectedAnswer', 'orderProduct.checklistQuestions.returnSelectedAnswer', 'softAssignments','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category', 'orderProduct.equipmentRentalReadyTemplate.checklistQuestions']);
 
-        // ── Filter: search by name / model / serial number ───────────────────
+        // ── Filter: search by name / model / serial number / equipment ID ────
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('equipment_name', 'like', "%{$search}%")
                   ->orWhere('model', 'like', "%{$search}%")
-                  ->orWhere('serial_number', 'like', "%{$search}%");
+                  ->orWhere('serial_number', 'like', "%{$search}%")
+                  ->orWhere('equipment_id', 'like', "%{$search}%");
             });
         }
 
-        // ── Filter: search by Equipment ID ───────────────────────────────────
-        if ($searchById) {
-            $query->where('equipment_id', 'like', "%{$searchById}%");
-        }
-
-        // ── Filter: store location ────────────────────────────────────────────
-        if (!empty($validated['store_id'])) {
-            $query->where('store_id', $validated['store_id']);
+        // ── Filter: store location (empty = all stores) ──────────────────────
+        if ($storeId) {
+            $query->where('store_id', $storeId);
         }
 
         // ── Sort order ───────────────────────────────────────────────────────

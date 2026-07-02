@@ -38,15 +38,11 @@ class IndexRequest extends ApiBaseFormRequest
                 'enum' => ['RentalReady', 'Checklist'],
             ],
             'search' => [
-                'description' => 'Search by equipment name, model, or serial number.',
+                'description' => 'Search by equipment name, model, serial number, or equipment ID (e.g. VER-WC-2). Replaces the deprecated search_by_id param.',
                 'example' => 'Vermeer',
                 'type' => 'string',
             ],
-            'search_by_id' => [
-                'description' => 'Search by equipment ID (e.g. VER-WC-2).',
-                'example' => 'VER-WC-2',
-                'type' => 'string',
-            ],
+            // 'search_by_id' deprecated — merged into 'search'
             'currently_assigned' => [
                 'description' => 'Sort by assignment priority (1 = on, 0 = off). Defaults to 1.',
                 'example' => '1',

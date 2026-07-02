@@ -10,17 +10,25 @@
     <img
         src="{{ asset('storage/front/images/banner.jpg') }}"
         alt="{{ $store->store_name }}"
-        class="absolute inset-0 w-full h-full object-cover mt-[60px] sm:mt-[70px] md:mt-[60px] lg:mt-0
+        class="absolute inset-0 w-full h-full object-cover
                object-[center_top] sm:object-[center_20%] md:object-[center_30%] lg:object-[center_-17%]"
         aria-hidden="true"
     >
 
     <div class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-black/10"></div>
 
-    <div class="relative z-10 h-full container mx-auto px-5 sm:px-6 lg:px-8 flex items-center pb-8 sm:pb-10 md:pb-12 lg:items-center lg:pb-0">
-        <div class="max-w-full sm:max-w-[520px] lg:max-w-[620px]">
+    <div class="relative z-10 h-full container mx-auto px-5 sm:px-6 lg:px-8 flex flex-col justify-center">
 
-            <p class="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-2">Store Location</p>
+        {{-- Breadcrumb --}}
+        <nav class="flex items-center gap-1.5 text-xs text-white/60 mb-3" aria-label="Breadcrumb">
+            <a href="{{ route('front.home_v2.index') }}" class="hover:text-white transition-colors">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+            <span class="text-white/80">{{ $store->store_name }}</span>
+        </nav>
+
+        <div class="max-w-full sm:max-w-[520px] lg:max-w-[620px]">
 
             <h1 class="text-[26px] leading-tight sm:text-[32px] md:text-[38px] lg:text-[34px] font-semibold uppercase text-white">
                 {{ $store->store_name }}

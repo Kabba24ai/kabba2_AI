@@ -12,12 +12,18 @@
     <div class="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-8">
 
         {{-- ── Section header: ─── FEATURED RENTALS ─── ──────────── --}}
-        <div class="flex items-center justify-center gap-4 md:gap-6 mb-7 md:mb-9">
-            <div class="w-24 h-px bg-gray-300"></div>
-            <h2 class="mt-1 text-lg md:text-2xl font-semibold tracking-wide leading-none uppercase">
+        <div class="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-10">
+
+            <div class="flex-1 max-w-[40px] sm:max-w-[80px] md:max-w-[100px] lg:max-w-[120px] h-px bg-gray-300"></div>
+
+            <h2 class="text-lg sm:text-xl md:text-2xl lg:text-[32px]
+                    font-semibold uppercase tracking-wide leading-tight
+                    text-center whitespace-nowrap">
                 Featured Rentals
             </h2>
-            <div class="w-24 h-px bg-gray-300"></div>
+
+            <div class="flex-1 max-w-[40px] sm:max-w-[80px] md:max-w-[100px] lg:max-w-[120px] h-px bg-gray-300"></div>
+
         </div>
 
         {{-- ── Category grid ───────────────────────────────────────── --}}

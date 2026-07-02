@@ -7,6 +7,7 @@ use App\Models\Iam\Personnel\User;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistCategory;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\ProductManagement\ProductCategory;
+use App\Models\Stores\Store;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -25,7 +26,7 @@ class IndexController extends Controller
         // $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0)->orderBy('equipment_name', 'asc')->paginate(5);
         // ->get();
 
-        $query = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'softAssignments.orderProduct', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
+        $query = Equipment::with(['store:id,store_name', 'productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'softAssignments.orderProduct', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
             ->where('not_for_rent', 0)
             ->selectRaw("equipment.*, (
                 CASE WHEN (
@@ -65,6 +66,10 @@ class IndexController extends Controller
             $query->whereHas('productCategory', function ($q) use ($request) {
                 $q->where('title', $request->category);
             });
+        }
+
+        if ($request->filled('store_id')) {
+            $query->where('store_id', $request->store_id);
         }
 
         if ($request->status && $request->status != 'All Statuses') {
@@ -163,6 +168,8 @@ class IndexController extends Controller
         $start = microtime(true);
 
         $categories = ProductCategory::getHierarchy();
+
+        $stores = Store::active()->orderByAdmin()->get(['id', 'store_name']);
 
         // logger('CATEGORY LOAD: ' . (microtime(true) - $start) . ' sec');
 
@@ -303,6 +310,7 @@ class IndexController extends Controller
             'users' => $users,
             'equipments' => $equipments,
             'categories' => $categories,
+            'stores' => $stores,
             'selectedEquipmentId' => $equipment,
             'selectedEquipmentName' => $selectedEquipment->equipment_name ?? null,
             'serviceRecords' => $serviceRecords,

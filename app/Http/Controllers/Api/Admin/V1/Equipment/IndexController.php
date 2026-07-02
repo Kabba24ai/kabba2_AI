@@ -58,6 +58,11 @@ class IndexController extends BaseController
             $query->where('equipment_id', 'like', "%{$searchById}%");
         }
 
+        // ── Filter: store location ────────────────────────────────────────────
+        if (!empty($validated['store_id'])) {
+            $query->where('store_id', $validated['store_id']);
+        }
+
         // ── Sort order ───────────────────────────────────────────────────────
         if ($currentlyAssigned === true) {
             // 6-tier revenue-protection priority (same as web checklist page):

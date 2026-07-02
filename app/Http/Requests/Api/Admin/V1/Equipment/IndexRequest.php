@@ -19,6 +19,7 @@ class IndexRequest extends ApiBaseFormRequest
             'search'             => 'nullable|string|max:255',
             'search_by_id'       => 'nullable|string|max:255',
             'currently_assigned' => 'nullable|in:0,1',
+            'store_id'           => 'nullable|integer|exists:stores,id',
         ];
     }
 
@@ -51,6 +52,11 @@ class IndexRequest extends ApiBaseFormRequest
                 'example' => '1',
                 'type' => 'string',
                 'enum' => ['0', '1'],
+            ],
+            'store_id' => [
+                'description' => 'Filter equipment by store location (stores.id).',
+                'example' => 1,
+                'type' => 'integer',
             ],
         ];
     }

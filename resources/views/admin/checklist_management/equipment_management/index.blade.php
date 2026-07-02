@@ -65,6 +65,21 @@
                         </div>
                     </div>
 
+                    <!-- Store Location filter -->
+                    <div class="mb-4">
+                        <label class="text-sm font-medium text-gray-700 mb-2 block">Store Location</label>
+                        <div class="flex flex-wrap gap-2" id="storeFilterGroup">
+                            <button type="button"
+                                class="store-filter-btn active px-3 py-1.5 rounded-full text-sm font-medium border transition-colors bg-gray-900 text-white border-gray-900"
+                                data-store-id="">All Stores</button>
+                            @foreach($stores as $store)
+                                <button type="button"
+                                    class="store-filter-btn px-3 py-1.5 rounded-full text-sm font-medium border transition-colors bg-white text-gray-700 border-gray-300 hover:border-gray-400"
+                                    data-store-id="{{ $store->id }}">{{ $store->store_name }}</button>
+                            @endforeach
+                        </div>
+                    </div>
+
                     <!-- Currently Assigned + Clear Filters row -->
                     <div class="mb-4 flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -421,11 +436,30 @@
 
             
 
+            // Store location filter state
+            let activeStoreId = '';
+
+            document.getElementById('storeFilterGroup').addEventListener('click', function (e) {
+                const btn = e.target.closest('.store-filter-btn');
+                if (!btn) return;
+                activeStoreId = btn.dataset.storeId;
+                document.querySelectorAll('.store-filter-btn').forEach(b => {
+                    if (b === btn) {
+                        b.classList.add('bg-gray-900', 'text-white', 'border-gray-900');
+                        b.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                    } else {
+                        b.classList.remove('bg-gray-900', 'text-white', 'border-gray-900');
+                        b.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                    }
+                });
+                applyFilters();
+            });
+
             const equipment = rawEquipment.map(eq => {
                 // Get service status icon and replace EQUIPMENT_ID placeholder
                 let serviceIcon = serviceStatusIcons[eq.service_status] || serviceStatusIcons.empty;
                 serviceIcon = serviceIcon.replace(/EQUIPMENT_ID/g, eq.unique_id);
-                
+
                 return {
                     id: eq.id,
                     unique_id: eq.unique_id,
@@ -448,7 +482,8 @@
                     customername: eq.order?.customer_name ?? ' ',
                     serviceStatus: eq.service_status,
                     serviceStatusIcon: serviceIcon,
-                    is_assigned: eq.is_assigned ?? 0
+                    is_assigned: eq.is_assigned ?? 0,
+                    store_name: eq.store?.store_name ?? null,
                 };
             });
 
@@ -513,7 +548,7 @@
                     const currentlyAssigned = document.getElementById("currentlyAssignedFilter").checked ? '1' : '0';
 
                     const response = await fetch(
-                        `?page=1&search=${search}&category=${category}&status=${status}&currently_assigned=${currentlyAssigned}`,
+                        `?page=1&search=${search}&category=${category}&status=${status}&currently_assigned=${currentlyAssigned}&store_id=${activeStoreId}`,
                         {
                             headers: {
                                 "X-Requested-With": "XMLHttpRequest"
@@ -553,7 +588,8 @@
                             customername: eq.order?.customer_name ?? ' ',
                             serviceStatus: eq.service_status,
                             serviceStatusIcon: serviceIcon,
-                            is_assigned: eq.is_assigned ?? 0
+                            is_assigned: eq.is_assigned ?? 0,
+                            store_name: eq.store?.store_name ?? null,
                         };
                     });
 
@@ -581,6 +617,18 @@
                     document.getElementById("categoryFilter").selectedIndex = 0;
                     document.getElementById("statusFilter").selectedIndex = 0;
                     document.getElementById("currentlyAssignedFilter").checked = true;
+
+                    // Reset store location filter
+                    activeStoreId = '';
+                    document.querySelectorAll('.store-filter-btn').forEach((btn, i) => {
+                        if (i === 0) {
+                            btn.classList.add('bg-gray-900', 'text-white', 'border-gray-900');
+                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                        } else {
+                            btn.classList.remove('bg-gray-900', 'text-white', 'border-gray-900');
+                            btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                        }
+                    });
 
                     await applyFilters();
                 };
@@ -668,6 +716,10 @@
                                     <div>
                                         <div class="font-medium text-gray-700">Equipment ID</div>
                                         <div>${eq.equipment_id}</div>
+                                        ${eq.store_name ? `<div class="flex items-center gap-1 mt-0.5 text-xs font-medium text-indigo-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+                                            ${eq.store_name}
+                                        </div>` : ''}
                                     </div>
 
                                     <div>
@@ -748,7 +800,7 @@
                     const status = document.getElementById("statusFilter").value;
                     const currentlyAssigned = document.getElementById("currentlyAssignedFilter").checked ? '1' : '0';
 
-                    const response = await fetch(`?page=${currentPage}&search=${search}&category=${category}&status=${status}&currently_assigned=${currentlyAssigned}`, {
+                    const response = await fetch(`?page=${currentPage}&search=${search}&category=${category}&status=${status}&currently_assigned=${currentlyAssigned}&store_id=${activeStoreId}`, {
                         headers: {
                             "X-Requested-With": "XMLHttpRequest"
                         }
@@ -782,7 +834,8 @@
                             customername: eq.order?.customer_name ?? ' ',
                             serviceStatus: eq.service_status,
                             serviceStatusIcon: serviceIcon,
-                            is_assigned: eq.is_assigned ?? 0
+                            is_assigned: eq.is_assigned ?? 0,
+                            store_name: eq.store?.store_name ?? null,
                         };
                     });
 

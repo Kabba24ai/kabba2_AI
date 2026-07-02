@@ -1,100 +1,72 @@
 {{-- ============================================================
      Section: Featured Rentals
-     Vertical cards — image TOP · title + chevron BOTTOM
-     Hover: image-swap opacity fade (identical to live homepage)
-     Desktop: 4 cols · Tablet: 2 cols · Mobile: 1 col
+     Exact same card layout as the live homepage (home/index.blade.php)
      Dynamic via $category_tree (ProductCategory)
 ============================================================ --}}
 
 <section id="home-v2-featured-categories" class="bg-white py-10 md:py-12 lg:py-14">
 
-    {{-- Wider container to give 4 large cards room to breathe --}}
     <div class="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-8">
 
-        {{-- ── Section header: ─── FEATURED RENTALS ─── ──────────── --}}
+        {{-- ── Section header ──────────────────────────────────────── --}}
         <div class="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-10">
-
             <div class="flex-1 max-w-[40px] sm:max-w-[80px] md:max-w-[100px] lg:max-w-[120px] h-px bg-gray-300"></div>
-
             <h2 class="text-lg sm:text-xl md:text-2xl lg:text-[32px]
-                    font-semibold uppercase tracking-wide leading-tight
-                    text-center whitespace-nowrap">
+                       font-semibold uppercase tracking-wide leading-tight
+                       text-center whitespace-nowrap">
                 Featured Rentals
             </h2>
-
             <div class="flex-1 max-w-[40px] sm:max-w-[80px] md:max-w-[100px] lg:max-w-[120px] h-px bg-gray-300"></div>
-
         </div>
 
-        {{-- ── Category grid ───────────────────────────────────────── --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+        {{-- ── Category grid — same as live homepage ───────────────── --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
             @foreach ($category_tree as $category)
 
-                {{-- ── Card ─────────────────────────────────────────── --}}
-                {{--
-                    Hover reused from live homepage (home/index.blade.php):
-                      • group on the card
-                      • default img: group-hover:opacity-0 · transition-opacity duration-500
-                      • hover  img: opacity-0 group-hover:opacity-100 · transition-opacity duration-500
-                      • card lift: hover:-translate-y-1 transition-transform duration-300
-                --}}
-                <a
-                    href="{{ route('front.categories.index', $category->slug) }}"
-                    class="block bg-white border border-gray-200 rounded-xl overflow-hidden
-                           shadow-[0_2px_5px_rgba(0,0,0,0.05)]
-                           transition-transform duration-300 hover:-translate-y-1 hover:shadow-md
-                           group"
-                >
+                <div class="border py-5 px-5 md:px-1 lg:py-4 lg:px-4 rounded-lg text-center
+                            shadow-[0_2px_5px_rgba(0,0,0,0.05)]
+                            transition-transform duration-300 hover:-translate-y-1">
 
-                    {{-- ── Image area ───────────────────────────────── --}}
-                    <div class="relative w-full aspect-square bg-white overflow-hidden">
+                    <a href="{{ route('front.categories.index', $category->slug) }}"
+                       class="transition-all duration-300 ease-in-out hover:text-black">
 
-                        {{-- Default image (fades out on hover) --}}
-                        <img
-                            src="{{ $category->image_url }}"
-                            alt="{{ $category->title }}"
-                            class="absolute inset-0 w-full h-full object-cover
-                                   transition-opacity duration-500 ease-in-out
-                                   group-hover:opacity-0"
-                            loading="lazy"
-                        >
+                        {{-- Image with hover swap --}}
+                        <div class="w-full relative group">
 
-                        {{-- Hover image (fades in on hover) --}}
-                        <img
-                            src="{{ $category->hover_image_url }}"
-                            alt="{{ $category->title }} hover"
-                            class="absolute inset-0 w-full h-full object-cover
-                                   opacity-0 transition-opacity duration-500 ease-in-out
-                                   group-hover:opacity-100"
-                            loading="lazy"
-                        >
+                            <img src="{{ $category->image_url }}"
+                                 alt="{{ $category->title }}"
+                                 class="mx-auto category-product rounded-md object-cover h-auto
+                                        transition-opacity duration-500 ease-in-out
+                                        group-hover:opacity-0"
+                                 loading="lazy" />
 
-                    </div>
+                            <img src="{{ $category->hover_image_url }}"
+                                 alt="{{ $category->title }} hover"
+                                 class="absolute inset-0 w-full h-full object-cover rounded-md
+                                        opacity-0 transition-opacity duration-500 ease-in-out
+                                        group-hover:opacity-100"
+                                 loading="lazy" />
 
-                    {{-- ── Card footer: title + chevron ─────────────── --}}
-                    <div class="border-t border-gray-100 px-5 py-4
-                                flex items-center justify-between gap-3">
+                        </div>
 
-                        <h3 class="font-bold text-sm text-gray-900 uppercase
-                                   tracking-wide leading-snug">
-                            {{ $category->title }}
-                        </h3>
+                        {{-- Title --}}
+                        <div>
+                            <h3 class="mt-4 font-bold text-base
+                                       transition-all duration-300 ease-in-out
+                                       hover:text-black underline">
+                                {{ $category->title }}
+                            </h3>
+                        </div>
 
-                        <x-heroicon-o-chevron-right
-                            class="w-4 h-4 shrink-0 text-gray-900
-                                   group-hover:text-yellow-500
-                                   group-hover:translate-x-0.5
-                                   transition-all duration-300"
-                        />
+                    </a>
 
-                    </div>
-
-                </a>
+                </div>
 
             @endforeach
 
         </div>
 
     </div>
+
 </section>

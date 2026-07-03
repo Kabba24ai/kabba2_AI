@@ -120,8 +120,13 @@ class IndexController extends BaseController
             ) ASC")
             ->orderBy('equipment_name', 'ASC');
         } else {
-            // Original sort — unchanged
-            $query->orderByRaw("FIELD(current_status, '" . implode("','", $order) . "')")
+            // Matches web controller exactly: maintenance → damaged → rented → available
+            $query->orderByRaw("CASE current_status
+                WHEN 'maintenance' THEN 1
+                WHEN 'damaged'     THEN 2
+                WHEN 'rented'      THEN 3
+                WHEN 'available'   THEN 4
+                ELSE 5 END")
                   ->orderBy('equipment_name', 'ASC');
         }
 

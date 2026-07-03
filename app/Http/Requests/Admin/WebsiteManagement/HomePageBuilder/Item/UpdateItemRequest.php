@@ -52,38 +52,6 @@ class UpdateItemRequest extends FormRequest
         $item       = $this->getItem();
         $sectionKey = $item?->section?->section_key;
 
-        if ($sectionKey === 'feature_strip') {
-            $validator->after(function ($v) use ($item) {
-                $order = $this->input('display_order');
-                if ($order === null || $order === '') {
-                    return;
-                }
-                $duplicate = WebsiteSectionItem::where('website_page_section_id', $item->website_page_section_id)
-                    ->where('display_order', (int) $order)
-                    ->where('id', '!=', $item->id)
-                    ->exists();
-                if ($duplicate) {
-                    $v->errors()->add('display_order', 'This display order is already used by another feature item.');
-                }
-            });
-        }
-
-        if ($sectionKey === 'footer') {
-            $validator->after(function ($v) use ($item) {
-                $order = $this->input('display_order');
-                if ($order === null || $order === '') {
-                    return;
-                }
-                $duplicate = WebsiteSectionItem::where('website_page_section_id', $item->website_page_section_id)
-                    ->where('item_key', $item->item_key)
-                    ->where('display_order', (int) $order)
-                    ->where('id', '!=', $item->id)
-                    ->exists();
-                if ($duplicate) {
-                    $v->errors()->add('display_order', 'Duplicate display order in this link group.');
-                }
-            });
-        }
     }
 
     // ── Contact Strip item rules ──────────────────────────────────────────
@@ -162,25 +130,22 @@ class UpdateItemRequest extends FormRequest
     private function featureStripItemRules(): array
     {
         return [
-            'title'         => ['required', 'string', 'max:255'],
-            'subtitle'      => ['nullable', 'string', 'max:255'],
-            'icon'          => ['nullable', 'string', 'max:100', Rule::in(self::featureStripIconSet())],
-            'display_order' => ['nullable', 'integer', 'min:0'],
-            'status'        => ['required', 'string', 'in:Active,Inactive'],
+            'title'    => ['required', 'string', 'max:255'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
+            'icon'     => ['nullable', 'string', 'max:100', Rule::in(self::featureStripIconSet())],
+            'status'   => ['required', 'string', 'in:Active,Inactive'],
         ];
     }
 
     private function featureStripItemMessages(): array
     {
         return [
-            'title.required'        => 'Feature title is required.',
-            'title.max'             => 'Feature title may not exceed 255 characters.',
-            'subtitle.max'          => 'Subtitle may not exceed 255 characters.',
-            'icon.in'               => 'Please select a valid icon.',
-            'display_order.integer' => 'Display order must be a valid number.',
-            'display_order.min'     => 'Display order must be 0 or greater.',
-            'status.required'       => 'Feature status is required.',
-            'status.in'             => 'Feature status must be Active or Inactive.',
+            'title.required'  => 'Feature title is required.',
+            'title.max'       => 'Feature title may not exceed 255 characters.',
+            'subtitle.max'    => 'Subtitle may not exceed 255 characters.',
+            'icon.in'         => 'Please select a valid icon.',
+            'status.required' => 'Feature status is required.',
+            'status.in'       => 'Feature status must be Active or Inactive.',
         ];
     }
 
@@ -213,33 +178,29 @@ class UpdateItemRequest extends FormRequest
     private function footerLinkRules(): array
     {
         return [
-            'title'         => ['required', 'string', 'max:255'],
-            'button_url'    => ['required', 'string', new FlexibleUrl(), 'max:500'],
-            'display_order' => ['nullable', 'integer', 'min:0'],
-            'status'        => ['required', 'string', 'in:Active,Inactive'],
+            'title'      => ['required', 'string', 'max:255'],
+            'button_url' => ['required', 'string', new FlexibleUrl(), 'max:500'],
+            'status'     => ['required', 'string', 'in:Active,Inactive'],
         ];
     }
 
     private function footerSocialRules(): array
     {
         return [
-            'button_url'    => ['required', 'string', new FlexibleUrl(), 'max:500'],
-            'icon'          => ['required', 'string', 'max:100', Rule::in(self::socialPlatformIconSet())],
-            'title'         => ['nullable', 'string', 'max:255'],
-            'display_order' => ['nullable', 'integer', 'min:0'],
-            'status'        => ['required', 'string', 'in:Active,Inactive'],
+            'button_url' => ['required', 'string', new FlexibleUrl(), 'max:500'],
+            'icon'       => ['required', 'string', 'max:100', Rule::in(self::socialPlatformIconSet())],
+            'title'      => ['nullable', 'string', 'max:255'],
+            'status'     => ['required', 'string', 'in:Active,Inactive'],
         ];
     }
 
     private function footerItemMessages(string $itemKey): array
     {
         $shared = [
-            'button_url.required'   => 'Please enter a valid footer URL.',
-            'button_url.max'        => 'URL may not exceed 500 characters.',
-            'display_order.integer' => 'Display order must be a valid number.',
-            'display_order.min'     => 'Display order must be 0 or greater.',
-            'status.required'       => 'Link status is required.',
-            'status.in'             => 'Status must be Active or Inactive.',
+            'button_url.required' => 'Please enter a valid footer URL.',
+            'button_url.max'      => 'URL may not exceed 500 characters.',
+            'status.required'     => 'Link status is required.',
+            'status.in'           => 'Status must be Active or Inactive.',
         ];
 
         if ($itemKey === 'social_link') {

@@ -114,12 +114,6 @@
                 @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Display Order</label>
-                {!! html()->number('display_order', old('display_order', $items->count() + 1))
-                    ->class('w-24 border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                @error('display_order') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-            </div>
         </div>
         <button type="submit"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
@@ -199,12 +193,6 @@
                                 @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
 
-                            <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Display Order</label>
-                                {!! html()->number('display_order', old('display_order', $item->display_order))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                                @error('display_order') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                            </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
                                 {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))

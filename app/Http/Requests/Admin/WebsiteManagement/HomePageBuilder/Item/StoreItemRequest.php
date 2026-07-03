@@ -72,47 +72,6 @@ class StoreItemRequest extends FormRequest
             });
         }
 
-        if ($key === 'feature_strip') {
-            $validator->after(function ($v) {
-                $order = $this->input('display_order');
-                if ($order === null || $order === '') {
-                    return;
-                }
-                $sectionId = WebsitePageSection::where('unique_id', $this->input('section_unique_id'))
-                    ->value('id');
-                if (!$sectionId) {
-                    return;
-                }
-                $duplicate = WebsiteSectionItem::where('website_page_section_id', $sectionId)
-                    ->where('display_order', (int) $order)
-                    ->exists();
-                if ($duplicate) {
-                    $v->errors()->add('display_order', 'This display order is already used by another feature item.');
-                }
-            });
-        }
-
-        if ($key === 'footer') {
-            $validator->after(function ($v) {
-                $order = $this->input('display_order');
-                if ($order === null || $order === '') {
-                    return;
-                }
-                $itemKey   = $this->input('item_key');
-                $sectionId = WebsitePageSection::where('unique_id', $this->input('section_unique_id'))
-                    ->value('id');
-                if (!$sectionId) {
-                    return;
-                }
-                $duplicate = WebsiteSectionItem::where('website_page_section_id', $sectionId)
-                    ->where('item_key', $itemKey)
-                    ->where('display_order', (int) $order)
-                    ->exists();
-                if ($duplicate) {
-                    $v->errors()->add('display_order', 'Duplicate display order in this link group.');
-                }
-            });
-        }
     }
 
     // ── Featured Rentals item rules ───────────────────────────────────────────
@@ -140,7 +99,6 @@ class StoreItemRequest extends FormRequest
             'title'             => ['required', 'string', 'max:255'],
             'subtitle'          => ['nullable', 'string', 'max:255'],
             'icon'              => ['nullable', 'string', 'max:100', Rule::in(self::featureStripIconSet())],
-            'display_order'     => ['nullable', 'integer', 'min:0'],
             'status'            => ['nullable', 'string', 'in:Active,Inactive'],
         ];
     }
@@ -148,12 +106,10 @@ class StoreItemRequest extends FormRequest
     private function featureStripItemMessages(): array
     {
         return [
-            'title.required'        => 'Feature title is required.',
-            'title.max'             => 'Feature title may not exceed 255 characters.',
-            'subtitle.max'          => 'Subtitle may not exceed 255 characters.',
-            'icon.in'               => 'Please select a valid icon.',
-            'display_order.integer' => 'Display order must be a valid number.',
-            'display_order.min'     => 'Display order must be 0 or greater.',
+            'title.required' => 'Feature title is required.',
+            'title.max'      => 'Feature title may not exceed 255 characters.',
+            'subtitle.max'   => 'Subtitle may not exceed 255 characters.',
+            'icon.in'        => 'Please select a valid icon.',
         ];
     }
 
@@ -181,7 +137,6 @@ class StoreItemRequest extends FormRequest
         $base = [
             'section_unique_id' => ['required', 'string', 'exists:website_page_sections,unique_id'],
             'item_key'          => ['required', 'string', 'in:quick_link,other_link,social_link'],
-            'display_order'     => ['nullable', 'integer', 'min:0'],
             'status'            => ['nullable', 'string', 'in:Active,Inactive'],
         ];
 
@@ -204,11 +159,10 @@ class StoreItemRequest extends FormRequest
         $itemKey = $this->input('item_key', '');
 
         $shared = [
-            'item_key.required'     => 'Link group is required.',
-            'item_key.in'           => 'Invalid link group.',
-            'button_url.required'   => 'Please enter a valid footer URL.',
-            'button_url.max'        => 'URL may not exceed 500 characters.',
-            'display_order.integer' => 'Display order must be a valid number.',
+            'item_key.required'   => 'Link group is required.',
+            'item_key.in'         => 'Invalid link group.',
+            'button_url.required' => 'Please enter a valid footer URL.',
+            'button_url.max'      => 'URL may not exceed 500 characters.',
         ];
 
         if ($itemKey === 'social_link') {

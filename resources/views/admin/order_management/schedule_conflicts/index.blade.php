@@ -14,6 +14,20 @@
         border-top: 1px solid rgb(229 231 235);
         transform: rotate(45deg);
     }
+
+    /* Grid View tiles */
+    .sc-tile {
+        cursor: pointer;
+        transition: box-shadow .15s ease, transform .1s ease;
+    }
+    .sc-tile:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+    }
+    .sc-tile.sc-tile-selected {
+        outline: 2px solid var(--sc-accent, #f59e0b);
+        outline-offset: 1px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+    }
 </style>
 @endpush
 
@@ -26,17 +40,33 @@
             Schedule Conflicts
         </h1>
 
-        @if($totalConflicts > 0)
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-red-100 text-red-700 border border-red-200">
-                <x-heroicon-o-exclamation-circle class="w-4 h-4" />
-                {{ $totalConflicts }} {{ Str::plural('conflict', $totalConflicts) }} found
-            </span>
-        @else
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-200">
-                <x-heroicon-o-check-circle class="w-4 h-4" />
-                No conflicts found
-            </span>
-        @endif
+        <div class="flex items-center gap-3">
+            @if($totalConflicts > 0)
+                {{-- View toggle: Grid (default) / List --}}
+                <div id="scViewToggle" class="inline-flex items-center rounded-lg bg-gray-100 p-1">
+                    <button type="button" data-sc-view="grid"
+                        class="sc-view-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition bg-white shadow-sm text-gray-900">
+                        <x-heroicon-o-squares-2x2 class="w-4 h-4" />
+                        Grid
+                    </button>
+                    <button type="button" data-sc-view="list"
+                        class="sc-view-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition text-gray-500">
+                        <x-heroicon-o-list-bullet class="w-4 h-4" />
+                        List
+                    </button>
+                </div>
+
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-red-100 text-red-700 border border-red-200">
+                    <x-heroicon-o-exclamation-circle class="w-4 h-4" />
+                    {{ $totalConflicts }} {{ Str::plural('conflict', $totalConflicts) }} found
+                </span>
+            @else
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-200">
+                    <x-heroicon-o-check-circle class="w-4 h-4" />
+                    No conflicts found
+                </span>
+            @endif
+        </div>
     </div>
 
     {{-- Filter bar --}}
@@ -104,9 +134,277 @@
         </div>
     @endif
 
+    {{-- ── Grid View (tile overview — click a tile to load its detail below) ── --}}
+    @if($totalConflicts > 0)
+    <div id="scGridView" class="mb-8 space-y-8">
+
+        {{-- Double Booking tiles --}}
+        @if(count($doubleBookings) > 0)
+        <div>
+            <div class="mb-3 flex items-center gap-2">
+                <x-heroicon-o-calendar-days class="w-5 h-5 text-orange-500" />
+                <h2 class="text-base font-semibold text-gray-800">Double Bookings</h2>
+                <span class="text-xs text-gray-400">(same equipment, overlapping rental dates)</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                @foreach($doubleBookings as $gIndex => $gConflict)
+                    @php
+                        $gEquipment = $gConflict['equipment'];
+                        $gStart     = $gConflict['overlap_start'];
+                        $gEnd       = $gConflict['overlap_end'];
+                    @endphp
+                    <button type="button" style="--sc-accent:#f97316"
+                        class="sc-tile text-left rounded-xl border border-orange-200 bg-orange-50/70 p-4"
+                        data-sc-key="db-{{ $gIndex }}">
+                        <span class="inline-flex items-center gap-1 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-full px-2.5 py-0.5">
+                            <x-heroicon-o-calendar class="w-3 h-3" />
+                            Overlap: {{ \App\Helpers\CustomHelper::formatDate($gStart) }}@if(!$gStart->isSameDay($gEnd)) – {{ \App\Helpers\CustomHelper::formatDate($gEnd) }}@endif
+                        </span>
+                        <div class="mt-2.5 flex items-center gap-1.5">
+                            <x-heroicon-o-wrench-screwdriver class="w-4 h-4 text-red-500 shrink-0" />
+                            <span class="font-semibold text-gray-900 text-sm truncate">{{ $gEquipment?->equipment_name ?? 'Unknown Equipment' }}</span>
+                        </div>
+                        @foreach([$gConflict['a'], $gConflict['b']] as $gOp)
+                            <div class="mt-3 border-t border-orange-200/70 pt-2.5">
+                                <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
+                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
+                                        {{ $gOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOp->delivery_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
+                                        {{ $gOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOp->pickup_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </button>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Back-to-Back tiles --}}
+        @if(count($backToBackAlerts) > 0)
+        <div>
+            <div class="mb-3 flex items-center gap-2">
+                <x-heroicon-o-arrows-right-left class="w-5 h-5 text-amber-500" />
+                <h2 class="text-base font-semibold text-gray-800">Back-to-Back Alerts</h2>
+                <span class="text-xs text-gray-400">(same equipment returning and going out on the same day — not a double booking)</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                @foreach($backToBackAlerts as $gIndex => $gConflict)
+                    @php
+                        $gEquipment = $gConflict['equipment'];
+                        $gStart     = $gConflict['overlap_start'];
+                    @endphp
+                    <button type="button" style="--sc-accent:#f59e0b"
+                        class="sc-tile text-left rounded-xl border border-amber-200 bg-amber-50/70 p-4"
+                        data-sc-key="b2b-{{ $gIndex }}">
+                        <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2.5 py-0.5">
+                            <x-heroicon-o-calendar class="w-3 h-3" />
+                            Back-to-Back: {{ \App\Helpers\CustomHelper::formatDate($gStart) }}
+                        </span>
+                        <div class="mt-2.5 flex items-center gap-1.5">
+                            <x-heroicon-o-arrows-right-left class="w-4 h-4 text-amber-500 shrink-0" />
+                            <span class="font-semibold text-gray-900 text-sm truncate">{{ $gEquipment?->equipment_name ?? 'Unknown Equipment' }}</span>
+                        </div>
+                        @foreach([$gConflict['a'], $gConflict['b']] as $gOp)
+                            <div class="mt-3 border-t border-amber-200/70 pt-2.5">
+                                <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
+                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
+                                        {{ $gOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOp->delivery_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
+                                        {{ $gOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOp->pickup_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </button>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Damaged Equipment tiles --}}
+        @if(count($damagedBookings) > 0)
+        <div>
+            <div class="mb-3 flex items-center gap-2">
+                <x-heroicon-o-wrench-screwdriver class="w-5 h-5 text-red-500" />
+                <h2 class="text-base font-semibold text-gray-800">Damaged Equipment</h2>
+                <span class="text-xs text-gray-400">(active orders assigned to equipment with Damaged status)</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                @foreach($damagedBookings as $gIndex => $gDamage)
+                    @php
+                        $gEquipment  = $gDamage['equipment'];
+                        $gExtraCount = $gDamage['orders']->count() - 2;
+                    @endphp
+                    <button type="button" style="--sc-accent:#ef4444"
+                        class="sc-tile text-left rounded-xl border border-red-200 bg-red-50/70 p-4"
+                        data-sc-key="dmg-{{ $gIndex }}">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white tracking-wide">DAMAGED</span>
+                        <div class="mt-2.5 flex items-center gap-1.5">
+                            <x-heroicon-o-wrench-screwdriver class="w-4 h-4 text-red-500 shrink-0" />
+                            <span class="font-semibold text-gray-900 text-sm truncate">{{ $gEquipment?->equipment_name ?? 'Unknown Equipment' }}</span>
+                        </div>
+                        @foreach($gDamage['orders']->take(2) as $gOp)
+                            <div class="mt-3 border-t border-red-200/70 pt-2.5">
+                                <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
+                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
+                                        {{ $gOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOp->delivery_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
+                                        {{ $gOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOp->pickup_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if($gExtraCount > 0)
+                            <div class="mt-2 text-xs text-gray-500">+{{ $gExtraCount }} more {{ Str::plural('order', $gExtraCount) }}</div>
+                        @endif
+                    </button>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Overdue Equipment tiles --}}
+        @if(count($overdueEquipmentConflicts) > 0)
+        <div>
+            <div class="mb-3 flex items-center gap-2">
+                <x-heroicon-o-clock class="w-5 h-5 text-amber-500" />
+                <h2 class="text-base font-semibold text-gray-800">Overdue Equipment</h2>
+                <span class="text-xs text-gray-400">(equipment past return date with a new order due within 3 days)</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                @foreach($overdueEquipmentConflicts as $gIndex => $gGroup)
+                    @php
+                        $gEquipment    = $gGroup['equipment'];
+                        $gDaysOverdue  = \Carbon\Carbon::parse($gGroup['overdue_orders']->min('pickup_date'))->diffInDays(\Carbon\Carbon::today());
+                        $gOverdueOp    = $gGroup['overdue_orders']->first();
+                        $gUpcomingOp   = $gGroup['upcoming_orders']->first();
+                        $gExtraCount   = ($gGroup['overdue_orders']->count() - 1) + ($gGroup['upcoming_orders']->count() - 1);
+                    @endphp
+                    <button type="button" style="--sc-accent:#f59e0b"
+                        class="sc-tile text-left rounded-xl border border-amber-200 bg-amber-50/70 p-4"
+                        data-sc-key="ovd-{{ $gIndex }}">
+                        <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2.5 py-0.5">
+                            <x-heroicon-o-clock class="w-3 h-3" />
+                            {{ $gDaysOverdue }} {{ Str::plural('day', $gDaysOverdue) }} overdue
+                        </span>
+                        <div class="mt-2.5 flex items-center gap-1.5">
+                            <x-heroicon-o-clock class="w-4 h-4 text-amber-500 shrink-0" />
+                            <span class="font-semibold text-gray-900 text-sm truncate">{{ $gEquipment?->equipment_name ?? 'Unknown Equipment' }}</span>
+                        </div>
+                        @if($gOverdueOp)
+                            <div class="mt-3 border-t border-amber-200/70 pt-2.5">
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200 tracking-wide shrink-0">OVERDUE</span>
+                                    <span class="text-sm font-medium text-gray-900 truncate">{{ $gOverdueOp->order?->customer_name ?? '-' }}</span>
+                                </div>
+                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
+                                        {{ $gOverdueOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOverdueOp->delivery_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-red-500" />
+                                        {{ $gOverdueOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOverdueOp->pickup_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
+                        @if($gUpcomingOp)
+                            <div class="mt-3 border-t border-amber-200/70 pt-2.5">
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 tracking-wide shrink-0">UPCOMING</span>
+                                    <span class="text-sm font-medium text-gray-900 truncate">{{ $gUpcomingOp->order?->customer_name ?? '-' }}</span>
+                                </div>
+                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
+                                        {{ $gUpcomingOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gUpcomingOp->delivery_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
+                                        {{ $gUpcomingOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gUpcomingOp->pickup_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
+                        @if($gExtraCount > 0)
+                            <div class="mt-2 text-xs text-gray-500">+{{ $gExtraCount }} more {{ Str::plural('order', $gExtraCount) }}</div>
+                        @endif
+                    </button>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- No Direct Assignment tiles --}}
+        @if(count($noDirectAssignmentGroups) > 0)
+        <div>
+            <div class="mb-3 flex items-center gap-2">
+                <x-heroicon-o-link-slash class="w-5 h-5 text-orange-500" />
+                <h2 class="text-base font-semibold text-gray-800">No Direct Assignment Defined</h2>
+                <span class="text-xs text-gray-400">(products with no equipment configured as a direct assignment)</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                @foreach($noDirectAssignmentGroups as $gIndex => $gGroup)
+                    @php
+                        $gExtraCount = $gGroup['orders']->count() - 2;
+                    @endphp
+                    <button type="button" style="--sc-accent:#f97316"
+                        class="sc-tile text-left rounded-xl border border-orange-200 bg-orange-50/70 p-4"
+                        data-sc-key="nda-{{ $gIndex }}">
+                        <span class="inline-flex items-center gap-1 text-xs font-medium text-orange-700 bg-orange-100 border border-orange-200 rounded-full px-2.5 py-0.5">
+                            No Direct Assignment
+                        </span>
+                        <div class="mt-2.5 flex items-center gap-1.5">
+                            <x-heroicon-o-link-slash class="w-4 h-4 text-orange-500 shrink-0" />
+                            <span class="font-semibold text-gray-900 text-sm truncate">{{ $gGroup['product_name'] }}</span>
+                        </div>
+                        @foreach($gGroup['orders']->take(2) as $gOp)
+                            <div class="mt-3 border-t border-orange-200/70 pt-2.5">
+                                <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
+                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
+                                        {{ $gOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOp->delivery_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
+                                        {{ $gOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOp->pickup_date, 'M d, y') : 'N/A' }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if($gExtraCount > 0)
+                            <div class="mt-2 text-xs text-gray-500">+{{ $gExtraCount }} more {{ Str::plural('order', $gExtraCount) }}</div>
+                        @endif
+                    </button>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+    </div>
+    @endif
+    {{-- ── End Grid View ── --}}
+
     {{-- Double Bookings section --}}
     @if(count($doubleBookings) > 0)
 
+    <div class="sc-section">
     <div class="mb-4 flex items-center gap-2">
         <x-heroicon-o-calendar-days class="w-5 h-5 text-orange-500" />
         <h2 class="text-base font-semibold text-gray-800">Double Bookings</h2>
@@ -145,7 +443,7 @@
                         @endphp
 
                         {{-- Conflict group header row --}}
-                        <tr class="bg-yellow-50 border-y border-yellow-200">
+                        <tr class="bg-yellow-50 border-y border-yellow-200" data-sc-key="db-{{ $loopIndex }}">
                             <td colspan="12" class="px-6 py-2.5">
                                 <div class="flex items-center justify-between gap-4">
                                     <div class="flex items-center gap-3 flex-wrap">
@@ -191,7 +489,7 @@
                             $deliveryIconColor = $op->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                             $pickupIconColor   = $op->pickup_status   === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                         @endphp
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50" data-sc-key="db-{{ $loopIndex }}">
 
                             {{-- Product --}}
                             <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
@@ -347,11 +645,13 @@
                 </tbody>
             </table>
         </div>
+    </div>
     @endif
 
     {{-- ── Back-to-Back Alerts section ───────────────────────────────────────── --}}
     @if(count($backToBackAlerts) > 0)
 
+    <div class="sc-section">
     <div class="mt-8 mb-4 flex items-center gap-2">
         <x-heroicon-o-arrows-right-left class="w-5 h-5 text-amber-500" />
         <h2 class="text-base font-semibold text-gray-800">Back-to-Back Alerts</h2>
@@ -389,7 +689,7 @@
                     @endphp
 
                     {{-- Alert group header row --}}
-                    <tr class="bg-amber-50 border-y border-amber-200">
+                    <tr class="bg-amber-50 border-y border-amber-200" data-sc-key="b2b-{{ $loopIndex }}">
                         <td colspan="12" class="px-6 py-2.5">
                             <div class="flex items-center justify-between gap-4">
                                 <div class="flex items-center gap-3 flex-wrap">
@@ -432,7 +732,7 @@
                         $deliveryIconColor = $op->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                         $pickupIconColor   = $op->pickup_status   === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                     @endphp
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50" data-sc-key="b2b-{{ $loopIndex }}">
 
                         {{-- Product --}}
                         <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
@@ -588,11 +888,13 @@
             </tbody>
         </table>
     </div>
+    </div>
     @endif
 
     {{-- ── Damaged Equipment section ──────────────────────────────────────────── --}}
     @if(count($damagedBookings) > 0)
 
+    <div class="sc-section">
     <div class="mt-8 mb-4 flex items-center gap-2">
         <x-heroicon-o-wrench-screwdriver class="w-5 h-5 text-red-500" />
         <h2 class="text-base font-semibold text-gray-800">Damaged Equipment</h2>
@@ -629,7 +931,7 @@
                 @endphp
 
                 {{-- Damaged group header row --}}
-                <tr class="bg-red-50 border-y border-red-200">
+                <tr class="bg-red-50 border-y border-red-200" data-sc-key="dmg-{{ $dLoopIndex }}">
                     <td colspan="12" class="px-6 py-2.5">
                         <div class="flex items-center justify-between gap-4">
                             <div class="flex items-center gap-3 flex-wrap">
@@ -678,7 +980,7 @@
                     $deliveryIconColor = $op->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                     $pickupIconColor   = $op->pickup_status   === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                 @endphp
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50" data-sc-key="dmg-{{ $dLoopIndex }}">
 
                     <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
                         {{ $op->product_name }}
@@ -820,12 +1122,14 @@
             </tbody>
         </table>
     </div>
+    </div>
 
     @endif
 
     {{-- ── Overdue Equipment section ──────────────────────────────────────────────── --}}
     @if(count($overdueEquipmentConflicts) > 0)
 
+    <div class="sc-section">
     <div class="mt-8 mb-4 flex items-center gap-2">
         <x-heroicon-o-clock class="w-5 h-5 text-amber-500" />
         <h2 class="text-base font-semibold text-gray-800">Overdue Equipment</h2>
@@ -859,7 +1163,7 @@
                 @endphp
 
                 {{-- Group header row --}}
-                <tr class="bg-amber-50 border-y border-amber-200">
+                <tr class="bg-amber-50 border-y border-amber-200" data-sc-key="ovd-{{ $ovdIndex }}">
                     <td colspan="12" class="px-6 py-2.5">
                         <div class="flex items-center justify-between gap-4">
                             <div class="flex items-center gap-3 flex-wrap">
@@ -902,7 +1206,7 @@
                     $deliveryIconColor = 'text-green-600';
                     $pickupIconColor   = 'text-red-500';
                 @endphp
-                <tr class="hover:bg-amber-50/40 bg-amber-25">
+                <tr class="hover:bg-amber-50/40 bg-amber-25" data-sc-key="ovd-{{ $ovdIndex }}">
                     <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
                         {{ $op->product_name }}
                         @if($op->product?->categories?->count() === 1)
@@ -975,7 +1279,7 @@
                     $pickupIconColor   = 'text-yellow-600';
                     $assignedEq = $op->equipment ?? $op->softAssignment?->equipment;
                 @endphp
-                <tr class="hover:bg-gray-50 border-t border-dashed border-amber-200">
+                <tr class="hover:bg-gray-50 border-t border-dashed border-amber-200" data-sc-key="ovd-{{ $ovdIndex }}">
                     <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
                         {{ $op->product_name }}
                         @if($op->product?->categories?->count() === 1)
@@ -1075,12 +1379,14 @@
             </tbody>
         </table>
     </div>
+    </div>
 
     @endif
 
     {{-- ── No Direct Assignment section ─────────────────────────────────────────── --}}
     @if(count($noDirectAssignmentGroups) > 0)
 
+    <div class="sc-section">
     <div class="mt-8 mb-4 flex items-center gap-2">
         <x-heroicon-o-link-slash class="w-5 h-5 text-orange-500" />
         <h2 class="text-base font-semibold text-gray-800">No Direct Assignment Defined</h2>
@@ -1110,7 +1416,7 @@
             @foreach($noDirectAssignmentGroups as $ndaIndex => $group)
 
                 {{-- Group header row --}}
-                <tr class="bg-orange-50 border-y border-orange-200">
+                <tr class="bg-orange-50 border-y border-orange-200" data-sc-key="nda-{{ $ndaIndex }}">
                     <td colspan="12" class="px-6 py-2.5">
                         <div class="flex items-center justify-between gap-4">
                             <div class="flex items-center gap-3 flex-wrap">
@@ -1151,7 +1457,7 @@
                     $deliveryIconColor = $op->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                     $pickupIconColor   = $op->pickup_status   === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                 @endphp
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50" data-sc-key="nda-{{ $ndaIndex }}">
 
                     <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
                         {{ $op->product_name }}
@@ -1280,6 +1586,7 @@
 
             </tbody>
         </table>
+    </div>
     </div>
 
     @endif
@@ -1584,6 +1891,66 @@
 @endsection
 
 @push('js')
+<script>
+// ── Grid / List view toggle ──────────────────────────────────────────────────
+// Everything is already rendered server-side; switching views and selecting
+// tiles only shows/hides existing DOM — no AJAX, no reloads, no re-queries.
+(function () {
+    const gridView = document.getElementById('scGridView');
+    const toggle   = document.getElementById('scViewToggle');
+    if (!gridView || !toggle) return;
+
+    const sections = Array.from(document.querySelectorAll('.sc-section'));
+    const tiles    = Array.from(gridView.querySelectorAll('.sc-tile'));
+    const viewBtns = Array.from(toggle.querySelectorAll('.sc-view-btn'));
+    const ACTIVE   = ['bg-white', 'shadow-sm', 'text-gray-900'];
+    const INACTIVE = ['text-gray-500'];
+    let selectedKey = tiles.length ? tiles[0].dataset.scKey : null;
+
+    // Detail panel: show only the selected conflict's section and rows.
+    function applyGridFilter() {
+        sections.forEach(section => {
+            let hasMatch = false;
+            section.querySelectorAll('tr[data-sc-key]').forEach(row => {
+                const match = row.dataset.scKey === selectedKey;
+                row.classList.toggle('hidden', !match);
+                if (match) hasMatch = true;
+            });
+            section.classList.toggle('hidden', !hasMatch);
+        });
+    }
+
+    // List view: restore every section and row exactly as rendered.
+    function showAllSections() {
+        sections.forEach(section => {
+            section.classList.remove('hidden');
+            section.querySelectorAll('tr[data-sc-key]').forEach(row => row.classList.remove('hidden'));
+        });
+    }
+
+    function setView(view) {
+        gridView.classList.toggle('hidden', view !== 'grid');
+        viewBtns.forEach(btn => {
+            const active = btn.dataset.scView === view;
+            ACTIVE.forEach(c => btn.classList.toggle(c, active));
+            INACTIVE.forEach(c => btn.classList.toggle(c, !active));
+        });
+        if (view === 'grid') applyGridFilter();
+        else showAllSections();
+    }
+
+    tiles.forEach(tile => tile.addEventListener('click', function () {
+        selectedKey = tile.dataset.scKey;
+        tiles.forEach(t => t.classList.toggle('sc-tile-selected', t === tile));
+        applyGridFilter();
+    }));
+
+    viewBtns.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.scView)));
+
+    if (tiles.length) tiles[0].classList.add('sc-tile-selected');
+    setView('grid');
+})();
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 

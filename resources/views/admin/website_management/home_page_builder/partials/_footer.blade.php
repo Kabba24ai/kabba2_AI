@@ -1,6 +1,6 @@
 {{-- ── Footer Section ──────────────────────────────────────────────────── --}}
-@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
 @php
+    $routePrefix   = $routePrefix ?? 'admin.website-management.home-builder';
     $footerContent = $section?->content ?? [];
     $copyrightText = $footerContent['copyright_text'] ?? '';
     $poweredByText = $footerContent['powered_by_text'] ?? '';
@@ -8,6 +8,23 @@
     $otherLinks    = $items->where('item_key', 'other_link');
     $socialLinks   = $items->where('item_key', 'social_link');
     $isActive      = ($section?->status ?? 'Active') === 'Active';
+
+    // Fixed URL options for Quick Links and Other Links dropdowns.
+    // These match the relative paths stored in button_url in the database.
+    $predefinedUrls = [
+        '/'                     => 'Home',
+        '/home-v2'              => 'Home V2',
+        '/faqs'                 => 'FAQ',
+        '/product-categories'   => 'Equipment Rentals',
+        '/contact-us'           => 'Contact Us',
+        '/contact-us-v2'        => 'Contact Us V2',
+        '/terms-and-conditions' => 'Terms & Conditions',
+        '/privacy-policy'       => 'Privacy Policy',
+    ];
+    $opportunitiesUrl = config('app.domains.opportunities');
+    if ($opportunitiesUrl) {
+        $predefinedUrls[$opportunitiesUrl] = 'Employment Opportunities';
+    }
 @endphp
 
 @if($section)
@@ -66,6 +83,7 @@
     ['key' => 'other_link',  'label' => 'Other Links',  'sortId' => 'sortable-footer-other',  'items' => $otherLinks],
     ['key' => 'social_link', 'label' => 'Social Links', 'sortId' => 'sortable-footer-social', 'items' => $socialLinks],
 ] as $group)
+@php $isLinkGroup = in_array($group['key'], ['quick_link', 'other_link']); @endphp
 <div class="border-t border-gray-200 pt-5 mt-5">
     <div class="flex items-center justify-between mb-3">
         <h4 class="text-sm font-semibold text-gray-800">{{ $group['label'] }} ({{ $group['items']->count() }})</h4>
@@ -75,22 +93,38 @@
         </button>
     </div>
 
+    {{-- Add Link Form --}}
     <div id="add-{{ $group['key'] }}" class="hidden mb-4 border border-dashed border-blue-300 rounded-lg p-3 bg-blue-50/30">
         <form method="POST" action="{{ route($routePrefix . '.item.store') }}">
             @csrf
             <input type="hidden" name="section_unique_id" value="{{ $section?->unique_id }}">
             <input type="hidden" name="item_key" value="{{ $group['key'] }}">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-2">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Label <span class="text-red-500">*</span></label>
                     {!! html()->text('title')->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm')
                         ->attributes(['placeholder' => 'Home', 'required' => 'required']) !!}
                 </div>
+
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">URL</label>
-                    {!! html()->text('button_url')->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm')
-                        ->attributes(['placeholder' => '/home']) !!}
+                    <label class="block text-xs text-gray-500 mb-1">
+                        {{ $isLinkGroup ? 'Page' : 'URL' }}
+                        @if($isLinkGroup)<span class="text-red-500">*</span>@endif
+                    </label>
+                    @if($isLinkGroup)
+                        <select name="button_url" required
+                                class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
+                            <option value="">— Select a page —</option>
+                            @foreach($predefinedUrls as $url => $label)
+                                <option value="{{ $url }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        {!! html()->text('button_url')->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm')
+                            ->attributes(['placeholder' => 'https://']) !!}
+                    @endif
                 </div>
+
                 @if($group['key'] === 'social_link')
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Icon Class</label>
@@ -98,11 +132,6 @@
                         ->attributes(['placeholder' => 'fa-facebook']) !!}
                 </div>
                 @endif
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Order</label>
-                    {!! html()->number('display_order', $group['items']->count() + 1)
-                        ->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
-                </div>
             </div>
             <button type="submit" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium">Add</button>
         </form>
@@ -132,17 +161,23 @@
                         <span class="text-xs text-gray-400 hidden md:inline truncate">→ {{ $item->button_url }}</span>
                     @endif
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-center gap-1 shrink-0">
                     <button @click="editOpen = !editOpen"
-                            class="text-xs text-blue-600 hover:underline">Edit</button>
+                            class="p-1.5 rounded text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
+                        <x-heroicon-o-pencil-square class="w-4 h-4"/>
+                    </button>
                     <form method="POST"
                           action="{{ route($routePrefix . '.item.delete', $item->unique_id) }}"
                           onsubmit="return confirm('Delete this link?')">
                         @csrf @method('DELETE')
-                        <button type="submit" class="text-xs text-red-500 hover:underline">Delete</button>
+                        <button type="submit"
+                                class="p-1.5 rounded text-red-500 hover:bg-red-50 transition-colors" title="Delete">
+                            <x-heroicon-o-trash class="w-4 h-4"/>
+                        </button>
                     </form>
                 </div>
-                {{-- Inline edit panel (below the row) --}}
+
+                {{-- Inline edit panel --}}
                 <div x-show="editOpen" x-cloak
                      class="absolute left-0 right-0 mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-xl p-4"
                      style="top: 100%; min-width: 320px; max-width: 500px;">
@@ -154,8 +189,23 @@
                                 {!! html()->text('title', $item->title)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">URL</label>
-                                {!! html()->text('button_url', $item->button_url)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                <label class="block text-xs text-gray-500 mb-1">
+                                    {{ $isLinkGroup ? 'Page' : 'URL' }}
+                                </label>
+                                @if($isLinkGroup)
+                                    <select name="button_url"
+                                            class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
+                                        <option value="">— Select a page —</option>
+                                        @foreach($predefinedUrls as $url => $label)
+                                            <option value="{{ $url }}"
+                                                {{ $item->button_url === $url ? 'selected' : '' }}>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    {!! html()->text('button_url', $item->button_url)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                @endif
                             </div>
                             @if($group['key'] === 'social_link')
                             <div>

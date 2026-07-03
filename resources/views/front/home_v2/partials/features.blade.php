@@ -19,7 +19,7 @@
                         lg:px-8 lg:py-6
                         {{ !$loop->last ? 'border-b border-white/20 lg:border-b-0' : '' }}">
 
-                @if(str_starts_with($item->icon ?? '', 'heroicon-'))
+                @if(str_starts_with($item->icon ?? '', 'heroicon-') || str_starts_with($item->icon ?? '', 'icon-'))
                     <x-dynamic-component :component="$item->icon"
                         class="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 shrink-0 text-yellow-400" />
                 @else

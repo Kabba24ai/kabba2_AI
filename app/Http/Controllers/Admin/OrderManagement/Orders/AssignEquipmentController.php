@@ -66,6 +66,12 @@ class AssignEquipmentController extends Controller
         // Delete existing soft assignment and create new one
         $orderProduct->softAssignment()->delete();
 
+        // Remove any stale checklist questions/answers from a previous equipment assignment
+        $orderProduct->checklistQuestions()->delete();
+        if ($orderProduct->relationLoaded('checklistQuestions')) {
+            $orderProduct->setRelation('checklistQuestions', collect());
+        }
+
         // Store checklist questions and answers for future use
         $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)->map?->question->values() ?? collect();
 

@@ -215,6 +215,7 @@ class UpdateProductScheduleController extends Controller
                         $equipment->saveQuietly();
                     }
 
+                    $orderProduct->checklistQuestions()->delete();
                     $orderProduct->equipment_id = null;
                     $orderProduct->equipment_details = null;
                     $orderProduct->assigned_by = null;

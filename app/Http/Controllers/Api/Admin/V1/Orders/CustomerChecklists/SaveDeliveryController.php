@@ -45,16 +45,6 @@ class SaveDeliveryController extends BaseController
             );
         }
 
-        if($orderProduct?->checklistQuestions->isNotEmpty() && isset($validated['checklist']) && !empty($validated['checklist'])) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => trans('messages.api.admin.v1.orders.checklist_already_exists'),
-                ],
-                JsonResponse::HTTP_CONFLICT,
-            );
-        }
-
         $equipment = Equipment::query()
             ->with(['checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category'])
             ->where('unique_id', $uniqueId)
@@ -93,6 +83,12 @@ class SaveDeliveryController extends BaseController
                 );
             }
 
+
+            // Remove any stale checklist questions/answers from a previous equipment assignment
+            $orderProduct->checklistQuestions()->delete();
+            if ($orderProduct->relationLoaded('checklistQuestions')) {
+                $orderProduct->setRelation('checklistQuestions', collect());
+            }
 
             $checklistQuestionData = $orderProduct->checklistQuestions()->createMany($questions->map(function ($question, $index) use ($orderProduct) {
                 return [

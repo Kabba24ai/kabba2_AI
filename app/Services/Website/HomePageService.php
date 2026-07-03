@@ -49,14 +49,15 @@ class HomePageService
     {
         $c = $section?->content ?? [];
         return (object) [
-            'imageUrl'       => $section?->image_url,
-            'title'          => $section?->title ?? "THE RIGHT EQUIPMENT.\nTHE RIGHT SUPPORT.",
-            'subtitle'       => $section?->subtitle ?? "Local team. Quality equipment.\nReady when you are.",
-            'overlayEnabled' => (bool) ($c['overlay_enabled'] ?? true),
-            'overlayOpacity' => (int) ($c['overlay_opacity'] ?? 65),
-            'buttonEnabled'  => (bool) ($c['button_enabled'] ?? false),
-            'buttonText'     => $c['button_text'] ?? 'Browse Equipment',
-            'buttonUrl'      => $c['button_url'] ?? '#',
+            'imageUrl'         => $section?->image_url,
+            'title'            => $section?->title ?? "THE RIGHT EQUIPMENT.\nTHE RIGHT SUPPORT.",
+            'subtitle'         => $section?->subtitle ?? "Local team. Quality equipment.\nReady when you are.",
+            'overlayEnabled'   => (bool) ($c['overlay_enabled'] ?? true),
+            'overlayOpacity'   => (int)  ($c['overlay_opacity'] ?? 65),
+            'titlePosition'    => $c['title_position']    ?? 'left',
+            'subtitlePosition' => $c['subtitle_position'] ?? 'left',
+            'titleColor'       => $c['title_color']       ?? '#ffffff',
+            'subtitleColor'    => $c['subtitle_color']    ?? '#ffffff',
         ];
     }
 

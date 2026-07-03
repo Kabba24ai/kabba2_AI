@@ -22,7 +22,6 @@ class IndexController extends Controller
         $stores = Store::active()
             ->with('state')
             ->orderByAdmin()
-            ->take(2)
             ->get();
 
         // Load only categories selected in the builder, in builder display order

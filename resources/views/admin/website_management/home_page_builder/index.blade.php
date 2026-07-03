@@ -22,92 +22,48 @@
             @if(!$page)
                 <div class="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-md px-4 py-2 text-sm text-yellow-800">
                     <x-heroicon-o-exclamation-triangle class="w-4 h-4 shrink-0"/>
-                    No home page data found. Run: <code class="font-mono bg-yellow-100 px-1 rounded">php artisan db:seed --class=HomePageBuilderSeeder</code>
+                    No home page data found. Run: <code class="font-mono bg-yellow-100 px-1 rounded">php artisan db:seed --class="Database\Seeders\WebsiteManagement\HomePageBuilderSeeder"</code>
                 </div>
             @endif
         </div>
 
         {{-- Section Manager --}}
-        @include('admin.website_management.home_page_builder.partials._section_manager')
+        {{-- @include('admin.website_management.home_page_builder.partials._section_manager') --}}
 
-        {{-- Tab Navigation --}}
+        {{-- Build shared context array once; each component pulls what it needs --}}
         @php
-        $builderTabs = [
-            ['key' => 'hero',             'label' => 'Hero'],
-            ['key' => 'contact_strip',    'label' => 'Contact Strip'],
-            ['key' => 'featured_rentals', 'label' => 'Featured Rentals'],
-            ['key' => 'feature_strip',    'label' => 'Feature Strip'],
-            ['key' => 'footer',           'label' => 'Footer'],
-            ['key' => 'seo',              'label' => 'SEO'],
-            ['key' => 'branding',         'label' => 'Branding'],
-        ];
+        $context = compact(
+            'page', 'sections', 'itemsByKey',
+            'categories', 'selectedCategoryIds',
+            'stores', 'allSectionsOrdered'
+        );
         @endphp
+
+        {{-- Tab Navigation — driven by ComponentRegistry --}}
         <div class="bg-white rounded-t-xl shadow-sm border border-gray-100 border-b-0">
             <div class="flex overflow-x-auto border-b border-gray-200">
-                @foreach($builderTabs as $tab)
+                @foreach($registry->all() as $component)
                     <button
-                        @click="activeTab = '{{ $tab['key'] }}'"
-                        :class="activeTab === '{{ $tab['key'] }}'
+                        @click="activeTab = '{{ $component->key() }}'"
+                        :class="activeTab === '{{ $component->key() }}'
                             ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50/30'
                             : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
                         class="px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors">
-                        {{ $tab['label'] }}
+                        {{ $component->displayName() }}
                     </button>
                 @endforeach
             </div>
         </div>
 
-        {{-- Tab Content --}}
+        {{-- Tab Content — each component owns its admin view and the data it needs --}}
         <div class="bg-white rounded-b-xl shadow-sm border border-gray-100 border-t-0 p-6">
-
-            <div x-show="activeTab === 'hero'" x-cloak>
-                @include('admin.website_management.home_page_builder.partials._hero', [
-                    'section' => $sections->get('hero'),
-                ])
-            </div>
-
-            <div x-show="activeTab === 'contact_strip'" x-cloak>
-                @include('admin.website_management.home_page_builder.partials._contact_strip', [
-                    'section' => $sections->get('contact_strip'),
-                    'items'   => $itemsByKey->get('contact_strip', collect()),
-                    'stores'  => $stores,
-                ])
-            </div>
-
-            <div x-show="activeTab === 'featured_rentals'" x-cloak>
-                @include('admin.website_management.home_page_builder.partials._featured_rentals', [
-                    'section'             => $sections->get('featured_rentals'),
-                    'categories'          => $categories,
-                    'selectedCategoryIds' => $selectedCategoryIds,
-                    'items'              => $itemsByKey->get('featured_rentals', collect()),
-                ])
-            </div>
-
-            <div x-show="activeTab === 'feature_strip'" x-cloak>
-                @include('admin.website_management.home_page_builder.partials._feature_strip', [
-                    'section' => $sections->get('feature_strip'),
-                    'items'   => $itemsByKey->get('feature_strip', collect()),
-                ])
-            </div>
-
-            <div x-show="activeTab === 'footer'" x-cloak>
-                @include('admin.website_management.home_page_builder.partials._footer', [
-                    'section' => $sections->get('footer'),
-                    'items'   => $itemsByKey->get('footer', collect()),
-                ])
-            </div>
-
-            <div x-show="activeTab === 'seo'" x-cloak>
-                @include('admin.website_management.home_page_builder.partials._seo', [
-                    'page' => $page,
-                ])
-            </div>
-
-            <div x-show="activeTab === 'branding'" x-cloak>
-                @include('admin.website_management.home_page_builder.partials._branding')
-            </div>
-
+            @foreach($registry->all() as $component)
+                <div x-show="activeTab === '{{ $component->key() }}'" x-cloak>
+                    @include($component->adminView(), $component->viewData($context))
+                </div>
+            @endforeach
         </div>
+
     </div>
 
 @endsection
@@ -215,15 +171,8 @@ function hpInitSortable(containerId) {
 document.addEventListener('DOMContentLoaded', function () {
     setTimeout(function () {
         hpInitSectionSortable('section-manager-cards');
-        [
-            'sortable-feature-strip',
-            'sortable-contact-strip',
-            'sortable-footer-quick',
-            'sortable-footer-other',
-            'sortable-footer-social',
-        ].forEach(hpInitSortable);
+        @json($registry->allSortableIds()).forEach(hpInitSortable);
     }, 300);
 });
 </script>
 @endpush
-

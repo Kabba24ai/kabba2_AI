@@ -1,4 +1,5 @@
 {{-- ── Footer Section ──────────────────────────────────────────────────── --}}
+@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
 @php
     $footerContent = $section?->content ?? [];
     $copyrightText = $footerContent['copyright_text'] ?? '';
@@ -11,7 +12,7 @@
 
 @if($section)
 <form method="POST"
-      action="{{ route('admin.website-management.home-builder.section.update', $section->unique_id) }}"
+      action="{{ route($routePrefix . '.section.update', $section->unique_id) }}"
       data-track-changes>
     @csrf
     <div class="flex flex-wrap items-center justify-between gap-3 mb-5"
@@ -75,7 +76,7 @@
     </div>
 
     <div id="add-{{ $group['key'] }}" class="hidden mb-4 border border-dashed border-blue-300 rounded-lg p-3 bg-blue-50/30">
-        <form method="POST" action="{{ route('admin.website-management.home-builder.item.store') }}">
+        <form method="POST" action="{{ route($routePrefix . '.item.store') }}">
             @csrf
             <input type="hidden" name="section_unique_id" value="{{ $section?->unique_id }}">
             <input type="hidden" name="item_key" value="{{ $group['key'] }}">
@@ -135,7 +136,7 @@
                     <button @click="editOpen = !editOpen"
                             class="text-xs text-blue-600 hover:underline">Edit</button>
                     <form method="POST"
-                          action="{{ route('admin.website-management.home-builder.item.delete', $item->unique_id) }}"
+                          action="{{ route($routePrefix . '.item.delete', $item->unique_id) }}"
                           onsubmit="return confirm('Delete this link?')">
                         @csrf @method('DELETE')
                         <button type="submit" class="text-xs text-red-500 hover:underline">Delete</button>
@@ -145,7 +146,7 @@
                 <div x-show="editOpen" x-cloak
                      class="absolute left-0 right-0 mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-xl p-4"
                      style="top: 100%; min-width: 320px; max-width: 500px;">
-                    <form method="POST" action="{{ route('admin.website-management.home-builder.item.update', $item->unique_id) }}">
+                    <form method="POST" action="{{ route($routePrefix . '.item.update', $item->unique_id) }}">
                         @csrf
                         <div class="space-y-2 mb-2">
                             <div>

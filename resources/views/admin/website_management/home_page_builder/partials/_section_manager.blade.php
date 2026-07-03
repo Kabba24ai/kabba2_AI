@@ -11,7 +11,8 @@ $sectionIconMap = [
     'newsletter'         => ['icon' => 'heroicon-o-envelope',            'color' => 'text-red-500',    'bg' => 'bg-red-50'],
     'rental_specialists' => ['icon' => 'heroicon-o-users',               'color' => 'text-indigo-500', 'bg' => 'bg-indigo-50'],
 ];
-$editableTabs = ['hero', 'contact_strip', 'featured_rentals', 'feature_strip', 'footer', 'seo', 'branding'];
+$routePrefix    = $routePrefix ?? 'admin.website-management.home-builder';
+$builderBaseUrl = $builderIndexUrl ?? route('admin.website-management.home-builder.index');
 @endphp
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
@@ -32,7 +33,7 @@ $editableTabs = ['hero', 'contact_strip', 'featured_rentals', 'feature_strip', '
 
     @if($allSectionsOrdered->isEmpty())
         <div class="px-5 py-8 text-center text-sm text-gray-400">
-            No sections found. Run: <code class="font-mono bg-gray-100 px-1 rounded">php artisan db:seed --class=HomePageBuilderSeeder</code>
+            No sections found. Run: <code class="font-mono bg-gray-100 px-1 rounded">php artisan db:seed --class="Database\Seeders\WebsiteManagement\HomePageBuilderSeeder"</code>
         </div>
     @else
         <p class="text-xs text-gray-400 px-5 pt-3 pb-1 flex items-center gap-1">
@@ -52,7 +53,7 @@ $editableTabs = ['hero', 'contact_strip', 'featured_rentals', 'feature_strip', '
 
                 {{-- Status toggle form — hidden, submitted by Alpine --}}
                 <form method="POST"
-                      action="{{ route('admin.website-management.home-builder.section.update', $section->unique_id) }}"
+                      action="{{ route($routePrefix . '.section.update', $section->unique_id) }}"
                       x-ref="sf" class="hidden">
                     @csrf
                     <input type="hidden" name="status" :value="active ? 'Active' : 'Inactive'">
@@ -89,12 +90,10 @@ $editableTabs = ['hero', 'contact_strip', 'featured_rentals', 'feature_strip', '
                 </button>
 
                 {{-- Edit shortcut --}}
-                @if(in_array($section->section_key, $editableTabs))
-                <a href="{{ route('admin.website-management.home-builder.index', ['tab' => $section->section_key]) }}"
+                <a href="{{ $builderBaseUrl }}?tab={{ $section->section_key }}"
                    class="text-xs text-blue-600 hover:text-blue-800 hover:underline shrink-0">
                     Edit ↓
                 </a>
-                @endif
 
             </div>
             @endforeach

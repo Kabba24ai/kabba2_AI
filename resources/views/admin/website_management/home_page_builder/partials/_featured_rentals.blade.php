@@ -1,7 +1,8 @@
 {{-- ── Featured Rentals Section ──────────────────────────────────────────── --}}
+@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
 @if($section)
 <form method="POST"
-      action="{{ route('admin.website-management.home-builder.section.update', $section->unique_id) }}"
+      action="{{ route($routePrefix . '.section.update', $section->unique_id) }}"
       enctype="multipart/form-data" data-parsley-validate>
     @csrf
     <div class="flex items-center justify-between mb-5">
@@ -32,73 +33,22 @@
     <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-800 mb-4">Featured Rentals section not found. Run the seeder first.</div>
 @endif
 
-{{-- ── Category Selection ──────────────────────────────────────────────── --}}
+{{-- ── Category redirect info ───────────────────────────────────────────── --}}
 <div class="border-t border-gray-200 pt-6">
-    <div class="flex items-center justify-between mb-4">
-        <div>
-            <h4 class="text-sm font-semibold text-gray-800">Selected Categories</h4>
-            <p class="text-xs text-gray-500">Check categories to show in the Featured Rentals grid. Use display order to sequence them.</p>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        @foreach($categories as $cat)
-            @php
-                $existingItem = $items->first(fn($i) => data_get($i->content, 'category_id') == $cat->id);
-                $isSelected   = $selectedCategoryIds->contains($cat->id);
-            @endphp
-            <div x-data="{ open: {{ $isSelected ? 'true' : 'false' }} }"
-                 class="border border-gray-200 rounded-lg overflow-hidden">
-                <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
-                     @click="open = !open">
-                    <span class="{{ $isSelected ? 'bg-blue-600' : 'bg-gray-200' }} w-3.5 h-3.5 rounded-full shrink-0 transition-colors"></span>
-                    <span class="text-sm font-medium text-gray-800 flex-1">{{ $cat->title }}</span>
-                    @if($isSelected)
-                        <span class="text-xs text-blue-600 font-semibold">Active</span>
-                    @endif
-                </div>
-                <div x-show="open" x-cloak class="border-t border-gray-100 bg-gray-50 p-3">
-                    @if($existingItem)
-                        <form method="POST"
-                              action="{{ route('admin.website-management.home-builder.item.update', $existingItem->unique_id) }}">
-                            @csrf
-                            <div class="flex items-center gap-2 mb-2">
-                                <div class="flex-1">
-                                    <label class="block text-xs text-gray-500 mb-1">Display Order</label>
-                                    {!! html()->number('display_order', $existingItem->display_order)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-xs') !!}
-                                </div>
-                                <div class="flex-1">
-                                    <label class="block text-xs text-gray-500 mb-1">Status</label>
-                                    {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], $existingItem->status)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-xs') !!}
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button type="submit" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium">Update</button>
-                                <form method="POST" action="{{ route('admin.website-management.home-builder.item.delete', $existingItem->unique_id) }}"
-                                      onsubmit="return confirm('Remove this category?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded text-xs font-medium">Remove</button>
-                                </form>
-                            </div>
-                        </form>
-                    @else
-                        <form method="POST" action="{{ route('admin.website-management.home-builder.item.store') }}">
-                            @csrf
-                            <input type="hidden" name="section_unique_id" value="{{ $section?->unique_id }}">
-                            <input type="hidden" name="item_key" value="category_{{ $cat->id }}">
-                            <input type="hidden" name="title" value="{{ $cat->title }}">
-                            <input type="hidden" name="content[category_id]" value="{{ $cat->id }}">
-                            <div class="mb-2">
-                                <label class="block text-xs text-gray-500 mb-1">Display Order</label>
-                                {!! html()->number('display_order', $loop->iteration)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-xs') !!}
-                            </div>
-                            <button type="submit" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium w-full">
-                                Add to Featured
-                            </button>
-                        </form>
-                    @endif
-                </div>
+    <div class="rounded-md p-4 bg-blue-50 border border-blue-200 text-blue-900 max-w-lg">
+        <div class="flex items-start gap-3">
+            <x-heroicon-o-information-circle class="w-6 h-6 text-blue-600 shrink-0 mt-0.5"/>
+            <div>
+                <p class="text-sm font-semibold text-blue-900">Manage Categories</p>
+                <p class="text-sm mt-1 text-blue-700">
+                    You can manage and update the categories shown in the Featured Rentals grid from the Category Management page.
+                </p>
+                <a href="{{ route('admin.product-management.categories.create') }}"
+                   class="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-800 underline hover:text-blue-900">
+                    Go to Category Management
+                    <x-heroicon-o-arrow-right class="w-4 h-4"/>
+                </a>
             </div>
-        @endforeach
+        </div>
     </div>
 </div>

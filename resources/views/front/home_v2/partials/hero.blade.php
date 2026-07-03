@@ -1,62 +1,61 @@
 {{-- ============================================================
      Section: Hero
-     Fixed-height compact banner — vertically centered text
-     Image position: center 35% keeps the worker's face visible
-     No CTA button · lighter overlay for a less dark feel
+     Image renders at its natural proportions (w-full h-auto).
+     The section has pt-16 so the banner starts below the fixed
+     navbar rather than sliding behind it.
 ============================================================ --}}
 
-<section id="home-v2-hero" class="relative pt-15 h-[280px] sm:h-[340px] md:h-[400px] lg:h-[450px] overflow-hidden">
+@php
+    $hero          = $hp->hero;
+    $titleAlign    = match($hero->titlePosition)    { 'center' => 'center', 'right' => 'right', default => 'left' };
+    $subtitleAlign = match($hero->subtitlePosition) { 'center' => 'center', 'right' => 'right', default => 'left' };
+@endphp
 
-    {{-- Background image --}}
-    <img
-        src="{{ $hp->hero->imageUrl ?? asset('storage/front/images/banner.jpg') }}"
-        alt="Equipment rental background"
-        class="absolute inset-0 w-full h-full object-cover mt-[60px] sm:mt-[70px] md:mt-[60px] lg:mt-0
-               object-[center_top] sm:object-[center_20%] md:object-[center_30%] lg:object-[center_-17%]"
-        aria-hidden="true"
-    >
+<section id="home-v2-hero" class="relative pt-16 bg-gray-900">
 
-    {{-- Gradient overlay: readable left, fades to transparent right --}}
-    @if($hp->hero->overlayEnabled)
-    <div class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-black/10"
-         style="opacity: {{ $hp->hero->overlayOpacity / 100 }}"></div>
-    @endif
+    {{-- Wrapper — height driven by the image itself (no aspect-ratio constraint) --}}
+    <div class="relative w-full">
 
-    {{-- Content: vertically centered --}}
-    <div class="relative z-10 h-full container mx-auto
-               px-5 sm:px-6 lg:px-8
-               flex items-center pb-8
-               sm:pb-10
-               md:pb-12
-               lg:items-center lg:pb-0">
-        <div class="max-w-full sm:max-w-[520px] lg:max-w-[620px]">
+        {{-- Background image at its uploaded dimensions — never upscaled beyond natural size --}}
+        @if($hero->imageUrl)
+        <img
+            src="{{ $hero->imageUrl }}"
+            alt="Equipment rental background"
+            class="max-w-full h-auto block mx-auto"
+            aria-hidden="true"
+        >
+        @else
+        {{-- Placeholder maintains ≈ 1920:450 ratio when no image is set --}}
+        <div class="w-full bg-gray-800" style="padding-bottom: 23.44%;"></div>
+        @endif
 
-            <h1 class="text-[28px] leading-tight
-                       sm:text-[34px]
-                       md:text-[42px]
-                       lg:text-[35px]
-                       font-semibold uppercase text-white">
-                {!! nl2br(e($hp->hero->title)) !!}
-            </h1>
+        {{-- Dark overlay --}}
+        @if($hero->overlayEnabled)
+        <div class="absolute inset-0 bg-black"
+             style="opacity: {{ number_format($hero->overlayOpacity / 100, 2) }}"></div>
+        @endif
 
-            <p class="mt-3
-                       text-sm
-                       sm:text-base
-                       md:text-lg
-                       lg:text-base
-                       leading-relaxed text-white/90">
-                {!! nl2br(e($hp->hero->subtitle)) !!}
-            </p>
+        {{-- Text content, vertically centred over the banner --}}
+        <div class="absolute inset-0 flex items-center">
+            <div class="container mx-auto px-5 sm:px-6 lg:px-8 w-full">
 
-            @if($hp->hero->buttonEnabled && $hp->hero->buttonUrl)
-            <a href="{{ $hp->hero->buttonUrl }}"
-               class="mt-5 inline-block bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold
-                      text-sm uppercase tracking-wide px-6 py-2.5 rounded transition-colors">
-                {{ $hp->hero->buttonText }}
-            </a>
-            @endif
+                <div style="text-align: {{ $titleAlign }};">
+                    <h1 class="text-[22px] leading-tight sm:text-[28px] md:text-[36px] lg:text-[38px] font-semibold uppercase"
+                        style="color: {{ $hero->titleColor }};">
+                        {!! nl2br(e($hero->title)) !!}
+                    </h1>
+                </div>
 
+                <div class="mt-2" style="text-align: {{ $subtitleAlign }};">
+                    <p class="text-sm sm:text-base leading-relaxed"
+                       style="color: {{ $hero->subtitleColor }};">
+                        {!! nl2br(e($hero->subtitle)) !!}
+                    </p>
+                </div>
+
+            </div>
         </div>
+
     </div>
 
 </section>

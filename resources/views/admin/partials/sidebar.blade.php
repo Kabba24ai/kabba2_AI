@@ -773,7 +773,10 @@
                             Route::is('admin.website-management.faq-page.*') ||
                             Route::is('admin.website-management.contact-us.*') ||
                             Route::is('admin.website-management.footer.*') ||
-                            Route::is('admin.website-management.branding.*');
+                            Route::is('admin.website-management.branding.*') ||
+                            Route::is('admin.website-management.media-library.*') ||
+                            Route::is('admin.website-management.navigation-builder.*') ||
+                            Route::is('admin.website-management.theme-builder.*');
                     @endphp
 
 
@@ -831,9 +834,33 @@
                                 <li>
                                     <a href="{{ route('admin.website-management.branding.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.branding.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-swatch class="w-5 h-5" /> Branding
+                                        <x-heroicon-o-paint-brush class="w-5 h-5" /> Branding
                                     </a>
                                 </li>
+                                {{--
+                                <li>
+                                    <a href="{{ route('admin.website-management.theme-builder.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.theme-builder.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-paint-brush class="w-5 h-5" /> Theme Builder
+                                    </a>
+                                </li>
+                                --}}
+                                {{--
+                                <li>
+                                    <a href="{{ route('admin.website-management.media-library.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.media-library.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-photo class="w-5 h-5" /> Media Library
+                                    </a>
+                                </li>
+                                --}}
+                                {{--
+                                <li>
+                                    <a href="{{ route('admin.website-management.navigation-builder.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.navigation-builder.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-bars-3 class="w-5 h-5" /> Navigation Builder
+                                    </a>
+                                </li>
+                                --}}
                             </ul>
                         </div>
                     </li>

@@ -10,8 +10,8 @@
     $storeCard1 = $hp->contactStrip->storeCard1 ?? null;
     $storeCard2 = $hp->contactStrip->storeCard2 ?? null;
     $searchCard = $hp->contactStrip->searchCard;
-    $store1     = ($storeCard1 && $stores->isNotEmpty())  ? $stores->get(0) : null;
-    $store2     = ($storeCard2 && $stores->count() >= 2) ? $stores->get(1) : null;
+    $store1     = $storeCard1 ? $stores->firstWhere('id', data_get($storeCard1->content, 'store_id')) : null;
+    $store2     = $storeCard2 ? $stores->firstWhere('id', data_get($storeCard2->content, 'store_id')) : null;
     $colCount   = (int)(bool)$phoneCard + (int)(bool)$store1 + (int)(bool)$store2 + (int)(bool)$searchCard;
     $gridCols   = [0 => 'lg:grid-cols-1', 1 => 'lg:grid-cols-1', 2 => 'lg:grid-cols-2', 3 => 'lg:grid-cols-3', 4 => 'lg:grid-cols-4'];
     $lgCols     = $gridCols[min($colCount, 4)];

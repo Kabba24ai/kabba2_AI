@@ -4,19 +4,21 @@ namespace App\Http\Controllers\Admin\WebsiteManagement\HomePageBuilder;
 
 use App\Http\Controllers\Controller;
 use App\Models\WebsiteManagement\WebsitePage;
-use App\Models\WebsiteManagement\WebsitePageSection;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
+use App\Services\Website\ComponentRegistry;
 use Illuminate\Http\Request;
 
 class IndexController extends Controller
 {
+    public function __construct(private ComponentRegistry $registry) {}
+
     public function __invoke(Request $request)
     {
         $page = WebsitePage::where('page_key', 'home')->first();
 
-        $sections    = collect();
-        $itemsByKey  = collect();
+        $sections   = collect();
+        $itemsByKey = collect();
 
         if ($page) {
             $page->load(['sections.items']);
@@ -48,6 +50,7 @@ class IndexController extends Controller
             'categories'          => $categories,
             'selectedCategoryIds' => $selectedCategoryIds,
             'stores'              => $stores,
+            'registry'            => $this->registry,
         ]);
     }
 }

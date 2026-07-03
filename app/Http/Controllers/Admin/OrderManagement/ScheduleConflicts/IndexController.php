@@ -246,6 +246,15 @@ class IndexController extends Controller
             }
 
             $damagedBookings = array_values($damagedMap);
+
+            // Oldest first: each group's orders by delivery date, then groups
+            // by their earliest delivery date (null dates sort last).
+            $damagedDate = fn ($op) => $op?->delivery_date ? Carbon::parse($op->delivery_date)->timestamp : PHP_INT_MAX;
+            foreach ($damagedBookings as &$damagedGroup) {
+                $damagedGroup['orders'] = $damagedGroup['orders']->sortBy($damagedDate)->values();
+            }
+            unset($damagedGroup);
+            usort($damagedBookings, fn ($x, $y) => $damagedDate($x['orders']->first()) <=> $damagedDate($y['orders']->first()));
         }
 
         // ── Overdue Equipment ─────────────────────────────────────────────────
@@ -311,6 +320,11 @@ class IndexController extends Controller
                         ];
                     }
                 }
+
+                // Oldest (most overdue) first, by the earliest missed return date.
+                usort($overdueEquipmentConflicts, fn ($x, $y) =>
+                    Carbon::parse($x['overdue_orders']->min('pickup_date'))->timestamp
+                    <=> Carbon::parse($y['overdue_orders']->min('pickup_date'))->timestamp);
             }
         }
 
@@ -362,6 +376,15 @@ class IndexController extends Controller
                     'orders'       => $ops,
                 ];
             }
+
+            // Oldest first: each group's orders by delivery date, then groups
+            // by their earliest delivery date.
+            $ndaDate = fn ($op) => $op?->delivery_date ? Carbon::parse($op->delivery_date)->timestamp : PHP_INT_MAX;
+            foreach ($noDirectAssignmentGroups as &$ndaGroup) {
+                $ndaGroup['orders'] = $ndaGroup['orders']->sortBy($ndaDate)->values();
+            }
+            unset($ndaGroup);
+            usort($noDirectAssignmentGroups, fn ($x, $y) => $ndaDate($x['orders']->first()) <=> $ndaDate($y['orders']->first()));
         }
 
         // ── Totals & shared data ─────────────────────────────────────────────

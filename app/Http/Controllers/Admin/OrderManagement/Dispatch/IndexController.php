@@ -229,6 +229,28 @@ class IndexController extends Controller
                 });
             }
 
+            // Unassigned-only — show rows where the relevant selected side still
+            // has no driver/tech. Respects the Delivery/Return context.
+            if ($request->boolean('unassigned_only')) {
+                $query->where(function ($q) use ($isDeliveryOnly, $isReturnOnly) {
+                    if ($isDeliveryOnly) {
+                        $q->whereNull('delivery_by');
+                    } elseif ($isReturnOnly) {
+                        $q->whereNull('pickup_by');
+                    } else {
+                        $q->where(function ($sub) {
+                            $sub->whereNull('delivery_by')
+                                ->where('delivery_status', 'Pending')
+                                ->where('delivery_transport_mode', 'Truck');
+                        })->orWhere(function ($sub) {
+                            $sub->whereNull('pickup_by')
+                                ->where('pickup_status', 'Pending')
+                                ->where('pickup_transport_mode', 'Truck');
+                        });
+                    }
+                });
+            }
+
             // Date filter — reference the correct date column(s) per schedule selection
             if ($request->filled('date_filter')) {
                 $dateFilter  = $request->date_filter;
@@ -277,6 +299,7 @@ class IndexController extends Controller
             if ($viewMode === 'split') {
                 $deliveries = (clone $query)
                     ->where('delivery_transport_mode', 'Truck')
+                    ->when($request->boolean('unassigned_only'), fn ($q) => $q->whereNull('delivery_by'))
                     ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
                     ->orderBy('delivery_date', 'asc')
                     ->get();
@@ -284,6 +307,7 @@ class IndexController extends Controller
                 $returns = (clone $query)
                     ->where('pickup_transport_mode', 'Truck')
                     ->where('delivery_status', 'Completed')
+                    ->when($request->boolean('unassigned_only'), fn ($q) => $q->whereNull('pickup_by'))
                     ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
                     ->orderBy('pickup_date', 'asc')
                     ->get();

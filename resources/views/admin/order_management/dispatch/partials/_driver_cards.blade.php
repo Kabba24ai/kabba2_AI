@@ -5,49 +5,10 @@
 
 @if ($driverCards->isNotEmpty())
 
-{{-- 2-column header: Column 1 = workload controls | Column 2 = idle driver strip --}}
+{{-- Header: idle driver strip (workload controls live in the main filter section) --}}
+@if ($idleDrivers->isNotEmpty())
 <div class="flex items-center gap-0 mb-3">
 
-    {{-- Column 1: Driver Workload controls --}}
-    <div class="flex items-center gap-3 flex-wrap shrink-0 pr-5">
-        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Driver Workload</span>
-
-        {{-- Separate / Combined toggle --}}
-        <div id="driver-card-view-toggle" class="flex rounded-lg border border-gray-300 overflow-hidden text-xs">
-            <button type="button" id="dcv-separate"
-                class="px-3 py-1.5 font-semibold bg-blue-600 text-white flex items-center gap-1">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
-                Separate
-            </button>
-            <button type="button" id="dcv-combined"
-                class="px-3 py-1.5 font-semibold bg-white text-gray-600 hover:bg-gray-50 border-l border-gray-300 flex items-center gap-1">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                Combined
-            </button>
-        </div>
-
-        {{-- Show Assigned: Today Only / All --}}
-        <div class="flex items-center rounded-lg border border-gray-300 overflow-hidden text-xs">
-            <span class="px-2 py-1.5 text-gray-400 font-medium border-r border-gray-300 bg-gray-50">Show:</span>
-            <button type="button" id="daf-all"
-                class="px-3 py-1.5 font-semibold {{ ($showAll ?? false) ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50' }}">
-                All
-            </button>
-            <button type="button" id="daf-today"
-                class="px-3 py-1.5 font-semibold border-l border-gray-300 {{ ($showAll ?? false) ? 'bg-white text-gray-600 hover:bg-gray-50' : 'bg-blue-600 text-white' }}">
-                Today
-            </button>
-        </div>
-        @if ($showAll ?? false)
-            <span class="text-xs text-gray-400 font-medium">Showing all assigned (incl. future)</span>
-        @else
-            <span class="text-xs text-gray-400 font-medium">Today + past due</span>
-        @endif
-    </div>
-
-    {{-- Vertical divider + Column 2: Idle drivers --}}
-    @if ($idleDrivers->isNotEmpty())
-    <div class="w-px self-stretch bg-gray-200 shrink-0 mx-4"></div>
     <div class="flex-1 min-w-0 flex flex-col justify-center gap-1">
         <div class="flex items-center gap-1.5">
             <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Idle</span>
@@ -76,9 +37,9 @@
             @endforeach
         </div>
     </div>
-    @endif
 
-</div>{{-- end 2-column header --}}
+</div>{{-- end header --}}
+@endif
 
 {{-- ===== Active driver cards grid (always 4 columns) ===== --}}
 <div class="mb-4">

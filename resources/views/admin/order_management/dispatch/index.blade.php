@@ -80,6 +80,12 @@
         const orderInput = document.querySelector('input[name="order_number"]');
         if (orderInput) orderInput.value = orderNumber;
 
+        // Card jobs are assigned by definition — switch the list scope to All
+        // so the jumped-to order is actually visible
+        if (typeof window.setDispatchListFilter === 'function') {
+            window.setDispatchListFilter('all');
+        }
+
         // Run the search (window.fetchDispatch is exposed by the DOMContentLoaded block)
         if (typeof window.fetchDispatch === 'function') {
             window.fetchDispatch();
@@ -240,14 +246,41 @@
                     @endforeach
                 </div>
 
-                <!-- Quick Filter Buttons (Truck only) -->
-                <div class="flex gap-2">
-                    <button type="button"
-                        class="dispatch-filter-btn px-3 py-2 rounded bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200 border border-blue-200"
-                        data-schedule-type="Delivery">Deliveries - Truck</button>
-                    <button type="button"
-                        class="dispatch-filter-btn px-3 py-2 rounded bg-purple-100 text-purple-700 text-xs font-semibold hover:bg-purple-200 border border-purple-200"
-                        data-schedule-type="Return">Returns - Truck</button>
+                <!-- Driver Workload controls (moved here from the cards header) -->
+                <div class="flex items-center gap-3 flex-wrap bg-white rounded-md px-4 py-2 border">
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Driver Workload</span>
+
+                    {{-- Separate / Combined toggle --}}
+                    <div id="driver-card-view-toggle" class="flex rounded-lg border border-gray-300 overflow-hidden text-xs">
+                        <button type="button" id="dcv-separate"
+                            class="px-3 py-1.5 font-semibold bg-blue-600 text-white flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+                            Separate
+                        </button>
+                        <button type="button" id="dcv-combined"
+                            class="px-3 py-1.5 font-semibold bg-white text-gray-600 hover:bg-gray-50 border-l border-gray-300 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                            Combined
+                        </button>
+                    </div>
+
+                    {{-- Card scope: All / Today --}}
+                    <div class="flex items-center rounded-lg border border-gray-300 overflow-hidden text-xs">
+                        <span class="px-2 py-1.5 text-gray-400 font-medium border-r border-gray-300 bg-gray-50">Show:</span>
+                        <button type="button" id="daf-all"
+                            class="px-3 py-1.5 font-semibold bg-white text-gray-600 hover:bg-gray-50">All</button>
+                        <button type="button" id="daf-today"
+                            class="px-3 py-1.5 font-semibold border-l border-gray-300 bg-blue-600 text-white">Today</button>
+                    </div>
+
+                    {{-- Dispatch list scope: All / Unassigned Only --}}
+                    <div class="flex items-center rounded-lg border border-gray-300 overflow-hidden text-xs">
+                        <span class="px-2 py-1.5 text-gray-400 font-medium border-r border-gray-300 bg-gray-50">List:</span>
+                        <button type="button" id="dlf-all"
+                            class="px-3 py-1.5 font-semibold bg-white text-gray-600 hover:bg-gray-50">All</button>
+                        <button type="button" id="dlf-unassigned"
+                            class="px-3 py-1.5 font-semibold border-l border-gray-300 bg-blue-600 text-white">Unassigned Only</button>
+                    </div>
                 </div>
 
             </div>
@@ -591,6 +624,8 @@
                 if (dateFilterInput) dateFilterInput.value = '';
                 // Reset driver filter
                 if (driverFilterInput) driverFilterInput.value = '';
+                // Reset list scope to the default (Unassigned Only)
+                window.setDispatchListFilter('unassigned');
                 fetchDispatch();
             });
 
@@ -605,6 +640,29 @@
             const pageParam    = new URLSearchParams(window.location.search).get('page') || 1;
             const perPageParam = document.getElementById('per_page_sm')?.value ||
                                  new URLSearchParams(location.search).get('per_page') || null;
+
+            // Dispatch list scope: 'unassigned' (default) or 'all'
+            let dispatchListFilter = localStorage.getItem('dispatch_list_filter') || 'unassigned';
+
+            window.setDispatchListFilter = function (filter, refetch = false) {
+                dispatchListFilter = filter === 'all' ? 'all' : 'unassigned';
+                localStorage.setItem('dispatch_list_filter', dispatchListFilter);
+                const btnAll = document.getElementById('dlf-all');
+                const btnUn  = document.getElementById('dlf-unassigned');
+                if (btnAll && btnUn) {
+                    const isAll = dispatchListFilter === 'all';
+                    btnAll.classList.toggle('bg-blue-600', isAll);
+                    btnAll.classList.toggle('text-white',  isAll);
+                    btnAll.classList.toggle('bg-white',   !isAll);
+                    btnAll.classList.toggle('text-gray-600', !isAll);
+                    btnUn.classList.toggle('bg-blue-600', !isAll);
+                    btnUn.classList.toggle('text-white',  !isAll);
+                    btnUn.classList.toggle('bg-white',     isAll);
+                    btnUn.classList.toggle('text-gray-600', isAll);
+                }
+                if (refetch) fetchDispatch();
+            };
+            window.setDispatchListFilter(dispatchListFilter);
 
             fetchDispatch(pageParam, perPageParam);
 
@@ -644,8 +702,26 @@
             // Switch Show Assigned filter (Today Only / All) and re-fetch driver cards
             function applyDriverAssignFilter(filter) {
                 localStorage.setItem('driver_assign_filter', filter);
+                updateDafButtons(filter === 'all');
                 window.refreshDriverCards();
             }
+
+            // The Show All/Today buttons now live in the static filter bar, so JS
+            // owns their active styling (previously server-rendered in the partial)
+            function updateDafButtons(showAll) {
+                const btnAll   = document.getElementById('daf-all');
+                const btnToday = document.getElementById('daf-today');
+                if (!btnAll || !btnToday) return;
+                btnAll.classList.toggle('bg-blue-600', showAll);
+                btnAll.classList.toggle('text-white',  showAll);
+                btnAll.classList.toggle('bg-white',   !showAll);
+                btnAll.classList.toggle('text-gray-600', !showAll);
+                btnToday.classList.toggle('bg-blue-600', !showAll);
+                btnToday.classList.toggle('text-white',  !showAll);
+                btnToday.classList.toggle('bg-white',     showAll);
+                btnToday.classList.toggle('text-gray-600', showAll);
+            }
+            updateDafButtons(savedDaf === 'all');
 
             // Apply card view mode (separate/combined) — works on freshly injected DOM too
             function applyDriverCardMode(mode) {
@@ -688,6 +764,14 @@
                 }
                 if (e.target.closest('#daf-today')) {
                     applyDriverAssignFilter('today');
+                    return;
+                }
+                if (e.target.closest('#dlf-all')) {
+                    window.setDispatchListFilter('all', true);
+                    return;
+                }
+                if (e.target.closest('#dlf-unassigned')) {
+                    window.setDispatchListFilter('unassigned', true);
                     return;
                 }
 
@@ -764,6 +848,7 @@
                 if (paymentMethodInput && paymentMethodInput.value) params.append('payment_method', paymentMethodInput.value);
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
                 if (driverFilterInput && driverFilterInput.value) params.append('driver_id', driverFilterInput.value);
+                if (dispatchListFilter === 'unassigned') params.append('unassigned_only', 1);
                 if (perPage) params.append('per_page', perPage);
                 params.set('page', page);
 
@@ -830,23 +915,6 @@
                     } else {
                         fetchDispatch();
                     }
-                });
-            });
-
-            // Quick filter buttons (Truck only)
-            document.querySelectorAll('.dispatch-filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const scheduleType = this.getAttribute('data-schedule-type');
-
-                    // Set schedule type checkboxes
-                    document.querySelectorAll('input[name="schedule_type[]"]').forEach(cb => {
-                        cb.checked = (cb.value === scheduleType);
-                    });
-
-                    // Check all stores
-                    storeLocationInputs.forEach(cb => { cb.checked = true; });
-
-                    fetchDispatch(pageParam, perPageParam);
                 });
             });
 

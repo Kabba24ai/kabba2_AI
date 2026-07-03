@@ -15,18 +15,46 @@
         transform: rotate(45deg);
     }
 
+    /* Page background — scoped to this view (styles only load on this page) */
+    main {
+        background-color: #f8fafc;
+        flex: 1 1 auto;
+    }
+
     /* Grid View tiles */
     .sc-tile {
         cursor: pointer;
         transition: box-shadow .15s ease, transform .1s ease;
     }
     .sc-tile:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+        box-shadow: 0 3px 10px rgba(15, 23, 42, .07);
     }
+    /* Softened selection: slightly stronger border + soft shadow, keeps the tint */
     .sc-tile.sc-tile-selected {
-        outline: 2px solid var(--sc-accent, #f59e0b);
-        outline-offset: 1px;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+        box-shadow: 0 0 0 1.5px var(--sc-accent, #f59e0b), 0 8px 20px rgba(15, 23, 42, .08);
+    }
+
+    /* Each conflict group in the grid sits in its own subtle card */
+    #scGridView [data-sc-grid] {
+        background: #fff;
+        border: 1px solid #eef2f6;
+        border-radius: .75rem;
+        padding: 1.25rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+    }
+
+    /* Detail / List sections get the same card treatment */
+    .sc-section {
+        background: #fff;
+        border: 1px solid #e8edf3;
+        border-radius: .75rem;
+        padding: 1.25rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+        margin-bottom: 1.5rem;
+    }
+    /* Neutralize the legacy mt-8 on section headings inside cards */
+    .sc-section > div:first-child {
+        margin-top: 0 !important;
     }
 
     /* Conflict-type badge filters */
@@ -55,8 +83,10 @@
 
 @section('content')
 
-    {{-- Page Header --}}
-    <div class="flex items-center justify-between mb-6">
+    {{-- Header / filter control card --}}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-8">
+
+    <div class="flex items-center justify-between mb-5">
         <h1 class="text-2xl font-semibold flex items-center gap-2">
             <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-600" />
             Schedule Conflicts
@@ -87,7 +117,7 @@
     </div>
 
     {{-- Filter bar --}}
-    <form method="GET" action="{{ route('admin.order-management.schedule-conflicts.index') }}" class="mb-6">
+    <form method="GET" action="{{ route('admin.order-management.schedule-conflicts.index') }}">
         <div class="flex flex-wrap items-center gap-3">
 
             {{-- Clear --}}
@@ -152,7 +182,7 @@
                         $scInitialType = 'all';
                     }
                 @endphp
-                <div id="scTypeBadges" class="flex flex-wrap items-center gap-1.5 ml-auto">
+                <div id="scTypeBadges" class="flex flex-wrap items-center gap-1.5 ml-auto rounded-full bg-gray-50 border border-gray-200/70 p-1">
                     @foreach($scBadges as $scType => $scBadge)
                         <button type="button" data-sc-type="{{ $scType }}"
                             @disabled($scBadge['count'] === 0 && $scType !== 'all')
@@ -168,6 +198,9 @@
         </div>
     </form>
 
+    </div>
+    {{-- End header / filter control card --}}
+
     @if($totalConflicts === 0)
         <div class="text-center py-20 text-gray-400">
             <x-heroicon-o-check-badge class="mx-auto w-12 h-12 mb-3 opacity-40" />
@@ -178,7 +211,7 @@
 
     {{-- ── Grid View (tile overview — click a tile to load its detail below) ── --}}
     @if($totalConflicts > 0)
-    <div id="scGridView" class="mb-8 space-y-8">
+    <div id="scGridView" class="mb-10 space-y-6">
 
         {{-- Double Booking tiles --}}
         @if(count($doubleBookings) > 0)

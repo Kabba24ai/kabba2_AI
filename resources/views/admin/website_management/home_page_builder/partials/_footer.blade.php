@@ -283,18 +283,11 @@
                                 @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             @endif
-                            <div class="flex gap-2">
-                                <div class="flex-1">
-                                    <label class="block text-xs text-gray-500 mb-1">Order</label>
-                                    {!! html()->number('display_order', old('display_order', $item->display_order))->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
-                                    @error('display_order') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                                </div>
-                                <div class="flex-1">
-                                    <label class="block text-xs text-gray-500 mb-1">Status</label>
-                                    {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))
-                                        ->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
-                                    @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                                </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Status</label>
+                                {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))
+                                    ->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                         </div>
                         <div class="flex gap-2">

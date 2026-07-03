@@ -27,7 +27,7 @@
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
      @keydown.escape.window="open && close()"
-     class="fixed inset-0 z-[9000] flex items-center justify-center p-4"
+     class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4"
      style="display: none;">
 
     {{-- Backdrop --}}
@@ -37,20 +37,19 @@
     <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden">
 
         {{-- Header --}}
-        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
-            <div class="flex items-center gap-2.5">
-                <x-heroicon-o-photo class="w-5 h-5 text-blue-600"/>
-                <h2 class="text-base font-semibold text-gray-900">Choose from Media Library</h2>
+        <div class="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <x-heroicon-o-photo class="w-5 h-5 text-blue-600 shrink-0"/>
+                <h2 class="text-sm font-semibold text-gray-900 truncate">Choose from Media Library</h2>
             </div>
-            <div class="flex items-center gap-3">
-                {{-- Upload new tab --}}
+            <div class="flex items-center gap-1 shrink-0">
                 <button @click="activeTab = 'library'"
                         :class="activeTab === 'library' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'"
-                        class="text-sm font-medium pb-0.5 transition-colors">Library</button>
+                        class="text-sm font-medium px-2 pb-0.5 transition-colors">Library</button>
                 <button @click="activeTab = 'upload'"
                         :class="activeTab === 'upload' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'"
-                        class="text-sm font-medium pb-0.5 transition-colors">Upload New</button>
-                <button @click="close()" class="ml-3 text-gray-400 hover:text-gray-600">
+                        class="text-sm font-medium px-2 pb-0.5 transition-colors">Upload New</button>
+                <button @click="close()" class="ml-2 p-1 text-gray-400 hover:text-gray-600 rounded">
                     <x-heroicon-o-x-mark class="w-5 h-5"/>
                 </button>
             </div>
@@ -85,7 +84,7 @@
 
                     {{-- Loading skeleton --}}
                     <div x-show="isLoading && images.length === 0"
-                         class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                         class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
                         <template x-for="n in 24" :key="n">
                             <div class="aspect-square bg-gray-100 rounded-md animate-pulse"></div>
                         </template>
@@ -99,7 +98,7 @@
 
                     {{-- Images grid --}}
                     <div x-show="images.length > 0"
-                         class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                         class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
                         <template x-for="img in images" :key="img.unique_id">
                             <button type="button"
                                     @click="toggleSelect(img)"
@@ -136,7 +135,7 @@
                 </div>
 
                 {{-- Footer with selected preview + confirm --}}
-                <div class="border-t border-gray-100 px-4 py-3 flex items-center gap-3 bg-gray-50 shrink-0">
+                <div class="border-t border-gray-100 px-4 py-3 flex flex-wrap items-center gap-3 bg-gray-50 shrink-0">
                     <template x-if="selected">
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <img :src="selected.url" class="w-10 h-10 object-cover rounded-md border border-gray-200 shrink-0">

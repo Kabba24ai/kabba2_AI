@@ -4,6 +4,7 @@ namespace App\Services\Website;
 
 use Illuminate\Support\Facades\Cache;
 use App\Models\WebsiteManagement\WebsitePage;
+use App\Models\Global\Media;
 
 class HomePageService
 {
@@ -41,6 +42,7 @@ class HomePageService
             'featuredRentals' => $this->buildFeaturedRentals($sections->get('featured_rentals')),
             'featureStrip'    => $this->buildFeatureStrip($sections->get('feature_strip')),
             'footer'          => $this->buildFooter($sections->get('footer')),
+            'seo'             => $this->buildSeo($page),
             'orderedSections' => $page->sections->pluck('section_key'),
         ];
     }
@@ -109,6 +111,23 @@ class HomePageService
         ];
     }
 
+    private function buildSeo($page): object
+    {
+        $ogImageUrl = null;
+        if ($page?->og_image) {
+            $ogImageUrl = Media::find($page->og_image)?->url;
+        }
+        return (object) [
+            'metaTitle'       => $page?->meta_title,
+            'metaDescription' => $page?->meta_description,
+            'metaKeywords'    => $page?->meta_keywords,
+            'ogTitle'         => $page?->og_title,
+            'ogDescription'   => $page?->og_description,
+            'ogImage'         => $ogImageUrl,
+            'canonicalUrl'    => $page?->canonical_url,
+        ];
+    }
+
     private function defaults(): object
     {
         return (object) [
@@ -117,6 +136,7 @@ class HomePageService
             'featuredRentals' => $this->buildFeaturedRentals(null),
             'featureStrip'    => $this->buildFeatureStrip(null),
             'footer'          => $this->buildFooter(null),
+            'seo'             => $this->buildSeo(null),
             'orderedSections' => collect(['hero', 'contact_strip', 'featured_rentals', 'feature_strip']),
         ];
     }

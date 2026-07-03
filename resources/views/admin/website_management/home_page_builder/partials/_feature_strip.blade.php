@@ -1,5 +1,42 @@
 {{-- ── Feature Strip Section ──────────────────────────────────────────── --}}
-@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
+@php
+    $routePrefix = $routePrefix ?? 'admin.website-management.home-builder';
+
+    // Curated icon list — Heroicons only (outline) for reliable rendering in admin
+    $featureIcons = [
+        ['class' => 'heroicon-o-shield-check',           'label' => 'Shield'],
+        ['class' => 'heroicon-o-truck',                  'label' => 'Truck'],
+        ['class' => 'heroicon-o-wrench-screwdriver',     'label' => 'Wrench'],
+        ['class' => 'heroicon-o-clock',                  'label' => 'Clock'],
+        ['class' => 'heroicon-o-star',                   'label' => 'Star'],
+        ['class' => 'heroicon-o-phone',                  'label' => 'Phone'],
+        ['class' => 'heroicon-o-map-pin',                'label' => 'Location'],
+        ['class' => 'heroicon-o-calendar-days',          'label' => 'Calendar'],
+        ['class' => 'heroicon-o-check-circle',           'label' => 'Check'],
+        ['class' => 'heroicon-o-bolt',                   'label' => 'Bolt'],
+        ['class' => 'heroicon-o-cog-6-tooth',            'label' => 'Gear'],
+        ['class' => 'heroicon-o-building-office-2',      'label' => 'Building'],
+        ['class' => 'heroicon-o-users',                  'label' => 'Team'],
+        ['class' => 'heroicon-o-currency-dollar',        'label' => 'Pricing'],
+        ['class' => 'heroicon-o-chat-bubble-left-right', 'label' => 'Support'],
+        ['class' => 'icon-headset',                       'label' => 'Headset'],
+        ['class' => 'heroicon-o-hand-thumb-up',          'label' => 'Quality'],
+        ['class' => 'heroicon-o-home',                   'label' => 'Home'],
+        ['class' => 'heroicon-o-fire',                   'label' => 'Fire'],
+        ['class' => 'heroicon-o-gift',                   'label' => 'Gift'],
+        ['class' => 'heroicon-o-light-bulb',             'label' => 'Idea'],
+        ['class' => 'heroicon-o-rocket-launch',          'label' => 'Rocket'],
+        ['class' => 'heroicon-o-sparkles',               'label' => 'Sparkles'],
+        ['class' => 'heroicon-o-hand-raised',            'label' => 'Hand'],
+        ['class' => 'heroicon-o-sun',                    'label' => 'Sun'],
+        ['class' => 'heroicon-o-globe-alt',              'label' => 'Globe'],
+        ['class' => 'heroicon-o-heart',                  'label' => 'Heart'],
+        ['class' => 'heroicon-o-face-smile',             'label' => 'Smile'],
+        ['class' => 'heroicon-o-lifebuoy',               'label' => 'Support'],
+        ['class' => 'heroicon-o-trophy',                 'label' => 'Trophy'],
+        ['class' => 'heroicon-o-banknotes',              'label' => 'Money'],
+    ];
+@endphp
 
 {{-- Section Status Mini-Form --}}
 @if($section)
@@ -61,12 +98,14 @@
                 {!! html()->text('subtitle')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
                     ->attributes(['placeholder' => 'Reliable. Clean. Job Ready.']) !!}
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Icon</label>
-                {!! html()->text('icon')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                    ->attributes(['placeholder' => 'heroicon-o-shield-check']) !!}
-                <p class="text-xs text-gray-400 mt-0.5">heroicon-o-name or fa-class</p>
-            </div>
+
+            {{-- Icon Picker — Add form --}}
+            @include('admin.website_management.home_page_builder.partials._icon_picker', [
+                'pickerIcons'   => $featureIcons,
+                'currentIcon'   => '',
+                'inputName'     => 'icon',
+            ])
+
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Display Order</label>
                 {!! html()->number('display_order', $items->count() + 1)
@@ -102,7 +141,11 @@
                         </span>
                         <span class="text-xs font-mono bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded shrink-0">#{{ $item->display_order }}</span>
                         @if($item->icon)
-                            <code class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded hidden sm:block shrink-0">{{ $item->icon }}</code>
+                            @if(str_starts_with($item->icon, 'heroicon-') || str_starts_with($item->icon, 'icon-'))
+                                <x-dynamic-component :component="$item->icon" class="w-4 h-4 text-blue-600 shrink-0"/>
+                            @else
+                                <i class="fa-solid {{ $item->icon }} text-blue-600 text-sm shrink-0"></i>
+                            @endif
                         @endif
                         <span class="text-sm font-medium text-gray-800 truncate">{{ $item->title }}</span>
                         @if($item->subtitle)
@@ -134,12 +177,14 @@
                                 {!! html()->text('subtitle', old('subtitle', $item->subtitle))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
                             </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Icon Class</label>
-                                {!! html()->text('icon', old('icon', $item->icon))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                                    ->attributes(['placeholder' => 'heroicon-o-shield-check']) !!}
-                            </div>
+
+                            {{-- Icon Picker — Edit form --}}
+                            @include('admin.website_management.home_page_builder.partials._icon_picker', [
+                                'pickerIcons' => $featureIcons,
+                                'currentIcon' => $item->icon ?? '',
+                                'inputName'   => 'icon',
+                            ])
+
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Display Order</label>
                                 {!! html()->number('display_order', old('display_order', $item->display_order))

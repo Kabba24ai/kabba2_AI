@@ -98,7 +98,7 @@
             </a>
 
             {{-- Search --}}
-            <div class="relative flex-1 min-w-[200px] max-w-xs">
+            <div class="relative flex-1 min-w-[180px] max-w-[260px]">
                 <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 <input type="text" name="search" value="{{ $search }}"
                     placeholder="Search name, equipment ID, order…"
@@ -129,44 +129,44 @@
                 Search
             </button>
 
+            {{-- Conflict type badges: filter + counter in one (right side of the same row) --}}
+            @if($totalConflicts > 0)
+                @php
+                    $scBadges = [
+                        'all' => ['label' => 'All',                  'count' => $totalConflicts,                   'c' => '#dc2626', 'bg' => '#fef2f2', 'bd' => '#fecaca'],
+                        'db'  => ['label' => 'Double Bookings',      'count' => count($doubleBookings),            'c' => '#ea580c', 'bg' => '#fff7ed', 'bd' => '#fed7aa'],
+                        'b2b' => ['label' => 'Back-to-Back',         'count' => count($backToBackAlerts),          'c' => '#d97706', 'bg' => '#fffbeb', 'bd' => '#fde68a'],
+                        'dmg' => ['label' => 'Damaged',              'count' => count($damagedBookings),           'c' => '#e11d48', 'bg' => '#fff1f2', 'bd' => '#fecdd3'],
+                        'ovd' => ['label' => 'Overdue',              'count' => count($overdueEquipmentConflicts), 'c' => '#ca8a04', 'bg' => '#fefce8', 'bd' => '#fef08a'],
+                        'nda' => ['label' => 'No Direct Assignment', 'count' => count($noDirectAssignmentGroups),  'c' => '#6b7280', 'bg' => '#f9fafb', 'bd' => '#e5e7eb'],
+                    ];
+                    $scInitialType = match($section) {
+                        'double_bookings'      => 'db',
+                        'back_to_back'         => 'b2b',
+                        'damaged'              => 'dmg',
+                        'overdue'              => 'ovd',
+                        'no_direct_assignment' => 'nda',
+                        default                => 'all',
+                    };
+                    if (($scBadges[$scInitialType]['count'] ?? 0) === 0) {
+                        $scInitialType = 'all';
+                    }
+                @endphp
+                <div id="scTypeBadges" class="flex flex-wrap items-center gap-1.5 ml-auto">
+                    @foreach($scBadges as $scType => $scBadge)
+                        <button type="button" data-sc-type="{{ $scType }}"
+                            @disabled($scBadge['count'] === 0 && $scType !== 'all')
+                            style="--b: {{ $scBadge['c'] }}; --bb: {{ $scBadge['bg'] }}; --bd: {{ $scBadge['bd'] }};"
+                            class="sc-type-badge inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold border transition cursor-pointer {{ $scType === $scInitialType ? 'sc-type-active' : '' }}">
+                            {{ $scBadge['label'] }}
+                            <span class="sc-cnt text-[11px] font-bold rounded-full px-1.5 py-0.5 leading-none">{{ $scBadge['count'] }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            @endif
+
         </div>
     </form>
-
-    {{-- Conflict type badges: filter + counter in one (replaces the dropdown) --}}
-    @if($totalConflicts > 0)
-        @php
-            $scBadges = [
-                'all' => ['label' => 'All',                  'count' => $totalConflicts,                   'c' => '#dc2626', 'bg' => '#fef2f2', 'bd' => '#fecaca'],
-                'db'  => ['label' => 'Double Bookings',      'count' => count($doubleBookings),            'c' => '#ea580c', 'bg' => '#fff7ed', 'bd' => '#fed7aa'],
-                'b2b' => ['label' => 'Back-to-Back',         'count' => count($backToBackAlerts),          'c' => '#d97706', 'bg' => '#fffbeb', 'bd' => '#fde68a'],
-                'dmg' => ['label' => 'Damaged',              'count' => count($damagedBookings),           'c' => '#e11d48', 'bg' => '#fff1f2', 'bd' => '#fecdd3'],
-                'ovd' => ['label' => 'Overdue',              'count' => count($overdueEquipmentConflicts), 'c' => '#ca8a04', 'bg' => '#fefce8', 'bd' => '#fef08a'],
-                'nda' => ['label' => 'No Direct Assignment', 'count' => count($noDirectAssignmentGroups),  'c' => '#6b7280', 'bg' => '#f9fafb', 'bd' => '#e5e7eb'],
-            ];
-            $scInitialType = match($section) {
-                'double_bookings'      => 'db',
-                'back_to_back'         => 'b2b',
-                'damaged'              => 'dmg',
-                'overdue'              => 'ovd',
-                'no_direct_assignment' => 'nda',
-                default                => 'all',
-            };
-            if (($scBadges[$scInitialType]['count'] ?? 0) === 0) {
-                $scInitialType = 'all';
-            }
-        @endphp
-        <div id="scTypeBadges" class="mb-6 flex flex-wrap items-center gap-2">
-            @foreach($scBadges as $scType => $scBadge)
-                <button type="button" data-sc-type="{{ $scType }}"
-                    @disabled($scBadge['count'] === 0 && $scType !== 'all')
-                    style="--b: {{ $scBadge['c'] }}; --bb: {{ $scBadge['bg'] }}; --bd: {{ $scBadge['bd'] }};"
-                    class="sc-type-badge inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition cursor-pointer {{ $scType === $scInitialType ? 'sc-type-active' : '' }}">
-                    {{ $scBadge['label'] }}
-                    <span class="sc-cnt text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">{{ $scBadge['count'] }}</span>
-                </button>
-            @endforeach
-        </div>
-    @endif
 
     @if($totalConflicts === 0)
         <div class="text-center py-20 text-gray-400">
@@ -209,16 +209,7 @@
                         @foreach([$gConflict['a'], $gConflict['b']] as $gOp)
                             <div class="mt-2.5">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
-                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
-                                        {{ $gOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOp->delivery_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
-                                        {{ $gOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOp->pickup_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                </div>
+                                @include('admin.order_management.schedule_conflicts.partials.tile_dates', ['op' => $gOp])
                             </div>
                         @endforeach
                     </button>
@@ -255,16 +246,7 @@
                         @foreach([$gConflict['a'], $gConflict['b']] as $gOp)
                             <div class="mt-2.5">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
-                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
-                                        {{ $gOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOp->delivery_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
-                                        {{ $gOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOp->pickup_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                </div>
+                                @include('admin.order_management.schedule_conflicts.partials.tile_dates', ['op' => $gOp])
                             </div>
                         @endforeach
                     </button>
@@ -298,16 +280,7 @@
                         @foreach($gDamage['orders']->take(2) as $gOp)
                             <div class="mt-2.5">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
-                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
-                                        {{ $gOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOp->delivery_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
-                                        {{ $gOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOp->pickup_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                </div>
+                                @include('admin.order_management.schedule_conflicts.partials.tile_dates', ['op' => $gOp])
                             </div>
                         @endforeach
                         @if($gExtraCount > 0)
@@ -353,14 +326,15 @@
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200 tracking-wide shrink-0">OVERDUE</span>
                                     <span class="text-sm font-medium text-gray-900 truncate">{{ $gOverdueOp->order?->customer_name ?? '-' }}</span>
                                 </div>
+                                {{-- Same icons as the List View overdue rows: completed delivery / past-due return --}}
                                 <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
                                     <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
-                                        {{ $gOverdueOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOverdueOp->delivery_date, 'M d, y') : 'N/A' }}
+                                        <x-heroicon-o-check-circle class="w-4 h-4 text-green-600" />
+                                        <span>{{ $gOverdueOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOverdueOp->delivery_date, 'M d, y') : 'N/A' }}</span>
                                     </span>
                                     <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-red-500" />
-                                        {{ $gOverdueOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOverdueOp->pickup_date, 'M d, y') : 'N/A' }}
+                                        <x-heroicon-o-exclamation-circle class="w-4 h-4 text-red-500" />
+                                        <span class="text-red-600 font-medium">{{ $gOverdueOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOverdueOp->pickup_date, 'M d, y') : 'N/A' }}</span>
                                     </span>
                                 </div>
                             </div>
@@ -371,16 +345,12 @@
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 tracking-wide shrink-0">UPCOMING</span>
                                     <span class="text-sm font-medium text-gray-900 truncate">{{ $gUpcomingOp->order?->customer_name ?? '-' }}</span>
                                 </div>
-                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
-                                        {{ $gUpcomingOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gUpcomingOp->delivery_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
-                                        {{ $gUpcomingOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gUpcomingOp->pickup_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                </div>
+                                {{-- Same icons as the List View upcoming rows: transport mode, yellow (pending) --}}
+                                @include('admin.order_management.schedule_conflicts.partials.tile_dates', [
+                                    'op' => $gUpcomingOp,
+                                    'forceDeliveryColor' => 'text-yellow-600',
+                                    'forcePickupColor'   => 'text-yellow-600',
+                                ])
                             </div>
                         @endif
                         @if($gExtraCount > 0)
@@ -418,16 +388,7 @@
                         @foreach($gGroup['orders']->take(2) as $gOp)
                             <div class="mt-2.5">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
-                                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-green-600" />
-                                        {{ $gOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($gOp->delivery_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                    <span class="inline-flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3.5 h-3.5 text-amber-600" />
-                                        {{ $gOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($gOp->pickup_date, 'M d, y') : 'N/A' }}
-                                    </span>
-                                </div>
+                                @include('admin.order_management.schedule_conflicts.partials.tile_dates', ['op' => $gOp])
                             </div>
                         @endforeach
                         @if($gExtraCount > 0)

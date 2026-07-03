@@ -31,6 +31,15 @@ class Media extends Model
         'is_used', // 'Yes','No'
         'model_type',
         'model_id',
+        // Media Library fields
+        'title',
+        'alt_text',
+        'caption',
+        'description',
+        'width',
+        'height',
+        'media_folder_id',
+        'uploaded_by',
     ];
 
     protected $table = 'media';
@@ -86,6 +95,42 @@ class Media extends Model
         }
     }
 
+
+    public function folder()
+    {
+        return $this->belongsTo(MediaFolder::class, 'media_folder_id');
+    }
+
+    public function isImage(): bool
+    {
+        return str_starts_with($this->mime_type ?? '', 'image/');
+    }
+
+    /** Serialized array used by the media library UI and picker API */
+    public function toLibraryArray(): array
+    {
+        return [
+            'id'                  => $this->id,
+            'unique_id'           => $this->unique_id,
+            'url'                 => $this->url,
+            'original_file_name'  => $this->original_file_name ?? $this->file_name,
+            'file_size_formatted' => $this->getFileSize(),
+            'file_size'           => $this->file_size,
+            'width'               => $this->width,
+            'height'              => $this->height,
+            'alt_text'            => $this->alt_text,
+            'title'               => $this->title,
+            'caption'             => $this->caption,
+            'description'         => $this->description,
+            'mime_type'           => $this->mime_type,
+            'file_extension'      => $this->file_extension,
+            'file_type'           => $this->file_type,
+            'folder_id'           => $this->media_folder_id,
+            'is_image'            => $this->isImage(),
+            'created_at_formatted'=> $this->created_at?->diffForHumans(),
+            'created_at_date'     => $this->created_at?->format('M j, Y'),
+        ];
+    }
 
     public function  getFileSize()
     {

@@ -1,9 +1,10 @@
 {{-- ── Feature Strip Section ──────────────────────────────────────────── --}}
+@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
 
 {{-- Section Status Mini-Form --}}
 @if($section)
 <form method="POST"
-      action="{{ route('admin.website-management.home-builder.section.update', $section->unique_id) }}"
+      action="{{ route($routePrefix . '.section.update', $section->unique_id) }}"
       class="mb-5">
     @csrf
     <div class="flex flex-wrap items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3"
@@ -46,7 +47,7 @@
 
 {{-- Add Feature Form --}}
 <div id="add-feature-item" class="hidden mb-5 border border-dashed border-blue-300 rounded-lg p-4 bg-blue-50/30">
-    <form method="POST" action="{{ route('admin.website-management.home-builder.item.store') }}">
+    <form method="POST" action="{{ route($routePrefix . '.item.store') }}">
         @csrf
         <input type="hidden" name="section_unique_id" value="{{ $section?->unique_id }}">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
@@ -119,7 +120,7 @@
                 </div>
                 <div x-show="editOpen" x-cloak class="p-4 border-t border-gray-100">
                     <form method="POST"
-                          action="{{ route('admin.website-management.home-builder.item.update', $item->unique_id) }}"
+                          action="{{ route($routePrefix . '.item.update', $item->unique_id) }}"
                           data-track-changes>
                         @csrf
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
@@ -168,11 +169,11 @@
                         </div>
                     </form>
                     <form id="fs-dup-{{ $item->unique_id }}" method="POST"
-                          action="{{ route('admin.website-management.home-builder.item.duplicate', $item->unique_id) }}">
+                          action="{{ route($routePrefix . '.item.duplicate', $item->unique_id) }}">
                         @csrf
                     </form>
                     <form id="fs-del-{{ $item->unique_id }}" method="POST"
-                          action="{{ route('admin.website-management.home-builder.item.delete', $item->unique_id) }}"
+                          action="{{ route($routePrefix . '.item.delete', $item->unique_id) }}"
                           onsubmit="return confirm('Delete this feature?')">
                         @csrf @method('DELETE')
                     </form>

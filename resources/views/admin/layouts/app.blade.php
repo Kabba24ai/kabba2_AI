@@ -82,6 +82,9 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
         <!-- ===== Content Area End ===== -->
     </div>
     <!-- ===== Page Wrapper End ===== -->
+    {{-- Global Media Picker Modal --}}
+    @include('admin.partials._media_picker_modal')
+
     @livewireScripts
     @stack('js')
     <script>

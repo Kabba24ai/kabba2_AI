@@ -18,6 +18,7 @@ use App\Models\ProductManagement\ProductCategory;
 use App\Observers\ProductCategoryObserver;
 use App\Models\Orders\OrderProduct;
 use App\Observers\OrderProductObserver;
+use App\Providers\ComponentServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->register(ComponentServiceProvider::class);
     }
 
     /**

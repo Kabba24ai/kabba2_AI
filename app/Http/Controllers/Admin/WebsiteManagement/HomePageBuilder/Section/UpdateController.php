@@ -16,7 +16,7 @@ class UpdateController extends Controller
         $section   = WebsitePageSection::where('unique_id', $unique_id)->firstOrFail();
         $validated = $request->validated();
 
-        // Handle section image upload
+        // Handle section image — file upload takes precedence over media picker
         if ($request->hasFile('image')) {
             if ($section->image) {
                 $old = Media::find($section->image);
@@ -26,9 +26,13 @@ class UpdateController extends Controller
             if (!empty($mediaData['mediaObj'])) {
                 $validated['image'] = $mediaData['mediaObj']->id;
             }
+        } elseif ($request->filled('media_id')) {
+            // Image chosen from media library
+            $validated['image'] = $validated['media_id'];
         } else {
             unset($validated['image']);
         }
+        unset($validated['media_id']);
 
         // Merge JSON content fields
         if (isset($validated['content']) && is_array($validated['content'])) {

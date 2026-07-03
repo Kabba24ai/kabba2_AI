@@ -34,4 +34,19 @@ Route::prefix('website-management')
 
         // home page builder
         require base_path('routes/admin/website_management/home_page_builder/routes.php');
+
+        // website pages (generic multi-page builder)
+        require base_path('routes/admin/website_management/website_pages/routes.php');
+
+        // media library
+        require base_path('routes/admin/website_management/media_library/routes.php');
+
+        // navigation builder
+        require base_path('routes/admin/website_management/navigation_builder/routes.php');
+
+        // publishing workflow + revision history (scoped to any page by unique_id)
+        require base_path('routes/admin/website_management/publishing/routes.php');
+
+        // global theme builder
+        require base_path('routes/admin/website_management/theme_builder/routes.php');
     });

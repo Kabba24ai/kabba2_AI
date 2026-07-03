@@ -13,6 +13,7 @@ class WebsitePageSection extends Model
         'unique_id',
         'website_page_id',
         'section_key',
+        'section_type',
         'section_name',
         'title',
         'subtitle',

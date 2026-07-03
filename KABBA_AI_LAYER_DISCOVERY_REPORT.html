@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kabba Hidden AI Layer — Discovery Report</title>
+<style>Customer:Customer:
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f8f9fb;
+    color: #1a1d23;
+    line-height: 1.7;
+  }
+
+  /* ── Layout ── */
+  .wrapper { display: flex; min-height: 100vh; }
+
+  /* ── Sidebar nav ── */
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: #0f172a;
+    color: #cbd5e1;
+    padding: 32px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .sidebar-logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 20px;
+  }
+  .sidebar-logo h2 { font-size: 0.85rem; font-weight: 700; color: #f1f5f9; letter-spacing: 0.08em; text-transform: uppercase; }
+  .sidebar-logo p { font-size: 0.72rem; color: #64748b; margin-top: 4px; }
+  .sidebar nav a {
+    display: block;
+    padding: 8px 24px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .sidebar nav a:hover { color: #f1f5f9; background: #1e293b; border-left-color: #6366f1; }
+  .sidebar nav .nav-section {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #475569;
+    padding: 18px 24px 6px;
+  }
+
+  /* ── Main content ── */
+  .main { flex: 1; padding: 48px 56px; max-width: 1100px; }
+
+  /* ── Page header ── */
+  .page-header {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4f46e5 100%);
+    border-radius: 16px;
+    padding: 40px 48px;
+    margin-bottom: 48px;
+    color: #fff;
+  }
+  .page-header .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #e0e7ff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 16px;
+  }
+  .page-header h1 { font-size: 2rem; font-weight: 800; line-height: 1.2; margin-bottom: 12px; }
+  .page-header p { font-size: 0.95rem; color: #c7d2fe; max-width: 640px; }
+  .page-header .meta-row { display: flex; gap: 32px; margin-top: 24px; }
+  .page-header .meta-item label { display: block; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #a5b4fc; font-weight: 600; }
+  .page-header .meta-item span { font-size: 0.85rem; color: #e0e7ff; font-weight: 500; }
+
+  /* ── Alert box ── */
+  .alert {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 0.875rem;
+  }
+  .alert-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+  .alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+  .alert-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Section headings ── */
+  .section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 36px 40px;
+    margin-bottom: 32px;
+    scroll-margin-top: 24px;
+  }
+  .section-label {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6366f1;
+    background: #eef2ff;
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-bottom: 10px;
+  }
+  h2 { font-size: 1.35rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+  h3 { font-size: 1rem; font-weight: 700; color: #1e293b; margin: 28px 0 10px; }
+  h3:first-child { margin-top: 0; }
+  h4 { font-size: 0.875rem; font-weight: 700; color: #334155; margin: 20px 0 8px; }
+  .section-intro { color: #475569; font-size: 0.9rem; margin-bottom: 24px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin: 12px 0 20px; }
+  thead tr { background: #f8fafc; }
+  th { text-align: left; padding: 10px 14px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; border-bottom: 2px solid #e2e8f0; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top; color: #334155; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbfd; }
+  td code { background: #f1f5f9; color: #4f46e5; padding: 1px 6px; border-radius: 4px; font-size: 0.8em; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; }
+
+  /* ── Code blocks ── */
+  pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    margin: 12px 0 20px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    border: 1px solid #1e293b;
+  }
+  pre .comment { color: #64748b; }
+  pre .keyword { color: #a5b4fc; }
+  pre .string { color: #86efac; }
+  pre .arrow { color: #fbbf24; }
+  code { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; }
+
+  /* ── Tags / pills ── */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .tag-new { background: #dbeafe; color: #1d4ed8; }
+  .tag-reused { background: #dcfce7; color: #15803d; }
+  .tag-modified { background: #fef3c7; color: #b45309; }
+  .tag-none { background: #f1f5f9; color: #64748b; }
+  .tag-low { background: #dcfce7; color: #15803d; }
+  .tag-medium { background: #fef3c7; color: #b45309; }
+  .tag-high { background: #fee2e2; color: #dc2626; }
+
+  /* ── Event flow diagram ── */
+  .flow-box {
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 28px 32px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.78rem;
+    line-height: 1.9;
+    color: #cbd5e1;
+    margin: 12px 0 20px;
+    overflow-x: auto;
+  }
+  .flow-box .flow-header { color: #a5b4fc; font-weight: 700; margin-bottom: 4px; }
+  .flow-box .flow-step { color: #e2e8f0; }
+  .flow-box .flow-arrow { color: #fbbf24; }
+  .flow-box .flow-detail { color: #64748b; padding-left: 16px; }
+  .flow-box .flow-sub { color: #94a3b8; padding-left: 32px; }
+  .flow-box .flow-divider { border-top: 1px solid #1e293b; margin: 16px 0; }
+
+  /* ── Summary cards ── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0; }
+  .stat-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 20px 24px;
+    text-align: center;
+  }
+  .stat-card .stat-num { font-size: 2rem; font-weight: 800; color: #4f46e5; }
+  .stat-card .stat-label { font-size: 0.75rem; color: #64748b; font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── Risk matrix ── */
+  .risk-none { color: #15803d; font-weight: 600; }
+  .risk-low { color: #b45309; font-weight: 600; }
+  .risk-medium { color: #dc2626; font-weight: 600; }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 56px;
+    padding: 24px 0;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    text-align: center;
+  }
+  footer strong { color: #475569; }
+
+  /* ── Print ── */
+  @media print {
+    .sidebar { display: none; }
+    .main { padding: 24px; max-width: 100%; }
+    .page-header { background: #1e1b4b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section { break-inside: avoid; }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { padding: 24px 20px; }
+    .page-header { padding: 28px 24px; }
+    .page-header .meta-row { flex-wrap: wrap; gap: 16px; }
+    .section { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- ═══════════════════════════════════════════ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2>Kabba AI Layer</h2>
+      <p>Discovery Report &mdash; June 2026</p>
+    </div>
+    <nav>
+      <div class="nav-section">Overview</div>
+      <a href="#overview">Repository Verified</a>
+      <a href="#summary-stats">At a Glance</a>
+
+      <div class="nav-section">Findings</div>
+      <a href="#secA">A. Existing Files</a>
+      <a href="#secB">B. Confirmed Gaps</a>
+      <a href="#secC">C. Integration Points</a>
+      <a href="#secD">D. Files To Create</a>
+      <a href="#secE">E. Database Changes</a>
+      <a href="#secF">F. Event Flow</a>
+      <a href="#secG">G. Reused vs New</a>
+      <a href="#secH">H. Risk Assessment</a>
+    </nav>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════ MAIN ════════ -->
+  <main class="main">
+
+    <!-- Page Header -->
+    <div class="page-header" id="overview">
+      <div class="badge">Pre-Implementation Discovery</div>
+      <h1>Kabba Hidden AI Layer<br/>Discovery Report</h1>
+      <p>Full codebase analysis of the <strong>raj_development</strong> branch before any code is written. Identifies every existing file involved in product/category/SEO rendering, all gaps, and every proposed change with risk levels.</p>
+      <div class="meta-row">
+        <div class="meta-item">
+          <label>Repository</label>
+          <span>github.com/RajChotaliya/Kaaba2</span>
+        </div>
+        <div class="meta-item">
+          <label>Branch Inspected</label>
+          <span>origin/raj_development</span>
+        </div>
+        <div class="meta-item">
+          <label>Date</label>
+          <span>June 16, 2026</span>
+        </div>
+        <div class="meta-item">
+          <label>Status</label>
+          <span>Awaiting Approval</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warning">
+      <div class="alert-icon">⚠️</div>
+      <div><strong>No code has been written.</strong> This document is the required discovery phase. Implementation begins only after you approve the proposed architecture below.</div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div id="summary-stats" class="section">
+      <div class="section-label">At a Glance</div>
+      <h2>Scope Summary</h2>
+      <p class="section-intro">The Hidden AI Layer is narrow by design — it enriches existing pages without replacing anything.</p>
+      <div class="card-grid">
+        <div class="stat-card">
+          <div class="stat-num">3</div>
+          <div class="stat-label">Existing files modified</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">8</div>
+          <div class="stat-label">New files created</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">1</div>
+          <div class="stat-label">New database table</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:#15803d">0</div>
+          <div class="stat-label">Existing tables changed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:#15803d">0</div>
+          <div class="stat-label">New public URLs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:#15803d">0</div>
+          <div class="stat-label">New admin fields required</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ═══ SECTION A ═══════════════════════════════════════ -->
+    <div id="secA" class="section">
+      <div class="section-label">Section A</div>
+      <h2>Existing Files Inventory</h2>
+      <p class="section-intro">Every file already in the codebase that is relevant to the Hidden AI Layer — confirmed by reading actual file contents from <code>origin/raj_development</code>.</p>
+
+      <h3>A1. Product System</h3>
+      <table>
+        <thead>
+          <tr><th>File</th><th>Purpose</th><th>Key Fields / Methods Relevant to AI Layer</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>app/Models/ProductManagement/Product.php</code></td>
+            <td>Primary product model</td>
+            <td><code>product_name</code>, <code>slug</code>, <code>product_type</code> (Rental/Retail), <code>seo_title</code>, <code>seo_description</code>, <code>short_description</code>, <code>description</code>, <code>retail_price</code>, <code>rental_daily/weekend/weekly/monthly</code>, <code>sku</code>, <code>in_store_pickup</code>, <code>delivery_and_pickup</code>, <code>media</code> relationship</td>
+          </tr>
+          <tr>
+            <td><code>app/Models/ProductManagement/ProductCategory.php</code></td>
+            <td>Hierarchical product categories</td>
+            <td><code>title</code>, <code>slug</code>, <code>parent_id</code>, <code>short_content</code>, <code>content</code>, <code>seo_title</code>, <code>seo_description</code>, <code>is_featured</code>, <code>parentCategory()</code>, <code>childCategories()</code>, <code>isParentCategory()</code></td>
+          </tr>
+          <tr>
+            <td><code>app/Models/ProductManagement/ProductCategoryChild.php</code></td>
+            <td>Product ↔ Category junction table</td>
+            <td>Links products to categories with <code>sort_order</code></td>
+          </tr>
+          <tr>
+            <td><code>app/Http/Controllers/Front/Products/IndexController.php</code></td>
+            <td>Product detail page controller</td>
+            <td>Loads product with eager: categories, options, relatedProducts, mediaChildren. Passes <code>$productDetail</code>, <code>$stores</code>, <code>$category</code>, <code>$parentCategory</code>, <code>$childCategories</code> to view.</td>
+          </tr>
+          <tr>
+            <td><code>app/Http/Controllers/Front/Categories/IndexController.php</code></td>
+            <td>Parent category page controller</td>
+            <td>Loads category + products + child categories. Passes <code>$category</code>, <code>$items</code> to view.</td>
+          </tr>
+          <tr>
+            <td><code>app/Http/Controllers/Front/Categories/ChildController.php</code></td>
+            <td>Child category page controller</td>
+            <td>Loads child category view</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>A2. Store / Business / Location</h3>
+      <table>
+        <thead>
+          <tr><th>File</th><th>Purpose</th><th>Key Fields for AI Layer</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>app/Models/Stores/Store.php</code></td>
+            <td>Physical store locations</td>
+            <td><code>store_name</code>, <code>phone</code>, <code>email</code>, <code>address</code>, <code>city</code>, <code>state_id</code>, <code>zip_code</code>, <code>latitude</code>, <code>longitude</code>, <code>is_primary</code>, <code>status</code> — used for <code>LocalBusiness</code> and <code>ai_area_served</code> schema</td>
+          </tr>
+          <tr>
+            <td><code>app/Models/Stores/HoursOfOperation.php</code></td>
+            <td>Store hours by day</td>
+            <td>Used for <code>OpeningHoursSpecification</code> in <code>LocalBusiness</code> schema</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>A3. SEO &amp; Configuration</h3>
+      <table>
+        <thead>
+          <tr><th>File</th><th>Purpose</th><th>Key Fields for AI Layer</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>app/Models/Configurations/Setting.php</code></td>
+            <td>Dynamic key-value settings store</td>
+            <td><code>home_seo_title</code>, <code>home_seo_description</code>, <code>site_logo</code>, <code>top_phone</code> — used for <code>Organization</code> schema</td>
+          </tr>
+          <tr>
+            <td><code>app/Models/WebsiteManagement/FaqPage/FaqQuestions.php</code></td>
+            <td>FAQ content records</td>
+            <td><code>question_name</code>, <code>answer</code>, <code>related_question_id</code> — used for <code>FAQPage</code> schema</td>
+          </tr>
+          <tr>
+            <td><code>app/Models/WebsiteManagement/FaqPage/FaqCategory.php</code></td>
+            <td>FAQ grouping categories</td>
+            <td><code>category_name</code>, <code>description</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>A4. Blade Templates — Rendering Pipeline</h3>
+      <table>
+        <thead>
+          <tr><th>File</th><th>Purpose</th><th>Current SEO Behaviour</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>resources/views/front/layouts/app.blade.php</code></td>
+            <td>Main HTML layout — renders &lt;head&gt;, navbar, footer</td>
+            <td>Contains <code>@stack('meta')</code> where meta tags are injected. Also has canonical tag and title tag.</td>
+          </tr>
+          <tr>
+            <td><code>resources/views/front/products/index.blade.php</code></td>
+            <td>Product detail page</td>
+            <td>Uses <code>@push('meta')</code> to inject <code>og:title</code>, <code>og:description</code>, <code>twitter:title</code>, <code>twitter:description</code> from <code>$productDetail->seo_title</code> and <code>seo_description</code>.</td>
+          </tr>
+          <tr>
+            <td><code>resources/views/front/categories/index.blade.php</code></td>
+            <td>Parent category page</td>
+            <td>Identical pattern using <code>$category->seo_title</code> and <code>$category->seo_description</code>.</td>
+          </tr>
+          <tr>
+            <td><code>resources/views/front/home/index.blade.php</code></td>
+            <td>Home page</td>
+            <td>Uses <code>$branding['home_seo_title']</code> and <code>$branding['home_seo_description']</code> from Settings model.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>A5. Routes (Confirmed URLs)</h3>
+      <table>
+        <thead>
+          <tr><th>URL Pattern</th><th>Controller</th><th>Named Route</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GET /products/{slug}/{productVariant}/details</code></td>
+            <td><code>Front\Products\IndexController</code></td>
+            <td><code>front.products.index</code></td>
+          </tr>
+          <tr>
+            <td><code>GET /product-categories/{slug}</code></td>
+            <td><code>Front\Categories\IndexController</code></td>
+            <td><code>front.categories.index</code></td>
+          </tr>
+          <tr>
+            <td><code>GET /product-categories/{slug}/{childCategorySlug}</code></td>
+            <td><code>Front\Categories\ChildController</code></td>
+            <td><code>front.categories.sub-category</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>A6. Current &lt;head&gt; Output — Verified from Actual Files</h3>
+      <pre><span class="comment">&lt;!-- From resources/views/front/layouts/app.blade.php --&gt;</span>
+&lt;meta charset="UTF-8" /&gt;
+&lt;meta name="viewport" content="width=device-width, ..." /&gt;
+&lt;meta name="csrf-token" content="..."&gt;
+&lt;link rel="canonical" href="{{ url()-&gt;current() }}"&gt;
+&lt;title&gt;@yield('title', config('app.name')) - {{ config('app.name') }}&lt;/title&gt;
+@stack('meta')
+
+<span class="comment">&lt;!-- Pushed from product page via @push('meta') --&gt;</span>
+&lt;meta name="title" content="{{ $productDetail-&gt;seo_title }}"&gt;
+&lt;meta property="og:title" content="{{ $productDetail-&gt;seo_title }}"&gt;
+&lt;meta name="twitter:title" content="{{ $productDetail-&gt;seo_title }}"&gt;
+&lt;meta name="description" content="{{ $productDetail-&gt;seo_description }}"&gt;
+&lt;meta property="og:description" content="{{ $productDetail-&gt;seo_description }}"&gt;
+&lt;meta name="twitter:description" content="{{ $productDetail-&gt;seo_description }}"&gt;
+
+<span class="comment">&lt;!-- MISSING — none of these exist today: --&gt;</span>
+<span class="comment">&lt;!-- og:image, og:type, og:url, twitter:card, twitter:image   --&gt;</span>
+<span class="comment">&lt;!-- &lt;script type="application/ld+json"&gt; (JSON-LD)           --&gt;</span></pre>
+    </div>
+
+
+    <!-- ═══ SECTION B ═══════════════════════════════════════ -->
+    <div id="secB" class="section">
+      <div class="section-label">Section B</div>
+      <h2>Confirmed Gaps</h2>
+      <p class="section-intro">Items confirmed absent after reading actual file contents. These are what the Hidden AI Layer adds.</p>
+      <table>
+        <thead>
+          <tr><th>Missing Item</th><th>Impact on AI Discoverability</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>JSON-LD structured data (any type)</td><td>AI search engines cannot extract product name, price, or availability in a machine-readable format</td></tr>
+          <tr><td><code>og:image</code> / <code>twitter:image</code></td><td>No image shown when page is cited by ChatGPT, shared on social, or previewed by AI assistants</td></tr>
+          <tr><td><code>og:type</code>, <code>twitter:card</code></td><td>Social and AI previews are incomplete — type defaults to "website" for all pages</td></tr>
+          <tr><td><code>Product</code> schema</td><td>Google, ChatGPT, and Perplexity cannot understand product pricing, type (rental vs. retail), or availability</td></tr>
+          <tr><td><code>LocalBusiness</code> / <code>Organization</code> schema</td><td>AI cannot identify who Kabba is, where they operate, or how to contact them</td></tr>
+          <tr><td><code>BreadcrumbList</code> schema</td><td>AI cannot understand site hierarchy or navigate between related pages</td></tr>
+          <tr><td><code>ItemList</code> / <code>Service</code> schema</td><td>Category pages are invisible to AI as structured entities — just raw HTML</td></tr>
+          <tr><td><code>FAQPage</code> schema</td><td>Existing FAQ content cannot be surfaced by AI assistants as structured Q&amp;A</td></tr>
+          <tr><td>Rental-specific schema (<code>RentalService</code> / <code>Offer</code> per period)</td><td>Rental pricing per period (daily/weekly/monthly) not consumable by AI</td></tr>
+          <tr><td>Fallback logic for empty SEO fields</td><td>If admin leaves <code>seo_title</code> blank, the page gets no title meta tag at all</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <!-- ═══ SECTION C ═══════════════════════════════════════ -->
+    <div id="secC" class="section">
+      <div class="section-label">Section C</div>
+      <h2>Proposed Integration Points</h2>
+      <p class="section-intro">These are the <strong>only existing files</strong> that need modification. Every change is purely additive — no existing code is removed or replaced.</p>
+
+      <h3>C1. <code>resources/views/front/layouts/app.blade.php</code></h3>
+      <table>
+        <tr><th>Why it needs changing</th><td>The <code>&lt;head&gt;</code> tag is rendered here. JSON-LD <code>&lt;script&gt;</code> blocks must be output inside <code>&lt;head&gt;</code>.</td></tr>
+        <tr><th>What changes</th><td>Add one line: <code>@stack('schema')</code> immediately after the existing <code>@stack('meta')</code>.</td></tr>
+        <tr><th>Size</th><td>+1 line</td></tr>
+        <tr><th>Risk</th><td><span class="risk-none">None</span> — purely additive. Stack is empty until a child view pushes to it.</td></tr>
+      </table>
+      <pre>@stack('meta')
+@stack('schema')   <span class="comment">&lt;!-- ADD THIS ONE LINE --&gt;</span></pre>
+
+      <h3>C2. <code>resources/views/front/products/index.blade.php</code></h3>
+      <table>
+        <tr><th>Why it needs changing</th><td>JSON-LD for <code>Product</code>, <code>Offer</code>, and <code>BreadcrumbList</code> must be pushed from the product page.</td></tr>
+        <tr><th>What changes</th><td>Add a <code>@push('schema')</code> block after the existing <code>@push('meta')</code> block. Includes the new AI metadata partial.</td></tr>
+        <tr><th>Size</th><td>+5 lines</td></tr>
+        <tr><th>Risk</th><td><span class="risk-none">None</span> — additive, no existing logic touched.</td></tr>
+      </table>
+      <pre><span class="comment">&lt;!-- After the existing @push('meta') block --&gt;</span>
+@push('schema')
+    @include('front.partials.ai-page-metadata', [
+        'pageType'  =&gt; 'product',
+        'pageModel' =&gt; $productDetail,
+    ])
+@endpush</pre>
+
+      <h3>C3. <code>resources/views/front/categories/index.blade.php</code></h3>
+      <table>
+        <tr><th>Why it needs changing</th><td>Category pages need <code>ItemList</code>, <code>BreadcrumbList</code>, and <code>Service</code> schema.</td></tr>
+        <tr><th>What changes</th><td>Same pattern as C2, with <code>pageType =&gt; 'category'</code>.</td></tr>
+        <tr><th>Size</th><td>+5 lines</td></tr>
+        <tr><th>Risk</th><td><span class="risk-none">None</span></td></tr>
+      </table>
+      <pre>@push('schema')
+    @include('front.partials.ai-page-metadata', [
+        'pageType'  =&gt; 'category',
+        'pageModel' =&gt; $category,
+    ])
+@endpush</pre>
+
+      <h3>C4. <code>resources/views/front/home/index.blade.php</code> <em>(Phase 2 — optional)</em></h3>
+      <table>
+        <tr><th>Why it needs changing</th><td>Home page benefits from <code>Organization</code> and <code>WebSite</code> schema for brand identity.</td></tr>
+        <tr><th>What changes</th><td>Same pattern with <code>pageType =&gt; 'home'</code>.</td></tr>
+        <tr><th>Size</th><td>+5 lines</td></tr>
+        <tr><th>Risk</th><td><span class="risk-none">None</span></td></tr>
+      </table>
+    </div>
+
+
+    <!-- ═══ SECTION D ═══════════════════════════════════════ -->
+    <div id="secD" class="section">
+      <div class="section-label">Section D</div>
+      <h2>Files To Be Created</h2>
+      <p class="section-intro">Every proposed new file with justification for why it cannot reuse an existing file.</p>
+
+      <h3>D1. Migration</h3>
+      <table>
+        <tr><th>File</th><td><code>database/migrations/YYYY_MM_DD_create_ai_page_metadata_table.php</code></td></tr>
+        <tr><th>Justification</th><td>Stores cached generated AI metadata. Avoids regenerating JSON-LD on every page load. Enables hash-based change detection — metadata only regenerates when source data actually changes. Enables the Artisan backfill command for existing records.</td></tr>
+      </table>
+
+      <h3>D2. Eloquent Model</h3>
+      <table>
+        <tr><th>File</th><td><code>app/Models/AIVisibility/AiPageMetadata.php</code></td></tr>
+        <tr><th>Justification</th><td>Standard model for the new table. Enables type-safe querying and upsert operations from services.</td></tr>
+      </table>
+
+      <h3>D3. Service — AIPageMetadataGenerator</h3>
+      <table>
+        <tr><th>File</th><td><code>app/Services/AIVisibility/AIPageMetadataGenerator.php</code></td></tr>
+        <tr><th>Justification</th><td>Central orchestrator. Accepts a model instance, pulls existing SEO + content fields, computes hash, skips regeneration if unchanged, calls SchemaBuilder, saves result. Single entry point keeps generation logic out of Observers and controllers.</td></tr>
+        <tr><th>Public methods</th><td><code>generateForProduct(Product $p)</code>, <code>generateForCategory(ProductCategory $c)</code>, <code>generateForHome()</code></td></tr>
+      </table>
+
+      <h3>D4. Service — SchemaBuilder</h3>
+      <table>
+        <tr><th>File</th><td><code>app/Services/AIVisibility/SchemaBuilder.php</code></td></tr>
+        <tr><th>Justification</th><td>Schema assembly is a distinct concern from orchestration. Returns PHP arrays that become JSON-LD. Each method is independently testable. Separated so future AI enrichment can be added to specific methods without touching orchestration logic.</td></tr>
+        <tr><th>Methods</th><td>
+          <code>buildProductSchema(Product)</code> → <code>schema.org/Product</code><br/>
+          <code>buildRentalOfferSchema(Product)</code> → <code>schema.org/Offer</code> per rental period<br/>
+          <code>buildRetailOfferSchema(Product)</code> → <code>schema.org/Offer</code><br/>
+          <code>buildCategorySchema(ProductCategory)</code> → <code>schema.org/Service</code> or <code>ItemList</code><br/>
+          <code>buildBreadcrumbSchema(array $crumbs)</code> → <code>schema.org/BreadcrumbList</code><br/>
+          <code>buildOrganizationSchema()</code> → <code>schema.org/Organization</code> from Settings<br/>
+          <code>buildLocalBusinessSchema(Store)</code> → <code>schema.org/LocalBusiness</code><br/>
+          <code>buildFAQSchema(Collection $faqs)</code> → <code>schema.org/FAQPage</code>
+        </td></tr>
+      </table>
+
+      <h3>D5. Observer — ProductObserver</h3>
+      <table>
+        <tr><th>File</th><td><code>app/Observers/ProductObserver.php</code></td></tr>
+        <tr><th>Justification</th><td>Automatically triggers metadata regeneration when a product is saved or deleted. Zero manual intervention required from the admin.</td></tr>
+        <tr><th>Hooks</th><td><code>saved()</code>, <code>deleted()</code></td></tr>
+      </table>
+
+      <h3>D6. Observer — ProductCategoryObserver</h3>
+      <table>
+        <tr><th>File</th><td><code>app/Observers/ProductCategoryObserver.php</code></td></tr>
+        <tr><th>Justification</th><td>Same as D5 for product categories.</td></tr>
+        <tr><th>Hooks</th><td><code>saved()</code>, <code>deleted()</code></td></tr>
+      </table>
+
+      <h3>D7. Blade Partial — ai-page-metadata.blade.php</h3>
+      <table>
+        <tr><th>File</th><td><code>resources/views/front/partials/ai-page-metadata.blade.php</code></td></tr>
+        <tr><th>Justification</th><td>Single rendering point for all AI metadata. Called from product and category page templates. Reads the cached record from <code>ai_page_metadata</code>. If no record exists (first visit after deploy), generates on-the-fly and caches. Outputs only valid JSON-LD <code>&lt;script&gt;</code> tags — no hidden text, no spam.</td></tr>
+        <tr><th>Output</th><td>One or more <code>&lt;script type="application/ld+json"&gt;...&lt;/script&gt;</code> blocks in <code>&lt;head&gt;</code></td></tr>
+      </table>
+
+      <h3>D8. Artisan Command</h3>
+      <table>
+        <tr><th>File</th><td><code>app/Console/Commands/AIVisibility/GeneratePageMetadata.php</code></td></tr>
+        <tr><th>Justification</th><td>Required for backfilling all existing products and categories that existed before the feature was deployed. Also enables forced regeneration after bulk data changes or schema format updates.</td></tr>
+        <tr><th>Usage</th><td>
+          <code>php artisan ai:generate-page-metadata --type=product</code><br/>
+          <code>php artisan ai:generate-page-metadata --type=category</code><br/>
+          <code>php artisan ai:generate-page-metadata --all</code><br/>
+          <code>php artisan ai:generate-page-metadata --id=42 --type=product</code><br/>
+          <code>php artisan ai:generate-page-metadata --all --force</code>
+        </td></tr>
+      </table>
+    </div>
+
+
+    <!-- ═══ SECTION E ═══════════════════════════════════════ -->
+    <div id="secE" class="section">
+      <div class="section-label">Section E</div>
+      <h2>Database Changes</h2>
+      <p class="section-intro"><strong>One new table. Zero changes to any existing table.</strong></p>
+
+      <div class="alert alert-success">
+        <div class="alert-icon">✅</div>
+        <div>No columns are added to <code>products</code> or <code>product_categories</code>. All existing SEO fields are reused as-is. No existing migrations are touched.</div>
+      </div>
+
+      <h3>New Table: <code>ai_page_metadata</code></h3>
+      <table>
+        <thead>
+          <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>bigint unsigned, PK</td><td>Primary key</td></tr>
+          <tr><td><code>page_type</code></td><td>enum('product','category','home')</td><td>Discriminator — which type of page this record covers</td></tr>
+          <tr><td><code>page_id</code></td><td>unsignedBigInt, nullable</td><td>FK to <code>products.id</code> or <code>product_categories.id</code> (null for home)</td></tr>
+          <tr><td><code>url</code></td><td>string(500)</td><td>Canonical URL of the page</td></tr>
+          <tr><td><code>ai_title</code></td><td>string(255), nullable</td><td>Derived: <code>seo_title</code> → <code>product_name</code> / <code>title</code></td></tr>
+          <tr><td><code>ai_summary</code></td><td>text, nullable</td><td>Derived: <code>seo_description</code> → <code>short_description</code></td></tr>
+          <tr><td><code>ai_keywords</code></td><td>json, nullable</td><td>Auto-generated keyword array from product fields</td></tr>
+          <tr><td><code>ai_service_type</code></td><td>string(50), nullable</td><td>'Rental', 'Retail', or 'Both'</td></tr>
+          <tr><td><code>ai_use_cases</code></td><td>json, nullable</td><td>Auto-generated from product_type + category name</td></tr>
+          <tr><td><code>ai_area_served</code></td><td>json, nullable</td><td>Derived from <code>Store</code> records (cities, zip codes)</td></tr>
+          <tr><td><code>ai_related_categories</code></td><td>json, nullable</td><td>From <code>product→categories</code> relationship</td></tr>
+          <tr><td><code>ai_related_products</code></td><td>json, nullable</td><td>From <code>product→relatedProducts</code> relationship</td></tr>
+          <tr><td><code>schema_json</code></td><td>longText, nullable</td><td>Full JSON-LD array (all schema types for this page)</td></tr>
+          <tr><td><code>generated_from_hash</code></td><td>string(64), nullable</td><td>MD5 of source fields — skip regeneration if unchanged</td></tr>
+          <tr><td><code>last_generated_at</code></td><td>timestamp, nullable</td><td>When metadata was last generated</td></tr>
+          <tr><td><code>created_at</code> / <code>updated_at</code></td><td>timestamps</td><td>Standard Laravel timestamps</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Unique index:</strong> <code>(page_type, page_id)</code> — one record per page. Upsert on this key.</p>
+      <p><strong>No foreign key constraints</strong> — intentional. Avoids cascade issues if products are deleted without triggering the observer (e.g., bulk deletes). The observer handles cleanup on <code>deleted()</code>.</p>
+    </div>
+
+
+    <!-- ═══ SECTION F ═══════════════════════════════════════ -->
+    <div id="secF" class="section">
+      <div class="section-label">Section F</div>
+      <h2>Complete Event Flow</h2>
+      <p class="section-intro">End-to-end lifecycle for every trigger — write path (admin saves data) and read path (visitor loads page).</p>
+
+      <h3>Write Path — Admin Saves a Product</h3>
+      <div class="flow-box">
+<div class="flow-header">┌─ WRITE PATH: Admin saves a Product ──────────────────────────────────────────┐</div>
+<div class="flow-step"> </div>
+<div class="flow-step">Admin submits product form</div>
+<div class="flow-arrow">  → Eloquent fires 'saved' event</div>
+<div class="flow-arrow">  → ProductObserver::saved($product)</div>
+<div class="flow-arrow">  → AIPageMetadataGenerator::generateForProduct($product)</div>
+<div class="flow-detail">      Pull fields: seo_title, seo_description, product_name,</div>
+<div class="flow-detail">                   short_description, product_type, slug,</div>
+<div class="flow-detail">                   retail_price, rental_daily/weekend/weekly/monthly,</div>
+<div class="flow-detail">                   media, categories, relatedProducts,</div>
+<div class="flow-detail">                   in_store_pickup, delivery_and_pickup</div>
+<div class="flow-detail">      Pull active Store records  →  ai_area_served</div>
+<div class="flow-detail">      Compute MD5 hash of all source fields</div>
+<div class="flow-detail">      Query ai_page_metadata WHERE page_type='product' AND page_id=?</div>
+<div class="flow-detail">      ── If record exists AND hash unchanged: SKIP (return existing) ──</div>
+<div class="flow-detail">      SchemaBuilder::buildProductSchema($product)</div>
+<div class="flow-detail">      SchemaBuilder::buildRentalOfferSchema($product)   [if Rental or Both]</div>
+<div class="flow-detail">      SchemaBuilder::buildRetailOfferSchema($product)   [if Retail or Both]</div>
+<div class="flow-detail">      SchemaBuilder::buildBreadcrumbSchema([Home, Category, Product])</div>
+<div class="flow-detail">      SchemaBuilder::buildOrganizationSchema()           [from Settings]</div>
+<div class="flow-detail">      SchemaBuilder::buildLocalBusinessSchema($primaryStore)</div>
+<div class="flow-detail">      Combine all schemas into JSON-LD array</div>
+<div class="flow-arrow">  → Upsert ai_page_metadata record (page_type='product', page_id=...)</div>
+<div class="flow-arrow">  → Return AiPageMetadata model</div>
+      </div>
+
+      <h3>Write Path — Admin Saves a Category</h3>
+      <div class="flow-box">
+<div class="flow-header">┌─ WRITE PATH: Admin saves a ProductCategory ─────────────────────────────────┐</div>
+<div class="flow-step"> </div>
+<div class="flow-step">Admin submits category form</div>
+<div class="flow-arrow">  → Eloquent fires 'saved' event</div>
+<div class="flow-arrow">  → ProductCategoryObserver::saved($category)</div>
+<div class="flow-arrow">  → AIPageMetadataGenerator::generateForCategory($category)</div>
+<div class="flow-detail">      Pull fields: title, seo_title, seo_description,</div>
+<div class="flow-detail">                   short_content, content, slug, parent_id</div>
+<div class="flow-detail">      Pull publishedProducts (names, slugs, prices)</div>
+<div class="flow-detail">      Compute MD5 hash</div>
+<div class="flow-detail">      ── If hash unchanged: SKIP ──</div>
+<div class="flow-detail">      SchemaBuilder::buildCategorySchema($category)</div>
+<div class="flow-detail">      SchemaBuilder::buildItemListSchema($category->publishedProducts)</div>
+<div class="flow-detail">      SchemaBuilder::buildBreadcrumbSchema([Home, Category])</div>
+<div class="flow-detail">      SchemaBuilder::buildOrganizationSchema()</div>
+<div class="flow-arrow">  → Upsert ai_page_metadata record (page_type='category', page_id=...)</div>
+      </div>
+
+      <h3>Read Path — Visitor Loads a Product Page</h3>
+      <div class="flow-box">
+<div class="flow-header">┌─ READ PATH: GET /products/bulldozer-rental/daily/details ───────────────────┐</div>
+<div class="flow-step"> </div>
+<div class="flow-step">Browser requests URL</div>
+<div class="flow-arrow">  → Laravel Router → Front\Products\IndexController::__invoke()</div>
+<div class="flow-detail">      [UNCHANGED] Load $productDetail with eager relationships</div>
+<div class="flow-detail">      [UNCHANGED] Load $stores, $category, $parentCategory, $childCategories</div>
+<div class="flow-arrow">  → [UNCHANGED] return view('front.products.index', [...])</div>
+<div class="flow-step"> </div>
+<div class="flow-step">Blade renders front.products.index</div>
+<div class="flow-arrow">  → [UNCHANGED] @push('meta') outputs existing OG title/description tags</div>
+<div class="flow-arrow">  → [NEW] @push('schema')</div>
+<div class="flow-detail">      @include('front.partials.ai-page-metadata', ['pageType'=>'product', ...])</div>
+<div class="flow-detail">      Query ai_page_metadata WHERE page_type='product' AND page_id=?</div>
+<div class="flow-detail">      ── If found: use cached schema_json ──</div>
+<div class="flow-detail">      ── If not found (first visit): generate on-the-fly, cache, use ──</div>
+<div class="flow-detail">      Output: &lt;script type="application/ld+json"&gt;...&lt;/script&gt;</div>
+<div class="flow-arrow">  → @endpush</div>
+<div class="flow-step"> </div>
+<div class="flow-step">Blade renders front.layouts.app</div>
+<div class="flow-arrow">  → &lt;head&gt;</div>
+<div class="flow-arrow">  → @stack('meta')   → [UNCHANGED] existing OG tags</div>
+<div class="flow-arrow">  → @stack('schema') → [NEW] JSON-LD script blocks</div>
+<div class="flow-arrow">  → &lt;/head&gt;</div>
+<div class="flow-step"> </div>
+<div class="flow-step">Final HTML delivered to browser and AI crawlers</div>
+<div class="flow-detail">      AI sees: Product schema, Offer schema, BreadcrumbList, Organization</div>
+<div class="flow-detail">      Human sees: exactly the same page as before</div>
+      </div>
+
+      <h3>Backfill Path — Artisan Command</h3>
+      <div class="flow-box">
+<div class="flow-header">┌─ BACKFILL PATH: php artisan ai:generate-page-metadata --all ────────────────┐</div>
+<div class="flow-step"> </div>
+<div class="flow-step">Command runs (typically post-deploy or on-demand)</div>
+<div class="flow-arrow">  → Query all published Products</div>
+<div class="flow-arrow">  → For each: AIPageMetadataGenerator::generateForProduct()</div>
+<div class="flow-arrow">  → Query all published ProductCategories</div>
+<div class="flow-arrow">  → For each: AIPageMetadataGenerator::generateForCategory()</div>
+<div class="flow-arrow">  → Report: X generated | Y skipped (hash unchanged) | Z errors</div>
+      </div>
+    </div>
+
+
+    <!-- ═══ SECTION G ═══════════════════════════════════════ -->
+    <div id="secG" class="section">
+      <div class="section-label">Section G</div>
+      <h2>Reused vs. New — Complete Map</h2>
+      <p class="section-intro">Everything green is untouched existing code reused as-is. Everything blue is new.</p>
+      <table>
+        <thead>
+          <tr><th>Item</th><th>Status</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Product model</td><td><span class="tag tag-reused">REUSED</span></td><td>No changes to model file</td></tr>
+          <tr><td>ProductCategory model</td><td><span class="tag tag-reused">REUSED</span></td><td>No changes to model file</td></tr>
+          <tr><td>Product controller</td><td><span class="tag tag-reused">REUSED</span></td><td>No changes to controller</td></tr>
+          <tr><td>Category controller</td><td><span class="tag tag-reused">REUSED</span></td><td>No changes to controller</td></tr>
+          <tr><td>Existing <code>seo_title</code> / <code>seo_description</code> fields</td><td><span class="tag tag-reused">REUSED</span></td><td>Primary inputs to AI generator — one source of truth</td></tr>
+          <tr><td>Existing <code>short_description</code> / <code>content</code> fields</td><td><span class="tag tag-reused">REUSED</span></td><td>Fallback when SEO fields are empty</td></tr>
+          <tr><td>Existing <code>media</code> relationship</td><td><span class="tag tag-reused">REUSED</span></td><td>Source for <code>og:image</code> and Product schema image</td></tr>
+          <tr><td>Existing <code>Store</code> records</td><td><span class="tag tag-reused">REUSED</span></td><td>Source for <code>ai_area_served</code> and <code>LocalBusiness</code> schema</td></tr>
+          <tr><td>Existing <code>Setting</code> values</td><td><span class="tag tag-reused">REUSED</span></td><td>Source for <code>Organization</code> schema (name, logo, phone)</td></tr>
+          <tr><td>Existing <code>FaqQuestions</code> records</td><td><span class="tag tag-reused">REUSED</span></td><td>Source for <code>FAQPage</code> schema</td></tr>
+          <tr><td>Existing routes</td><td><span class="tag tag-reused">REUSED</span></td><td>No new public URLs created</td></tr>
+          <tr><td>Front layout <code>@stack('meta')</code></td><td><span class="tag tag-reused">REUSED</span></td><td>Untouched. New <code>@stack('schema')</code> added beside it.</td></tr>
+          <tr><td><code>app.blade.php</code></td><td><span class="tag tag-modified">+1 LINE</span></td><td>Add <code>@stack('schema')</code></td></tr>
+          <tr><td><code>products/index.blade.php</code></td><td><span class="tag tag-modified">+5 LINES</span></td><td>Add <code>@push('schema')</code> block</td></tr>
+          <tr><td><code>categories/index.blade.php</code></td><td><span class="tag tag-modified">+5 LINES</span></td><td>Add <code>@push('schema')</code> block</td></tr>
+          <tr><td><code>ai_page_metadata</code> table</td><td><span class="tag tag-new">NEW</span></td><td>Metadata cache</td></tr>
+          <tr><td><code>AiPageMetadata</code> model</td><td><span class="tag tag-new">NEW</span></td><td>Eloquent model</td></tr>
+          <tr><td><code>AIPageMetadataGenerator</code> service</td><td><span class="tag tag-new">NEW</span></td><td>Orchestration layer</td></tr>
+          <tr><td><code>SchemaBuilder</code> service</td><td><span class="tag tag-new">NEW</span></td><td>JSON-LD assembly</td></tr>
+          <tr><td><code>ProductObserver</code></td><td><span class="tag tag-new">NEW</span></td><td>Auto-trigger on product save</td></tr>
+          <tr><td><code>ProductCategoryObserver</code></td><td><span class="tag tag-new">NEW</span></td><td>Auto-trigger on category save</td></tr>
+          <tr><td><code>ai-page-metadata.blade.php</code></td><td><span class="tag tag-new">NEW</span></td><td>Renders JSON-LD into <code>&lt;head&gt;</code></td></tr>
+          <tr><td>Artisan command <code>ai:generate-page-metadata</code></td><td><span class="tag tag-new">NEW</span></td><td>Backfill and forced regeneration</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <!-- ═══ SECTION H ═══════════════════════════════════════ -->
+    <div id="secH" class="section">
+      <div class="section-label">Section H</div>
+      <h2>Risk Assessment</h2>
+      <p class="section-intro">Every risk considered, with mitigation for each.</p>
+      <table>
+        <thead>
+          <tr><th>Risk</th><th>Level</th><th>Mitigation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Breaking existing product pages</td>
+            <td><span class="risk-none">None</span></td>
+            <td>No existing code removed. The <code>@push('schema')</code> block is entirely new and separate from <code>@push('meta')</code>.</td>
+          </tr>
+          <tr>
+            <td>Breaking existing category pages</td>
+            <td><span class="risk-none">None</span></td>
+            <td>Same — additive only.</td>
+          </tr>
+          <tr>
+            <td>Breaking existing SEO meta tags</td>
+            <td><span class="risk-none">None</span></td>
+            <td>The existing <code>@push('meta')</code> blocks are untouched. New stack is <code>schema</code>, not <code>meta</code>.</td>
+          </tr>
+          <tr>
+            <td>Invalid JSON-LD crashing the page</td>
+            <td><span class="risk-low">Low</span></td>
+            <td>JSON-LD lives in a <code>&lt;script&gt;</code> tag, not in page body. Invalid JSON inside a script tag does not cause visible errors or break page rendering. Additionally, <code>json_encode()</code> with <code>JSON_THROW_ON_ERROR</code> catches malformed data before output.</td>
+          </tr>
+          <tr>
+            <td>Performance impact on page load</td>
+            <td><span class="risk-low">Low</span></td>
+            <td>Metadata is cached in the DB. A page load performs one indexed lookup. On-the-fly generation only happens once per product/category (cache miss). All subsequent requests read from cache.</td>
+          </tr>
+          <tr>
+            <td>Admin workload increase</td>
+            <td><span class="risk-none">None</span></td>
+            <td>Zero new required fields. All metadata is derived automatically from existing content. Admins manage the same forms they always have.</td>
+          </tr>
+          <tr>
+            <td>External AI service dependency</td>
+            <td><span class="risk-none">None</span></td>
+            <td>Version 1 is 100% deterministic — no OpenAI, Claude, or any external API. All schema is generated from existing Kabba database records.</td>
+          </tr>
+          <tr>
+            <td>Duplicate or conflicting SEO systems</td>
+            <td><span class="risk-none">None</span></td>
+            <td>The AI layer does not replace or shadow the existing SEO fields. It reads from them as source data. One source of truth — multiple outputs.</td>
+          </tr>
+          <tr>
+            <td>Keyword stuffing / spam penalties</td>
+            <td><span class="risk-none">None</span></td>
+            <td>Output is valid JSON-LD in <code>&lt;script&gt;</code> tags (standard practice endorsed by Google). No hidden text in page body. No fake reviews, ratings, or inventory.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="alert alert-info" style="margin-top: 24px;">
+        <div class="alert-icon">ℹ️</div>
+        <div><strong>Reversibility:</strong> If the feature needs to be disabled, removing the three <code>@push('schema')</code> additions from the Blade templates (11 total lines) completely disables all AI layer output. The website continues functioning normally. The <code>ai_page_metadata</code> table remains but is simply unused.</div>
+      </div>
+    </div>
+
+
+    <!-- Approval section -->
+    <div class="section" style="border-color: #4f46e5; background: #fafafe;">
+      <div class="section-label" style="background:#eef2ff;">Awaiting Approval</div>
+      <h2>Ready to Implement</h2>
+      <p style="color:#475569; margin-bottom: 20px;">This report covers the complete discovery phase. No code has been written. Implementation can begin immediately upon your approval.</p>
+      <p style="color:#475569;">If you want to adjust scope before starting — exclude a schema type, change the caching strategy, or defer Phase 2 (home page) — specify those changes now.</p>
+    </div>
+
+    <footer>
+      Generated for <strong>Kabba</strong> &mdash; Hidden AI Layer Discovery Report &mdash; Branch: <strong>raj_development</strong> &mdash; June 16, 2026
+    </footer>
+
+  </main>
+</div>
+
+</body>
+</html>

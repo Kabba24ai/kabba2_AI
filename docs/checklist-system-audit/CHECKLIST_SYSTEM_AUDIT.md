@@ -5,6 +5,16 @@
 **Code modified:** **No.**
 **Branch audited:** `raj_development`
 
+> **Phase 2 addendum available:** `PHASE2_DEPENDENCY_RUNTIME_AUDIT.md` in this same folder covers route caller mapping, literal end-to-end call graphs, a model dependency/blast-radius map, event/listener/observer chain tracing, a business-rule enforcement matrix, a runtime validation test plan, risk impact/likelihood scoring, and an explicit refactor-readiness verdict. Read it before planning a correction phase — it identifies that `equipment_status_logs` is silently never populated by any mobile-driven equipment status change (a `saveQuietly()` bug bypassing `EquipmentObserver`), that checklist answers are a direct, unguarded billing input, and that no automated tests or seed data exist for this system.
+>
+> **Phase 3 addendum available:** `PHASE3_RUNTIME_VALIDATION_SQL_PLAN.md` turns every open finding above into an executable test plan — exact API calls, sample payloads, expected DB changes, ready-to-run SQL verification queries for all ten confirmed/suspected defects, a prioritized run order, and an explicit go/no-go framework for the correction phase.
+>
+> **Phase 3 has been executed** (against the local dev environment, with explicit authorization to mutate its database) — results are in `PHASE3_RESULTS.md`. Headline outcome: **NO-GO on billing code changes** until finance reconciles a reproduced, confirmed bug where a legitimate second damage/fuel charge on a re-rented order product is silently dropped by an over-scoped idempotency key; **GO with elevated urgency** on the `equipment_status_logs` audit-trail gap (confirmed at 100% failure for every mobile-driven status transition tested); and a new, larger-than-expected finding that 33% of all delivered order products (876 of 2,665, including ones created in the week before this audit) have zero checklist trail at all.
+>
+> **Correction Phase 1 plan available:** `CORRECTION_PHASE1_PLAN.md` scopes a safe, minimal-risk fix plan for exactly the five issues confirmed by Phase 3 — evidence, affected files, root cause, safest fix approach, required tests, rollback risk, data-cleanup needs, priority, and implementation order for each. No refactoring, no schema changes, and no enforcement of new business rules are included in this phase by design — see the plan's own rationale for why (e.g., the completeness/signature gap gets observability-only logging in this phase, with actual enforcement explicitly deferred). No code has been changed yet.
+>
+> **Issue #5's investigation has been completed:** `ISSUE5_INVESTIGATION_FINDINGS.md` traces all 875 delivered-but-checklist-less order products to two fully-explained root causes — 95% are a legitimate, by-design admin "Close as Completed" workflow (not a bug, but a data-interpretation trap for anything treating "delivered" as a proxy for "checklist completed"), and 5% are a real, confirmed gap where the mobile app can complete a delivery with an empty `checklist` array. The investigation also found a **third site** of the Issue #2 `saveQuietly()` bug, in `UpdateProductScheduleController.php`, now folded into that issue's scope.
+
 ---
 
 ## 1. Executive Summary

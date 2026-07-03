@@ -2001,6 +2001,11 @@
     tiles.forEach(tile => tile.addEventListener('click', function () {
         selectedKey = tile.dataset.scKey;
         tiles.forEach(t => t.classList.toggle('sc-tile-selected', t === tile));
+        // Selecting a tile also activates its category filter — identical to
+        // clicking the category badge first, then the tile: other category
+        // blocks hide and the detail opens directly below this tile block.
+        activeType = typeOf(selectedKey);
+        badges.forEach(b => b.classList.toggle('sc-type-active', b.dataset.scType === activeType));
         render(true);
     }));
 

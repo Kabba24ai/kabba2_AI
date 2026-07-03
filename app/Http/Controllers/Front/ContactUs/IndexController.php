@@ -14,7 +14,7 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $stores = Store::with('state')->active()->get();
+        $stores = Store::with(['state', 'hoursOfOperation'])->active()->orderByAdmin()->get();
 
         $contact_settings = Setting::where('setting_type', 'Website Management Contact Us Section')->pluck('setting_value', 'setting_name')->toArray();
 

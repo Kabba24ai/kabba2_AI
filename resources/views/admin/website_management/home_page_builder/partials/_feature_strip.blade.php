@@ -50,7 +50,9 @@
             <h3 class="text-base font-semibold text-gray-900">Feature Strip</h3>
             <p class="text-xs text-gray-500">The dark-navy bar below the hero — icon + title + subtitle per item.</p>
         </div>
-        <input type="hidden" name="status" :value="active ? 'Active' : 'Inactive'">
+        <input type="hidden" name="status"
+               value="{{ ($section->status ?? 'Active') === 'Active' ? 'Active' : 'Inactive' }}"
+               :value="active ? 'Active' : 'Inactive'">
         <div class="flex items-center gap-2 cursor-pointer select-none shrink-0" @click="active = !active">
             <button type="button"
                     :class="active ? 'bg-green-500' : 'bg-gray-300'"
@@ -66,6 +68,7 @@
             Save Status
         </button>
     </div>
+    @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
 </form>
 @else
 <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-800 mb-5">
@@ -90,26 +93,32 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Title <span class="text-red-500">*</span></label>
-                {!! html()->text('title')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
+                {!! html()->text('title', old('title'))->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
                     ->attributes(['placeholder' => 'Well Maintained Equipment', 'required' => 'required']) !!}
+                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Subtitle</label>
-                {!! html()->text('subtitle')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
+                {!! html()->text('subtitle', old('subtitle'))->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
                     ->attributes(['placeholder' => 'Reliable. Clean. Job Ready.']) !!}
+                @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             {{-- Icon Picker — Add form --}}
-            @include('admin.website_management.home_page_builder.partials._icon_picker', [
-                'pickerIcons'   => $featureIcons,
-                'currentIcon'   => '',
-                'inputName'     => 'icon',
-            ])
+            <div>
+                @include('admin.website_management.home_page_builder.partials._icon_picker', [
+                    'pickerIcons'   => $featureIcons,
+                    'currentIcon'   => old('icon', ''),
+                    'inputName'     => 'icon',
+                ])
+                @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
 
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Display Order</label>
-                {!! html()->number('display_order', $items->count() + 1)
+                {!! html()->number('display_order', old('display_order', $items->count() + 1))
                     ->class('w-24 border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                @error('display_order') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
         </div>
         <button type="submit"
@@ -139,7 +148,7 @@
                               @click.stop>
                             <x-heroicon-o-bars-3 class="w-4 h-4"/>
                         </span>
-                        <span class="text-xs font-mono bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded shrink-0">#{{ $item->display_order }}</span>
+                        <span class="text-xs font-mono bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded shrink-0">#{{ $loop->index + 1 }}</span>
                         @if($item->icon)
                             @if(str_starts_with($item->icon, 'heroicon-') || str_starts_with($item->icon, 'icon-'))
                                 <x-dynamic-component :component="$item->icon" class="w-4 h-4 text-blue-600 shrink-0"/>
@@ -171,29 +180,36 @@
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Title</label>
                                 {!! html()->text('title', old('title', $item->title))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Subtitle</label>
                                 {!! html()->text('subtitle', old('subtitle', $item->subtitle))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
 
                             {{-- Icon Picker — Edit form --}}
-                            @include('admin.website_management.home_page_builder.partials._icon_picker', [
-                                'pickerIcons' => $featureIcons,
-                                'currentIcon' => $item->icon ?? '',
-                                'inputName'   => 'icon',
-                            ])
+                            <div>
+                                @include('admin.website_management.home_page_builder.partials._icon_picker', [
+                                    'pickerIcons' => $featureIcons,
+                                    'currentIcon' => old('icon', $item->icon ?? ''),
+                                    'inputName'   => 'icon',
+                                ])
+                                @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
 
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Display Order</label>
                                 {!! html()->number('display_order', old('display_order', $item->display_order))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('display_order') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
                                 {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">

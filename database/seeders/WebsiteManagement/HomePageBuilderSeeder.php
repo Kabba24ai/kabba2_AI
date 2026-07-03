@@ -214,6 +214,13 @@ class HomePageBuilderSeeder extends Seeder
             ['title' => 'Contact Us',          'button_url' => '/contact-us',             'display_order' => 4],
         ];
 
+        $otherLinks = [
+            ['title' => 'Contact Us',               'button_url' => '/contact-us',             'display_order' => 1],
+            ['title' => 'Terms & Conditions',        'button_url' => '/terms-and-conditions',   'display_order' => 2],
+            ['title' => 'Privacy Policy',            'button_url' => '/privacy-policy',         'display_order' => 3],
+            ['title' => 'Employment Opportunities',  'button_url' => config('app.domains.opportunities', '#'), 'display_order' => 4],
+        ];
+
         $socialLinks = [
             ['title' => 'Facebook',  'button_url' => '#', 'icon' => 'fa-facebook',  'display_order' => 1],
             ['title' => 'Instagram', 'button_url' => '#', 'icon' => 'fa-instagram', 'display_order' => 2],
@@ -230,6 +237,21 @@ class HomePageBuilderSeeder extends Seeder
                     'website_page_section_id' => $section->id,
                     'item_key'  => 'quick_link',
                     'status'    => 'Active',
+                ])
+            );
+        }
+
+        foreach ($otherLinks as $link) {
+            WebsiteSectionItem::firstOrCreate(
+                [
+                    'website_page_section_id' => $section->id,
+                    'item_key'                => 'other_link',
+                    'title'                   => $link['title'],
+                ],
+                array_merge($link, [
+                    'website_page_section_id' => $section->id,
+                    'item_key' => 'other_link',
+                    'status'   => 'Active',
                 ])
             );
         }

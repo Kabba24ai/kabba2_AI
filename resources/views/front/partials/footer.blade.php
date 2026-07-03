@@ -23,24 +23,17 @@
             </div>
 
             {{-- Other Links --}}
+            @if($footerHp->otherLinks->isNotEmpty())
             <div class="w-5/5 md:w-1/5 lg:w-1/5 md:mt-0">
                 <h3 class="font-bold text-white text-base mb-2 ">Other Links</h3>
-                @forelse($footerHp->otherLinks as $link)
+                @foreach($footerHp->otherLinks as $link)
                     <a href="{{ $link->button_url }}"
                         class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">
                         {{ $link->title }}
                     </a>
-                @empty
-                    <a href="{{ route('front.contact-us.index') }}"
-                        class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Contact Us</a>
-                    <a href="{{ route('front.terms-and-conditions.general') }}"
-                        class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Terms & Conditions</a>
-                    <a href="{{ route('front.privacy-policy.index') }}"
-                        class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Privacy Policy</a>
-                    <a href="{{ config('app.domains.opportunities') }}" target="_blank"
-                        class="hover:text-yellow-400 text-sm mb-1 text-neutral-200/60 transition-all duration-300 ease-in-out flex gap-2">Employment Opportunities</a>
-                @endforelse
+                @endforeach
             </div>
+            @endif
 
             {{-- Social Links --}}
             @php

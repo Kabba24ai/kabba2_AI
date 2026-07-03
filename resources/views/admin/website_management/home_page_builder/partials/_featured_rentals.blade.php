@@ -1,10 +1,14 @@
 {{-- ── Featured Rentals Section ──────────────────────────────────────────── --}}
-@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
+@php
+    $routePrefix = $routePrefix ?? 'admin.website-management.home-builder';
+    $isActive    = ($section?->status ?? 'Active') === 'Active';
+@endphp
 @if($section)
 <form method="POST"
       action="{{ route($routePrefix . '.section.update', $section->unique_id) }}"
-      enctype="multipart/form-data" data-parsley-validate>
+      enctype="multipart/form-data" data-parsley-validate data-track-changes>
     @csrf
+    <input type="hidden" name="status" value="{{ $isActive ? 'Active' : 'Inactive' }}">
     <div class="flex items-center justify-between mb-5">
         <div>
             <h3 class="text-base font-semibold text-gray-900">Featured Rentals Section</h3>
@@ -20,14 +24,17 @@
             {!! html()->text('title', old('title', $section->title ?? 'FEATURED RENTALS'))
                 ->class('w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:outline-none')
                 ->attributes(['placeholder' => 'FEATURED RENTALS']) !!}
+            @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Subtitle (optional)</label>
             {!! html()->text('subtitle', old('subtitle', $section->subtitle ?? ''))
                 ->class('w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:outline-none')
                 ->attributes(['placeholder' => 'Browse our rental categories']) !!}
+            @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
     </div>
+    @error('categories') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
 </form>
 @else
     <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-800 mb-4">Featured Rentals section not found. Run the seeder first.</div>

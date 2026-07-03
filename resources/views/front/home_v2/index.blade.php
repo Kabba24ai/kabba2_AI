@@ -1,6 +1,35 @@
 @extends('front.layouts.app')
 
+{{-- ── SEO: title, meta tags, OG, canonical ─────────────────────────── --}}
+@if($hp->seo->metaTitle)
+@section('full_title', $hp->seo->metaTitle)
+@else
 @section('title', $title)
+@endif
+
+@if($hp->seo->canonicalUrl)
+@section('canonical', $hp->seo->canonicalUrl)
+@endif
+
+@push('meta')
+    @if($hp->seo->metaDescription)
+    <meta name="description" content="{{ $hp->seo->metaDescription }}">
+    @endif
+    @if($hp->seo->metaKeywords)
+    <meta name="keywords" content="{{ $hp->seo->metaKeywords }}">
+    @endif
+    @if($hp->seo->ogTitle)
+    <meta property="og:title" content="{{ $hp->seo->ogTitle }}">
+    @endif
+    @if($hp->seo->ogDescription)
+    <meta property="og:description" content="{{ $hp->seo->ogDescription }}">
+    @endif
+    @if($hp->seo->ogImage)
+    <meta property="og:image" content="{{ $hp->seo->ogImage }}">
+    @endif
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ $hp->seo->canonicalUrl ?? url()->current() }}">
+@endpush
 
 @section('content')
 

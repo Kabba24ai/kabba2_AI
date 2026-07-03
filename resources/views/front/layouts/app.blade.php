@@ -8,12 +8,16 @@
     <meta name="viewport"
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="canonical" href="@yield('canonical', url()->current())">
 
     <!-- Favicon icon-->
     <link rel="shortcut icon" href="{{ $favicon ?? $logo }}">
 
+    @hasSection('full_title')
+    <title>@yield('full_title')</title>
+    @else
     <title>@yield('title', config('app.name')) - {{ config('app.name') }}</title>
+    @endif
     @stack('meta')
     @stack('schema')
 

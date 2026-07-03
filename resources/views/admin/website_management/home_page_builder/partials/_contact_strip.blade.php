@@ -16,7 +16,9 @@
             <p class="text-xs text-gray-500 mt-0.5">Section heading text and visibility.</p>
         </div>
         <div class="flex items-center gap-3">
-            <input type="hidden" name="status" :value="active ? 'Active' : 'Inactive'">
+            <input type="hidden" name="status"
+                   value="{{ $isActive ? 'Active' : 'Inactive' }}"
+                   :value="active ? 'Active' : 'Inactive'">
             <div class="flex items-center gap-2 cursor-pointer select-none" @click="active = !active">
                 <button type="button"
                         :class="active ? 'bg-green-500' : 'bg-gray-300'"
@@ -39,12 +41,14 @@
             {!! html()->text('title', old('title', $section->title ?? ''))
                 ->class('w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:outline-none')
                 ->attributes(['placeholder' => 'Call Our Rental Specialists']) !!}
+            @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Subtitle</label>
             {!! html()->text('subtitle', old('subtitle', $section->subtitle ?? ''))
                 ->class('w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:outline-none')
                 ->attributes(['placeholder' => 'Need Help Finding The Right Equipment?']) !!}
+            @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
     </div>
 </form>
@@ -112,17 +116,20 @@
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Title</label>
                                 {!! html()->text('title', old('title', $item->title))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number</label>
                                 {!! html()->text('subtitle', old('subtitle', $item->subtitle))
                                     ->class('masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
                                     ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'tel']) !!}
+                                @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
                                 {!! html()->text('description', old('description', $item->description))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
@@ -146,6 +153,7 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                @error('content.store_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
@@ -161,22 +169,26 @@
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Title</label>
                                 {!! html()->text('title', old('title', $item->title))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Sub Title</label>
                                 {!! html()->text('subtitle', old('subtitle', $item->subtitle))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
                                     ->attributes(['placeholder' => 'Find What You Need']) !!}
+                                @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
                                 {!! html()->text('description', old('description', $item->description))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Button Text</label>
                                 {!! html()->text('button_text', old('button_text', $item->button_text))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('button_text') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>

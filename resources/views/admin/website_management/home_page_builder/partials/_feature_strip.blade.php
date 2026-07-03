@@ -1,5 +1,42 @@
 {{-- ── Feature Strip Section ──────────────────────────────────────────── --}}
-@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
+@php
+    $routePrefix = $routePrefix ?? 'admin.website-management.home-builder';
+
+    // Curated icon list — Heroicons only (outline) for reliable rendering in admin
+    $featureIcons = [
+        ['class' => 'heroicon-o-shield-check',           'label' => 'Shield'],
+        ['class' => 'heroicon-o-truck',                  'label' => 'Truck'],
+        ['class' => 'heroicon-o-wrench-screwdriver',     'label' => 'Wrench'],
+        ['class' => 'heroicon-o-clock',                  'label' => 'Clock'],
+        ['class' => 'heroicon-o-star',                   'label' => 'Star'],
+        ['class' => 'heroicon-o-phone',                  'label' => 'Phone'],
+        ['class' => 'heroicon-o-map-pin',                'label' => 'Location'],
+        ['class' => 'heroicon-o-calendar-days',          'label' => 'Calendar'],
+        ['class' => 'heroicon-o-check-circle',           'label' => 'Check'],
+        ['class' => 'heroicon-o-bolt',                   'label' => 'Bolt'],
+        ['class' => 'heroicon-o-cog-6-tooth',            'label' => 'Gear'],
+        ['class' => 'heroicon-o-building-office-2',      'label' => 'Building'],
+        ['class' => 'heroicon-o-users',                  'label' => 'Team'],
+        ['class' => 'heroicon-o-currency-dollar',        'label' => 'Pricing'],
+        ['class' => 'heroicon-o-chat-bubble-left-right', 'label' => 'Support'],
+        ['class' => 'icon-headset',                       'label' => 'Headset'],
+        ['class' => 'heroicon-o-hand-thumb-up',          'label' => 'Quality'],
+        ['class' => 'heroicon-o-home',                   'label' => 'Home'],
+        ['class' => 'heroicon-o-fire',                   'label' => 'Fire'],
+        ['class' => 'heroicon-o-gift',                   'label' => 'Gift'],
+        ['class' => 'heroicon-o-light-bulb',             'label' => 'Idea'],
+        ['class' => 'heroicon-o-rocket-launch',          'label' => 'Rocket'],
+        ['class' => 'heroicon-o-sparkles',               'label' => 'Sparkles'],
+        ['class' => 'heroicon-o-hand-raised',            'label' => 'Hand'],
+        ['class' => 'heroicon-o-sun',                    'label' => 'Sun'],
+        ['class' => 'heroicon-o-globe-alt',              'label' => 'Globe'],
+        ['class' => 'heroicon-o-heart',                  'label' => 'Heart'],
+        ['class' => 'heroicon-o-face-smile',             'label' => 'Smile'],
+        ['class' => 'heroicon-o-lifebuoy',               'label' => 'Support'],
+        ['class' => 'heroicon-o-trophy',                 'label' => 'Trophy'],
+        ['class' => 'heroicon-o-banknotes',              'label' => 'Money'],
+    ];
+@endphp
 
 {{-- Section Status Mini-Form --}}
 @if($section)
@@ -13,7 +50,9 @@
             <h3 class="text-base font-semibold text-gray-900">Feature Strip</h3>
             <p class="text-xs text-gray-500">The dark-navy bar below the hero — icon + title + subtitle per item.</p>
         </div>
-        <input type="hidden" name="status" :value="active ? 'Active' : 'Inactive'">
+        <input type="hidden" name="status"
+               value="{{ ($section->status ?? 'Active') === 'Active' ? 'Active' : 'Inactive' }}"
+               :value="active ? 'Active' : 'Inactive'">
         <div class="flex items-center gap-2 cursor-pointer select-none shrink-0" @click="active = !active">
             <button type="button"
                     :class="active ? 'bg-green-500' : 'bg-gray-300'"
@@ -29,6 +68,7 @@
             Save Status
         </button>
     </div>
+    @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
 </form>
 @else
 <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-800 mb-5">
@@ -53,24 +93,32 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Title <span class="text-red-500">*</span></label>
-                {!! html()->text('title')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
+                {!! html()->text('title', old('title'))->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
                     ->attributes(['placeholder' => 'Well Maintained Equipment', 'required' => 'required']) !!}
+                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Subtitle</label>
-                {!! html()->text('subtitle')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
+                {!! html()->text('subtitle', old('subtitle'))->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
                     ->attributes(['placeholder' => 'Reliable. Clean. Job Ready.']) !!}
+                @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
+
+            {{-- Icon Picker — Add form --}}
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Icon</label>
-                {!! html()->text('icon')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                    ->attributes(['placeholder' => 'heroicon-o-shield-check']) !!}
-                <p class="text-xs text-gray-400 mt-0.5">heroicon-o-name or fa-class</p>
+                @include('admin.website_management.home_page_builder.partials._icon_picker', [
+                    'pickerIcons'   => $featureIcons,
+                    'currentIcon'   => old('icon', ''),
+                    'inputName'     => 'icon',
+                ])
+                @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
+
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Display Order</label>
-                {!! html()->number('display_order', $items->count() + 1)
+                {!! html()->number('display_order', old('display_order', $items->count() + 1))
                     ->class('w-24 border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                @error('display_order') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
         </div>
         <button type="submit"
@@ -100,9 +148,13 @@
                               @click.stop>
                             <x-heroicon-o-bars-3 class="w-4 h-4"/>
                         </span>
-                        <span class="text-xs font-mono bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded shrink-0">#{{ $item->display_order }}</span>
+                        <span class="text-xs font-mono bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded shrink-0">#{{ $loop->index + 1 }}</span>
                         @if($item->icon)
-                            <code class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded hidden sm:block shrink-0">{{ $item->icon }}</code>
+                            @if(str_starts_with($item->icon, 'heroicon-') || str_starts_with($item->icon, 'icon-'))
+                                <x-dynamic-component :component="$item->icon" class="w-4 h-4 text-blue-600 shrink-0"/>
+                            @else
+                                <i class="fa-solid {{ $item->icon }} text-blue-600 text-sm shrink-0"></i>
+                            @endif
                         @endif
                         <span class="text-sm font-medium text-gray-800 truncate">{{ $item->title }}</span>
                         @if($item->subtitle)
@@ -128,27 +180,36 @@
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Title</label>
                                 {!! html()->text('title', old('title', $item->title))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Subtitle</label>
                                 {!! html()->text('subtitle', old('subtitle', $item->subtitle))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
+
+                            {{-- Icon Picker — Edit form --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Icon Class</label>
-                                {!! html()->text('icon', old('icon', $item->icon))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                                    ->attributes(['placeholder' => 'heroicon-o-shield-check']) !!}
+                                @include('admin.website_management.home_page_builder.partials._icon_picker', [
+                                    'pickerIcons' => $featureIcons,
+                                    'currentIcon' => old('icon', $item->icon ?? ''),
+                                    'inputName'   => 'icon',
+                                ])
+                                @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
+
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Display Order</label>
                                 {!! html()->number('display_order', old('display_order', $item->display_order))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('display_order') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
                                 {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))
                                     ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">

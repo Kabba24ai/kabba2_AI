@@ -16,12 +16,12 @@
     {{-- Wrapper — height driven by the image itself (no aspect-ratio constraint) --}}
     <div class="relative w-full">
 
-        {{-- Background image at its uploaded dimensions — never upscaled beyond natural size --}}
+        {{-- Full-width image, height scales proportionally — no cropping --}}
         @if($hero->imageUrl)
         <img
             src="{{ $hero->imageUrl }}"
             alt="Equipment rental background"
-            class="max-w-full h-auto block mx-auto"
+            class="w-full h-auto block"
             aria-hidden="true"
         >
         @else

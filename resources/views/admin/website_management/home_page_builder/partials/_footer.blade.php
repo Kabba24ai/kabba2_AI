@@ -1,6 +1,6 @@
 {{-- ── Footer Section ──────────────────────────────────────────────────── --}}
-@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
 @php
+    $routePrefix   = $routePrefix ?? 'admin.website-management.home-builder';
     $footerContent = $section?->content ?? [];
     $copyrightText = $footerContent['copyright_text'] ?? '';
     $poweredByText = $footerContent['powered_by_text'] ?? '';
@@ -8,6 +8,37 @@
     $otherLinks    = $items->where('item_key', 'other_link');
     $socialLinks   = $items->where('item_key', 'social_link');
     $isActive      = ($section?->status ?? 'Active') === 'Active';
+
+    // Social platform options — value = FA icon class stored in DB
+    $socialPlatforms = [
+        'fa-facebook-f'    => 'Facebook',
+        'fa-x-twitter'     => 'X (Twitter)',
+        'fa-instagram'     => 'Instagram',
+        'fa-linkedin-in'   => 'LinkedIn',
+        'fa-youtube'       => 'YouTube',
+        'fa-tiktok'        => 'TikTok',
+        'fa-pinterest-p'   => 'Pinterest',
+        'fa-snapchat-ghost'=> 'Snapchat',
+        'fa-whatsapp'      => 'WhatsApp',
+        'fa-threads'       => 'Threads',
+    ];
+
+    // Fixed URL options for Quick Links and Other Links dropdowns.
+    // These match the relative paths stored in button_url in the database.
+    $predefinedUrls = [
+        '/'                     => 'Home',
+        '/home-v2'              => 'Home V2',
+        '/faqs'                 => 'FAQ',
+        '/product-categories'   => 'Equipment Rentals',
+        '/contact-us'           => 'Contact Us',
+        '/contact-us-v2'        => 'Contact Us V2',
+        '/terms-and-conditions' => 'Terms & Conditions',
+        '/privacy-policy'       => 'Privacy Policy',
+    ];
+    $opportunitiesUrl = config('app.domains.opportunities');
+    if ($opportunitiesUrl) {
+        $predefinedUrls[$opportunitiesUrl] = 'Employment Opportunities';
+    }
 @endphp
 
 @if($section)
@@ -22,7 +53,9 @@
             <p class="text-xs text-gray-500 mt-0.5">Copyright, powered-by text, and footer links.</p>
         </div>
         <div class="flex items-center gap-3">
-            <input type="hidden" name="status" :value="active ? 'Active' : 'Inactive'">
+            <input type="hidden" name="status"
+                   value="{{ $isActive ? 'Active' : 'Inactive' }}"
+                   :value="active ? 'Active' : 'Inactive'">
             <div class="flex items-center gap-2 cursor-pointer select-none" @click="active = !active">
                 <button type="button"
                         :class="active ? 'bg-green-500' : 'bg-gray-300'"
@@ -39,18 +72,21 @@
             </button>
         </div>
     </div>
+    @error('status') <p class="mb-3 text-xs text-red-600">{{ $message }}</p> @enderror
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Copyright Text</label>
             {!! html()->text('content[copyright_text]', old('content.copyright_text', $copyrightText))
                 ->class('w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:outline-none')
                 ->attributes(['placeholder' => "© 2024 Rent 'n King. All rights reserved."]) !!}
+            @error('content.copyright_text') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Powered By Text</label>
             {!! html()->text('content[powered_by_text]', old('content.powered_by_text', $poweredByText))
                 ->class('w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:outline-none')
                 ->attributes(['placeholder' => 'Development360']) !!}
+            @error('content.powered_by_text') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
     </div>
 </form>
@@ -66,6 +102,7 @@
     ['key' => 'other_link',  'label' => 'Other Links',  'sortId' => 'sortable-footer-other',  'items' => $otherLinks],
     ['key' => 'social_link', 'label' => 'Social Links', 'sortId' => 'sortable-footer-social', 'items' => $socialLinks],
 ] as $group)
+@php $isLinkGroup = in_array($group['key'], ['quick_link', 'other_link']); @endphp
 <div class="border-t border-gray-200 pt-5 mt-5">
     <div class="flex items-center justify-between mb-3">
         <h4 class="text-sm font-semibold text-gray-800">{{ $group['label'] }} ({{ $group['items']->count() }})</h4>
@@ -75,34 +112,70 @@
         </button>
     </div>
 
+    {{-- Add Link Form --}}
     <div id="add-{{ $group['key'] }}" class="hidden mb-4 border border-dashed border-blue-300 rounded-lg p-3 bg-blue-50/30">
-        <form method="POST" action="{{ route($routePrefix . '.item.store') }}">
+        <form method="POST" action="{{ route($routePrefix . '.item.store') }}"
+              @if($group['key'] === 'social_link') x-data="{ socialTitle: '' }" @endif>
             @csrf
             <input type="hidden" name="section_unique_id" value="{{ $section?->unique_id }}">
             <input type="hidden" name="item_key" value="{{ $group['key'] }}">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-2">
+
+            @if($group['key'] === 'social_link')
+                <input type="hidden" name="title" x-bind:value="socialTitle">
+            @endif
+
+            <div class="grid grid-cols-1 md:grid-cols-{{ $group['key'] === 'social_link' ? '2' : '3' }} gap-3 mb-2">
+
+                @if($group['key'] !== 'social_link')
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Label <span class="text-red-500">*</span></label>
-                    {!! html()->text('title')->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm')
+                    {!! html()->text('title', old('title'))->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm')
                         ->attributes(['placeholder' => 'Home', 'required' => 'required']) !!}
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">URL</label>
-                    {!! html()->text('button_url')->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm')
-                        ->attributes(['placeholder' => '/home']) !!}
-                </div>
-                @if($group['key'] === 'social_link')
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Icon Class</label>
-                    {!! html()->text('icon')->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm')
-                        ->attributes(['placeholder' => 'fa-facebook']) !!}
+                    @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 @endif
+
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">Order</label>
-                    {!! html()->number('display_order', $group['items']->count() + 1)
-                        ->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                    <label class="block text-xs text-gray-500 mb-1">
+                        {{ $isLinkGroup ? 'Page' : 'URL' }}
+                        @if($isLinkGroup)<span class="text-red-500">*</span>@endif
+                    </label>
+                    @if($isLinkGroup)
+                        <select name="button_url" required
+                                class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
+                            <option value="">— Select a page —</option>
+                            @foreach($predefinedUrls as $url => $label)
+                                <option value="{{ $url }}"
+                                    {{ old('button_url') === $url ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('button_url') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    @else
+                        {!! html()->text('button_url', old('button_url'))->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm')
+                            ->attributes(['placeholder' => 'https://']) !!}
+                        @error('button_url') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    @endif
                 </div>
+
+                @if($group['key'] === 'social_link')
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Platform <span class="text-red-500">*</span></label>
+                    <select name="icon" required
+                            @change="socialTitle = $event.target.options[$event.target.selectedIndex].text"
+                            class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
+                        <option value="">— Select platform —</option>
+                        @foreach($socialPlatforms as $iconClass => $platformName)
+                            <option value="{{ $iconClass }}"
+                                {{ old('icon') === $iconClass ? 'selected' : '' }}>
+                                {{ $platformName }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+                @endif
             </div>
             <button type="submit" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium">Add</button>
         </form>
@@ -123,55 +196,104 @@
                     <span class="drag-handle cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 shrink-0">
                         <x-heroicon-o-bars-3 class="w-4 h-4"/>
                     </span>
-                    <span class="text-gray-400 text-xs shrink-0">#{{ $item->display_order }}</span>
+                    <span class="text-gray-400 text-xs shrink-0">#{{ $loop->index + 1 }}</span>
                     @if($item->icon)
-                        <code class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded shrink-0">{{ $item->icon }}</code>
+                        <span class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded shrink-0">
+                            {{ $socialPlatforms[$item->icon] ?? $item->icon }}
+                        </span>
                     @endif
-                    <span class="font-medium text-gray-800 truncate">{{ $item->title }}</span>
+                    @if($group['key'] !== 'social_link')
+                        <span class="font-medium text-gray-800 truncate">{{ $item->title }}</span>
+                    @endif
                     @if($item->button_url)
                         <span class="text-xs text-gray-400 hidden md:inline truncate">→ {{ $item->button_url }}</span>
                     @endif
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-center gap-1 shrink-0">
                     <button @click="editOpen = !editOpen"
-                            class="text-xs text-blue-600 hover:underline">Edit</button>
+                            class="p-1.5 rounded text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
+                        <x-heroicon-o-pencil-square class="w-4 h-4"/>
+                    </button>
                     <form method="POST"
                           action="{{ route($routePrefix . '.item.delete', $item->unique_id) }}"
                           onsubmit="return confirm('Delete this link?')">
                         @csrf @method('DELETE')
-                        <button type="submit" class="text-xs text-red-500 hover:underline">Delete</button>
+                        <button type="submit"
+                                class="p-1.5 rounded text-red-500 hover:bg-red-50 transition-colors" title="Delete">
+                            <x-heroicon-o-trash class="w-4 h-4"/>
+                        </button>
                     </form>
                 </div>
-                {{-- Inline edit panel (below the row) --}}
+
+                {{-- Inline edit panel --}}
                 <div x-show="editOpen" x-cloak
                      class="absolute left-0 right-0 mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-xl p-4"
                      style="top: 100%; min-width: 320px; max-width: 500px;">
-                    <form method="POST" action="{{ route($routePrefix . '.item.update', $item->unique_id) }}">
+                    <form method="POST" action="{{ route($routePrefix . '.item.update', $item->unique_id) }}"
+                          @if($group['key'] === 'social_link') x-data="{ socialTitle: @js($item->title) }" @endif>
                         @csrf
+
+                        @if($group['key'] === 'social_link')
+                            <input type="hidden" name="title" x-bind:value="socialTitle">
+                        @endif
+
                         <div class="space-y-2 mb-2">
+                            @if($group['key'] !== 'social_link')
                             <div>
                                 <label class="block text-xs text-gray-500 mb-1">Label</label>
-                                {!! html()->text('title', $item->title)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                {!! html()->text('title', old('title', $item->title))->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
+                            @endif
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">URL</label>
-                                {!! html()->text('button_url', $item->button_url)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                <label class="block text-xs text-gray-500 mb-1">
+                                    {{ $isLinkGroup ? 'Page' : 'URL' }}
+                                </label>
+                                @if($isLinkGroup)
+                                    <select name="button_url"
+                                            class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
+                                        <option value="">— Select a page —</option>
+                                        @foreach($predefinedUrls as $url => $label)
+                                            <option value="{{ $url }}"
+                                                {{ old('button_url', $item->button_url) === $url ? 'selected' : '' }}>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('button_url') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                @else
+                                    {!! html()->text('button_url', old('button_url', $item->button_url))->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                    @error('button_url') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                @endif
                             </div>
                             @if($group['key'] === 'social_link')
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">Icon</label>
-                                {!! html()->text('icon', $item->icon)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                <label class="block text-xs text-gray-500 mb-1">Platform</label>
+                                <select name="icon"
+                                        @change="socialTitle = $event.target.options[$event.target.selectedIndex].text"
+                                        class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
+                                    <option value="">— Select platform —</option>
+                                    @foreach($socialPlatforms as $iconClass => $platformName)
+                                        <option value="{{ $iconClass }}"
+                                            {{ old('icon', $item->icon ?? '') === $iconClass ? 'selected' : '' }}>
+                                            {{ $platformName }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             @endif
                             <div class="flex gap-2">
                                 <div class="flex-1">
                                     <label class="block text-xs text-gray-500 mb-1">Order</label>
-                                    {!! html()->number('display_order', $item->display_order)->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                    {!! html()->number('display_order', old('display_order', $item->display_order))->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                    @error('display_order') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                 </div>
                                 <div class="flex-1">
                                     <label class="block text-xs text-gray-500 mb-1">Status</label>
-                                    {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], $item->status)
+                                    {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))
                                         ->class('w-full border border-gray-300 rounded px-2 py-1.5 text-sm') !!}
+                                    @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                 </div>
                             </div>
                         </div>

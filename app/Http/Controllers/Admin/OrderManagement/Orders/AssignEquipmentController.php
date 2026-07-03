@@ -52,13 +52,6 @@ class AssignEquipmentController extends Controller
             ], 409);
         }
 
-        // Check if equipment has checklist questions (already hard assigned)
-        if ($orderProduct->checklistQuestions->isNotEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order Product has already been hard assigned to other equipment.'
-            ], 409);
-        }
 
         if($equipment->current_status->isRented()){
             return response()->json(

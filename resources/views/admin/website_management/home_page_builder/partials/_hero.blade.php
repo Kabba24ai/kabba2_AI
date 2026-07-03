@@ -1,12 +1,14 @@
 @php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
 @php
     $heroContent      = $section?->content ?? [];
-    $overlayEnabled   = (bool) ($heroContent['overlay_enabled'] ?? true);
-    $overlayOpacity   = (int)  ($heroContent['overlay_opacity'] ?? 65);
-    $titlePosition    = $heroContent['title_position']    ?? 'left';
-    $subtitlePosition = $heroContent['subtitle_position'] ?? 'left';
-    $titleColor       = $heroContent['title_color']       ?? '#ffffff';
-    $subtitleColor    = $heroContent['subtitle_color']    ?? '#ffffff';
+    // Merge old() input over DB values so errors repopulate the form
+    $oldContent       = old('content', $heroContent);
+    $overlayEnabled   = (bool)(int)($oldContent['overlay_enabled'] ?? $heroContent['overlay_enabled'] ?? true);
+    $overlayOpacity   = (int)       ($oldContent['overlay_opacity'] ?? $heroContent['overlay_opacity'] ?? 65);
+    $titlePosition    = $oldContent['title_position']    ?? $heroContent['title_position']    ?? 'left';
+    $subtitlePosition = $oldContent['subtitle_position'] ?? $heroContent['subtitle_position'] ?? 'left';
+    $titleColor       = $oldContent['title_color']       ?? $heroContent['title_color']       ?? '#ffffff';
+    $subtitleColor    = $oldContent['subtitle_color']    ?? $heroContent['subtitle_color']     ?? '#ffffff';
     $isActive         = ($section?->status ?? 'Active') === 'Active';
 @endphp
 
@@ -31,8 +33,8 @@
           mediaId:          '',
           overlayEnabled:   @js($overlayEnabled),
           overlayOpacity:   @js($overlayOpacity),
-          titleText:        @js($section->title ?? ''),
-          subtitleText:     @js($section->subtitle ?? ''),
+          titleText:        @js(old('title', $section->title ?? '')),
+          subtitleText:     @js(old('subtitle', $section->subtitle ?? '')),
           titlePosition:    @js($titlePosition),
           subtitlePosition: @js($subtitlePosition),
           titleColor:       @js($titleColor),
@@ -72,7 +74,7 @@
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Background Image</label>
             <input type="hidden" name="media_id" :value="mediaId">
-            <div class="flex items-start gap-5 flex-wrap">
+            <div class="flex items-start gap-5">
                 <div>
                     <img :src="imgSrc"
                          x-show="imgSrc"
@@ -94,10 +96,10 @@
                     <label class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md cursor-pointer bg-white hover:bg-gray-50 text-sm text-gray-700 w-fit">
                         <x-heroicon-o-arrow-up-tray class="w-4 h-4 text-gray-500 shrink-0"/>
                         Upload New
-                        <input type="file" name="image" accept="image/jpeg,image/png,image/gif,image/webp" class="sr-only"
+                        <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/svg+xml" class="sr-only"
                                @change="mediaId = ''; imgSrc = URL.createObjectURL($event.target.files[0])">
                     </label>
-                    <p class="text-xs text-gray-400">Recommended 1920×450 · JPG/PNG/WebP · max 4 MB</p>
+                    <p class="text-xs text-gray-400">Recommended 1920×450 · JPG/PNG/WebP/SVG · max 4 MB</p>
                     @if($section->image_url)
                     <button type="submit"
                             form="hero-remove-img-form"
@@ -108,7 +110,8 @@
                     @endif
                 </div>
             </div>
-            @error('image') <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p> @enderror
+            @error('image')    <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p> @enderror
+            @error('media_id') <p class="mt-1   text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
 
         {{-- ── Overlay Settings ─────────────────────────────────────── --}}
@@ -130,6 +133,9 @@
                            x-model="overlayOpacity"
                            min="0" max="100"
                            class="w-full h-1.5 accent-blue-600 cursor-pointer">
+                    @error('content.overlay_opacity')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
         </div>

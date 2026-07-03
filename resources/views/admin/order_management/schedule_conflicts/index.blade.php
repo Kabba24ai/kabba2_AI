@@ -28,6 +28,28 @@
         outline-offset: 1px;
         box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
     }
+
+    /* Conflict-type badge filters */
+    .sc-type-badge {
+        color: var(--b);
+        background: var(--bb);
+        border-color: var(--bd);
+    }
+    .sc-type-badge .sc-cnt { background: rgba(255, 255, 255, .7); }
+    .sc-type-badge.sc-type-active {
+        background: var(--b);
+        border-color: var(--b);
+        color: #fff;
+    }
+    .sc-type-badge.sc-type-active .sc-cnt { background: rgba(255, 255, 255, .25); }
+    .sc-type-badge:disabled { opacity: .4; cursor: default; }
+
+    /* Subtle fade/slide when the detail panel appears or changes */
+    @keyframes scDetailFade {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .sc-detail-anim { animation: scDetailFade 150ms ease-out; }
 </style>
 @endpush
 
@@ -55,11 +77,6 @@
                         List
                     </button>
                 </div>
-
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-red-100 text-red-700 border border-red-200">
-                    <x-heroicon-o-exclamation-circle class="w-4 h-4" />
-                    {{ $totalConflicts }} {{ Str::plural('conflict', $totalConflicts) }} found
-                </span>
             @else
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-200">
                     <x-heroicon-o-check-circle class="w-4 h-4" />
@@ -106,17 +123,6 @@
                 @endforeach
             </select>
 
-            {{-- Section / Status --}}
-            <select name="section" onchange="this.form.submit()"
-                class="py-2 pl-3 pr-8 text-sm border border-gray-300 rounded-lg bg-white focus:ring focus:border-blue-400 outline-none min-w-[180px]">
-                <option value="">All conflict types</option>
-                <option value="double_bookings"      @selected($section === 'double_bookings')>Double Bookings</option>
-                <option value="back_to_back"         @selected($section === 'back_to_back')>Back-to-Back Alerts</option>
-                <option value="damaged"              @selected($section === 'damaged')>Damaged Equipment</option>
-                <option value="overdue"              @selected($section === 'overdue')>Overdue Equipment</option>
-                <option value="no_direct_assignment" @selected($section === 'no_direct_assignment')>No Direct Assignment</option>
-            </select>
-
             {{-- Search submit --}}
             <button type="submit"
                 class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition shrink-0">
@@ -125,6 +131,42 @@
 
         </div>
     </form>
+
+    {{-- Conflict type badges: filter + counter in one (replaces the dropdown) --}}
+    @if($totalConflicts > 0)
+        @php
+            $scBadges = [
+                'all' => ['label' => 'All',                  'count' => $totalConflicts,                   'c' => '#dc2626', 'bg' => '#fef2f2', 'bd' => '#fecaca'],
+                'db'  => ['label' => 'Double Bookings',      'count' => count($doubleBookings),            'c' => '#ea580c', 'bg' => '#fff7ed', 'bd' => '#fed7aa'],
+                'b2b' => ['label' => 'Back-to-Back',         'count' => count($backToBackAlerts),          'c' => '#d97706', 'bg' => '#fffbeb', 'bd' => '#fde68a'],
+                'dmg' => ['label' => 'Damaged',              'count' => count($damagedBookings),           'c' => '#e11d48', 'bg' => '#fff1f2', 'bd' => '#fecdd3'],
+                'ovd' => ['label' => 'Overdue',              'count' => count($overdueEquipmentConflicts), 'c' => '#ca8a04', 'bg' => '#fefce8', 'bd' => '#fef08a'],
+                'nda' => ['label' => 'No Direct Assignment', 'count' => count($noDirectAssignmentGroups),  'c' => '#6b7280', 'bg' => '#f9fafb', 'bd' => '#e5e7eb'],
+            ];
+            $scInitialType = match($section) {
+                'double_bookings'      => 'db',
+                'back_to_back'         => 'b2b',
+                'damaged'              => 'dmg',
+                'overdue'              => 'ovd',
+                'no_direct_assignment' => 'nda',
+                default                => 'all',
+            };
+            if (($scBadges[$scInitialType]['count'] ?? 0) === 0) {
+                $scInitialType = 'all';
+            }
+        @endphp
+        <div id="scTypeBadges" class="mb-6 flex flex-wrap items-center gap-2">
+            @foreach($scBadges as $scType => $scBadge)
+                <button type="button" data-sc-type="{{ $scType }}"
+                    @disabled($scBadge['count'] === 0 && $scType !== 'all')
+                    style="--b: {{ $scBadge['c'] }}; --bb: {{ $scBadge['bg'] }}; --bd: {{ $scBadge['bd'] }};"
+                    class="sc-type-badge inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition cursor-pointer {{ $scType === $scInitialType ? 'sc-type-active' : '' }}">
+                    {{ $scBadge['label'] }}
+                    <span class="sc-cnt text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">{{ $scBadge['count'] }}</span>
+                </button>
+            @endforeach
+        </div>
+    @endif
 
     @if($totalConflicts === 0)
         <div class="text-center py-20 text-gray-400">
@@ -140,13 +182,13 @@
 
         {{-- Double Booking tiles --}}
         @if(count($doubleBookings) > 0)
-        <div>
+        <div data-sc-grid="db">
             <div class="mb-3 flex items-center gap-2">
                 <x-heroicon-o-calendar-days class="w-5 h-5 text-orange-500" />
                 <h2 class="text-base font-semibold text-gray-800">Double Bookings</h2>
                 <span class="text-xs text-gray-400">(same equipment, overlapping rental dates)</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                 @foreach($doubleBookings as $gIndex => $gConflict)
                     @php
                         $gEquipment = $gConflict['equipment'];
@@ -154,7 +196,7 @@
                         $gEnd       = $gConflict['overlap_end'];
                     @endphp
                     <button type="button" style="--sc-accent:#f97316"
-                        class="sc-tile text-left rounded-xl border border-orange-200 bg-orange-50/70 p-4"
+                        class="sc-tile text-left rounded-xl border border-orange-200 bg-orange-50/70 p-3"
                         data-sc-key="db-{{ $gIndex }}">
                         <span class="inline-flex items-center gap-1 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-full px-2.5 py-0.5">
                             <x-heroicon-o-calendar class="w-3 h-3" />
@@ -165,7 +207,7 @@
                             <span class="font-semibold text-gray-900 text-sm truncate">{{ $gEquipment?->equipment_name ?? 'Unknown Equipment' }}</span>
                         </div>
                         @foreach([$gConflict['a'], $gConflict['b']] as $gOp)
-                            <div class="mt-3 border-t border-orange-200/70 pt-2.5">
+                            <div class="mt-2.5">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
                                 <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
                                     <span class="inline-flex items-center gap-1">
@@ -187,20 +229,20 @@
 
         {{-- Back-to-Back tiles --}}
         @if(count($backToBackAlerts) > 0)
-        <div>
+        <div data-sc-grid="b2b">
             <div class="mb-3 flex items-center gap-2">
                 <x-heroicon-o-arrows-right-left class="w-5 h-5 text-amber-500" />
                 <h2 class="text-base font-semibold text-gray-800">Back-to-Back Alerts</h2>
                 <span class="text-xs text-gray-400">(same equipment returning and going out on the same day — not a double booking)</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                 @foreach($backToBackAlerts as $gIndex => $gConflict)
                     @php
                         $gEquipment = $gConflict['equipment'];
                         $gStart     = $gConflict['overlap_start'];
                     @endphp
                     <button type="button" style="--sc-accent:#f59e0b"
-                        class="sc-tile text-left rounded-xl border border-amber-200 bg-amber-50/70 p-4"
+                        class="sc-tile text-left rounded-xl border border-amber-200 bg-amber-50/70 p-3"
                         data-sc-key="b2b-{{ $gIndex }}">
                         <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2.5 py-0.5">
                             <x-heroicon-o-calendar class="w-3 h-3" />
@@ -211,7 +253,7 @@
                             <span class="font-semibold text-gray-900 text-sm truncate">{{ $gEquipment?->equipment_name ?? 'Unknown Equipment' }}</span>
                         </div>
                         @foreach([$gConflict['a'], $gConflict['b']] as $gOp)
-                            <div class="mt-3 border-t border-amber-200/70 pt-2.5">
+                            <div class="mt-2.5">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
                                 <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
                                     <span class="inline-flex items-center gap-1">
@@ -233,20 +275,20 @@
 
         {{-- Damaged Equipment tiles --}}
         @if(count($damagedBookings) > 0)
-        <div>
+        <div data-sc-grid="dmg">
             <div class="mb-3 flex items-center gap-2">
                 <x-heroicon-o-wrench-screwdriver class="w-5 h-5 text-red-500" />
                 <h2 class="text-base font-semibold text-gray-800">Damaged Equipment</h2>
                 <span class="text-xs text-gray-400">(active orders assigned to equipment with Damaged status)</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                 @foreach($damagedBookings as $gIndex => $gDamage)
                     @php
                         $gEquipment  = $gDamage['equipment'];
                         $gExtraCount = $gDamage['orders']->count() - 2;
                     @endphp
                     <button type="button" style="--sc-accent:#ef4444"
-                        class="sc-tile text-left rounded-xl border border-red-200 bg-red-50/70 p-4"
+                        class="sc-tile text-left rounded-xl border border-red-200 bg-red-50/70 p-3"
                         data-sc-key="dmg-{{ $gIndex }}">
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white tracking-wide">DAMAGED</span>
                         <div class="mt-2.5 flex items-center gap-1.5">
@@ -254,7 +296,7 @@
                             <span class="font-semibold text-gray-900 text-sm truncate">{{ $gEquipment?->equipment_name ?? 'Unknown Equipment' }}</span>
                         </div>
                         @foreach($gDamage['orders']->take(2) as $gOp)
-                            <div class="mt-3 border-t border-red-200/70 pt-2.5">
+                            <div class="mt-2.5">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
                                 <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
                                     <span class="inline-flex items-center gap-1">
@@ -279,13 +321,13 @@
 
         {{-- Overdue Equipment tiles --}}
         @if(count($overdueEquipmentConflicts) > 0)
-        <div>
+        <div data-sc-grid="ovd">
             <div class="mb-3 flex items-center gap-2">
                 <x-heroicon-o-clock class="w-5 h-5 text-amber-500" />
                 <h2 class="text-base font-semibold text-gray-800">Overdue Equipment</h2>
                 <span class="text-xs text-gray-400">(equipment past return date with a new order due within 3 days)</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                 @foreach($overdueEquipmentConflicts as $gIndex => $gGroup)
                     @php
                         $gEquipment    = $gGroup['equipment'];
@@ -295,7 +337,7 @@
                         $gExtraCount   = ($gGroup['overdue_orders']->count() - 1) + ($gGroup['upcoming_orders']->count() - 1);
                     @endphp
                     <button type="button" style="--sc-accent:#f59e0b"
-                        class="sc-tile text-left rounded-xl border border-amber-200 bg-amber-50/70 p-4"
+                        class="sc-tile text-left rounded-xl border border-amber-200 bg-amber-50/70 p-3"
                         data-sc-key="ovd-{{ $gIndex }}">
                         <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2.5 py-0.5">
                             <x-heroicon-o-clock class="w-3 h-3" />
@@ -306,7 +348,7 @@
                             <span class="font-semibold text-gray-900 text-sm truncate">{{ $gEquipment?->equipment_name ?? 'Unknown Equipment' }}</span>
                         </div>
                         @if($gOverdueOp)
-                            <div class="mt-3 border-t border-amber-200/70 pt-2.5">
+                            <div class="mt-2.5">
                                 <div class="flex items-center gap-1.5 min-w-0">
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200 tracking-wide shrink-0">OVERDUE</span>
                                     <span class="text-sm font-medium text-gray-900 truncate">{{ $gOverdueOp->order?->customer_name ?? '-' }}</span>
@@ -324,7 +366,7 @@
                             </div>
                         @endif
                         @if($gUpcomingOp)
-                            <div class="mt-3 border-t border-amber-200/70 pt-2.5">
+                            <div class="mt-2.5">
                                 <div class="flex items-center gap-1.5 min-w-0">
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 tracking-wide shrink-0">UPCOMING</span>
                                     <span class="text-sm font-medium text-gray-900 truncate">{{ $gUpcomingOp->order?->customer_name ?? '-' }}</span>
@@ -352,19 +394,19 @@
 
         {{-- No Direct Assignment tiles --}}
         @if(count($noDirectAssignmentGroups) > 0)
-        <div>
+        <div data-sc-grid="nda">
             <div class="mb-3 flex items-center gap-2">
                 <x-heroicon-o-link-slash class="w-5 h-5 text-orange-500" />
                 <h2 class="text-base font-semibold text-gray-800">No Direct Assignment Defined</h2>
                 <span class="text-xs text-gray-400">(products with no equipment configured as a direct assignment)</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                 @foreach($noDirectAssignmentGroups as $gIndex => $gGroup)
                     @php
                         $gExtraCount = $gGroup['orders']->count() - 2;
                     @endphp
                     <button type="button" style="--sc-accent:#f97316"
-                        class="sc-tile text-left rounded-xl border border-orange-200 bg-orange-50/70 p-4"
+                        class="sc-tile text-left rounded-xl border border-orange-200 bg-orange-50/70 p-3"
                         data-sc-key="nda-{{ $gIndex }}">
                         <span class="inline-flex items-center gap-1 text-xs font-medium text-orange-700 bg-orange-100 border border-orange-200 rounded-full px-2.5 py-0.5">
                             No Direct Assignment
@@ -374,7 +416,7 @@
                             <span class="font-semibold text-gray-900 text-sm truncate">{{ $gGroup['product_name'] }}</span>
                         </div>
                         @foreach($gGroup['orders']->take(2) as $gOp)
-                            <div class="mt-3 border-t border-orange-200/70 pt-2.5">
+                            <div class="mt-2.5">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
                                 <div class="mt-1.5 flex items-center justify-between gap-2 text-xs text-gray-600">
                                     <span class="inline-flex items-center gap-1">
@@ -404,7 +446,7 @@
     {{-- Double Bookings section --}}
     @if(count($doubleBookings) > 0)
 
-    <div class="sc-section">
+    <div class="sc-section" data-sc-type="db">
     <div class="mb-4 flex items-center gap-2">
         <x-heroicon-o-calendar-days class="w-5 h-5 text-orange-500" />
         <h2 class="text-base font-semibold text-gray-800">Double Bookings</h2>
@@ -651,7 +693,7 @@
     {{-- ── Back-to-Back Alerts section ───────────────────────────────────────── --}}
     @if(count($backToBackAlerts) > 0)
 
-    <div class="sc-section">
+    <div class="sc-section" data-sc-type="b2b">
     <div class="mt-8 mb-4 flex items-center gap-2">
         <x-heroicon-o-arrows-right-left class="w-5 h-5 text-amber-500" />
         <h2 class="text-base font-semibold text-gray-800">Back-to-Back Alerts</h2>
@@ -894,7 +936,7 @@
     {{-- ── Damaged Equipment section ──────────────────────────────────────────── --}}
     @if(count($damagedBookings) > 0)
 
-    <div class="sc-section">
+    <div class="sc-section" data-sc-type="dmg">
     <div class="mt-8 mb-4 flex items-center gap-2">
         <x-heroicon-o-wrench-screwdriver class="w-5 h-5 text-red-500" />
         <h2 class="text-base font-semibold text-gray-800">Damaged Equipment</h2>
@@ -1129,7 +1171,7 @@
     {{-- ── Overdue Equipment section ──────────────────────────────────────────────── --}}
     @if(count($overdueEquipmentConflicts) > 0)
 
-    <div class="sc-section">
+    <div class="sc-section" data-sc-type="ovd">
     <div class="mt-8 mb-4 flex items-center gap-2">
         <x-heroicon-o-clock class="w-5 h-5 text-amber-500" />
         <h2 class="text-base font-semibold text-gray-800">Overdue Equipment</h2>
@@ -1386,7 +1428,7 @@
     {{-- ── No Direct Assignment section ─────────────────────────────────────────── --}}
     @if(count($noDirectAssignmentGroups) > 0)
 
-    <div class="sc-section">
+    <div class="sc-section" data-sc-type="nda">
     <div class="mt-8 mb-4 flex items-center gap-2">
         <x-heroicon-o-link-slash class="w-5 h-5 text-orange-500" />
         <h2 class="text-base font-semibold text-gray-800">No Direct Assignment Defined</h2>
@@ -1892,23 +1934,40 @@
 
 @push('js')
 <script>
-// ── Grid / List view toggle ──────────────────────────────────────────────────
-// Everything is already rendered server-side; switching views and selecting
-// tiles only shows/hides existing DOM — no AJAX, no reloads, no re-queries.
+// ── Grid / List view toggle + conflict-type badge filters ───────────────────
+// Everything is already rendered server-side; switching views, selecting
+// tiles, and badge filtering only show/hide existing DOM — no AJAX, no
+// reloads, no re-queries.
 (function () {
     const gridView = document.getElementById('scGridView');
     const toggle   = document.getElementById('scViewToggle');
     if (!gridView || !toggle) return;
 
-    const sections = Array.from(document.querySelectorAll('.sc-section'));
-    const tiles    = Array.from(gridView.querySelectorAll('.sc-tile'));
-    const viewBtns = Array.from(toggle.querySelectorAll('.sc-view-btn'));
-    const ACTIVE   = ['bg-white', 'shadow-sm', 'text-gray-900'];
-    const INACTIVE = ['text-gray-500'];
-    let selectedKey = tiles.length ? tiles[0].dataset.scKey : null;
+    const sections   = Array.from(document.querySelectorAll('.sc-section'));
+    const gridBlocks = Array.from(gridView.querySelectorAll('[data-sc-grid]'));
+    const tiles      = Array.from(gridView.querySelectorAll('.sc-tile'));
+    const viewBtns   = Array.from(toggle.querySelectorAll('.sc-view-btn'));
+    const badges     = Array.from(document.querySelectorAll('#scTypeBadges .sc-type-badge'));
+    const ACTIVE     = ['bg-white', 'shadow-sm', 'text-gray-900'];
+    const INACTIVE   = ['text-gray-500'];
 
-    // Detail panel: show only the selected conflict's section and rows.
-    function applyGridFilter() {
+    let currentView = 'grid';
+    let selectedKey = null; // no tile selected on load — pure grid first
+    let activeType  = document.querySelector('#scTypeBadges .sc-type-active')?.dataset.scType || 'all';
+
+    const typeOf = key => key ? key.split('-')[0] : null;
+
+    function animateDetail(el) {
+        el.classList.remove('sc-detail-anim');
+        void el.offsetWidth; // restart the animation
+        el.classList.add('sc-detail-anim');
+    }
+
+    // Grid mode: tiles filtered by active type; detail shows only the
+    // selected conflict (nothing until a tile is clicked).
+    function renderGrid(withAnimation) {
+        gridBlocks.forEach(block =>
+            block.classList.toggle('hidden', activeType !== 'all' && block.dataset.scGrid !== activeType));
         sections.forEach(section => {
             let hasMatch = false;
             section.querySelectorAll('tr[data-sc-key]').forEach(row => {
@@ -1917,37 +1976,53 @@
                 if (match) hasMatch = true;
             });
             section.classList.toggle('hidden', !hasMatch);
+            if (hasMatch && withAnimation) animateDetail(section);
         });
     }
 
-    // List view: restore every section and row exactly as rendered.
-    function showAllSections() {
+    // List mode: full page exactly as rendered, filtered by type only.
+    function renderList() {
         sections.forEach(section => {
-            section.classList.remove('hidden');
             section.querySelectorAll('tr[data-sc-key]').forEach(row => row.classList.remove('hidden'));
+            section.classList.toggle('hidden', activeType !== 'all' && section.dataset.scType !== activeType);
         });
+    }
+
+    function render(withAnimation = false) {
+        if (currentView === 'grid') renderGrid(withAnimation);
+        else renderList();
     }
 
     function setView(view) {
+        currentView = view;
         gridView.classList.toggle('hidden', view !== 'grid');
         viewBtns.forEach(btn => {
             const active = btn.dataset.scView === view;
             ACTIVE.forEach(c => btn.classList.toggle(c, active));
             INACTIVE.forEach(c => btn.classList.toggle(c, !active));
         });
-        if (view === 'grid') applyGridFilter();
-        else showAllSections();
+        render();
     }
 
     tiles.forEach(tile => tile.addEventListener('click', function () {
         selectedKey = tile.dataset.scKey;
         tiles.forEach(t => t.classList.toggle('sc-tile-selected', t === tile));
-        applyGridFilter();
+        render(true);
+    }));
+
+    badges.forEach(badge => badge.addEventListener('click', function () {
+        activeType = badge.dataset.scType;
+        badges.forEach(b => b.classList.toggle('sc-type-active', b === badge));
+        // Drop the tile selection if it no longer matches the active type.
+        if (selectedKey && activeType !== 'all' && typeOf(selectedKey) !== activeType) {
+            selectedKey = null;
+            tiles.forEach(t => t.classList.remove('sc-tile-selected'));
+        }
+        render();
     }));
 
     viewBtns.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.scView)));
 
-    if (tiles.length) tiles[0].classList.add('sc-tile-selected');
     setView('grid');
 })();
 </script>

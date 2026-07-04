@@ -169,6 +169,7 @@
                         'dmg' => ['label' => 'Damaged',              'count' => count($damagedBookings),           'c' => '#e11d48', 'bg' => '#fff1f2', 'bd' => '#fecdd3'],
                         'ovd' => ['label' => 'Overdue',              'count' => count($overdueEquipmentConflicts), 'c' => '#ca8a04', 'bg' => '#fefce8', 'bd' => '#fef08a'],
                         'nda' => ['label' => 'No Direct Assignment', 'count' => count($noDirectAssignmentGroups),  'c' => '#6b7280', 'bg' => '#f9fafb', 'bd' => '#e5e7eb'],
+                        'loc' => ['label' => 'Inventory Location',   'count' => count($inventoryLocationConflicts), 'c' => '#2563eb', 'bg' => '#eff6ff', 'bd' => '#bfdbfe'],
                     ];
                     $scInitialType = match($section) {
                         'double_bookings'      => 'db',
@@ -176,6 +177,7 @@
                         'damaged'              => 'dmg',
                         'overdue'              => 'ovd',
                         'no_direct_assignment' => 'nda',
+                        'inventory_location'   => 'loc',
                         default                => 'all',
                     };
                     if (($scBadges[$scInitialType]['count'] ?? 0) === 0) {
@@ -427,6 +429,38 @@
                         @if($gExtraCount > 0)
                             <div class="mt-2 text-xs text-gray-500">+{{ $gExtraCount }} more {{ Str::plural('order', $gExtraCount) }}</div>
                         @endif
+                    </button>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Inventory Location Conflict tiles --}}
+        @if(count($inventoryLocationConflicts) > 0)
+        <div data-sc-grid="loc">
+            <div class="mb-3 flex items-center gap-2">
+                <x-heroicon-o-map-pin class="w-5 h-5 text-blue-500" />
+                <h2 class="text-base font-semibold text-gray-800">Inventory Location Conflicts</h2>
+                <span class="text-xs text-gray-400">(assigned equipment not expected at the required fulfillment store before rental start)</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+                @foreach($inventoryLocationConflicts as $gIndex => $gLoc)
+                    @php $gOp = $gLoc['op']; @endphp
+                    <button type="button" style="--sc-accent:#2563eb"
+                        class="sc-tile text-left rounded-xl border border-blue-200 bg-blue-50/70 p-3"
+                        data-sc-key="loc-{{ $gIndex }}">
+                        <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-full px-2.5 py-0.5">
+                            <x-heroicon-o-map-pin class="w-3 h-3" />
+                            {{ $gLoc['expected_store']->store_name }} → {{ $gLoc['required_store']->store_name }}
+                        </span>
+                        <div class="mt-2.5 flex items-center gap-1.5">
+                            <x-heroicon-o-wrench-screwdriver class="w-4 h-4 text-blue-500 shrink-0" />
+                            <span class="font-semibold text-gray-900 text-sm truncate">{{ $gLoc['equipment']?->equipment_name ?? 'Unknown Equipment' }}</span>
+                        </div>
+                        <div class="mt-2.5">
+                            <div class="text-sm font-medium text-gray-900 truncate">{{ $gOp->order?->customer_name ?? '-' }}</div>
+                            @include('admin.order_management.schedule_conflicts.partials.tile_dates', ['op' => $gOp])
+                        </div>
                     </button>
                 @endforeach
             </div>
@@ -1617,6 +1651,210 @@
 
                 </tr>
                 @endforeach
+
+            @endforeach
+
+            </tbody>
+        </table>
+    </div>
+    </div>
+
+    @endif
+
+    {{-- ── Inventory Location Conflicts section ─────────────────────────────────── --}}
+    @if(count($inventoryLocationConflicts) > 0)
+
+    <div class="sc-section" data-sc-type="loc">
+    <div class="mt-8 mb-4 flex items-center gap-2">
+        <x-heroicon-o-map-pin class="w-5 h-5 text-blue-500" />
+        <h2 class="text-base font-semibold text-gray-800">Inventory Location Conflicts</h2>
+        <span class="text-xs text-gray-400">(assigned equipment not expected at the required fulfillment store before rental start)</span>
+    </div>
+
+    <div class="bg-white shadow-sm rounded-lg overflow-x-auto">
+        <table class="min-w-full text-sm text-left whitespace-nowrap">
+            <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
+                <tr>
+                    <th class="py-4 px-6 text-left">Product</th>
+                    <th class="py-4 px-6 text-center">Order</th>
+                    <th class="py-4 px-6 text-left">Customer</th>
+                    <th class="py-4 px-6 text-left">Delivery Address</th>
+                    <th class="py-4 px-6 text-left">Phone</th>
+                    <th class="py-4 px-6 text-center">Equipment</th>
+                    <th class="py-4 px-6 text-center">Equipment Id</th>
+                    <th class="py-4 px-6 text-center">Equip. Location</th>
+                    <th class="py-4 px-6 text-center">Delivery Date</th>
+                    <th class="py-4 px-6 text-center">Return Date</th>
+                    <th class="py-4 px-6 text-center">Payment</th>
+                    <th class="py-4 px-6 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+
+            @foreach($inventoryLocationConflicts as $locIndex => $locConflict)
+                @php
+                    $locOp        = $locConflict['op'];
+                    $locEquipment = $locConflict['equipment'];
+                    $locCategoryId = $locEquipment?->product_category_id;
+                    $locScheduleAssignUrl = route('admin.order-management.schedule-assignment.index')
+                        . ($locCategoryId ? '?category=' . $locCategoryId : '');
+                @endphp
+
+                {{-- Conflict group header row --}}
+                <tr class="bg-blue-50 border-y border-blue-200" data-sc-key="loc-{{ $locIndex }}">
+                    <td colspan="12" class="px-6 py-2.5">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <x-heroicon-o-map-pin class="w-4 h-4 text-blue-500 shrink-0" />
+                                <span class="font-semibold text-gray-900 text-sm">
+                                    {{ $locEquipment?->equipment_name ?? 'Unknown Equipment' }}
+                                </span>
+                                @if($locEquipment?->equipment_id)
+                                    <span class="text-xs font-mono text-gray-600 bg-white border border-gray-200 rounded px-1.5 py-0.5">
+                                        ID: {{ $locEquipment->equipment_id }}
+                                    </span>
+                                @endif
+                                <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-full px-2.5 py-0.5">
+                                    <x-heroicon-o-map-pin class="w-3 h-3" />
+                                    Expected: {{ $locConflict['expected_store']->store_name }}
+                                    <x-heroicon-o-arrow-right class="w-3 h-3" />
+                                    Required: {{ $locConflict['required_store']->store_name }}
+                                </span>
+                                <span class="text-xs text-gray-500">Transfer item, adjust previous return location, or substitute another assigned item.</span>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <a href="{{ $locScheduleAssignUrl }}"
+                                   title="View this equipment in Schedule Assignment"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm">
+                                    <x-heroicon-o-calendar-days class="w-3.5 h-3.5" />
+                                    Review Schedule
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                {{-- The conflicting order line --}}
+                @php
+                    $order    = $locOp->order;
+                    $customer = $order?->customer;
+                    $preferredCategoryId = $locOp->product?->categories?->first()?->id
+                        ?? $locEquipment?->product_category_id;
+                    $deliveryIconColor = $locOp->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
+                    $pickupIconColor   = $locOp->pickup_status   === 'Completed' ? 'text-green-600' : 'text-yellow-600';
+                @endphp
+                <tr class="hover:bg-gray-50" data-sc-key="loc-{{ $locIndex }}">
+
+                    <td class="py-4 px-6 text-left min-w-[160px] max-w-[220px]">
+                        {{ $locOp->product_name }}
+                        @if($locOp->product?->categories?->count() === 1)
+                            <div class="text-xs text-gray-500 mt-1">{{ $locOp->product->categories->first()->title }}</div>
+                        @endif
+                    </td>
+
+                    <td class="py-4 px-6 text-center">{!! $order?->view_link ?? '-' !!}</td>
+
+                    <td class="py-4 px-6 text-left">
+                        <div class="font-medium">{{ $order?->customer_name ?? '-' }}</div>
+                        @if($customer?->company_name)
+                            <div class="text-xs text-gray-500 mt-1">{{ $customer->company_name }}</div>
+                        @endif
+                    </td>
+
+                    <td class="py-4 px-6 truncate min-w-[180px] max-w-[240px]">
+                        {{ $order?->shippingAddress?->full_address ?? '-' }}
+                    </td>
+
+                    <td class="py-4 px-6 text-left">{{ $order?->shippingAddress?->phone ?? '-' }}</td>
+
+                    {{-- Equipment (assign modal trigger — supports substitution) --}}
+                    <td class="py-4 px-6 text-center">
+                        <button type="button"
+                            class="text-blue-600 underline equipment-assign-btn"
+                            data-order-product-unique-id="{{ $locOp->unique_id }}"
+                            data-order-unique-id="{{ $order?->unique_id }}"
+                            data-order-id="{{ $order?->order_number }}"
+                            data-customer-name="{{ $order?->customer_name }}"
+                            data-category-id="{{ $preferredCategoryId ?? '' }}"
+                            data-product-name="{{ $locOp->product_name }}">
+                            {{ $locEquipment?->equipment_name ?? 'Assign' }}
+                        </button>
+                    </td>
+
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
+                            {{ $locEquipment?->equipment_id ?? '-' }}
+                        </span>
+                    </td>
+
+                    {{-- Expected location before rental (vs required delivery store) --}}
+                    <td class="py-4 px-6 text-center">
+                        <div>{{ $locConflict['expected_store']->store_name }}</div>
+                        <div class="text-xs text-blue-600 mt-1">Needs: {{ $locConflict['required_store']->store_name }}</div>
+                    </td>
+
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center justify-center gap-1">
+                                @if(!empty($locOp->delivery_transport_mode))
+                                    @if($locOp->delivery_transport_mode === 'Truck')
+                                        <x-heroicon-o-truck class="w-4 h-4 {{ $deliveryIconColor }}" />
+                                    @else
+                                        <x-heroicon-o-building-storefront class="w-4 h-4 {{ $deliveryIconColor }}" />
+                                    @endif
+                                @endif
+                                <span>{{ $locOp->delivery_date ? \App\Helpers\CustomHelper::formatDate($locOp->delivery_date, 'M d, y') : 'N/A' }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500 mt-1">
+                                {{ $locOp->delivery_time ? \App\Helpers\CustomHelper::formatTime($locOp->delivery_time) : '' }}
+                            </span>
+                        </div>
+                    </td>
+
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center justify-center gap-1">
+                                @if(!empty($locOp->pickup_transport_mode))
+                                    @if($locOp->pickup_transport_mode === 'Truck')
+                                        <x-heroicon-o-truck class="w-4 h-4 {{ $pickupIconColor }}" />
+                                    @else
+                                        <x-heroicon-o-building-storefront class="w-4 h-4 {{ $pickupIconColor }}" />
+                                    @endif
+                                @endif
+                                <span>{{ $locOp->pickup_date ? \App\Helpers\CustomHelper::formatDate($locOp->pickup_date, 'M d, y') : 'N/A' }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500 mt-1">
+                                {{ $locOp->pickup_time ? \App\Helpers\CustomHelper::formatTime($locOp->pickup_time) : '' }}
+                            </span>
+                        </div>
+                    </td>
+
+                    <td class="py-4 px-6 text-center">
+                        {!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}
+                    </td>
+
+                    <td class="py-4 px-6">
+                        <div class="flex gap-2 items-center justify-center">
+                            <a href="{{ route('admin.order-management.orders.edit', $order?->unique_id ?? 0) }}"
+                               class="text-sky-600 hover:text-sky-800" title="Edit Order">
+                                @if($order?->notes?->isNotEmpty())
+                                    <x-heroicon-o-book-open class="w-4 h-4" />
+                                @else
+                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                @endif
+                            </a>
+                            <button type="button"
+                                class="ai-suggest-btn inline-flex items-center gap-1 rounded-md border border-purple-300 bg-purple-50 px-2 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-100"
+                                data-order-product-id="{{ $locOp->id }}"
+                                data-equipment-name="{{ $locOp->product_name }}"
+                                title="AI Equipment Suggestion">
+                                <x-heroicon-o-sparkles class="w-3.5 h-3.5" />
+                                AI
+                            </button>
+                        </div>
+                    </td>
+
+                </tr>
 
             @endforeach
 

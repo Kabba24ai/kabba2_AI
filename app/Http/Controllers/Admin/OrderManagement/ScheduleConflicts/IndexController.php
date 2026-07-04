@@ -16,6 +16,12 @@ use Illuminate\Support\Facades\DB;
 
 class IndexController extends Controller
 {
+    /**
+     * Inventory Location Conflicts look-ahead window (days). Assigned rentals
+     * starting further out than this are not flagged in Phase 1.
+     */
+    private const INVENTORY_LOCATION_LOOKAHEAD_DAYS = 14;
+
     public function __invoke(Request $request)
     {
         // ── Filter inputs ─────────────────────────────────────────────────────
@@ -387,12 +393,137 @@ class IndexController extends Controller
             usort($noDirectAssignmentGroups, fn ($x, $y) => $ndaDate($x['orders']->first()) <=> $ndaDate($y['orders']->first()));
         }
 
+        // ── Inventory Location Conflicts ──────────────────────────────────────
+        // Assigned rental lines starting within the look-ahead window whose
+        // equipment is not expected to be at the required fulfillment store.
+        $inventoryLocationConflicts = [];
+
+        if (!$section || $section === 'inventory_location') {
+            $windowEnd = $today->copy()->addDays(self::INVENTORY_LOCATION_LOOKAHEAD_DAYS);
+
+            // Hard-assigned upcoming lines (equipment_id set directly)
+            $locHardOps = OrderProduct::with([
+                'order.customer', 'order.shippingAddress', 'order.lastPayment', 'order.notes',
+                'product.categories', 'equipment.productCategory', 'equipment.store',
+                'deliveryStore', 'softAssignment.equipment.store',
+            ])
+            ->whereNotNull('equipment_id')
+            ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '>=', $today)
+            ->whereDate('delivery_date', '<=', $windowEnd)
+            ->where(fn ($q) => $q->where('delivery_status', '!=', 'Completed')->orWhereNull('delivery_status'))
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->whereNotNull('delivery_store_id')
+            ->whereHas('order')
+            ->tap($applyEquipmentFilters)
+            ->get();
+
+            // Soft-assigned upcoming lines (auto-assigned equipment)
+            $locSoftQuery = OrderProduct::with([
+                'order.customer', 'order.shippingAddress', 'order.lastPayment', 'order.notes',
+                'product.categories', 'deliveryStore',
+                'softAssignment.equipment.productCategory', 'softAssignment.equipment.store',
+            ])
+            ->whereNull('equipment_id')
+            ->whereHas('softAssignment')
+            ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '>=', $today)
+            ->whereDate('delivery_date', '<=', $windowEnd)
+            ->where(fn ($q) => $q->where('delivery_status', '!=', 'Completed')->orWhereNull('delivery_status'))
+            ->where(fn ($q) => $q->where('is_returned', '!=', 1)->orWhereNull('is_returned'))
+            ->whereNotNull('delivery_store_id')
+            ->whereHas('order');
+
+            if ($category) {
+                $locSoftQuery->whereHas('softAssignment.equipment', fn ($q) => $q->where('product_category_id', $category));
+            }
+            if ($store) {
+                $locSoftQuery->whereHas('softAssignment.equipment', fn ($q) => $q->where('store_id', $store));
+            }
+            if ($search) {
+                $locSoftQuery->where(fn ($q) => $q
+                    ->where('product_name', 'like', "%{$search}%")
+                    ->orWhereHas('softAssignment.equipment', fn ($eq) => $eq
+                        ->where('equipment_name', 'like', "%{$search}%")
+                        ->orWhere('equipment_id', 'like', "%{$search}%"))
+                    ->orWhereHas('order', fn ($o) => $o
+                        ->where('order_number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', fn ($c) => $c
+                            ->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('company_name', 'like', "%{$search}%")))
+                );
+            }
+
+            $locOps = $locHardOps->concat($locSoftQuery->get())
+                ->filter(fn ($op) => ($op->equipment ?? $op->softAssignment?->equipment) !== null);
+
+            if ($locOps->isNotEmpty()) {
+                $locEquipmentIds = $locOps
+                    ->map(fn ($op) => (int) ($op->equipment_id ?? $op->softAssignment?->equipment_id))
+                    ->unique()->values()->all();
+
+                // One batched fetch of every rental line (hard or soft) on the
+                // involved equipment, so the "previous rental" lookup below is
+                // pure in-memory work — no per-line queries.
+                $historyLines = OrderProduct::with(['pickupStore', 'softAssignment'])
+                    ->where(function ($q) use ($locEquipmentIds) {
+                        $q->whereIn('equipment_id', $locEquipmentIds)
+                          ->orWhereHas('softAssignment', fn ($s) => $s->whereIn('equipment_id', $locEquipmentIds));
+                    })
+                    ->whereNotNull('delivery_date')
+                    ->whereHas('order')
+                    ->get()
+                    ->groupBy(fn ($op) => (int) ($op->equipment_id ?? $op->softAssignment?->equipment_id));
+
+                foreach ($locOps as $op) {
+                    $equipment       = $op->equipment ?? $op->softAssignment?->equipment;
+                    $equipmentIdKey  = (int) ($op->equipment_id ?? $op->softAssignment?->equipment_id);
+                    $requiredStore   = $op->deliveryStore;
+                    if (!$equipment || !$requiredStore) {
+                        continue;
+                    }
+
+                    // Expected Start Location: the planned return store of the
+                    // immediately previous rental (latest line on this equipment
+                    // starting before this one); when there is no previous rental
+                    // or its return destination is not a store (custom/customer
+                    // return), fall back to the equipment's home store.
+                    $previous = ($historyLines->get($equipmentIdKey) ?? collect())
+                        ->filter(fn ($h) => $h->id !== $op->id
+                            && Carbon::parse($h->delivery_date)->lt(Carbon::parse($op->delivery_date)))
+                        ->sortByDesc(fn ($h) => Carbon::parse($h->delivery_date)->timestamp * 100000 + $h->id)
+                        ->first();
+
+                    $expectedStore = $previous?->pickupStore ?? $equipment->store;
+                    if (!$expectedStore) {
+                        continue; // cannot determine an expected location — skip rather than false-flag
+                    }
+
+                    if ((int) $expectedStore->id !== (int) $requiredStore->id) {
+                        $inventoryLocationConflicts[] = [
+                            'op'             => $op,
+                            'equipment'      => $equipment,
+                            'expected_store' => $expectedStore,
+                            'required_store' => $requiredStore,
+                            'previous'       => $previous,
+                        ];
+                    }
+                }
+
+                // Oldest first — soonest rental start lands in grid position one
+                usort($inventoryLocationConflicts, fn ($x, $y) =>
+                    Carbon::parse($x['op']->delivery_date)->timestamp <=> Carbon::parse($y['op']->delivery_date)->timestamp);
+            }
+        }
+
         // ── Totals & shared data ─────────────────────────────────────────────
         $totalConflicts = count($doubleBookings)
             + count($backToBackAlerts)
             + count($damagedBookings)
             + count($noDirectAssignmentGroups)
-            + count($overdueEquipmentConflicts);
+            + count($overdueEquipmentConflicts)
+            + count($inventoryLocationConflicts);
 
         $employees = User::active()
             ->orderBy('first_name')
@@ -415,6 +546,7 @@ class IndexController extends Controller
             'damagedBookings',
             'noDirectAssignmentGroups',
             'overdueEquipmentConflicts',
+            'inventoryLocationConflicts',
             'totalConflicts',
             'employees',
             'categories',

@@ -25,22 +25,22 @@
                 <p class="text-sm text-gray-500 mt-1">{{ now()->format('l, F j, Y') }}</p>
             </div>
             <div class="flex items-center gap-3">
-                {{-- Phase 1: ticket workflow not built yet — actions are placeholders --}}
-                <button type="button" disabled title="Coming in Phase 2"
-                    class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm opacity-50 cursor-not-allowed">
+                <a href="{{ route('admin.service-management.tickets.create') }}"
+                    class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm transition">
                     <x-heroicon-o-plus class="w-4 h-4" />
                     New Service Ticket
-                </button>
-                <button type="button" disabled title="Coming in Phase 2"
+                </a>
+                {{-- Field service workflow arrives in Phase 3 --}}
+                <button type="button" disabled title="Coming in Phase 3"
                     class="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm opacity-50 cursor-not-allowed">
                     <x-heroicon-o-truck class="w-4 h-4" />
                     Field Service Call
                 </button>
-                <button type="button" disabled title="Coming in Phase 2"
-                    class="inline-flex items-center gap-2 border border-gray-300 bg-white text-gray-600 px-4 py-2.5 rounded-lg font-medium text-sm opacity-50 cursor-not-allowed">
+                <a href="{{ route('admin.service-management.tickets.index') }}"
+                    class="inline-flex items-center gap-2 border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 px-4 py-2.5 rounded-lg font-medium text-sm transition">
                     <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                     Search Tickets
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -151,10 +151,13 @@
                                 </span>
                             </td>
                             <td class="py-3 px-5">
-                                <div class="flex gap-1.5 items-center justify-center text-gray-400">
-                                    <button type="button" disabled title="Ticket view — Phase 2" class="p-1 cursor-not-allowed"><x-heroicon-o-eye class="w-4 h-4" /></button>
-                                    <button type="button" disabled title="Ticket edit — Phase 2" class="p-1 cursor-not-allowed"><x-heroicon-o-pencil-square class="w-4 h-4" /></button>
-                                    <button type="button" disabled title="More — Phase 2" class="p-1 cursor-not-allowed"><x-heroicon-o-ellipsis-horizontal class="w-4 h-4" /></button>
+                                <div class="flex gap-1.5 items-center justify-center">
+                                    <a href="{{ route('admin.service-management.tickets.show', $ticket) }}" title="View ticket"
+                                        class="p-1 text-sky-600 hover:text-sky-800"><x-heroicon-o-eye class="w-4 h-4" /></a>
+                                    <a href="{{ route('admin.service-management.tickets.edit', $ticket) }}" title="Edit ticket"
+                                        class="p-1 text-gray-500 hover:text-gray-700"><x-heroicon-o-pencil-square class="w-4 h-4" /></a>
+                                    <a href="{{ route('admin.service-management.tickets.index') }}" title="All tickets"
+                                        class="p-1 text-gray-400 hover:text-gray-600"><x-heroicon-o-ellipsis-horizontal class="w-4 h-4" /></a>
                                 </div>
                             </td>
                         </tr>
@@ -224,10 +227,13 @@
                                 </span>
                             </td>
                             <td class="py-3 px-5">
-                                <div class="flex gap-1.5 items-center justify-center text-gray-400">
-                                    <button type="button" disabled title="Ticket view — Phase 2" class="p-1 cursor-not-allowed"><x-heroicon-o-eye class="w-4 h-4" /></button>
-                                    <button type="button" disabled title="Ticket edit — Phase 2" class="p-1 cursor-not-allowed"><x-heroicon-o-pencil-square class="w-4 h-4" /></button>
-                                    <button type="button" disabled title="More — Phase 2" class="p-1 cursor-not-allowed"><x-heroicon-o-ellipsis-horizontal class="w-4 h-4" /></button>
+                                <div class="flex gap-1.5 items-center justify-center">
+                                    <a href="{{ route('admin.service-management.tickets.show', $ticket) }}" title="View ticket"
+                                        class="p-1 text-sky-600 hover:text-sky-800"><x-heroicon-o-eye class="w-4 h-4" /></a>
+                                    <a href="{{ route('admin.service-management.tickets.edit', $ticket) }}" title="Edit ticket"
+                                        class="p-1 text-gray-500 hover:text-gray-700"><x-heroicon-o-pencil-square class="w-4 h-4" /></a>
+                                    <a href="{{ route('admin.service-management.tickets.index') }}" title="All tickets"
+                                        class="p-1 text-gray-400 hover:text-gray-600"><x-heroicon-o-ellipsis-horizontal class="w-4 h-4" /></a>
                                 </div>
                             </td>
                         </tr>

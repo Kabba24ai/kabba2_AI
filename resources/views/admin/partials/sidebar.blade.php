@@ -609,22 +609,23 @@
                                         <x-heroicon-o-squares-2x2 class="h-5 w-5" /> Overview
                                     </a>
                                 </li>
-                                {{-- Phase 2+: Tickets, Field Service, Warranty Claims --}}
                                 <li>
-                                    <span class="menu-dropdown-item group menu-dropdown-item-inactive opacity-50 cursor-not-allowed"
-                                        title="Coming in Phase 2">
+                                    <a href="{{ route('admin.service-management.tickets.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.service-management.tickets.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-ticket class="h-5 w-5" /> Tickets
-                                    </span>
+                                    </a>
                                 </li>
+                                {{-- Phase 3+: Field Service, Warranty Claims --}}
                                 <li>
                                     <span class="menu-dropdown-item group menu-dropdown-item-inactive opacity-50 cursor-not-allowed"
-                                        title="Coming in Phase 2">
+                                        title="Coming in Phase 3">
                                         <x-heroicon-o-truck class="h-5 w-5" /> Field Service
                                     </span>
                                 </li>
                                 <li>
                                     <span class="menu-dropdown-item group menu-dropdown-item-inactive opacity-50 cursor-not-allowed"
-                                        title="Coming in Phase 2">
+                                        title="Coming in Phase 3">
                                         <x-heroicon-o-shield-check class="h-5 w-5" /> Warranty Claims
                                     </span>
                                 </li>

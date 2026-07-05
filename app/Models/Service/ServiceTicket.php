@@ -29,6 +29,11 @@ class ServiceTicket extends Model
         'financial_responsibility',
         'financial_status',
         'description',
+        'customer_complaint',
+        'technician_diagnosis',
+        'root_cause',
+        'repair_summary',
+        'internal_notes',
         'equipment_id',
         'order_id',
         'customer_id',
@@ -120,11 +125,47 @@ class ServiceTicket extends Model
         return $q->whereIn('repair_status', RepairStatus::blocked());
     }
 
+    // ── Status transitions ─────────────────────────────────────────
+
+    /**
+     * Apply a repair-status change with the Phase 2A transition rules:
+     * entering a blocked status stores the blocking context; returning to
+     * an active status clears it (history preservation is a later phase);
+     * completed/closed stamp their timestamps once and reopening keeps them.
+     */
+    public function transitionTo(RepairStatus $status, ?string $blockedReason = null, $expectedActionDate = null): void
+    {
+        $this->repair_status = $status;
+
+        if (in_array($status->value, RepairStatus::blocked(), true)) {
+            $this->blocked_reason       = $blockedReason ?? $this->blocked_reason;
+            $this->expected_action_date = $expectedActionDate ?? $this->expected_action_date;
+        } else {
+            $this->blocked_reason       = null;
+            $this->expected_action_date = null;
+        }
+
+        if ($status === RepairStatus::Completed && !$this->completed_at) {
+            $this->completed_at = now();
+        }
+        if ($status === RepairStatus::Closed && !$this->closed_at) {
+            $this->closed_at = now();
+        }
+
+        $this->save();
+    }
+
     // ── Presentation helpers ───────────────────────────────────────
 
     /** Whole days since the ticket was opened. */
     public function getAgeDaysAttribute(): int
     {
         return (int) $this->opened_at?->startOfDay()->diffInDays(now()->startOfDay());
+    }
+
+    /** Is the ticket currently in a blocked status? */
+    public function getIsBlockedAttribute(): bool
+    {
+        return in_array($this->repair_status->value, RepairStatus::blocked(), true);
     }
 }

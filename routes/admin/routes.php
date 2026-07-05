@@ -51,6 +51,9 @@ Route::name('admin.')->group(function ($router) {
         // Maintenance Management
         require base_path('routes/admin/maintenance_management/routes.php');
 
+        // Service Management
+        require base_path('routes/admin/service_management/routes.php');
+
 
 
         // crm

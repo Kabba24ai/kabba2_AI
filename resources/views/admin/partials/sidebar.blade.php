@@ -575,6 +575,63 @@
                         </div>
                     </li>
 
+                    <!-- Service -->
+                    @php $serviceActive = Route::is('admin.service-management.*'); @endphp
+                    <li x-data="{ open: {{ $serviceActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $serviceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-wrench class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Service</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
+
+                                <!-- Chevron Left (when open) -->
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+
+                                <!-- Chevron Down (when closed) -->
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+                        </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.service-management.overview') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.service-management.overview') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-squares-2x2 class="h-5 w-5" /> Overview
+                                    </a>
+                                </li>
+                                {{-- Phase 2+: Tickets, Field Service, Warranty Claims --}}
+                                <li>
+                                    <span class="menu-dropdown-item group menu-dropdown-item-inactive opacity-50 cursor-not-allowed"
+                                        title="Coming in Phase 2">
+                                        <x-heroicon-o-ticket class="h-5 w-5" /> Tickets
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="menu-dropdown-item group menu-dropdown-item-inactive opacity-50 cursor-not-allowed"
+                                        title="Coming in Phase 2">
+                                        <x-heroicon-o-truck class="h-5 w-5" /> Field Service
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="menu-dropdown-item group menu-dropdown-item-inactive opacity-50 cursor-not-allowed"
+                                        title="Coming in Phase 2">
+                                        <x-heroicon-o-shield-check class="h-5 w-5" /> Warranty Claims
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
                     <!-- Checklist Mangement -->
                     <li x-data="{ open: {{ $checklistManagementActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"

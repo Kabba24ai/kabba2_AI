@@ -72,7 +72,7 @@ $descPosition = !empty($cfg['description_position']) ? $cfg['description_positio
                 <div class="mt-2" style="text-align: {{ $descPosition }};">
                     <p class="text-sm sm:text-base leading-relaxed {{ $descColor ? '' : 'text-white/80' }}"
                        style="{{ $descStyle }}">
-                        {{ $cfg['description'] }}
+                        {!! nl2br(e($cfg['description'])) !!}
                     </p>
                 </div>
                 @endif

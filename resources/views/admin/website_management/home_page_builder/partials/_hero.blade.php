@@ -297,7 +297,7 @@
                     @if($showDescription ?? false)
                     <div class="mt-2" x-show="descriptionText" :style="{ textAlign: descriptionPosition }">
                         <p class="text-xs leading-relaxed"
-                           :style="{ color: descriptionColor }"
+                           :style="{ whiteSpace: 'pre-line', color: descriptionColor }"
                            x-text="descriptionText"></p>
                     </div>
                     @endif

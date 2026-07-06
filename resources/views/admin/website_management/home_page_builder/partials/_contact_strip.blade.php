@@ -75,8 +75,9 @@
                 $isStoreCard = in_array($item->item_key, ['store_1', 'store_2']);
                 $selectedStoreId = data_get($item->content, 'store_id');
                 $selectedStore   = $stores->firstWhere('id', $selectedStoreId);
+                $cardOpen = $isPhoneCard && $errors->hasAny(['title', 'subtitle', 'description']);
             @endphp
-            <div x-data="{ editOpen: false }"
+            <div x-data="{ editOpen: @js($cardOpen) }"
                  class="border border-gray-200 rounded-lg overflow-hidden">
 
                 {{-- Card header row --}}
@@ -113,16 +114,17 @@
                         {{-- ── Phone Card: Title + Phone + Description only ── --}}
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Title</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Title <span class="text-red-500">*</span></label>
                                 {!! html()->text('title', old('title', $item->title))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
+                                    ->attributes(['required' => true]) !!}
                                 @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number <span class="text-red-500">*</span></label>
                                 {!! html()->text('subtitle', old('subtitle', $item->subtitle))
                                     ->class('masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                                    ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'tel']) !!}
+                                    ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'tel', 'required' => true, 'pattern' => '\(\d{3}\) \d{3}-\d{4}']) !!}
                                 @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>

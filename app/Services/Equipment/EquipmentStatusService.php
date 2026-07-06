@@ -3,6 +3,7 @@
 namespace App\Services\Equipment;
 
 use App\Enums\Equipments\EquipmentCurrentStatus;
+use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Services\WaitList\WaitListMatcher;
 use Illuminate\Support\Facades\Log;
@@ -12,10 +13,14 @@ use Illuminate\Support\Facades\Log;
  * in the mobile API workflows (delivery, return, rental-ready, checklist-remove).
  *
  * Every call logs the old → new status with full context so transitions are
- * auditable without reading the Equipment table's audit columns directly.
+ * auditable without reading the Equipment table's audit columns directly, and
+ * persists a matching EquipmentStatusLog row since saveQuietly() suppresses
+ * the EquipmentObserver that would otherwise have written one.
  *
- * Out of scope: admin web controllers (AssignEquipmentController,
- * UpdateProductScheduleController, etc.) — those are unchanged for now.
+ * Out of scope: admin web controllers other than UpdateProductScheduleController
+ * (AssignEquipmentController, RemoveEquipmentController, etc.) — those are
+ * unchanged for now. UpdateProductScheduleController has its own saveQuietly()
+ * call sites and writes its own EquipmentStatusLog rows directly.
  */
 class EquipmentStatusService
 {
@@ -33,7 +38,8 @@ class EquipmentStatusService
         ?int $actorId = null,
         string $source = 'mobile_delivery'
     ): void {
-        $old = $equipment->current_status?->value ?? 'unknown';
+        $old    = $equipment->current_status?->value ?? 'unknown';
+        $oldRaw = $equipment->current_status?->value;
 
         $equipment->current_status              = EquipmentCurrentStatus::Rented->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -43,6 +49,7 @@ class EquipmentStatusService
         $equipment->saveQuietly();
 
         self::log($equipment->id, $old, EquipmentCurrentStatus::Rented->value, $orderId, $orderProductId, $source, $actorId);
+        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Rented->value, $actorId);
     }
 
     /**
@@ -57,7 +64,8 @@ class EquipmentStatusService
         ?int $storeId = null,
         ?int $actorId = null
     ): void {
-        $old = $equipment->current_status?->value ?? 'unknown';
+        $old    = $equipment->current_status?->value ?? 'unknown';
+        $oldRaw = $equipment->current_status?->value;
 
         $equipment->current_status              = EquipmentCurrentStatus::Maintenance->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -70,6 +78,7 @@ class EquipmentStatusService
         self::log($equipment->id, $old, EquipmentCurrentStatus::Maintenance->value, $orderId, $orderProductId, 'return_checklist', $actorId);
 
         self::evaluateWaitLists($equipment);
+        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Maintenance->value, $actorId);
     }
 
     /**
@@ -85,7 +94,8 @@ class EquipmentStatusService
         ?int $storeId = null,
         ?int $actorId = null
     ): void {
-        $old = $equipment->current_status?->value ?? 'unknown';
+        $old    = $equipment->current_status?->value ?? 'unknown';
+        $oldRaw = $equipment->current_status?->value;
 
         $equipment->current_status              = EquipmentCurrentStatus::Damaged->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -115,6 +125,7 @@ class EquipmentStatusService
                 'error'        => $e->getMessage(),
             ]);
         }
+        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Damaged->value, $actorId);
     }
 
     /**
@@ -128,7 +139,8 @@ class EquipmentStatusService
         int $orderProductId,
         ?int $actorId = null
     ): void {
-        $old = $equipment->current_status?->value ?? 'unknown';
+        $old    = $equipment->current_status?->value ?? 'unknown';
+        $oldRaw = $equipment->current_status?->value;
 
         $equipment->current_status              = EquipmentCurrentStatus::Available->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -138,6 +150,7 @@ class EquipmentStatusService
         $equipment->saveQuietly();
 
         self::log($equipment->id, $old, EquipmentCurrentStatus::Available->value, $orderId, $orderProductId, 'checklist_remove', $actorId);
+        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Available->value, $actorId);
     }
 
     /**
@@ -150,6 +163,7 @@ class EquipmentStatusService
         ?int $actorId = null
     ): void {
         $old            = $equipment->current_status?->value ?? 'unknown';
+        $oldRaw         = $equipment->current_status?->value;
         $orderId        = $equipment->current_order_id;         // capture before clearing
         $orderProductId = $equipment->current_order_product_id; // capture before clearing
 
@@ -161,6 +175,7 @@ class EquipmentStatusService
         $equipment->saveQuietly();
 
         self::log($equipment->id, $old, EquipmentCurrentStatus::Available->value, $orderId, $orderProductId, 'rental_ready', $actorId);
+        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Available->value, $actorId);
     }
 
     /**
@@ -171,7 +186,8 @@ class EquipmentStatusService
         Equipment $equipment,
         ?int $actorId = null
     ): void {
-        $old = $equipment->current_status?->value ?? 'unknown';
+        $old    = $equipment->current_status?->value ?? 'unknown';
+        $oldRaw = $equipment->current_status?->value;
 
         $equipment->current_status              = EquipmentCurrentStatus::Maintenance->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -184,6 +200,7 @@ class EquipmentStatusService
             $equipment->current_order_product_id,
             'rental_ready', $actorId
         );
+        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Maintenance->value, $actorId);
     }
 
     /**
@@ -195,7 +212,8 @@ class EquipmentStatusService
         Equipment $equipment,
         ?int $actorId = null
     ): void {
-        $old = $equipment->current_status?->value ?? 'unknown';
+        $old    = $equipment->current_status?->value ?? 'unknown';
+        $oldRaw = $equipment->current_status?->value;
 
         $equipment->current_status              = EquipmentCurrentStatus::Damaged->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -208,6 +226,28 @@ class EquipmentStatusService
             $equipment->current_order_product_id,
             'rental_ready', $actorId
         );
+        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Damaged->value, $actorId);
+    }
+
+    /**
+     * Write the durable EquipmentStatusLog row that EquipmentObserver::updating()
+     * would have written on a normal save() — saveQuietly() suppresses that
+     * observer, so every transition method above calls this explicitly instead.
+     * Mirrors the observer's own guard: only log when the status actually changed.
+     */
+    private static function persistStatusLog(int $equipmentId, ?string $from, string $to, ?int $actorId): void
+    {
+        if ($from === $to) {
+            return;
+        }
+
+        EquipmentStatusLog::create([
+            'equipment_id' => $equipmentId,
+            'from_status'  => $from,
+            'to_status'    => $to,
+            'changed_by'   => $actorId,
+            'changed_at'   => now(),
+        ]);
     }
 
     private static function log(

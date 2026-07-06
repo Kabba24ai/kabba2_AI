@@ -11,6 +11,8 @@ use App\Http\Controllers\Controller;
 use App\Events\Admin\Orders\OrderProductScheduleUpdated;
 
 // Models
+use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
+use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
 
 // Request
@@ -143,10 +145,12 @@ class UpdateProductScheduleController extends Controller
                 if($orderProduct->delivery_status === 'Completed'){
                     $orderProduct->is_delivered = true;
                     if($equipment){
+                        $beforeStatus = $equipment->current_status?->value;
                         $equipment->current_status = EquipmentCurrentStatus::Rented->value;
                         $equipment->current_status_updated_by = $user->id;
                         $equipment->current_status_changed_at = now();
                         $equipment->saveQuietly();
+                        $this->persistEquipmentStatusLog($equipment, $beforeStatus, EquipmentCurrentStatus::Rented->value, $user->id);
                     }
                 }else if($orderProduct->delivery_status === 'Close as Completed'){
 
@@ -154,12 +158,14 @@ class UpdateProductScheduleController extends Controller
                     $orderProduct->is_returned = true;
                     $orderProduct->pickup_status = 'Completed';
                     if($equipment){
+                        $beforeStatus = $equipment->current_status?->value;
                         $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
                         $equipment->current_status_updated_by = $user->id;
                         $equipment->current_status_changed_at = now();
                         $equipment->current_order_id = null;
                         $equipment->current_order_product_id = null;
                         $equipment->saveQuietly();
+                        $this->persistEquipmentStatusLog($equipment, $beforeStatus, EquipmentCurrentStatus::Maintenance->value, $user->id);
                     }
 
                 }
@@ -168,12 +174,14 @@ class UpdateProductScheduleController extends Controller
                     $orderProduct->softAssignment()->delete();
 
                     if($equipment){
+                        $beforeStatus = $equipment->current_status?->value;
                         $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
                         $equipment->current_status_updated_by = $user->id;
                         $equipment->current_status_changed_at = now();
                         $equipment->current_order_id = null;
                         $equipment->current_order_product_id = null;
                         $equipment->saveQuietly();
+                        $this->persistEquipmentStatusLog($equipment, $beforeStatus, EquipmentCurrentStatus::Maintenance->value, $user->id);
                     }
 
                     $orderProduct->checklistQuestions()->delete();
@@ -207,12 +215,14 @@ class UpdateProductScheduleController extends Controller
                             'assigned_by' => $user->id,
                         ]);
 
+                        $beforeStatus = $equipment->current_status?->value;
                         $equipment->current_status = EquipmentCurrentStatus::Available->value;
                         $equipment->current_status_updated_by = $user->id;
                         $equipment->current_status_changed_at = now();
                         $equipment->current_order_id = null;
                         $equipment->current_order_product_id = null;
                         $equipment->saveQuietly();
+                        $this->persistEquipmentStatusLog($equipment, $beforeStatus, EquipmentCurrentStatus::Available->value, $user->id);
                     }
 
                     $orderProduct->checklistQuestions()->delete();
@@ -238,6 +248,7 @@ class UpdateProductScheduleController extends Controller
                 if($orderProduct->pickup_status === 'Completed' || $orderProduct->pickup_status === 'Close as Completed'){
                     $orderProduct->is_returned = true;
                     if($equipment){
+                        $beforeStatus = $equipment->current_status?->value;
                         $equipment->current_status = EquipmentCurrentStatus::Maintenance->value;
                         $equipment->current_status_updated_by = $user->id;
                         $equipment->current_status_changed_at = now();
@@ -245,6 +256,7 @@ class UpdateProductScheduleController extends Controller
                             $equipment->store_id = $orderProduct->pickup_store_id;
                         }
                         $equipment->saveQuietly();
+                        $this->persistEquipmentStatusLog($equipment, $beforeStatus, EquipmentCurrentStatus::Maintenance->value, $user->id);
                     }
                 } elseif ($orderProduct->pickup_status === 'Reschedule') {
                     // Clear all return-side assignments and locks
@@ -286,6 +298,27 @@ class UpdateProductScheduleController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Schedule updated successfully.'
+        ]);
+    }
+
+    /**
+     * Write the durable EquipmentStatusLog row that EquipmentObserver::updating()
+     * would have written on a normal save() — this controller calls saveQuietly()
+     * directly (not via EquipmentStatusService), which suppresses that observer.
+     * Mirrors the observer's own guard: only log when the status actually changed.
+     */
+    private function persistEquipmentStatusLog(Equipment $equipment, ?string $from, string $to, ?int $actorId): void
+    {
+        if ($from === $to) {
+            return;
+        }
+
+        EquipmentStatusLog::create([
+            'equipment_id' => $equipment->id,
+            'from_status'  => $from,
+            'to_status'    => $to,
+            'changed_by'   => $actorId,
+            'changed_at'   => now(),
         ]);
     }
 }

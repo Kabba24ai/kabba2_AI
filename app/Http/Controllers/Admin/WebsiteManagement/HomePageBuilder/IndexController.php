@@ -42,6 +42,11 @@ class IndexController extends Controller
 
         $stores = Store::active()->orderByAdmin()->get(['id', 'unique_id', 'store_name']);
 
+        $allowedKeys = ['hero', 'contact_strip', 'featured_rentals', 'feature_strip', 'footer', 'seo', 'branding'];
+        $components  = collect($allowedKeys)
+            ->filter(fn ($key) => $this->registry->has($key))
+            ->mapWithKeys(fn ($key) => [$key => $this->registry->find($key)]);
+
         return view('admin.website_management.home_page_builder.index', [
             'page'                => $page,
             'sections'            => $sections,
@@ -51,6 +56,7 @@ class IndexController extends Controller
             'selectedCategoryIds' => $selectedCategoryIds,
             'stores'              => $stores,
             'registry'            => $this->registry,
+            'components'          => $components,
         ]);
     }
 }

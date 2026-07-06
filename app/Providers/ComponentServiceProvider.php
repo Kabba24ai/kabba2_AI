@@ -11,6 +11,9 @@ use App\Services\Website\Components\FeatureStripComponent;
 use App\Services\Website\Components\FooterComponent;
 use App\Services\Website\Components\SeoComponent;
 use App\Services\Website\Components\BrandingComponent;
+use App\Services\Website\Components\LocationsComponent;
+use App\Services\Website\Components\QuestionCtaComponent;
+
 class ComponentServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -23,7 +26,9 @@ class ComponentServiceProvider extends ServiceProvider
                 ->register(new FeatureStripComponent())
                 ->register(new FooterComponent())
                 ->register(new SeoComponent())
-                ->register(new BrandingComponent());
+                ->register(new BrandingComponent())
+                ->register(new LocationsComponent())
+                ->register(new QuestionCtaComponent());
         });
     }
 }

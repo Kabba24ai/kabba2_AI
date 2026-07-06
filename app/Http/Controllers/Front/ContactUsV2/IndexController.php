@@ -28,8 +28,16 @@ class IndexController extends Controller
                        'phone', 'details', 'latitude', 'longitude', 'state_id']);
         }
 
+        // Load the home page's feature strip so the contact page shares the same strip.
+        $homePage = WebsitePage::where('page_key', 'home')->first();
+        $homeCtx  = $homePage ? $this->builder->getBuilderContext($homePage) : [];
+        $homeFeatureSection = $homeCtx['sections']['feature_strip']   ?? null;
+        $homeFeatureItems   = $homeCtx['itemsByKey']['feature_strip']  ?? collect();
+
         return view('front.website_pages.contact_us.index', array_merge($context, [
-            'currentPage' => $page,
+            'currentPage'        => $page,
+            'homeFeatureSection' => $homeFeatureSection,
+            'homeFeatureItems'   => $homeFeatureItems,
         ]));
     }
 }

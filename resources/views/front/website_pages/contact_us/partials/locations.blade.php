@@ -143,12 +143,12 @@ $badgePalette = ['#1F1D4E', '#B45309', '#065F46', '#1E40AF', '#6B21A8'];
                 $locName    = $item->title;
 
                 // Address (prefer manual, fall back to linked store)
-                $address  = $c['address']  ?: ($linked?->address  ?? '');
-                $city     = $c['city']     ?: ($linked?->city     ?? '');
-                $stateStr = $c['state']    ?: ($linked?->state?->name ?? '');
-                $zip      = $c['zip']      ?: ($linked?->zip_code ?? '');
-                $phone    = $c['phone']    ?: ($linked?->phone    ?? '');
-                $details  = $c['description'] ?: ($linked?->details ?? '');
+                $address  = ($c['address']     ?? null) ?: ($linked?->address      ?? '');
+                $city     = ($c['city']        ?? null) ?: ($linked?->city         ?? '');
+                $stateStr = ($c['state']       ?? null) ?: ($linked?->state?->name ?? '');
+                $zip      = ($c['zip']         ?? null) ?: ($linked?->zip_code     ?? '');
+                $phone    = ($c['phone']       ?? null) ?: ($linked?->phone        ?? '');
+                $details  = ($c['description'] ?? null) ?: ($linked?->details      ?? '');
             @endphp
 
             <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col">

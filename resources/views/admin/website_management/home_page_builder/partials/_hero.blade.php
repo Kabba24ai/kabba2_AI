@@ -49,7 +49,9 @@
             <p class="text-xs text-gray-500 mt-0.5">Background image, heading, and overlay settings.</p>
         </div>
         <div class="flex items-center gap-3">
-            <input type="hidden" name="status" :value="active ? 'Active' : 'Inactive'">
+            <input type="hidden" name="status"
+                   value="{{ ($section->status ?? 'Active') === 'Active' ? 'Active' : 'Inactive' }}"
+                   :value="active ? 'Active' : 'Inactive'">
             <div class="flex items-center gap-2 cursor-pointer select-none" @click="active = !active">
                 <button type="button"
                         :class="active ? 'bg-green-500' : 'bg-gray-300'"

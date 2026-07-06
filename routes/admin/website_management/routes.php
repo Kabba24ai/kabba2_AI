@@ -35,6 +35,9 @@ Route::prefix('website-management')
         // home page builder
         require base_path('routes/admin/website_management/home_page_builder/routes.php');
 
+        // contact page builder
+        require base_path('routes/admin/website_management/contact_page_builder/routes.php');
+
         // website pages (generic multi-page builder)
         require base_path('routes/admin/website_management/website_pages/routes.php');
 

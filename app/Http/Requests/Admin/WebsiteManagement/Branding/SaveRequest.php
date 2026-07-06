@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin\WebsiteManagement\Branding;
 
 use App\Helpers\PurifyHelper;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SaveRequest extends FormRequest
 {
@@ -30,15 +31,21 @@ class SaveRequest extends FormRequest
     {
         return [
 
-            'site_logo'          => 'nullable|image|dimensions:width=64,height=64',
-            'site_favicon'       => 'nullable|image|dimensions:width=64,height=64',
-            'hp_builder_logo'    => 'nullable|image|dimensions:width=64,height=64',
-            'hp_builder_favicon' => 'nullable|image|dimensions:width=64,height=64',
+            // ── Site-wide Logo & Favicon ──────────────────────────────────────
+            'site_logo'          => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,svg', 'max:4096'],
+            'site_favicon'       => ['nullable', 'file', 'mimes:png,svg,ico', 'max:2048'],
 
-            'site_name' => [
-                'nullable',
-                'string'
-            ],
+            // ── HP Builder Logo ───────────────────────────────────────────────
+            'hp_builder_logo'          => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,svg', 'max:4096'],
+            'hp_builder_logo_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')],
+
+            // ── HP Builder Favicon ────────────────────────────────────────────
+            'hp_builder_favicon'          => ['nullable', 'file', 'mimes:png,svg,ico', 'max:2048'],
+            'hp_builder_favicon_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')],
+
+            // ── Business Identity ─────────────────────────────────────────────
+            'site_name' => ['sometimes', 'required', 'string', 'max:255'],
+            'site_tagline' => ['nullable', 'string', 'max:255'],
 
             'site_phone' => [
                 'nullable',
@@ -88,6 +95,7 @@ class SaveRequest extends FormRequest
                 'string'
             ],
 
+            '_context'   => ['nullable', 'string', 'in:hp_builder'],
             'powered_by' => 'nullable',
             'all_rights_reserved' => 'nullable',
 
@@ -117,18 +125,34 @@ class SaveRequest extends FormRequest
     }
 
     public function messages(): array
-{
-    return [
-        'site_logo.dimensions'          => 'The site logo must be exactly 64 x 64 pixels.',
-        'site_logo.image'               => 'Please upload a valid site logo image file.',
-        'site_favicon.dimensions'       => 'The favicon must be exactly 64 x 64 pixels.',
-        'site_favicon.image'            => 'Please upload a valid favicon image file.',
-        'hp_builder_logo.dimensions'    => 'The home page logo must be exactly 64 x 64 pixels.',
-        'hp_builder_logo.image'         => 'Please upload a valid home page logo image file.',
-        'hp_builder_favicon.dimensions' => 'The home page favicon must be exactly 64 x 64 pixels.',
-        'hp_builder_favicon.image'      => 'Please upload a valid home page favicon image file.',
-        'home_page_image.dimensions' => 'The home page image must be exactly 1900 × 430 pixels.',
-        'home_page_image.image'    => 'Please upload a valid image file.',
-    ];
-}
+    {
+        return [
+            // ── Site-wide ──────────────────────────────────────────────────
+            'site_logo.mimes'                    => 'Site logo must be a JPG, PNG, WebP, or SVG file.',
+            'site_logo.max'                      => 'Site logo may not exceed 4 MB.',
+            'site_favicon.mimes'                 => 'Site favicon must be a PNG, SVG, or ICO file.',
+            'site_favicon.max'                   => 'Site favicon may not exceed 2 MB.',
+
+            // ── HP Builder Logo ────────────────────────────────────────────
+            'hp_builder_logo.mimes'              => 'Logo must be a JPG, PNG, WebP, or SVG file.',
+            'hp_builder_logo.max'                => 'Logo may not exceed 4 MB.',
+            'hp_builder_logo_media_id.integer'   => 'Invalid logo media selection — please choose again.',
+            'hp_builder_logo_media_id.exists'    => 'The selected logo no longer exists in the media library.',
+
+            // ── HP Builder Favicon ─────────────────────────────────────────
+            'hp_builder_favicon.mimes'           => 'Favicon must be a PNG, SVG, or ICO file.',
+            'hp_builder_favicon.max'             => 'Favicon may not exceed 2 MB.',
+            'hp_builder_favicon_media_id.integer'=> 'Invalid favicon media selection — please choose again.',
+            'hp_builder_favicon_media_id.exists' => 'The selected favicon no longer exists in the media library.',
+
+            // ── Business Identity ──────────────────────────────────────────
+            'site_name.required'                 => 'Business name is required.',
+            'site_name.max'                      => 'Business name may not exceed 255 characters.',
+            'site_tagline.max'                   => 'Tagline may not exceed 255 characters.',
+
+            // ── Home Page Image ────────────────────────────────────────────
+            'home_page_image.dimensions'         => 'Home page image must be exactly 1900 × 430 pixels.',
+            'home_page_image.image'              => 'Please upload a valid image file.',
+        ];
+    }
 }

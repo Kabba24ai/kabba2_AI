@@ -14,9 +14,13 @@ $phoneCard  = ($phoneCard  && $phoneCard->status  === 'Active') ? $phoneCard  : 
 $storeCard1 = ($storeCard1 && $storeCard1->status === 'Active') ? $storeCard1 : null;
 $storeCard2 = ($storeCard2 && $storeCard2->status === 'Active') ? $storeCard2 : null;
 
-// Pull live store data (first 2 active stores)
-$store1 = ($storeCard1 && $stores->isNotEmpty())       ? $stores->get(0) : null;
-$store2 = ($storeCard2 && $stores->count() >= 2)       ? $stores->get(1) : null;
+// Only show store cards if the Stores (Locations) section is active in the builder.
+$showStoreCards = $showStoreCards ?? true;
+$storeIndex = $stores->keyBy('id');
+$store1Id   = (int) data_get($storeCard1?->content, 'store_id');
+$store2Id   = (int) data_get($storeCard2?->content, 'store_id');
+$store1     = ($showStoreCards && $storeCard1 && $store1Id) ? $storeIndex->get($store1Id) : null;
+$store2     = ($showStoreCards && $storeCard2 && $store2Id) ? $storeIndex->get($store2Id) : null;
 
 $colCount = (int)(bool)$phoneCard + (int)(bool)$store1 + (int)(bool)$store2;
 $lgCols = ['1' => 'lg:grid-cols-1', '2' => 'lg:grid-cols-2', '3' => 'lg:grid-cols-3'][$colCount] ?? 'lg:grid-cols-3';

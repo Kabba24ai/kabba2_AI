@@ -16,7 +16,7 @@ class SaveController extends Controller
 
     // dd($request->all());
 
-      $validated = $request->validated();
+      $validated = collect($request->validated())->except('_context')->all();
 
 
         /**
@@ -191,6 +191,10 @@ class SaveController extends Controller
         }
 
         flash()->success(__('Branding settings updated successfully.'));
+
+        if ($request->input('_context') === 'hp_builder') {
+            return redirect()->route('admin.website-management.home-builder.index', ['tab' => 'branding']);
+        }
 
         return redirect()->back();
     }

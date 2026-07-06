@@ -98,7 +98,7 @@
                       action="{{ route($routePrefix . '.item.update', $phoneCard->unique_id) }}"
                       data-track-changes>
                     @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Title <span class="text-red-500">*</span></label>
                             {!! html()->text('title', old('title', $phoneCard->title))
@@ -112,12 +112,6 @@
                                 ->class('masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
                                 ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'tel', 'required' => true, 'pattern' => '\(\d{3}\) \d{3}-\d{4}']) !!}
                             @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
-                            {!! html()->text('description', old('description', $phoneCard->description))
-                                ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                            @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>

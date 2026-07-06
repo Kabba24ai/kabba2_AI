@@ -67,6 +67,9 @@ class UpdateSectionRequest extends FormRequest
             'content.title_color'         => ['nullable', 'string', 'max:20'],
             'content.subtitle_position'   => ['nullable', 'string', 'in:left,center,right'],
             'content.subtitle_color'      => ['nullable', 'string', 'max:20'],
+            'content.description'          => ['nullable', 'string', 'max:1000'],
+            'content.description_position' => ['nullable', 'string', 'in:left,center,right'],
+            'content.description_color'    => ['nullable', 'string', 'max:20'],
         ];
     }
 

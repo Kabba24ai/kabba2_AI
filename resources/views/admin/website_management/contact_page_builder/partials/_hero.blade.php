@@ -1,4 +1,5 @@
-{{-- Hero wrapper — delegates entirely to Home Builder partial with contact builder route prefix --}}
+{{-- Contact Builder hero — same as Home Builder but with the Description field enabled --}}
 @include('admin.website_management.home_page_builder.partials._hero', [
-    'routePrefix' => $routePrefix,
+    'routePrefix'     => $routePrefix,
+    'showDescription' => true,
 ])

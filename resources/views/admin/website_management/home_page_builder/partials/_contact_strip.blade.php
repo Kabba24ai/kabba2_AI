@@ -5,6 +5,11 @@
 @endphp
 
 @if($section)
+{{--
+    SECTION FORM — uses html() helpers + old() normally.
+    withInput() is called on section validation failure, so old() is correctly
+    populated for THIS form's fields only. Item forms below must NOT use old().
+--}}
 <form method="POST"
       action="{{ route($routePrefix . '.section.update', $section->unique_id) }}"
       data-track-changes>
@@ -64,24 +69,43 @@
         <h4 class="text-sm font-semibold text-gray-800">Strip Cards ({{ $items->count() }})</h4>
     </div>
 
-    {{-- Items List — no drag/drop --}}
     @if($items->isEmpty())
-        <p class="text-sm text-gray-400 italic">No cards yet. Add one above.</p>
+        <p class="text-sm text-gray-400 italic">No cards yet.</p>
     @else
         <div class="space-y-2">
             @foreach($items as $item)
             @php
-                $isPhoneCard = $item->item_key === 'phone_card';
-                $isStoreCard = in_array($item->item_key, ['store_1', 'store_2']);
+                $isPhoneCard     = $item->item_key === 'phone_card';
+                $isStoreCard     = in_array($item->item_key, ['store_1', 'store_2']);
                 $selectedStoreId = data_get($item->content, 'store_id');
                 $selectedStore   = $stores->firstWhere('id', $selectedStoreId);
-                $cardOpen = ($isPhoneCard && $errors->hasAny(['title', 'subtitle', 'description']))
-                         || ($isStoreCard && $errors->has('content.store_id'));
+
+                /*
+                 * Per-item input scoping
+                 * ─────────────────────
+                 * failedValidation() in UpdateItemRequest stashes submitted input in
+                 * session('_item_input_{unique_id}') — NOT in old() — so it is isolated
+                 * to this item and cannot contaminate other forms on the page.
+                 *
+                 * $iv($key, $fallback) returns:
+                 *   • The value the user submitted (if this item's form failed), OR
+                 *   • The current database value ($item->field) otherwise.
+                 *
+                 * IMPORTANT: every item input must be rendered as a raw <input>/<select>
+                 * tag — never through html()->text() or html()->select() — because
+                 * Laravel Collective's FormBuilder always calls old($name) first and will
+                 * override the correct value with the section form's stale old() flash.
+                 */
+                $itemBagName = 'item_' . $item->unique_id;
+                $itemInput   = session('_item_input_' . $item->unique_id, []);
+                $iv          = fn(string $key, $fallback = null) =>
+                                   array_key_exists($key, $itemInput) ? $itemInput[$key] : $fallback;
+                $cardOpen    = $errors->hasBag($itemBagName) && $errors->getBag($itemBagName)->isNotEmpty();
             @endphp
             <div x-data="{ editOpen: @js($cardOpen) }"
                  class="border border-gray-200 rounded-lg overflow-hidden">
 
-                {{-- Card header row --}}
+                {{-- Card header --}}
                 <div class="flex items-center justify-between px-3 py-3 bg-gray-50 cursor-pointer"
                      @click="editOpen = !editOpen">
                     <div class="flex items-center gap-3 min-w-0">
@@ -112,56 +136,74 @@
                         @csrf
 
                         @if($isPhoneCard)
-                        {{-- ── Phone Card: Title + Phone + Description only ── --}}
+                        {{-- ── Phone Card ── --}}
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Title <span class="text-red-500">*</span></label>
-                                {!! html()->text('title', old('title', $item->title))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                                    ->attributes(['required' => true]) !!}
-                                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <input type="text" name="title"
+                                       value="{{ e($iv('title', $item->title) ?? '') }}"
+                                       required
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none">
+                                @error('title', $itemBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number <span class="text-red-500">*</span></label>
-                                {!! html()->text('subtitle', old('subtitle', $item->subtitle))
-                                    ->class('masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                                    ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'tel', 'required' => true, 'pattern' => '\(\d{3}\) \d{3}-\d{4}']) !!}
-                                @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <input type="text" name="subtitle"
+                                       value="{{ e($iv('subtitle', $item->subtitle) ?? '') }}"
+                                       required
+                                       placeholder="(xxx) xxx-xxxx"
+                                       autocomplete="tel"
+                                       pattern="\(\d{3}\) \d{3}-\d{4}"
+                                       class="masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none">
+                                @error('subtitle', $itemBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
-                                {!! html()->text('description', old('description', $item->description))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                                @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <input type="text" name="description"
+                                       value="{{ e($iv('description', $item->description) ?? '') }}"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none">
+                                @error('description', $itemBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                                {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white') !!}
+                                @php $pcStatus = $iv('status', $item->status); @endphp
+                                <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:outline-none">
+                                    <option value="Active"   {{ $pcStatus === 'Active'   ? 'selected' : '' }}>Active</option>
+                                    <option value="Inactive" {{ $pcStatus === 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                </select>
                             </div>
                         </div>
 
                         @elseif($isStoreCard)
-                        {{-- ── Store Card: Store dropdown + Status only ── --}}
+                        {{-- ── Store Card ── --}}
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Store <span class="text-red-500">*</span></label>
+                                @php
+                                    $storedContent  = $iv('content', null);
+                                    $resolvedStoreId = is_array($storedContent)
+                                        ? ($storedContent['store_id'] ?? $selectedStoreId)
+                                        : $selectedStoreId;
+                                @endphp
                                 <select name="content[store_id]" required
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
                                     <option value="">— Select a store —</option>
                                     @foreach($stores as $store)
                                         <option value="{{ $store->id }}"
-                                            {{ (string)$selectedStoreId === (string)$store->id ? 'selected' : '' }}>
+                                            {{ (string)$resolvedStoreId === (string)$store->id ? 'selected' : '' }}>
                                             {{ $store->store_name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('content.store_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                @error('content.store_id', $itemBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                                {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white') !!}
+                                @php $scStatus = $iv('status', $item->status); @endphp
+                                <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:outline-none">
+                                    <option value="Active"   {{ $scStatus === 'Active'   ? 'selected' : '' }}>Active</option>
+                                    <option value="Inactive" {{ $scStatus === 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                </select>
                             </div>
                         </div>
 
@@ -170,33 +212,40 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Title</label>
-                                {!! html()->text('title', old('title', $item->title))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <input type="text" name="title"
+                                       value="{{ e($iv('title', $item->title) ?? '') }}"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none">
+                                @error('title', $itemBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Sub Title</label>
-                                {!! html()->text('subtitle', old('subtitle', $item->subtitle))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                                    ->attributes(['placeholder' => 'Find What You Need']) !!}
-                                @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <input type="text" name="subtitle"
+                                       value="{{ e($iv('subtitle', $item->subtitle) ?? '') }}"
+                                       placeholder="Find What You Need"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none">
+                                @error('subtitle', $itemBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
-                                {!! html()->text('description', old('description', $item->description))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                                @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <input type="text" name="description"
+                                       value="{{ e($iv('description', $item->description) ?? '') }}"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none">
+                                @error('description', $itemBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Button Text</label>
-                                {!! html()->text('button_text', old('button_text', $item->button_text))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                                @error('button_text') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <input type="text" name="button_text"
+                                       value="{{ e($iv('button_text', $item->button_text) ?? '') }}"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none">
+                                @error('button_text', $itemBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                                {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white') !!}
+                                @php $srStatus = $iv('status', $item->status); @endphp
+                                <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:outline-none">
+                                    <option value="Active"   {{ $srStatus === 'Active'   ? 'selected' : '' }}>Active</option>
+                                    <option value="Inactive" {{ $srStatus === 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                </select>
                             </div>
                         </div>
                         @endif

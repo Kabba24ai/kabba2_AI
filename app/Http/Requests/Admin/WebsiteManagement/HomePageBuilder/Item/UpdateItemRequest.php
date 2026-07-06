@@ -18,6 +18,17 @@ class UpdateItemRequest extends FormRequest
         return route('admin.website-management.home-builder.index', ['tab' => $tab]);
     }
 
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator): void
+    {
+        $uniqueId = $this->route('unique_id');
+        throw new \Illuminate\Validation\ValidationException(
+            $validator,
+            redirect($this->getRedirectUrl())
+                ->withErrors($validator->errors(), 'item_' . $uniqueId)
+                ->with('_item_input_' . $uniqueId, $this->except(['_token']))
+        );
+    }
+
     protected function prepareForValidation(): void
     {
         $this->merge(PurifyHelper::purify($this->except(['image'])));
@@ -87,7 +98,7 @@ class UpdateItemRequest extends FormRequest
     private function searchCardRules(): array
     {
         return [
-            'title'       => ['required', 'string', 'max:255'],
+            'title'       => ['nullable', 'string', 'max:255'],
             'subtitle'    => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'button_text' => ['required', 'string', 'max:100'],

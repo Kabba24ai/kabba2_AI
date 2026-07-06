@@ -76,7 +76,8 @@
 
         {{-- ── Phone Card ── --}}
         @if($phoneCard)
-        <div x-data="{ editOpen: false }" class="border border-gray-200 rounded-lg overflow-hidden">
+        @php $phoneCardOpen = $errors->hasAny(['title', 'subtitle', 'description']); @endphp
+        <div x-data="{ editOpen: @js($phoneCardOpen) }" class="border border-gray-200 rounded-lg overflow-hidden">
             <div class="flex items-center justify-between px-3 py-3 bg-gray-50 cursor-pointer"
                  @click="editOpen = !editOpen">
                 <div class="flex items-center gap-3">
@@ -99,16 +100,17 @@
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Title</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Title <span class="text-red-500">*</span></label>
                             {!! html()->text('title', old('title', $phoneCard->title))
-                                ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
+                                ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
+                                ->attributes(['required' => true]) !!}
                             @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number <span class="text-red-500">*</span></label>
                             {!! html()->text('subtitle', old('subtitle', $phoneCard->subtitle))
                                 ->class('masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                                ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'tel']) !!}
+                                ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'tel', 'required' => true, 'pattern' => '\(\d{3}\) \d{3}-\d{4}']) !!}
                             @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
@@ -135,7 +137,8 @@
         {{-- ── Store Card 1 ── --}}
         @if($storeCard1)
         @php $selectedStore1 = $stores->firstWhere('id', data_get($storeCard1->content, 'store_id')); @endphp
-        <div x-data="{ editOpen: false }" class="border border-gray-200 rounded-lg overflow-hidden">
+        @php $store1Open = $errors->has('content.store_id') && old('_token') !== null; @endphp
+        <div x-data="{ editOpen: @js($store1Open) }" class="border border-gray-200 rounded-lg overflow-hidden">
             <div class="flex items-center justify-between px-3 py-3 bg-gray-50 cursor-pointer"
                  @click="editOpen = !editOpen">
                 <div class="flex items-center gap-3">
@@ -189,7 +192,8 @@
         {{-- ── Store Card 2 ── --}}
         @if($storeCard2)
         @php $selectedStore2 = $stores->firstWhere('id', data_get($storeCard2->content, 'store_id')); @endphp
-        <div x-data="{ editOpen: false }" class="border border-gray-200 rounded-lg overflow-hidden">
+        @php $store2Open = $errors->has('content.store_id') && old('_token') !== null; @endphp
+        <div x-data="{ editOpen: @js($store2Open) }" class="border border-gray-200 rounded-lg overflow-hidden">
             <div class="flex items-center justify-between px-3 py-3 bg-gray-50 cursor-pointer"
                  @click="editOpen = !editOpen">
                 <div class="flex items-center gap-3">

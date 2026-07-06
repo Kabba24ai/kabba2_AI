@@ -72,7 +72,7 @@ $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
                         <x-heroicon-s-map-pin class="w-5 h-5 text-white"/>
                     </div>
                     <div class="min-w-0">
-                        <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">{{ $storeCard1->title ?: $store1->store_name }}</p>
+                        <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">{{ $store1->store_name }}</p>
                         @if($store1->phone)
                         <a href="tel:{{ preg_replace('/[^+\d]/', '', $store1->phone) }}"
                            class="mt-2 block text-lg font-bold text-gray-900 leading-tight hover:text-yellow-500 transition-colors">
@@ -81,7 +81,7 @@ $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
                         @endif
                         <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
                             {{ $store1->address }}<br>
-                            {{ $store1->city }}{{ $store1->state?->name ? ', ' . $store1->state->name : '' }} {{ $store1->zip_code }}
+                            {{ $store1->city }}{{ $store1->state?->name ? ', ' . $store1->state->name : '' }}
                         </p>
                     </div>
                 </div>
@@ -94,7 +94,7 @@ $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
                         <x-heroicon-s-map-pin class="w-5 h-5 text-white"/>
                     </div>
                     <div class="min-w-0">
-                        <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">{{ $storeCard2->title ?: $store2->store_name }}</p>
+                        <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">{{ $store2->store_name }}</p>
                         @if($store2->phone)
                         <a href="tel:{{ preg_replace('/[^+\d]/', '', $store2->phone) }}"
                            class="mt-2 block text-lg font-bold text-gray-900 leading-tight hover:text-yellow-500 transition-colors">
@@ -103,7 +103,7 @@ $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
                         @endif
                         <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
                             {{ $store2->address }}<br>
-                            {{ $store2->city }}{{ $store2->state?->name ? ', ' . $store2->state->name : '' }} {{ $store2->zip_code }}
+                            {{ $store2->city }}{{ $store2->state?->name ? ', ' . $store2->state->name : '' }}
                         </p>
                     </div>
                 </div>

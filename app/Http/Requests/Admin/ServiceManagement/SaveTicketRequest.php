@@ -26,9 +26,11 @@ class SaveTicketRequest extends FormRequest
             'service_type'             => ['required', Rule::enum(ServiceType::class)],
             'service_location'         => ['required', Rule::enum(ServiceLocation::class)],
             'priority'                 => ['required', Rule::enum(ServicePriority::class)],
-            'repair_status'            => ['required', Rule::enum(RepairStatus::class)],
-            'financial_responsibility' => ['required', Rule::enum(FinancialResponsibility::class)],
-            'financial_status'         => ['required', Rule::enum(FinancialStatus::class)],
+            // Diagnostic-first: statuses and responsibility may be omitted at
+            // intake — StoreController applies the safe defaults.
+            'repair_status'            => ['nullable', Rule::enum(RepairStatus::class)],
+            'financial_responsibility' => ['nullable', Rule::enum(FinancialResponsibility::class)],
+            'financial_status'         => ['nullable', Rule::enum(FinancialStatus::class)],
             'equipment_id'             => ['required', 'exists:equipment,id'],
             'opened_at'                => ['required', 'date'],
 

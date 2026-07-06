@@ -81,7 +81,7 @@
             <label class="{{ $labelClass }} required">Financial Responsibility</label>
             <select name="financial_responsibility" class="{{ $inputClass }}" required>
                 @foreach (FinancialResponsibility::cases() as $case)
-                    <option value="{{ $case->value }}" @selected(old('financial_responsibility', $ticket->financial_responsibility?->value ?? 'internal_company_expense') === $case->value)>{{ $case->label() }}</option>
+                    <option value="{{ $case->value }}" @selected(old('financial_responsibility', $ticket->financial_responsibility?->value ?? 'pending') === $case->value)>{{ $case->label() }}</option>
                 @endforeach
             </select>
         </div>

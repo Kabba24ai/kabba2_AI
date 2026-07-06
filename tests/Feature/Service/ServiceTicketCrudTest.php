@@ -57,6 +57,14 @@ class ServiceTicketCrudTest extends TestCase
         return ServiceTicket::create($this->validPayload($overrides));
     }
 
+    /** Satisfy the Phase 2E.5 authorization gate for repair-execution transitions. */
+    private function authorize(ServiceTicket $ticket): ServiceTicket
+    {
+        $ticket->update(['repair_authorized' => true]);
+
+        return $ticket->fresh();
+    }
+
     // 1. Ticket list page loads
     public function test_ticket_list_page_loads(): void
     {
@@ -192,7 +200,7 @@ class ServiceTicketCrudTest extends TestCase
     // 7. Blocked ticket lands in blocked queue, not active queue
     public function test_blocked_ticket_in_blocked_queue_not_active(): void
     {
-        $ticket = $this->makeTicket();
+        $ticket = $this->authorize($this->makeTicket());
 
         $this->actingAs($this->admin)
             ->post(route('admin.service-management.tickets.status', $ticket), [
@@ -220,7 +228,7 @@ class ServiceTicketCrudTest extends TestCase
     // 8. Completed sets completed_at
     public function test_completed_ticket_sets_completed_at(): void
     {
-        $ticket = $this->makeTicket();
+        $ticket = $this->authorize($this->makeTicket());
         $this->assertNull($ticket->completed_at);
 
         $this->actingAs($this->admin)
@@ -234,7 +242,7 @@ class ServiceTicketCrudTest extends TestCase
     // 9. Closed sets closed_at; reopening preserves timestamps
     public function test_closed_ticket_sets_closed_at_and_reopen_preserves(): void
     {
-        $ticket = $this->makeTicket(['repair_status' => RepairStatus::Completed->value]);
+        $ticket = $this->authorize($this->makeTicket(['repair_status' => RepairStatus::Completed->value]));
         $ticket->transitionTo(RepairStatus::Completed);
         $completedAt = $ticket->fresh()->completed_at;
 

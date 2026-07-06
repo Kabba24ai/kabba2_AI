@@ -74,6 +74,20 @@ enum RepairStatus: string
         return array_merge(self::active(), self::blocked());
     }
 
+    /**
+     * Statuses that represent repair work beginning or finishing — entering
+     * them requires the repair authorization gate to be satisfied.
+     */
+    public function requiresAuthorization(): bool
+    {
+        return in_array($this, [
+            self::InProgress,
+            self::ReadyForPickup,
+            self::Completed,
+            self::Closed,
+        ], true);
+    }
+
     /** Human label for what a blocked ticket is waiting on. */
     public function waitingOnLabel(): string
     {

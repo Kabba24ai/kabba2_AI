@@ -1,6 +1,15 @@
 <?php
 
+use App\Http\Controllers\Admin\ServiceManagement\Approvals;
+use App\Http\Controllers\Admin\ServiceManagement\ChargeLines;
+use App\Http\Controllers\Admin\ServiceManagement\Deposit;
+use App\Http\Controllers\Admin\ServiceManagement\Diagnostics;
+use App\Http\Controllers\Admin\ServiceManagement\LaborEntries;
+use App\Http\Controllers\Admin\ServiceManagement\Media;
 use App\Http\Controllers\Admin\ServiceManagement\OverviewController;
+use App\Http\Controllers\Admin\ServiceManagement\Parts;
+use App\Http\Controllers\Admin\ServiceManagement\RepairAuthorization;
+use App\Http\Controllers\Admin\ServiceManagement\Settlement;
 use App\Http\Controllers\Admin\ServiceManagement\Tickets;
 use Illuminate\Support\Facades\Route;
 
@@ -17,5 +26,41 @@ Route::prefix('service-management')
             Route::get('/{ticket}/edit',    Tickets\EditController::class)->name('edit');
             Route::put('/{ticket}',         Tickets\UpdateController::class)->name('update');
             Route::post('/{ticket}/status', Tickets\StatusController::class)->name('status');
+
+            // Phase 2B — billing preparation (no payment processing)
+            Route::post('/{ticket}/labor',                  LaborEntries\StoreController::class)->name('labor.store');
+            Route::delete('/{ticket}/labor/{laborEntry}',   LaborEntries\DestroyController::class)->name('labor.destroy');
+            Route::post('/{ticket}/charges',                ChargeLines\StoreController::class)->name('charges.store');
+            Route::delete('/{ticket}/charges/{chargeLine}', ChargeLines\DestroyController::class)->name('charges.destroy');
+
+            // Phase 2C — repair record (parts, media, timeline)
+            Route::post('/{ticket}/parts',           Parts\StoreController::class)->name('parts.store');
+            Route::delete('/{ticket}/parts/{part}',  Parts\DestroyController::class)->name('parts.destroy');
+            Route::post('/{ticket}/media',           Media\StoreController::class)->name('media.store');
+            Route::delete('/{ticket}/media/{media}', Media\DestroyController::class)->name('media.destroy');
+
+            // Phase 2D — diagnostic-first lifecycle
+            Route::post('/{ticket}/diagnostic/start',    Diagnostics\StartController::class)->name('diagnostic.start');
+            Route::post('/{ticket}/diagnostic/complete', Diagnostics\CompleteController::class)->name('diagnostic.complete');
+            Route::put('/{ticket}/diagnostic',           Diagnostics\UpdateController::class)->name('diagnostic.update');
+            Route::post('/{ticket}/responsibility',      Diagnostics\DecideController::class)->name('responsibility.decide');
+
+            // Phase 2E — approval & repair funding gate (state tracking only)
+            Route::post('/{ticket}/approval/estimate-sent', Approvals\SendEstimateController::class)->name('approval.estimate-sent');
+            Route::post('/{ticket}/approval/approve',       Approvals\ApproveController::class)->name('approval.approve');
+            Route::post('/{ticket}/approval/decline',       Approvals\DeclineController::class)->name('approval.decline');
+            Route::post('/{ticket}/approval/revoke',        Approvals\RevokeController::class)->name('approval.revoke');
+            Route::post('/{ticket}/repair-authorization',        RepairAuthorization\StoreController::class)->name('authorization.store');
+            Route::post('/{ticket}/repair-authorization/revoke',   RepairAuthorization\RevokeController::class)->name('authorization.revoke');
+            Route::post('/{ticket}/repair-authorization/override', RepairAuthorization\OverrideController::class)->name('authorization.override');
+            Route::put('/{ticket}/deposit',           Deposit\UpdateController::class)->name('deposit.update');
+            Route::post('/{ticket}/deposit/override', Deposit\OverrideController::class)->name('deposit.override');
+
+            // Phase 3A — customer settlement preview & handoff to the Financial Engine
+            Route::get('/{ticket}/settlement',  Settlement\PreviewController::class)->name('settlement.preview');
+            Route::post('/{ticket}/settlement', Settlement\StoreController::class)->name('settlement.store');
+            Route::put('/{ticket}/labor/{laborEntry}',   LaborEntries\UpdateController::class)->name('labor.update');
+            Route::put('/{ticket}/charges/{chargeLine}', ChargeLines\UpdateController::class)->name('charges.update');
+            Route::put('/{ticket}/parts/{part}',         Parts\UpdateController::class)->name('parts.update');
         });
     });

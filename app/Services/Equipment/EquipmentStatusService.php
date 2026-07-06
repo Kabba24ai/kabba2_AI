@@ -4,6 +4,7 @@ namespace App\Services\Equipment;
 
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Services\WaitList\WaitListMatcher;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -67,6 +68,8 @@ class EquipmentStatusService
         $equipment->saveQuietly();
 
         self::log($equipment->id, $old, EquipmentCurrentStatus::Maintenance->value, $orderId, $orderProductId, 'return_checklist', $actorId);
+
+        self::evaluateWaitLists($equipment);
     }
 
     /**
@@ -93,6 +96,25 @@ class EquipmentStatusService
         $equipment->saveQuietly();
 
         self::log($equipment->id, $old, EquipmentCurrentStatus::Damaged->value, $orderId, $orderProductId, 'return_checklist', $actorId);
+
+        self::evaluateWaitLists($equipment);
+    }
+
+    /**
+     * Wait List integration (Phase 1): every completed return/check-in
+     * evaluates active wait list demand, regardless of the equipment's
+     * resulting status. Failures here must never break a return.
+     */
+    private static function evaluateWaitLists(Equipment $equipment): void
+    {
+        try {
+            WaitListMatcher::evaluateReturn($equipment);
+        } catch (\Throwable $e) {
+            Log::channel(self::CHANNEL)->error('Wait list evaluation failed', [
+                'equipment_id' => $equipment->id,
+                'error'        => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

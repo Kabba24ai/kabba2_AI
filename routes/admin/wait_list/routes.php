@@ -1,0 +1,22 @@
+<?php
+
+use App\Http\Controllers\Admin\WaitList;
+use Illuminate\Support\Facades\Route;
+
+// Equipment Wait List — dedicated operational module (Phase 1)
+Route::prefix('wait-list')
+    ->name('wait-list.')
+    ->group(function () {
+        Route::get('/',        WaitList\IndexController::class)->name('index');
+        Route::get('/create',  WaitList\CreateController::class)->name('create');
+        Route::post('/',       WaitList\StoreController::class)->name('store');
+        Route::get('/alerts',  WaitList\AlertsController::class)->name('alerts');
+        Route::get('/{waitList}', WaitList\ShowController::class)->name('show');
+
+        Route::post('/{waitList}/communications', WaitList\CommunicationStoreController::class)->name('communications.store');
+        Route::post('/{waitList}/convert',        WaitList\ConvertController::class)->name('convert');
+        Route::post('/{waitList}/cancel',         WaitList\CancelController::class)->name('cancel');
+
+        Route::post('/alerts/{alert}/acknowledge', WaitList\AlertAcknowledgeController::class)->name('alerts.acknowledge');
+        Route::post('/alerts/{alert}/dismiss',     WaitList\AlertDismissController::class)->name('alerts.dismiss');
+    });

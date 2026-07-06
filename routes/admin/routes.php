@@ -62,6 +62,12 @@ Route::name('admin.')->group(function ($router) {
         // reports
         require base_path('routes/admin/reports/routes.php');
 
+        // documents (Document Generation Framework)
+        require base_path('routes/admin/documents/routes.php');
+
+        // equipment wait list
+        require base_path('routes/admin/wait_list/routes.php');
+
         // checklist
         require base_path('routes/admin/checklist_management/routes.php');
 

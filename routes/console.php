@@ -149,3 +149,11 @@ Schedule::call(function () {
 
 
 
+
+// Wait List: deferred + second alert pushes (business-hours aware)
+Schedule::command('waitlist:process-pushes')
+    ->everyFiveMinutes()
+    ->timezone('America/Chicago')
+    ->name('waitlist-process-pushes')
+    ->withoutOverlapping()
+    ->onOneServer();

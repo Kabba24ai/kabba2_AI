@@ -1,0 +1,444 @@
+<?php
+
+namespace Tests\Feature\WaitList;
+
+use App\Enums\WaitList\WaitListAlertStatus;
+use App\Enums\WaitList\WaitListCommunicationType;
+use App\Enums\WaitList\WaitListMatchType;
+use App\Enums\WaitList\WaitListRequestType;
+use App\Enums\WaitList\WaitListStatus;
+use App\Enums\WaitList\WaitListStorePreference;
+use App\Models\Customers\Customer;
+use App\Models\Iam\Personnel\User;
+use App\Models\MaintenanceManagement\Equipment;
+use App\Models\ProductManagement\ProductCategory;
+use App\Models\WaitList\EquipmentWaitList;
+use App\Models\WaitList\EquipmentWaitListAlert;
+use App\Services\Equipment\EquipmentStatusService;
+use App\Services\FirebaseService;
+use App\Services\WaitList\WaitListMatcher;
+use App\Services\WaitList\WaitListPushService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+class EquipmentWaitListTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $admin;
+    private Customer $customer;
+    private ProductCategory $category;
+    private Equipment $excavator;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->admin = User::create([
+            'unique_id' => 'test-admin', 'employee_code' => '01',
+            'first_name' => 'Admin', 'last_name' => 'User',
+            'email' => 'admin@test.local', 'status' => 'Active',
+        ]);
+        $this->actingAs($this->admin);
+
+        $this->customer = Customer::create([
+            'first_name' => 'Mike', 'last_name' => 'Harrison',
+            'company_name' => 'Harrison Grading LLC',
+            'phone' => '555-0100', 'email' => 'mike@harrisongrading.test',
+            'status' => 'Active',
+        ]);
+
+        $this->category = ProductCategory::create(['title' => 'Excavators', 'status' => 'Published', 'sort_order' => 1]);
+
+        $this->excavator = Equipment::create([
+            'unique_id' => 'test-exc', 'equipment_name' => 'Mini Excavator 3.5T',
+            'equipment_id' => 'EX-100', 'brand' => 'Test',
+            'product_category_id' => $this->category->id,
+            'current_status' => 'rented',
+        ]);
+
+        // Firebase is never hit in tests — pushes are recorded via the mock.
+        $this->instance(FirebaseService::class, $this->createMock(FirebaseService::class));
+    }
+
+    private function makeWaitList(array $overrides = [], array $equipmentIds = []): EquipmentWaitList
+    {
+        $waitList = EquipmentWaitList::create(array_merge([
+            'customer_id'      => $this->customer->id,
+            'customer_name'    => 'Mike Harrison',
+            'company_name'     => 'Harrison Grading LLC',
+            'phone'            => '555-0100',
+            'email'            => 'mike@harrisongrading.test',
+            'request_type'     => WaitListRequestType::Category->value,
+            'product_category_id' => $this->category->id,
+            'store_preference' => WaitListStorePreference::AnyStore->value,
+            'reason'           => 'Job starting as soon as a unit frees up',
+            'created_by'       => $this->admin->id,
+        ], $overrides));
+
+        foreach ($equipmentIds as $id) {
+            $waitList->items()->create(['equipment_id' => $id]);
+        }
+
+        return $waitList;
+    }
+
+    private function completeReturn(Equipment $equipment, bool $damaged = false): void
+    {
+        $damaged
+            ? EquipmentStatusService::markReturnedDamaged($equipment, 1, 1, null, $this->admin->id)
+            : EquipmentStatusService::markReturnedToMaintenance($equipment, 1, 1, null, $this->admin->id);
+    }
+
+    // ── Creation ───────────────────────────────────────────────────
+
+    public function test_wait_list_creation_pulls_crm_snapshot(): void
+    {
+        $this->post(route('admin.wait-list.store'), [
+            'customer_id'         => $this->customer->id,
+            'request_type'        => WaitListRequestType::Category->value,
+            'product_category_id' => $this->category->id,
+            'store_preference'    => WaitListStorePreference::AnyStore->value,
+            'reason'              => 'Needs an excavator ASAP',
+            'priority_override'   => 5,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('equipment_wait_lists', [
+            'customer_id'   => $this->customer->id,
+            'customer_name' => 'Mike Harrison',
+            'company_name'  => 'Harrison Grading LLC',
+            'phone'         => '555-0100',
+            'email'         => 'mike@harrisongrading.test',
+            'status'        => 'active',
+            'priority_override' => 5,
+            'created_by'    => $this->admin->id,
+        ]);
+    }
+
+    public function test_specific_equipment_limited_to_three_and_structured_only(): void
+    {
+        $extra = collect(range(1, 4))->map(fn ($i) => Equipment::create([
+            'unique_id' => "test-eq-$i", 'equipment_name' => "Unit $i", 'equipment_id' => "U-$i", 'brand' => 'Test',
+        ]));
+
+        // Four units → rejected
+        $this->post(route('admin.wait-list.store'), [
+            'customer_id'      => $this->customer->id,
+            'request_type'     => WaitListRequestType::SpecificEquipment->value,
+            'equipment_ids'    => $extra->pluck('id')->all(),
+            'store_preference' => WaitListStorePreference::AnyStore->value,
+            'reason'           => 'Too many units',
+        ])->assertSessionHasErrors('equipment_ids');
+
+        // Nonexistent CRM customer / equipment → rejected (no free-form entry)
+        $this->post(route('admin.wait-list.store'), [
+            'customer_id'      => 999999,
+            'request_type'     => WaitListRequestType::SpecificEquipment->value,
+            'equipment_ids'    => [999999],
+            'store_preference' => WaitListStorePreference::AnyStore->value,
+            'reason'           => 'Bad refs',
+        ])->assertSessionHasErrors(['customer_id', 'equipment_ids.0']);
+
+        // Three units → accepted
+        $this->post(route('admin.wait-list.store'), [
+            'customer_id'      => $this->customer->id,
+            'request_type'     => WaitListRequestType::SpecificEquipment->value,
+            'equipment_ids'    => $extra->take(3)->pluck('id')->all(),
+            'store_preference' => WaitListStorePreference::SpecificStore->value,
+            'store_id'         => null,
+            'reason'           => 'Three candidates',
+        ])->assertSessionHasErrors('store_id'); // specific store requires a store
+
+        $this->post(route('admin.wait-list.store'), [
+            'customer_id'      => $this->customer->id,
+            'request_type'     => WaitListRequestType::SpecificEquipment->value,
+            'equipment_ids'    => $extra->take(3)->pluck('id')->all(),
+            'store_preference' => WaitListStorePreference::AnyStore->value,
+            'reason'           => 'Three candidates',
+        ])->assertRedirect();
+
+        $this->assertDatabaseCount('equipment_wait_list_items', 3);
+    }
+
+    // ── Matching + alerts ──────────────────────────────────────────
+
+    public function test_exact_equipment_match_fires_alert_on_return(): void
+    {
+        $waitList = $this->makeWaitList(
+            ['request_type' => WaitListRequestType::SpecificEquipment->value, 'product_category_id' => null],
+            [$this->excavator->id],
+        );
+
+        $this->completeReturn($this->excavator);
+
+        $alert = EquipmentWaitListAlert::first();
+        $this->assertNotNull($alert);
+        $this->assertSame($waitList->id, $alert->equipment_wait_list_id);
+        $this->assertSame($this->excavator->id, $alert->equipment_id);
+        $this->assertSame(WaitListMatchType::ExactEquipment, $alert->match_type);
+        $this->assertSame('maintenance', $alert->equipment_status_at_match);
+    }
+
+    public function test_category_match_fires_alert_and_regardless_of_damaged_status(): void
+    {
+        $waitList = $this->makeWaitList(); // category wait list
+
+        // Damaged return still fires — managers decide what happens next
+        $this->completeReturn($this->excavator, damaged: true);
+
+        $alert = EquipmentWaitListAlert::first();
+        $this->assertNotNull($alert);
+        $this->assertSame(WaitListMatchType::Category, $alert->match_type);
+        $this->assertSame($this->category->id, $alert->matched_category_id);
+        $this->assertSame('damaged', $alert->equipment_status_at_match);
+    }
+
+    public function test_no_duplicate_open_alerts_and_closed_wait_lists_ignored(): void
+    {
+        $this->makeWaitList();
+
+        $this->completeReturn($this->excavator);
+        $this->completeReturn($this->excavator);
+        $this->assertDatabaseCount('equipment_wait_list_alerts', 1);
+
+        // Converted/cancelled wait lists never match
+        EquipmentWaitList::first()->update(['status' => WaitListStatus::Cancelled]);
+        EquipmentWaitListAlert::first()->update(['status' => WaitListAlertStatus::Dismissed]);
+
+        $this->completeReturn($this->excavator);
+        $this->assertDatabaseCount('equipment_wait_list_alerts', 1);
+    }
+
+    // ── Mobile API ─────────────────────────────────────────────────
+
+    public function test_mobile_api_exposes_alert_payload_and_acknowledge(): void
+    {
+        $this->makeWaitList(['internal_notes' => 'VIP customer'], []);
+        $this->completeReturn($this->excavator);
+        $alert = EquipmentWaitListAlert::first();
+
+        $response = $this->getJson('http://api.kabba.local/api/admin/v1/wait-list/alerts')->assertOk();
+        $payload  = $response->json('alerts.0');
+
+        $this->assertSame($alert->id, $payload['alert_id']);
+        $this->assertSame($alert->equipment_wait_list_id, $payload['wait_list_id']);
+        $this->assertSame('Mike Harrison', $payload['customer']['name']);
+        $this->assertSame('Harrison Grading LLC', $payload['customer']['company']);
+        $this->assertSame('555-0100', $payload['customer']['phone']);
+        $this->assertSame('category', $payload['match']['type']);
+        $this->assertSame('Mini Excavator 3.5T', $payload['match']['equipment_name']);
+        $this->assertSame('Excavators', $payload['match']['matched_category']);
+        $this->assertSame('any_store', $payload['store_preference']['preference']);
+        $this->assertSame(0, $payload['wait_list_age_days']);
+        $this->assertSame('VIP customer', $payload['internal_notes']);
+        $this->assertSame('maintenance', $payload['match']['equipment_status_at_match']);
+
+        // Acknowledge from mobile — user + timestamp recorded
+        $this->postJson("http://api.kabba.local/api/admin/v1/wait-list/alerts/{$alert->id}/acknowledge")
+            ->assertOk()->assertJson(['success' => true]);
+
+        $fresh = $alert->fresh();
+        $this->assertSame(WaitListAlertStatus::Acknowledged, $fresh->status);
+        $this->assertSame($this->admin->id, $fresh->acknowledged_by);
+        $this->assertNotNull($fresh->acknowledged_at);
+
+        // Acknowledged alerts drop off the open feed but stay in history
+        $this->assertCount(0, $this->getJson('http://api.kabba.local/api/admin/v1/wait-list/alerts')->json('alerts'));
+        $this->assertCount(1, $this->getJson('http://api.kabba.local/api/admin/v1/wait-list/alerts?status=all')->json('alerts'));
+    }
+
+    // ── Admin actions ──────────────────────────────────────────────
+
+    public function test_admin_acknowledge_updates_wait_list_status(): void
+    {
+        $waitList = $this->makeWaitList();
+        $this->completeReturn($this->excavator);
+        $alert = EquipmentWaitListAlert::first();
+
+        $this->post(route('admin.wait-list.alerts.acknowledge', $alert))->assertRedirect();
+
+        $this->assertSame(WaitListAlertStatus::Acknowledged, $alert->fresh()->status);
+        $this->assertSame(WaitListStatus::Acknowledged, $waitList->fresh()->status);
+
+        // Alert remains viewable in history view
+        $this->get(route('admin.wait-list.alerts', ['view' => 'all']))
+            ->assertOk()->assertSee('Harrison Grading');
+    }
+
+    public function test_communication_log_records_employee_type_and_note(): void
+    {
+        $waitList = $this->makeWaitList();
+
+        $this->post(route('admin.wait-list.communications.store', $waitList), [
+            'type' => WaitListCommunicationType::LeftVoicemail->value,
+            'note' => 'Left message about the returned mini excavator.',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('equipment_wait_list_communications', [
+            'equipment_wait_list_id' => $waitList->id,
+            'user_id'                => $this->admin->id,
+            'type'                   => 'left_voicemail',
+            'note'                   => 'Left message about the returned mini excavator.',
+        ]);
+    }
+
+    public function test_conversion_links_order_and_marks_converted(): void
+    {
+        $orderId = DB::table('orders')->insertGetId([
+            'unique_id' => 'test-ord', 'order_number' => '#7100',
+            'order_date' => now()->toDateString(), 'customer_name' => 'Mike Harrison',
+            'customer_id' => $this->customer->id,
+        ]);
+        $waitList = $this->makeWaitList();
+
+        $this->post(route('admin.wait-list.convert', $waitList), [
+            'converted_order_id' => $orderId,
+        ])->assertRedirect();
+
+        $fresh = $waitList->fresh();
+        $this->assertSame(WaitListStatus::Converted, $fresh->status);
+        $this->assertSame($orderId, $fresh->converted_order_id);
+        $this->assertNotNull($fresh->converted_at);
+    }
+
+    public function test_cancellation_is_manual_and_stays_searchable(): void
+    {
+        $waitList = $this->makeWaitList();
+
+        $this->post(route('admin.wait-list.cancel', $waitList))->assertRedirect();
+
+        $fresh = $waitList->fresh();
+        $this->assertSame(WaitListStatus::Cancelled, $fresh->status);
+        $this->assertSame($this->admin->id, $fresh->cancelled_by);
+
+        // Still searchable in the cancelled view
+        $this->get(route('admin.wait-list.index', ['status' => 'cancelled', 'search' => 'Harrison']))
+            ->assertOk()->assertSee('Mike Harrison');
+    }
+
+    // ── Banner ─────────────────────────────────────────────────────
+
+    public function test_banner_visible_for_exact_and_category_demand(): void
+    {
+        // No demand → no banner
+        $this->get(route('admin.maintenance-management.equipment.edit', $this->excavator->unique_id))
+            ->assertOk()->assertDontSee('WAIT LIST: Active customer demand');
+
+        // Category demand → banner on the equipment page (both directions)
+        $this->makeWaitList();
+        $this->get(route('admin.maintenance-management.equipment.edit', $this->excavator->unique_id))
+            ->assertOk()->assertSee('WAIT LIST: Active customer demand');
+
+        // Cancelled demand → banner disappears
+        EquipmentWaitList::first()->update(['status' => WaitListStatus::Cancelled]);
+        $this->get(route('admin.maintenance-management.equipment.edit', $this->excavator->unique_id))
+            ->assertOk()->assertDontSee('WAIT LIST: Active customer demand');
+
+        // Exact-equipment demand → banner again
+        $this->makeWaitList(
+            ['request_type' => WaitListRequestType::SpecificEquipment->value, 'product_category_id' => null],
+            [$this->excavator->id],
+        );
+        $this->get(route('admin.maintenance-management.equipment.edit', $this->excavator->unique_id))
+            ->assertOk()->assertSee('WAIT LIST: Active customer demand');
+    }
+
+    // ── Navigation ─────────────────────────────────────────────────
+
+    public function test_sidebar_places_wait_list_under_orders_with_active_highlight(): void
+    {
+        $html = $this->get(route('admin.wait-list.index'))->assertOk()->getContent();
+
+        // Entry lives inside the Orders dropdown (after Equipment Inventory,
+        // before the Products section), exactly once
+        $this->assertSame(1, substr_count($html, '> Wait List'));
+        $ordersPos   = strpos($html, 'Equipment Inventory');
+        $waitListPos = strpos($html, '> Wait List');
+        $productsPos = strpos($html, 'Product Categories');
+        $this->assertTrue($ordersPos < $waitListPos && $waitListPos < $productsPos,
+            'Wait List must be the last item in the Orders dropdown');
+
+        // Being on a wait-list page opens + highlights the Orders group
+        $this->assertStringContainsString('x-data="{ open: true }"', $html);
+
+        // The Wait List anchor itself carries the active class (inspect the
+        // markup immediately preceding the label, within its own <a> tag)
+        $anchorStart = strrpos(substr($html, 0, $waitListPos), '<a ');
+        $anchor      = substr($html, $anchorStart, $waitListPos - $anchorStart);
+        $this->assertStringContainsString('menu-dropdown-item-active', $anchor);
+    }
+
+    // ── Push timing ────────────────────────────────────────────────
+
+    public function test_after_hours_alert_defers_push_until_business_opening(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-05 20:00:00')); // Sunday night — closed
+
+        $this->makeWaitList();
+        $this->completeReturn($this->excavator);
+
+        $alert = EquipmentWaitListAlert::first();
+        $this->assertNull($alert->first_push_sent_at);
+        // Deferred to Monday 07:00 opening
+        $this->assertSame('2026-07-06 07:00:00', $alert->push_deferred_until->format('Y-m-d H:i:s'));
+
+        // Still closed → scheduler does nothing
+        app(WaitListPushService::class)->processPending();
+        $this->assertNull($alert->fresh()->first_push_sent_at);
+
+        // Monday 07:05 — open → deferred push delivered
+        Carbon::setTestNow(Carbon::parse('2026-07-06 07:05:00'));
+        app(WaitListPushService::class)->processPending();
+        $this->assertNotNull($alert->fresh()->first_push_sent_at);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_second_push_after_thirty_unacknowledged_minutes(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-06 09:00:00')); // Monday morning — open
+
+        $this->makeWaitList();
+        $this->completeReturn($this->excavator);
+
+        $alert = EquipmentWaitListAlert::first();
+        $this->assertNotNull($alert->first_push_sent_at); // immediate during business hours
+        $this->assertNull($alert->second_push_sent_at);
+
+        // 20 minutes later — not yet
+        Carbon::setTestNow(Carbon::parse('2026-07-06 09:20:00'));
+        app(WaitListPushService::class)->processPending();
+        $this->assertNull($alert->fresh()->second_push_sent_at);
+
+        // 31 minutes, still unacknowledged — second push fires
+        Carbon::setTestNow(Carbon::parse('2026-07-06 09:31:00'));
+        app(WaitListPushService::class)->processPending();
+        $this->assertNotNull($alert->fresh()->second_push_sent_at);
+
+        // Acknowledged alerts never get further pushes
+        $ackAlert = EquipmentWaitListAlert::create([
+            'equipment_wait_list_id' => $alert->equipment_wait_list_id,
+            'equipment_id'           => $this->excavator->id,
+            'match_type'             => WaitListMatchType::Category->value,
+            'first_push_sent_at'     => now()->subHour(),
+        ]);
+        $ackAlert->acknowledge($this->admin->id);
+        app(WaitListPushService::class)->processPending();
+        $this->assertNull($ackAlert->fresh()->second_push_sent_at);
+
+        Carbon::setTestNow();
+    }
+
+    // ── Guardrail: matcher failures never break a return ───────────
+
+    public function test_matcher_errors_do_not_break_returns(): void
+    {
+        DB::statement('DROP TABLE equipment_wait_list_alerts'); // simulate module failure
+
+        $this->completeReturn($this->excavator); // must not throw
+
+        $this->assertSame('maintenance', $this->excavator->fresh()->current_status->value);
+    }
+}

@@ -50,6 +50,7 @@
                         'admin.order-management.schedule-assignment.*',
                         'admin.order-management.schedule-conflicts.*',
                         'admin.order-management.inventory-equipment.*',
+                        'admin.wait-list.*',
                     ]);
 
                     $customerChecklistActive = Route::is([
@@ -198,6 +199,16 @@
                                     </a>
                                 </li> --}}
 
+                                @if (Route::has('admin.wait-list.index'))
+                                    <li>
+                                        <a href="{{ route('admin.wait-list.index') }}"
+                                            class="menu-dropdown-item group
+                                            {{ Route::is('admin.wait-list.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                            <x-heroicon-o-bell-alert class="h-5 w-5" /> Wait List
+                                        </a>
+                                    </li>
+                                @endif
+
                             </ul>
                         </div>
                     </li>
@@ -250,6 +261,15 @@
                                         <x-heroicon-o-inbox-stack class="h-5 w-5" /> Product Categories
                                     </a>
                                 </li>
+                                @if (Route::has('admin.documents.price-list.form'))
+                                    <li>
+                                        <a href="{{ route('admin.documents.price-list.form') }}"
+                                            class="menu-dropdown-item group
+                                            {{ Route::is('admin.documents.price-list.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                            <x-heroicon-o-document-text class="h-5 w-5" /> Price List
+                                        </a>
+                                    </li>
+                                @endif
 
                                 {{-- <li>
                                     <a href="{{ route('admin.product-management.equipment-assignments.index') }}"

@@ -8,6 +8,9 @@
 @section('content')
 
     @include('flash::message')
+    @if (!empty($selectedEquipmentId))
+        @include('admin.wait_list.partials.banner', ['equipment' => \App\Models\MaintenanceManagement\Equipment::find($selectedEquipmentId)])
+    @endif
     @include('admin.partials.formErrors')
     <div class="">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

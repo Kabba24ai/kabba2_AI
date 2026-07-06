@@ -3,6 +3,7 @@
 @section('title', 'Update Equipment')
 
 @section('content')
+    @include('admin.wait_list.partials.banner', ['equipment' => $equipment])
     <div class="min-h-screen bg-gray-50">
         <div>
             {{-- Header --}}

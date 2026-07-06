@@ -134,8 +134,8 @@
                             <p>{{ $document->brand()['website'] }}</p>
                             @if (!empty($info['hours']))
                                 <h3>Hours</h3>
-                                @foreach ($info['hours'] as $days => $hours)
-                                    <p>{{ $days }}: {{ $hours }}</p>
+                                @foreach ($info['hours'] as $line)
+                                    <p>{{ $line }}</p>
                                 @endforeach
                             @endif
                         </div>

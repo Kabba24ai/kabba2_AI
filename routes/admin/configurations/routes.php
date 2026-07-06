@@ -42,6 +42,7 @@ Route::prefix('configurations')
     Route::get('/', IndexController::class)->name('index');
     Route::post('/product-settings', SaveProductSettingsController::class)->name('save-product-settings');
     Route::post('/contact-us-settings', SaveContactUsSettingsController::class)->name('save-contact-us-settings');
+    Route::post('/company-settings', \App\Http\Controllers\Admin\Configurations\CompanySettings\SaveController::class)->name('save-company-settings');
     Route::post('/communication-settings', SaveCommunicationSettingsController::class)->name('save-communication-settings');
     Route::post('/admin-settings', SaveAdminSettingsController::class)->name('save-admin-settings');
     Route::post('/mail-send-settings', SaveMailSendController::class)->name('save-mail-send-settings');

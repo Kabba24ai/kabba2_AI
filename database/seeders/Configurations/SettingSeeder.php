@@ -23,6 +23,7 @@ class SettingSeeder extends Seeder
         $this->addProductSettings();
         $this->addPriceRateMultiplierSettings();
         $this->addContactUsSettings();
+        $this->addCompanySettings();
         $this->addSocialMediaSettings();
         $this->addAdminSettings();
         $this->addPaymentSettings();
@@ -1179,6 +1180,87 @@ class SettingSeeder extends Seeder
                 'sort_order' => $sortOrder++,
             ],
 
+        ];
+    }
+
+    private function addCompanySettings()
+    {
+        $sortOrder = 1;
+
+        // Company identity used system-wide (Document Generator merge codes).
+        // Rent 'n King values are tenant defaults, never framework code.
+        $this->settings['Company Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'company_name',
+                'setting_title' => 'Company Display Name',
+                'placeholder' => 'Company name shown on documents and branding',
+                'default_value' => "Rent 'n King",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'main_url',
+                'setting_title' => 'Main URL / Website',
+                'placeholder' => 'Customer-facing website, e.g. YourCompany.com',
+                'default_value' => 'RentnKing.com',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'company_main_phone',
+                'setting_title' => 'Main Phone Number',
+                'placeholder' => 'Primary company phone number',
+                'default_value' => '(615) 815-6734',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'company_sales_phone',
+                'setting_title' => 'Sales Phone Number (optional)',
+                'placeholder' => 'Dedicated sales line, if different from main phone',
+                'default_value' => '',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'textarea',
+                'setting_name' => 'store_hours_fallback',
+                'setting_title' => 'Store Hours (fallback text)',
+                'placeholder' => 'One line per range, used when a store has no structured hours of operation',
+                'default_value' => "Monday–Friday: 7:00 AM–5:00 PM\nSaturday: 7:00 AM–12:00 PM\nSunday: Closed",
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'textarea',
+                'setting_name' => 'price_list_value_message',
+                'setting_title' => 'Price List — Value Message',
+                'placeholder' => 'Highlighted message on the price list final page (merge codes supported)',
+                'default_value' => 'Have a longer project? Ask about weekly and monthly rental options. In many '
+                    . 'cases, renting for the week gives you the best value — three days of rental often gets you '
+                    . 'seven days of use.',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'textarea',
+                'setting_name' => 'price_list_disclaimer',
+                'setting_title' => 'Price List — Disclaimer',
+                'placeholder' => 'Final-page disclaimer (merge codes supported)',
+                'default_value' => 'This price list is provided for general informational purposes only and is intended to help '
+                    . 'customers compare rental products and pricing at the time it was generated. Because rental '
+                    . 'equipment pricing can vary based on rental duration, delivery location, attachments, accessories, '
+                    . 'optional protection plans, taxes, fees, fuel, cleaning, damage, and other rental options, this '
+                    . 'printed price list cannot reflect every possible rental scenario.'
+                    . "\n\n"
+                    . 'Prices are subject to change at any time without notice. The pricing displayed on {{ main_url }} '
+                    . 'at the time a reservation is created is the official rental price and supersedes any previously '
+                    . 'printed price list. This document is not a quote, estimate, reservation, or price guarantee and '
+                    . 'should not be relied upon as the final cost of a rental.'
+                    . "\n\n"
+                    . 'Final rental charges may vary based on the options selected and the specific details of the '
+                    . 'rental. For current pricing, product specifications, photos, and complete rental information, '
+                    . 'visit {{ main_url }} or contact {{ company_name }}.',
+                'sort_order' => $sortOrder++,
+            ],
         ];
     }
 

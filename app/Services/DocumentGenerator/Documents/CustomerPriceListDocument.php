@@ -2,9 +2,11 @@
 
 namespace App\Services\DocumentGenerator\Documents;
 
+use App\Helpers\ConfigurationHelper;
 use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
 use App\Services\DocumentGenerator\AbstractDocument;
+use App\Services\DocumentGenerator\DocumentMergeCodes;
 
 /**
  * Dynamic Customer Price List — a take-home reference for walk-in customers
@@ -68,49 +70,41 @@ class CustomerPriceListDocument extends AbstractDocument
 
     public function pageNotice(): ?string
     {
-        return 'Pricing shown is for reference only — current pricing on RentnKing.com governs all rentals.';
+        // Notice repeats on every printed page; the website value is dynamic.
+        return DocumentMergeCodes::apply(
+            'Pricing shown is for reference only — current pricing on {{ main_url }} governs all rentals.',
+            $this->generatedAt()
+        );
     }
 
     public function disclaimer(): ?string
     {
-        return 'This price list is provided for general informational purposes only and is intended to help '
-            . 'customers compare rental products and pricing at the time it was generated. Because rental '
-            . 'equipment pricing can vary based on rental duration, delivery location, attachments, accessories, '
-            . 'optional protection plans, taxes, fees, fuel, cleaning, damage, and other rental options, this '
-            . 'printed price list cannot reflect every possible rental scenario.'
-            . "\n\n"
-            . 'Prices are subject to change at any time without notice. The pricing displayed on RentnKing.com '
-            . 'at the time a reservation is created is the official rental price and supersedes any previously '
-            . 'printed price list. This document is not a quote, estimate, reservation, or price guarantee and '
-            . 'should not be relied upon as the final cost of a rental.'
-            . "\n\n"
-            . 'Final rental charges may vary based on the options selected and the specific details of the '
-            . 'rental. For current pricing, product specifications, photos, and complete rental information, '
-            . "visit RentnKing.com or contact Rent 'n King.";
+        // Admin-editable text (Settings → System Configuration → Company)
+        // with merge codes resolved at generation time.
+        $text = ConfigurationHelper::getSettings('Company Settings', 'price_list_disclaimer');
+
+        return DocumentMergeCodes::apply($text, $this->generatedAt()) ?: null;
     }
 
     public function generalInfo(): ?array
     {
-        // Live store data — nothing hard-coded. Primary store carries the
-        // main sales number; every active store is listed as a location.
+        // Live store data — nothing hard-coded. Company phone comes from
+        // Company Settings; hours come from the primary store's structured
+        // hours of operation (fallback: the store_hours_fallback setting).
         $stores = Store::query()
             ->where('status', 'Active')
             ->orderByDesc('is_primary')
             ->orderBy('store_name')
             ->get(['store_name', 'phone', 'address', 'city', 'zip_code', 'is_primary']);
 
+        $valueMessage = ConfigurationHelper::getSettings('Company Settings', 'price_list_value_message');
+
         return [
             'phone_label'   => 'Main Sales',
-            'phone'         => $stores->firstWhere('is_primary', 1)?->phone ?? $stores->first()?->phone,
+            'phone'         => DocumentMergeCodes::mainPhone(),
             'stores'        => $stores,
-            'hours'         => [
-                'Monday–Friday' => '7:00 AM–5:00 PM',
-                'Saturday'      => '7:00 AM–12:00 PM',
-                'Sunday'        => 'Closed',
-            ],
-            'value_message' => 'Have a longer project? Ask about weekly and monthly rental options. In many '
-                . 'cases, renting for the week gives you the best value — three days of rental often gets you '
-                . 'seven days of use.',
+            'hours'         => DocumentMergeCodes::storeHoursLines(),
+            'value_message' => DocumentMergeCodes::apply($valueMessage, $this->generatedAt()),
         ];
     }
 }

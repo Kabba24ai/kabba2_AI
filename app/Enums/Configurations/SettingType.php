@@ -15,6 +15,8 @@ enum SettingType: string
 
     case COMMUNICATION  = 'Communication Settings';
 
+    case COMPANY = 'Company Settings';
+
     case DEFAULT_SALES_FUNNEL_SETTINGS = 'Default Sales Funnel Settings';
 
     case MAIL_SEND_SETTINGS = 'Mail Send Settings';
@@ -36,6 +38,7 @@ enum SettingType: string
             self::CONTACT_US => 'Contact Us - Website Contact Page',
             self::ALLOCATED_HOURS => 'Allocated Hours Settings',
             self::COMMUNICATION => 'Communication Settings',
+            self::COMPANY => 'Company Settings',
             self::OTHER => 'Other Settings',
             self::DEFAULT_SALES_FUNNEL_SETTINGS => 'Default Sales Funnel Settings',
             self::MAIL_SEND_SETTINGS => 'Mail Send Settings',

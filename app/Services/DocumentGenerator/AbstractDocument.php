@@ -42,12 +42,15 @@ abstract class AbstractDocument
         return '1.0';
     }
 
-    /** Company branding block used by the shared shell. */
+    /**
+     * Company branding block used by the shared shell — sourced from
+     * Company Settings, never hardcoded to a tenant.
+     */
     public function brand(): array
     {
         return [
-            'name'    => "Rent 'n King",
-            'website' => 'RentnKing.com',
+            'name'    => DocumentMergeCodes::companyName(),
+            'website' => DocumentMergeCodes::mainUrl(),
         ];
     }
 

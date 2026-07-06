@@ -28,6 +28,15 @@
             </button> -->
 
             <button
+                class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'company-settings' ?
+                    ' text-brand-500 border-brand-500 dark:border-brand-400 dark:text-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'company-settings'" id="tab-company-settings">
+                Company
+            </button>
+
+            <button
                 class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                 x-bind:class="activeTab === 'communication-settings' ?
                     ' text-brand-500 border-brand-500  dark:border-brand-400  dark:text-brand-400' :
@@ -157,6 +166,14 @@
             <x-admin.configurations.config-form id="config-contact-form" :action="route('admin.configurations.save-contact-us-settings')" saveLabel="Save">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     @include('admin.configurations.partials._contact_us_settings')
+                </div>
+            </x-admin.configurations.config-form>
+        </div>
+
+        <div x-show="activeTab === 'company-settings'">
+            <x-admin.configurations.config-form id="config-company-form" :action="route('admin.configurations.save-company-settings')" saveLabel="Save">
+                <div class="grid grid-cols-1 gap-6">
+                    @include('admin.configurations.partials._company_settings')
                 </div>
             </x-admin.configurations.config-form>
         </div>

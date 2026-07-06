@@ -12,17 +12,11 @@
 
     @include('flash::message')
 
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-        <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-            <x-heroicon-o-squares-2x2 class="w-6 h-6 text-blue-600" />
-            New Price List Preset
-        </h1>
-        <p class="text-sm text-gray-500 mt-1.5">
-            Presets are selection shortcuts on the Customer Price List generator — nothing more.
-        </p>
-    </div>
+    @include('admin.documents.partials._price_list_nav', [
+        'plSubtitle' => 'New industry preset — a selection shortcut on the Generate tab, nothing more.',
+    ])
 
-    <form method="POST" action="{{ route('admin.documents.presets.store') }}">
+    <form method="POST" action="{{ route('admin.documents.presets.store') }}" enctype="multipart/form-data">
         @csrf
 
         @include('admin.documents.presets.partials._form')

@@ -30,13 +30,14 @@ class PriceListFormController extends Controller
         $presets = PriceListPreset::query()
             ->active()
             ->ordered()
-            ->with('categories:product_categories.id')
+            ->with(['categories:product_categories.id', 'thumbnail'])
             ->get()
             ->map(fn (PriceListPreset $preset) => [
-                'key'          => $preset->id,
-                'label'        => $preset->name,
-                'description'  => (string) $preset->description,
-                'category_ids' => $preset->categories->pluck('id')
+                'key'           => $preset->id,
+                'label'         => $preset->name,
+                'description'   => (string) $preset->description,
+                'thumbnail_url' => $preset->thumbnail_url,
+                'category_ids'  => $preset->categories->pluck('id')
                     ->intersect($selectableIds)->values()->all(),
             ])
             ->filter(fn (array $preset) => !empty($preset['category_ids']))

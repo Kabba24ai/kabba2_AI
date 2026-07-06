@@ -12,26 +12,17 @@
 
     @include('flash::message')
 
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-                    <x-heroicon-o-squares-2x2 class="w-6 h-6 text-blue-600" />
-                    Price List Presets
-                </h1>
-                <p class="text-sm text-gray-500 mt-1.5 max-w-2xl">
-                    Industry presets shown on the
-                    <a href="{{ route('admin.documents.price-list.form') }}" class="text-blue-600 hover:underline">Customer Price List</a>
-                    generator. A preset only pre-checks its categories — staff can always adjust the
-                    selection before generating.
-                </p>
-            </div>
-            <a href="{{ route('admin.documents.presets.create') }}"
-                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition">
-                <x-heroicon-o-plus class="w-4 h-4" />
-                New Preset
-            </a>
-        </div>
+    @include('admin.documents.partials._price_list_nav', [
+        'plSubtitle' => 'Industry presets shown on the Generate tab. A preset only pre-checks its categories — '
+            . 'staff can always adjust the selection before generating.',
+    ])
+
+    <div class="flex items-center justify-end mb-4">
+        <a href="{{ route('admin.documents.presets.create') }}"
+            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition">
+            <x-heroicon-o-plus class="w-4 h-4" />
+            New Preset
+        </a>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -53,10 +44,22 @@
                         @foreach ($presets as $preset)
                             <tr class="hover:bg-gray-50/60 {{ $preset->is_active ? '' : 'opacity-60' }}">
                                 <td class="px-5 py-3">
-                                    <span class="block font-semibold text-gray-800">{{ $preset->name }}</span>
-                                    @if ($preset->description)
-                                        <span class="block text-xs text-gray-400 mt-0.5">{{ $preset->description }}</span>
-                                    @endif
+                                    <div class="flex items-center gap-3">
+                                        @if ($preset->thumbnail_url)
+                                            <img src="{{ $preset->thumbnail_url }}" alt=""
+                                                class="w-12 h-9 object-cover rounded-md border border-gray-200 shrink-0">
+                                        @else
+                                            <span class="w-12 h-9 grid place-items-center rounded-md border border-dashed border-gray-200 text-gray-300 shrink-0">
+                                                <x-heroicon-o-photo class="w-4 h-4" />
+                                            </span>
+                                        @endif
+                                        <span>
+                                            <span class="block font-semibold text-gray-800">{{ $preset->name }}</span>
+                                            @if ($preset->description)
+                                                <span class="block text-xs text-gray-400 mt-0.5">{{ $preset->description }}</span>
+                                            @endif
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="px-5 py-3 text-gray-600">
                                     {{ $preset->categories_count }} {{ Str::plural('category', $preset->categories_count) }}

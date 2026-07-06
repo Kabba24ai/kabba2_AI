@@ -12,6 +12,7 @@ class IndexController extends Controller
     {
         $presets = PriceListPreset::query()
             ->withCount('categories')
+            ->with('thumbnail')
             ->ordered()
             ->get();
 

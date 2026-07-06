@@ -12,17 +12,11 @@
 
     @include('flash::message')
 
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-        <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-            <x-heroicon-o-squares-2x2 class="w-6 h-6 text-blue-600" />
-            Edit Preset — {{ $preset->name }}
-        </h1>
-        <p class="text-sm text-gray-500 mt-1.5">
-            Changes apply the next time the Customer Price List generator loads.
-        </p>
-    </div>
+    @include('admin.documents.partials._price_list_nav', [
+        'plSubtitle' => 'Editing preset "' . $preset->name . '" — changes apply the next time the Generate tab loads.',
+    ])
 
-    <form method="POST" action="{{ route('admin.documents.presets.update', $preset) }}">
+    <form method="POST" action="{{ route('admin.documents.presets.update', $preset) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 

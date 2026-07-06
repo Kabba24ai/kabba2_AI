@@ -2,9 +2,11 @@
 
 namespace App\Models\Documents;
 
+use App\Models\Global\Media;
 use App\Models\ProductManagement\ProductCategory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -21,7 +23,7 @@ class PriceListPreset extends Model
     /** In-memory default matching the DB default. */
     protected $attributes = ['is_active' => true];
 
-    protected $fillable = ['name', 'description', 'is_active', 'sort_order'];
+    protected $fillable = ['name', 'description', 'is_active', 'sort_order', 'media_id'];
 
     protected $casts = ['is_active' => 'boolean'];
 
@@ -33,6 +35,16 @@ class PriceListPreset extends Model
             'price_list_preset_id',
             'product_category_id'
         )->withTimestamps();
+    }
+
+    public function thumbnail(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'media_id');
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        return $this->thumbnail?->getUrl();
     }
 
     public function scopeActive(Builder $q): Builder

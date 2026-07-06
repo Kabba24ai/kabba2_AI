@@ -33,6 +33,30 @@
         </div>
 
         <div class="lg:col-span-2">
+            <label for="thumbnail" class="block text-sm font-medium text-gray-700 mb-1.5">
+                Thumbnail Image <span class="text-xs text-gray-400">(optional — shown on the preset card)</span>
+            </label>
+            <div class="flex items-center gap-4">
+                @if (!empty(($preset->thumbnail_url ?? null)))
+                    <img src="{{ $preset->thumbnail_url }}" alt="Current thumbnail"
+                        class="w-20 h-14 object-cover rounded-lg border border-gray-200 shrink-0">
+                @endif
+                <div>
+                    <input type="file" name="thumbnail" id="thumbnail" accept="image/jpeg,image/png,image/webp"
+                        class="block text-sm text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:text-sm file:font-medium hover:file:bg-blue-100 cursor-pointer">
+                    <p class="mt-1 text-xs text-gray-400">JPG, PNG, or WebP up to 4 MB. Uploading replaces the current image.</p>
+                    @if (!empty(($preset->thumbnail_url ?? null)))
+                        <label class="inline-flex items-center gap-2 text-xs text-gray-600 cursor-pointer mt-1">
+                            <input type="checkbox" name="remove_thumbnail" value="1" class="rounded border-gray-300">
+                            Remove current thumbnail
+                        </label>
+                    @endif
+                </div>
+            </div>
+            @error('thumbnail') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+        </div>
+
+        <div class="lg:col-span-2">
             <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                 <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" value="1" class="rounded border-gray-300"

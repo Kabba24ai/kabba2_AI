@@ -47,8 +47,9 @@ class DocumentMergeCodesTest extends TestCase
 
     private function setSetting(string $name, string $value): void
     {
-        Setting::where('setting_type', 'Company Settings')
-            ->where('setting_name', $name)
+        // setting_name is globally unique; company identity lives in
+        // 'Company Settings', price list text in 'Price List Settings'.
+        Setting::where('setting_name', $name)
             ->firstOrFail()
             ->update(['setting_value' => $value]);
     }

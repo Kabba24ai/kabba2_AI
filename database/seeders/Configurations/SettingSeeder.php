@@ -24,6 +24,7 @@ class SettingSeeder extends Seeder
         $this->addPriceRateMultiplierSettings();
         $this->addContactUsSettings();
         $this->addCompanySettings();
+        $this->addPriceListSettings();
         $this->addSocialMediaSettings();
         $this->addAdminSettings();
         $this->addPaymentSettings();
@@ -1228,6 +1229,26 @@ class SettingSeeder extends Seeder
                 'setting_title' => 'Store Hours (fallback text)',
                 'placeholder' => 'One line per range, used when a store has no structured hours of operation',
                 'default_value' => "Monday–Friday: 7:00 AM–5:00 PM\nSaturday: 7:00 AM–12:00 PM\nSunday: Closed",
+                'sort_order' => $sortOrder++,
+            ],
+        ];
+    }
+
+    private function addPriceListSettings()
+    {
+        $sortOrder = 1;
+
+        // Customer Price List document text — edited from Products →
+        // Price List → Document Text (not the System Configuration page).
+        // Merge codes ({{ main_url }}, {{ company_name }}, …) resolve at
+        // generation time via DocumentMergeCodes.
+        $this->settings['Price List Settings'] = [
+            [
+                'value_type' => 'text',
+                'setting_name' => 'price_list_title',
+                'setting_title' => 'Price List — Document Title',
+                'placeholder' => 'Title printed in the document header',
+                'default_value' => 'Rental Price List',
                 'sort_order' => $sortOrder++,
             ],
             [

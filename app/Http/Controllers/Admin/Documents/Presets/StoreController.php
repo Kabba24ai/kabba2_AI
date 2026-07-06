@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Documents\Presets;
 
+use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Documents\SavePriceListPresetRequest;
 use App\Models\Documents\PriceListPreset;
@@ -20,6 +21,11 @@ class StoreController extends Controller
         ]);
 
         $preset->categories()->sync($validated['category_ids']);
+
+        if ($request->hasFile('thumbnail')) {
+            $upload = MediaHelper::uploadStorageFile('Public Asset', $request->file('thumbnail'), 'price_list_presets', $preset);
+            $preset->update(['media_id' => $upload['mediaObj']->id]);
+        }
 
         flash('Preset "' . $preset->name . '" created.')->success();
 

@@ -20,6 +20,8 @@ class SavePriceListPresetRequest extends FormRequest
             'sort_order'     => ['nullable', 'integer', 'min:0', 'max:65535'],
             'category_ids'   => ['required', 'array', 'min:1'],
             'category_ids.*' => ['integer', 'distinct', 'exists:product_categories,id'],
+            'thumbnail'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'remove_thumbnail' => ['nullable', 'boolean'],
         ];
     }
 

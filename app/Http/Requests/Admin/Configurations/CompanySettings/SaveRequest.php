@@ -26,8 +26,6 @@ class SaveRequest extends FormRequest
             'company_main_phone'       => 'required|string|max:30',
             'company_sales_phone'      => 'nullable|string|max:30',
             'store_hours_fallback'     => 'nullable|string|max:1000',
-            'price_list_value_message' => 'nullable|string|max:1000',
-            'price_list_disclaimer'    => 'nullable|string|max:5000',
         ];
     }
 }

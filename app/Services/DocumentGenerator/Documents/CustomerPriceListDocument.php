@@ -31,7 +31,10 @@ class CustomerPriceListDocument extends AbstractDocument
 
     public function title(): string
     {
-        return 'Rental Price List';
+        // Admin-editable (Products → Price List → Document Text).
+        $title = ConfigurationHelper::getSettings('Price List Settings', 'price_list_title');
+
+        return trim((string) $title) !== '' ? $title : 'Rental Price List';
     }
 
     public function bodyView(): string
@@ -79,9 +82,9 @@ class CustomerPriceListDocument extends AbstractDocument
 
     public function disclaimer(): ?string
     {
-        // Admin-editable text (Settings → System Configuration → Company)
+        // Admin-editable text (Products → Price List → Document Text)
         // with merge codes resolved at generation time.
-        $text = ConfigurationHelper::getSettings('Company Settings', 'price_list_disclaimer');
+        $text = ConfigurationHelper::getSettings('Price List Settings', 'price_list_disclaimer');
 
         return DocumentMergeCodes::apply($text, $this->generatedAt()) ?: null;
     }
@@ -97,7 +100,7 @@ class CustomerPriceListDocument extends AbstractDocument
             ->orderBy('store_name')
             ->get(['store_name', 'phone', 'address', 'city', 'zip_code', 'is_primary']);
 
-        $valueMessage = ConfigurationHelper::getSettings('Company Settings', 'price_list_value_message');
+        $valueMessage = ConfigurationHelper::getSettings('Price List Settings', 'price_list_value_message');
 
         return [
             'phone_label'   => 'Main Sales',

@@ -267,18 +267,8 @@
                                     <li>
                                         <a href="{{ route('admin.documents.price-list.form') }}"
                                             class="menu-dropdown-item group
-                                            {{ Route::is('admin.documents.price-list.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                            {{ Route::is('admin.documents.price-list.*', 'admin.documents.presets.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                             <x-heroicon-o-document-text class="h-5 w-5" /> Price List
-                                        </a>
-                                    </li>
-                                @endif
-
-                                @if (Route::has('admin.documents.presets.index'))
-                                    <li>
-                                        <a href="{{ route('admin.documents.presets.index') }}"
-                                            class="menu-dropdown-item group
-                                            {{ Route::is('admin.documents.presets.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                            <x-heroicon-o-squares-2x2 class="h-5 w-5" /> Price List Presets
                                         </a>
                                     </li>
                                 @endif

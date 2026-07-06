@@ -12,21 +12,11 @@
 
     @include('flash::message')
 
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-                    <x-heroicon-o-document-text class="w-6 h-6 text-blue-600" />
-                    Customer Price List
-                </h1>
-                <p class="text-sm text-gray-500 mt-1.5 max-w-2xl">
-                    Generate a printable take-home price list for walk-in customers. Informational only — website
-                    pricing on RentnKing.com always governs. Select the categories to include; products print in
-                    their website display order with live pricing.
-                </p>
-            </div>
-        </div>
-    </div>
+    @include('admin.documents.partials._price_list_nav', [
+        'plSubtitle' => 'Generate a printable take-home price list for walk-in customers. Informational only — '
+            . 'website pricing always governs. Select the categories to include; products print in their '
+            . 'website display order with live pricing.',
+    ])
 
     <form method="GET" action="{{ route('admin.documents.price-list.generate') }}" target="_blank">
 
@@ -47,6 +37,10 @@
                             class="pl-preset text-left rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 transition p-3"
                             data-preset="{{ $preset['key'] }}"
                             data-category-ids="{{ implode(',', $preset['category_ids']) }}">
+                            @if (!empty($preset['thumbnail_url']))
+                                <img src="{{ $preset['thumbnail_url'] }}" alt=""
+                                    class="w-full h-20 object-cover rounded-lg mb-2">
+                            @endif
                             <span class="block text-sm font-semibold text-gray-800">{{ $preset['label'] }}</span>
                             <span class="block text-xs text-gray-400 mt-1">{{ $preset['description'] }}</span>
                             <span class="block text-[11px] font-medium text-blue-600 mt-1.5">

@@ -75,7 +75,7 @@
         <div class="sm:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">Heading <span class="text-red-500">*</span></label>
             <input type="text" name="title"
-                   value="{{ old('title', $section->title ?? 'Have a question?') }}"
+                   value="{{ old('title', $section->title ?? '') }}"
                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
                    placeholder="Have a question?">
             @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -94,7 +94,7 @@
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
             <input type="text" name="button_text"
-                   value="{{ old('button_text', $section->button_text ?? 'Call Main Sales Line') }}"
+                   value="{{ old('button_text', $section->button_text ?? '') }}"
                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
                    placeholder="Call Main Sales Line">
             @error('button_text') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror

@@ -89,9 +89,11 @@ class UpdateItemRequest extends FormRequest
     private function storeCardRules(): array
     {
         return [
-            'content'          => ['nullable', 'array'],
-            'content.store_id' => ['required', 'integer', Rule::exists('stores', 'id')],
-            'status'           => ['nullable', 'string', 'in:Active,Inactive'],
+            'content'                 => ['nullable', 'array'],
+            'content.store_id'        => ['required', 'integer', Rule::exists('stores', 'id')],
+            'content.display_phone'   => ['nullable', 'in:0,1'],
+            'content.display_address' => ['nullable', 'in:0,1'],
+            'status'                  => ['nullable', 'string', 'in:Active,Inactive'],
         ];
     }
 

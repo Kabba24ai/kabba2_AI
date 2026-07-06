@@ -12,6 +12,10 @@
     $searchCard = $hp->contactStrip->searchCard;
     $store1     = $storeCard1 ? $stores->firstWhere('id', data_get($storeCard1->content, 'store_id')) : null;
     $store2     = $storeCard2 ? $stores->firstWhere('id', data_get($storeCard2->content, 'store_id')) : null;
+    $s1ShowPhone   = (bool)(data_get($storeCard1?->content, 'display_phone') ?? true);
+    $s1ShowAddress = (bool)(data_get($storeCard1?->content, 'display_address') ?? true);
+    $s2ShowPhone   = (bool)(data_get($storeCard2?->content, 'display_phone') ?? true);
+    $s2ShowAddress = (bool)(data_get($storeCard2?->content, 'display_address') ?? true);
     $colCount   = (int)(bool)$phoneCard + (int)(bool)$store1 + (int)(bool)$store2 + (int)(bool)$searchCard;
     $gridCols   = [0 => 'lg:grid-cols-1', 1 => 'lg:grid-cols-1', 2 => 'lg:grid-cols-2', 3 => 'lg:grid-cols-3', 4 => 'lg:grid-cols-4'];
     $lgCols     = $gridCols[min($colCount, 4)];
@@ -48,11 +52,10 @@
                         <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">
                             {{ $phoneCard->title ?? 'Main Sales Line' }}
                         </p>
-                        @php $displayPhone = $phoneCard->subtitle ?: ($branding['site_phone'] ?? null); @endphp
-                        @if (!empty($displayPhone))
-                            <a href="tel:{{ preg_replace('/[^+\d]/', '', $displayPhone) }}"
+                        @if(!blank($phoneCard->subtitle))
+                            <a href="tel:{{ preg_replace('/[^+\d]/', '', $phoneCard->subtitle) }}"
                                class="mt-2 block text-lg font-bold text-yellow-500 leading-tight hover:text-yellow-600 transition-colors">
-                                {{ $displayPhone }}
+                                {{ $phoneCard->subtitle }}
                             </a>
                         @endif
                         @if(!empty($phoneCard->description))
@@ -77,16 +80,18 @@
                         <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">
                             {{ $store1->store_name }}
                         </p>
-                        @if ($store1->phone)
+                        @if ($s1ShowPhone && $store1->phone)
                             <a href="tel:{{ preg_replace('/[^+\d]/', '', $store1->phone) }}"
                                class="mt-2 block text-lg font-bold text-gray-900 leading-tight hover:text-yellow-500 transition-colors">
                                 {{ $store1->phone }}
                             </a>
                         @endif
+                        @if($s1ShowAddress)
                         <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
                             {{ $store1->address }}<br>
-                            {{ $store1->city }}{{ $store1->state?->name ? ', ' . $store1->state->name : '' }}
+                            {{ $store1->city }}{{ $store1->state?->name ? ', ' . $store1->state->name : '' }}{{ $store1->zip_code ? ' ' . $store1->zip_code : '' }}
                         </p>
+                        @endif
                         <a href="{{ route('front.stores.show', $store1->unique_id) }}"
                            class="mt-1 inline-flex items-center gap-1 text-yellow-500
                                 uppercase font-semibold text-xs transition-colors hover:text-yellow-600">
@@ -113,16 +118,18 @@
                         <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">
                             {{ $store2->store_name }}
                         </p>
-                        @if ($store2->phone)
+                        @if ($s2ShowPhone && $store2->phone)
                             <a href="tel:{{ preg_replace('/[^+\d]/', '', $store2->phone) }}"
                                class="mt-2 block text-lg font-bold text-gray-900 leading-tight hover:text-yellow-500 transition-colors">
                                 {{ $store2->phone }}
                             </a>
                         @endif
+                        @if($s2ShowAddress)
                         <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
                             {{ $store2->address }}<br>
-                            {{ $store2->city }}{{ $store2->state?->name ? ', ' . $store2->state->name : '' }}
+                            {{ $store2->city }}{{ $store2->state?->name ? ', ' . $store2->state->name : '' }}{{ $store2->zip_code ? ' ' . $store2->zip_code : '' }}
                         </p>
+                        @endif
                         <a href="{{ route('front.stores.show', $store2->unique_id) }}"
                            class="mt-1 inline-flex items-center gap-1 text-yellow-500
                                 uppercase font-semibold text-xs transition-colors hover:text-yellow-600">

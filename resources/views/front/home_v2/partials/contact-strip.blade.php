@@ -81,7 +81,7 @@
                         @endif
                         <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
                             {{ $store1->address }}<br>
-                            {{ $store1->city }}{{ $store1->state?->name ? ', ' . $store1->state->name : '' }} {{ $store1->zip_code }}
+                            {{ $store1->city }}{{ $store1->state?->name ? ', ' . $store1->state->name : '' }}
                         </p>
                         <a href="{{ route('front.stores.show', $store1->unique_id) }}"
                            class="mt-1 inline-flex items-center gap-1 text-yellow-500
@@ -117,7 +117,7 @@
                         @endif
                         <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
                             {{ $store2->address }}<br>
-                            {{ $store2->city }}{{ $store2->state?->name ? ', ' . $store2->state->name : '' }} {{ $store2->zip_code }}
+                            {{ $store2->city }}{{ $store2->state?->name ? ', ' . $store2->state->name : '' }}
                         </p>
                         <a href="{{ route('front.stores.show', $store2->unique_id) }}"
                            class="mt-1 inline-flex items-center gap-1 text-yellow-500

@@ -5,7 +5,7 @@ namespace App\Services\Website\Components;
 class LocationsComponent extends AbstractSectionComponent
 {
     public function key(): string         { return 'locations'; }
-    public function displayName(): string { return 'Locations'; }
+    public function displayName(): string { return 'Stores'; }
     public function icon(): string        { return 'heroicon-o-map-pin'; }
     public function description(): string { return 'Location cards with address, hours of operation, maps, call & text buttons.'; }
 

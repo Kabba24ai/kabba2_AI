@@ -854,7 +854,8 @@
                             Route::is('admin.website-management.branding.*') ||
                             Route::is('admin.website-management.media-library.*') ||
                             Route::is('admin.website-management.navigation-builder.*') ||
-                            Route::is('admin.website-management.theme-builder.*');
+                            Route::is('admin.website-management.theme-builder.*') ||
+                            Route::is('admin.website-management.contact-builder.*');
                     @endphp
 
 
@@ -888,6 +889,12 @@
                                     <a href="{{ route('admin.website-management.home-builder.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.home-builder.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-home class="w-5 h-5" /> Home Page Builder
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.website-management.contact-builder.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.contact-builder.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-phone class="w-5 h-5" /> Contact Page Builder
                                     </a>
                                 </li>
                                 <li>

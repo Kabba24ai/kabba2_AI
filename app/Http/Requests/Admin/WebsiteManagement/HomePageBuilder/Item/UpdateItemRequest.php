@@ -69,7 +69,7 @@ class UpdateItemRequest extends FormRequest
     {
         return [
             'title'       => ['required', 'string', 'max:255'],
-            'subtitle'    => ['required', 'string', 'max:50'],
+            'subtitle'    => ['required', 'string', 'regex:/^\(\d{3}\) \d{3}-\d{4}$/', 'max:50'],
             'description' => ['nullable', 'string', 'max:500'],
             'status'      => ['nullable', 'string', 'in:Active,Inactive'],
         ];
@@ -110,6 +110,7 @@ class UpdateItemRequest extends FormRequest
         return match(true) {
             $itemKey === 'phone_card' => array_merge($shared, [
                 'subtitle.required' => 'Phone number is required.',
+                'subtitle.regex'    => 'Phone number must be in (555) 555-5555 format.',
                 'subtitle.max'      => 'Phone number may not exceed 50 characters.',
             ]),
             in_array($itemKey, ['store_1', 'store_2']) => [

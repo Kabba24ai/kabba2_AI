@@ -1,6 +1,7 @@
 {{-- ── SEO Settings ──────────────────────────────────────────────────── --}}
+@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
 <form method="POST"
-      action="{{ route('admin.website-management.home-builder.update') }}"
+      action="{{ route($routePrefix . '.update') }}"
       enctype="multipart/form-data" data-parsley-validate>
     @csrf
 

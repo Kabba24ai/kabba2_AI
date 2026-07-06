@@ -33,11 +33,13 @@
                         {{ $item->title }}
                     </p>
 
+                    @if(!empty($item->subtitle))
                     <p class="text-gray-400
                               text-xs md:text-xs
                               mt-0.5 leading-snug">
                         {{ $item->subtitle }}
                     </p>
+                    @endif
                 </div>
 
                 @if(!$loop->last)

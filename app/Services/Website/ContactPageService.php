@@ -78,8 +78,8 @@ class ContactPageService
     private function buildLocations($section): object
     {
         return (object) [
-            'title'    => $section?->title ?? 'Our Locations',
-            'subtitle' => $section?->subtitle ?? '',
+            'title'    => $section?->title,
+            'subtitle' => $section?->subtitle,
             'items'    => $section?->items ?? collect(),
         ];
     }
@@ -88,10 +88,10 @@ class ContactPageService
     {
         $c = $section?->content ?? [];
         return (object) [
-            'title'       => $section?->title ?? 'Have a Question?',
-            'subtitle'    => $section?->subtitle ?? 'Our team is ready to help you find the right equipment for your job.',
-            'buttonText'  => $section?->button_text ?? 'Contact Us',
-            'buttonUrl'   => $section?->button_url ?? '/contact-us',
+            'title'       => $section?->title,
+            'subtitle'    => $section?->subtitle,
+            'buttonText'  => $section?->button_text,
+            'buttonUrl'   => $section?->button_url,
             'phoneNumber' => $c['phone_number'] ?? null,
             'icon'        => $c['icon'] ?? null,
         ];

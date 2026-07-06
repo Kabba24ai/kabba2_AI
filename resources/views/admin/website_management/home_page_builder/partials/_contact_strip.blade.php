@@ -76,6 +76,7 @@
             @foreach($items as $item)
             @php
                 $isPhoneCard     = $item->item_key === 'phone_card';
+                $isSearchCard    = $item->item_key === 'search_card';
                 $isStoreCard     = in_array($item->item_key, ['store_1', 'store_2']);
                 $selectedStoreId = data_get($item->content, 'store_id');
                 $selectedStore   = $stores->firstWhere('id', $selectedStoreId);
@@ -176,15 +177,21 @@
 
                         @elseif($isStoreCard)
                         {{-- ── Store Card ── --}}
+                        @php
+                            $storedContent   = $iv('content', null);
+                            $resolvedStoreId = is_array($storedContent)
+                                ? ($storedContent['store_id'] ?? $selectedStoreId)
+                                : $selectedStoreId;
+                            $displayPhone    = is_array($storedContent) && array_key_exists('display_phone', $storedContent)
+                                ? (bool) $storedContent['display_phone']
+                                : (bool) (data_get($item->content, 'display_phone') ?? true);
+                            $displayAddress  = is_array($storedContent) && array_key_exists('display_address', $storedContent)
+                                ? (bool) $storedContent['display_address']
+                                : (bool) (data_get($item->content, 'display_address') ?? true);
+                        @endphp
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Store <span class="text-red-500">*</span></label>
-                                @php
-                                    $storedContent  = $iv('content', null);
-                                    $resolvedStoreId = is_array($storedContent)
-                                        ? ($storedContent['store_id'] ?? $selectedStoreId)
-                                        : $selectedStoreId;
-                                @endphp
                                 <select name="content[store_id]" required
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
                                     <option value="">— Select a store —</option>
@@ -204,6 +211,22 @@
                                     <option value="Active"   {{ $scStatus === 'Active'   ? 'selected' : '' }}>Active</option>
                                     <option value="Inactive" {{ $scStatus === 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                 </select>
+                            </div>
+                            <div class="md:col-span-2 flex flex-wrap items-center gap-5 pt-1">
+                                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="hidden" name="content[display_phone]" value="0">
+                                    <input type="checkbox" name="content[display_phone]" value="1"
+                                           {{ $displayPhone ? 'checked' : '' }}
+                                           class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-xs font-medium text-gray-700">Display Phone</span>
+                                </label>
+                                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="hidden" name="content[display_address]" value="0">
+                                    <input type="checkbox" name="content[display_address]" value="1"
+                                           {{ $displayAddress ? 'checked' : '' }}
+                                           class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-xs font-medium text-gray-700">Display Address</span>
+                                </label>
                             </div>
                         </div>
 
@@ -255,17 +278,7 @@
                                     class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
                                 Save
                             </button>
-                            <button type="submit"
-                                    form="cs-del-{{ $item->unique_id }}"
-                                    class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2 rounded-md text-sm font-medium">
-                                Delete
-                            </button>
                         </div>
-                    </form>
-                    <form id="cs-del-{{ $item->unique_id }}" method="POST"
-                          action="{{ route($routePrefix . '.item.delete', $item->unique_id) }}"
-                          onsubmit="return confirm('Delete this card?')">
-                        @csrf @method('DELETE')
                     </form>
                 </div>
             </div>

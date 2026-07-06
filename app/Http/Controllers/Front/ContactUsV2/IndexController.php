@@ -38,6 +38,8 @@ class IndexController extends Controller
             'currentPage'        => $page,
             'homeFeatureSection' => $homeFeatureSection,
             'homeFeatureItems'   => $homeFeatureItems,
+            'logo'               => \App\Helpers\ConfigurationHelper::getHpBuilderLogo(),
+            'favicon'            => \App\Helpers\ConfigurationHelper::getHpBuilderFavicon(),
         ]));
     }
 }

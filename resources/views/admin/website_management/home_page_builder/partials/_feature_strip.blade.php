@@ -132,7 +132,14 @@
         </p>
         <div id="sortable-feature-strip">
             @foreach($items as $item)
-            <div x-data="{ editOpen: false }"
+            @php
+                $fsBagName = 'item_' . $item->unique_id;
+                $fsInput   = session('_item_input_' . $item->unique_id, []);
+                $fsv       = fn(string $key, $fallback = null) =>
+                                 array_key_exists($key, $fsInput) ? $fsInput[$key] : $fallback;
+                $fsOpen    = $errors->hasBag($fsBagName) && $errors->getBag($fsBagName)->isNotEmpty();
+            @endphp
+            <div x-data="{ editOpen: @js($fsOpen) }"
                  data-item-id="{{ $item->unique_id }}"
                  class="border border-gray-200 rounded-lg mb-2 overflow-hidden">
                 <div class="flex items-center justify-between px-3 py-3 bg-gray-50"
@@ -171,33 +178,40 @@
                         @csrf
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Title</label>
-                                {!! html()->text('title', old('title', $item->title))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Title <span class="text-red-500">*</span></label>
+                                <input type="text" name="title"
+                                       value="{{ e($fsv('title', $item->title) ?? '') }}"
+                                       required
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                                @error('title', $fsBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Subtitle</label>
-                                {!! html()->text('subtitle', old('subtitle', $item->subtitle))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                                @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <input type="text" name="subtitle"
+                                       value="{{ e($fsv('subtitle', $item->subtitle) ?? '') }}"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                                @error('subtitle', $fsBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
 
                             {{-- Icon Picker — Edit form --}}
                             <div>
                                 @include('admin.website_management.home_page_builder.partials._icon_picker', [
                                     'pickerIcons' => $featureIcons,
-                                    'currentIcon' => old('icon', $item->icon ?? ''),
+                                    'currentIcon' => $fsv('icon', $item->icon ?? ''),
                                     'inputName'   => 'icon',
                                 ])
-                                @error('icon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                @error('icon', $fsBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
 
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                                {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $item->status))
-                                    ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm') !!}
-                                @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                @php $fsStatus = $fsv('status', $item->status); @endphp
+                                <select name="status"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                                    <option value="Active"   {{ $fsStatus === 'Active'   ? 'selected' : '' }}>Active</option>
+                                    <option value="Inactive" {{ $fsStatus === 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                </select>
+                                @error('status', $fsBagName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">

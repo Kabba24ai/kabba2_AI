@@ -22,6 +22,10 @@ $store2Id   = (int) data_get($storeCard2?->content, 'store_id');
 $store1     = ($showStoreCards && $storeCard1 && $store1Id) ? $storeIndex->get($store1Id) : null;
 $store2     = ($showStoreCards && $storeCard2 && $store2Id) ? $storeIndex->get($store2Id) : null;
 
+$s1ShowPhone   = (bool)(data_get($storeCard1?->content, 'display_phone') ?? true);
+$s1ShowAddress = (bool)(data_get($storeCard1?->content, 'display_address') ?? true);
+$s2ShowPhone   = (bool)(data_get($storeCard2?->content, 'display_phone') ?? true);
+$s2ShowAddress = (bool)(data_get($storeCard2?->content, 'display_address') ?? true);
 $colCount = (int)(bool)$phoneCard + (int)(bool)$store1 + (int)(bool)$store2;
 $lgCols = ['1' => 'lg:grid-cols-1', '2' => 'lg:grid-cols-2', '3' => 'lg:grid-cols-3'][$colCount] ?? 'lg:grid-cols-3';
 $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
@@ -70,11 +74,17 @@ $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
                     </div>
                     <div class="min-w-0">
                         <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">{{ $store1->store_name }}</p>
-                        @if($store1->phone)
+                        @if($s1ShowPhone && $store1->phone)
                         <a href="tel:{{ preg_replace('/[^+\d]/', '', $store1->phone) }}"
                            class="mt-2 block text-lg font-bold text-gray-900 leading-tight hover:text-yellow-500 transition-colors">
                             {{ $store1->phone }}
                         </a>
+                        @endif
+                        @if($s1ShowAddress)
+                        <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
+                            {{ $store1->address }}<br>
+                            {{ $store1->city }}{{ $store1->state?->name ? ', ' . $store1->state->name : '' }}{{ $store1->zip_code ? ' ' . $store1->zip_code : '' }}
+                        </p>
                         @endif
                     </div>
                 </div>
@@ -88,11 +98,17 @@ $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
                     </div>
                     <div class="min-w-0">
                         <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">{{ $store2->store_name }}</p>
-                        @if($store2->phone)
+                        @if($s2ShowPhone && $store2->phone)
                         <a href="tel:{{ preg_replace('/[^+\d]/', '', $store2->phone) }}"
                            class="mt-2 block text-lg font-bold text-gray-900 leading-tight hover:text-yellow-500 transition-colors">
                             {{ $store2->phone }}
                         </a>
+                        @endif
+                        @if($s2ShowAddress)
+                        <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
+                            {{ $store2->address }}<br>
+                            {{ $store2->city }}{{ $store2->state?->name ? ', ' . $store2->state->name : '' }}{{ $store2->zip_code ? ' ' . $store2->zip_code : '' }}
+                        </p>
                         @endif
                     </div>
                 </div>

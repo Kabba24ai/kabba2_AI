@@ -155,15 +155,21 @@
         {{-- ── Store Card 1 ── --}}
         @if($storeCard1)
         @php
-            $sc1Bag      = 'item_' . $storeCard1->unique_id;
-            $sc1Input    = session('_item_input_' . $storeCard1->unique_id, []);
-            $sc1v        = fn(string $key, $fallback = null) =>
-                               array_key_exists($key, $sc1Input) ? $sc1Input[$key] : $fallback;
-            $sc1Content  = $sc1v('content', null);
-            $sc1StoreId  = is_array($sc1Content)
-                               ? ($sc1Content['store_id'] ?? data_get($storeCard1->content, 'store_id'))
-                               : data_get($storeCard1->content, 'store_id');
-            $sc1Open     = $errors->hasBag($sc1Bag) && $errors->getBag($sc1Bag)->isNotEmpty();
+            $sc1Bag          = 'item_' . $storeCard1->unique_id;
+            $sc1Input        = session('_item_input_' . $storeCard1->unique_id, []);
+            $sc1v            = fn(string $key, $fallback = null) =>
+                                   array_key_exists($key, $sc1Input) ? $sc1Input[$key] : $fallback;
+            $sc1Content      = $sc1v('content', null);
+            $sc1StoreId      = is_array($sc1Content)
+                                   ? ($sc1Content['store_id'] ?? data_get($storeCard1->content, 'store_id'))
+                                   : data_get($storeCard1->content, 'store_id');
+            $sc1DisplayPhone = is_array($sc1Content) && array_key_exists('display_phone', $sc1Content)
+                                   ? (bool) $sc1Content['display_phone']
+                                   : (bool) (data_get($storeCard1->content, 'display_phone') ?? true);
+            $sc1DisplayAddr  = is_array($sc1Content) && array_key_exists('display_address', $sc1Content)
+                                   ? (bool) $sc1Content['display_address']
+                                   : (bool) (data_get($storeCard1->content, 'display_address') ?? true);
+            $sc1Open         = $errors->hasBag($sc1Bag) && $errors->getBag($sc1Bag)->isNotEmpty();
         @endphp
         <div x-data="{ editOpen: @js($sc1Open) }" class="border border-gray-200 rounded-lg overflow-hidden">
             <div class="flex items-center justify-between px-3 py-3 bg-gray-50 cursor-pointer"
@@ -210,6 +216,22 @@
                                 <option value="Inactive" {{ $sc1Status === 'Inactive' ? 'selected' : '' }}>Inactive</option>
                             </select>
                         </div>
+                        <div class="md:col-span-2 flex flex-wrap items-center gap-5 pt-1">
+                            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                                <input type="hidden" name="content[display_phone]" value="0">
+                                <input type="checkbox" name="content[display_phone]" value="1"
+                                       {{ $sc1DisplayPhone ? 'checked' : '' }}
+                                       class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-xs font-medium text-gray-700">Display Phone</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                                <input type="hidden" name="content[display_address]" value="0">
+                                <input type="checkbox" name="content[display_address]" value="1"
+                                       {{ $sc1DisplayAddr ? 'checked' : '' }}
+                                       class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-xs font-medium text-gray-700">Display Address</span>
+                            </label>
+                        </div>
                     </div>
                     <button type="submit"
                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
@@ -223,15 +245,21 @@
         {{-- ── Store Card 2 ── --}}
         @if($storeCard2)
         @php
-            $sc2Bag      = 'item_' . $storeCard2->unique_id;
-            $sc2Input    = session('_item_input_' . $storeCard2->unique_id, []);
-            $sc2v        = fn(string $key, $fallback = null) =>
-                               array_key_exists($key, $sc2Input) ? $sc2Input[$key] : $fallback;
-            $sc2Content  = $sc2v('content', null);
-            $sc2StoreId  = is_array($sc2Content)
-                               ? ($sc2Content['store_id'] ?? data_get($storeCard2->content, 'store_id'))
-                               : data_get($storeCard2->content, 'store_id');
-            $sc2Open     = $errors->hasBag($sc2Bag) && $errors->getBag($sc2Bag)->isNotEmpty();
+            $sc2Bag          = 'item_' . $storeCard2->unique_id;
+            $sc2Input        = session('_item_input_' . $storeCard2->unique_id, []);
+            $sc2v            = fn(string $key, $fallback = null) =>
+                                   array_key_exists($key, $sc2Input) ? $sc2Input[$key] : $fallback;
+            $sc2Content      = $sc2v('content', null);
+            $sc2StoreId      = is_array($sc2Content)
+                                   ? ($sc2Content['store_id'] ?? data_get($storeCard2->content, 'store_id'))
+                                   : data_get($storeCard2->content, 'store_id');
+            $sc2DisplayPhone = is_array($sc2Content) && array_key_exists('display_phone', $sc2Content)
+                                   ? (bool) $sc2Content['display_phone']
+                                   : (bool) (data_get($storeCard2->content, 'display_phone') ?? true);
+            $sc2DisplayAddr  = is_array($sc2Content) && array_key_exists('display_address', $sc2Content)
+                                   ? (bool) $sc2Content['display_address']
+                                   : (bool) (data_get($storeCard2->content, 'display_address') ?? true);
+            $sc2Open         = $errors->hasBag($sc2Bag) && $errors->getBag($sc2Bag)->isNotEmpty();
         @endphp
         <div x-data="{ editOpen: @js($sc2Open) }" class="border border-gray-200 rounded-lg overflow-hidden">
             <div class="flex items-center justify-between px-3 py-3 bg-gray-50 cursor-pointer"
@@ -277,6 +305,22 @@
                                 <option value="Active"   {{ $sc2Status === 'Active'   ? 'selected' : '' }}>Active</option>
                                 <option value="Inactive" {{ $sc2Status === 'Inactive' ? 'selected' : '' }}>Inactive</option>
                             </select>
+                        </div>
+                        <div class="md:col-span-2 flex flex-wrap items-center gap-5 pt-1">
+                            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                                <input type="hidden" name="content[display_phone]" value="0">
+                                <input type="checkbox" name="content[display_phone]" value="1"
+                                       {{ $sc2DisplayPhone ? 'checked' : '' }}
+                                       class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-xs font-medium text-gray-700">Display Phone</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                                <input type="hidden" name="content[display_address]" value="0">
+                                <input type="checkbox" name="content[display_address]" value="1"
+                                       {{ $sc2DisplayAddr ? 'checked' : '' }}
+                                       class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-xs font-medium text-gray-700">Display Address</span>
+                            </label>
                         </div>
                     </div>
                     <button type="submit"

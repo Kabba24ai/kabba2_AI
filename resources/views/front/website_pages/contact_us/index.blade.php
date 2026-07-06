@@ -1,4 +1,5 @@
 @extends('front.layouts.app')
+@section('footer_v2', '1')
 
 @section('title', $currentPage->meta_title ?: $currentPage->title)
 

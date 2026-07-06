@@ -67,7 +67,7 @@ class ContactPageService
         $items = $section?->items->keyBy('item_key') ?? collect();
         return (object) [
             'title'      => $section?->title ?? 'Call Our Rental Specialists',
-            'subtitle'   => $section?->subtitle ?? 'Need Help Finding The Right Equipment?',
+            'subtitle'   => $section?->subtitle,
             'phoneCard'  => $items->get('phone_card'),
             'storeCard1' => $items->get('store_1'),
             'storeCard2' => $items->get('store_2'),

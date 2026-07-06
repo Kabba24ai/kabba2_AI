@@ -38,8 +38,12 @@
 
     @yield('content')
 
-    {{-- footer --}}
-    @include('front.partials.footer')
+    {{-- footer: v2 (home builder managed) for home_v2 + contact_v2; static for all other pages --}}
+    @hasSection('footer_v2')
+        @include('front.partials.footer_v2')
+    @else
+        @include('front.partials.footer')
+    @endif
 
     @stack('js')
 

@@ -22,9 +22,11 @@
     <div class="container mx-auto px-4 md:px-6 lg:px-8
                 -mt-12 md:-mt-16 lg:-mt-20">
         <div class="text-center uppercase text-[#171636] mt-6 mb-6">
+            @if(!empty($hp->contactStrip->subtitle))
             <p class="text-sm md:text-sm font-semibold tracking-wider">
                 {{ $hp->contactStrip->subtitle }}
             </p>
+            @endif
             <h2 class="mt-1 text-lg md:text-2xl font-semibold tracking-wide leading-none">
                 {{ $hp->contactStrip->title }}
             </h2>
@@ -53,9 +55,11 @@
                                 {{ $displayPhone }}
                             </a>
                         @endif
+                        @if(!empty($phoneCard->description))
                         <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
-                            {{ $phoneCard->description ?? "Questions? We're here to help!" }}
+                            {{ $phoneCard->description }}
                         </p>
+                        @endif
                     </div>
 
                 </div>
@@ -142,15 +146,21 @@
                     </div>
 
                     <div class="min-w-0">
+                        @if(!empty($searchCard->title))
                         <p class="text-xs font-semibold text-gray-900 uppercase tracking-widest leading-none">
-                            {{ $searchCard->title ?? 'Search Equipment' }}
+                            {{ $searchCard->title }}
                         </p>
+                        @endif
+                        @if(!empty($searchCard->subtitle))
                         <p class="mt-2 text-lg font-bold text-gray-900 leading-tight">
-                            {{ $searchCard->subtitle ?? 'Find What You Need' }}
+                            {{ $searchCard->subtitle }}
                         </p>
+                        @endif
+                        @if(!empty($searchCard->description))
                         <p class="mt-1.5 text-xs text-gray-600 leading-relaxed">
-                            {{ $searchCard->description ?? 'Browse our full inventory and reserve online.' }}
+                            {{ $searchCard->description }}
                         </p>
+                        @endif
                         <button onclick="document.getElementById('search-popup').classList.remove('hidden')"
                                 class="mt-1 inline-flex items-center gap-1 text-yellow-500
                                        uppercase font-semibold text-xs transition-colors hover:text-yellow-600">

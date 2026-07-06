@@ -1,4 +1,5 @@
 @extends('front.layouts.app')
+@section('footer_v2', '1')
 
 {{-- ── SEO: title, meta tags, OG, canonical ─────────────────────────── --}}
 @if($hp->seo->metaTitle)

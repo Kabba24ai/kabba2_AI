@@ -2,13 +2,17 @@
     $routePrefix = $routePrefix ?? 'admin.website-management.contact-builder';
     $isActive    = ($section?->status ?? 'Active') === 'Active';
 
-    // Split items by key for deterministic ordering: phone_card, store_1, store_2
-    $phoneCard = $items->firstWhere('item_key', 'phone_card');
+    $phoneCard  = $items->firstWhere('item_key', 'phone_card');
     $storeCard1 = $items->firstWhere('item_key', 'store_1');
     $storeCard2 = $items->firstWhere('item_key', 'store_2');
 @endphp
 
-{{-- ── Section form ────────────────────────────────────────────────────── --}}
+{{--
+    SECTION FORM — uses html() helpers + old() normally.
+    withInput() is called on section validation failure, so old() is correctly
+    populated for THIS form's fields only. Item forms below must NOT use html()
+    helpers or old() — they use raw <input>/<select> tags with per-item session values.
+--}}
 @if($section)
 <form method="POST"
       action="{{ route($routePrefix . '.section.update', $section->unique_id) }}"
@@ -76,8 +80,20 @@
 
         {{-- ── Phone Card ── --}}
         @if($phoneCard)
-        @php $phoneCardOpen = $errors->hasAny(['title', 'subtitle', 'description']); @endphp
-        <div x-data="{ editOpen: @js($phoneCardOpen) }" class="border border-gray-200 rounded-lg overflow-hidden">
+        @php
+            /*
+             * Per-item scoping: read from session('_item_input_{unique_id}') set by
+             * UpdateItemRequest::failedValidation(). Falls back to DB value.
+             * Raw <input>/<select> tags bypass FormBuilder::getValueAttribute() which
+             * would otherwise override the value with old($name) from the section form.
+             */
+            $pcBag   = 'item_' . $phoneCard->unique_id;
+            $pcInput = session('_item_input_' . $phoneCard->unique_id, []);
+            $pcv     = fn(string $key, $fallback = null) =>
+                           array_key_exists($key, $pcInput) ? $pcInput[$key] : $fallback;
+            $pcOpen  = $errors->hasBag($pcBag) && $errors->getBag($pcBag)->isNotEmpty();
+        @endphp
+        <div x-data="{ editOpen: @js($pcOpen) }" class="border border-gray-200 rounded-lg overflow-hidden">
             <div class="flex items-center justify-between px-3 py-3 bg-gray-50 cursor-pointer"
                  @click="editOpen = !editOpen">
                 <div class="flex items-center gap-3">
@@ -101,22 +117,30 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Title <span class="text-red-500">*</span></label>
-                            {!! html()->text('title', old('title', $phoneCard->title))
-                                ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                                ->attributes(['required' => true]) !!}
-                            @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            <input type="text" name="title"
+                                   value="{{ e($pcv('title', $phoneCard->title) ?? '') }}"
+                                   required
+                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none">
+                            @error('title', $pcBag) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number <span class="text-red-500">*</span></label>
-                            {!! html()->text('subtitle', old('subtitle', $phoneCard->subtitle))
-                                ->class('masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm')
-                                ->attributes(['placeholder' => '(xxx) xxx-xxxx', 'autocomplete' => 'tel', 'required' => true, 'pattern' => '\(\d{3}\) \d{3}-\d{4}']) !!}
-                            @error('subtitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            <input type="text" name="subtitle"
+                                   value="{{ e($pcv('subtitle', $phoneCard->subtitle) ?? '') }}"
+                                   required
+                                   placeholder="(xxx) xxx-xxxx"
+                                   autocomplete="tel"
+                                   pattern="\(\d{3}\) \d{3}-\d{4}"
+                                   class="masked-phone w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none">
+                            @error('subtitle', $pcBag) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                            {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $phoneCard->status))
-                                ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white') !!}
+                            @php $pcStatus = $pcv('status', $phoneCard->status); @endphp
+                            <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:outline-none">
+                                <option value="Active"   {{ $pcStatus === 'Active'   ? 'selected' : '' }}>Active</option>
+                                <option value="Inactive" {{ $pcStatus === 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                            </select>
                         </div>
                     </div>
                     <button type="submit"
@@ -130,14 +154,24 @@
 
         {{-- ── Store Card 1 ── --}}
         @if($storeCard1)
-        @php $selectedStore1 = $stores->firstWhere('id', data_get($storeCard1->content, 'store_id')); @endphp
-        @php $store1Open = $errors->has('content.store_id'); @endphp
-        <div x-data="{ editOpen: @js($store1Open) }" class="border border-gray-200 rounded-lg overflow-hidden">
+        @php
+            $sc1Bag      = 'item_' . $storeCard1->unique_id;
+            $sc1Input    = session('_item_input_' . $storeCard1->unique_id, []);
+            $sc1v        = fn(string $key, $fallback = null) =>
+                               array_key_exists($key, $sc1Input) ? $sc1Input[$key] : $fallback;
+            $sc1Content  = $sc1v('content', null);
+            $sc1StoreId  = is_array($sc1Content)
+                               ? ($sc1Content['store_id'] ?? data_get($storeCard1->content, 'store_id'))
+                               : data_get($storeCard1->content, 'store_id');
+            $sc1Open     = $errors->hasBag($sc1Bag) && $errors->getBag($sc1Bag)->isNotEmpty();
+        @endphp
+        <div x-data="{ editOpen: @js($sc1Open) }" class="border border-gray-200 rounded-lg overflow-hidden">
             <div class="flex items-center justify-between px-3 py-3 bg-gray-50 cursor-pointer"
                  @click="editOpen = !editOpen">
                 <div class="flex items-center gap-3">
                     <span class="text-xs font-mono bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">store_1</span>
-                    <span class="text-sm font-medium text-gray-800">{{ $selectedStore1?->store_name ?? '— no store selected —' }}</span>
+                    @php $s1 = $stores->firstWhere('id', data_get($storeCard1->content, 'store_id')); @endphp
+                    <span class="text-sm font-medium text-gray-800">{{ $s1?->store_name ?? '— no store selected —' }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs px-2 py-0.5 rounded-full {{ $storeCard1->status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
@@ -161,17 +195,20 @@
                                 <option value="">— Select a store —</option>
                                 @foreach($stores as $store)
                                     <option value="{{ $store->id }}"
-                                        {{ (string)data_get($storeCard1->content, 'store_id') === (string)$store->id ? 'selected' : '' }}>
+                                        {{ (string)$sc1StoreId === (string)$store->id ? 'selected' : '' }}>
                                         {{ $store->store_name }}
                                     </option>
                                 @endforeach
                             </select>
-                            @error('content.store_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            @error('content.store_id', $sc1Bag) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                            {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $storeCard1->status))
-                                ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white') !!}
+                            @php $sc1Status = $sc1v('status', $storeCard1->status); @endphp
+                            <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:outline-none">
+                                <option value="Active"   {{ $sc1Status === 'Active'   ? 'selected' : '' }}>Active</option>
+                                <option value="Inactive" {{ $sc1Status === 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                            </select>
                         </div>
                     </div>
                     <button type="submit"
@@ -185,14 +222,24 @@
 
         {{-- ── Store Card 2 ── --}}
         @if($storeCard2)
-        @php $selectedStore2 = $stores->firstWhere('id', data_get($storeCard2->content, 'store_id')); @endphp
-        @php $store2Open = $errors->has('content.store_id'); @endphp
-        <div x-data="{ editOpen: @js($store2Open) }" class="border border-gray-200 rounded-lg overflow-hidden">
+        @php
+            $sc2Bag      = 'item_' . $storeCard2->unique_id;
+            $sc2Input    = session('_item_input_' . $storeCard2->unique_id, []);
+            $sc2v        = fn(string $key, $fallback = null) =>
+                               array_key_exists($key, $sc2Input) ? $sc2Input[$key] : $fallback;
+            $sc2Content  = $sc2v('content', null);
+            $sc2StoreId  = is_array($sc2Content)
+                               ? ($sc2Content['store_id'] ?? data_get($storeCard2->content, 'store_id'))
+                               : data_get($storeCard2->content, 'store_id');
+            $sc2Open     = $errors->hasBag($sc2Bag) && $errors->getBag($sc2Bag)->isNotEmpty();
+        @endphp
+        <div x-data="{ editOpen: @js($sc2Open) }" class="border border-gray-200 rounded-lg overflow-hidden">
             <div class="flex items-center justify-between px-3 py-3 bg-gray-50 cursor-pointer"
                  @click="editOpen = !editOpen">
                 <div class="flex items-center gap-3">
                     <span class="text-xs font-mono bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">store_2</span>
-                    <span class="text-sm font-medium text-gray-800">{{ $selectedStore2?->store_name ?? '— no store selected —' }}</span>
+                    @php $s2 = $stores->firstWhere('id', data_get($storeCard2->content, 'store_id')); @endphp
+                    <span class="text-sm font-medium text-gray-800">{{ $s2?->store_name ?? '— no store selected —' }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs px-2 py-0.5 rounded-full {{ $storeCard2->status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
@@ -216,17 +263,20 @@
                                 <option value="">— Select a store —</option>
                                 @foreach($stores as $store)
                                     <option value="{{ $store->id }}"
-                                        {{ (string)data_get($storeCard2->content, 'store_id') === (string)$store->id ? 'selected' : '' }}>
+                                        {{ (string)$sc2StoreId === (string)$store->id ? 'selected' : '' }}>
                                         {{ $store->store_name }}
                                     </option>
                                 @endforeach
                             </select>
-                            @error('content.store_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            @error('content.store_id', $sc2Bag) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                            {!! html()->select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], old('status', $storeCard2->status))
-                                ->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white') !!}
+                            @php $sc2Status = $sc2v('status', $storeCard2->status); @endphp
+                            <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:outline-none">
+                                <option value="Active"   {{ $sc2Status === 'Active'   ? 'selected' : '' }}>Active</option>
+                                <option value="Inactive" {{ $sc2Status === 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                            </select>
                         </div>
                     </div>
                     <button type="submit"

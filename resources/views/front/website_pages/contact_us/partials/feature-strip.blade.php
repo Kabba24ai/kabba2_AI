@@ -1,42 +1,59 @@
 {{-- ============================================================
      Contact Us — Feature Strip
-     Dark navy strip with icon + title + subtitle for each feature.
-     Reuses same visual design as home page feature strip.
+     Reuses identical design as home v2 feature strip.
 ============================================================ --}}
 
 @php
 $activeItems = $items->where('status', 'Active')->sortBy('display_order')->values();
 $colClass    = match($activeItems->count()) {
     1       => 'grid-cols-1',
-    2       => 'grid-cols-1 md:grid-cols-2',
-    default => 'grid-cols-1 md:grid-cols-3',
+    2       => 'grid-cols-1 lg:grid-cols-2',
+    default => 'grid-cols-1 lg:grid-cols-3',
 };
 @endphp
 
 @if($section && $section->status === 'Active' && $activeItems->isNotEmpty())
-<section class="bg-[#1F1D4E] py-8">
-    <div class="container mx-auto px-4 md:px-6 lg:px-8">
-        <div class="grid {{ $colClass }} gap-0 divide-y md:divide-y-0 md:divide-x divide-white/10">
+<section class="bg-[#171636]">
+    <div class="container mx-auto px-0">
+        <div class="grid {{ $colClass }}">
+
             @foreach($activeItems as $item)
-            @php $icon = $item->icon ?? ''; @endphp
-            <div class="flex items-center gap-4 px-6 py-5">
-                <div class="shrink-0 w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center">
-                    @if(str_starts_with($icon, 'heroicon-'))
-                        <x-dynamic-component :component="$icon" class="w-5 h-5 text-gray-900"/>
-                    @elseif(str_starts_with($icon, 'icon-'))
-                        <i class="{{ $icon }} text-gray-900 text-base"></i>
-                    @else
-                        <x-heroicon-o-star class="w-5 h-5 text-gray-900"/>
-                    @endif
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-yellow-400 uppercase tracking-widest">{{ $item->title }}</p>
+            <div class="relative flex items-center
+                        gap-4
+                        px-5 py-5
+                        md:px-6 md:py-6
+                        lg:px-8 lg:py-6
+                        {{ !$loop->last ? 'border-b border-white/20 lg:border-b-0' : '' }}">
+
+                @php $icon = $item->icon ?? ''; @endphp
+
+                @if(str_starts_with($icon, 'heroicon-') || str_starts_with($icon, 'icon-'))
+                    <x-dynamic-component :component="$icon"
+                        class="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 shrink-0 text-yellow-400" />
+                @else
+                    <i class="fa-solid {{ $icon }} text-yellow-400 text-3xl md:text-4xl w-8 md:w-10 text-center shrink-0"></i>
+                @endif
+
+                <div class="min-w-0">
+                    <p class="text-white font-bold text-xs md:text-xs uppercase tracking-wider leading-snug">
+                        {{ $item->title }}
+                    </p>
                     @if($item->subtitle)
-                    <p class="mt-0.5 text-xs text-white/70">{{ $item->subtitle }}</p>
+                    <p class="text-gray-400 text-xs md:text-xs mt-0.5 leading-snug">
+                        {{ $item->subtitle }}
+                    </p>
                     @endif
                 </div>
+
+                @if(!$loop->last)
+                <span class="hidden lg:flex absolute right-0 top-0 bottom-0 items-center">
+                    <span class="h-8 w-px bg-white"></span>
+                </span>
+                @endif
+
             </div>
             @endforeach
+
         </div>
     </div>
 </section>

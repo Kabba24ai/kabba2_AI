@@ -14,13 +14,14 @@ use Illuminate\Support\Facades\Log;
  *
  * Every call logs the old → new status with full context so transitions are
  * auditable without reading the Equipment table's audit columns directly, and
- * persists a matching EquipmentStatusLog row since saveQuietly() suppresses
- * the EquipmentObserver that would otherwise have written one.
+ * persists a matching EquipmentStatusLog row (via EquipmentStatusLog::recordTransition())
+ * since saveQuietly() suppresses the EquipmentObserver that would otherwise have
+ * written one.
  *
- * Out of scope: admin web controllers other than UpdateProductScheduleController
- * (AssignEquipmentController, RemoveEquipmentController, etc.) — those are
- * unchanged for now. UpdateProductScheduleController has its own saveQuietly()
- * call sites and writes its own EquipmentStatusLog rows directly.
+ * Other saveQuietly()-based current_status mutators exist outside this class —
+ * UpdateProductScheduleController, AssignEquipmentController,
+ * RemoveEquipmentController, and Order's deleting hook — each calls the same
+ * shared EquipmentStatusLog::recordTransition() helper directly.
  */
 class EquipmentStatusService
 {
@@ -49,7 +50,7 @@ class EquipmentStatusService
         $equipment->saveQuietly();
 
         self::log($equipment->id, $old, EquipmentCurrentStatus::Rented->value, $orderId, $orderProductId, $source, $actorId);
-        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Rented->value, $actorId);
+        EquipmentStatusLog::recordTransition($equipment->id, $oldRaw, EquipmentCurrentStatus::Rented->value, $actorId);
     }
 
     /**
@@ -78,7 +79,7 @@ class EquipmentStatusService
         self::log($equipment->id, $old, EquipmentCurrentStatus::Maintenance->value, $orderId, $orderProductId, 'return_checklist', $actorId);
 
         self::evaluateWaitLists($equipment);
-        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Maintenance->value, $actorId);
+        EquipmentStatusLog::recordTransition($equipment->id, $oldRaw, EquipmentCurrentStatus::Maintenance->value, $actorId);
     }
 
     /**
@@ -108,6 +109,7 @@ class EquipmentStatusService
         self::log($equipment->id, $old, EquipmentCurrentStatus::Damaged->value, $orderId, $orderProductId, 'return_checklist', $actorId);
 
         self::evaluateWaitLists($equipment);
+        EquipmentStatusLog::recordTransition($equipment->id, $oldRaw, EquipmentCurrentStatus::Damaged->value, $actorId);
     }
 
     /**
@@ -125,7 +127,6 @@ class EquipmentStatusService
                 'error'        => $e->getMessage(),
             ]);
         }
-        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Damaged->value, $actorId);
     }
 
     /**
@@ -150,7 +151,7 @@ class EquipmentStatusService
         $equipment->saveQuietly();
 
         self::log($equipment->id, $old, EquipmentCurrentStatus::Available->value, $orderId, $orderProductId, 'checklist_remove', $actorId);
-        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Available->value, $actorId);
+        EquipmentStatusLog::recordTransition($equipment->id, $oldRaw, EquipmentCurrentStatus::Available->value, $actorId);
     }
 
     /**
@@ -175,7 +176,7 @@ class EquipmentStatusService
         $equipment->saveQuietly();
 
         self::log($equipment->id, $old, EquipmentCurrentStatus::Available->value, $orderId, $orderProductId, 'rental_ready', $actorId);
-        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Available->value, $actorId);
+        EquipmentStatusLog::recordTransition($equipment->id, $oldRaw, EquipmentCurrentStatus::Available->value, $actorId);
     }
 
     /**
@@ -200,7 +201,7 @@ class EquipmentStatusService
             $equipment->current_order_product_id,
             'rental_ready', $actorId
         );
-        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Maintenance->value, $actorId);
+        EquipmentStatusLog::recordTransition($equipment->id, $oldRaw, EquipmentCurrentStatus::Maintenance->value, $actorId);
     }
 
     /**
@@ -226,28 +227,7 @@ class EquipmentStatusService
             $equipment->current_order_product_id,
             'rental_ready', $actorId
         );
-        self::persistStatusLog($equipment->id, $oldRaw, EquipmentCurrentStatus::Damaged->value, $actorId);
-    }
-
-    /**
-     * Write the durable EquipmentStatusLog row that EquipmentObserver::updating()
-     * would have written on a normal save() — saveQuietly() suppresses that
-     * observer, so every transition method above calls this explicitly instead.
-     * Mirrors the observer's own guard: only log when the status actually changed.
-     */
-    private static function persistStatusLog(int $equipmentId, ?string $from, string $to, ?int $actorId): void
-    {
-        if ($from === $to) {
-            return;
-        }
-
-        EquipmentStatusLog::create([
-            'equipment_id' => $equipmentId,
-            'from_status'  => $from,
-            'to_status'    => $to,
-            'changed_by'   => $actorId,
-            'changed_at'   => now(),
-        ]);
+        EquipmentStatusLog::recordTransition($equipment->id, $oldRaw, EquipmentCurrentStatus::Damaged->value, $actorId);
     }
 
     private static function log(

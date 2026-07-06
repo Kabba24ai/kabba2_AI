@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
 use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,10 +40,12 @@ class RemoveEquipmentController extends Controller
                 $equipment->current_order_product_id = null;
             }
 
+            $beforeStatus = $equipment->current_status?->value;
             $equipment->current_status = EquipmentCurrentStatus::Available->value;
             $equipment->current_status_updated_by = $user?->id;
             $equipment->current_status_changed_at = now();
             $equipment->saveQuietly();
+            EquipmentStatusLog::recordTransition($equipment->id, $beforeStatus, EquipmentCurrentStatus::Available->value, $user?->id);
         }
 
         $orderProduct->checklistQuestions()->delete();

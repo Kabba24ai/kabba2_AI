@@ -6,6 +6,7 @@ use App\Enums\Equipments\EquipmentCurrentStatus;
 use App\Events\Admin\Orders\OrderProductScheduleUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OrderManagement\Orders\AssignEquipmentRequest;
+use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Http\JsonResponse;
@@ -139,12 +140,14 @@ class AssignEquipmentController extends Controller
         $orderProduct->assigned_at = now();
 
         // Update equipment status to Rented when delivery is completed
+        $beforeStatus = $equipment->current_status?->value;
         $equipment->current_status = EquipmentCurrentStatus::Rented->value;
         $equipment->current_status_updated_by = $user->id;
         $equipment->current_status_changed_at = now();
         $equipment->current_order_id = $orderProduct->order_id;
         $equipment->current_order_product_id = $orderProduct->id;
         $equipment->saveQuietly();
+        EquipmentStatusLog::recordTransition($equipment->id, $beforeStatus, EquipmentCurrentStatus::Rented->value, $user->id);
         // if ($scheduleType === 'Delivery') {
         // }
 

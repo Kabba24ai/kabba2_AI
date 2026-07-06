@@ -15,6 +15,7 @@ use App\Enums\Orders\OrderTermsStatus;
 use App\Helpers\ModelHelper;
 
 // Models
+use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
 use App\Models\Customers\Customer;
 use App\Models\Customers\Invoice;
 use App\Models\MaintenanceManagement\EquipmentSoftAssign;
@@ -235,12 +236,14 @@ class Order extends Model
             $model->products()->with('equipment')->get()->each(function ($product) use ($model) {
                 $equipment = $product->equipment;
                 if ($equipment) {
+                    $beforeStatus = $equipment->current_status?->value;
                     $equipment->current_status          = EquipmentCurrentStatus::Maintenance->value;
                     $equipment->current_status_updated_by = auth()->id();
                     $equipment->current_status_changed_at = now();
                     $equipment->current_order_id          = null;
                     $equipment->current_order_product_id  = null;
                     $equipment->saveQuietly();
+                    EquipmentStatusLog::recordTransition($equipment->id, $beforeStatus, EquipmentCurrentStatus::Maintenance->value, auth()->id());
                 }
 
                 if (!$model->isForceDeleting()) {

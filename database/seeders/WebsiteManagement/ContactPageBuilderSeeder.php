@@ -5,6 +5,7 @@ namespace Database\Seeders\WebsiteManagement;
 use Illuminate\Database\Seeder;
 use App\Models\WebsiteManagement\WebsitePage;
 use App\Models\WebsiteManagement\WebsitePageSection;
+use App\Models\WebsiteManagement\WebsiteSectionItem;
 
 class ContactPageBuilderSeeder extends Seeder
 {
@@ -60,15 +61,62 @@ class ContactPageBuilderSeeder extends Seeder
         ];
 
         foreach ($sections as $data) {
-            WebsitePageSection::updateOrCreate(
+            $section = WebsitePageSection::updateOrCreate(
                 [
                     'website_page_id' => $page->id,
                     'section_key'     => $data['section_key'],
                 ],
                 array_merge($data, ['website_page_id' => $page->id])
             );
+
+            if ($data['section_key'] === 'contact_strip') {
+                $this->seedContactStripItems($section);
+            }
         }
 
         $this->command->info('Contact Page Builder seeded successfully.');
+    }
+
+    private function seedContactStripItems(WebsitePageSection $section): void
+    {
+        $items = [
+            [
+                'item_key'      => 'phone_card',
+                'title'         => 'Main Sales Line',
+                'subtitle'      => '',
+                'description'   => "Questions? We're here to help!",
+                'icon'          => 'heroicon-s-phone',
+                'display_order' => 1,
+                'status'        => 'Active',
+            ],
+            [
+                'item_key'      => 'store_1',
+                'title'         => 'Store Location 1',
+                'subtitle'      => '',
+                'description'   => 'Visit your nearest store.',
+                'icon'          => 'heroicon-s-map-pin',
+                'display_order' => 2,
+                'status'        => 'Active',
+            ],
+            [
+                'item_key'      => 'store_2',
+                'title'         => 'Store Location 2',
+                'subtitle'      => '',
+                'description'   => 'Visit your nearest store.',
+                'icon'          => 'heroicon-s-map-pin',
+                'display_order' => 3,
+                'status'        => 'Active',
+            ],
+        ];
+
+        foreach ($items as $item) {
+            WebsiteSectionItem::firstOrCreate(
+                [
+                    'website_page_section_id' => $section->id,
+                    'item_key'                => $item['item_key'],
+                ],
+                array_merge($item, ['website_page_section_id' => $section->id])
+            );
+        }
     }
 }

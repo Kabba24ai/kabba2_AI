@@ -58,9 +58,6 @@ $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
                             {{ $phoneCard->subtitle }}
                         </a>
                         @endif
-                        @if($phoneCard->description)
-                        <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">{{ $phoneCard->description }}</p>
-                        @endif
                     </div>
                 </div>
                 @endif
@@ -79,10 +76,6 @@ $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
                             {{ $store1->phone }}
                         </a>
                         @endif
-                        <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
-                            {{ $store1->address }}<br>
-                            {{ $store1->city }}{{ $store1->state?->name ? ', ' . $store1->state->name : '' }}
-                        </p>
                     </div>
                 </div>
                 @endif
@@ -101,10 +94,6 @@ $mdCols = $colCount <= 1 ? '' : 'md:grid-cols-2';
                             {{ $store2->phone }}
                         </a>
                         @endif
-                        <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">
-                            {{ $store2->address }}<br>
-                            {{ $store2->city }}{{ $store2->state?->name ? ', ' . $store2->state->name : '' }}
-                        </p>
                     </div>
                 </div>
                 @endif

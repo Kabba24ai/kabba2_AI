@@ -9,6 +9,9 @@
     $subtitlePosition = $oldContent['subtitle_position'] ?? $heroContent['subtitle_position'] ?? 'left';
     $titleColor       = $oldContent['title_color']       ?? $heroContent['title_color']       ?? '#ffffff';
     $subtitleColor    = $oldContent['subtitle_color']    ?? $heroContent['subtitle_color']     ?? '#ffffff';
+    $descValue        = old('content.description',          $heroContent['description']          ?? '');
+    $descPosition     = $oldContent['description_position'] ?? $heroContent['description_position'] ?? 'left';
+    $descColor        = $oldContent['description_color']    ?? $heroContent['description_color']    ?? '#ffffff';
     $isActive         = ($section?->status ?? 'Active') === 'Active';
 @endphp
 
@@ -37,8 +40,11 @@
           subtitleText:     @js(old('subtitle', $section->subtitle ?? '')),
           titlePosition:    @js($titlePosition),
           subtitlePosition: @js($subtitlePosition),
-          titleColor:       @js($titleColor),
-          subtitleColor:    @js($subtitleColor),
+          titleColor:          @js($titleColor),
+          subtitleColor:       @js($subtitleColor),
+          descriptionText:     @js($descValue),
+          descriptionPosition: @js($descPosition),
+          descriptionColor:    @js($descColor),
       }">
     @csrf
 
@@ -214,6 +220,43 @@
 
     </div>
 
+    {{-- ── Description (contact page only) ──────────────────────── --}}
+    @if($showDescription ?? false)
+    <div class="mt-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Description
+            <span class="text-gray-400 font-normal text-xs ml-1">— third line of text below the subtitle</span>
+        </label>
+        <textarea name="content[description]" rows="2"
+                  x-model="descriptionText"
+                  placeholder="We might be on the phone with others when you call, but we'll always call you back as quickly as possible."
+                  class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm shadow-sm focus:ring-2 focus:outline-none resize-none"
+        >{{ $descValue }}</textarea>
+        @error('content.description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+        <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Position</label>
+                <select name="content[description_position]"
+                        x-model="descriptionPosition"
+                        class="w-full text-sm border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Text Color</label>
+                <div class="flex items-center gap-2">
+                    <input type="color" name="content[description_color]"
+                           x-model="descriptionColor"
+                           class="h-9 w-12 border border-gray-200 rounded cursor-pointer p-0.5 bg-white">
+                    <span class="text-xs text-gray-500 font-mono" x-text="descriptionColor"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- ── Live Preview ─────────────────────────────────────────────── --}}
     <div class="mt-6 border border-gray-200 rounded-xl overflow-hidden">
         <div class="flex items-center gap-2 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
@@ -251,6 +294,13 @@
                            :style="{ whiteSpace: 'pre-line', color: subtitleColor }"
                            x-text="subtitleText || 'Subtitle / Description…'"></p>
                     </div>
+                    @if($showDescription ?? false)
+                    <div class="mt-2" x-show="descriptionText" :style="{ textAlign: descriptionPosition }">
+                        <p class="text-xs leading-relaxed"
+                           :style="{ color: descriptionColor }"
+                           x-text="descriptionText"></p>
+                    </div>
+                    @endif
                 </div>
             </div>
 

@@ -75,7 +75,8 @@
                 $isStoreCard = in_array($item->item_key, ['store_1', 'store_2']);
                 $selectedStoreId = data_get($item->content, 'store_id');
                 $selectedStore   = $stores->firstWhere('id', $selectedStoreId);
-                $cardOpen = $isPhoneCard && $errors->hasAny(['title', 'subtitle', 'description']);
+                $cardOpen = ($isPhoneCard && $errors->hasAny(['title', 'subtitle', 'description']))
+                         || ($isStoreCard && $errors->has('content.store_id'));
             @endphp
             <div x-data="{ editOpen: @js($cardOpen) }"
                  class="border border-gray-200 rounded-lg overflow-hidden">
@@ -144,8 +145,8 @@
                         {{-- ── Store Card: Store dropdown + Status only ── --}}
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Store</label>
-                                <select name="content[store_id]"
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Store <span class="text-red-500">*</span></label>
+                                <select name="content[store_id]" required
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
                                     <option value="">— Select a store —</option>
                                     @foreach($stores as $store)

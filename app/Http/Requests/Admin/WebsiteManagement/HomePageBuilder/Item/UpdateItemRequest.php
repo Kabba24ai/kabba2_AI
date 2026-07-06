@@ -79,7 +79,7 @@ class UpdateItemRequest extends FormRequest
     {
         return [
             'content'          => ['nullable', 'array'],
-            'content.store_id' => ['nullable', 'integer', Rule::exists('stores', 'id')],
+            'content.store_id' => ['required', 'integer', Rule::exists('stores', 'id')],
             'status'           => ['nullable', 'string', 'in:Active,Inactive'],
         ];
     }
@@ -114,9 +114,10 @@ class UpdateItemRequest extends FormRequest
                 'subtitle.max'      => 'Phone number may not exceed 50 characters.',
             ]),
             in_array($itemKey, ['store_1', 'store_2']) => [
-                'content.store_id.integer' => 'Invalid store selection.',
-                'content.store_id.exists'  => 'The selected store no longer exists.',
-                'status.in'                => 'Status must be Active or Inactive.',
+                'content.store_id.required' => 'Please select a store.',
+                'content.store_id.integer'  => 'Invalid store selection.',
+                'content.store_id.exists'   => 'The selected store no longer exists.',
+                'status.in'                 => 'Status must be Active or Inactive.',
             ],
             default => array_merge($shared, [
                 'subtitle.max'         => 'Subtitle may not exceed 255 characters.',

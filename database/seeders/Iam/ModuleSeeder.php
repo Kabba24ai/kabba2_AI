@@ -2,19 +2,15 @@
 
 namespace Database\Seeders\Iam;
 
-use Illuminate\Database\Seeder;
-
-
+use App\Models\Iam\AccessControl\Module;
 // Models
 use App\Models\Iam\AccessControl\ModuleCategory;
-use App\Models\Iam\AccessControl\Module;
-
+use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class ModuleSeeder extends Seeder
 {
-
     protected $moduleList = [];
 
     public function __construct()
@@ -35,7 +31,7 @@ class ModuleSeeder extends Seeder
                             'add' => 'Add',
                             'edit' => 'Edit',
                             'delete' => 'Delete',
-                        ]
+                        ],
                     ],
                     [
                         'module_name' => 'roles',
@@ -46,7 +42,7 @@ class ModuleSeeder extends Seeder
                             'add' => 'Add',
                             'edit' => 'Edit',
                             'delete' => 'Delete',
-                        ]
+                        ],
                     ],
                     [
                         'module_name' => 'modules',
@@ -54,9 +50,9 @@ class ModuleSeeder extends Seeder
                         'model_name' => 'Module',
                         'permission_names' => [
                             'set_permissions' => 'Set Permissions',
-                        ]
+                        ],
                     ],
-                ]
+                ],
             ],
             // IAM [End]
 
@@ -73,7 +69,7 @@ class ModuleSeeder extends Seeder
                             'add' => 'Add',
                             'edit' => 'Edit',
                             'delete' => 'Delete',
-                        ]
+                        ],
                     ],
                     [
                         'module_name' => 'products',
@@ -84,14 +80,13 @@ class ModuleSeeder extends Seeder
                             'add' => 'Add',
                             'edit' => 'Edit',
                             'delete' => 'Delete',
-                        ]
+                        ],
                     ],
-                ]
+                ],
             ],
             // Product Management [End]
         ];
     }
-
 
     /**
      * Run the database seeds.
@@ -105,14 +100,12 @@ class ModuleSeeder extends Seeder
         $modules_arr = [];
         $modules_name_arr = [];
 
-
         $role_item = Role::where('name', 'Master Admin')->first();
-
 
         foreach ($this->moduleList as $category) {
 
             $module_category_item = ModuleCategory::firstOrCreate([
-                'title' => $category['module_category_name']
+                'title' => $category['module_category_name'],
             ]);
 
             $module_categories_arr[] = $module_category_item->title;
@@ -127,8 +120,7 @@ class ModuleSeeder extends Seeder
                 Module::where('module_category_id', $module_category_item->id)->whereIn('title', $removeModules)->delete();
             }
 
-
-            if (!is_null($module_category_item) && isset($category['modules']) && count($category['modules']) > 0) {
+            if (! is_null($module_category_item) && isset($category['modules']) && count($category['modules']) > 0) {
                 foreach ($category['modules'] as $module) {
 
                     $module_item = Module::firstOrCreate([
@@ -143,7 +135,6 @@ class ModuleSeeder extends Seeder
                     $modules_arr[] = $module_item->title;
                     $modules_name_arr[] = $module_item->name;
 
-
                     $module_item->permission_names = implode(',', array_keys($module['permission_names']));
 
                     if ($module_item->isDirty()) {
@@ -151,21 +142,33 @@ class ModuleSeeder extends Seeder
                         $module_item->save();
                     }
 
-
                     $permissions_arr = [];
                     $permission_options = [];
                     if (is_array($module['permission_names']) && count($module['permission_names']) > 0) {
                         foreach ($module['permission_names'] as $permission_name => $permission_title) {
-                            $permission_name = $module['module_name'] . '.' . $permission_name;
+                            $permission_name = $module['module_name'].'.'.$permission_name;
                             $permissions_arr[] = $permission_name;
                             $permission_options[] = $permission_name;
+                            // Platform Sprint 1 (docs/platform/PLATFORM_SPRINT_1_MODULESEEDER.md):
+                            // this seeder creates permissions via Spatie's own
+                            // Permission model (see the `use` import above), not
+                            // the customized App\Models\Iam\AccessControl\Permission
+                            // — a vendor model this codebase must not modify
+                            // directly, so the required `permission_to_all` value
+                            // is supplied explicitly here instead, the same way
+                            // `guard_name` already is on the line below. Passed as
+                            // firstOrCreate()'s second argument (creation-only
+                            // values), not the first (search criteria), so this
+                            // does not change which existing row a lookup matches.
                             $permission_item = Permission::firstOrCreate([
                                 'name' => $permission_name,
                                 'title' => $permission_title,
                                 'guard_name' => 'web',
+                            ], [
+                                'permission_to_all' => 'No',
                             ]);
                             $permission_item->update([
-                                'module_id' => $module_item->id
+                                'module_id' => $module_item->id,
                             ]);
                             $this->setPermissionToMasterAdmin($role_item, $permission_item);
                         }
@@ -187,16 +190,14 @@ class ModuleSeeder extends Seeder
         Permission::whereNull('module_id')->delete();
     }
 
-
     // Assign All permissions to Master Admin [Start]
 
     private function setPermissionToMasterAdmin(Role $role_item, Permission $permission_item): void
     {
-        if (!is_null($role_item)) {
+        if (! is_null($role_item)) {
             $role_item->givePermissionTo($permission_item);
         }
     }
-
 
     // Assign All permissions to Master Admin [End]
 }

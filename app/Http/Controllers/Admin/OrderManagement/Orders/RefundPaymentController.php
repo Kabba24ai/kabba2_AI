@@ -12,6 +12,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OrderManagement\Orders\RefundRequest;
 
 // Models
+use App\Enums\Orders\ProcessedReason;
+use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use App\Services\AuthorizeNetService;
 
@@ -39,6 +41,15 @@ class RefundPaymentController extends Controller
         $validated = $request->validated();
         $user = auth()->user();
 
+        // Processed By audit layer: the employee physically at the terminal
+        // (code already verified by RefundRequest) — recorded alongside the
+        // logged-in user, never instead of it.
+        $processedBy = User::findOrFail($validated['processed_by']);
+        $reason      = ProcessedReason::from($validated['reason']);
+        $reasonText  = $reason->label()
+            . ($reason === ProcessedReason::Other && filled($validated['reason_other'] ?? null)
+                ? ' — ' . $validated['reason_other'] : '');
+
 
         try {
             $order = Order::has('lastPaidPayment')->with('customer')->where('unique_id', $uniqueId)->firstOrFail();
@@ -52,7 +63,7 @@ class RefundPaymentController extends Controller
 
             if ($isCardRefund && $isOriginalCard) {
                 // Here you would integrate with your payment gateway to process the refund.
-                $authorizeNetService = new AuthorizeNetService();
+                $authorizeNetService = app(AuthorizeNetService::class);
 
                 if($lastPaymentId){
                     $transactionDetails = $authorizeNetService->getTransactionDetails($lastPaymentId);
@@ -71,7 +82,7 @@ class RefundPaymentController extends Controller
 
                 $response = $authorizeNetService->refundOrder($lastPaymentId, $validated['amount'], [
                     'order_number' => $order->order_number,
-                    'refund_note' => $validated['reason'],
+                    'refund_note' => $reasonText,
                 ]);
 
                 if (($response['status'] ?? null) !== 'success') {
@@ -91,7 +102,7 @@ class RefundPaymentController extends Controller
                 $authCode        = $response['auth_code']         ?? null;
             } else {
                 // For non-card refunds or if original was not card, just log the refund without processing through gateway
-                logger()->info('Refund logged for Order ID: ' . $order->unique_id . ' - Refund Payment Method: ' . $refundPaymentType . ' - Amount: ' . $validated['amount'] . ' - Reason: ' . $validated['reason']);
+                logger()->info('Refund logged for Order ID: ' . $order->unique_id . ' - Refund Payment Method: ' . $refundPaymentType . ' - Amount: ' . $validated['amount'] . ' - Reason: ' . $reasonText);
 
                 $transactionId   = null;
                 $gatewayRefundId = null;
@@ -150,10 +161,16 @@ class RefundPaymentController extends Controller
                 'status'                  => $refundStatus->value,
                 'refund_amount'           => $currentRefundAmount,
                 'tax_refunded'            => $taxRefunded,
-                'refund_note'             => $validated['reason'],
+                'refund_note'             => $reasonText,
                 'cheque_number'           => $validated['cheque_number'] ?? null,
                 'created_by_type'         => get_class($user),
                 'created_by_id'           => $user->id,
+                // Processed By audit (additive — logged-in user above unchanged)
+                'processed_by_id'         => $processedBy->id,
+                'processed_by_name'       => $processedBy->full_name,
+                'processed_reason_code'   => $reason->value,
+                'processed_reason_label'  => $reason->label(),
+                'processed_reason_other'  => $validated['reason_other'] ?? null,
             ]);
 
             event(new RefundInitiateEvent($order, $user, $payment));

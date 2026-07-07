@@ -6,15 +6,35 @@ use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Enums\Orders\ProcessedReason;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\OrderManagement\Orders\VoidRequest;
+use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use App\Services\AuthorizeNetService;
 
 class VoidPaymentController extends Controller
 {
-    public function __invoke($uniqueId)
+    public function __invoke($uniqueId, VoidRequest $request)
     {
         $user = auth()->user();
+
+        // Processed By audit layer: the employee physically at the terminal
+        // (code already verified by VoidRequest) — recorded alongside the
+        // logged-in user, never instead of it.
+        $validated   = $request->validated();
+        $processedBy = User::findOrFail($validated['processed_by']);
+        $reason      = ProcessedReason::from($validated['reason']);
+        $reasonText  = $reason->label()
+            . ($reason === ProcessedReason::Other && filled($validated['reason_other'] ?? null)
+                ? ' — ' . $validated['reason_other'] : '');
+        $processedAudit = [
+            'processed_by_id'        => $processedBy->id,
+            'processed_by_name'      => $processedBy->full_name,
+            'processed_reason_code'  => $reason->value,
+            'processed_reason_label' => $reason->label(),
+            'processed_reason_other' => $validated['reason_other'] ?? null,
+        ];
 
         try {
             $order = Order::with(['lastPaidPayment', 'customer'])
@@ -38,7 +58,7 @@ class VoidPaymentController extends Controller
             }
 
             // Confirm the transaction is still unsettled via the gateway before attempting void
-            $anet = new AuthorizeNetService();
+            $anet = app(AuthorizeNetService::class);
             $details = $anet->getTransactionDetails($transactionId);
 
             if (!$details) {
@@ -58,10 +78,10 @@ class VoidPaymentController extends Controller
                     return response()->json(['success' => false, 'message' => 'This payment has already been voided.'], 422);
                 }
 
-                $payment->update([
+                $payment->update(array_merge([
                     'status'    => OrderPaymentStatus::Voided,
                     'voided_at' => now(),
-                ]);
+                ], $processedAudit));
 
                 $order->history()->create([
                     'user_id'     => $user->id,
@@ -69,7 +89,9 @@ class VoidPaymentController extends Controller
                     'action_date' => now(),
                     'action_by'   => OrderHistoryActionBy::User,
                     'action'      => OrderHistoryAction::TransactionVoided,
-                    'description' => 'Payment of $' . number_format((float) $payment->amount, 2) . ' voided by ' . $user->full_name . '.',
+                    'description' => 'Payment of $' . number_format((float) $payment->amount, 2) . ' voided by ' . $user->full_name
+                        . '. Processed by ' . $processedBy->full_name . ' (Employee ID verified). Reason: ' . $reasonText . '.',
+                    'extras'      => json_encode($processedAudit),
                 ]);
 
                 return response()->json(['success' => true, 'message' => 'Payment voided successfully.']);
@@ -92,10 +114,10 @@ class VoidPaymentController extends Controller
             }
 
             // Mark original payment as voided — no new row, void is an in-place reversal
-            $payment->update([
+            $payment->update(array_merge([
                 'status'    => OrderPaymentStatus::Voided,
                 'voided_at' => now(),
-            ]);
+            ], $processedAudit));
 
             $order->history()->create([
                 'user_id'     => $user->id,
@@ -103,7 +125,9 @@ class VoidPaymentController extends Controller
                 'action_date' => now(),
                 'action_by'   => OrderHistoryActionBy::User,
                 'action'      => OrderHistoryAction::TransactionVoided,
-                'description' => 'Payment of $' . number_format((float) $payment->amount, 2) . ' voided by ' . $user->full_name . '.',
+                'description' => 'Payment of $' . number_format((float) $payment->amount, 2) . ' voided by ' . $user->full_name
+                    . '. Processed by ' . $processedBy->full_name . ' (Employee ID verified). Reason: ' . $reasonText . '.',
+                'extras'      => json_encode($processedAudit),
             ]);
 
             return response()->json(['success' => true, 'message' => 'Payment voided successfully.']);

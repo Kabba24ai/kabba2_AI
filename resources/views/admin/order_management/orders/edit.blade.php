@@ -2347,17 +2347,69 @@
                 <button type="button" class="void-modal-close text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
             </div>
             <div class="p-6 flex flex-col gap-4">
+                <div class="bg-gray-50 rounded-lg p-3 text-sm space-y-1 text-gray-600">
+                    <div>Order: <span class="font-medium text-gray-900">{{ $order->order_number }}</span></div>
+                    <div>Customer: <span class="font-medium text-gray-900">{{ $order->customer_name }}</span></div>
+                    <div>Amount: <span id="void_display_amount" class="font-medium text-gray-900"></span></div>
+                </div>
+
+                <!-- Reason -->
+                <div>
+                    <label class="text-sm font-medium text-gray-700 required" for="void_reason">
+                        Reason for Void
+                    </label>
+                    <select id="void_reason" name="reason" required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                        <option value="">Select reason</option>
+                        @foreach (\App\Enums\Orders\ProcessedReason::options() as $reasonValue => $reasonLabel)
+                            <option value="{{ $reasonValue }}">{{ $reasonLabel }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Other reason (hidden unless "Other") -->
+                <div id="void_reason_other_field" class="hidden">
+                    <label class="text-sm font-medium text-gray-700 required" for="void_reason_other">
+                        Other Reason
+                    </label>
+                    <input type="text" id="void_reason_other" name="reason_other" maxlength="255"
+                        placeholder="Describe the reason"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500" />
+                </div>
+
+                <!-- Processed By — the employee physically at the counter -->
+                <div class="border-t border-gray-200 pt-4">
+                    <p class="text-sm font-semibold text-gray-800 mb-2">Processed By</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 required" for="void_processed_by">
+                                Processed By
+                            </label>
+                            <select id="void_processed_by" name="processed_by" required
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                                <option value="">Select employee</option>
+                                @foreach ($employees as $employee)
+                                    <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 required" for="void_employee_code">
+                                Employee ID
+                            </label>
+                            <input type="text" id="void_employee_code" name="employee_code" maxlength="20"
+                                autocomplete="off" inputmode="numeric" placeholder="Confirm your Employee ID"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500" />
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 flex gap-3">
                     <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                     <div class="text-sm text-orange-800">
                         <p class="font-semibold mb-1">Are you sure you want to void this payment?</p>
                         <p>This will void the full payment transaction through Authorize.net and mark the order as voided. Voided orders are removed from the rental schedule and excluded from sales reports. This action cannot be undone.</p>
                     </div>
-                </div>
-                <div class="bg-gray-50 rounded-lg p-3 text-sm space-y-1 text-gray-600">
-                    <div>Order: <span class="font-medium text-gray-900">{{ $order->order_number }}</span></div>
-                    <div>Customer: <span class="font-medium text-gray-900">{{ $order->customer_name }}</span></div>
-                    <div>Amount: <span id="void_display_amount" class="font-medium text-gray-900"></span></div>
                 </div>
                 <div class="flex gap-3 justify-end">
                     <button type="button" class="void-modal-close px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
@@ -2460,12 +2512,26 @@
                             <label class="text-sm font-medium text-gray-700 required" for="refund_reason">
                                 Reason for Refund
                             </label>
-                            <input type="text" id="refund_reason" name="reason"
-                                placeholder="Enter reason for refund"
-                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500" />
+                            <select id="refund_reason" name="reason" required
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:ring focus:border-blue-500">
+                                <option value="">Select reason</option>
+                                @foreach (\App\Enums\Orders\ProcessedReason::options() as $reasonValue => $reasonLabel)
+                                    <option value="{{ $reasonValue }}">{{ $reasonLabel }}</option>
+                                @endforeach
+                            </select>
                             <p id="rf_err_reason" class="text-red-500 text-xs mt-1 hidden">
-                                Please enter a reason for the refund.
+                                Please select a reason for the refund.
                             </p>
+                        </div>
+
+                        <!-- Other reason (hidden unless "Other") -->
+                        <div id="refund_reason_other_field" class="hidden">
+                            <label class="text-sm font-medium text-gray-700 required" for="refund_reason_other">
+                                Other Reason
+                            </label>
+                            <input type="text" id="refund_reason_other" name="reason_other" maxlength="255"
+                                placeholder="Describe the reason"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500" />
                         </div>
 
                         <!-- Payment Type -->
@@ -2514,6 +2580,36 @@
                                 <p id="rf_type_label" class="text-sm font-medium"></p>
                             </div>
                             <p id="rf_type_text" class="text-xs mt-1"></p>
+                        </div>
+
+                        <!-- Processed By — the employee physically at the counter -->
+                        <div class="border-t border-gray-200 pt-4">
+                            <p class="text-sm font-semibold text-gray-800 mb-2">Processed By</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 required" for="refund_processed_by">
+                                        Processed By
+                                    </label>
+                                    <select id="refund_processed_by" name="processed_by" required
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                                        <option value="">Select employee</option>
+                                        @foreach ($employees as $employee)
+                                            <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 required" for="refund_employee_code">
+                                        Employee ID
+                                    </label>
+                                    <input type="text" id="refund_employee_code" name="employee_code" maxlength="20"
+                                        autocomplete="off" inputmode="numeric" placeholder="Confirm your Employee ID"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring focus:border-blue-500" />
+                                </div>
+                            </div>
+                            <p id="rf_err_processed_by" class="text-red-500 text-xs mt-1 hidden">
+                                Select the employee and enter their Employee ID.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -5246,6 +5342,38 @@
                 }
             });
 
+            // "Other" reason reveals its describe field
+            const refundReasonOtherField = document.getElementById('refund_reason_other_field');
+            refundReasonInput.addEventListener('change', function() {
+                refundReasonOtherField.classList.toggle('hidden', this.value !== 'other');
+            });
+
+            // Processed By verification fields
+            const refundProcessedBy   = document.getElementById('refund_processed_by');
+            const refundEmployeeCode  = document.getElementById('refund_employee_code');
+            const errProcessedBy      = document.getElementById('rf_err_processed_by');
+
+            function refundProcessedByValid() {
+                const ok = refundProcessedBy.value && refundEmployeeCode.value.trim();
+                errProcessedBy.classList.toggle('hidden', !!ok);
+                return !!ok;
+            }
+
+            function refundReasonOtherValid() {
+                if (refundReasonInput.value === 'other' && !document.getElementById('refund_reason_other').value.trim()) {
+                    notyf.error('Describe the reason when "Other" is selected.');
+                    return false;
+                }
+                return true;
+            }
+
+            function refundReasonDisplay() {
+                const label = refundReasonInput.selectedOptions.length ?
+                    refundReasonInput.selectedOptions[0].text : '';
+                const other = document.getElementById('refund_reason_other').value.trim();
+                return refundReasonInput.value === 'other' && other ? label + ' — ' + other : label;
+            }
+
             document.getElementById('refundForm').addEventListener('submit', function(e) {
                 e.preventDefault();
 
@@ -5264,7 +5392,11 @@
 
                 const reason = refundReasonInput.value.trim();
                 if (!reason) {
-                    notyf.error('Please enter a refund reason.');
+                    notyf.error('Please select a refund reason.');
+                    return;
+                }
+
+                if (!refundReasonOtherValid() || !refundProcessedByValid()) {
                     return;
                 }
 
@@ -5285,6 +5417,9 @@
                         body: JSON.stringify({
                             amount: amt,
                             reason: reason,
+                            reason_other: document.getElementById('refund_reason_other').value.trim() || null,
+                            processed_by: refundProcessedBy.value,
+                            employee_code: refundEmployeeCode.value.trim(),
                             payment_type: document.getElementById('refund_payment_type').value,
                             cheque_number: document.getElementById('refund_cheque_number')
                                 .value || null
@@ -5295,7 +5430,8 @@
                             notyf.success(res.message);
                             window.location.reload();
                         } else {
-                            notyf.error(res && res.message);
+                            const firstError = res && res.errors ? Object.values(res.errors)[0][0] : null;
+                            notyf.error(firstError || (res && res.message));
                         }
                     })
                     .finally(() => {
@@ -5329,6 +5465,10 @@
                     return;
                 }
 
+                if (!refundReasonOtherValid() || !refundProcessedByValid()) {
+                    return;
+                }
+
                 // If all validations pass, proceed with the refund
                 showConfirmationStep();
             });
@@ -5339,7 +5479,7 @@
                 hide(refundFormStepBtnDiv);
                 show(refundConfirmStepBtnDiv);
                 confirmAmount.textContent = amountInput.value;
-                confirmReason.textContent = refundReasonInput.value;
+                confirmReason.textContent = refundReasonDisplay();
                 confirmRemaining.textContent = (originalAmount - parseFloat(amountInput.value)).toFixed(2);
                 if (parseFloat(confirmRemaining.textContent) <= 0) {
                     hide(confirmRemainingDiv);
@@ -5381,7 +5521,31 @@
             voidModal.querySelectorAll('.void-modal-close').forEach(el => el.addEventListener('click', closeVoid));
             voidModal.addEventListener('click', function (e) { if (e.target === voidModal) closeVoid(); });
 
+            // Processed By verification + reason fields
+            const voidReason        = document.getElementById('void_reason');
+            const voidReasonOther   = document.getElementById('void_reason_other');
+            const voidReasonOtherEl = document.getElementById('void_reason_other_field');
+            const voidProcessedBy   = document.getElementById('void_processed_by');
+            const voidEmployeeCode  = document.getElementById('void_employee_code');
+
+            voidReason.addEventListener('change', function () {
+                voidReasonOtherEl.classList.toggle('hidden', this.value !== 'other');
+            });
+
             confirmBtn.addEventListener('click', function () {
+                if (!voidReason.value) {
+                    if (window.notyf) notyf.error('Please select a reason for the void.');
+                    return;
+                }
+                if (voidReason.value === 'other' && !voidReasonOther.value.trim()) {
+                    if (window.notyf) notyf.error('Describe the reason when "Other" is selected.');
+                    return;
+                }
+                if (!voidProcessedBy.value || !voidEmployeeCode.value.trim()) {
+                    if (window.notyf) notyf.error('Select the employee and enter their Employee ID.');
+                    return;
+                }
+
                 confirmBtn.disabled = true;
                 confirmBtn.textContent = 'Processing…';
 
@@ -5391,6 +5555,12 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     },
+                    body: JSON.stringify({
+                        reason: voidReason.value,
+                        reason_other: voidReasonOther.value.trim() || null,
+                        processed_by: voidProcessedBy.value,
+                        employee_code: voidEmployeeCode.value.trim(),
+                    }),
                 })
                 .then(r => r.json())
                 .then(data => {
@@ -5399,7 +5569,8 @@
                         if (window.notyf) notyf.success(data.message || 'Payment voided successfully.');
                         setTimeout(() => window.location.reload(), 800);
                     } else {
-                        if (window.notyf) notyf.error(data.message || 'Void failed.');
+                        const firstError = data && data.errors ? Object.values(data.errors)[0][0] : null;
+                        if (window.notyf) notyf.error(firstError || data.message || 'Void failed.');
                         confirmBtn.disabled = false;
                         confirmBtn.textContent = 'Yes, Void Payment';
                     }

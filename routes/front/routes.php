@@ -20,9 +20,6 @@ Route::name('front.')->group(function () {
         // Home
         require base_path('routes/front/home/routes.php');
 
-        // Home V2 (development preview)
-        require base_path('routes/front/home_v2/routes.php');
-
         // Categories
         require base_path('routes/front/categories/routes.php');
 

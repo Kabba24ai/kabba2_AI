@@ -13,7 +13,7 @@
 @endphp
 
 @if($section && $section->status === 'Active')
-<section class="py-8">
+<section class="pt-2 pb-12">
     <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-4 md:px-0">
         <div class="bg-white rounded-2xl shadow border border-slate-100 px-8 py-6">
             <div class="flex flex-col md:flex-row items-center gap-6">

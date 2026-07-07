@@ -5,6 +5,7 @@ namespace Tests\Feature\WaitList;
 use App\Enums\WaitList\WaitListAlertStatus;
 use App\Enums\WaitList\WaitListCommunicationType;
 use App\Enums\WaitList\WaitListMatchType;
+use App\Enums\WaitList\WaitListReason;
 use App\Enums\WaitList\WaitListRequestType;
 use App\Enums\WaitList\WaitListStatus;
 use App\Enums\WaitList\WaitListStorePreference;
@@ -101,8 +102,8 @@ class EquipmentWaitListTest extends TestCase
             'request_type'        => WaitListRequestType::Category->value,
             'product_category_id' => $this->category->id,
             'store_preference'    => WaitListStorePreference::AnyStore->value,
-            'reason'              => 'Needs an excavator ASAP',
-            'priority_override'   => 5,
+            'reason'              => WaitListReason::EquipmentFullyBooked->value,
+            'priority_override'   => 2,
         ])->assertRedirect();
 
         $this->assertDatabaseHas('equipment_wait_lists', [
@@ -112,9 +113,81 @@ class EquipmentWaitListTest extends TestCase
             'phone'         => '555-0100',
             'email'         => 'mike@harrisongrading.test',
             'status'        => 'active',
-            'priority_override' => 5,
+            // Reason arrives as a code, is stored as its readable label
+            'reason'        => 'Equipment fully booked',
+            'priority_override' => 2,
             'created_by'    => $this->admin->id,
         ]);
+    }
+
+    public function test_reason_must_come_from_pre_canned_dropdown(): void
+    {
+        $payload = fn (string $reason) => [
+            'customer_id'         => $this->customer->id,
+            'request_type'        => WaitListRequestType::Category->value,
+            'product_category_id' => $this->category->id,
+            'store_preference'    => WaitListStorePreference::AnyStore->value,
+            'reason'              => $reason,
+        ];
+
+        // Sentence-style free text is no longer accepted
+        $this->post(route('admin.wait-list.store'), $payload('Needs an excavator ASAP'))
+            ->assertSessionHasErrors('reason');
+
+        $this->assertDatabaseCount('equipment_wait_lists', 0);
+
+        // Every dropdown code is accepted and stored as its label
+        foreach (WaitListReason::cases() as $reason) {
+            $this->post(route('admin.wait-list.store'), $payload($reason->value))
+                ->assertSessionHasNoErrors();
+
+            $this->assertDatabaseHas('equipment_wait_lists', ['reason' => $reason->label()]);
+        }
+    }
+
+    public function test_priority_override_allows_only_top_three_positions(): void
+    {
+        $payload = fn ($priority) => [
+            'customer_id'         => $this->customer->id,
+            'request_type'        => WaitListRequestType::Category->value,
+            'product_category_id' => $this->category->id,
+            'store_preference'    => WaitListStorePreference::AnyStore->value,
+            'reason'              => WaitListReason::UnitDamaged->value,
+            'priority_override'   => $priority,
+        ];
+
+        // Old free-entry values are rejected — only #1–#3 exist in the dropdown
+        foreach ([0, 4, 5, 100, 'high'] as $invalid) {
+            $this->post(route('admin.wait-list.store'), $payload($invalid))
+                ->assertSessionHasErrors('priority_override');
+        }
+        $this->assertDatabaseCount('equipment_wait_lists', 0);
+
+        foreach ([1, 2, 3] as $position) {
+            $this->post(route('admin.wait-list.store'), $payload($position))
+                ->assertSessionHasNoErrors();
+
+            $this->assertDatabaseHas('equipment_wait_lists', ['priority_override' => $position]);
+        }
+
+        // "No priority override" submits blank and stores null
+        $this->post(route('admin.wait-list.store'), $payload(''))->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('equipment_wait_lists', ['priority_override' => null]);
+    }
+
+    public function test_urgency_ordering_matches_dropdown_positions(): void
+    {
+        // Created oldest-first WITHOUT overrides, then given positions out of order
+        $second = $this->makeWaitList(['priority_override' => 2]);
+        $none   = $this->makeWaitList();
+        $first  = $this->makeWaitList(['priority_override' => 1]);
+
+        // "Make this #1" must list first, then #2, then unranked records
+        $this->assertSame(
+            [$first->id, $second->id, $none->id],
+            EquipmentWaitList::byUrgency()->pluck('id')->all()
+        );
     }
 
     public function test_specific_equipment_limited_to_three_and_structured_only(): void
@@ -129,7 +202,7 @@ class EquipmentWaitListTest extends TestCase
             'request_type'     => WaitListRequestType::SpecificEquipment->value,
             'equipment_ids'    => $extra->pluck('id')->all(),
             'store_preference' => WaitListStorePreference::AnyStore->value,
-            'reason'           => 'Too many units',
+            'reason'           => WaitListReason::EquipmentFullyBooked->value,
         ])->assertSessionHasErrors('equipment_ids');
 
         // Nonexistent CRM customer / equipment → rejected (no free-form entry)
@@ -138,7 +211,7 @@ class EquipmentWaitListTest extends TestCase
             'request_type'     => WaitListRequestType::SpecificEquipment->value,
             'equipment_ids'    => [999999],
             'store_preference' => WaitListStorePreference::AnyStore->value,
-            'reason'           => 'Bad refs',
+            'reason'           => WaitListReason::EquipmentFullyBooked->value,
         ])->assertSessionHasErrors(['customer_id', 'equipment_ids.0']);
 
         // Three units → accepted
@@ -148,7 +221,7 @@ class EquipmentWaitListTest extends TestCase
             'equipment_ids'    => $extra->take(3)->pluck('id')->all(),
             'store_preference' => WaitListStorePreference::SpecificStore->value,
             'store_id'         => null,
-            'reason'           => 'Three candidates',
+            'reason'           => WaitListReason::RequestedSpecificUnit->value,
         ])->assertSessionHasErrors('store_id'); // specific store requires a store
 
         $this->post(route('admin.wait-list.store'), [
@@ -156,7 +229,7 @@ class EquipmentWaitListTest extends TestCase
             'request_type'     => WaitListRequestType::SpecificEquipment->value,
             'equipment_ids'    => $extra->take(3)->pluck('id')->all(),
             'store_preference' => WaitListStorePreference::AnyStore->value,
-            'reason'           => 'Three candidates',
+            'reason'           => WaitListReason::RequestedSpecificUnit->value,
         ])->assertRedirect();
 
         $this->assertDatabaseCount('equipment_wait_list_items', 3);

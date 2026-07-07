@@ -11,6 +11,7 @@
     @include('flash::message')
 
     @php
+        use App\Enums\WaitList\WaitListReason;
         use App\Enums\WaitList\WaitListRequestType;
         use App\Enums\WaitList\WaitListStorePreference;
         $inputClass = 'w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm bg-white focus:ring focus:border-blue-400 outline-none';
@@ -33,10 +34,10 @@
 
     <form method="POST" action="{{ route('admin.wait-list.store') }}">
         @csrf
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6 grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div class="md:col-span-2 xl:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1 required">CRM Customer</label>
-                <select name="customer_id" required class="{{ $inputClass }}">
+                <select name="customer_id" id="wl-customer" required class="{{ $inputClass }}">
                     <option value="">— Select customer —</option>
                     @foreach ($customers as $customer)
                         <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>
@@ -69,7 +70,7 @@
                 @error('product_category_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 
-            <div id="wl-equipment-wrap" class="lg:col-span-2 hidden">
+            <div id="wl-equipment-wrap" class="md:col-span-2 xl:col-span-4 hidden">
                 <label class="block text-sm font-medium text-gray-700 mb-1 required">Specific Equipment (up to 3)</label>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     @for ($i = 0; $i < 3; $i++)
@@ -107,30 +108,40 @@
                 @error('store_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 
-            <div class="lg:col-span-2">
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1 required">Reason for Wait List</label>
-                <input type="text" name="reason" required value="{{ old('reason') }}"
-                    placeholder="e.g. Needs a mini excavator for a job starting as soon as one frees up"
-                    class="{{ $inputClass }}">
+                <select name="reason" required class="{{ $inputClass }}">
+                    <option value="">— Select reason —</option>
+                    @foreach (WaitListReason::options() as $value => $label)
+                        <option value="{{ $value }}" @selected(old('reason') === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
                 @error('reason')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 
-            <div class="lg:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Internal Notes</label>
-                <textarea name="internal_notes" rows="2" class="{{ $inputClass }}">{{ old('internal_notes') }}</textarea>
-            </div>
-
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Priority Override (optional)</label>
-                <input type="number" name="priority_override" min="1" max="100" value="{{ old('priority_override') }}"
-                    placeholder="Higher = more urgent" class="{{ $inputClass }}">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Priority Override</label>
+                <select name="priority_override" class="{{ $inputClass }}">
+                    <option value="">No priority override</option>
+                    @foreach ([1, 2, 3] as $position)
+                        <option value="{{ $position }}" @selected(old('priority_override') == $position)>Make this #{{ $position }}</option>
+                    @endforeach
+                </select>
+                @error('priority_override')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 
-            <div class="lg:col-span-2 pt-2 border-t border-gray-100">
+            <div class="md:col-span-2 xl:col-span-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Internal Notes</label>
+                <textarea name="internal_notes" rows="4"
+                    placeholder="Any extra explanation for the wait list reason, timing details, callbacks promised, etc."
+                    class="{{ $inputClass }}">{{ old('internal_notes') }}</textarea>
+            </div>
+
+            <div class="md:col-span-2 xl:col-span-4 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-3">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition">
                     Create Wait List Record
                 </button>
-                <span class="text-xs text-gray-400 ml-2">No automatic customer notifications, holds, or reservations are created.</span>
+                <span class="text-xs text-gray-400">No automatic customer notifications, holds, or reservations are created.</span>
             </div>
         </div>
     </form>
@@ -152,6 +163,18 @@ document.addEventListener('DOMContentLoaded', function () {
     type.addEventListener('change', sync);
     pref.addEventListener('change', sync);
     sync();
+
+    // Searchable CRM customer selector — search box opens with the dropdown,
+    // filtering across name / company / phone in the option label.
+    new Choices(document.getElementById('wl-customer'), {
+        searchEnabled: true,
+        shouldSort: false,
+        itemSelectText: '',
+        searchResultLimit: 1000,
+        renderChoiceLimit: -1,
+        searchPlaceholderValue: 'Type customer, company, or contact name…',
+        placeholderValue: '— Select customer —',
+    });
 });
 </script>
 @endpush

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin\WaitList;
 
+use App\Enums\WaitList\WaitListReason;
 use App\Enums\WaitList\WaitListRequestType;
 use App\Enums\WaitList\WaitListStorePreference;
 use Illuminate\Foundation\Http\FormRequest;
@@ -38,9 +39,11 @@ class SaveWaitListRequest extends FormRequest
                 ], true)),
                 'nullable', 'exists:stores,id',
             ],
-            'reason'              => ['required', 'string', 'max:2000'],
+            // Pre-canned reason codes only — extra explanation goes in Internal Notes
+            'reason'              => ['required', Rule::enum(WaitListReason::class)],
             'internal_notes'      => ['nullable', 'string', 'max:5000'],
-            'priority_override'   => ['nullable', 'integer', 'min:1', 'max:100'],
+            // Manual queue positions only: blank, #1, #2, or #3
+            'priority_override'   => ['nullable', 'integer', Rule::in([1, 2, 3])],
         ];
     }
 

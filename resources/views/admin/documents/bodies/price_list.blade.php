@@ -22,7 +22,7 @@
             <tr>
                 <th>Product</th>
                 <th>Daily</th>
-                <th>Weekend Special</th>
+                <th>Weekend</th>
                 <th>Weekly</th>
                 <th>Monthly</th>
                 <th>Std Del</th>

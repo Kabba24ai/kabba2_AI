@@ -119,42 +119,48 @@
         {{-- Document body --}}
         @include($document->bodyView())
 
-        {{-- Final page: general information + disclaimers --}}
-        @if ($document->generalInfo() || $document->disclaimer())
-            <section class="final-page page-break keep-together" style="margin-top: 24px;">
-                @if ($info = $document->generalInfo())
-                    <h2>General Information</h2>
-                    <div class="info-grid">
-                        <div>
-                            @if (!empty($info['phone']))
-                                <h3>{{ $info['phone_label'] ?? 'Phone' }}</h3>
-                                <p>{{ $info['phone'] }}</p>
-                            @endif
-                            <h3>Website</h3>
-                            <p>{{ $document->brand()['website'] }}</p>
-                            @if (!empty($info['hours']))
-                                <h3>Hours</h3>
-                                @foreach ($info['hours'] as $line)
-                                    <p>{{ $line }}</p>
-                                @endforeach
+        {{-- Closing sections flow directly after the body (customer-first
+             order: promo message, then general info, then disclaimer) — no
+             forced page break, so the document uses as few pages as practical --}}
+        @php($info = $document->generalInfo())
+        @if ($info || $document->disclaimer())
+            <section class="final-page" style="margin-top: 20px;">
+                @if (!empty($info['value_message']))
+                    <p class="value-message keep-together">{{ $info['value_message'] }}</p>
+                @endif
+
+                @if ($info)
+                    <div class="keep-together">
+                        <h2>General Information</h2>
+                        <div class="info-grid">
+                            <div>
+                                @if (!empty($info['phone']))
+                                    <h3>{{ $info['phone_label'] ?? 'Phone' }}</h3>
+                                    <p>{{ $info['phone'] }}</p>
+                                @endif
+                                <h3>Website</h3>
+                                <p>{{ $document->brand()['website'] }}</p>
+                                @if (!empty($info['hours']))
+                                    <h3>Hours</h3>
+                                    @foreach ($info['hours'] as $line)
+                                        <p>{{ $line }}</p>
+                                    @endforeach
+                                @endif
+                            </div>
+                            @if (!empty($info['stores']) && $info['stores']->isNotEmpty())
+                                <div>
+                                    <h3>Store Locations</h3>
+                                    @foreach ($info['stores'] as $store)
+                                        <p style="margin-bottom: 6px;">
+                                            <strong>{{ $store->store_name }}</strong><br>
+                                            @if ($store->address){{ $store->address }}@if ($store->city), {{ $store->city }}@endif @if ($store->zip_code){{ $store->zip_code }}@endif<br>@endif
+                                            @if ($store->phone){{ $store->phone }}@endif
+                                        </p>
+                                    @endforeach
+                                </div>
                             @endif
                         </div>
-                        @if (!empty($info['stores']) && $info['stores']->isNotEmpty())
-                            <div>
-                                <h3>Store Locations</h3>
-                                @foreach ($info['stores'] as $store)
-                                    <p style="margin-bottom: 6px;">
-                                        <strong>{{ $store->store_name }}</strong><br>
-                                        @if ($store->address){{ $store->address }}@if ($store->city), {{ $store->city }}@endif @if ($store->zip_code){{ $store->zip_code }}@endif<br>@endif
-                                        @if ($store->phone){{ $store->phone }}@endif
-                                    </p>
-                                @endforeach
-                            </div>
-                        @endif
                     </div>
-                    @if (!empty($info['value_message']))
-                        <p class="value-message">{{ $info['value_message'] }}</p>
-                    @endif
                 @endif
 
                 @if ($document->disclaimer())

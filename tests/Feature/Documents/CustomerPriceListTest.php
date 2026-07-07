@@ -160,6 +160,47 @@ class CustomerPriceListTest extends TestCase
             ->assertSee('three days of rental often gets you seven days of use', false);
     }
 
+    // Customer-first flow: all pricing → promo message → general info → disclaimer,
+    // with no forced page break before the closing sections
+    public function test_sections_render_in_customer_first_order(): void
+    {
+        $html = $this->get(route('admin.documents.price-list.generate', [
+            'category_ids' => [$this->excavators->id, $this->attachments->id],
+        ]))->assertOk()->getContent();
+
+        $positions = [
+            'last pricing row'  => strpos($html, 'Auger Attachment'),
+            'promo message'     => strpos($html, 'three days of rental often gets you seven days of use'),
+            'general info'      => strpos($html, 'General Information'),
+            'disclaimer'        => strpos($html, 'Important Pricing Information'),
+        ];
+
+        foreach ($positions as $section => $position) {
+            $this->assertNotFalse($position, "Missing section: $section");
+        }
+
+        $ordered = array_values($positions);
+        $sorted  = $ordered;
+        sort($sorted);
+        $this->assertSame($sorted, $ordered, 'Sections out of customer-first order: ' . json_encode($positions));
+
+        // Closing sections flow after pricing — never a forced separate page
+        $this->assertStringContainsString('<section class="final-page"', $html);
+        $this->assertStringNotContainsString('final-page page-break', $html);
+    }
+
+    // Display-only rename: header says Weekend, values untouched
+    public function test_weekend_column_renamed_without_changing_values(): void
+    {
+        $response = $this->get(route('admin.documents.price-list.generate', [
+            'category_ids' => [$this->excavators->id],
+        ]))->assertOk();
+
+        $response->assertDontSee('Weekend Special')
+            ->assertSeeInOrder(['Product', 'Daily', 'Weekend', 'Weekly', 'Monthly', 'Std Del', 'Ext Del'])
+            ->assertSee('$375.00'); // mini excavator rental_weekend, straight from the record
+    }
+
     // Framework registry resolves documents and rejects unknown keys
     public function test_document_generator_registry(): void
     {

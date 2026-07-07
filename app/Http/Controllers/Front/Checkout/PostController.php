@@ -281,10 +281,15 @@ class PostController extends Controller
             $timeFormat = config('app.date.db_time_format');
 
             $orderProductRows = [];
+            $hasRentalProduct = false;
 
             foreach ($cartSummary['cart_items'] as $item) {
 
                 if ($item) {
+                    if (($item['product_type'] ?? null) === 'Rental') {
+                        $hasRentalProduct = true;
+                    }
+
                     $orderProductRows[] = [
                         'order_id' => $order->id,
                         'product_id' => $item['product_id'],
@@ -584,8 +589,8 @@ class PostController extends Controller
             }
 
 
-            // Dispatch delayed jobs for terms request if terms are pending (after response)
-            if ($order->terms_status === OrderTermsStatus::Pending) {
+            // Dispatch delayed jobs for terms request if terms are pending and order has a rental product (after response)
+            if ($order->terms_status === OrderTermsStatus::Pending && $hasRentalProduct) {
                 SendTermsRequestJob::dispatch($order->id, 1)->delay(now()->addMinutes(15));
                 SendTermsRequestJob::dispatch($order->id, 2)->delay(now()->addHours(2));
             }

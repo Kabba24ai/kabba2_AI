@@ -36,7 +36,7 @@ $badgePalette = ['#1F1D4E', '#B45309', '#065F46', '#1E40AF', '#6B21A8'];
 @endphp
 
 @if($section?->status !== 'Inactive' && ($activeItems->isNotEmpty() || $useStoreFallback))
-<section class="pt-10 pb-2">
+<section class="pt-4 pb-2 md:pt-6 lg:pt-8">
     <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-4 md:px-0">
 
         @if($section?->title)

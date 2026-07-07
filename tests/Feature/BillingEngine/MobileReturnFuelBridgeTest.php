@@ -265,8 +265,14 @@ class MobileReturnFuelBridgeTest extends TestCase
 
         $charge = BillingCharge::first();
 
+        // PR-A3: the key now also carries a rental-cycle disambiguator (the minimum id of
+        // the order product's currently-active checklist question rows), so a second
+        // legitimate rental cycle on the same OrderProduct doesn't collide with the first
+        // cycle's charge. This test's OrderProduct has no checklist rows, so the cycle
+        // key falls back to the literal 'nocycle' — see CORRECTION_PHASE1_PLAN.md Issue #1
+        // and BillingChargeRequest::mobileReturnDamage()'s docblock for the same pattern.
         $this->assertEquals(
-            "mobile_return_fuel:{$this->orderProduct->id}:1/4",
+            "mobile_return_fuel:{$this->orderProduct->id}:1/4:nocycle",
             $charge->idempotency_key
         );
     }
@@ -277,13 +283,15 @@ class MobileReturnFuelBridgeTest extends TestCase
     {
         $this->postSaveReturn(['fuel_final_reading' => '1/4', 'fuel_total_charge' => '85.00']);
 
-        // Direct BillingEngine call with the same key — simulates a mobile retry
+        // Direct BillingEngine call with the same key — simulates a mobile retry.
+        // Includes the ':nocycle' suffix (PR-A3) to match the real key SaveReturnController
+        // now produces for an OrderProduct with no checklist rows.
         BillingEngine::charge(new BillingChargeRequest(
             type:           BillingChargeType::Fuel->value,
             orderId:        $this->order->id,
             customerId:     $this->customer->id,
             amount:         85.00,
-            idempotencyKey: "mobile_return_fuel:{$this->orderProduct->id}:1/4",
+            idempotencyKey: "mobile_return_fuel:{$this->orderProduct->id}:1/4:nocycle",
         ));
 
         $this->assertEquals(1, BillingCharge::count());

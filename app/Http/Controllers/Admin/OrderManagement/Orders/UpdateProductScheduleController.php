@@ -152,7 +152,30 @@ class UpdateProductScheduleController extends Controller
                         EquipmentStatusLog::recordTransition($equipment->id, $beforeStatus, EquipmentCurrentStatus::Rented->value, $user->id);
                     }
                 }else if($orderProduct->delivery_status === 'Close as Completed'){
-
+                    // INTENTIONALLY CHECKLIST-EXEMPT — do not "fix" this by requiring or
+                    // generating a checklist here. "Close as Completed" is a deliberate
+                    // admin-only status letting staff administratively close an order
+                    // product (cancelled bookings, corrections, orders that never
+                    // physically shipped) WITHOUT the customer delivery/return checklist
+                    // workflow ever running. It unconditionally sets is_delivered=true,
+                    // is_returned=true, and pickup_status='Completed' with no checklist
+                    // rows created — that is correct, by-design behavior, not a bug.
+                    //
+                    // Investigated and confirmed in ISSUE5_INVESTIGATION_FINDINGS.md:
+                    // this single branch (plus its 'Completed'-status sibling below)
+                    // accounts for 831 of 875 (95%) "delivered order products with zero
+                    // checklist rows" found during the checklist-system audit. See also
+                    // docs/checklist-system-audit/CHECKLIST_EXEMPT_ADMIN_CLOSURE.md for
+                    // the full rationale and reporting guidance this implies.
+                    //
+                    // Practical implication for anyone touching order/checklist reporting,
+                    // billing reconciliation, or delivery dashboards: "has a checklist" is
+                    // NOT a valid proxy for "was physically delivered to the customer."
+                    // ~31% of delivered rental order products are administratively closed
+                    // via this path, not delivered via the checklist. Distinguish the two
+                    // (e.g. by checking delivery_status/pickup_status for the literal
+                    // 'Close as Completed' value, or by checking whether checklist rows
+                    // actually exist) rather than assuming one implies the other.
                     $orderProduct->is_delivered = true;
                     $orderProduct->is_returned = true;
                     $orderProduct->pickup_status = 'Completed';

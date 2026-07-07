@@ -155,9 +155,17 @@ final class BillingChargeRequest
     }
 
     /**
-     * Convenience constructor for future mobile return checklist damage charges.
-     * This path does not yet exist in SaveReturnController — this constructor
-     * is greenfield and should be wired when mobile damage reporting is built.
+     * Convenience constructor for mobile return checklist damage charges.
+     *
+     * $cycleKey disambiguates repeated rental cycles on the same OrderProduct
+     * row (delivery/return is reused across cycles rather than recreating the
+     * OrderProduct). Without it, a second legitimate damage charge on a
+     * re-rented order product collides with the first cycle's idempotency key
+     * and is silently dropped — see CORRECTION_PHASE1_PLAN.md Issue #1.
+     * Callers should pass a value that changes every delivery (e.g. the
+     * minimum id of the order product's currently-active
+     * order_product_checklist_questions rows, which are deleted and recreated
+     * on every save-delivery call).
      */
     public static function mobileReturnDamage(
         int    $orderId,
@@ -166,6 +174,7 @@ final class BillingChargeRequest
         float  $amount,
         ?int   $submittedByUserId,
         array  $checklistQuestionIds = [],
+        string $cycleKey = 'nocycle',
     ): self {
         return new self(
             type: BillingChargeType::Damage->value,
@@ -182,8 +191,9 @@ final class BillingChargeRequest
             metadata: [
                 'checklist_question_ids' => $checklistQuestionIds,
                 'submitted_by_user_id'   => $submittedByUserId,
+                'cycle_key'              => $cycleKey,
             ],
-            idempotencyKey: "mobile_checklist:{$orderProductId}:damage",
+            idempotencyKey: "mobile_checklist:{$orderProductId}:damage:{$cycleKey}",
         );
     }
 }

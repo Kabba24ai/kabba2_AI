@@ -17,17 +17,27 @@ class ChargeService
 {
     /**
      * Create a CustomerAccount charge record from a checklist-originated OrderProduct charge.
-     * Idempotent — will not create a duplicate if one already exists for the same OP + type.
+     * Idempotent — will not create a duplicate if one already exists for the same OP + type
+     * within the same rental cycle (see $cycleStartedAt).
      *
      * @param  OrderProduct  $orderProduct  Must have order() and order.customer loaded or loadable.
      * @param  string        $type          'fuel' | 'damage'
      * @param  int|null      $responsibleUserId
+     * @param  \Illuminate\Support\Carbon|\DateTimeInterface|null  $cycleStartedAt
+     *         When provided, only an existing charge created at or after this timestamp counts
+     *         as a duplicate for the current rental cycle — a charge from an earlier cycle on
+     *         the same OrderProduct (delivery/return reuses the same row) no longer blocks a
+     *         legitimate new charge. Pass the current cycle's delivery timestamp (e.g. the
+     *         minimum created_at of the order product's currently-active checklist question
+     *         rows, which are recreated on every save-delivery call). Null preserves the
+     *         previous, cycle-unaware behavior. See CORRECTION_PHASE1_PLAN.md Issue #1.
      * @return CustomerAccount|null  Returns null if the charge amount is zero or a record already exists.
      */
     public static function createFromOrderProduct(
         OrderProduct $orderProduct,
         string $type,
-        ?int $responsibleUserId = null
+        ?int $responsibleUserId = null,
+        $cycleStartedAt = null
     ): ?CustomerAccount {
         $amount = $type === 'fuel'
             ? (float) ($orderProduct->fuel_total_charge ?? 0)
@@ -47,11 +57,12 @@ class ChargeService
         $reason      = $type === 'fuel' ? 'Fuel Charge' : 'Damages';
         $alertField  = $type === 'fuel' ? 'fuel_alert_status' : 'damage_alert_status';
 
-        // Duplicate guard — one pending/active CA charge per OP + type
+        // Duplicate guard — one pending/active CA charge per OP + type + rental cycle
         $exists = CustomerAccount::where('order_product_id', $orderProduct->id)
             ->where('reason', $reason)
             ->where('type', 'charge')
             ->whereIn($alertField, ['pending', 'completed'])
+            ->when($cycleStartedAt !== null, fn ($q) => $q->where('created_at', '>=', $cycleStartedAt))
             ->exists();
 
         if ($exists) {

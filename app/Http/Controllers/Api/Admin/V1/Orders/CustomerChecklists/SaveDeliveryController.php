@@ -6,6 +6,7 @@ use App\Helpers\MediaHelper;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 // Services
 use App\Services\Equipment\EquipmentStatusService;
@@ -36,6 +37,9 @@ class SaveDeliveryController extends BaseController
         // status change together instead of leaving a partial commit behind a 500.
         return DB::transaction(function () use ($request, $validated) {
             $uniqueId = $validated['equipment_unique_id'];
+            // PR-A4 (observability only, no enforcement): computed inside the checklist
+            // block below when a checklist is actually submitted; stays null otherwise.
+            $missingRequiredQuestionCount = null;
 
             $orderProduct = OrderProduct::with(['checklistQuestions.answers'])
                 ->whereHas('order')
@@ -153,6 +157,19 @@ class SaveDeliveryController extends BaseController
                         }
                     }
                 }
+
+                // PR-A4: count required master questions with no selected delivery answer.
+                // Observability only — does not affect delivery_status/response below.
+                $missingRequiredQuestionCount = $orderProduct->checklistQuestions->filter(function ($checklistQuestion) use ($questions) {
+                    $masterQuestion = $questions->firstWhere('id', $checklistQuestion->question_id);
+                    // required_question is nullable on the master record; the mobile resource
+                    // layer already treats null as required for this same checklist (Phase 1
+                    // audit finding) — mirror that default here for a consistent count.
+                    $isRequired = $masterQuestion === null || $masterQuestion->required_question === null || (bool) $masterQuestion->required_question;
+                    $hasAnswer  = $checklistQuestion->answers()->where('is_delivery_answer', true)->exists();
+
+                    return $isRequired && !$hasAnswer;
+                })->count();
             }
 
             $orderProductData = [
@@ -197,6 +214,12 @@ class SaveDeliveryController extends BaseController
             $orderProduct->update($orderProductData);
             $orderProduct->softAssignment()->delete();
 
+            // PR-A4 (observability only, no enforcement — CORRECTION_PHASE1_PLAN.md Issue #3):
+            // delivery_status is set to 'Completed' unconditionally above regardless of these
+            // conditions. This block changes no behavior, no response, no status — it only
+            // makes the gap measurable so a future phase can decide whether to enforce it.
+            $this->logIfDeliveryIncomplete($orderProduct, $orderProductData, $validated, $missingRequiredQuestionCount);
+
             // fire event
             $user = auth('api_user')->user();
             $type = 'checklist_delivery';
@@ -207,5 +230,35 @@ class SaveDeliveryController extends BaseController
                 'message' => trans('messages.api.admin.v1.orders.checklist_saved_successfully'),
             ]);
         });
+    }
+
+    /**
+     * PR-A4: log (not block) when delivery_status is marked 'Completed' despite the
+     * checklist actually being incomplete — missing signature, unanswered required
+     * questions, or an empty/omitted checklist array. Purely observational: does not
+     * change delivery_status, the HTTP response, or any other behavior. See
+     * CORRECTION_PHASE1_PLAN.md Issue #3 and CHECKLIST_SYSTEM_AUDIT.md §8/§12.
+     */
+    private function logIfDeliveryIncomplete(
+        OrderProduct $orderProduct,
+        array $orderProductData,
+        array $validated,
+        ?int $missingRequiredQuestionCount
+    ): void {
+        $hasSignature       = !empty($orderProductData['delivery_signature_media_id']);
+        $checklistSubmitted = isset($validated['checklist']) && !empty($validated['checklist']);
+        $hasMissingRequired = $missingRequiredQuestionCount !== null && $missingRequiredQuestionCount > 0;
+
+        if ($hasSignature && $checklistSubmitted && !$hasMissingRequired) {
+            return;
+        }
+
+        Log::channel('api_errors')->warning('Delivery marked Completed despite incomplete checklist submission', [
+            'order_product_id'                => $orderProduct->id,
+            'order_id'                         => $orderProduct->order_id,
+            'signature_present'                => $hasSignature,
+            'checklist_submitted'              => $checklistSubmitted,
+            'missing_required_question_count'  => $missingRequiredQuestionCount,
+        ]);
     }
 }

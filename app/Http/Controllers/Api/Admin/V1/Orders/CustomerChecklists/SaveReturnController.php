@@ -81,9 +81,23 @@ class SaveReturnController extends BaseController
                 ]);
             }
 
+            // Disambiguates repeated rental cycles on this same OrderProduct row (delivery/
+            // return reuse it rather than recreating it per cycle) so a second legitimate
+            // damage/fuel charge doesn't collide with the first cycle's idempotency key and
+            // get silently dropped. SaveDeliveryController deletes and recreates every
+            // order_product_checklist_questions row on every delivery, so the currently-active
+            // batch's minimum id/created_at is a reliable, already-present per-cycle nonce —
+            // no schema change needed. See CORRECTION_PHASE1_PLAN.md Issue #1.
+            $cycleKey       = (string) ($orderProduct->checklistQuestions->min('id') ?? 'nocycle');
+            $cycleStartedAt = $orderProduct->checklistQuestions->min('created_at');
+
             // Tracks whether any selected return answer has is_damaged=true.
             // Set inside the checklist block; used to branch equipment status and damage_status below.
             $hasDamagedReturn = false;
+
+            // PR-A4 (observability only, no enforcement): computed inside the checklist
+            // block below when a checklist is actually submitted; stays null otherwise.
+            $missingRequiredQuestionCount = null;
 
             if(isset($validated['checklist']) && !empty($validated['checklist'])) {
                 $questions = optional($orderProduct->checklistQuestions) ?? collect();
@@ -144,6 +158,7 @@ class SaveReturnController extends BaseController
                             amount:               $damageAmount,
                             submittedByUserId:    isset($validated['user_id']) ? (int) $validated['user_id'] : null,
                             checklistQuestionIds: $damagedQuestionIds,
+                            cycleKey:             $cycleKey,
                         ));
 
                         Log::channel('billing_engine')->info(
@@ -160,6 +175,19 @@ class SaveReturnController extends BaseController
                         );
                     }
                 }
+
+                // PR-A4: count required master questions with no selected return answer.
+                // Observability only — does not affect pickup_status/response below.
+                $missingRequiredQuestionCount = $questions->filter(function ($checklistQuestion) {
+                    $masterQuestion = $checklistQuestion->question;
+                    // required_question is nullable on the master record; the mobile resource
+                    // layer already treats null as required for this same checklist (Phase 1
+                    // audit finding) — mirror that default here for a consistent count.
+                    $isRequired = $masterQuestion === null || $masterQuestion->required_question === null || (bool) $masterQuestion->required_question;
+                    $hasAnswer  = $checklistQuestion->answers->contains(fn ($a) => $a->is_return_answer);
+
+                    return $isRequired && !$hasAnswer;
+                })->count();
             }
 
 
@@ -194,7 +222,7 @@ class SaveReturnController extends BaseController
             // If the checklist recorded a fuel charge, create the CA ledger entry
             if (!empty($orderProductData['fuel_total_charge']) && $orderProductData['fuel_total_charge'] > 0) {
                 $orderProduct->refresh();
-                $legacyCa = ChargeService::createFromOrderProduct($orderProduct, 'fuel', $validated['user_id'] ?? null);
+                $legacyCa = ChargeService::createFromOrderProduct($orderProduct, 'fuel', $validated['user_id'] ?? null, $cycleStartedAt);
 
                 // ── Billing Engine bridge (Phase 3D) — fires only when legacy CA was created ──
                 if ($legacyCa !== null) {
@@ -226,7 +254,7 @@ class SaveReturnController extends BaseController
                                 'submitted_by_user_id'       => $validated['user_id'] ?? null,
                                 'mobile_source'              => true,
                             ],
-                            idempotencyKey:    "mobile_return_fuel:{$orderProduct->id}:{$orderProduct->fuel_final_reading}",
+                            idempotencyKey:    "mobile_return_fuel:{$orderProduct->id}:{$orderProduct->fuel_final_reading}:{$cycleKey}",
                             customerAccountId: $legacyCa->id,
                         ));
                     } catch (\Throwable $e) {
@@ -250,6 +278,12 @@ class SaveReturnController extends BaseController
                 }
             }
 
+            // PR-A4 (observability only, no enforcement — CORRECTION_PHASE1_PLAN.md Issue #3):
+            // pickup_status is set to 'Completed' unconditionally above regardless of these
+            // conditions. This block changes no behavior, no response, no status — it only
+            // makes the gap measurable so a future phase can decide whether to enforce it.
+            $this->logIfReturnIncomplete($orderProduct, $orderProductData, $validated, $missingRequiredQuestionCount);
+
             // fire event
             $user = auth('api_user')->user();
             $type = 'checklist_return';
@@ -260,5 +294,35 @@ class SaveReturnController extends BaseController
                 'message' => trans('messages.api.admin.v1.orders.checklist_saved_successfully'),
             ]);
         });
+    }
+
+    /**
+     * PR-A4: log (not block) when pickup_status is marked 'Completed' despite the
+     * checklist actually being incomplete — missing signature, unanswered required
+     * questions, or an empty/omitted checklist array. Purely observational: does not
+     * change pickup_status, the HTTP response, or any other behavior. See
+     * CORRECTION_PHASE1_PLAN.md Issue #3 and CHECKLIST_SYSTEM_AUDIT.md §8/§12.
+     */
+    private function logIfReturnIncomplete(
+        OrderProduct $orderProduct,
+        array $orderProductData,
+        array $validated,
+        ?int $missingRequiredQuestionCount
+    ): void {
+        $hasSignature       = !empty($orderProductData['pickup_signature_media_id']);
+        $checklistSubmitted = isset($validated['checklist']) && !empty($validated['checklist']);
+        $hasMissingRequired = $missingRequiredQuestionCount !== null && $missingRequiredQuestionCount > 0;
+
+        if ($hasSignature && $checklistSubmitted && !$hasMissingRequired) {
+            return;
+        }
+
+        Log::channel('api_errors')->warning('Return marked Completed despite incomplete checklist submission', [
+            'order_product_id'                => $orderProduct->id,
+            'order_id'                         => $orderProduct->order_id,
+            'signature_present'                => $hasSignature,
+            'checklist_submitted'              => $checklistSubmitted,
+            'missing_required_question_count'  => $missingRequiredQuestionCount,
+        ]);
     }
 }

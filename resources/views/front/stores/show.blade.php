@@ -21,7 +21,7 @@
 
         {{-- Breadcrumb --}}
         <nav class="flex items-center gap-1.5 text-xs text-white/60 mb-3" aria-label="Breadcrumb">
-            <a href="{{ route('front.home_v2.index') }}" class="hover:text-white transition-colors">Home</a>
+            <a href="{{ route('front.home.index') }}" class="hover:text-white transition-colors">Home</a>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>

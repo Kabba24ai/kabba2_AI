@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Services\TaxCalculationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -227,12 +228,12 @@ class PaymentReconciliationLedger
         }
 
         return $query->get()->map(function ($row) {
-            $amount  = (float) ($row->amount ?? 0);
-            $taxRate = (float) ($row->sales_tax ?? 0);
-            $taxAmt  = $taxRate > 0 ? $amount - $amount / (1 + $taxRate) : 0.0;
-            $base    = $amount - $taxAmt;
-            $pmLabel = $this->mapAccountPaymentMethod($row->payment_type);
-            $pmKey   = $this->mapAccountPaymentKey($row->payment_type);
+            $amount    = (float) ($row->amount ?? 0);
+            $taxRate   = (float) ($row->sales_tax ?? 0);
+            // Formula sourced from TaxCalculationService — see Financial Engine Phase 2.2.
+            $breakdown = TaxCalculationService::extractTaxFromInclusiveAmount($amount, $taxRate);
+            $pmLabel   = $this->mapAccountPaymentMethod($row->payment_type);
+            $pmKey     = $this->mapAccountPaymentKey($row->payment_type);
 
             return (object) [
                 'stream'             => 'account',
@@ -246,8 +247,8 @@ class PaymentReconciliationLedger
                 'payment_method'     => $pmLabel,
                 'payment_method_key' => $pmKey,
                 'payment_status'     => 'Paid',
-                'base_amount'        => round($base, 2),
-                'tax_amount'         => round($taxAmt, 2),
+                'base_amount'        => $breakdown->baseAmount,
+                'tax_amount'         => $breakdown->taxAmount,
                 'grand_total'        => $amount,
                 'included_because'   => 'Customer Account Payment Received',
                 'notes'              => null,

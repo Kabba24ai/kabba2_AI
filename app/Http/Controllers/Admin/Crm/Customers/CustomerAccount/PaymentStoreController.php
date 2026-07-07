@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Log;
 // Request
 use App\Http\Requests\Admin\Crm\Customers\CustomerAccount\PaymentStoreRequest;
 use Illuminate\Support\Carbon;
-use App\Helpers\CustomHelper;
 use App\Models\Iam\Personnel\User ;
 use App\Services\AuthorizeNetService;
+use App\Services\LedgerBalanceService;
 
 class PaymentStoreController extends Controller
 {
@@ -57,7 +57,7 @@ class PaymentStoreController extends Controller
             $record->save();
             Log::debug('CustomerAccount saved:', $record->toArray());
 
-            CustomHelper::updateCreditBalance($record);
+            LedgerBalanceService::applyTransaction($record);
             Log::debug('Credit balance updated for record:', ['id' => $record->id]);
 
                     $customer = Customer::findOrFail($validated['customer_id']);

@@ -34,6 +34,7 @@ use App\Models\ProductManagement\ProductCategory;
 use Illuminate\Support\Collection;
 
 use Illuminate\Support\Facades\DB;
+use App\Services\TaxCalculationService;
 
 class IndexController extends Controller
 {
@@ -838,13 +839,14 @@ private function getRevenueRows(Carbon $start, Carbon $end)
             $amount = (float) $p->amount;
             $salesTaxRate = (float) $p->sales_tax;
 
-            $taxAmount = $salesTaxRate > 0
-                ? $amount * $salesTaxRate
-                : 0;
+            // Formula sourced from TaxCalculationService — see Financial Engine Phase 2.3.
+            // amount is tax-inclusive for payment rows, so the base is extracted via
+            // division, not multiplication (the confirmed bug this phase corrects).
+            $baseAmount = TaxCalculationService::extractBaseFromInclusiveAmountRaw($amount, $salesTaxRate);
 
             return (object) [
                 'date' => $p->date,
-                'grand_total' => $amount - $taxAmount,
+                'grand_total' => $baseAmount,
             ];
         });
 

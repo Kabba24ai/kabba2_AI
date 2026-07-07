@@ -14,7 +14,6 @@ use Illuminate\Http\Request;
 // Request
 use App\Http\Requests\Admin\Dashboard\PaymentStoreRequest;
 use Illuminate\Support\Carbon;
-use App\Helpers\CustomHelper;
 use App\Models\Iam\Personnel\User ;
 use App\Services\AuthorizeNetService;
 use App\Models\Orders\OrderExtraCharges;
@@ -25,6 +24,7 @@ use App\Events\Admin\Orders\OrderExtraChargeEvent;
 use App\Services\ChargeService;
 use App\Models\Orders\BillingCharge;
 use App\Services\BillingEngine;
+use App\Services\LedgerBalanceService;
 
 class PaymentStoreController extends Controller
 {
@@ -342,7 +342,7 @@ if (
             $payment->type                    = 'payment';
             $payment->save();
 
-            CustomHelper::updateCreditBalance($payment);
+            LedgerBalanceService::applyTransaction($payment);
 
             // Credit card processing — same pattern as the main flow
             if (strtolower($validated['payment_type']) === 'creditcard') {

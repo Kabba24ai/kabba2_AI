@@ -176,6 +176,73 @@ class EquipmentWaitListTest extends TestCase
         $this->assertDatabaseHas('equipment_wait_lists', ['priority_override' => null]);
     }
 
+    public function test_optional_equipment_choices_may_be_left_blank(): void
+    {
+        $payload = fn (array $equipmentIds) => [
+            'customer_id'      => $this->customer->id,
+            'request_type'     => WaitListRequestType::SpecificEquipment->value,
+            'equipment_ids'    => $equipmentIds,
+            'store_preference' => WaitListStorePreference::AnyStore->value,
+            'reason'           => WaitListReason::RequestedSpecificUnit->value,
+        ];
+
+        // Choice #1 picked, optional Choice #2/#3 submit as blanks — the blanks
+        // must be dropped, not rejected as "must be an integer"
+        $this->post(route('admin.wait-list.store'), $payload([(string) $this->excavator->id, '', '']))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $waitList = EquipmentWaitList::latest('id')->firstOrFail();
+        $this->assertSame(
+            [$this->excavator->id],
+            $waitList->items()->pluck('equipment_id')->all()
+        );
+
+        // All three blank still fails the Choice #1 requirement
+        $this->post(route('admin.wait-list.store'), $payload(['', '', '']))
+            ->assertSessionHasErrors('equipment_ids');
+    }
+
+    public function test_create_form_sections_labels_and_category_filter_contract(): void
+    {
+        $skidCategory = ProductCategory::create(['title' => 'Skid Steers', 'status' => 'Published', 'sort_order' => 2]);
+        $skid = Equipment::create([
+            'unique_id' => 'test-skid', 'equipment_name' => 'Skid Steer S70',
+            'equipment_id' => 'SS-210', 'brand' => 'Test',
+            'product_category_id' => $skidCategory->id,
+        ]);
+
+        $response = $this->get(route('admin.wait-list.create'))->assertOk()
+            ->assertSee('Equipment Request')
+            ->assertSee('If Category Wait List')
+            ->assertSee('If Specific Equipment Wait List')
+            ->assertSee('Equipment Category Filter')
+            ->assertSee('Choice #1')
+            ->assertSee('Choice #2 (Optional)')
+            ->assertSee('Choice #3 (Optional)')
+            ->assertSee('No Priority Override')
+            ->assertSee('Move to Position #1')
+            ->assertSee('Move to Position #3');
+
+        $content = $response->getContent();
+
+        // All three equipment choice dropdowns ship disabled — they unlock
+        // client-side only after an Equipment Category Filter is selected
+        $this->assertSame(3, preg_match_all('/name="equipment_ids\[\]"[^>]*\bdisabled\b/', $content));
+
+        // The embedded filter data maps every unit to its category, which is what
+        // lets the dropdowns show only that category's equipment and drop
+        // incompatible selections when the filter changes (@json hex-escapes quotes)
+        $this->assertStringContainsString(sprintf(
+            '"id":%d,"label":"Skid Steer S70 (SS-210)","category_id":%d',
+            $skid->id, $skidCategory->id
+        ), $content);
+        $this->assertStringContainsString(sprintf(
+            '"id":%d,"label":"Mini Excavator 3.5T (EX-100)","category_id":%d',
+            $this->excavator->id, $this->category->id
+        ), $content);
+    }
+
     public function test_urgency_ordering_matches_dropdown_positions(): void
     {
         // Created oldest-first WITHOUT overrides, then given positions out of order

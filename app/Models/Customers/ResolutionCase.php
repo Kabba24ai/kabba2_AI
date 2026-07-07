@@ -15,6 +15,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Phase 3.4 — Operational Knowledge Framework: added `scenario_key` and the
  * `scenario()` accessor so any case can resolve its governing
  * {@see ResolutionScenario} generically.
+ * Phase 3.6 — Customer Resolution Operations Center: added `priority`,
+ * `status`/`waiting_on` (a separate, purely operational field from
+ * `outcome` — see PHASE_3_6_OPERATIONS_AUDIT.md §5 for the exact
+ * relationship), `assigned_to_user_id` (the current case owner —
+ * reassignable, unlike `responsible_person_id`, which is set once at
+ * creation), a best-effort `store_id` snapshot, `completed_at`, and the
+ * `activityLogs()` relation backing the Audit Trail.
  *
  * One row per guided resolution session. This model has no business logic
  * of its own beyond relationships and casts — the decision tree lives in
@@ -36,6 +43,7 @@ class ResolutionCase extends Model
         'scenario_key',
         'issue',
         'issue_category',
+        'priority',
         'balance_snapshot',
         'store_credit_snapshot',
         'payment_method_snapshot',
@@ -49,8 +57,13 @@ class ResolutionCase extends Model
         'manager_override_reason',
         'notes',
         'outcome',
+        'status',
+        'waiting_on',
         'credit_issued_id',
+        'completed_at',
         'responsible_person_id',
+        'assigned_to_user_id',
+        'store_id',
     ];
 
     protected $casts = [
@@ -58,6 +71,7 @@ class ResolutionCase extends Model
         'store_credit_snapshot' => 'decimal:2',
         'can_reschedule' => 'boolean',
         'credit_would_satisfy' => 'boolean',
+        'completed_at' => 'datetime',
     ];
 
     public static function boot()
@@ -94,6 +108,21 @@ class ResolutionCase extends Model
     public function creditIssued()
     {
         return $this->belongsTo(CustomerCredit::class, 'credit_issued_id');
+    }
+
+    public function assignedTo()
+    {
+        return $this->belongsTo(User::class, 'assigned_to_user_id');
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(\App\Models\Stores\Store::class, 'store_id');
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(ResolutionCaseActivityLog::class)->latest('id');
     }
 
     /**

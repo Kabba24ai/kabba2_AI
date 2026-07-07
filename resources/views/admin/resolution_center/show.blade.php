@@ -49,6 +49,26 @@
         </div>
     </div>
 
+    {{-- Operations Center fields — Phase 3.6 --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="bg-gray-50 rounded-lg border border-gray-200 p-3">
+            <div class="text-[11px] uppercase tracking-wide text-gray-400">Status</div>
+            <div class="font-semibold text-gray-900 capitalize">{{ str_replace('_', ' ', $case->status) }}{{ $case->status === 'waiting' && $case->waiting_on ? ' — on '.$case->waiting_on : '' }}</div>
+        </div>
+        <div class="bg-gray-50 rounded-lg border border-gray-200 p-3">
+            <div class="text-[11px] uppercase tracking-wide text-gray-400">Priority</div>
+            <div class="font-semibold text-gray-900 capitalize">{{ $case->priority }}</div>
+        </div>
+        <div class="bg-gray-50 rounded-lg border border-gray-200 p-3">
+            <div class="text-[11px] uppercase tracking-wide text-gray-400">Assigned To</div>
+            <div class="font-semibold text-gray-900">{{ optional($case->assignedTo)->full_name ?? 'Unassigned' }}</div>
+        </div>
+        <div class="bg-gray-50 rounded-lg border border-gray-200 p-3">
+            <div class="text-[11px] uppercase tracking-wide text-gray-400">Store</div>
+            <div class="font-semibold text-gray-900">{{ optional($case->store)->store_name ?? '—' }}</div>
+        </div>
+    </div>
+
     <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm mb-6">
         <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Issue</div>
         <p class="text-gray-800">{{ $case->issue }}</p>
@@ -231,6 +251,32 @@
         </div>
         @endcan
     @endif
+
+    {{-- Audit Trail — Phase 3.6 --}}
+    @can('resolution_center.view_audit_history')
+    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm mb-6">
+        <h3 class="font-semibold text-lg mb-3">Audit Trail</h3>
+        @if($case->activityLogs->isEmpty())
+            <p class="text-sm text-gray-500">No activity recorded yet.</p>
+        @else
+            <ul class="divide-y divide-gray-100">
+                @foreach($case->activityLogs as $log)
+                    <li class="py-2 text-sm text-gray-700 flex items-start justify-between gap-4">
+                        <div>
+                            <span class="font-medium text-gray-900">{{ str_replace('_', ' ', ucfirst($log->action)) }}</span>
+                            @if($log->field)
+                                <span class="text-gray-500">— {{ $log->field }}: {{ $log->old_value ?? '—' }} → {{ $log->new_value ?? '—' }}</span>
+                            @endif
+                        </div>
+                        <div class="text-xs text-gray-400 whitespace-nowrap">
+                            {{ optional($log->user)->full_name ?? 'System' }} · {{ $log->created_at->format('M j, Y g:i A') }}
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </div>
+    @endcan
 
 @endsection
 

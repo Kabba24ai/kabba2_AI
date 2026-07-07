@@ -12,7 +12,7 @@ class ShowController extends Controller
 {
     public function __invoke(string $uniqueId)
     {
-        $case = ResolutionCase::with(['customer', 'order', 'responsiblePerson', 'managerOverrideUser', 'creditIssued'])
+        $case = ResolutionCase::with(['customer', 'order', 'responsiblePerson', 'managerOverrideUser', 'creditIssued', 'assignedTo', 'store', 'activityLogs.user'])
             ->where('unique_id', $uniqueId)
             ->firstOrFail();
 

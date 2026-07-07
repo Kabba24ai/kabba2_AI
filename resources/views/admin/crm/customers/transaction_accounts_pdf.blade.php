@@ -102,29 +102,21 @@
 
 
         @php
-        // Amount without tax
-        if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
-        // Tax is already included in the amount
-        $amountWithoutTax = ($transaction->amount ?? 0) / (1 + $transaction->sales_tax);
-        } else {
-        // No tax included, or tax added on top
-        $amountWithoutTax = $transaction->amount ?? 0;
-        }
+        // Financial Engine Phase 2.5: this PDF view, unlike the admin/front-end
+        // credit-tab views, has no separate 'account_invoice' case — it always
+        // falls through to one of these two formulas. Preserved exactly as-is;
+        // this migration does not add an account_invoice exception here.
+        $isTaxIncluded = $transaction->sales_tax > 0 && (
+            $transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse')
+        );
 
-        // Tax amount
-        if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
-        $taxAmount = ($transaction->amount ?? 0) - $amountWithoutTax;
-        } elseif($transaction->sales_tax > 0) {
-        $taxAmount = ($transaction->amount ?? 0) * $transaction->sales_tax;
-        } else {
-        $taxAmount = 0;
-        }
+        $taxBreakdown = $isTaxIncluded
+            ? \App\Services\TaxCalculationService::extractTaxFromInclusiveAmount((float) ($transaction->amount ?? 0), (float) $transaction->sales_tax)
+            : \App\Services\TaxCalculationService::addTaxToExclusiveAmount((float) ($transaction->amount ?? 0), (float) ($transaction->sales_tax ?? 0));
 
-        // Total with tax
-        $totalWithTax = $transaction->amount;
-        if ($transaction->sales_tax > 0 && !($transaction->type === 'payment' || ($transaction->type === 'charge' && $transaction->sales_tax_type === 'reverse'))) {
-        $totalWithTax += ($transaction->amount * $transaction->sales_tax);
-        }
+        $amountWithoutTax = $taxBreakdown->baseAmount;
+        $taxAmount = $taxBreakdown->taxAmount;
+        $totalWithTax = $taxBreakdown->totalAmount;
         @endphp
 
 

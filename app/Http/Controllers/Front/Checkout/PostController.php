@@ -42,6 +42,7 @@ use App\Models\Orders\OrderProduct;
 use App\Services\AutoAssignDirectService;
 use App\Helpers\ConfigurationHelper;
 use Illuminate\Support\Facades\Log;
+use App\Services\LedgerBalanceService;
 
 class PostController extends Controller
 {
@@ -523,7 +524,7 @@ class PostController extends Controller
                     $record->save();
 
                     // Update credit balance per product (optional, depends on logic)
-                    CustomHelper::updateCreditBalance($record, $product->tax ?? 0);
+                    LedgerBalanceService::applyTransaction($record, $product->tax ?? 0);
                 }
             }
 

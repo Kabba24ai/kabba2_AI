@@ -125,7 +125,7 @@ class ChargeService
         $payment->payment_profile_id      = $extra['payment_profile_id'] ?? null;
         $payment->save();
 
-        CustomHelper::updateCreditBalance($payment);
+        LedgerBalanceService::applyTransaction($payment);
 
         // Mark the OrderProduct status as completed
         $orderProduct->$statusField = OrderProductChargeStatus::Completed->value;

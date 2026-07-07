@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Front\Customer\Dashboard\Invoice;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Customers\Customer;
-use App\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Customers\CustomerAccount;
@@ -14,6 +13,8 @@ use App\Helpers\ConfigurationHelper;
 use App\Services\AuthorizeNetService; //  Make sure you import this service
 use App\Events\Front\Checkout\OrderPlacedEvent;
 use App\Events\Admin\Invoices\InvoicePaidEvent;
+use App\Services\InvoiceCalculationService;
+use App\Services\LedgerBalanceService;
 
 class PaymentStoreController extends Controller
 {
@@ -89,29 +90,11 @@ class PaymentStoreController extends Controller
 
                 $invoice->payment_method =  'card';
 
-
-
-              
-                // $invoice->invoice_status = 'paid';
-
-                    $paymentAmount = (float) $amount;
-
-                    // Add to paid amount
-                    $invoice->paid_amount += $paymentAmount;
-
-                    // Recalculate open amount
-                    $invoice->open_amount = max(0, $invoice->total - $invoice->paid_amount);
-
-                    // Update invoice status
-                    if ($invoice->open_amount <= 0) {
-                        $invoice->invoice_status = 'paid';
-                    } elseif ($invoice->paid_amount > 0) {
-                        $invoice->invoice_status = 'partial_paid';
-                    } else {
-                        $invoice->invoice_status = 'pending';
-                    }
-
-                  
+                // Financial Engine Phase 2.4: paid_amount/open_amount/invoice_status
+                // are now recomputed by InvoiceCalculationService after the
+                // CustomerAccount ledger row is saved below (not here — the
+                // ledger row for this payment does not exist yet at this point,
+                // and the recompute reads paid_amount from the ledger).
 
                 $invoice->save();
 
@@ -150,25 +133,11 @@ class PaymentStoreController extends Controller
 
                 $invoice = Invoice::where('invoice_number', $validated['invoice_id'])->first();
 
-                // $invoice->invoice_status = 'paid';
-
-                
-                    $paymentAmount = (float) $amount;
-
-                    // Add to paid amount
-                    $invoice->paid_amount += $paymentAmount;
-
-                    // Recalculate open amount
-                    $invoice->open_amount = max(0, $invoice->total - $invoice->paid_amount);
-
-                    // Update invoice status
-                    if ($invoice->open_amount <= 0) {
-                        $invoice->invoice_status = 'paid';
-                    } elseif ($invoice->paid_amount > 0) {
-                        $invoice->invoice_status = 'partial_paid';
-                    } else {
-                        $invoice->invoice_status = 'pending';
-                    }
+                // Financial Engine Phase 2.4: paid_amount/open_amount/invoice_status
+                // are now recomputed by InvoiceCalculationService after the
+                // CustomerAccount ledger row is saved below (not here — the
+                // ledger row for this payment does not exist yet at this point,
+                // and the recompute reads paid_amount from the ledger).
 
                 $invoice->payment_number_id  = $paymentResult['transaction_id'] ?? null;
                 $invoice->auth_code          = $paymentResult['auth_code'] ?? null;
@@ -232,10 +201,15 @@ class PaymentStoreController extends Controller
 
                         Log::debug('CustomerAccount saved:', $record->toArray());
 
-                        CustomHelper::updateCreditBalance($record);
+                        LedgerBalanceService::applyTransaction($record);
 
                         Log::debug('Credit balance updated for record:', ['id' => $record->id]);
 
+                        // Financial Engine Phase 2.4: recompute subtotal/tax/total
+                        // from current line items and paid_amount/open_amount/status
+                        // from the full ledger, now that this payment's ledger row
+                        // exists. Runs for both the card-on-file and new-card branches.
+                        InvoiceCalculationService::recomputeSummary($invoice);
 
                     // Loop through all invoice items of type 'order'
                     // $invoice->items()->where('type', 'order')->get()->each(function ($invoiceItem) use ($amount, $validated, $customer, $paymentResult) {

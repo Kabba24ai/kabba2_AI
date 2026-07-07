@@ -3,6 +3,7 @@
 namespace App\Services\Reports;
 
 use App\Models\Iam\Personnel\User;
+use App\Services\TaxCalculationService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -433,19 +434,11 @@ class SalesReportEngineV2
         // customer_accounts.amount is tax-inclusive for type='payment' records.
         // Extract formula: pre-tax = amount / (1 + rate), tax = amount − amount / (1 + rate).
         // Records with sales_tax = 0 fall through to ELSE branches (base = amount, tax = 0).
+        // Formula sourced from TaxCalculationService — see Financial Engine Phase 2.2.
+        $taxSql = TaxCalculationService::extractTaxFromInclusiveAmountSql();
         $row = $query->selectRaw("
-            SUM(
-                CASE WHEN CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)) > 0
-                    THEN amount / (1 + CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)))
-                    ELSE amount
-                END
-            ) AS base_total,
-            SUM(
-                CASE WHEN CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)) > 0
-                    THEN amount - amount / (1 + CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)))
-                    ELSE 0
-                END
-            ) AS tax_total
+            SUM({$taxSql['base']}) AS base_total,
+            SUM({$taxSql['tax']}) AS tax_total
         ")->first();
 
         return [
@@ -549,13 +542,11 @@ class SalesReportEngineV2
 
         // Use the same extract formula as queryAccountPayments() so that
         // sum(daily_acct) == snapshot accountPaymentsReceived (reconciliation guarantee).
+        // Formula sourced from TaxCalculationService — see Financial Engine Phase 2.2.
+        $taxSql = TaxCalculationService::extractTaxFromInclusiveAmountSql();
+
         return $query
-            ->selectRaw("date, SUM(
-                CASE WHEN CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)) > 0
-                    THEN amount / (1 + CAST(NULLIF(COALESCE(sales_tax, '0'), '') AS DECIMAL(10,6)))
-                    ELSE amount
-                END
-            ) AS daily_acct")
+            ->selectRaw("date, SUM({$taxSql['base']}) AS daily_acct")
             ->groupBy('date')
             ->get()
             ->keyBy('date');

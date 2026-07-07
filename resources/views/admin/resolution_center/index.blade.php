@@ -8,6 +8,9 @@
 
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-2xl font-semibold text-gray-900">Resolution Center — History</h2>
+        @can('resolution_center.view_audit_history')
+        <a href="{{ route('admin.resolution-center.operations') }}" class="text-sm text-blue-600 hover:underline">Operations Center</a>
+        @endcan
     </div>
 
     <div class="shadow rounded-2xl overflow-x-auto border border-gray-200 bg-white">

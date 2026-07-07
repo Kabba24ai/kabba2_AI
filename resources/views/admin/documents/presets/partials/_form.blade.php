@@ -34,7 +34,7 @@
 
         <div class="lg:col-span-2">
             <label for="thumbnail" class="block text-sm font-medium text-gray-700 mb-1.5">
-                Thumbnail Image <span class="text-xs text-gray-400">(optional — shown on the preset card)</span>
+                Thumbnail Image
             </label>
             <div class="flex items-center gap-4">
                 @if (!empty(($preset->thumbnail_url ?? null)))
@@ -44,7 +44,14 @@
                 <div>
                     <input type="file" name="thumbnail" id="thumbnail" accept="image/jpeg,image/png,image/webp"
                         class="block text-sm text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:text-sm file:font-medium hover:file:bg-blue-100 cursor-pointer">
-                    <p class="mt-1 text-xs text-gray-400">JPG, PNG, or WebP up to 4 MB. Uploading replaces the current image.</p>
+                    <p class="mt-1 text-xs text-gray-600">
+                        Recommended: 500 × 500 px square image. JPG, PNG, or WebP.
+                        Images are automatically center-cropped and resized to fit the preset cards.
+                    </p>
+                    <p class="mt-0.5 text-xs text-gray-400">
+                        Optional. If no image is uploaded, a placeholder will be shown.
+                        Maximum file size: 1 MB. Uploading replaces the current image.
+                    </p>
                     @if (!empty(($preset->thumbnail_url ?? null)))
                         <label class="inline-flex items-center gap-2 text-xs text-gray-600 cursor-pointer mt-1">
                             <input type="checkbox" name="remove_thumbnail" value="1" class="rounded border-gray-300">

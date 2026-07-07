@@ -20,7 +20,7 @@ class SavePriceListPresetRequest extends FormRequest
             'sort_order'     => ['nullable', 'integer', 'min:0', 'max:65535'],
             'category_ids'   => ['required', 'array', 'min:1'],
             'category_ids.*' => ['integer', 'distinct', 'exists:product_categories,id'],
-            'thumbnail'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'thumbnail'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:1024'],
             'remove_thumbnail' => ['nullable', 'boolean'],
         ];
     }
@@ -30,6 +30,9 @@ class SavePriceListPresetRequest extends FormRequest
         return [
             'category_ids.required' => 'Select at least one category for this preset.',
             'category_ids.min'      => 'Select at least one category for this preset.',
+            'thumbnail.max'         => 'The thumbnail image must be 1 MB or smaller.',
+            'thumbnail.mimes'       => 'The thumbnail must be a JPG, PNG, or WebP image.',
+            'thumbnail.image'       => 'The thumbnail must be a JPG, PNG, or WebP image.',
         ];
     }
 }

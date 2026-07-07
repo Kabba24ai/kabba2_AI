@@ -53,7 +53,7 @@
                                         <span class="pl-preset-thumb relative block aspect-square w-full bg-gray-100">
                                             @if (!empty($preset['thumbnail_url']))
                                                 <img src="{{ $preset['thumbnail_url'] }}" alt=""
-                                                    class="absolute inset-0 w-full h-full object-cover">
+                                                    class="absolute inset-0 w-full h-full object-cover object-center">
                                             @else
                                                 <span class="absolute inset-0 grid place-items-center text-gray-300">
                                                     <x-heroicon-o-photo class="w-10 h-10" />

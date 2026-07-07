@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Documents\Presets;
 
+use App\Helpers\ImageHelper;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Documents\SavePriceListPresetRequest;
@@ -23,7 +24,9 @@ class StoreController extends Controller
         $preset->categories()->sync($validated['category_ids']);
 
         if ($request->hasFile('thumbnail')) {
-            $upload = MediaHelper::uploadStorageFile('Public Asset', $request->file('thumbnail'), 'price_list_presets', $preset);
+            // Center-crop/resize to a 500px square; cards display it at 250px
+            $thumbnail = ImageHelper::squareThumbnail($request->file('thumbnail'), 500);
+            $upload = MediaHelper::uploadStorageFile('Public Asset', $thumbnail, 'price_list_presets', $preset);
             $preset->update(['media_id' => $upload['mediaObj']->id]);
         }
 

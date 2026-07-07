@@ -106,6 +106,25 @@ class ModuleSeeder extends Seeder
                 ],
             ],
             // Customer Credit [End]
+
+            // Resolution Center [Start] — Phase 3.3, Customer Resolution Center Foundation
+            [
+                'module_category_name' => 'Resolution Center',
+                'modules' => [
+                    [
+                        'module_name' => 'resolution_center',
+                        'module_title' => 'Resolution Center',
+                        'model_name' => 'ResolutionCase',
+                        'permission_names' => [
+                            'view' => 'View Resolution Center',
+                            'use' => 'Use Resolution Center',
+                            'override' => 'Manager Override',
+                            'view_audit_history' => 'View Resolution History',
+                        ],
+                    ],
+                ],
+            ],
+            // Resolution Center [End]
         ];
     }
 

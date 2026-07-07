@@ -1711,6 +1711,25 @@
                 :employees="$employees" />
         </div>
 
+        {{-- Resolution Center — Phase 3.3, Customer Resolution Center Foundation --}}
+        @can('resolution_center.use')
+        <div class="grid md:grid-cols-1 gap-4 mt-4">
+            <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                <h2 class="text-black font-semibold text-lg mb-3">Resolution Center</h2>
+                <p class="text-sm text-gray-500 mb-3">Guided, policy-driven help for a customer cancellation, refund, or other resolution request on this order.</p>
+                {{ html()->form('POST', route('admin.resolution-center.start', $order->unique_id))->open() }}
+                <div class="flex gap-3 items-start">
+                    {!! html()->textarea('issue', null)->class('flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->rows(2)->placeholder('What is the customer requesting?')->required() !!}
+                    {!! html()->select('scenario_key', collect(\App\Services\ResolutionCenter\ResolutionScenarioRegistry::all())->map(fn($scenario) => $scenario->label()))
+                            ->class('border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')
+                            ->value(\App\Services\ResolutionCenter\CancellationRefundScenario::KEY) !!}
+                    <button type="submit" class="px-5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm whitespace-nowrap">Start Resolution Case</button>
+                </div>
+                {{ html()->form()->close() }}
+            </div>
+        </div>
+        @endcan
+
         @if (!empty($payments) && $payments->isNotEmpty())
             {{--  Order Extra Payments --}}
             <div class="grid md:grid-cols-1 gap-4">

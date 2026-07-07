@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-use Illuminate\Support\Facades\Schema;
 use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 
 /*
@@ -19,7 +17,6 @@ use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 Route::name('admin.')->group(function ($router) {
     // Auth
     require base_path('routes/admin/auth/routes.php');
-
 
     Route::middleware(['auth', 'prevent-back-history', 'admin.common-data'])->group(function ($router) {
         Route::get('logs', [LogViewerController::class, 'index']);
@@ -54,10 +51,11 @@ Route::name('admin.')->group(function ($router) {
         // Service Management
         require base_path('routes/admin/service_management/routes.php');
 
-
-
         // crm
         require base_path('routes/admin/crm/routes.php');
+
+        // Resolution Center — Phase 3.3, Customer Resolution Center Foundation
+        require base_path('routes/admin/resolution_center/routes.php');
 
         // reports
         require base_path('routes/admin/reports/routes.php');
@@ -76,7 +74,6 @@ Route::name('admin.')->group(function ($router) {
 
         // hrm
         require base_path('routes/admin/hrm/routes.php');
-
 
         // website_management
         require base_path('routes/admin/website_management/routes.php');

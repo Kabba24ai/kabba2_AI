@@ -12,6 +12,8 @@
 
     @include('flash::message')
 
+    <div class="max-w-[1440px] mx-auto">
+
     @include('admin.documents.partials._price_list_nav', [
         'plSubtitle' => 'Edit the text printed on the Customer Price List. Merge codes are replaced with live '
             . 'company and store values each time a document is generated — the raw codes stay visible here.',
@@ -70,5 +72,7 @@
                 class="text-sm font-medium text-gray-500 hover:text-gray-700">Back to Generate</a>
         </div>
     </form>
+
+    </div>
 
 @endsection

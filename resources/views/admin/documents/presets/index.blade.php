@@ -12,6 +12,8 @@
 
     @include('flash::message')
 
+    <div class="max-w-[1440px] mx-auto">
+
     @include('admin.documents.partials._price_list_nav', [
         'plSubtitle' => 'Industry presets shown on the Generate tab. A preset only pre-checks its categories — '
             . 'staff can always adjust the selection before generating.',
@@ -99,6 +101,8 @@
                 </table>
             </div>
         @endif
+    </div>
+
     </div>
 
 @endsection

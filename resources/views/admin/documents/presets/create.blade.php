@@ -12,6 +12,8 @@
 
     @include('flash::message')
 
+    <div class="max-w-[1440px] mx-auto">
+
     @include('admin.documents.partials._price_list_nav', [
         'plSubtitle' => 'New industry preset — a selection shortcut on the Generate tab, nothing more.',
     ])
@@ -31,5 +33,7 @@
                 class="text-sm font-medium text-gray-500 hover:text-gray-700">Cancel</a>
         </div>
     </form>
+
+    </div>
 
 @endsection

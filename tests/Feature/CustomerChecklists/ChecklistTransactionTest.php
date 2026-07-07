@@ -4,9 +4,14 @@ namespace Tests\Feature\CustomerChecklists;
 
 use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
 use App\Events\Admin\Orders\OrderProductDriverChecklistUpdated;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminCategory;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestion;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestionAnswer;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
+use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\Orders\BillingCharge;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderProduct;
 use App\Models\ProductManagement\Product;
@@ -210,6 +215,88 @@ class ChecklistTransactionTest extends TestCase
         // Still 'rented' — the markReturnedToMaintenance() transition must have rolled back.
         $this->assertTrue($this->equipment->current_status->isRented());
         $this->assertEquals(0, EquipmentStatusLog::where('equipment_id', $this->equipment->id)->count());
+    }
+
+    // ── Nested transaction: BillingEngine::charge() inside the outer transaction ──
+
+    public function test_outer_rollback_also_undoes_a_billing_charge_created_inside_the_return_flow(): void
+    {
+        // BillingEngine::charge() opens its own DB::transaction() (see BillingEngine.php:44).
+        // Called from inside SaveReturnController's damage-charge try/catch, this is now a
+        // nested transaction call under PR-A2's outer wrap. Laravel's query builder makes
+        // nested transaction() calls savepoint-aware: the inner call's "commit" becomes a
+        // RELEASE SAVEPOINT, not a real COMMIT, so it must still be undone if the outer
+        // transaction later rolls back. This proves that guarantee empirically rather than
+        // just by reading Laravel's transaction-manager source.
+        $this->equipment->current_status = 'rented';
+        $this->equipment->current_order_id = $this->order->id;
+        $this->equipment->current_order_product_id = $this->orderProduct->id;
+        $this->equipment->saveQuietly();
+        $customer = Customer::create([
+            'first_name' => 'Nested',
+            'last_name'  => 'Tx',
+            'email'      => 'nested-tx-customer@example.com',
+        ]);
+        $this->order->update(['customer_id' => $customer->id]);
+        $this->orderProduct->update(['equipment_id' => $this->equipment->id]);
+
+        $category = CustomerAdminCategory::create(['category_name' => 'Test Category']);
+        $question = CustomerAdminQuestion::create([
+            'question_name'          => 'Was it damaged?',
+            'category_id'            => $category->id,
+            'question_delivery_text' => 'Any damage at delivery?',
+            'question_return_text'   => 'Any damage at return?',
+        ]);
+        $masterAnswer = CustomerAdminQuestionAnswer::create([
+            'answer_delivery_text' => 'Yes',
+            'answer_return_text'   => 'Yes',
+            'question_id'          => $question->id,
+            'is_damaged'           => true,
+        ]);
+
+        $checklistQuestion = $this->orderProduct->checklistQuestions()->create([
+            'order_id'      => $this->order->id,
+            'question_id'   => $question->id,
+            'question_name' => $question->question_name,
+            'index_number'  => 1,
+        ]);
+        $checklistAnswer = $checklistQuestion->answers()->create([
+            'order_id'   => $this->order->id,
+            'question_id' => $question->id,
+            'answer_id'  => $masterAnswer->id,
+            'index_number' => 1,
+            'user_return_amount' => 150.00,
+        ]);
+
+        // Force the failure AFTER the damage charge would have been created, but before
+        // the request finishes — the event fires last in SaveReturnController.
+        Event::listen(OrderCustomerChecklistEvent::class, function () {
+            throw new \RuntimeException('Forced test failure for PR-A2 nested-transaction test');
+        });
+
+        $response = $this->callAs('POST', 'customer-checklists/save-return', [
+            'order_product_unique_id' => $this->orderProduct->unique_id,
+            'store_id'                => (string) $this->store->id,
+            'user_id'                 => (string) $this->actor->id,
+            'checklist' => [
+                [
+                    'question_unique_id' => $checklistQuestion->unique_id,
+                    'answer_unique_id'   => $checklistAnswer->unique_id,
+                    'amount'             => '150.00',
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(500);
+
+        // The BillingCharge created inside BillingEngine::charge()'s nested transaction
+        // must be rolled back along with everything else — not left as an orphaned charge.
+        $this->assertEquals(0, BillingCharge::count());
+
+        $this->orderProduct->refresh();
+        $this->equipment->refresh();
+        $this->assertFalse((bool) $this->orderProduct->is_returned);
+        $this->assertTrue($this->equipment->current_status->isRented());
     }
 
     // ── DriverChecklistController rollback ──────────────────────────────────

@@ -18,7 +18,7 @@ class CreateController extends Controller
             ->get(['id', 'first_name', 'last_name', 'company_name', 'phone', 'email']);
 
         $categories = ProductCategory::published()->sortOrder()->get(['id', 'title']);
-        $equipment  = Equipment::orderBy('equipment_name')->get(['id', 'equipment_name', 'equipment_id']);
+        $equipment  = Equipment::orderBy('equipment_name')->get(['id', 'equipment_name', 'equipment_id', 'product_category_id']);
         $stores     = Store::where('status', 'Active')->orderBy('store_name')->get(['id', 'store_name']);
 
         return view('admin.wait_list.create', compact('customers', 'categories', 'equipment', 'stores'));

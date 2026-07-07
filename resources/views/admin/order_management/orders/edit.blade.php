@@ -1701,6 +1701,16 @@
                 </div>
             </div>
         </div>{{-- close grid grid-cols-4 --}}
+
+        {{-- Customer Credit — Phase 3.2, Order Entry Integration --}}
+        <div class="grid md:grid-cols-1 gap-4 mt-4">
+            <x-admin.order-management.orders.customer-credit-panel
+                :order="$order"
+                :customer-credit-summary="$customerCreditSummary"
+                :order-applied-credit="$orderAppliedCredit"
+                :employees="$employees" />
+        </div>
+
         @if (!empty($payments) && $payments->isNotEmpty())
             {{--  Order Extra Payments --}}
             <div class="grid md:grid-cols-1 gap-4">

@@ -85,6 +85,27 @@ class ModuleSeeder extends Seeder
                 ],
             ],
             // Product Management [End]
+
+            // Customer Credit [Start] — Phase 3.1, Customer Credit Platform
+            [
+                'module_category_name' => 'Customer Credit',
+                'modules' => [
+                    [
+                        'module_name' => 'customer_credit',
+                        'module_title' => 'Customer Credit',
+                        'model_name' => 'CustomerCredit',
+                        'permission_names' => [
+                            'view' => 'View Credit',
+                            'grant' => 'Grant Credit',
+                            'redeem' => 'Redeem Credit',
+                            'reverse' => 'Reverse Credit',
+                            'delete' => 'Delete Credit',
+                            'view_audit_history' => 'View Audit History',
+                        ],
+                    ],
+                ],
+            ],
+            // Customer Credit [End]
         ];
     }
 

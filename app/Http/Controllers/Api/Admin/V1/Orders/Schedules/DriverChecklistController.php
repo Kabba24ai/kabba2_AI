@@ -8,6 +8,8 @@ use App\Events\Admin\Orders\OrderProductDriverChecklistUpdated;
 use App\Enums\Orders\EquipmentDriverStatus;
 use App\Models\Orders\OrderProduct;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DriverChecklistController extends Controller
 {
@@ -22,61 +24,72 @@ class DriverChecklistController extends Controller
         $validated = $request->validated();
 
         try {
-            $user = auth('api_user')->user();
+            // Wrapped in a transaction (including the event() dispatch below, since its
+            // listener runs synchronously inline) so a failure anywhere in this sequence
+            // rolls back the schedule update instead of leaving a partial commit behind
+            // the generic failure response below.
+            DB::transaction(function () use ($validated) {
+                $user = auth('api_user')->user();
 
-            $schedule = OrderProduct::with('order')
-                    ->whereHas('order')
-                    ->where('unique_id', $validated['order_product_unique_id'])
-                    ->firstOrFail();
+                $schedule = OrderProduct::with('order')
+                        ->whereHas('order')
+                        ->where('unique_id', $validated['order_product_unique_id'])
+                        ->firstOrFail();
 
-            $typePrefix = $validated['checklist_type'];
-            $status = $validated['equipment_driver_status'] ?? null;
-            $statusDrivenFields = [];
+                $typePrefix = $validated['checklist_type'];
+                $status = $validated['equipment_driver_status'] ?? null;
+                $statusDrivenFields = [];
 
-            if ($status === EquipmentDriverStatus::READY_TO_GO->value) {
-                $statusDrivenFields = [
-                    $typePrefix . '_ready_to_go_at' => now(),
-                    $typePrefix . '_is_arrived' => false,
+                if ($status === EquipmentDriverStatus::READY_TO_GO->value) {
+                    $statusDrivenFields = [
+                        $typePrefix . '_ready_to_go_at' => now(),
+                        $typePrefix . '_is_arrived' => false,
+                    ];
+                }
+
+                if ($status === EquipmentDriverStatus::ARRIVED->value) {
+                    $statusDrivenFields = [
+                        $typePrefix . '_arrived_at' => now(),
+                        $typePrefix . '_is_arrived' => true,
+                        $typePrefix . '_is_delivered' => true,
+                    ];
+                }
+
+                $fields = array_filter([
+                    $typePrefix . '_equipment_fuel'          => $validated['equipment_fuel'] ?? null,
+                    $typePrefix . '_equipment_key_location'  => $validated['equipment_key_location'] ?? null,
+                    $typePrefix . '_equipment_driver_status' => $validated['equipment_driver_status'] ?? null,
+                ], fn($v) => !is_null($v));
+
+                $fields = array_merge($fields, $statusDrivenFields);
+
+                $schedule->fill($fields);
+                $schedule->save();
+
+                $schedule->order->makeHidden([
+                    'terms_collection',
+                    'pending_terms_content',
+                    'accepted_terms_content',
+                ]);
+
+                $data = [
+                    'requested_data' => $fields,
+                    'order_product' => $schedule->toArray(),
                 ];
-            }
 
-            if ($status === EquipmentDriverStatus::ARRIVED->value) {
-                $statusDrivenFields = [
-                    $typePrefix . '_arrived_at' => now(),
-                    $typePrefix . '_is_arrived' => true,
-                    $typePrefix . '_is_delivered' => true,
-                ];
-            }
-
-            $fields = array_filter([
-                $typePrefix . '_equipment_fuel'          => $validated['equipment_fuel'] ?? null,
-                $typePrefix . '_equipment_key_location'  => $validated['equipment_key_location'] ?? null,
-                $typePrefix . '_equipment_driver_status' => $validated['equipment_driver_status'] ?? null,
-            ], fn($v) => !is_null($v));
-
-            $fields = array_merge($fields, $statusDrivenFields);
-
-            $schedule->fill($fields);
-            $schedule->save();
-
-            $schedule->order->makeHidden([
-                'terms_collection',
-                'pending_terms_content',
-                'accepted_terms_content',
-            ]);
-
-            $data = [
-                'requested_data' => $fields,
-                'order_product' => $schedule->toArray(),
-            ];
-
-            // Fire an event for the updated schedule
-            event(new OrderProductDriverChecklistUpdated(
-                $schedule->order,
-                $user,
-                $data
-            ));
+                // Fire an event for the updated schedule
+                event(new OrderProductDriverChecklistUpdated(
+                    $schedule->order,
+                    $user,
+                    $data
+                ));
+            });
         } catch (\Throwable $th) {
+            Log::channel('equipment_status')->error('DriverChecklistController failed', [
+                'order_product_unique_id' => $validated['order_product_unique_id'] ?? null,
+                'error'                   => $th->getMessage(),
+                'exception'               => get_class($th),
+            ]);
 
             return response()->json([
                 'status'  => false,

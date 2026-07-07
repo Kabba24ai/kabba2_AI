@@ -302,6 +302,71 @@ class EquipmentWaitListTest extends TestCase
         $this->assertDatabaseCount('equipment_wait_list_items', 3);
     }
 
+    // ── Index dashboard ────────────────────────────────────────────
+
+    public function test_index_stat_cards_compute_from_existing_records(): void
+    {
+        // Two waiting (one 12 days old), one converted this month, one cancelled
+        $this->makeWaitList()->forceFill(['created_at' => now()->subDays(12)])->save();
+        $this->makeWaitList();
+        $this->makeWaitList(['status' => WaitListStatus::Converted->value, 'converted_at' => now()->subDays(3)]);
+        $this->makeWaitList(['status' => WaitListStatus::Cancelled->value]);
+
+        // 1 conversion of 4 records created in the 30-day window = 25%
+        $this->get(route('admin.wait-list.index'))
+            ->assertOk()
+            ->assertSee('Waiting Now')
+            ->assertSee('Longest: 12 days')
+            ->assertSee('Converted (30 Days)')
+            ->assertSee('25% conversion rate')
+            ->assertSee('Top Categories')
+            ->assertSee('Excavators');
+    }
+
+    public function test_index_filters_narrow_results(): void
+    {
+        $fresh = $this->makeWaitList(['customer_name' => 'Fresh Record']);
+        $old   = $this->makeWaitList(['customer_name' => 'Old Record']);
+        $old->forceFill(['created_at' => now()->subDays(10)])->save();
+        $top   = $this->makeWaitList(['customer_name' => 'Top Priority', 'priority_override' => 1]);
+
+        // Age buckets
+        $this->get(route('admin.wait-list.index', ['age' => '0-1']))
+            ->assertOk()->assertSee('Fresh Record')->assertDontSee('Old Record');
+        $this->get(route('admin.wait-list.index', ['age' => '8+']))
+            ->assertOk()->assertSee('Old Record')->assertDontSee('Fresh Record');
+
+        // Priority
+        $this->get(route('admin.wait-list.index', ['priority' => 1]))
+            ->assertOk()->assertSee('Top Priority')->assertDontSee('Fresh Record');
+        $this->get(route('admin.wait-list.index', ['priority' => 'none']))
+            ->assertOk()->assertSee('Fresh Record')->assertDontSee('Top Priority');
+
+        // Multi-status: cancelled + converted together via status[]
+        $fresh->update(['status' => WaitListStatus::Cancelled->value]);
+        $old->update(['status' => WaitListStatus::Converted->value]);
+        $this->get(route('admin.wait-list.index', ['status' => ['cancelled', 'converted']]))
+            ->assertOk()->assertSee('Fresh Record')->assertSee('Old Record')->assertDontSee('Top Priority');
+    }
+
+    public function test_index_queue_positions_follow_urgency_and_views_share_records(): void
+    {
+        $oldest = $this->makeWaitList(['customer_name' => 'Oldest NoOverride']);
+        $oldest->forceFill(['created_at' => now()->subDays(5)])->save();
+        $ranked = $this->makeWaitList(['customer_name' => 'Ranked First', 'priority_override' => 1]);
+
+        // Grid (default): override #1 renders before the older unranked record
+        $this->get(route('admin.wait-list.index'))
+            ->assertOk()
+            ->assertSeeInOrder(['Ranked First', 'Oldest NoOverride']);
+
+        // List view shows the same records in the same order
+        $this->get(route('admin.wait-list.index', ['view' => 'list']))
+            ->assertOk()
+            ->assertSeeInOrder(['Ranked First', 'Oldest NoOverride'])
+            ->assertSee('Showing 1 to 2 of 2 results');
+    }
+
     // ── Matching + alerts ──────────────────────────────────────────
 
     public function test_exact_equipment_match_fires_alert_on_return(): void

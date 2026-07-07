@@ -15,6 +15,20 @@ class SaveWaitListRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        // The optional Choice #2/#3 selects submit blank entries in the
+        // equipment_ids array; drop them so only real picks are validated.
+        if (is_array($this->input('equipment_ids'))) {
+            $ids = array_values(array_filter(
+                $this->input('equipment_ids'),
+                fn ($id) => $id !== null && $id !== ''
+            ));
+
+            $this->merge(['equipment_ids' => $ids !== [] ? $ids : null]);
+        }
+    }
+
     public function rules(): array
     {
         return [

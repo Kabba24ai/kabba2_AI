@@ -176,6 +176,33 @@ class EquipmentWaitListTest extends TestCase
         $this->assertDatabaseHas('equipment_wait_lists', ['priority_override' => null]);
     }
 
+    public function test_optional_equipment_choices_may_be_left_blank(): void
+    {
+        $payload = fn (array $equipmentIds) => [
+            'customer_id'      => $this->customer->id,
+            'request_type'     => WaitListRequestType::SpecificEquipment->value,
+            'equipment_ids'    => $equipmentIds,
+            'store_preference' => WaitListStorePreference::AnyStore->value,
+            'reason'           => WaitListReason::RequestedSpecificUnit->value,
+        ];
+
+        // Choice #1 picked, optional Choice #2/#3 submit as blanks — the blanks
+        // must be dropped, not rejected as "must be an integer"
+        $this->post(route('admin.wait-list.store'), $payload([(string) $this->excavator->id, '', '']))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $waitList = EquipmentWaitList::latest('id')->firstOrFail();
+        $this->assertSame(
+            [$this->excavator->id],
+            $waitList->items()->pluck('equipment_id')->all()
+        );
+
+        // All three blank still fails the Choice #1 requirement
+        $this->post(route('admin.wait-list.store'), $payload(['', '', '']))
+            ->assertSessionHasErrors('equipment_ids');
+    }
+
     public function test_create_form_sections_labels_and_category_filter_contract(): void
     {
         $skidCategory = ProductCategory::create(['title' => 'Skid Steers', 'status' => 'Published', 'sort_order' => 2]);

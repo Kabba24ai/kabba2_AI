@@ -349,6 +349,32 @@ class EquipmentWaitListTest extends TestCase
             ->assertOk()->assertSee('Fresh Record')->assertSee('Old Record')->assertDontSee('Top Priority');
     }
 
+    public function test_specific_equipment_card_falls_back_to_first_choice_product_image(): void
+    {
+        $media = \App\Models\Global\Media::create([
+            'asset_type'  => 'Public Asset',
+            'folder_name' => 'products',
+            'file_name'   => 'skid-steer-hero.jpg',
+        ]);
+        $product = \App\Models\ProductManagement\Product::create([
+            'product_name' => 'Skid Steer Rental',
+            'slug'         => 'skid-steer-rental-' . uniqid(),
+            'product_type' => 'Rental',
+            'media_id'     => $media->id,
+        ]);
+        $this->excavator->update(['assigned_product_id' => $product->id]);
+
+        // Equipment has no photos of its own → first choice's product image renders
+        $this->makeWaitList(
+            ['request_type' => WaitListRequestType::SpecificEquipment->value, 'product_category_id' => null],
+            [$this->excavator->id],
+        );
+
+        $this->get(route('admin.wait-list.index'))
+            ->assertOk()
+            ->assertSee('skid-steer-hero.jpg');
+    }
+
     public function test_index_queue_positions_follow_urgency_and_views_share_records(): void
     {
         $oldest = $this->makeWaitList(['customer_name' => 'Oldest NoOverride']);

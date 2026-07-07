@@ -241,6 +241,11 @@ class Equipment extends Model
         return $this->belongsTo(ProductCategory::class, 'product_category_id', 'id');
     }
 
+    public function assignedProduct()
+    {
+        return $this->belongsTo(\App\Models\ProductManagement\Product::class, 'assigned_product_id', 'id');
+    }
+
     public function getCategoryNameAttribute()
     {
         return $this->productCategory?->title ?? '';

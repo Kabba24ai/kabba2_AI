@@ -31,9 +31,16 @@
             default => 'border-gray-300 text-gray-500 bg-gray-50',
         };
         $thumbUrl = function ($waitList) {
-            return $waitList->request_type === \App\Enums\WaitList\WaitListRequestType::Category
-                ? $waitList->category?->media?->getUrl()
-                : $waitList->items->first()?->equipment?->documentImages?->first()?->media?->getUrl();
+            if ($waitList->request_type === \App\Enums\WaitList\WaitListRequestType::Category) {
+                return $waitList->category?->media?->getUrl();
+            }
+
+            // Specific equipment: the unit's own photo, else the product image
+            // of the first equipment choice on the list
+            $equipment = $waitList->items->first()?->equipment;
+
+            return $equipment?->documentImages?->first()?->media?->getUrl()
+                ?? $equipment?->assignedProduct?->media?->getUrl();
         };
         $statusOptions = [
             'active'       => 'Active',

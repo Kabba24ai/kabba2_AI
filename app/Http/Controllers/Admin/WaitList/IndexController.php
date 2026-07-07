@@ -24,7 +24,7 @@ class IndexController extends Controller
         $statuses = $this->requestedStatuses($request);
 
         $waitLists = EquipmentWaitList::query()
-            ->with(['customer', 'category.media', 'store', 'items.equipment.documentImages.media', 'convertedOrder'])
+            ->with(['customer', 'category.media', 'store', 'items.equipment.documentImages.media', 'items.equipment.assignedProduct.media', 'convertedOrder'])
             ->withCount(['alerts as open_alerts_count' => fn ($q) => $q->open()])
             ->when($statuses !== null, fn ($q) => $q->whereIn('status', $statuses))
             ->when($request->filled('category_id'), fn ($q) => $q->where('product_category_id', $request->integer('category_id')))

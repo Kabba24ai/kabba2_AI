@@ -36,18 +36,23 @@ $badgePalette = ['#1F1D4E', '#B45309', '#065F46', '#1E40AF', '#6B21A8'];
 @endphp
 
 @if($section?->status !== 'Inactive' && ($activeItems->isNotEmpty() || $useStoreFallback))
-<section class="py-10">
+<section class="pt-10 pb-2">
     <div class="container md:max-w-[720px] lg:max-w-[1140px] 2xl:max-w-[1320px] mx-auto px-4 md:px-0">
 
         @if($section?->title)
-        <div class="text-center mb-8">
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest">{{ $section->subtitle }}</p>
-            <h2 class="mt-1 text-2xl md:text-3xl font-bold text-gray-900">{{ $section->title }}</h2>
-            <div class="mx-auto mt-3 w-12 border-t-2 border-yellow-400"></div>
-        </div>
+            @if($section->subtitle)
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest text-center mb-3">{{ $section->subtitle }}</p>
+            @endif
+            <div class="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-10">
+                <div class="flex-1 max-w-[40px] sm:max-w-[80px] md:max-w-[100px] lg:max-w-[120px] h-px bg-yellow-400"></div>
+                <h2 class="text-lg sm:text-xl md:text-2xl lg:text-[32px] font-semibold uppercase tracking-wide leading-tight text-center whitespace-nowrap">
+                    {{ $section->title }}
+                </h2>
+                <div class="flex-1 max-w-[40px] sm:max-w-[80px] md:max-w-[100px] lg:max-w-[120px] h-px bg-yellow-400"></div>
+            </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-[60px]">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             @if($useStoreFallback)
             {{-- No items configured — render active stores directly --}}
             @foreach($fallbackStores as $store)

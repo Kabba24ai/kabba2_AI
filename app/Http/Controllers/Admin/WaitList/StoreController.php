@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\WaitList;
 
+use App\Enums\WaitList\WaitListReason;
 use App\Enums\WaitList\WaitListRequestType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\WaitList\SaveWaitListRequest;
@@ -27,7 +28,8 @@ class StoreController extends Controller
                 ? $validated['product_category_id'] : null,
             'store_preference'    => $validated['store_preference'],
             'store_id'            => $validated['store_id'] ?? null,
-            'reason'              => $validated['reason'],
+            // Form submits the reason code; the readable label is what gets stored
+            'reason'              => WaitListReason::from($validated['reason'])->label(),
             'internal_notes'      => $validated['internal_notes'] ?? null,
             'priority_override'   => $validated['priority_override'] ?? null,
             'created_by'          => auth()->id(),

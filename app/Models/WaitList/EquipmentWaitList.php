@@ -111,11 +111,11 @@ class EquipmentWaitList extends Model
         return $q->whereIn('status', WaitListStatus::waiting());
     }
 
-    /** Manual priority first (higher wins), then oldest first. */
+    /** Manual queue positions first (#1 → #3), then oldest first. */
     public function scopeByUrgency(Builder $q): Builder
     {
         return $q->orderByRaw('priority_override IS NULL')
-            ->orderByDesc('priority_override')
+            ->orderBy('priority_override')
             ->orderBy('created_at');
     }
 

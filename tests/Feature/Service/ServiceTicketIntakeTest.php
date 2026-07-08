@@ -122,7 +122,9 @@ class ServiceTicketIntakeTest extends TestCase
             ->assertDontSee('Repair Summary')
             ->assertDontSee('Financial Responsibility')
             ->assertDontSee('Financial Status')
-            ->assertDontSee('Service Location');
+            // The card heading says "Equipment & Service Location" — what must
+            // be gone is the old workflow form's service_location dropdown.
+            ->assertDontSee('name="service_location"', false);
 
         $content = $response->getContent();
 

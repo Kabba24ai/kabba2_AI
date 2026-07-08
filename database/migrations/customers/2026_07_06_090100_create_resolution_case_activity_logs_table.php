@@ -26,7 +26,10 @@ return new class extends Migration
 
             $table->foreign('resolution_case_id')->references('id')->on('resolution_cases')->cascadeOnDelete();
             $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
-            $table->index(['resolution_case_id', 'created_at']);
+            $table->index(
+                ['resolution_case_id', 'created_at'],
+                'rcal_case_created_idx'
+            );
         });
     }
 

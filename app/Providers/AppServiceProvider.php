@@ -67,8 +67,12 @@ class AppServiceProvider extends ServiceProvider
 
     private function gatesRegistration(): void
     {
-        // Admin Gates
-        //require base_path('app/Gates/Admin/index.php');
+        // Small-business posture: granular permissions are not enforced.
+        // Every signed-in user passes every ability check (@can directives
+        // and Spatie permission: route middleware) — guests still fail.
+        // To bring granular roles back: remove this bypass, run the
+        // ModuleSeeder, and assign permissions through the Roles screen.
+        \Illuminate\Support\Facades\Gate::before(fn ($user, string $ability) => true);
     }
 
 

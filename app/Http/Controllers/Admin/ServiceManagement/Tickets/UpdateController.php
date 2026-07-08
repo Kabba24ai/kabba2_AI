@@ -31,7 +31,7 @@ class UpdateController extends Controller
         }
 
         $ticket->fill(array_merge(
-            collect($validated)->except(['personnel', 'order_id', 'rental_date', 'repair_status', 'blocked_reason', 'expected_action_date'])->all(),
+            collect($validated)->except(['personnel', 'team_leader_id', 'intake', 'order_id', 'rental_date', 'repair_status', 'blocked_reason', 'expected_action_date'])->all(),
             $this->orderReferenceFields($validated),
             ['updated_by' => auth()->id()],
         ));

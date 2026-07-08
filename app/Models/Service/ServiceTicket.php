@@ -37,6 +37,7 @@ class ServiceTicket extends Model
         'ticket_number',
         'service_type',
         'service_location',
+        'service_store_id',
         'priority',
         'repair_status',
         'financial_responsibility',
@@ -303,7 +304,14 @@ class ServiceTicket extends Model
     public function personnel()
     {
         return $this->belongsToMany(User::class, 'service_ticket_personnel', 'service_ticket_id', 'employee_id')
+            ->withPivot('is_team_leader')
             ->withTimestamps();
+    }
+
+    /** The assigned employee marked as crew lead for this ticket, if any. */
+    public function teamLeader(): ?User
+    {
+        return $this->personnel->first(fn (User $user) => (bool) $user->pivot->is_team_leader);
     }
 
     public function resourceDispatches()
@@ -331,6 +339,16 @@ class ServiceTicket extends Model
         return $this->hasMany(ServiceTicketMedia::class);
     }
 
+    public function diagnosticSteps()
+    {
+        return $this->hasMany(ServiceTicketDiagnosticStep::class)->orderBy('created_at')->orderBy('id');
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(ServiceTicketNote::class)->latest()->latest('id');
+    }
+
     public function events()
     {
         return $this->hasMany(ServiceTicketEvent::class);
@@ -352,9 +370,19 @@ class ServiceTicket extends Model
      * Controllers must use this instead of personnel()->sync() directly —
      * pivot syncs fire no model events, so logging happens here.
      */
-    public function syncPersonnel(array $userIds): void
+    public function syncPersonnel(array $userIds, ?int $teamLeaderId = null): void
     {
-        $changes = $this->personnel()->sync($userIds);
+        // Callers that don't manage the crew lead (e.g. the edit form) keep
+        // the current leader as long as they remain on the ticket.
+        if ($teamLeaderId === null) {
+            $teamLeaderId = $this->personnel()->wherePivot('is_team_leader', true)->first()?->id;
+        }
+
+        $payload = collect($userIds)
+            ->mapWithKeys(fn ($id) => [(int) $id => ['is_team_leader' => (int) $id === (int) $teamLeaderId]])
+            ->all();
+
+        $changes = $this->personnel()->sync($payload);
 
         $touched = array_merge($changes['attached'], $changes['detached']);
         if (empty($touched)) {
@@ -364,8 +392,9 @@ class ServiceTicket extends Model
         $names = User::whereIn('id', $touched)->get(['id', 'first_name', 'last_name']);
 
         foreach ($changes['attached'] as $id) {
+            $leadSuffix = (int) $id === (int) $teamLeaderId ? ' (Team Leader)' : '';
             ServiceTicketEvent::record($this->id, ServiceTicketEventType::PersonnelAdded,
-                notes: 'Assigned: ' . ($names->firstWhere('id', $id)?->full_name ?? "user #{$id}"));
+                notes: 'Assigned: ' . ($names->firstWhere('id', $id)?->full_name ?? "user #{$id}") . $leadSuffix);
         }
         foreach ($changes['detached'] as $id) {
             ServiceTicketEvent::record($this->id, ServiceTicketEventType::PersonnelRemoved,
@@ -381,6 +410,12 @@ class ServiceTicket extends Model
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /** Store where the equipment will be repaired (rental-order intake path). */
+    public function serviceStore()
+    {
+        return $this->belongsTo(\App\Models\Stores\Store::class, 'service_store_id');
     }
 
     public function customer()
@@ -778,6 +813,116 @@ class ServiceTicket extends Model
     }
 
     /** One-line workbench state: [label, badge classes]. */
+    /**
+     * Workbench stage engine: derives the nine lifecycle stages purely from
+     * existing ticket state (no new workflow rules). Each stage is
+     * ['key', 'label', 'state' (complete|current|pending), 'meta' lines].
+     * The current stage = the first stage that isn't complete.
+     */
+    public function workflowStages(): array
+    {
+        $fmt = fn ($ts, $format = 'M j, g:i A') => $ts?->format($format);
+
+        $repairComplete = in_array($this->repair_status, [RepairStatus::ReadyForPickup, RepairStatus::Completed, RepairStatus::Closed], true);
+        $repairMeta = match (true) {
+            $this->repair_status === RepairStatus::InProgress => ['In Progress'],
+            $this->is_blocked => ['Waiting on ' . $this->repair_status->waitingOnLabel()],
+            $repairComplete => array_filter(['Complete', $fmt($this->completed_at, 'M j, g:i A')]),
+            default => [],
+        };
+
+        $settlementApplicable = $this->responsibility_decision === ResponsibilityDecision::Pending
+            || $this->responsibility_decision === ResponsibilityDecision::CustomerPay;
+        $settlement = $this->activeSettlement();
+
+        $stages = [
+            ['key' => 'intake', 'label' => 'Intake',
+                'complete' => true,
+                'meta' => array_filter(['Complete', $fmt($this->created_at)])],
+            ['key' => 'diagnostic', 'label' => 'Diagnostic',
+                'complete' => $this->diagnostic_status->allowsResponsibilityDecision(),
+                'meta' => array_filter([
+                    $this->diagnostic_status->label(),
+                    $fmt($this->diagnostic_completed_at ?? $this->diagnostic_started_at),
+                ])],
+            ['key' => 'responsibility', 'label' => 'Responsibility',
+                'complete' => $this->responsibility_decision !== ResponsibilityDecision::Pending,
+                'meta' => $this->responsibility_decision === ResponsibilityDecision::Pending
+                    ? ['Pending']
+                    : array_filter([$this->responsibility_decision->label(), $fmt($this->responsibility_decided_at)])],
+            // Approval and deposit only arm after the responsibility decision —
+            // until then they read Pending rather than a misleading green check
+            ['key' => 'approval', 'label' => 'Approval',
+                'complete' => $this->responsibility_decision !== ResponsibilityDecision::Pending
+                    && $this->approval_status->satisfied(),
+                'meta' => $this->responsibility_decision === ResponsibilityDecision::Pending
+                    ? ['Pending']
+                    : array_filter([
+                        $this->approval_status->label(),
+                        $fmt($this->estimate_approved_at ?? $this->estimate_declined_at ?? $this->estimate_sent_at),
+                    ])],
+            ['key' => 'deposit', 'label' => 'Parts Deposit',
+                'complete' => $this->responsibility_decision !== ResponsibilityDecision::Pending
+                    && $this->depositSatisfied(),
+                'meta' => match (true) {
+                    !$this->parts_deposit_required => [$this->responsibility_decision === ResponsibilityDecision::Pending ? 'Pending' : 'Not Required'],
+                    (bool) $this->parts_deposit_paid => array_filter(['Paid', $fmt($this->parts_deposit_paid_at)]),
+                    (bool) $this->deposit_override => ['Overridden'],
+                    default => ['Awaiting Payment'],
+                }],
+            ['key' => 'authorized', 'label' => 'Authorized',
+                'complete' => (bool) $this->repair_authorized,
+                'meta' => $this->repair_authorized
+                    ? array_filter([$this->authorization_override ? 'Override' : 'Authorized', $fmt($this->repair_authorized_at)])
+                    : ['Pending']],
+            ['key' => 'repair', 'label' => 'Repair',
+                'complete' => $repairComplete,
+                'meta' => $repairMeta ?: ['Pending']],
+            ['key' => 'settlement', 'label' => 'Settlement',
+                'complete' => $settlement !== null || !$settlementApplicable,
+                'meta' => match (true) {
+                    $settlement !== null => array_filter(['Charge Created', $fmt($settlement->created_at)]),
+                    !$settlementApplicable => ['Not Applicable'],
+                    default => ['Pending'],
+                }],
+            ['key' => 'close', 'label' => 'Close Ticket',
+                'complete' => $this->repair_status === RepairStatus::Closed,
+                'meta' => match (true) {
+                    $this->repair_status === RepairStatus::Closed => array_filter(['Closed', $fmt($this->closed_at)]),
+                    $this->repair_status === RepairStatus::ReadyForPickup => ['Ready for Pickup'],
+                    default => ['Pending'],
+                }],
+        ];
+
+        $currentAssigned = false;
+        foreach ($stages as $i => $stage) {
+            if ($stage['complete']) {
+                $stages[$i]['state'] = 'complete';
+            } elseif (!$currentAssigned) {
+                $stages[$i]['state'] = 'current';
+                $currentAssigned = true;
+            } else {
+                $stages[$i]['state'] = 'pending';
+            }
+            unset($stages[$i]['complete']);
+        }
+
+        // Fully closed ticket: everything is complete, nothing is current
+        return $stages;
+    }
+
+    /** Key of the stage the workbench should focus on right now. */
+    public function currentStageKey(): string
+    {
+        foreach ($this->workflowStages() as $stage) {
+            if ($stage['state'] === 'current') {
+                return $stage['key'];
+            }
+        }
+
+        return 'close';
+    }
+
     public function workbenchState(): array
     {
         if ($this->repair_authorized) {

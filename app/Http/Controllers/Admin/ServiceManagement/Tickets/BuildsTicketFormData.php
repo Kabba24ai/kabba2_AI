@@ -5,9 +5,46 @@ namespace App\Http\Controllers\Admin\ServiceManagement\Tickets;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\Order;
+use App\Models\Stores\Store;
 
 trait BuildsTicketFormData
 {
+    /**
+     * Data for the rental-order intake form (create page): recent orders that
+     * carry equipment, each with its selectable equipment choices, plus
+     * stores and active employees. Equipment outside the selected order is
+     * never offered in this path.
+     */
+    private function intakeFormData(): array
+    {
+        $orders = Order::with(['customer', 'products' => fn ($q) => $q->whereNotNull('equipment_id')->with('equipment')])
+            ->whereHas('products', fn ($q) => $q->whereNotNull('equipment_id'))
+            ->latest('id')
+            ->limit(300)
+            ->get(['id', 'order_number', 'customer_id', 'customer_name']);
+
+        $orderOptions = $orders->map(fn (Order $order) => [
+            'id'          => $order->id,
+            'label'       => trim($order->order_number . ' — ' . ($order->customer_name ?? $order->customer?->full_name ?? 'Unknown')),
+            'rental_date' => ($date = $order->products->whereNotNull('delivery_date')->min('delivery_date'))
+                ? \Illuminate\Support\Carbon::parse($date)->format('M j, Y') : null,
+            'equipment'   => $order->products
+                ->filter(fn ($product) => $product->equipment)
+                ->map(fn ($product) => [
+                    'id'    => $product->equipment->id,
+                    'label' => $product->equipment->equipment_name
+                        . ($product->equipment->equipment_id ? ' (' . $product->equipment->equipment_id . ')' : ''),
+                ])->unique('id')->values(),
+        ])->values();
+
+        $employees = User::active()->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name']);
+
+        $stores = Store::where('status', 'Active')->orderBy('store_name')->get(['id', 'store_name']);
+
+        return compact('orderOptions', 'employees', 'stores');
+    }
+
     /** Shared dropdown data for the create/edit ticket forms. */
     private function ticketFormData(): array
     {

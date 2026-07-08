@@ -11,7 +11,9 @@ class CreateController extends Controller
 
     public function __invoke()
     {
-        return view('admin.service_management.tickets.create', $this->ticketFormData() + [
+        // Rental-order intake only — the full workflow form lives on the
+        // edit page; diagnosis and the rest happen on the workbench.
+        return view('admin.service_management.tickets.create', $this->intakeFormData() + [
             'ticket' => new ServiceTicket(),
         ]);
     }

@@ -1712,7 +1712,8 @@ class SettingSeeder extends Seeder
     {
         // Read the --update-existing flag (defaults to false)
         // Use the UPDATE_EXISTING_SETTINGS flag from .env, default to false if not set
-        $updateExisting = config('app.seeders.existing_settings_update');
+        // Never allow updates to existing settings in production, regardless of the flag
+        $updateExisting = config('app.seeders.existing_settings_update') && !app()->environment('production');
 
         foreach ($this->settings as $setting_type => $settings) {
             if (empty($settings) || !is_array($settings)) {
@@ -1743,13 +1744,13 @@ class SettingSeeder extends Seeder
                     ],
                 );
 
-                //  Now trigger mutator
-                if (isset($setting['default_value'])) {
+                //  Now trigger mutator (only for newly created settings)
+                if ($setting_item->wasRecentlyCreated && isset($setting['default_value'])) {
                     $setting_item->setting_value = $setting['default_value'];
                     $setting_item->save();
                 }
 
-                if ($updateExisting) {
+                if ($updateExisting && !$setting_item->wasRecentlyCreated) {
                     $setting_item->fill([
                         'setting_title' => $setting['setting_title'],
                         'value_type' => $setting['value_type'],

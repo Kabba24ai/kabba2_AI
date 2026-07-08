@@ -51,6 +51,9 @@ Route::name('admin.')->group(function ($router) {
         // Service Management
         require base_path('routes/admin/service_management/routes.php');
 
+        // Field Service — mission-based dispatch workflow (separate from Shop Service)
+        require base_path('routes/admin/field_service/routes.php');
+
         // crm
         require base_path('routes/admin/crm/routes.php');
 

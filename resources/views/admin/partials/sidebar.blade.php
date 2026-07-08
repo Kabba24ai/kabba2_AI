@@ -598,7 +598,7 @@
                     </li>
 
                     <!-- Service -->
-                    @php $serviceActive = Route::is('admin.service-management.*'); @endphp
+                    @php $serviceActive = Route::is('admin.service-management.*') || Route::is('admin.field-service.*'); @endphp
                     <li x-data="{ open: {{ $serviceActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
                             class="menu-item group flex items-center gap-3 {{ $serviceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
@@ -638,13 +638,15 @@
                                         <x-heroicon-o-ticket class="h-5 w-5" /> Tickets
                                     </a>
                                 </li>
-                                {{-- Phase 3+: Field Service, Warranty Claims --}}
-                                <li>
-                                    <span class="menu-dropdown-item group menu-dropdown-item-inactive opacity-50 cursor-not-allowed"
-                                        title="Coming in Phase 3">
-                                        <x-heroicon-o-truck class="h-5 w-5" /> Field Service
-                                    </span>
-                                </li>
+                                @if (Route::has('admin.field-service.tickets.index'))
+                                    <li>
+                                        <a href="{{ route('admin.field-service.tickets.index') }}"
+                                            class="menu-dropdown-item group
+                                            {{ Route::is('admin.field-service.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                            <x-heroicon-o-truck class="h-5 w-5" /> Field Service
+                                        </a>
+                                    </li>
+                                @endif
                                 <li>
                                     <span class="menu-dropdown-item group menu-dropdown-item-inactive opacity-50 cursor-not-allowed"
                                         title="Coming in Phase 3">

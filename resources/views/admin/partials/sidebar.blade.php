@@ -66,6 +66,7 @@
                         'admin.crm.funnels.*',
                         'admin.crm.message-management.*',
                         'admin.crm.sales-funnels.*',
+                        'admin.resolution-center.*',
                     ]);
 
                 @endphp
@@ -325,6 +326,17 @@
                                         <x-heroicon-o-document-text class="w-5 h-5 mr-1" /> Billing Summary
                                     </a>
                                 </li>
+                                @if (Route::has('admin.resolution-center.operations'))
+                                    @can('resolution_center.view_audit_history')
+                                        <li>
+                                            <a href="{{ route('admin.resolution-center.operations') }}"
+                                                class="menu-dropdown-item group
+                                                {{ Route::is('admin.resolution-center.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                <x-heroicon-o-scale class="w-5 h-5 mr-1" /> Resolution Center
+                                            </a>
+                                        </li>
+                                    @endcan
+                                @endif
                                 <li>
                                     <a href="{{ route('admin.crm.funnels.index') }}"
                                         class="menu-dropdown-item group

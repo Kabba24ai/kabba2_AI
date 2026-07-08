@@ -42,6 +42,8 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\Uncollectibl
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\NoteController as BENoteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\AdjustController as BEAdjustController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\DeleteController as BEDeleteController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\CustomerCredit\ApplyController as CustomerCreditApplyController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\CustomerCredit\RemoveController as CustomerCreditRemoveController;
 
 
 Route::prefix('orders')
@@ -103,6 +105,14 @@ Route::prefix('orders')
 
         // POD Payment Link — manual resend
         Route::post('/{unique_id}/resend-pod-payment-link', ResendPodPaymentLinkController::class)->name('resend-pod-payment-link');
+
+        // Customer Credit — Phase 3.2, Order Entry Integration. Manual only.
+        Route::prefix('{unique_id}/customer-credit')
+            ->name('customer-credit.')
+            ->group(function () {
+                Route::post('/apply', CustomerCreditApplyController::class)->name('apply')->middleware('permission:customer_credit.redeem');
+                Route::post('/remove', CustomerCreditRemoveController::class)->name('remove')->middleware('permission:customer_credit.grant');
+            });
 
         // Billing Engine — fuel charge actions (operate on billing_charges.unique_id, not order_product_id)
         Route::prefix('billing-charges')

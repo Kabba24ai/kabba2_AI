@@ -421,62 +421,47 @@
                        <td class="py-4 px-6 text-right whitespace-nowrap transaction-note-cell-{{ $transaction->unique_id }}"> {{ $transaction->notes ?? '' }} </td>
 
 
+                       @php
+                           // Financial Engine Phase 2.5: the account_invoice type is
+                           // excluded — its sales_tax column stores a dollar amount,
+                           // not a rate, so neither TaxCalculationService method
+                           // applies; its direct-subtraction formula is unchanged.
+                           if ($transaction->type !== 'account_invoice') {
+                               $isTaxIncluded = $transaction->sales_tax > 0 && (
+                                   $transaction->type === 'payment' ||
+                                   (in_array($transaction->type, ['charge', 'discount']) && $transaction->sales_tax_type === 'reverse')
+                               );
+
+                               $taxBreakdown = $isTaxIncluded
+                                   ? \App\Services\TaxCalculationService::extractTaxFromInclusiveAmount((float) ($transaction->amount ?? 0), (float) $transaction->sales_tax)
+                                   : \App\Services\TaxCalculationService::addTaxToExclusiveAmount((float) ($transaction->amount ?? 0), (float) ($transaction->sales_tax ?? 0));
+                           }
+                       @endphp
                        <td class="py-4 px-6 text-right">
 
-                           @if($transaction->sales_tax > 0 && ($transaction->type === 'payment' || (in_array($transaction->type, ['charge', 'discount']) 
-    && $transaction->sales_tax_type === 'reverse')))
-                           {{-- Tax is included in the amount (payment or reverse charge) --}}
-                           {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) / (1 + $transaction->sales_tax)) }}
-
-                           @elseif($transaction->type === 'account_invoice')
+                           @if($transaction->type === 'account_invoice')
 
                            {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount - $transaction->sales_tax) }}
 
                            @else
-                           {{-- No tax or tax added on top --}}
-                           {{ \App\Helpers\CustomHelper::formatCurrency($transaction->amount ?? 0) }}
+                           {{ \App\Helpers\CustomHelper::formatCurrency($taxBreakdown->baseAmount) }}
                            @endif
 
                        </td>
                        {{-- Sales Tax Column --}}
                        <td class="py-4 px-6 text-right">
 
-                           @if($transaction->type === 'account_invoice') 
+                           @if($transaction->type === 'account_invoice')
                             {{ \App\Helpers\CustomHelper::formatCurrency($transaction->sales_tax) }}
-                           @elseif($transaction->sales_tax > 0 && ($transaction->type === 'payment' || (
-    in_array($transaction->type, ['charge', 'discount']) &&
-    $transaction->sales_tax_type === 'reverse'
-)))
-                           {{-- Tax is included in the amount (payment or reverse charge) --}}
-                           @php
-                           $taxAmount = ($transaction->amount ?? 0) - (($transaction->amount ?? 0) / (1 + $transaction->sales_tax));
-                           @endphp
-                           {{ \App\Helpers\CustomHelper::formatCurrency($taxAmount) }}
-                           @elseif($transaction->sales_tax > 0)
-                           {{-- Tax is added on top --}}
-                           {{ \App\Helpers\CustomHelper::formatCurrency(($transaction->amount ?? 0) * $transaction->sales_tax) }}
                            @else
-                           {{ \App\Helpers\CustomHelper::formatCurrency(0) }}
+                           {{ \App\Helpers\CustomHelper::formatCurrency($taxBreakdown->taxAmount) }}
                            @endif
                        </td>
 
                        {{-- Total Amount with Tax if Applicable --}}
                        <td class="py-4 px-6 text-right whitespace-nowrap {{ $style['amount'] }}">
                            @php
-                                $totalWithTax = $transaction->amount;
-
-                                if($transaction->type === 'account_invoice')
-                                                            $totalWithTax = $transaction->amount;
-                                elseif ($transaction->sales_tax > 0 && !(
-    $transaction->type === 'payment' ||
-    (
-        in_array($transaction->type, ['charge', 'discount']) &&
-        $transaction->sales_tax_type === 'reverse'
-    )
-)) {
-                                // Only add tax if it's NOT already included
-                                $totalWithTax += ($transaction->amount * $transaction->sales_tax);
-                                }
+                               $totalWithTax = $transaction->type === 'account_invoice' ? $transaction->amount : $taxBreakdown->totalAmount;
                            @endphp
 
                            {{ $style['sign'] }}

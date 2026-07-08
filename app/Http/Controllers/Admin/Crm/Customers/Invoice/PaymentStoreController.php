@@ -13,9 +13,10 @@ use App\Models\Customers\Invoice;
 // Request
 use App\Http\Requests\Admin\Crm\Customers\Invoice\PaymentStoreRequest;
 use Illuminate\Support\Carbon;
-use App\Helpers\CustomHelper;
 use App\Models\Iam\Personnel\User ;
 use App\Services\AuthorizeNetService;
+use App\Services\InvoiceCalculationService;
+use App\Services\LedgerBalanceService;
 
 class PaymentStoreController extends Controller
 {
@@ -59,7 +60,7 @@ class PaymentStoreController extends Controller
             $record->save();
             Log::debug('CustomerAccount saved:', $record->toArray());
 
-            CustomHelper::updateCreditBalance($record);
+            LedgerBalanceService::applyTransaction($record);
             Log::debug('Credit balance updated for record:', ['id' => $record->id]);
 
             // ---------------------------------------
@@ -72,24 +73,11 @@ class PaymentStoreController extends Controller
 
                 if ($invoice) {
 
-                    $paymentAmount = (float) $validated['amount'];
-
-                    // Add to paid amount
-                    $invoice->paid_amount += $paymentAmount;
-
-                    // Recalculate open amount
-                    $invoice->open_amount = max(0, $invoice->total - $invoice->paid_amount);
-
-                    // Update invoice status
-                    if ($invoice->open_amount <= 0) {
-                        $invoice->invoice_status = 'paid';
-                    } elseif ($invoice->paid_amount > 0) {
-                        $invoice->invoice_status = 'partial_paid';
-                    } else {
-                        $invoice->invoice_status = 'pending';
-                    }
-
-                    $invoice->save();
+                    // Financial Engine Phase 2.4: recomputes subtotal/tax/total
+                    // from current line items and paid_amount/open_amount/status
+                    // from the full ledger (including the payment just saved
+                    // above), instead of incrementing paid_amount inline.
+                    InvoiceCalculationService::recomputeSummary($invoice);
                 }
             }
 

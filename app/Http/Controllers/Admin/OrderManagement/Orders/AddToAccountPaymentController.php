@@ -6,10 +6,10 @@ use App\Enums\Orders\OrderPaymentStatus;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Http\Controllers\Controller;
 use App\Events\Admin\Orders\PaymentAddedToAccountEvent;
-use App\Helpers\CustomHelper;
 use App\Models\Orders\Order;
 use App\Models\Configurations\Setting;
 use App\Models\Customers\CustomerAccount;
+use App\Services\LedgerBalanceService;
 
 
 class AddToAccountPaymentController extends Controller
@@ -73,7 +73,7 @@ class AddToAccountPaymentController extends Controller
                     $record->save();
 
                     // Update credit balance per product (optional, depends on logic)
-                    CustomHelper::updateCreditBalance($record, $product->tax ?? 0);
+                    LedgerBalanceService::applyTransaction($record, $product->tax ?? 0);
                 }
 
             // Update credit balance

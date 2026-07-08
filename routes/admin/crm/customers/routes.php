@@ -87,6 +87,9 @@ Route::prefix('customers')
     // customer_account
     require base_path('routes/admin/crm/customers/customer_account/routes.php');
 
+    // customer_credit — Phase 3.1, Customer Credit Platform
+    require base_path('routes/admin/crm/customers/customer_credit/routes.php');
+
 
     // invoice
     require base_path('routes/admin/crm/customers/invoice/routes.php');

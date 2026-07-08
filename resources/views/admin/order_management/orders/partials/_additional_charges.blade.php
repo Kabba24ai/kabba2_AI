@@ -29,10 +29,13 @@
                     'uncollectible' => 'Uncollectible',
                     default         => 'Pending',
                 };
-                $taxAmount  = (float) ($charge->sales_tax ?? 0) > 0 && $charge->sales_tax_type === 'add'
-                    ? round((float) $charge->amount * (float) $charge->sales_tax, 2)
-                    : 0;
-                $total = (float) $charge->amount + $taxAmount;
+                // Financial Engine Phase 2.5: tax only applies when sales_tax_type
+                // is explicitly 'add' — passing rate=0 otherwise preserves that
+                // gate, since TaxCalculationService itself only checks rate > 0.
+                $chargeTaxRate = $charge->sales_tax_type === 'add' ? (float) ($charge->sales_tax ?? 0) : 0.0;
+                $chargeBreakdown = \App\Services\TaxCalculationService::addTaxToExclusiveAmount((float) $charge->amount, $chargeTaxRate);
+                $taxAmount = $chargeBreakdown->taxAmount;
+                $total = $chargeBreakdown->totalAmount;
             @endphp
 
             <div class="flex items-center justify-between gap-4 px-4 py-3">

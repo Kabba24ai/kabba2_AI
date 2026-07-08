@@ -12,6 +12,7 @@ use Illuminate\Database\QueryException;
 use Symfony\Component\Mime\DraftEmail;
 use App\Models\Customers\Invoice;
 use Illuminate\Support\Facades\Log;
+use App\Services\InvoiceCalculationService;
 
 
 class CustomHelper
@@ -760,117 +761,18 @@ class CustomHelper
 
 
 
+    /**
+     * @deprecated Delegates to InvoiceCalculationService::recomputeSummary()
+     * as of Phase 2.4 (docs/financial-engine-consolidation/PHASE_2_4_COMPLETION_REPORT.md).
+     * Kept under this name so existing callers (CustomerAccount\UpdateController,
+     * CustomerAccount\DeleteController, Invoice\UpdateController,
+     * Invoice\DeleteInvoiceController, BulkDeleteController,
+     * RepairDeletedOrdersController) require no changes. New code should
+     * call InvoiceCalculationService::recomputeSummary() directly.
+     */
     public static function updateInvoiceSummary(Invoice $invoice): void
     {
-
-        $subtotal = 0;
-        $totalTax = 0;
-        $totalDiscount = 0;
-        $totalRefund = 0;
-
-        $invoice->loadMissing('items');
-
-
-
-
-        foreach ($invoice->items as $item) {
-
-            $price = (float) ($item->unit ?? 0);
-            $tax   = (float) ($item->tax ?? 0);
-
-
-            // charge + order
-            if (in_array($item->type, ['charge', 'order'])) {
-                $subtotal += $price;
-                $totalTax += $tax;
-
-
-            }
-
-            // discount
-            if ($item->type === 'discount') {
-                $totalDiscount += abs($price);
-                $totalTax -= abs($tax);
-
-
-            }
-
-            // refund
-            if ($item->type === 'refund') {
-                $totalRefund += abs($price);
-                $totalTax -= abs($tax);
-
-
-            }
-        }
-
-        $subtotal = max(0, $subtotal);
-        $totalTax = max(0, $totalTax);
-
-        $finalTotal = $subtotal + $totalTax - $totalDiscount - $totalRefund;
-        $finalTotal = max(0, $finalTotal);
-
-        $invoice->subtotal  = round($subtotal, 2);
-        $invoice->sales_tax = round($totalTax, 2);
-        $invoice->total     = round($finalTotal, 2);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Recalculate Payments
-        |--------------------------------------------------------------------------
-        */
-
-        $paidAmount = CustomerAccount::where(
-            'invoice_id',
-            $invoice->id
-        )
-        ->where('type', 'payment')
-        ->sum('amount');
-
-        $paidAmount = abs((float) $paidAmount);
-
-        $openAmount = max(
-            $finalTotal - $paidAmount,
-            0
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Invoice Status
-        |--------------------------------------------------------------------------
-        */
-
-        if ($openAmount <= 0) {
-
-            $invoiceStatus = 'paid';
-
-        } elseif ($paidAmount > 0) {
-
-            $invoiceStatus = 'partial_paid';
-
-        } else {
-
-            $invoiceStatus = 'pending';
-        }
-
-        $invoice->paid_amount = round(
-            $paidAmount,
-            2
-        );
-
-        $invoice->open_amount = round(
-            $openAmount,
-            2
-        );
-
-        $invoice->invoice_status = $invoiceStatus;
-
-
-
-        $invoice->save();
-
-
+        InvoiceCalculationService::recomputeSummary($invoice);
     }
 
 

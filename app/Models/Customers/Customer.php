@@ -2,21 +2,19 @@
 
 namespace App\Models\Customers;
 
-use Illuminate\Database\Eloquent\Model;
-
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-
-// Helpers
 use App\Helpers\ModelHelper;
+use App\Models\Global\Media;
+// Helpers
+use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use Carbon\Carbon;
-use App\Models\Global\Media;
-use App\Models\Iam\Personnel\User;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class Customer extends Authenticatable
 {
     use Notifiable;
+
     protected $fillable = [
         'unique_id',
         'first_name',
@@ -52,11 +50,9 @@ class Customer extends Authenticatable
         'password_reset_token',
         'password_reset_token_expiry',
 
-
         'license_front_media_id',
         'license_back_media_id',
         'license_expiry_date',
-
 
     ];
 
@@ -75,12 +71,10 @@ class Customer extends Authenticatable
 
     /**
      * Get the user's full name.
-     *
-     * @return string
      */
     public function getFullNameAttribute(): string
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return $this->first_name.' '.$this->last_name;
     }
 
     public function accountApprovedBy()
@@ -95,8 +89,6 @@ class Customer extends Authenticatable
 
     /**
      * Determine if the customer's tax-exempt status is currently valid.
-     *
-     * @return bool
      */
     public function getIsTaxExemptValidAttribute(): bool
     {
@@ -111,7 +103,7 @@ class Customer extends Authenticatable
         // }
 
         // If both dates are given, check the date validity
-        if (!empty($this->tax_document_upload_date) && !empty($this->tax_document_valid_until)) {
+        if (! empty($this->tax_document_upload_date) && ! empty($this->tax_document_valid_until)) {
             $today = Carbon::today();
             $uploadDate = Carbon::parse($this->tax_document_upload_date);
             $validUntil = Carbon::parse($this->tax_document_valid_until);
@@ -177,6 +169,17 @@ class Customer extends Authenticatable
         return $this->hasMany(CustomerAccount::class)->orderBy('id', 'desc');
     }
 
+    /**
+     * Phase 3.0/3.1 — Financial Store Credit ledger (grants/redemptions).
+     * Deliberately a separate relationship from accounts() — see
+     * app/Services/CustomerCreditService.php for why this is not part of
+     * the customer_accounts ledger.
+     */
+    public function customerCredits()
+    {
+        return $this->hasMany(CustomerCredit::class)->orderBy('created_at')->orderBy('id');
+    }
+
     // CustomerAccount where type is payment
     public function paymentAccounts()
     {
@@ -184,42 +187,44 @@ class Customer extends Authenticatable
             ->where('type', 'payment')
             ->orderBy('date', 'desc');
     }
+
     public function cards()
     {
         return $this->hasMany(CustomerCard::class);
     }
 
-public function getPaidSalesAttribute()
-{
-    return $this->orders()
-        ->whereHas('payments', function ($query) {
-            $query->whereIn('status', [
-                'Paid',
-                'Refunded',
-                'Partial Refund',
-            ])
-            ->whereRaw('id = (
+    public function getPaidSalesAttribute()
+    {
+        return $this->orders()
+            ->whereHas('payments', function ($query) {
+                $query->whereIn('status', [
+                    'Paid',
+                    'Refunded',
+                    'Partial Refund',
+                ])
+                    ->whereRaw('id = (
                 SELECT MAX(id)
                 FROM order_payments
                 WHERE order_id = orders.id
             )');
-        })
-        ->sum('grand_total');
-}
+            })
+            ->sum('grand_total');
+    }
+
     // Total Pending Sales (via OrderPayment status)
-   public function getPendingSalesAttribute()
-{
-    return $this->orders()
-        ->whereHas('payments', function ($query) {
-            $query->where('status', 'Pending')
-            ->whereRaw('id = (
+    public function getPendingSalesAttribute()
+    {
+        return $this->orders()
+            ->whereHas('payments', function ($query) {
+                $query->where('status', 'Pending')
+                    ->whereRaw('id = (
                 SELECT MAX(id)
                 FROM order_payments
                 WHERE order_id = orders.id
             )');
-        })
-        ->sum('grand_total');
-}
+            })
+            ->sum('grand_total');
+    }
 
     public function getTaxStatus(): string
     {
@@ -235,7 +240,7 @@ public function getPaidSalesAttribute()
     {
         $lastPayment = $this->last_payment;
 
-        if (!$lastPayment || !$lastPayment->date) {
+        if (! $lastPayment || ! $lastPayment->date) {
             return null;
         }
 
@@ -262,7 +267,6 @@ public function getPaidSalesAttribute()
     /**
      * Get all  invoices for the customer.
      */
-    
     public function invoices()
     {
         return $this->hasMany(Invoice::class)->orderBy('created_at', 'desc');
@@ -331,7 +335,6 @@ public function getPaidSalesAttribute()
 
         return Tag::whereIn('id', $tagIds)->get();
     }
-
 
     public function getTagsArrayAttribute()
     {

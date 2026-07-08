@@ -3,11 +3,10 @@
 namespace App\Models\Iam\AccessControl;
 
 use App\Helpers\ModelHelper;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-// Models
 use App\Models\Iam\Personnel\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+// Models
+use Illuminate\Database\Eloquent\Model;
 
 class Module extends Model
 {
@@ -29,6 +28,23 @@ class Module extends Model
     ];
 
     protected $table = 'modules';
+
+    /**
+     * Platform Sprint 1 (docs/platform/PLATFORM_SPRINT_1_MODULESEEDER.md).
+     *
+     * `need_set_permissions` is a NOT NULL enum column with no database-level
+     * default (see 2025_05_22_112417_create_modules_table.php) and was never
+     * supplied by ModuleSeeder's own Module::firstOrCreate() calls either —
+     * so creating any module that doesn't already exist has always failed
+     * with a NOT NULL constraint violation, reproduced against the
+     * untouched, pre-existing 'personnel' module. 'No' is the correct
+     * default: ModuleSeeder only ever sets this to 'Yes' when a module's
+     * permission set actually changed (see its isDirty() check) — a
+     * brand-new module has no such change yet at the moment of creation.
+     */
+    protected $attributes = [
+        'need_set_permissions' => 'No',
+    ];
 
     // Foreign Ref
     public function category()
@@ -65,7 +81,6 @@ class Module extends Model
         });
     }
 
-
     /*
     * Function Name     :   getActivityTitle
     * Use               :   Use for Activity Log
@@ -75,9 +90,9 @@ class Module extends Model
     {
         // route('admin.iam.modules.index')
         if ($add_link) {
-            return '<strong><a href="#" >' . $this->title . ' [' . $this->unique_id . ']</a></strong>';
+            return '<strong><a href="#" >'.$this->title.' ['.$this->unique_id.']</a></strong>';
         } else {
-            return '<strong>' . $this->title . ' [' . $this->unique_id . ']</strong>';
-        }   
+            return '<strong>'.$this->title.' ['.$this->unique_id.']</strong>';
+        }
     }
 }

@@ -17,6 +17,9 @@ use App\Models\ProductManagement\ProductCategory;
 use App\Models\Dashboard\ResolutionNotePreset;
 use App\Models\Dashboard\FuelNotePreset;
 
+// Services
+use App\Services\CustomerCreditService;
+
 class EditController extends Controller
 {
     public function __invoke($uniqueid)
@@ -77,6 +80,11 @@ class EditController extends Controller
         $resolutionPresets = ResolutionNotePreset::orderBy('label')->get();
         $fuelNotePresets   = FuelNotePreset::orderBy('label')->get();
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'drivers', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges', 'billingCharges', 'resolutionPresets', 'fuelNotePresets'));
+        // Phase 3.2 — Order Entry Integration. Both figures sourced entirely
+        // from CustomerCreditService, never computed or cached here.
+        $customerCreditSummary = CustomerCreditService::summaryForCustomer($order->customer_id);
+        $orderAppliedCredit = CustomerCreditService::appliedToOrder($order->id);
+
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'drivers', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges', 'billingCharges', 'resolutionPresets', 'fuelNotePresets', 'customerCreditSummary', 'orderAppliedCredit'));
     }
 }

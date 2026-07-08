@@ -11,7 +11,9 @@ class ShowController extends Controller
     public function __invoke(ServiceTicket $ticket)
     {
         $ticket->load([
-            'personnel', 'equipment', 'order', 'customer', 'createdBy',
+            'personnel', 'equipment.documentImages.media', 'equipment.assignedProduct.media',
+            'order', 'customer', 'createdBy', 'serviceStore',
+            'diagnosticSteps.createdBy', 'notes.createdBy',
             'approvedByUser', 'repairAuthorizedBy', 'depositOverrideBy', 'responsibilityDecidedBy', 'authorizationOverrideBy',
             'laborEntries.employee', 'chargeLines', 'partsUsed',
             'media.mediaAsset', 'media.uploadedBy',

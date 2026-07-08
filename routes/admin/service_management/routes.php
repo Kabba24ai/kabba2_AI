@@ -3,7 +3,9 @@
 use App\Http\Controllers\Admin\ServiceManagement\Approvals;
 use App\Http\Controllers\Admin\ServiceManagement\ChargeLines;
 use App\Http\Controllers\Admin\ServiceManagement\Deposit;
+use App\Http\Controllers\Admin\ServiceManagement\DiagnosticSteps;
 use App\Http\Controllers\Admin\ServiceManagement\Diagnostics;
+use App\Http\Controllers\Admin\ServiceManagement\Notes;
 use App\Http\Controllers\Admin\ServiceManagement\LaborEntries;
 use App\Http\Controllers\Admin\ServiceManagement\Media;
 use App\Http\Controllers\Admin\ServiceManagement\OverviewController;
@@ -32,6 +34,12 @@ Route::prefix('service-management')
             Route::delete('/{ticket}/labor/{laborEntry}',   LaborEntries\DestroyController::class)->name('labor.destroy');
             Route::post('/{ticket}/charges',                ChargeLines\StoreController::class)->name('charges.store');
             Route::delete('/{ticket}/charges/{chargeLine}', ChargeLines\DestroyController::class)->name('charges.destroy');
+
+            // Phase 4 — workbench: structured diagnostic steps + ticket notes
+            Route::post('/{ticket}/diagnostic-steps',          DiagnosticSteps\StoreController::class)->name('diagnostic-steps.store');
+            Route::delete('/{ticket}/diagnostic-steps/{step}', DiagnosticSteps\DestroyController::class)->name('diagnostic-steps.destroy');
+            Route::post('/{ticket}/notes',                     Notes\StoreController::class)->name('notes.store');
+            Route::put('/{ticket}/notes/{note}',               Notes\UpdateController::class)->name('notes.update');
 
             // Phase 2C — repair record (parts, media, timeline)
             Route::post('/{ticket}/parts',           Parts\StoreController::class)->name('parts.store');

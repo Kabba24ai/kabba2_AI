@@ -39,6 +39,10 @@ enum ServiceTicketEventType: string
     case SettlementPreviewGenerated = 'settlement_preview_generated';
     case SettlementUpdated      = 'settlement_updated';
     case CustomerChargeCreated  = 'customer_charge_created';
+    case DiagnosticStepAdded    = 'diagnostic_step_added';
+    case DiagnosticStepRemoved  = 'diagnostic_step_removed';
+    case NoteAdded              = 'note_added';
+    case NoteUpdated            = 'note_updated';
 
     public function label(): string
     {
@@ -78,6 +82,10 @@ enum ServiceTicketEventType: string
             self::SettlementPreviewGenerated => 'Settlement Preview Generated',
             self::SettlementUpdated      => 'Settlement Updated',
             self::CustomerChargeCreated  => 'Customer Charge Created',
+            self::DiagnosticStepAdded    => 'Diagnostic Step Added',
+            self::DiagnosticStepRemoved  => 'Diagnostic Step Removed',
+            self::NoteAdded              => 'Note Added',
+            self::NoteUpdated            => 'Note Updated',
         };
     }
 
@@ -109,6 +117,8 @@ enum ServiceTicketEventType: string
             self::RepairStarted                                       => 'bg-green-500',
             self::SettlementPreviewGenerated, self::SettlementUpdated => 'bg-emerald-500',
             self::CustomerChargeCreated                               => 'bg-emerald-600',
+            self::DiagnosticStepAdded, self::DiagnosticStepRemoved    => 'bg-cyan-400',
+            self::NoteAdded, self::NoteUpdated                        => 'bg-slate-400',
             default                                                   => 'bg-gray-300',
         };
     }

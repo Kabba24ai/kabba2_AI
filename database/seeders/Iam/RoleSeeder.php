@@ -9,9 +9,6 @@ class RoleSeeder extends Seeder
 {
     public function run()
     {
-        // Remove all other roles first
-        Role::query()->delete();
-
         // Roles to insert
         $roles = [
             [
@@ -49,7 +46,9 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($roles as $role) {
-            Role::create($role);
+            if (! Role::where('name', $role['name'])->exists()) {
+                Role::create($role);
+            }
         }
     }
 }

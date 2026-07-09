@@ -54,6 +54,9 @@ Route::name('admin.')->group(function ($router) {
         // Field Service — mission-based dispatch workflow (separate from Shop Service)
         require base_path('routes/admin/field_service/routes.php');
 
+        // Warranty — manufacturer-facing case management (separate from Shop Service)
+        require base_path('routes/admin/warranty/routes.php');
+
         // crm
         require base_path('routes/admin/crm/routes.php');
 

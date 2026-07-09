@@ -610,7 +610,7 @@
                     </li>
 
                     <!-- Service -->
-                    @php $serviceActive = Route::is('admin.service-management.*') || Route::is('admin.field-service.*'); @endphp
+                    @php $serviceActive = Route::is('admin.service-management.*') || Route::is('admin.field-service.*') || Route::is('admin.warranty.*'); @endphp
                     <li x-data="{ open: {{ $serviceActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
                             class="menu-item group flex items-center gap-3 {{ $serviceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
@@ -659,12 +659,15 @@
                                         </a>
                                     </li>
                                 @endif
-                                <li>
-                                    <span class="menu-dropdown-item group menu-dropdown-item-inactive opacity-50 cursor-not-allowed"
-                                        title="Coming in Phase 3">
-                                        <x-heroicon-o-shield-check class="h-5 w-5" /> Warranty Claims
-                                    </span>
-                                </li>
+                                @if (Route::has('admin.warranty.claims.index'))
+                                    <li>
+                                        <a href="{{ route('admin.warranty.claims.index') }}"
+                                            class="menu-dropdown-item group
+                                            {{ Route::is('admin.warranty.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                            <x-heroicon-o-shield-check class="h-5 w-5" /> Warranty Claims
+                                        </a>
+                                    </li>
+                                @endif
                             </ul>
                         </div>
                     </li>

@@ -30,6 +30,7 @@ class DispatchController extends BaseController
         $driverId     = $validatedData['driver_id']     ?? null;
         $scheduleTypes = [];
 
+
         // Fetch active drivers and use their IDs to scope the order query
         $drivers   = User::active()->where('is_driver', true)->orderBy('first_name')->get();
         $driverIds = $drivers->pluck('id');
@@ -59,6 +60,13 @@ class DispatchController extends BaseController
         $isBothSelected = $isDeliverySelected && $isReturnSelected;
         $isReturnOnly = $isReturnSelected && !$isDeliverySelected;
         $isDeliveryOnly = $isDeliverySelected && !$isReturnSelected;
+
+        if ($isBothSelected) {
+            $query->where(function ($q) {
+                $q->where('delivery_status', '!=', 'Completed')
+                    ->orWhereNull('pickup_by');
+            });
+        }
 
         // Default (show_all=false): hide completed rows — only show actionable items
         if (!empty($scheduleTypes)) {

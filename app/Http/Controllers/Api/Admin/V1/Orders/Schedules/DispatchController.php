@@ -61,8 +61,6 @@ class DispatchController extends BaseController
         $isReturnOnly = $isReturnSelected && !$isDeliverySelected;
         $isDeliveryOnly = $isDeliverySelected && !$isReturnSelected;
 
-
-
         // Default (show_all=false): hide completed rows — only show actionable items
         if (!empty($scheduleTypes)) {
             $query->where(function ($q) use ($isDeliverySelected, $isReturnSelected, $isReturnOnly, $isBothSelected) {
@@ -77,10 +75,7 @@ class DispatchController extends BaseController
                             $sub->where('pickup_status', 'Pending');
 
                             if ($isBothSelected) {
-                                $sub->where(function ($inner) {
-                                    $inner->where('delivery_status', '!=', 'Completed')
-                                        ->orWhereNull('pickup_by');
-                                });
+                                $sub->whereNotNull('pickup_by');
                             }
                         });
                     }

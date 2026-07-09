@@ -49,6 +49,11 @@ class ServiceTicket extends Model
         'repair_summary',
         'internal_notes',
         'equipment_id',
+        'order_equipment_id',
+        'equipment_override',
+        'equipment_override_reason',
+        'equipment_override_by',
+        'equipment_override_at',
         'order_id',
         'customer_id',
         'rental_date',
@@ -141,6 +146,8 @@ class ServiceTicket extends Model
         'repair_authorized_at'     => 'datetime',
         'authorization_override'   => 'boolean',
         'authorization_override_at' => 'datetime',
+        'equipment_override'       => 'boolean',
+        'equipment_override_at'    => 'datetime',
         'parts_deposit_required'   => 'boolean',
         'parts_deposit_amount'     => 'decimal:2',
         'parts_deposit_paid'       => 'boolean',
@@ -405,6 +412,21 @@ class ServiceTicket extends Model
     public function equipment()
     {
         return $this->belongsTo(Equipment::class);
+    }
+
+    /**
+     * Equipment originally assigned to the rental order — populated only when
+     * an Equipment ID Override was applied at intake. equipment() stays the
+     * unit actually being serviced; the order itself is never modified.
+     */
+    public function orderEquipment()
+    {
+        return $this->belongsTo(Equipment::class, 'order_equipment_id');
+    }
+
+    public function equipmentOverrideBy()
+    {
+        return $this->belongsTo(User::class, 'equipment_override_by');
     }
 
     public function order()

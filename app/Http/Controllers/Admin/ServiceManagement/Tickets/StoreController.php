@@ -7,9 +7,11 @@ use App\Enums\Service\FinancialStatus;
 use App\Enums\Service\RepairStatus;
 use App\Enums\Service\ServiceLocation;
 use App\Enums\Service\ServiceType;
+use App\Enums\Service\ServiceTicketEventType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ServiceManagement\SaveTicketRequest;
 use App\Models\Service\ServiceTicket;
+use App\Models\Service\ServiceTicketEvent;
 
 class StoreController extends Controller
 {
@@ -20,8 +22,12 @@ class StoreController extends Controller
         $validated = $request->validated();
 
         $ticket = ServiceTicket::create(array_merge(
-            collect($validated)->except(['personnel', 'team_leader_id', 'intake', 'order_id', 'rental_date'])->all(),
+            collect($validated)->except([
+                'personnel', 'team_leader_id', 'intake', 'order_id', 'rental_date',
+                'equipment_override_id', 'equipment_override_reason',
+            ])->all(),
             $this->orderReferenceFields($validated),
+            $this->equipmentOverrideFields($validated),
             [
                 // Diagnostic-first defaults: intake starts Open with an
                 // undecided responsibility; diagnosis determines the path.
@@ -37,6 +43,17 @@ class StoreController extends Controller
                 'updated_by' => auth()->id(),
             ],
         ));
+
+        // Fully traceable override: original unit, corrected unit, who, when, why
+        if ($ticket->equipment_override) {
+            ServiceTicketEvent::record(
+                $ticket->id,
+                ServiceTicketEventType::EquipmentOverride,
+                $ticket->orderEquipment?->equipment_name . ($ticket->orderEquipment?->equipment_id ? ' (' . $ticket->orderEquipment->equipment_id . ')' : ''),
+                $ticket->equipment?->equipment_name . ($ticket->equipment?->equipment_id ? ' (' . $ticket->equipment->equipment_id . ')' : ''),
+                $ticket->equipment_override_reason,
+            );
+        }
 
         $ticket->syncPersonnel(
             $validated['personnel'] ?? [],

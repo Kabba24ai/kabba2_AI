@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin\ServiceManagement\Tickets;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\Order;
+use App\Models\ProductManagement\Product;
+use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
 
 trait BuildsTicketFormData
@@ -17,7 +19,11 @@ trait BuildsTicketFormData
      */
     private function intakeFormData(): array
     {
-        $orders = Order::with(['customer', 'products' => fn ($q) => $q->whereNotNull('equipment_id')->with('equipment')])
+        $orders = Order::with([
+                'customer',
+                'products' => fn ($q) => $q->whereNotNull('equipment_id')
+                    ->with(['equipment', 'product.categories:product_categories.id']),
+            ])
             ->whereHas('products', fn ($q) => $q->whereNotNull('equipment_id'))
             ->latest('id')
             ->limit(300)
@@ -35,14 +41,39 @@ trait BuildsTicketFormData
                     'label' => $product->equipment->equipment_name
                         . ($product->equipment->equipment_id ? ' (' . $product->equipment->equipment_id . ')' : ''),
                 ])->unique('id')->values(),
+            // Search-aid keys for the intake filters — never stored on the ticket
+            'product_ids'  => $order->products->pluck('product_id')->filter()->unique()->values(),
+            'category_ids' => $order->products
+                ->flatMap(fn ($line) => $line->product?->categories->pluck('id') ?? collect())
+                ->unique()->values(),
         ])->values();
+
+        // Intake filter sources: every category, every rentable product (with
+        // its category keys so Filter Product can follow Filter Category).
+        $filterCategories = ProductCategory::orderBy('title')->get(['id', 'title']);
+
+        $filterProducts = Product::with('categories:product_categories.id')
+            ->where('product_type', 'Rental')
+            ->orderBy('product_name')
+            ->get(['id', 'product_name'])
+            ->map(fn (Product $product) => [
+                'id'           => $product->id,
+                'name'         => $product->product_name,
+                'category_ids' => $product->categories->pluck('id')->values(),
+            ])->values();
+
+        // Equipment ID Override source: any unit in the fleet — the intake
+        // must identify the machine actually being repaired even when the
+        // order carries the wrong one.
+        $overrideEquipment = Equipment::orderBy('equipment_name')
+            ->get(['id', 'equipment_name', 'equipment_id']);
 
         $employees = User::active()->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);
 
         $stores = Store::where('status', 'Active')->orderBy('store_name')->get(['id', 'store_name']);
 
-        return compact('orderOptions', 'employees', 'stores');
+        return compact('orderOptions', 'filterCategories', 'filterProducts', 'overrideEquipment', 'employees', 'stores');
     }
 
     /** Shared dropdown data for the create/edit ticket forms. */
@@ -62,6 +93,31 @@ trait BuildsTicketFormData
             ->get(['id', 'order_number', 'customer_id', 'customer_name']);
 
         return compact('equipmentList', 'employees', 'orders');
+    }
+
+    /**
+     * Resolve the Equipment ID Override (intake): equipment_id becomes the
+     * unit actually being repaired — everything downstream already follows
+     * it — while order_equipment_id preserves the order's original unit.
+     * Selecting the order's own unit as the override is a no-op.
+     */
+    private function equipmentOverrideFields(array $validated): array
+    {
+        $overrideId       = (int) ($validated['equipment_override_id'] ?? 0);
+        $orderEquipmentId = (int) ($validated['equipment_id'] ?? 0);
+
+        if (!$overrideId || $overrideId === $orderEquipmentId) {
+            return [];
+        }
+
+        return [
+            'equipment_id'              => $overrideId,
+            'order_equipment_id'        => $orderEquipmentId,
+            'equipment_override'        => true,
+            'equipment_override_reason' => $validated['equipment_override_reason'] ?? null,
+            'equipment_override_by'     => auth()->id(),
+            'equipment_override_at'     => now(),
+        ];
     }
 
     /**

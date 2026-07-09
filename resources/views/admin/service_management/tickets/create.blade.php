@@ -79,9 +79,31 @@
                         Search by order # or customer name. Only a reference is stored — the Order remains the source of truth for
                         agreements, checklists, photos, and payments.
                     </p>
+                    {{-- Search aids only: narrow the order list before searching. No name
+                         attributes — these values are never submitted or saved on the ticket. --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="{{ $labelClass }}" for="st-filter-category">Filter Category</label>
+                            <select id="st-filter-category" class="{{ $inputClass }}">
+                                <option value="">All categories</option>
+                                @foreach ($filterCategories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="{{ $labelClass }}" for="st-filter-product">Filter Product</label>
+                            <select id="st-filter-product" class="{{ $inputClass }}">
+                                <option value="">All products</option>
+                                @foreach ($filterProducts as $product)
+                                    <option value="{{ $product['id'] }}">{{ $product['name'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="{{ $labelClass }} required">Order</label>
+                            <label class="{{ $labelClass }} required">Rental Orders (<span id="st-order-count">{{ count($orderOptions) }}</span>)</label>
                             <select name="order_id" id="st-order" required class="{{ $inputClass }}">
                                 <option value="">Search by order # or customer…</option>
                                 @foreach ($orderOptions as $order)
@@ -118,6 +140,9 @@
                                 data-old="{{ old('equipment_id') }}">
                                 <option value="">Select an order first…</option>
                             </select>
+                            {{-- Single-equipment orders lock the select (nothing to choose);
+                                 a disabled select never posts, so this mirror carries the value --}}
+                            <input type="hidden" name="equipment_id" id="st-equipment-locked" value="" disabled>
                             @error('equipment_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                         </div>
                         <div>
@@ -138,6 +163,31 @@
                                     <option value="{{ $case->value }}" @selected(old('priority', 'normal') === $case->value)>{{ $case->label() }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                    </div>
+
+                    {{-- Equipment ID Override: identifies the machine actually being
+                         repaired when the order carries the wrong unit. The rental
+                         order is never modified — both references are preserved. --}}
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="{{ $labelClass }}" for="st-override">Equipment ID Override</label>
+                                <select name="equipment_override_id" id="st-override" class="{{ $inputClass }}">
+                                    <option value="">No override</option>
+                                    @foreach ($overrideEquipment as $unit)
+                                        <option value="{{ $unit->id }}" @selected((int) old('equipment_override_id') === $unit->id)>{{ $unit->equipment_name }}{{ $unit->equipment_id ? ' (' . $unit->equipment_id . ')' : '' }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="text-xs text-gray-400 mt-1">Only when the unit being repaired differs from the order. The order itself stays unchanged.</p>
+                            </div>
+                            <div class="sm:col-span-2 {{ old('equipment_override_id') ? '' : 'hidden' }}" id="st-override-reason-wrap">
+                                <label class="{{ $labelClass }}">Override Reason</label>
+                                <input type="text" name="equipment_override_reason" value="{{ old('equipment_override_reason') }}"
+                                    class="{{ $inputClass }}" maxlength="255"
+                                    placeholder="Explain why the equipment ID is being overridden…">
+                                <p class="text-xs text-gray-400 mt-1">Optional — e.g. wrong unit assigned, customer exchanged machines, yard loaded incorrect unit.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -290,6 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const orderSelect     = document.getElementById('st-order');
     const equipmentSelect = document.getElementById('st-equipment');
+    const equipmentLocked = document.getElementById('st-equipment-locked');
     const rentalDateBox   = document.getElementById('st-rental-date');
 
     function syncOrder(preserveOld) {
@@ -297,6 +348,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const keep  = preserveOld ? (equipmentSelect.dataset.old || '') : '';
         equipmentSelect.dataset.old = '';
         equipmentSelect.innerHTML = '';
+        equipmentLocked.disabled = true;
+        equipmentLocked.value = '';
 
         const placeholder = document.createElement('option');
         placeholder.value = '';
@@ -317,26 +370,119 @@ document.addEventListener('DOMContentLoaded', function () {
             equipmentSelect.appendChild(option);
         });
 
-        // Single-equipment orders select automatically
+        // Single-equipment orders select automatically and lock — there is
+        // nothing to choose. The hidden mirror posts the value instead.
         if (order.equipment.length === 1) {
             equipmentSelect.value = String(order.equipment[0].id);
+            equipmentSelect.disabled = true;
+            equipmentLocked.value = equipmentSelect.value;
+            equipmentLocked.disabled = false;
+        } else {
+            equipmentSelect.disabled = false;
         }
 
-        equipmentSelect.disabled = false;
         rentalDateBox.textContent = order.rental_date || 'No delivery date on order';
     }
 
     orderSelect.addEventListener('change', function () { syncOrder(false); });
     syncOrder(true); // restore state after a validation round-trip
 
-    new Choices(orderSelect, {
+    // Precise matching: each whole word typed must appear somewhere in the
+    // label (threshold 0 = exact substring, space = AND). "gary" finds
+    // Gary Smith and McGary Equipment — never Grayson or Bryson.
+    const preciseSearch = { threshold: 0, ignoreLocation: true, useExtendedSearch: true };
+
+    const orderChoices = new Choices(orderSelect, {
         searchEnabled: true,
         shouldSort: false,
         itemSelectText: '',
         searchResultLimit: 1000,
         renderChoiceLimit: -1,
         searchPlaceholderValue: 'Type an order # or customer name…',
+        fuseOptions: preciseSearch,
     });
+    orderSelect.choicesInstance = orderChoices;
+
+    // ── Equipment ID Override: search aid + reason reveal ─────────────
+    const overrideSelect     = document.getElementById('st-override');
+    const overrideReasonWrap = document.getElementById('st-override-reason-wrap');
+
+    overrideSelect.choicesInstance = new Choices(overrideSelect, {
+        searchEnabled: true,
+        shouldSort: false,
+        itemSelectText: '',
+        searchResultLimit: 1000,
+        renderChoiceLimit: -1,
+        searchPlaceholderValue: 'Search by unit # or equipment name…',
+        fuseOptions: preciseSearch,
+    });
+
+    overrideSelect.addEventListener('change', function () {
+        overrideReasonWrap.classList.toggle('hidden', !overrideSelect.value);
+    });
+
+    // ── Category / Product search aids (never submitted — no name attrs) ──
+    const FILTER_PRODUCTS = @json($filterProducts);
+
+    const categoryFilter = document.getElementById('st-filter-category');
+    const productFilter  = document.getElementById('st-filter-product');
+    const orderCount     = document.getElementById('st-order-count');
+
+    function syncProductFilter() {
+        const categoryId = categoryFilter.value;
+        productFilter.innerHTML = '';
+
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = 'All products';
+        productFilter.appendChild(blank);
+
+        FILTER_PRODUCTS
+            .filter(p => !categoryId || (p.category_ids || []).some(id => String(id) === categoryId))
+            .forEach(function (p) {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = p.name;
+                productFilter.appendChild(option);
+            });
+    }
+
+    function applyOrderFilters() {
+        const categoryId = categoryFilter.value;
+        const productId  = productFilter.value;
+
+        const matches = ORDERS.filter(function (order) {
+            if (categoryId && !(order.category_ids || []).some(id => String(id) === categoryId)) return false;
+            if (productId && !(order.product_ids || []).some(id => String(id) === productId)) return false;
+            return true;
+        });
+
+        orderCount.textContent = matches.length;
+
+        const selectedId = orderSelect.value;
+        const choiceList = matches.map(o => ({
+            value: String(o.id), label: o.label, selected: String(o.id) === selectedId,
+        }));
+
+        // An already-selected order always stays available — filters are
+        // search aids, not ticket data, so they never undo a selection.
+        if (selectedId && !matches.some(o => String(o.id) === selectedId)) {
+            const selected = ORDERS.find(o => String(o.id) === selectedId);
+            if (selected) choiceList.unshift({ value: String(selected.id), label: selected.label, selected: true });
+        }
+
+        choiceList.unshift({
+            value: '', label: 'Search by order # or customer…', placeholder: true, selected: !selectedId,
+        });
+
+        orderChoices.setChoices(choiceList, 'value', 'label', true);
+    }
+
+    categoryFilter.addEventListener('change', function () {
+        syncProductFilter();   // clears Filter Product and reloads it for this category
+        applyOrderFilters();
+    });
+    productFilter.addEventListener('change', applyOrderFilters);
 
     // ── Assign Now panel + team leader rules ───────────────────────
     const panel   = document.getElementById('st-assign-panel');

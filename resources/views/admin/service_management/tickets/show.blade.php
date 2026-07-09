@@ -155,6 +155,31 @@
         </div>
     </div>
 
+    {{-- ===== Equipment override notice — informational, not a warning ===== --}}
+    @if ($ticket->equipment_override)
+        <div class="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 flex items-start gap-3">
+            <x-heroicon-o-arrows-right-left class="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-indigo-900">Equipment Override Applied</p>
+                <p class="text-sm text-indigo-800 mt-1">
+                    Order Equipment:
+                    <span class="font-semibold">{{ $ticket->orderEquipment?->equipment_name ?? '—' }}{{ $ticket->orderEquipment?->equipment_id ? ' (' . $ticket->orderEquipment->equipment_id . ')' : '' }}</span>
+                    <span class="text-indigo-400 mx-1.5">→</span>
+                    Service Equipment:
+                    <span class="font-semibold">{{ $ticket->equipment?->equipment_name ?? '—' }}{{ $ticket->equipment?->equipment_id ? ' (' . $ticket->equipment->equipment_id . ')' : '' }}</span>
+                </p>
+                @if ($ticket->equipment_override_reason)
+                    <p class="text-xs text-indigo-700 mt-1">Reason: {{ $ticket->equipment_override_reason }}</p>
+                @endif
+                <p class="text-xs text-indigo-500 mt-1.5">
+                    This ticket remains linked to the original rental order while all service activity is tracked
+                    against the overridden equipment unit.
+                    {{ $ticket->equipmentOverrideBy ? 'Overridden by ' . trim($ticket->equipmentOverrideBy->first_name . ' ' . $ticket->equipmentOverrideBy->last_name) : '' }}{{ $ticket->equipment_override_at ? ' on ' . $ticket->equipment_override_at->format('M j, Y g:i A') . '.' : '' }}
+                </p>
+            </div>
+        </div>
+    @endif
+
     {{-- ===== Context header — permanent operational context ===== --}}
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
         <div class="grid grid-cols-2 lg:grid-cols-5 divide-y lg:divide-y-0 divide-x-0 lg:divide-x divide-gray-100">

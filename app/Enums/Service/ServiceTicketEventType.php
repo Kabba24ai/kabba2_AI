@@ -43,6 +43,7 @@ enum ServiceTicketEventType: string
     case DiagnosticStepRemoved  = 'diagnostic_step_removed';
     case NoteAdded              = 'note_added';
     case NoteUpdated            = 'note_updated';
+    case EquipmentOverride      = 'equipment_override';
 
     public function label(): string
     {
@@ -86,6 +87,7 @@ enum ServiceTicketEventType: string
             self::DiagnosticStepRemoved  => 'Diagnostic Step Removed',
             self::NoteAdded              => 'Note Added',
             self::NoteUpdated            => 'Note Updated',
+            self::EquipmentOverride      => 'Equipment Override Applied',
         };
     }
 
@@ -119,6 +121,7 @@ enum ServiceTicketEventType: string
             self::CustomerChargeCreated                               => 'bg-emerald-600',
             self::DiagnosticStepAdded, self::DiagnosticStepRemoved    => 'bg-cyan-400',
             self::NoteAdded, self::NoteUpdated                        => 'bg-slate-400',
+            self::EquipmentOverride                                   => 'bg-indigo-500',
             default                                                   => 'bg-gray-300',
         };
     }

@@ -12,6 +12,8 @@ use App\Enums\Service\ServicePriority;
 use App\Enums\Service\ServiceType;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\ProductManagement\Product;
+use App\Models\ProductManagement\ProductCategory;
 use App\Models\Service\ServiceTicket;
 use App\Models\Stores\Store;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -191,8 +193,173 @@ class ServiceTicketIntakeTest extends TestCase
         $this->assertStringContainsString('"label":"Scissor Lift (SL-1)"', $content);
         // Multi-equipment order carries both of its units
         $this->assertStringContainsString('"label":"Mini Excavator (EX-1)"', $content);
-        // Equipment on no order is never offered
-        $this->assertStringNotContainsString('Trencher (TR-1)', $content);
+        // Equipment on no order is never offered in the order-scoped map —
+        // it may appear only in the separate Equipment ID Override selector
+        $this->assertStringNotContainsString('"label":"Trencher (TR-1)"', $content);
+    }
+
+    // ── Equipment ID Override ────────────────────────────────────────
+
+    public function test_create_page_renders_override_controls(): void
+    {
+        $this->get(route('admin.service-management.tickets.create'))
+            ->assertOk()
+            ->assertSee('Equipment ID Override')
+            ->assertSee('Override Reason')
+            ->assertSee('No override')
+            // The override selector offers the whole fleet, order or not
+            ->assertSee('Trencher (TR-1)');
+    }
+
+    public function test_equipment_override_preserves_both_references_with_full_audit_trail(): void
+    {
+        $this->store([
+            'equipment_override_id'     => $this->unrelated->id, // Trencher — not on the order
+            'equipment_override_reason' => 'Yard loaded the wrong unit',
+        ])->assertSessionHasNoErrors();
+
+        $ticket = ServiceTicket::firstOrFail();
+
+        // equipment_id = the machine actually being repaired (drives all
+        // service operations); the order's original unit is preserved
+        $this->assertSame($this->unrelated->id, $ticket->equipment_id);
+        $this->assertSame($this->lift->id, $ticket->order_equipment_id);
+        $this->assertTrue($ticket->equipment_override);
+        $this->assertSame($this->admin->id, $ticket->equipment_override_by);
+        $this->assertNotNull($ticket->equipment_override_at);
+        $this->assertSame('Yard loaded the wrong unit', $ticket->equipment_override_reason);
+
+        // Rental order untouched
+        $this->assertDatabaseHas('order_products', [
+            'order_id' => $this->multiOrderId, 'equipment_id' => $this->lift->id,
+        ]);
+
+        // Timeline event: original → override, with who and why
+        $event = $ticket->events()->where('event_type', 'equipment_override')->firstOrFail();
+        $this->assertStringContainsString('Scissor Lift', $event->old_value);
+        $this->assertStringContainsString('Trencher', $event->new_value);
+        $this->assertSame('Yard loaded the wrong unit', $event->notes);
+        $this->assertSame($this->admin->id, $event->user_id);
+    }
+
+    public function test_no_override_leaves_override_fields_empty(): void
+    {
+        $this->store()->assertSessionHasNoErrors();
+
+        $ticket = ServiceTicket::firstOrFail();
+        $this->assertSame($this->lift->id, $ticket->equipment_id);
+        $this->assertNull($ticket->order_equipment_id);
+        $this->assertFalse($ticket->equipment_override);
+        $this->assertNull($ticket->equipment_override_reason);
+        $this->assertSame(0, $ticket->events()->where('event_type', 'equipment_override')->count());
+    }
+
+    public function test_selecting_the_orders_own_unit_as_override_is_a_noop(): void
+    {
+        $this->store([
+            'equipment_override_id'     => $this->lift->id, // same unit as equipment_id
+            'equipment_override_reason' => 'accidental self-override',
+        ])->assertSessionHasNoErrors();
+
+        $ticket = ServiceTicket::firstOrFail();
+        $this->assertFalse($ticket->equipment_override);
+        $this->assertNull($ticket->order_equipment_id);
+        $this->assertNull($ticket->equipment_override_reason);
+    }
+
+    public function test_override_does_not_bypass_order_equipment_validation(): void
+    {
+        // equipment_id must still come from the order — the override is not
+        // a back door around the order-scoped rule
+        $this->store([
+            'equipment_id'          => $this->unrelated->id,
+            'equipment_override_id' => $this->lift->id,
+        ])->assertSessionHasErrors('equipment_id');
+
+        $this->assertDatabaseCount('service_tickets', 0);
+    }
+
+    public function test_workbench_shows_informational_override_banner(): void
+    {
+        $this->store([
+            'equipment_override_id'     => $this->unrelated->id,
+            'equipment_override_reason' => 'Customer exchanged machines',
+        ]);
+        session()->forget('flash_notification');
+        $ticket = ServiceTicket::firstOrFail();
+
+        $this->get(route('admin.service-management.tickets.show', $ticket))
+            ->assertOk()
+            ->assertSee('Equipment Override Applied')
+            ->assertSee('Order Equipment:')
+            ->assertSee('Scissor Lift (SL-1)')
+            ->assertSee('Service Equipment:')
+            ->assertSee('Trencher (TR-1)')
+            ->assertSee('Customer exchanged machines')
+            ->assertSee('tracked') // helper text present
+            ->assertSee('Overridden by Admin User');
+    }
+
+    public function test_workbench_hides_banner_without_override(): void
+    {
+        $this->store();
+        session()->forget('flash_notification');
+
+        $this->get(route('admin.service-management.tickets.show', ServiceTicket::firstOrFail()))
+            ->assertOk()
+            ->assertDontSee('Equipment Override Applied');
+    }
+
+    // 4b. Category/Product search aids: filters narrow the order list client-
+    //     side, are never submitted, and never become ticket data
+    public function test_create_page_ships_category_and_product_search_aids(): void
+    {
+        $excavators = ProductCategory::create(['unique_id' => 'test-cat-exc', 'title' => 'Excavators', 'status' => 'Published']);
+        $skidSteers = ProductCategory::create(['unique_id' => 'test-cat-skid', 'title' => 'Skid Steers', 'status' => 'Published']);
+
+        $tb290  = Product::create(['unique_id' => 'test-prod-tb290', 'product_name' => 'TB290', 'product_type' => 'Rental']);
+        $svl75  = Product::create(['unique_id' => 'test-prod-svl75', 'product_name' => 'SVL75', 'product_type' => 'Rental']);
+        $retail = Product::create(['unique_id' => 'test-prod-teeth', 'product_name' => 'Bucket Teeth', 'product_type' => 'Retail']);
+
+        $tb290->categories()->attach($excavators->id);
+        $svl75->categories()->attach($skidSteers->id);
+
+        // One line of the multi-equipment order rents the TB290 excavator
+        DB::table('order_products')
+            ->where('order_id', $this->multiOrderId)
+            ->where('equipment_id', $this->lift->id)
+            ->update(['product_id' => $tb290->id]);
+
+        $response = $this->get(route('admin.service-management.tickets.create'))
+            ->assertOk()
+            ->assertSee('Filter Category')
+            ->assertSee('Filter Product')
+            ->assertSee('Excavators')
+            ->assertSee('Skid Steers')
+            ->assertSee('TB290')
+            ->assertSee('SVL75')
+            ->assertSee('Rental Orders (', false)
+            ->assertSee('<span id="st-order-count">2</span>', false)
+            // Retail items are not rentable products — never offered as a filter
+            ->assertDontSee('Bucket Teeth');
+
+        $content = $response->getContent();
+
+        // Search aids only: no name attributes, so nothing ever posts or saves
+        $this->assertStringContainsString('<select id="st-filter-category"', $content);
+        $this->assertStringContainsString('<select id="st-filter-product"', $content);
+        $this->assertStringNotContainsString('name="st-filter-category"', $content);
+        $this->assertStringNotContainsString('name="st-filter-product"', $content);
+
+        // Order options carry the filter keys that drive in-memory matching
+        $this->assertStringContainsString('"product_ids":[' . $tb290->id . ']', $content);
+        $this->assertStringContainsString('"category_ids":[' . $excavators->id . ']', $content);
+        $this->assertStringContainsString('"product_ids":[],"category_ids":[]', $content); // order with no product refs
+
+        // Product list maps each product to its categories so Filter Product
+        // can reload when Filter Category changes
+        $this->assertStringContainsString('"name":"TB290","category_ids":[' . $excavators->id . ']', $content);
+        $this->assertStringContainsString('"name":"SVL75","category_ids":[' . $skidSteers->id . ']', $content);
     }
 
     // 5. Multi-equipment order requires picking one of its units

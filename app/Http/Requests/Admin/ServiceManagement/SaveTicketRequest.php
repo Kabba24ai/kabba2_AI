@@ -43,6 +43,12 @@ class SaveTicketRequest extends FormRequest
             'order_id'                 => [Rule::requiredIf(fn () => $this->boolean('intake')), 'nullable', 'exists:orders,id'],
             'service_store_id'         => ['nullable', 'exists:stores,id'],
             'rental_date'              => ['nullable', 'date'],
+
+            // Equipment ID Override: the unit actually being repaired when the
+            // order carries the wrong one. Any equipment unit is allowed here —
+            // the order-scoped rule below applies to equipment_id only.
+            'equipment_override_id'     => ['nullable', 'exists:equipment,id'],
+            'equipment_override_reason' => ['nullable', 'string', 'max:255'],
             'personnel'                => ['nullable', 'array'],
             'personnel.*'              => ['integer', 'exists:users,id'],
             'team_leader_id'           => ['nullable', 'integer', 'exists:users,id'],

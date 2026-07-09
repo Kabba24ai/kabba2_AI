@@ -89,10 +89,9 @@
         </div>
     </div>
 
-    <div class="container mt-4 text-sm text-neutral-200/60 grid grid-cols-3 items-center">
+    <div class="container mt-4 text-sm text-neutral-200/60 flex flex-col sm:flex-row items-center sm:justify-between gap-2">
 
-        <!-- Center text -->
-        <div class="text-left mt-4">
+        <div class="mt-4 text-left">
             @if($footerHp->copyrightText)
                 {{ $footerHp->copyrightText }}
             @else
@@ -103,11 +102,7 @@
             @endif
         </div>
 
-        <!-- Empty column (left spacer) -->
-        <div></div>
-
-        <!-- Right text -->
-        <div class="text-right mt-4 text-white font-bold">
+        <div class="mt-4 text-white font-bold">
             <span>Powered by :</span>
             <a href="javascript:void(0)" rel="noopener noreferrer" class="text-white font-bold hover:text-yellow-400">
                 {{ $footerHp->poweredByText ?? ($brandingSettings['powered_by'] ?? 'kabba.ai') }}

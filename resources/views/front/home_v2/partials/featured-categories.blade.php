@@ -24,7 +24,7 @@
 
             @foreach ($featuredCategories as $category)
 
-                <div class="border py-5 px-5 md:px-1 lg:py-4 lg:px-4 rounded-lg text-center
+                <div class="border py-5 px-5 md:px-4 lg:py-4 lg:px-4 rounded-lg text-center
                             shadow-[0_2px_5px_rgba(0,0,0,0.05)]
                             transition-transform duration-300 hover:-translate-y-1">
 

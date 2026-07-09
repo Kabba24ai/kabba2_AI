@@ -19,7 +19,7 @@
     $colCount   = (int)(bool)$phoneCard + (int)(bool)$store1 + (int)(bool)$store2 + (int)(bool)$searchCard;
     $gridCols   = [0 => 'lg:grid-cols-1', 1 => 'lg:grid-cols-1', 2 => 'lg:grid-cols-2', 3 => 'lg:grid-cols-3', 4 => 'lg:grid-cols-4'];
     $lgCols     = $gridCols[min($colCount, 4)];
-    $mdCols     = $colCount <= 1 ? '' : 'md:grid-cols-2';
+    $mdCols     = $colCount <= 1 ? '' : 'sm:grid-cols-2';
 @endphp
 
 <section id="home-v2-contact-strip" class="relative z-20 pb-2 md:pb-0 mb-5">

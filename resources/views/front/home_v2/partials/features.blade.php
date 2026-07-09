@@ -8,7 +8,7 @@
 
     <div class="container mx-auto px-0">
 
-        <div class="grid grid-cols-1 lg:grid-cols-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 
             @foreach($hp->featureStrip->items as $item)
 

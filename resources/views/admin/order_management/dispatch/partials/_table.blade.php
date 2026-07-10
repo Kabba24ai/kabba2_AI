@@ -85,15 +85,15 @@
                         {!! $orderProduct->order?->view_link ?? '-' !!}
                     </td>
 
-                    <td class="py-4 px-6 text-left w-[275px] max-w-[275px] overflow-hidden">
-                        <div class="font-medium truncate">
+                    <td class="py-4 px-6 text-left">
+                        <div class="font-medium">
                             {{ $orderProduct->order?->customer_name ?? '-' }}
                         </div>
                         @php $customer = $orderProduct->order?->customer; @endphp
                         @if ($customer && $customer->company_name)
-                            <div class="text-xs text-gray-500 mt-1 truncate">
+                            <div class="text-xs text-gray-500 mt-1">
                                 @if (!empty($customer->company_website))
-                                    <a href="{{ $customer->company_website }}" class="underline truncate block">{{ $customer->company_name }}</a>
+                                    <a href="{{ $customer->company_website }}" class="underline">{{ $customer->company_name }}</a>
                                 @else
                                     <span>{{ $customer->company_name }}</span>
                                 @endif
@@ -102,7 +102,7 @@
                     </td>
 
                     {{-- Delivery Address / Phone --}}
-                    <td class="py-4 px-6 text-left whitespace-normal min-w-[320px]">
+                    <td class="py-4 px-6 text-left whitespace-normal min-w-[400px]">
                         <div>{{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}</div>
                         @if ($orderProduct->order?->shippingAddress?->phone)
                             <div class="text-xs text-gray-500 mt-1">{{ $orderProduct->order->shippingAddress->phone }}</div>

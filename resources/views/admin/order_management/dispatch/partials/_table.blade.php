@@ -3,11 +3,10 @@
         <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
             <tr>
                 <th class="py-4 px-6 text-left">Product</th>
-                <th class="py-4 px-6 text-center">Order</th>
+                <th class="py-4 px-4 text-center">Order</th>
                 <th class="py-4 px-6 text-left">Customer</th>
-                <th class="py-4 px-6 text-left">Delivery Address</th>
-                <th class="py-4 px-1 text-left">Phone</th>
-                <th class="py-4 px-6 text-center">Equipment</th>
+                <th class="py-4 px-6 text-left">Delivery Address / Phone</th>
+                <th class="py-4 px-4 text-center">Equipment</th>
                 <th class="py-4 px-[19px] text-center">Equip. Location</th>
                 <th class="py-4 px-4 text-center">Delivery | Return</th>
                 <th class="py-4 px-[22px] text-center">Delivery Date</th>
@@ -82,7 +81,7 @@
                         @endif
                     </td>
 
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         {!! $orderProduct->order?->view_link ?? '-' !!}
                     </td>
 
@@ -102,15 +101,15 @@
                         @endif
                     </td>
 
-                    <td class="py-4 px-6 w-[245px] max-w-[245px] truncate">
-                        {{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}
+                    {{-- Delivery Address / Phone --}}
+                    <td class="py-4 px-6 text-left whitespace-normal min-w-[320px]">
+                        <div>{{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}</div>
+                        @if ($orderProduct->order?->shippingAddress?->phone)
+                            <div class="text-xs text-gray-500 mt-1">{{ $orderProduct->order->shippingAddress->phone }}</div>
+                        @endif
                     </td>
 
-                    <td class="py-4 px-1 text-left tabular-nums">
-                        {{ $orderProduct->order?->shippingAddress?->phone ?? '-' }}
-                    </td>
-
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         @php $preferredCategoryId = $orderProduct->product?->categories?->first()?->id; @endphp
                         <div class="flex flex-col items-center gap-1">
                             <button type="button" class="text-blue-600 underline equipment-assign-btn"
@@ -353,7 +352,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="14" class="text-center text-sm text-gray-500 px-4 py-6">
+                    <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
                         @if ($orderProducts)
                             No dispatch records found.
                         @else

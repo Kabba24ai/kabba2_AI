@@ -3353,9 +3353,17 @@
                     </div>
                     <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
                         New Date:
-                        <input type="text" id="returnManualDateInput"
-                               class="border border-gray-300 rounded px-2 py-1 text-sm w-32 text-center"
-                               placeholder="MM/DD/YYYY" autocomplete="off" />
+                        <div class="relative">
+                            <input type="text" id="returnManualDateInput" readonly
+                                   class="border border-gray-300 rounded pl-2 pr-7 py-1 text-sm w-32 text-center cursor-pointer bg-white"
+                                   placeholder="MM/DD/YYYY" autocomplete="off" />
+                            <button type="button" id="returnManualDateIconBtn"
+                                    class="absolute inset-y-0 right-1 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -6245,6 +6253,7 @@
             const customInput             = document.getElementById('customHoursInput');
             const saveBtn                 = document.getElementById('saveChangeReturnDate');
             const manualDateInput         = document.getElementById('returnManualDateInput');
+            const manualDateIconBtn       = document.getElementById('returnManualDateIconBtn');
             const currentDateLabel        = document.getElementById('returnCurrentDateLabel');
             const cancelBtns              = [
                 document.getElementById('closeChangeReturnDateModal'),
@@ -6347,9 +6356,26 @@
                     locale:     window.airDatepickerLocaleEn,
                     dateFormat: '{{ config('app.date.js_date_format') }}',
                     autoClose:  true,
+                    // Put the calendar inside the modal and above its overlay
+                    // (same fix already used for .reorder-datepicker in this file).
+                    container:  '#changeReturnDateModal',
+                    zIndex:     99999,
                     onSelect({ formattedDate }) {
                         manualDateInput.value = formattedDate || '';
                     },
+                });
+            }
+
+            // Calendar icon also opens the picker (in addition to clicking the input)
+            if (manualDateIconBtn) {
+                manualDateIconBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (_manualPicker) {
+                        _manualPicker.show();
+                    } else {
+                        manualDateInput.focus();
+                    }
                 });
             }
 

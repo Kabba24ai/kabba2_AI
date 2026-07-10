@@ -3,17 +3,16 @@
         <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
             <tr>
                 <th class="py-4 px-6 text-left">Product</th>
-                <th class="py-4 px-6 text-center">Order</th>
+                <th class="py-4 px-4 text-center">Order</th>
                 <th class="py-4 px-6 text-left">Customer</th>
-                <th class="py-4 px-6 text-left">Phone</th>
-                <th class="py-4 px-6 text-left">Delivery Address</th>
-                <th class="py-4 px-6 text-center">Equipment</th>
-                <th class="py-4 px-6 text-center">Equipment Id</th>
-                <th class="py-4 px-6 text-center">Equip. Location</th>
-                <th class="py-4 px-6 text-center">Delivery | Return</th>
-                <th class="py-4 px-6 text-center">Delivery Date</th>
-                <th class="py-4 px-6 text-center">Return Date</th>
-                <th class="py-4 px-6 text-center">Payment</th>
+                <th class="py-4 px-6 text-left">Delivery Address / Phone</th>
+                <th class="py-4 px-4 text-center">Equipment</th>
+                <th class="py-4 px-3 text-center">Equipment Id</th>
+                <th class="py-4 px-4 text-center">Equip. Location</th>
+                <th class="py-4 px-4 text-center">Delivery | Return</th>
+                <th class="py-4 px-4 text-center">Delivery Date</th>
+                <th class="py-4 px-4 text-center">Return Date</th>
+                <th class="py-4 px-4 text-center">Payment</th>
                 <th class="py-4 px-2 text-center w-10"></th>
             </tr>
         </thead>
@@ -84,7 +83,7 @@
                     </td>
 
                     {{-- Order --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         {!! $orderProduct->order?->view_link ?? '-' !!}
                     </td>
 
@@ -105,17 +104,16 @@
                         @endif
                     </td>
 
-                    {{-- Phone --}}
-                    <td class="py-4 px-6 text-left">{{ $orderProduct->order?->shippingAddress?->phone ?? '-' }}</td>
-
-                    {{-- Delivery Address (truncated) --}}
-                    <td class="py-4 px-6 truncate min-w-[160px] max-w-[200px]"
-                        title="{{ $orderProduct->order?->shippingAddress?->full_address }}">
-                        {{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}
+                    {{-- Delivery Address / Phone --}}
+                    <td class="py-4 px-6 text-left whitespace-normal min-w-[300px]">
+                        <div>{{ $orderProduct->order?->shippingAddress?->full_address ?? '-' }}</div>
+                        @if ($orderProduct->order?->shippingAddress?->phone)
+                            <div class="text-xs text-gray-500 mt-1">{{ $orderProduct->order->shippingAddress->phone }}</div>
+                        @endif
                     </td>
 
                     {{-- Equipment --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         @php
                             $preferredCategoryId = $orderProduct->product?->categories?->first()?->id;
                         @endphp
@@ -143,7 +141,7 @@
                     </td>
 
                     {{-- Equipment Id --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-3 text-center">
                         @if ($orderProduct?->equipment?->current_status?->isRented())
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-mono font-medium bg-gray-100 text-gray-800 border">
                                 {{ isset($orderProduct->equipment_details['equipment_id']) ? $orderProduct->equipment_details['equipment_id'] : '-' }}
@@ -170,7 +168,7 @@
                     </td>
 
                     {{-- Equip. Location (physical machine location) --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         <div class="inline-flex items-center gap-1">
                             @if ($orderProduct?->equipment?->current_status?->isRented())
                                 <a href="{{ route('admin.crm.customers.view', $orderProduct?->order?->customer?->unique_id ?? 0) }}"
@@ -200,7 +198,7 @@
                     </td>
 
                     {{-- Pickup | Return --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         <div class="flex flex-col items-center gap-0.5 leading-tight">
                             @if ($deliveryPending)
                                 {{-- Delivery is next: Pickup Store = prominent --}}
@@ -215,7 +213,7 @@
                     </td>
 
                     {{-- Delivery Date --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         @php
                             $iconColor = $orderProduct->delivery_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                         @endphp
@@ -239,7 +237,7 @@
                     </td>
 
                     {{-- Return Date --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         @php
                             $iconColor = $orderProduct->pickup_status === 'Completed' ? 'text-green-600' : 'text-yellow-600';
                         @endphp
@@ -263,7 +261,7 @@
                     </td>
 
                     {{-- Payment --}}
-                    <td class="py-4 px-6 text-center">
+                    <td class="py-4 px-4 text-center">
                         {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
                     </td>
 
@@ -295,7 +293,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
+                    <td colspan="12" class="text-center text-sm text-gray-500 px-4 py-6">
                         @if ($orderProducts)
                             No schedules found.
                         @else

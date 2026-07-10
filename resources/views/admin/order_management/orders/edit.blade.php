@@ -6356,10 +6356,11 @@
                     locale:     window.airDatepickerLocaleEn,
                     dateFormat: '{{ config('app.date.js_date_format') }}',
                     autoClose:  true,
-                    // Put the calendar inside the modal and above its overlay
-                    // (same fix already used for .reorder-datepicker in this file).
-                    container:  '#changeReturnDateModal',
-                    zIndex:     99999,
+                    // No explicit container: default behavior inserts the calendar
+                    // right after the input, inside the "relative" wrapper div that
+                    // now surrounds it — a normal (non-fixed) positioned ancestor, so
+                    // the browser positions it correctly without the library having
+                    // to do position math against the modal's position:fixed overlay.
                     onSelect({ formattedDate }) {
                         manualDateInput.value = formattedDate || '';
                     },

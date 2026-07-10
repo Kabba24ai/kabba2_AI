@@ -79,9 +79,19 @@
                         Search by order # or customer name. Only a reference is stored — the Order remains the source of truth for
                         agreements, checklists, photos, and payments.
                     </p>
-                    {{-- Search aids only: narrow the order list before searching. No name
-                         attributes — these values are never submitted or saved on the ticket. --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    {{-- One four-column row: order search, its two search aids (no name
+                         attributes — never submitted), and the view-only rental date --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <div>
+                            <label class="{{ $labelClass }} required">Rental Orders (<span id="st-order-count">{{ count($orderOptions) }}</span>)</label>
+                            <select name="order_id" id="st-order" required class="{{ $inputClass }}">
+                                <option value="">Search by order # or customer…</option>
+                                @foreach ($orderOptions as $order)
+                                    <option value="{{ $order['id'] }}" @selected((int) old('order_id') === $order['id'])>{{ $order['label'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('order_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                        </div>
                         <div>
                             <label class="{{ $labelClass }}" for="st-filter-category">Filter Category</label>
                             <select id="st-filter-category" class="{{ $inputClass }}">
@@ -99,18 +109,6 @@
                                     <option value="{{ $product['id'] }}">{{ $product['name'] }}</option>
                                 @endforeach
                             </select>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="{{ $labelClass }} required">Rental Orders (<span id="st-order-count">{{ count($orderOptions) }}</span>)</label>
-                            <select name="order_id" id="st-order" required class="{{ $inputClass }}">
-                                <option value="">Search by order # or customer…</option>
-                                @foreach ($orderOptions as $order)
-                                    <option value="{{ $order['id'] }}" @selected((int) old('order_id') === $order['id'])>{{ $order['label'] }}</option>
-                                @endforeach
-                            </select>
-                            @error('order_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="{{ $labelClass }}">Rental Date</label>
@@ -133,7 +131,8 @@
                         Where the repair will be managed and how urgent it is. Equipment choices come from the selected order only —
                         single-equipment orders select automatically.
                     </p>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {{-- One four-column row mirroring the Rental Order Source card --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                         <div>
                             <label class="{{ $labelClass }} required">Equipment</label>
                             <select name="equipment_id" id="st-equipment" required disabled class="{{ $inputClass }}"
@@ -144,6 +143,19 @@
                                  a disabled select never posts, so this mirror carries the value --}}
                             <input type="hidden" name="equipment_id" id="st-equipment-locked" value="" disabled>
                             @error('equipment_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            {{-- Equipment ID Override: the machine actually being repaired
+                                 when the order carries the wrong unit. The rental order is
+                                 never modified — both references are preserved. --}}
+                            <label class="{{ $labelClass }}" for="st-override">Equipment ID Override</label>
+                            <select name="equipment_override_id" id="st-override" class="{{ $inputClass }}">
+                                <option value="">No override</option>
+                                @foreach ($overrideEquipment as $unit)
+                                    <option value="{{ $unit['id'] }}" @selected((int) old('equipment_override_id') === $unit['id'])>{{ $unit['label'] }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">Only when the unit being repaired differs from the order. The order itself stays unchanged.</p>
                         </div>
                         <div>
                             <label class="{{ $labelClass }}">Service Store</label>
@@ -166,29 +178,13 @@
                         </div>
                     </div>
 
-                    {{-- Equipment ID Override: identifies the machine actually being
-                         repaired when the order carries the wrong unit. The rental
-                         order is never modified — both references are preserved. --}}
-                    <div class="mt-4 pt-4 border-t border-gray-100">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div>
-                                <label class="{{ $labelClass }}" for="st-override">Equipment ID Override</label>
-                                <select name="equipment_override_id" id="st-override" class="{{ $inputClass }}">
-                                    <option value="">No override</option>
-                                    @foreach ($overrideEquipment as $unit)
-                                        <option value="{{ $unit->id }}" @selected((int) old('equipment_override_id') === $unit->id)>{{ $unit->equipment_name }}{{ $unit->equipment_id ? ' (' . $unit->equipment_id . ')' : '' }}</option>
-                                    @endforeach
-                                </select>
-                                <p class="text-xs text-gray-400 mt-1">Only when the unit being repaired differs from the order. The order itself stays unchanged.</p>
-                            </div>
-                            <div class="sm:col-span-2 {{ old('equipment_override_id') ? '' : 'hidden' }}" id="st-override-reason-wrap">
-                                <label class="{{ $labelClass }}">Override Reason</label>
-                                <input type="text" name="equipment_override_reason" value="{{ old('equipment_override_reason') }}"
-                                    class="{{ $inputClass }}" maxlength="255"
-                                    placeholder="Explain why the equipment ID is being overridden…">
-                                <p class="text-xs text-gray-400 mt-1">Optional — e.g. wrong unit assigned, customer exchanged machines, yard loaded incorrect unit.</p>
-                            </div>
-                        </div>
+                    {{-- Override Reason: appears below the row only once an override is chosen --}}
+                    <div class="mt-4 {{ old('equipment_override_id') ? '' : 'hidden' }}" id="st-override-reason-wrap">
+                        <label class="{{ $labelClass }}">Override Reason</label>
+                        <input type="text" name="equipment_override_reason" value="{{ old('equipment_override_reason') }}"
+                            class="{{ $inputClass }}" maxlength="255"
+                            placeholder="Explain why the equipment ID is being overridden…">
+                        <p class="text-xs text-gray-400 mt-1">Optional — e.g. wrong unit assigned, customer exchanged machines, yard loaded incorrect unit.</p>
                     </div>
                 </div>
 
@@ -238,6 +234,20 @@
                         </div>
                         @error('team_leader_id')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
                         @error('personnel')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
+                    </div>
+
+                    {{-- Assigned team at a glance — avatar chips in the same style as
+                         partials/_personnel_avatars. Display only; the checkboxes above
+                         remain the editing controls and the JS keeps this in sync. --}}
+                    <div id="st-crew-display" class="hidden mt-4 pt-4 border-t border-gray-100">
+                        <div id="st-crew-lead-wrap" class="hidden mb-3">
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Lead Technician</p>
+                            <div id="st-crew-lead" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <div id="st-crew-team-wrap" class="hidden">
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Assigned Team</p>
+                            <div id="st-crew-team" class="flex flex-wrap gap-2"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -407,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const overrideSelect     = document.getElementById('st-override');
     const overrideReasonWrap = document.getElementById('st-override-reason-wrap');
 
-    overrideSelect.choicesInstance = new Choices(overrideSelect, {
+    const overrideChoices = new Choices(overrideSelect, {
         searchEnabled: true,
         shouldSort: false,
         itemSelectText: '',
@@ -416,6 +426,7 @@ document.addEventListener('DOMContentLoaded', function () {
         searchPlaceholderValue: 'Search by unit # or equipment name…',
         fuseOptions: preciseSearch,
     });
+    overrideSelect.choicesInstance = overrideChoices;
 
     overrideSelect.addEventListener('change', function () {
         overrideReasonWrap.classList.toggle('hidden', !overrideSelect.value);
@@ -423,6 +434,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Category / Product search aids (never submitted — no name attrs) ──
     const FILTER_PRODUCTS = @json($filterProducts);
+    const OVERRIDE_UNITS  = @json($overrideEquipment);
+
+    // product id → category ids, for narrowing override units by category
+    const PRODUCT_CATEGORIES = {};
+    FILTER_PRODUCTS.forEach(function (p) { PRODUCT_CATEGORIES[p.id] = p.category_ids || []; });
 
     const categoryFilter = document.getElementById('st-filter-category');
     const productFilter  = document.getElementById('st-filter-product');
@@ -475,14 +491,48 @@ document.addEventListener('DOMContentLoaded', function () {
             value: '', label: 'Search by order # or customer…', placeholder: true, selected: !selectedId,
         });
 
-        orderChoices.setChoices(choiceList, 'value', 'label', true);
+        // replaceItems (6th arg): drop the retained selected item too — our
+        // choiceList re-selects it, avoiding a duplicate entry in the list
+        orderChoices.setChoices(choiceList, 'value', 'label', true, true, true);
+    }
+
+    function applyOverrideFilter() {
+        const categoryId = categoryFilter.value;
+        const productId  = productFilter.value;
+
+        const matches = OVERRIDE_UNITS.filter(function (unit) {
+            if (productId && String(unit.product_id) !== productId) return false;
+            if (categoryId && !(PRODUCT_CATEGORIES[unit.product_id] || []).some(id => String(id) === categoryId)) return false;
+            return true;
+        });
+
+        const selectedId    = overrideSelect.value;
+        const stillMatches  = selectedId && matches.some(u => String(u.id) === selectedId);
+
+        const choiceList = matches.map(u => ({
+            value: String(u.id), label: u.label, selected: String(u.id) === selectedId,
+        }));
+        choiceList.unshift({ value: '', label: 'No override', placeholder: true, selected: !stillMatches });
+
+        overrideChoices.setChoices(choiceList, 'value', 'label', true, true, true);
+
+        // A filtered-out override must never ride along invisibly: clear the
+        // selection and the reason so nothing invalid is submitted.
+        if (selectedId && !stillMatches) {
+            overrideReasonWrap.classList.add('hidden');
+            overrideReasonWrap.querySelector('input[name="equipment_override_reason"]').value = '';
+        }
     }
 
     categoryFilter.addEventListener('change', function () {
         syncProductFilter();   // clears Filter Product and reloads it for this category
         applyOrderFilters();
+        applyOverrideFilter();
     });
-    productFilter.addEventListener('change', applyOrderFilters);
+    productFilter.addEventListener('change', function () {
+        applyOrderFilters();
+        applyOverrideFilter();
+    });
 
     // ── Assign Now panel + team leader rules ───────────────────────
     const panel   = document.getElementById('st-assign-panel');
@@ -491,6 +541,41 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('st-assign-toggle').addEventListener('click', function () {
         panel.classList.toggle('hidden');
     });
+
+    // Avatar chip in the same language as partials/_personnel_avatars:
+    // initials in a w-7 rounded-full circle; the lead swaps blue for amber
+    const crewDisplay  = document.getElementById('st-crew-display');
+    const crewLeadWrap = document.getElementById('st-crew-lead-wrap');
+    const crewLeadBox  = document.getElementById('st-crew-lead');
+    const crewTeamWrap = document.getElementById('st-crew-team-wrap');
+    const crewTeamBox  = document.getElementById('st-crew-team');
+
+    function crewChip(name, isLead) {
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center gap-2 rounded-full border py-1 pl-1 pr-3 '
+            + (isLead ? 'border-amber-200 bg-amber-50' : 'border-gray-200 bg-gray-50');
+
+        const avatar = document.createElement('span');
+        avatar.className = 'w-7 h-7 rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white '
+            + (isLead ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700');
+        avatar.textContent = name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+        avatar.title = name;
+        chip.appendChild(avatar);
+
+        const label = document.createElement('span');
+        label.className = 'text-sm font-medium ' + (isLead ? 'text-amber-800' : 'text-gray-700');
+        label.textContent = name;
+        chip.appendChild(label);
+
+        if (isLead) {
+            const badge = document.createElement('span');
+            badge.className = 'text-[10px] font-bold text-amber-600 uppercase tracking-wide';
+            badge.textContent = 'Lead';
+            chip.appendChild(badge);
+        }
+
+        return chip;
+    }
 
     function syncCrew() {
         const checked = Array.from(document.querySelectorAll('.st-crew-check:checked'));
@@ -506,6 +591,17 @@ document.addEventListener('DOMContentLoaded', function () {
         summary.textContent = checked.length === 0
             ? 'No one assigned yet.'
             : checked.length + ' assigned' + (leaderName ? ' · Team Leader: ' + leaderName : ' · no team leader marked');
+
+        // Rebuild the at-a-glance chips: lead first, then the rest of the team
+        crewLeadBox.replaceChildren();
+        crewTeamBox.replaceChildren();
+        checked.forEach(function (box) {
+            const isLead = box.closest('div').querySelector('.st-leader-radio').checked;
+            (isLead ? crewLeadBox : crewTeamBox).appendChild(crewChip(box.dataset.name, isLead));
+        });
+        crewLeadWrap.classList.toggle('hidden', !leaderName);
+        crewTeamWrap.classList.toggle('hidden', !crewTeamBox.childElementCount);
+        crewDisplay.classList.toggle('hidden', checked.length === 0);
     }
 
     document.querySelectorAll('.st-crew-check, .st-leader-radio').forEach(function (el) {

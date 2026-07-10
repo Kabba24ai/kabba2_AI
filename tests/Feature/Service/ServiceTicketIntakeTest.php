@@ -194,8 +194,42 @@ class ServiceTicketIntakeTest extends TestCase
         // Multi-equipment order carries both of its units
         $this->assertStringContainsString('"label":"Mini Excavator (EX-1)"', $content);
         // Equipment on no order is never offered in the order-scoped map —
-        // it may appear only in the separate Equipment ID Override selector
-        $this->assertStringNotContainsString('"label":"Trencher (TR-1)"', $content);
+        // it may appear only in the Equipment ID Override selector, whose
+        // JSON entries carry a product_id key after the label
+        $this->assertStringNotContainsString('"label":"Trencher (TR-1)"}', $content);
+    }
+
+    public function test_override_selector_ships_product_keys_for_filtering(): void
+    {
+        $excavators = ProductCategory::create(['unique_id' => 'test-cat-exc-ov', 'title' => 'Excavators', 'status' => 'Published']);
+        $tb290      = Product::create(['unique_id' => 'test-prod-tb290-ov', 'product_name' => 'TB290', 'product_type' => 'Rental']);
+        $tb290->categories()->attach($excavators->id);
+
+        $this->unrelated->update(['assigned_product_id' => $tb290->id]);
+
+        $content = $this->get(route('admin.service-management.tickets.create'))->getContent();
+
+        // Units carry their product key so the Category/Product search aids
+        // can narrow the override list client-side
+        $this->assertStringContainsString('"label":"Trencher (TR-1)","product_id":' . $tb290->id, $content);
+        // Units without an assigned product ship null — they match only when
+        // no filter is active
+        $this->assertStringContainsString('"label":"Scissor Lift (SL-1)","product_id":null', $content);
+        // The product→category map that resolves category filtering is present
+        $this->assertStringContainsString('"name":"TB290","category_ids":[' . $excavators->id . ']', $content);
+    }
+
+    // Assigned-team avatar display: presentation scaffold ships with the
+    // page; the chips themselves are built client-side from the checkboxes
+    public function test_create_page_renders_crew_avatar_display_scaffold(): void
+    {
+        $content = $this->get(route('admin.service-management.tickets.create'))->getContent();
+
+        $this->assertStringContainsString('id="st-crew-display"', $content);
+        $this->assertStringContainsString('Lead Technician', $content);
+        $this->assertStringContainsString('Assigned Team', $content);
+        // Hidden until someone is assigned — no empty avatar placeholders
+        $this->assertStringContainsString('<div id="st-crew-display" class="hidden', $content);
     }
 
     // ── Equipment ID Override ────────────────────────────────────────

@@ -64,9 +64,16 @@ trait BuildsTicketFormData
 
         // Equipment ID Override source: any unit in the fleet — the intake
         // must identify the machine actually being repaired even when the
-        // order carries the wrong one.
+        // order carries the wrong one. product_id lets the Category/Product
+        // search aids narrow this list too (categories come from the
+        // product→category map already shipped in filterProducts).
         $overrideEquipment = Equipment::orderBy('equipment_name')
-            ->get(['id', 'equipment_name', 'equipment_id']);
+            ->get(['id', 'equipment_name', 'equipment_id', 'assigned_product_id'])
+            ->map(fn (Equipment $unit) => [
+                'id'         => $unit->id,
+                'label'      => $unit->equipment_name . ($unit->equipment_id ? ' (' . $unit->equipment_id . ')' : ''),
+                'product_id' => $unit->assigned_product_id,
+            ])->values();
 
         $employees = User::active()->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);

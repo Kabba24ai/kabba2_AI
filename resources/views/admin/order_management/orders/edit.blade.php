@@ -3353,12 +3353,8 @@
                     </div>
                     <div class="flex items-center gap-2 text-sm font-semibold text-gray-800">
                         New Date:
-                        {{-- Calculated date (shown for duration-based modes) --}}
-                        <span id="returnCalcDateDisplay"
-                              class="inline-block rounded bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-sm font-bold text-blue-700">—</span>
-                        {{-- Manual date picker (shown for "date only" and "custom" modes) --}}
                         <input type="text" id="returnManualDateInput"
-                               class="hidden border border-gray-300 rounded px-2 py-1 text-sm w-32 text-center"
+                               class="border border-gray-300 rounded px-2 py-1 text-sm w-32 text-center"
                                placeholder="MM/DD/YYYY" autocomplete="off" />
                     </div>
                 </div>
@@ -6248,7 +6244,6 @@
             const totalDisplay            = document.getElementById('returnTotalHoursAdded');
             const customInput             = document.getElementById('customHoursInput');
             const saveBtn                 = document.getElementById('saveChangeReturnDate');
-            const calcDateDisplay         = document.getElementById('returnCalcDateDisplay');
             const manualDateInput         = document.getElementById('returnManualDateInput');
             const currentDateLabel        = document.getElementById('returnCurrentDateLabel');
             const cancelBtns              = [
@@ -6314,22 +6309,21 @@
 
             /**
              * Sync the "New Date" display in the summary bar.
-             * - Duration modes: show calculated date in blue badge.
-             * - "date only" or "custom": show manual date picker.
+             * - Duration modes: populate the date field with the calculated date.
+             * - "date only" or "custom": leave the date field as the user's manual selection.
              */
             function updateDateDisplay() {
                 const type       = getSelectedHoursType();
                 const dateOnly   = optionDateOnly.checked;
                 const isManual   = dateOnly || (type === 'custom');
 
-                if (isManual) {
-                    calcDateDisplay.classList.add('hidden');
-                    manualDateInput.classList.remove('hidden');
-                } else {
-                    calcDateDisplay.classList.remove('hidden');
-                    manualDateInput.classList.add('hidden');
+                if (!isManual) {
                     const newDate = calcReturnDate(getReturnDateCalcBase(), type, qty[type]);
-                    calcDateDisplay.textContent = newDate || '—';
+                    manualDateInput.value = newDate || '';
+                    if (_manualPicker && newDate) {
+                        const parsed = parseScheduleDate(newDate);
+                        if (parsed) _manualPicker.selectDate(parsed, { silent: true });
+                    }
                 }
             }
 

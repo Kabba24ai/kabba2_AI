@@ -6462,8 +6462,20 @@
             // after the document has finished parsing — i.e. after this classic
             // inline <script> block has already executed. Checking
             // window.AirDatepicker synchronously here was always false, so the
-            // picker was silently never constructed (clicking the field just
-            // focused it — nothing was actually broken about its position).
+            // picker was never constructed at all until this was fixed.
+            //
+            // container is required: without it, AirDatepicker mounts its
+            // calendar in a global container appended directly to <body>
+            // (confirmed in the compiled bundle — buildGlobalContainer() does
+            // document.body.appendChild(...)), completely outside this modal's
+            // DOM tree. That global container's CSS z-index defaults to 100
+            // (--adp-z-index), which loses to the modal's z-[99999], so the
+            // calendar rendered behind the modal wherever they overlapped.
+            // Setting container to the modal makes the calendar a descendant
+            // of it instead, so it stacks within the modal's own context
+            // rather than competing against the modal's own z-index.
+            // (Note: AirDatepicker has no "zIndex" constructor option — it
+            // does not exist in the library; do not reintroduce it.)
             let _manualPicker = null;
             document.addEventListener('DOMContentLoaded', function () {
                 if (window.AirDatepicker && manualDateInput) {
@@ -6471,6 +6483,7 @@
                         locale:     window.airDatepickerLocaleEn,
                         dateFormat: '{{ config('app.date.js_date_format') }}',
                         autoClose:  true,
+                        container:  '#changeReturnDateModal',
                         onSelect({ formattedDate }) {
                             manualDateInput.value = formattedDate || '';
                         },

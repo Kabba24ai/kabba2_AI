@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Dispatch;
 
+use App\Enums\Dispatch\DispatchDateRangeMode;
 use App\Http\Controllers\Controller;
 use App\Models\Dispatch\DispatchAiDraft;
 use App\Models\Iam\Personnel\User;
@@ -22,16 +23,17 @@ class IndexController extends Controller
      */
     public function driverCards(Request $request)
     {
-        $showAll     = $request->boolean('show_all', false);
-        $driverCards = $this->buildDriverCards($showAll);
-        $html        = view('admin.order_management.dispatch.partials._driver_cards', compact('driverCards', 'showAll'))->render();
+        $mode        = DispatchDateRangeMode::fromRequest($request->input('range'));
+        $driverCards = $this->buildDriverCards($mode);
+        $html        = view('admin.order_management.dispatch.partials._driver_cards', compact('driverCards', 'mode'))->render();
         return response()->json(['success' => true, 'html' => $html]);
     }
 
-    private function buildDriverCards(bool $showAll = false): \Illuminate\Support\Collection
+    private function buildDriverCards(DispatchDateRangeMode $mode): \Illuminate\Support\Collection
     {
         $drivers   = User::active()->where('is_driver', true)->orderBy('first_name')->get();
         $driverIds = $drivers->pluck('id');
+        $endDate   = $mode->endDate();
 
         $deliveryQuery = OrderProduct::with(['order.customer', 'order.shippingAddress', 'deliveryStore', 'equipment', 'softAssignment.equipment'])
             ->whereIn('delivery_by', $driverIds)
@@ -40,9 +42,9 @@ class IndexController extends Controller
             ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
             ->orderByRaw('COALESCE(dispatch_delivery_date, delivery_date) ASC');
 
-        if (!$showAll) {
+        if ($endDate !== null) {
             $deliveryQuery->whereDate(
-                \DB::raw('COALESCE(dispatch_delivery_date, delivery_date)'), '<=', today()
+                \DB::raw('COALESCE(dispatch_delivery_date, delivery_date)'), '<=', $endDate
             );
         }
 
@@ -56,9 +58,9 @@ class IndexController extends Controller
             ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
             ->orderByRaw('COALESCE(dispatch_return_date, pickup_date) ASC');
 
-        if (!$showAll) {
+        if ($endDate !== null) {
             $returnQuery->whereDate(
-                \DB::raw('COALESCE(dispatch_return_date, pickup_date)'), '<=', today()
+                \DB::raw('COALESCE(dispatch_return_date, pickup_date)'), '<=', $endDate
             );
         }
 
@@ -251,6 +253,36 @@ class IndexController extends Controller
                 });
             }
 
+            // Dispatch date-range filter ("Show: All / 3 Days / Today") — the
+            // same control that scopes the Driver Workload cards, applied
+            // here too so the table reflects the same planning window. See
+            // App\Enums\Dispatch\DispatchDateRangeMode: this only ever asks
+            // for an end date, reusing the exact "Pending + <= end date"
+            // logic the existing Today date_filter option already used
+            // below — a future range there needs no changes here.
+            $dispatchRangeMode = DispatchDateRangeMode::fromRequest($request->input('range'));
+            $dispatchRangeEnd  = $dispatchRangeMode->endDate();
+
+            if ($dispatchRangeEnd !== null) {
+                $useBothDatesForRange = $isBothSelected || empty($scheduleTypes);
+                $rangeDateField       = $isReturnOnly ? 'pickup_date' : 'delivery_date';
+
+                if ($useBothDatesForRange) {
+                    $query->where(function ($q) use ($dispatchRangeEnd) {
+                        $q->where(function ($sub) use ($dispatchRangeEnd) {
+                            $sub->where('delivery_status', 'Pending')
+                                ->whereDate('delivery_date', '<=', $dispatchRangeEnd);
+                        })->orWhere(function ($sub) use ($dispatchRangeEnd) {
+                            $sub->where('pickup_status', 'Pending')
+                                ->whereNotNull('pickup_date')
+                                ->whereDate('pickup_date', '<=', $dispatchRangeEnd);
+                        });
+                    });
+                } else {
+                    $query->whereDate($rangeDateField, '<=', $dispatchRangeEnd);
+                }
+            }
+
             // Date filter — reference the correct date column(s) per schedule selection
             if ($request->filled('date_filter')) {
                 $dateFilter  = $request->date_filter;
@@ -376,8 +408,8 @@ class IndexController extends Controller
         ]);
 
         // --- Driver workload cards (top of page, default Today Only) ---
-        $showAll     = false;
-        $driverCards = $this->buildDriverCards($showAll);
+        $mode        = DispatchDateRangeMode::Today;
+        $driverCards = $this->buildDriverCards($mode);
 
         // --- Latest AI draft (today or most recent) ---
         $latestDraft = DispatchAiDraft::with(['assignments.orderProduct.order', 'assignments.recommendedDriver'])
@@ -392,7 +424,7 @@ class IndexController extends Controller
             'driverEmployees' => $driverEmployees,
             'driverPhones'    => $driverPhones,
             'driverCards'     => $driverCards,
-            'showAll'         => $showAll,
+            'mode'            => $mode,
             'latestDraft'     => $latestDraft,
         ]);
     }

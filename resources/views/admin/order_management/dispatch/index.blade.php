@@ -45,7 +45,7 @@
 
     {{-- ===== Driver Workload Summary ===== --}}
     <div id="driver-cards-wrapper" class="mb-4">
-        @include('admin.order_management.dispatch.partials._driver_cards', ['driverCards' => $driverCards, 'showAll' => $showAll ?? false])
+        @include('admin.order_management.dispatch.partials._driver_cards', ['driverCards' => $driverCards, 'mode' => $mode ?? \App\Enums\Dispatch\DispatchDateRangeMode::Today])
     </div>
 
     {{-- ===== AI Draft Panel ===== --}}
@@ -264,11 +264,13 @@
                         </button>
                     </div>
 
-                    {{-- Card scope: All / Today --}}
+                    {{-- Date range scope (Driver Workload cards + main table): All / 3 Days / Today --}}
                     <div class="flex items-center rounded-lg border border-gray-300 overflow-hidden text-xs">
                         <span class="px-2 py-1.5 text-gray-400 font-medium border-r border-gray-300 bg-gray-50">Show:</span>
                         <button type="button" id="daf-all"
                             class="px-3 py-1.5 font-semibold bg-white text-gray-600 hover:bg-gray-50">All</button>
+                        <button type="button" id="daf-3days"
+                            class="px-3 py-1.5 font-semibold border-l border-gray-300 bg-white text-gray-600 hover:bg-gray-50">3 Days</button>
                         <button type="button" id="daf-today"
                             class="px-3 py-1.5 font-semibold border-l border-gray-300 bg-blue-600 text-white">Today</button>
                     </div>
@@ -669,9 +671,9 @@
             // Expose globally so driver modal JS can call it after saving a driver
             window.fetchDispatch = fetchDispatch;
 
-            // Apply saved card view mode and show-assigned filter on page load
+            // Apply saved card view mode and date-range filter on page load
             const savedDaf = localStorage.getItem('driver_assign_filter') || 'today';
-            if (savedDaf === 'all') {
+            if (savedDaf !== 'today') {
                 // Server-rendered cards default to Today Only; re-fetch to match stored preference
                 setTimeout(() => window.refreshDriverCards(), 50);
             } else {
@@ -683,8 +685,8 @@
                 const wrapper = document.getElementById('driver-cards-wrapper');
                 if (!wrapper) return;
                 wrapper.classList.add('opacity-50');
-                const showAll = localStorage.getItem('driver_assign_filter') === 'all';
-                const cardsUrl = "{{ route('admin.order-management.dispatch.driver-cards') }}" + (showAll ? '?show_all=1' : '');
+                const range = localStorage.getItem('driver_assign_filter') || 'today';
+                const cardsUrl = "{{ route('admin.order-management.dispatch.driver-cards') }}" + '?range=' + encodeURIComponent(range);
                 apiFetch(cardsUrl, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
@@ -699,29 +701,35 @@
                 .finally(() => wrapper.classList.remove('opacity-50'));
             };
 
-            // Switch Show Assigned filter (Today Only / All) and re-fetch driver cards
+            // Switch the date-range filter (All / 3 Days / Today) — shared by the
+            // Driver Workload cards and the main table — and re-fetch both.
             function applyDriverAssignFilter(filter) {
                 localStorage.setItem('driver_assign_filter', filter);
-                updateDafButtons(filter === 'all');
+                updateDafButtons(filter);
                 window.refreshDriverCards();
+                fetchDispatch();
             }
 
-            // The Show All/Today buttons now live in the static filter bar, so JS
-            // owns their active styling (previously server-rendered in the partial)
-            function updateDafButtons(showAll) {
-                const btnAll   = document.getElementById('daf-all');
-                const btnToday = document.getElementById('daf-today');
-                if (!btnAll || !btnToday) return;
-                btnAll.classList.toggle('bg-blue-600', showAll);
-                btnAll.classList.toggle('text-white',  showAll);
-                btnAll.classList.toggle('bg-white',   !showAll);
-                btnAll.classList.toggle('text-gray-600', !showAll);
-                btnToday.classList.toggle('bg-blue-600', !showAll);
-                btnToday.classList.toggle('text-white',  !showAll);
-                btnToday.classList.toggle('bg-white',     showAll);
-                btnToday.classList.toggle('text-gray-600', showAll);
+            // The Show All/3 Days/Today buttons now live in the static filter bar, so
+            // JS owns their active styling (previously server-rendered in the partial)
+            function updateDafButtons(range) {
+                const btnAll    = document.getElementById('daf-all');
+                const btn3Days  = document.getElementById('daf-3days');
+                const btnToday  = document.getElementById('daf-today');
+                if (!btnAll || !btn3Days || !btnToday) return;
+
+                const setActive = (btn, active) => {
+                    btn.classList.toggle('bg-blue-600', active);
+                    btn.classList.toggle('text-white',  active);
+                    btn.classList.toggle('bg-white',   !active);
+                    btn.classList.toggle('text-gray-600', !active);
+                };
+
+                setActive(btnAll,   range === 'all');
+                setActive(btn3Days, range === '3_days');
+                setActive(btnToday, range === 'today');
             }
-            updateDafButtons(savedDaf === 'all');
+            updateDafButtons(savedDaf);
 
             // Apply card view mode (separate/combined) — works on freshly injected DOM too
             function applyDriverCardMode(mode) {
@@ -760,6 +768,10 @@
                 }
                 if (e.target.closest('#daf-all')) {
                     applyDriverAssignFilter('all');
+                    return;
+                }
+                if (e.target.closest('#daf-3days')) {
+                    applyDriverAssignFilter('3_days');
                     return;
                 }
                 if (e.target.closest('#daf-today')) {
@@ -847,6 +859,9 @@
                 if (paymentStatusInput && paymentStatusInput.value) params.append('payment_status', paymentStatusInput.value);
                 if (paymentMethodInput && paymentMethodInput.value) params.append('payment_method', paymentMethodInput.value);
                 if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
+                // Date-range filter (All / 3 Days / Today) — shared with the Driver
+                // Workload cards via the same localStorage key.
+                params.append('range', localStorage.getItem('driver_assign_filter') || 'today');
                 if (driverFilterInput && driverFilterInput.value) params.append('driver_id', driverFilterInput.value);
                 if (dispatchListFilter === 'unassigned') params.append('unassigned_only', 1);
                 if (perPage) params.append('per_page', perPage);

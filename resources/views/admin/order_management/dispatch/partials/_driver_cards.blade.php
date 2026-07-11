@@ -129,7 +129,7 @@
                                     <span class="text-blue-600 mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
                                     @if($isEarly)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 shrink-0">EARLY</span>@endif
                                 </p>
-                                @if($showAll ?? false)
+                                @if(($mode ?? null)?->spansMultipleDates())
                                     <p class="text-[10px] text-blue-500 font-medium leading-snug">
                                         {{ $effectiveDeliveryDate ? \Carbon\Carbon::parse($effectiveDeliveryDate)->format('M j') : '—' }}
                                         @if($isEarly)<span class="text-gray-400 line-through ml-1">{{ \Carbon\Carbon::parse($job->delivery_date)->format('M j') }}</span>@endif
@@ -179,7 +179,7 @@
                                     <span class="text-purple-600 mr-1">#{{ ltrim($job->order?->order_number ?? '', '#') }}</span>{{ $job->order?->customer_name ?? '—' }}
                                     @if($isLatePickup)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 shrink-0">LATE PICKUP</span>@endif
                                 </p>
-                                @if($showAll ?? false)
+                                @if(($mode ?? null)?->spansMultipleDates())
                                     <p class="text-[10px] text-purple-500 font-medium leading-snug">
                                         {{ $effectivePickupDate ? \Carbon\Carbon::parse($effectivePickupDate)->format('M j') : '—' }}
                                         @if($isLatePickup)<span class="text-gray-400 line-through ml-1">{{ \Carbon\Carbon::parse($job->pickup_date)->format('M j') }}</span>@endif
@@ -244,7 +244,7 @@
                                 @if($isEarly)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">EARLY</span>@endif
                                 @if($isLatePickup)<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">LATE PICKUP</span>@endif
                             </p>
-                            @if($showAll ?? false)
+                            @if(($mode ?? null)?->spansMultipleDates())
                                 <p class="text-[10px] {{ $isDelivery ? 'text-blue-500' : 'text-purple-500' }} font-medium leading-snug">
                                     {{ $effectiveDate ? \Carbon\Carbon::parse($effectiveDate)->format('M j') : '—' }}
                                     @if($isEarly || $isLatePickup)

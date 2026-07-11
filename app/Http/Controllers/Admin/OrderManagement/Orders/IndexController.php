@@ -49,15 +49,35 @@ class IndexController extends Controller
                     ->orWhere('reference_order_number', 'like', "%{$request->order_number}%");
                 })
 
+                // Category / Product / Equipment-ID filters are parent-aware:
+                // extension child orders ("3153-A") own no order_products rows,
+                // so they also qualify when their PARENT order matches. The
+                // extensionChildren scope keeps reorders out of the parent-match
+                // branch (they carry reference_order_number but have their own
+                // products and must keep matching on those alone).
                 ->when($request->filled('category'), function ($q) use ($request) {
-                    $q->whereHas('products.product.categories', function ($s) use ($request) {
+                    $categoryMatch = function ($s) use ($request) {
                         $s->where('product_categories.id', $request->category); // fully qualified
+                    };
+                    $q->where(function ($outer) use ($categoryMatch) {
+                        $outer->whereHas('products.product.categories', $categoryMatch)
+                            ->orWhere(function ($ext) use ($categoryMatch) {
+                                $ext->extensionChildren()
+                                    ->whereHas('referenceOrder.products.product.categories', $categoryMatch);
+                            });
                     });
                 })
 
                 ->when($request->filled('product'), function ($q) use ($request) {
-                    $q->whereHas('products', function ($s) use ($request) {
+                    $productMatch = function ($s) use ($request) {
                         $s->where('product_id', $request->product); // fully qualified
+                    };
+                    $q->where(function ($outer) use ($productMatch) {
+                        $outer->whereHas('products', $productMatch)
+                            ->orWhere(function ($ext) use ($productMatch) {
+                                $ext->extensionChildren()
+                                    ->whereHas('referenceOrder.products', $productMatch);
+                            });
                     });
                 })
 
@@ -73,7 +93,7 @@ class IndexController extends Controller
 
                 ->when($request->filled('equipment_id_search'), function ($q) use ($request) {
                     $search = trim($request->equipment_id_search);
-                    $q->whereHas('products', function ($s) use ($search) {
+                    $equipmentMatch = function ($s) use ($search) {
                         $s->where(function ($sub) use ($search) {
                             // Primary: equipment_details JSON (source of truth for table display)
                             $sub->where('equipment_details->equipment_id', 'like', "%{$search}%")
@@ -86,6 +106,13 @@ class IndexController extends Controller
                                 $eq->where('equipment_id', 'like', "%{$search}%");
                             });
                         });
+                    };
+                    $q->where(function ($outer) use ($equipmentMatch) {
+                        $outer->whereHas('products', $equipmentMatch)
+                            ->orWhere(function ($ext) use ($equipmentMatch) {
+                                $ext->extensionChildren()
+                                    ->whereHas('referenceOrder.products', $equipmentMatch);
+                            });
                     });
                 })
 

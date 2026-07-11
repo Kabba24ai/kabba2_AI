@@ -796,6 +796,62 @@
 
 
 
+    {{-- Rental Equipment (extension child orders only): read-only context
+         rendered through referenceOrder — no parent line is ever copied onto
+         this order's own order_products rows. --}}
+    @if ($order->isExtensionChild() && $order->referenceOrder)
+        @php
+            $parentRentalLines = $order->referenceOrder->products->filter(
+                fn($line) => ($line->product_data['product_type'] ?? null) === 'Rental',
+            );
+        @endphp
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <h3 class="text-base font-semibold text-gray-800">Rental Equipment</h3>
+                <div class="text-sm text-gray-600">
+                    Parent Order:
+                    <a href="{{ route('admin.order-management.orders.edit', $order->referenceOrder->unique_id) }}"
+                        class="text-blue-600 font-semibold hover:underline">
+                        #{{ $order->reference_order_number }}
+                    </a>
+                </div>
+            </div>
+            @forelse ($parentRentalLines as $parentLine)
+                @php
+                    $parentLineEquipment = $parentLine->equipment ?? $parentLine->softAssignment?->equipment;
+                    $parentLineEquipmentId =
+                        $parentLine->equipment_details['equipment_id'] ?? $parentLineEquipment?->equipment_id;
+                    $parentLineCategory =
+                        $parentLineEquipment?->category_name ?: $parentLine->product?->categories?->first()?->title;
+                @endphp
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1 text-sm py-2 {{ !$loop->first ? 'border-t border-gray-100' : '' }}">
+                    <div>
+                        <span class="text-gray-500">Product:</span>
+                        <span class="font-medium text-gray-800">{{ $parentLine->product_name }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Equipment:</span>
+                        <span class="font-medium text-gray-800">{{ $parentLineEquipment?->equipment_name ?? '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Equipment ID:</span>
+                        @if ($parentLineEquipmentId)
+                            <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-gray-100 text-gray-700 border">{{ $parentLineEquipmentId }}</span>
+                        @else
+                            <span class="text-gray-400">—</span>
+                        @endif
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Category:</span>
+                        <span class="font-medium text-gray-800">{{ $parentLineCategory ?: '—' }}</span>
+                    </div>
+                </div>
+            @empty
+                <p class="text-sm text-gray-400">No rental lines on the parent order.</p>
+            @endforelse
+        </div>
+    @endif
+
     <div class="bg-white rounded-xl shadow-sm p-6 mb-6 space-y-6">
         <h3 class="text-base font-semibold text-gray-800">Equipment Orders & Delivery Schedule</h3>
 

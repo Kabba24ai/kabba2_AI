@@ -98,6 +98,23 @@ class Order extends Model
         return $this->hasMany(Order::class, 'reference_order_number', 'order_number');
     }
 
+    /**
+     * True when this order is an extension child ("{parent}-A") created by
+     * Extension\StoreController. Reorders also carry reference_order_number
+     * but receive a fresh sequential order_number, never a suffixed one.
+     */
+    public function isExtensionChild(): bool
+    {
+        return !empty($this->reference_order_number)
+            && str_starts_with((string) $this->order_number, $this->reference_order_number . '-');
+    }
+
+    public function scopeExtensionChildren($query)
+    {
+        return $query->whereNotNull('reference_order_number')
+            ->whereRaw("order_number LIKE CONCAT(reference_order_number, '-%')");
+    }
+
     public function addresses()
     {
         return $this->hasMany(OrderAddress::class, 'order_id');

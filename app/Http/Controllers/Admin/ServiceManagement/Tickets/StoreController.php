@@ -9,6 +9,7 @@ use App\Enums\Service\ServiceLocation;
 use App\Enums\Service\ServiceType;
 use App\Enums\Service\ServiceMediaCategory;
 use App\Enums\Service\ServiceMediaType;
+use App\Enums\Service\ServiceMediaWorkflowStage;
 use App\Enums\Service\ServiceTicketEventType;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
@@ -71,22 +72,24 @@ class StoreController extends Controller
             ]);
         }
 
-        // Complaint evidence rides the standard ticket-media pipeline
+        // Complaint evidence goes to the dedicated Service Module media
+        // repository (not the shared public_asset disk).
         foreach ($request->file('evidence', []) as $file) {
-            $uploaded = MediaHelper::uploadStorageFile('Public Asset', $file, 'service_tickets', $ticket);
-            $mediaObj = $uploaded['mediaObj'] ?? null;
-            if (!$mediaObj) {
+            $uploaded = MediaHelper::uploadServiceMediaFile($file, ServiceMediaWorkflowStage::Complaint, $ticket);
+            if (!$uploaded) {
                 continue;
             }
 
             $ticket->media()->create([
-                'media_id'          => $mediaObj->id,
-                'media_type'        => ServiceMediaType::fromMime($mediaObj->mime_type, $mediaObj->file_extension),
+                'media_type'        => ServiceMediaType::fromMime($uploaded['mime_type'], $uploaded['file_extension']),
                 'category'          => ServiceMediaCategory::ComplaintEvidence->value,
-                'file_path'         => $mediaObj->getFilePath(),
-                'original_filename' => $mediaObj->original_file_name,
-                'mime_type'         => $mediaObj->mime_type,
-                'file_size'         => $mediaObj->file_size,
+                'workflow_stage'    => ServiceMediaWorkflowStage::Complaint->value,
+                'retention_class'   => ServiceMediaWorkflowStage::Complaint->defaultRetentionClass()->value,
+                'disk'              => 'service_media',
+                'file_path'         => $uploaded['file_path'],
+                'original_filename' => $uploaded['original_filename'],
+                'mime_type'         => $uploaded['mime_type'],
+                'file_size'         => $uploaded['file_size'],
                 'uploaded_by'       => auth()->id(),
             ]);
         }

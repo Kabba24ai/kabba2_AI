@@ -13,7 +13,7 @@ class ShowController extends Controller
         $ticket->load([
             'personnel', 'equipment.documentImages.media', 'equipment.assignedProduct.media',
             'order', 'customer', 'createdBy', 'serviceStore',
-            'diagnosticSteps.createdBy', 'notes.createdBy',
+            'diagnosticSteps.createdBy', 'notes.createdBy', 'notes.media.uploadedBy',
             'approvedByUser', 'repairAuthorizedBy', 'depositOverrideBy', 'responsibilityDecidedBy', 'authorizationOverrideBy',
             'laborEntries.employee', 'chargeLines', 'partsUsed',
             'media.mediaAsset', 'media.uploadedBy',

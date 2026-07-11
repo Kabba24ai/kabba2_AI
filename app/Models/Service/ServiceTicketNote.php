@@ -51,4 +51,9 @@ class ServiceTicketNote extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function media()
+    {
+        return $this->morphMany(ServiceTicketMedia::class, 'attachable')->latest();
+    }
 }

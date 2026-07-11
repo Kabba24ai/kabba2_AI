@@ -63,6 +63,18 @@ return [
             'report' => false,
         ],
 
+        // Dedicated repository for Service Module evidence (complaint,
+        // notes, diagnostic, repair, settlement, warranty media) — kept
+        // isolated from the general-purpose public_asset disk so retention
+        // policies and storage maintenance can target it independently.
+        'service_media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/service-media'),
+            'url' => env('APP_URL') . '/storage/service-media',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
 
         's3' => [
             'driver' => 's3',

@@ -375,6 +375,26 @@
                 <p class="text-sm {{ $ticket->customer_complaint ? 'text-gray-700 whitespace-pre-line' : 'text-gray-300 italic' }}">
                     {{ $ticket->customer_complaint ?: ($ticket->complaints->isNotEmpty() ? 'No additional details recorded.' : 'No complaint recorded at intake.') }}
                 </p>
+                @php $complaintEvidence = $ticket->media->where('category', \App\Enums\Service\ServiceMediaCategory::ComplaintEvidence); @endphp
+                @if ($complaintEvidence->isNotEmpty())
+                    <div class="mt-3 pt-3 border-t border-gray-100">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Evidence</p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($complaintEvidence as $item)
+                                <a href="{{ $item->url }}" target="_blank" rel="noopener"
+                                    class="block w-16 h-16 rounded-md overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
+                                    @if ($item->isImage())
+                                        <img src="{{ $item->url }}" alt="{{ $item->original_filename }}" class="w-full h-full object-cover">
+                                    @else
+                                        <span class="w-full h-full flex items-center justify-center">
+                                            <x-heroicon-o-play-circle class="w-6 h-6 text-gray-300" />
+                                        </span>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             {{-- Notes --}}
@@ -409,6 +429,22 @@
                                 @if ($note->updated_at->gt($note->created_at)) <span class="text-gray-400">· edited</span> @endif
                             </p>
                             <p class="text-sm text-gray-700 whitespace-pre-line">{{ $note->note }}</p>
+                            @if ($note->media->isNotEmpty())
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    @foreach ($note->media as $item)
+                                        <a href="{{ $item->url }}" target="_blank" rel="noopener"
+                                            class="block w-14 h-14 rounded-md overflow-hidden border border-gray-200 bg-white shrink-0">
+                                            @if ($item->isImage())
+                                                <img src="{{ $item->url }}" alt="{{ $item->original_filename }}" class="w-full h-full object-cover">
+                                            @else
+                                                <span class="w-full h-full flex items-center justify-center">
+                                                    <x-heroicon-o-play-circle class="w-5 h-5 text-gray-300" />
+                                                </span>
+                                            @endif
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                             <details class="mt-1.5">
                                 <summary class="text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer select-none">Edit Note</summary>
                                 <form method="POST" action="{{ route('admin.service-management.tickets.notes.update', [$ticket, $note]) }}" class="mt-2 space-y-2">
@@ -1389,6 +1425,8 @@
                                     <label class="block text-xs font-medium text-gray-500 mb-1 required">Category</label>
                                     <select name="category" required class="{{ $inputSm }}">
                                         @foreach (\App\Enums\Service\ServiceMediaCategory::cases() as $category)
+                                            {{-- Note media is attached from the note composer, not this general panel. --}}
+                                            @continue($category === \App\Enums\Service\ServiceMediaCategory::Note)
                                             <option value="{{ $category->value }}">{{ $category->label() }}</option>
                                         @endforeach
                                     </select>
@@ -1756,12 +1794,30 @@
                 <button type="button" data-close="addNoteModal"
                     class="text-2xl text-gray-400 hover:text-gray-700 leading-none absolute right-6 top-6">&times;</button>
             </div>
-            <form method="POST" action="{{ route('admin.service-management.tickets.notes.store', $ticket) }}">
+            <form method="POST" action="{{ route('admin.service-management.tickets.notes.store', $ticket) }}" enctype="multipart/form-data">
                 @csrf
-                <div class="px-6 py-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1 required">Note</label>
-                    <textarea name="note" rows="4" required placeholder="General ticket documentation…"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm bg-white"></textarea>
+                <div class="px-6 py-4 space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">Note</label>
+                        <textarea name="note" rows="4" required placeholder="General ticket documentation…"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm bg-white"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Photos / Video</label>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="note-media-photo-btn"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-xs font-medium text-gray-600 hover:bg-gray-100 transition">
+                                <x-heroicon-o-camera class="w-4 h-4" /> Add Photo
+                            </button>
+                            <button type="button" id="note-media-video-btn"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-xs font-medium text-gray-600 hover:bg-gray-100 transition">
+                                <x-heroicon-o-video-camera class="w-4 h-4" /> Add Video
+                            </button>
+                        </div>
+                        <input type="file" name="media[]" id="note-media-photos" class="hidden" accept="image/*" capture="environment" multiple>
+                        <input type="file" name="media[]" id="note-media-videos" class="hidden" accept="video/*" multiple>
+                        <div id="note-media-previews" class="hidden mt-2 grid grid-cols-4 gap-2"></div>
+                    </div>
                 </div>
                 <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-lg">
                     <button type="button" data-close="addNoteModal"
@@ -1807,6 +1863,64 @@ document.addEventListener('DOMContentLoaded', function () {
     [blockedModal, document.getElementById('addStepModal'), document.getElementById('addNoteModal')].forEach(modal => {
         modal?.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
     });
+
+    // Add Note modal — photo/video previews with remove-before-save
+    const noteMediaPhotos   = document.getElementById('note-media-photos');
+    const noteMediaVideos   = document.getElementById('note-media-videos');
+    const noteMediaPreviews = document.getElementById('note-media-previews');
+
+    if (noteMediaPhotos && noteMediaVideos && noteMediaPreviews) {
+        document.getElementById('note-media-photo-btn')?.addEventListener('click', () => noteMediaPhotos.click());
+        document.getElementById('note-media-video-btn')?.addEventListener('click', () => noteMediaVideos.click());
+
+        const noteMediaFiles = () => [
+            ...Array.from(noteMediaPhotos.files).map((f, i) => ({ file: f, input: noteMediaPhotos, index: i })),
+            ...Array.from(noteMediaVideos.files).map((f, i) => ({ file: f, input: noteMediaVideos, index: i })),
+        ];
+
+        const removeNoteMedia = (input, index) => {
+            const keep = new DataTransfer();
+            Array.from(input.files).forEach((file, i) => { if (i !== index) keep.items.add(file); });
+            input.files = keep.files;
+            syncNoteMedia();
+        };
+
+        function syncNoteMedia() {
+            noteMediaPreviews.replaceChildren();
+            const files = noteMediaFiles();
+            noteMediaPreviews.classList.toggle('hidden', files.length === 0);
+
+            files.forEach(function (entry) {
+                const card = document.createElement('div');
+                card.className = 'rounded-lg border border-gray-200 bg-white p-1.5';
+
+                if (entry.file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(entry.file);
+                    img.className = 'w-full h-14 object-cover rounded-md bg-gray-50';
+                    img.addEventListener('load', () => URL.revokeObjectURL(img.src));
+                    card.appendChild(img);
+                } else {
+                    const block = document.createElement('div');
+                    block.className = 'w-full h-14 rounded-md bg-gray-100 flex items-center justify-center text-[9px] font-bold uppercase tracking-wide text-gray-400';
+                    block.textContent = 'Video';
+                    card.appendChild(block);
+                }
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'w-full text-[10px] font-bold text-red-400 hover:text-red-600 mt-1';
+                remove.textContent = 'Remove';
+                remove.addEventListener('click', () => removeNoteMedia(entry.input, entry.index));
+                card.appendChild(remove);
+
+                noteMediaPreviews.appendChild(card);
+            });
+        }
+
+        noteMediaPhotos.addEventListener('change', syncNoteMedia);
+        noteMediaVideos.addEventListener('change', syncNoteMedia);
+    }
 
     // Right rail → open + scroll to the full timeline panel
     document.getElementById('wb-view-timeline')?.addEventListener('click', function () {

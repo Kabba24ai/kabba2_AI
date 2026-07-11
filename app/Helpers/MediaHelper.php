@@ -129,6 +129,40 @@ class MediaHelper
         }
     }
 
+    /**
+     * Upload a file onto the dedicated Service Module media repository
+     * (the `service_media` disk), isolated from the shared `media` table /
+     * public_asset disk used by orders, products, etc. Returns a snapshot
+     * array (no central Media row is created) or null if there's no file.
+     */
+    public static function uploadServiceMediaFile($file, \App\Enums\Service\ServiceMediaWorkflowStage $stage, $model = null): ?array
+    {
+        if (is_null($file)) {
+            return null;
+        }
+
+        $file_mime_type = \File::mimeType($file);
+        $file_extension = $file->getClientOriginalExtension();
+        $original_file_name = $file->getClientOriginalName();
+        $file_size = \File::size($file);
+
+        $original_file_name_without_extension = Str::lower(pathinfo($original_file_name, PATHINFO_FILENAME));
+        $filename = Str::random(6) . '-media-' . preg_replace('/[^a-z0-9\_\-\.]/i', '', $original_file_name_without_extension . '.' . $file_extension);
+
+        $folder = $stage->value . self::SEPARATOR . now()->format('Y/m') . ($model ? self::SEPARATOR . $model->getKey() : '');
+        $fullPath = $folder . self::SEPARATOR . $filename;
+
+        Storage::disk('service_media')->put($fullPath, file_get_contents($file));
+
+        return [
+            'file_path'         => $fullPath,
+            'original_filename' => $original_file_name,
+            'mime_type'         => $file_mime_type,
+            'file_extension'    => $file_extension,
+            'file_size'         => $file_size,
+        ];
+    }
+
     public static function copyExistingMediaOnDisk($sourceMedia, $asset_type, $folder, $model = null, $is_used = 'Yes')
     {
         // Pick correct disk

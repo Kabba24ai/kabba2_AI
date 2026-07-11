@@ -6456,23 +6456,27 @@
             optionDateOnly.addEventListener('change', syncHoursSection);
             optionDateHours.addEventListener('change', syncHoursSection);
 
-            // Initialise AirDatepicker on the manual date input inside the modal
+            // Initialise AirDatepicker on the manual date input inside the modal.
+            // Deferred to DOMContentLoaded: window.AirDatepicker is set by the
+            // Vite-bundled module script, which (per the HTML spec) only runs
+            // after the document has finished parsing — i.e. after this classic
+            // inline <script> block has already executed. Checking
+            // window.AirDatepicker synchronously here was always false, so the
+            // picker was silently never constructed (clicking the field just
+            // focused it — nothing was actually broken about its position).
             let _manualPicker = null;
-            if (window.AirDatepicker && manualDateInput) {
-                _manualPicker = new window.AirDatepicker(manualDateInput, {
-                    locale:     window.airDatepickerLocaleEn,
-                    dateFormat: '{{ config('app.date.js_date_format') }}',
-                    autoClose:  true,
-                    // No explicit container: default behavior inserts the calendar
-                    // right after the input, inside the "relative" wrapper div that
-                    // now surrounds it — a normal (non-fixed) positioned ancestor, so
-                    // the browser positions it correctly without the library having
-                    // to do position math against the modal's position:fixed overlay.
-                    onSelect({ formattedDate }) {
-                        manualDateInput.value = formattedDate || '';
-                    },
-                });
-            }
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.AirDatepicker && manualDateInput) {
+                    _manualPicker = new window.AirDatepicker(manualDateInput, {
+                        locale:     window.airDatepickerLocaleEn,
+                        dateFormat: '{{ config('app.date.js_date_format') }}',
+                        autoClose:  true,
+                        onSelect({ formattedDate }) {
+                            manualDateInput.value = formattedDate || '';
+                        },
+                    });
+                }
+            });
 
             // Calendar icon also opens the picker (in addition to clicking the input)
             if (manualDateIconBtn) {

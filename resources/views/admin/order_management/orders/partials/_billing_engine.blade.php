@@ -100,6 +100,14 @@
 
                         // Payment needs the legacy CA unique_id (null for extension charges)
                         $caUniqueId      = $charge->legacyCustomerAccount?->unique_id ?? '';
+
+                        // Coordinated deletion context (extension rows only):
+                        // the child order number for the confirmation text and
+                        // the payment state driving the disposition requirement
+                        $extChildNumber  = $isExtension ? ($charge->childOrder?->order_number ?? '') : '';
+                        $extPayState     = $isExtension
+                            ? \App\Services\ExtensionTransactionService::paymentState($charge, $charge->childOrder)
+                            : '';
                         // View Damage Details requires a linked OrderProduct (only mobile-checklist damage charges set this)
                         $hasOrderProduct = $isDamage && $charge->orderProduct !== null;
                     @endphp
@@ -181,7 +189,9 @@
                                      data-be-total="{{ $total }}"
                                      data-be-is-open="{{ $isOpen ? '1' : '0' }}"
                                      data-be-type="{{ $typeValue }}"
-                                     data-be-order-product-id="{{ $charge->orderProduct?->id ?? '' }}">
+                                     data-be-order-product-id="{{ $charge->orderProduct?->id ?? '' }}"
+                                     data-be-child-number="{{ $extChildNumber }}"
+                                     data-be-paystate="{{ $extPayState }}">
 
                                     @if($isOpen)
                                         {{-- Make a Payment (all types) --}}

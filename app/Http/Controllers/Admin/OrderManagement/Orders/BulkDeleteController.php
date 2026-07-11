@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 // Requests
 use App\Http\Requests\Admin\OrderManagement\Orders\BulkDeleteRequest;
+use App\Http\Requests\Admin\OrderManagement\Orders\DeleteExtensionTransactionRequest;
 
 // Models
 use App\Models\Orders\Order;
@@ -17,6 +18,9 @@ use App\Models\Customers\InvoiceItem;
 
 // Helpers
 use App\Helpers\CustomHelper;
+
+// Services
+use App\Services\ExtensionTransactionService;
 
 class BulkDeleteController extends Controller
 {
@@ -52,6 +56,18 @@ class BulkDeleteController extends Controller
             ], 422);
         }
 
+        // Optional administrative disposition for deleting a PAID extension
+        // child (single-delete modal sends these fields). Validated up front
+        // so a bad employee code fails before anything is deleted.
+        $extensionDisposition = null;
+        if ($request->filled('processed_by')) {
+            $extensionDisposition = ExtensionTransactionService::buildDisposition(
+                app(DeleteExtensionTransactionRequest::class)->validated()
+            );
+        }
+
+        $blockedExtensions = [];
+
         DB::beginTransaction();
 
         try {
@@ -84,6 +100,40 @@ class BulkDeleteController extends Controller
                 //     'order_unique_id' => $order->unique_id,
 
                 // ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Extension Transaction (coordinated deletion)
+                |--------------------------------------------------------------------------
+                | A verified extension child (has a linked Rental Extension
+                | BillingCharge) and that charge are one transaction: deleting
+                | the child must also remove the charge from the parent order.
+                | Paid extensions without a Kabba refund/void are never
+                | silently deleted — they need an administrative disposition.
+                */
+
+                $extensionCharge = ExtensionTransactionService::chargeForChild($order);
+
+                if ($extensionCharge) {
+
+                    if (
+                        ExtensionTransactionService::requiresDisposition($extensionCharge, $order)
+                        && !$extensionDisposition
+                    ) {
+                        $blockedExtensions[] = $order->order_number;
+                        continue;
+                    }
+
+                    ExtensionTransactionService::delete(
+                        $order,
+                        $extensionCharge,
+                        ExtensionTransactionService::ENTRY_CHILD_ORDER,
+                        auth()->user(),
+                        $extensionDisposition,
+                    );
+
+                    continue;
+                }
 
                 /*
                 |--------------------------------------------------------------------------
@@ -295,6 +345,29 @@ class BulkDeleteController extends Controller
             //     'total_deleted_orders' => $orders->count(),
 
             // ]);
+
+            // Paid extension children with no recorded refund/void are never
+            // silently deleted — they require the disposition flow.
+            if (!empty($blockedExtensions)) {
+
+                $blockedList = implode(', ', $blockedExtensions);
+
+                if (count($blockedExtensions) === $orders->count()) {
+                    return response()->json([
+                        'success'              => false,
+                        'requires_disposition' => true,
+                        'blocked_orders'       => $blockedExtensions,
+                        'message'              => "Extension {$blockedList} is paid with no recorded refund or void. Deleting it requires an administrative disposition (verified employee and reason).",
+                    ], 422);
+                }
+
+                return response()->json([
+                    'success'              => true,
+                    'requires_disposition' => true,
+                    'blocked_orders'       => $blockedExtensions,
+                    'message'              => "Order(s) deleted. Skipped paid extension(s) {$blockedList} — delete those individually with an administrative disposition.",
+                ], 200);
+            }
 
             return response()->json([
 

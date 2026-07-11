@@ -1911,10 +1911,22 @@
         {{-- Billing Engine — consolidated view of billing_charges for this order --}}
         @include('admin.order_management.orders.partials._billing_engine', ['billingCharges' => $billingCharges])
 
+        @include('admin.order_management.orders.partials._extension_delete_modal')
+
         {{-- Delete Order --}}
+        @php
+            // Extension children share one lifecycle with their Rental
+            // Extension charge — deleting this order must also remove the
+            // charge from the parent, via the coordinated confirmation flow.
+            $extDeleteCharge = \App\Services\ExtensionTransactionService::chargeForChild($order);
+        @endphp
         <div class="flex justify-end mt-6">
             <button type="button" id="delete-order-btn"
                 data-unique-id="{{ $order->unique_id }}"
+                data-ext-child="{{ $extDeleteCharge ? '1' : '' }}"
+                data-ext-parent="{{ $order->reference_order_number }}"
+                data-ext-number="{{ $order->order_number }}"
+                data-ext-paystate="{{ $extDeleteCharge ? \App\Services\ExtensionTransactionService::paymentState($extDeleteCharge, $order) : '' }}"
                 class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-sm transition">
                 <x-heroicon-o-trash class="w-4 h-4" />
                 Delete Order
@@ -3847,6 +3859,28 @@
         // ── Delete Order ──────────────────────────────────────────────────────────
         document.getElementById('delete-order-btn')?.addEventListener('click', function () {
             const uniqueId = this.dataset.uniqueId;
+
+            // Extension child: one transaction with its Rental Extension
+            // charge — use the coordinated confirmation (disposition-aware)
+            if (this.dataset.extChild) {
+                window.extDeleteFlow.open({
+                    contextHtml: 'Deleting child order <span class="font-semibold">#' + this.dataset.extNumber + '</span> '
+                        + 'will also remove its linked Rental Extension charge from parent order '
+                        + '<span class="font-semibold">#' + this.dataset.extParent + '</span>.'
+                        + '<br><span class="font-semibold text-red-700">Both records will be affected.</span>',
+                    paystate: this.dataset.extPaystate,
+                    url: '{{ route('admin.order-management.orders.bulk-delete') }}',
+                    payload: { unique_ids: [uniqueId] },
+                    onSuccess: function (data) {
+                        if (window.notyf) notyf.success(data.message || 'Extension transaction deleted.');
+                        setTimeout(function () {
+                            window.location.href = '{{ route('admin.order-management.orders.index') }}';
+                        }, 800);
+                    },
+                });
+                return;
+            }
+
             window.showConfirm(
                 'Are you sure you want to delete this order? Deleted orders cannot be recovered.',
                 'Delete Order'
@@ -7030,23 +7064,20 @@
 
         window.beOpenDelete = function(row) {
             beSetActive(row);
-            showConfirm('This will permanently delete the extension charge and the linked extension order. This cannot be undone.', 'Delete Extension Charge?').then(result => {
-                if (!result.isConfirmed) return;
-                fetch(beRouteDelete.replace('__ID__', beActiveUniqueId), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                    body: JSON.stringify({}),
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        notyf.success(data.message || 'Extension charge deleted.');
-                        setTimeout(() => window.location.reload(), 1500);
-                    } else {
-                        notyf.error(data.message || 'Something went wrong.');
-                    }
-                })
-                .catch(() => notyf.error('Request failed. Please try again.'));
+            const childNumber = row.dataset.beChildNumber;
+            window.extDeleteFlow.open({
+                contextHtml: 'Deleting this Rental Extension will also remove '
+                    + (childNumber
+                        ? 'child order <span class="font-semibold">#' + childNumber + '</span>'
+                        : 'its linked child order')
+                    + '.<br><span class="font-semibold text-red-700">Both records will be affected.</span>',
+                paystate: row.dataset.bePaystate,
+                url: beRouteDelete.replace('__ID__', beActiveUniqueId),
+                payload: {},
+                onSuccess: function (data) {
+                    notyf.success(data.message || 'Extension transaction deleted.');
+                    setTimeout(() => window.location.reload(), 1500);
+                },
             });
         };
 

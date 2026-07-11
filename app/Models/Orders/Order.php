@@ -115,6 +115,18 @@ class Order extends Model
             ->whereRaw("order_number LIKE CONCAT(reference_order_number, '-%')");
     }
 
+    /**
+     * The Rental Extension BillingCharge this order was created BY (set only
+     * on extension child orders). The charge and the child order share one
+     * lifecycle — see ExtensionTransactionService.
+     */
+    public function extensionCharge()
+    {
+        return $this->hasOne(BillingCharge::class, 'child_order_id')
+            ->where('billing_charge_type', \App\Enums\Billing\BillingChargeType::Extension->value)
+            ->latest('id');
+    }
+
     public function addresses()
     {
         return $this->hasMany(OrderAddress::class, 'order_id');

@@ -110,8 +110,18 @@
                                     <x-heroicon-o-eye class="w-4 h-4" />
                                 @endif
                             </a>
+                            @php
+                                // Extension children share one lifecycle with
+                                // their Rental Extension charge — the delete
+                                // confirmation must cover both records
+                                $extRowCharge = $order->extensionCharge;
+                            @endphp
                             <button class="delete-button text-red-600 hover:text-red-800" title="Delete"
-                                data-unique-id="{{ $order->unique_id }}">
+                                data-unique-id="{{ $order->unique_id }}"
+                                data-ext-child="{{ $extRowCharge ? '1' : '' }}"
+                                data-ext-parent="{{ $extRowCharge ? $order->reference_order_number : '' }}"
+                                data-ext-number="{{ $order->order_number }}"
+                                data-ext-paystate="{{ $extRowCharge ? \App\Services\ExtensionTransactionService::paymentState($extRowCharge, $order) : '' }}">
                                 <x-heroicon-o-trash class="w-4 h-4" />
                             </button>
                         </div>

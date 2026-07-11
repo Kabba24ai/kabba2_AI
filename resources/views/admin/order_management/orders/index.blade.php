@@ -150,6 +150,7 @@
         @include('admin.order_management.orders.partials._table', ['orders' => []])
     </div>
 
+    @include('admin.order_management.orders.partials._extension_delete_modal')
 
 @endsection
 
@@ -268,6 +269,26 @@
                 singleDeleteButtons.forEach(button => {
                     button.addEventListener('click', function() {
                         const uniqueId = this.dataset.uniqueId;
+
+                        // Extension child: one transaction with its Rental
+                        // Extension charge — coordinated, disposition-aware confirm
+                        if (this.dataset.extChild) {
+                            window.extDeleteFlow.open({
+                                contextHtml: 'Deleting child order <span class="font-semibold">#' + this.dataset.extNumber + '</span> '
+                                    + 'will also remove its linked Rental Extension charge from parent order '
+                                    + '<span class="font-semibold">#' + this.dataset.extParent + '</span>.'
+                                    + '<br><span class="font-semibold text-red-700">Both records will be affected.</span>',
+                                paystate: this.dataset.extPaystate,
+                                url: "{{ route('admin.order-management.orders.bulk-delete') }}",
+                                payload: { unique_ids: [uniqueId] },
+                                onSuccess: (data) => {
+                                    notyf.success(data.message || 'Extension transaction deleted.');
+                                    const row = document.getElementById('order-row-' + uniqueId);
+                                    if (row) row.remove();
+                                },
+                            });
+                            return;
+                        }
 
                         window.showConfirm(
                             `Delete this order? This action cannot be undone!`,

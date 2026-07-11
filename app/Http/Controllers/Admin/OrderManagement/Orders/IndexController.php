@@ -25,7 +25,7 @@ class IndexController extends Controller
         if ($request->ajax()) {
             // Fetch orders from the database, most recent first
             $query = Order::query()
-                ->with('shippingAddress','billingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.equipment', 'products.softAssignment.equipment')->withCount('notes')
+                ->with('shippingAddress','billingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.equipment', 'products.softAssignment.equipment', 'extensionCharge')->withCount('notes')
                 ->when($request->filled('customer_name'), function ($q) use ($request) {
                     $name = trim($request->customer_name);
                     $q->whereHas('billingAddress', function ($s) use ($name) {
@@ -137,9 +137,14 @@ class IndexController extends Controller
 
         $products = Product::order()->pluck('product_name', 'id');
 
+        // Extension-transaction delete confirmation needs the employee list
+        // for the paid-disposition (Processed By + Employee ID) fields
+        $employees = \App\Models\Iam\Personnel\User::active()->orderBy('first_name')->get();
+
         return view('admin.order_management.orders.index', [
             'categories' => $categories,
             'products' => $products,
+            'employees' => $employees,
         ]);
     }
 }

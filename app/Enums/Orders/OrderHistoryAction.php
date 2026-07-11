@@ -33,6 +33,7 @@ enum OrderHistoryAction: string
     case PaymentUncollectable = 'payment_uncollectable';
     case PartialPaymentReceived = 'partial_payment_received';
     case ExtensionChargeCreated = 'extension_charge_created';
+    case ExtensionChargeDeleted = 'extension_charge_deleted';
     case DriverChecklistUpdated = 'driver_checklist_updated';
 
     case TransactionVoided = 'transaction_voided';
@@ -68,6 +69,7 @@ enum OrderHistoryAction: string
             self::PaymentUncollectable => 'Payment Marked Uncollectable',
             self::PartialPaymentReceived => 'Partial Payment Received',
             self::ExtensionChargeCreated => 'Extension Charge Created',
+            self::ExtensionChargeDeleted => 'Extension Charge Deleted',
             self::DriverChecklistUpdated => 'Driver Checklist Updated',
             self::TransactionVoided => 'Transaction Voided',
         };

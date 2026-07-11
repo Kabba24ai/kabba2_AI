@@ -28,6 +28,19 @@ class StoreController extends Controller
         $order = Order::where('unique_id', $uniqueId)->with('billingAddress')->firstOrFail();
         $user  = User::findOrFail($validated['responsible_person']);
 
+        // Duplicate-click / retry guard: the modal generates a UUID per open;
+        // a second submit carrying the same key must not create a second
+        // child order (the BillingEngine idempotency key can't help — each
+        // duplicate order would mint a fresh extension id).
+        if (!empty($validated['request_uuid'])
+            && !\Illuminate\Support\Facades\Cache::add('extension-create:' . $validated['request_uuid'], 1, 300)) {
+            return response()->json([
+                'success'   => false,
+                'duplicate' => true,
+                'message'   => 'This extension was already submitted.',
+            ], 409);
+        }
+
         DB::beginTransaction();
 
         try {
@@ -120,6 +133,7 @@ class StoreController extends Controller
             DB::commit();
 
             // ── Billing Engine bridge (Phase 5B) ───────────────────────────
+            $billingCharge = null;
             try {
                 // Derive the store from the parent order's first product so billing
                 // charges can participate in store-filtered reports without a join.
@@ -129,7 +143,7 @@ class StoreController extends Controller
                     ->whereNull('deleted_at')
                     ->value('delivery_store_id');
 
-                BillingEngine::charge(new BillingChargeRequest(
+                $billingCharge = BillingEngine::charge(new BillingChargeRequest(
                     type:                BillingChargeType::Extension->value,
                     orderId:             $order->id,
                     customerId:          (int) $order->customer_id,
@@ -175,6 +189,16 @@ class StoreController extends Controller
                     'order_number' => $extension->order_number,
                     'edit_url'     => route('admin.order-management.orders.edit', $extension->unique_id),
                 ],
+                // Payment-chaining payload: lets the intake flow open the
+                // existing Make a Payment modal against this charge without
+                // hunting for the Billing Engine row. Null if the bridge
+                // failed — the client falls back to a plain reload.
+                'billing_charge' => $billingCharge ? [
+                    'unique_id'    => $billingCharge->unique_id,
+                    'total'        => (float) $grandTotal,
+                    'customer_id'  => (int) $order->customer_id,
+                    'order_number' => $extension->order_number,
+                ] : null,
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();

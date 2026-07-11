@@ -462,10 +462,20 @@ if (
         $billingCharge = BillingCharge::where('unique_id', $validated['billing_charge_unique_id'])->firstOrFail();
         $customer      = Customer::findOrFail($validated['customer_id']);
 
+        // Idempotency: never touch the gateway (or anything else) for a
+        // charge that is no longer open — a resubmit/double-click must not
+        // charge the card twice or stack payment rows.
+        if (!$billingCharge->status?->isOpen()) {
+            flash('This extension charge has already been settled.')->info();
+            return redirect()->back();
+        }
+
         DB::beginTransaction();
 
         try {
             $user = User::findOrFail($validated['responsible_person']);
+
+            $paymentResult = null;
 
             if (strtolower($validated['payment_type']) === 'creditcard') {
                 $amount = $validated['amount'];
@@ -474,43 +484,50 @@ if (
                     $cardDetail = $customer->cards()->where('unique_id', $validated['existing_card_id'])->first();
                     if (!$cardDetail) {
                         DB::rollBack();
-                        return back()->withInput()->with('error', 'Saved card not found.');
+                        return $this->extensionPaymentFailure($validated, 'Saved card not found.');
                     }
 
                     $customerProfileId = $customer->authorize_profile_id;
                     if (!$customerProfileId) {
                         DB::rollBack();
-                        return back()->withInput()->with('error', 'Customer profile not found for saved card.');
+                        return $this->extensionPaymentFailure($validated, 'Customer profile not found for saved card.');
                     }
 
-                    $paymentResult = (new AuthorizeNetService())->chargeCustomerProfile(
+                    $paymentResult = app(AuthorizeNetService::class)->chargeCustomerProfile(
                         $customerProfileId, $cardDetail->payment_profile_id, $amount, ['customer' => $customer->toArray()]
                     );
 
                     if (($paymentResult['status'] ?? null) !== 'success') {
                         DB::rollBack();
-                        return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                        return $this->extensionPaymentFailure($validated, $paymentResult['message'] ?? 'Payment failed.');
                     }
+
+                    // Fill gaps from the stored card so the payment record is complete
+                    $paymentResult['customer_profile_id'] = $paymentResult['customer_profile_id'] ?? $customerProfileId;
+                    $paymentResult['payment_profile_id']  = $paymentResult['payment_profile_id'] ?? $cardDetail->payment_profile_id;
+                    $paymentResult['card_number']         = $paymentResult['card_number'] ?? $cardDetail->card_number;
+                    $paymentResult['card_first_name']     = $cardDetail->first_name;
+                    $paymentResult['card_last_name']      = $cardDetail->last_name;
                 } else {
                     $opaqueDataValue      = $validated['opaqueDataValue'] ?? null;
                     $opaqueDataDescriptor = $validated['opaqueDataDescriptor'] ?? null;
 
                     if (!$opaqueDataValue || !$opaqueDataDescriptor) {
                         DB::rollBack();
-                        return back()->withInput()->with('error', 'Payment data missing or invalid.');
+                        return $this->extensionPaymentFailure($validated, 'Payment data missing or invalid.');
                     }
 
-                    $svc = new AuthorizeNetService();
+                    $svc = app(AuthorizeNetService::class);
                     if (!$svc->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
                         DB::rollBack();
-                        return back()->withInput()->with('error', 'Payment token invalid.');
+                        return $this->extensionPaymentFailure($validated, 'Payment token invalid.');
                     }
 
                     $paymentResult = $svc->createOpaqueDataTransaction($opaqueDataValue, $amount, ['customer' => $customer->toArray()]);
 
                     if (($paymentResult['status'] ?? null) !== 'success') {
                         DB::rollBack();
-                        return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                        return $this->extensionPaymentFailure($validated, $paymentResult['message'] ?? 'Payment failed.');
                     }
 
                     if (empty($customer->authorize_profile_id) && !empty($paymentResult['customer_profile_id'])) {
@@ -529,6 +546,9 @@ if (
                             ]
                         );
                     }
+
+                    $paymentResult['card_first_name'] = $validated['firstName'] ?? null;
+                    $paymentResult['card_last_name']  = $validated['lastName'] ?? null;
                 }
             }
 
@@ -536,11 +556,54 @@ if (
                 BillingEngine::markPaid($billingCharge);
             }
 
-            // Mark the linked child extension Order's pending payment as paid
+            // Record the payment actually taken on the child extension order.
+            // The COD placeholder created at intake is a deferred-payment
+            // marker only — it must never survive as the method of a settled
+            // payment ("Paid in Full – Pay on Delivery" is a contradiction).
             if ($billingCharge->childOrder) {
-                $billingCharge->childOrder->payments()
-                    ->where('status', 'Pending')
-                    ->update(['status' => 'Paid']);
+                $method = match ($validated['payment_type']) {
+                    'CreditCard'   => \App\Enums\Orders\OrderPaymentMethod::Card,
+                    'Cash'         => \App\Enums\Orders\OrderPaymentMethod::Cash,
+                    'Cheque'       => \App\Enums\Orders\OrderPaymentMethod::Cheque,
+                    'BankTransfer' => \App\Enums\Orders\OrderPaymentMethod::Online,
+                    default        => \App\Enums\Orders\OrderPaymentMethod::Other,
+                };
+
+                $paymentData = [
+                    'payment_method'    => $method->value,
+                    'status'            => \App\Enums\Orders\OrderPaymentStatus::Paid->value,
+                    'payment_datetime'  => now(),
+                    'amount'            => $validated['amount'],
+                    'cheque_number'     => $validated['cheque_number'] ?? null,
+                    'payment_note'      => $validated['notes'] ?? null,
+                    'processed_by_id'   => $user->id,
+                    'processed_by_name' => trim($user->first_name . ' ' . $user->last_name),
+                    'updated_by_id'     => $user->id,
+                    'updated_by_type'   => User::class,
+                    // Gateway metadata — identical to the normal payment
+                    // workflow, so refunds can locate the real transaction
+                    'transaction_id'      => $paymentResult['transaction_id'] ?? null,
+                    'auth_code'           => $paymentResult['auth_code'] ?? null,
+                    'customer_profile_id' => $paymentResult['customer_profile_id'] ?? null,
+                    'payment_profile_id'  => $paymentResult['payment_profile_id'] ?? null,
+                    'card_number'         => $paymentResult['card_number'] ?? null,
+                    'card_first_name'     => $paymentResult['card_first_name'] ?? null,
+                    'card_last_name'      => $paymentResult['card_last_name'] ?? null,
+                ];
+
+                $placeholder = $billingCharge->childOrder->payments()
+                    ->where('status', \App\Enums\Orders\OrderPaymentStatus::Pending->value)
+                    ->latest('id')
+                    ->first();
+
+                if ($placeholder) {
+                    $placeholder->update($paymentData);
+                } else {
+                    $billingCharge->childOrder->payments()->create($paymentData + [
+                        'created_by_id'   => $user->id,
+                        'created_by_type' => User::class,
+                    ]);
+                }
             }
 
             flash('Payment recorded successfully.')->success();
@@ -553,10 +616,24 @@ if (
             report($e);
 
             flash('Something went wrong while recording the payment.')->error();
-            return redirect()->back()->withInput()->withErrors([
-                'error' => 'An error occurred while recording the payment.',
-            ]);
+            return redirect()->back()->withInput()
+                ->with('be_reopen_charge', $validated['billing_charge_unique_id'] ?? null)
+                ->withErrors(['error' => 'An error occurred while recording the payment.']);
         }
+    }
+
+    /**
+     * A failed extension payment must keep the employee in the Make a
+     * Payment step: redirect back with the reason and a flag the order
+     * screen uses to reopen the modal on that charge. Nothing is marked
+     * paid and no deferred value is silently applied — the extension
+     * simply remains outstanding for retry, another method, or Pay Later.
+     */
+    private function extensionPaymentFailure(array $validated, string $message)
+    {
+        return back()->withInput()
+            ->with('error', $message)
+            ->with('be_reopen_charge', $validated['billing_charge_unique_id'] ?? null);
     }
 
 }

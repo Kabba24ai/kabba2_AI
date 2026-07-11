@@ -1976,15 +1976,25 @@
                         placeholder="Any additional notes..." maxlength="1000"></textarea>
                 </div>
             </div>
-            <div class="flex justify-end gap-3 p-4 border-t bg-gray-50 rounded-b-lg">
+            <div class="flex flex-wrap justify-end gap-3 p-4 border-t bg-gray-50 rounded-b-lg">
                 <button type="button" id="closeExtensionModalBtn"
                     class="px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm hover:bg-gray-100">
                     Cancel
                 </button>
+                {{-- Deferred path: creates the extension with the charge left
+                     outstanding (Pay on Delivery placeholder) — payable later
+                     from the Billing Engine row exactly as today --}}
                 <button type="button" id="extSubmitBtn"
-                    class="px-6 py-2 rounded-md bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:opacity-60">
-                    <span id="extBtnText">Create Extension</span>
+                    class="px-5 py-2 rounded-md border border-orange-300 bg-white text-orange-600 text-sm font-semibold hover:bg-orange-50 disabled:opacity-60">
+                    <span id="extBtnText">Create Extension — Pay Later</span>
                     <span id="extBtnSpinner" class="hidden">Creating…</span>
+                </button>
+                {{-- Immediate path: creates the extension, then advances
+                     straight into the existing Make a Payment modal --}}
+                <button type="button" id="extPayNowBtn"
+                    class="px-6 py-2 rounded-md bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:opacity-60">
+                    <span id="extPayNowText">Continue to Payment</span>
+                    <span id="extPayNowSpinner" class="hidden">Creating…</span>
                 </button>
             </div>
         </div>
@@ -3500,6 +3510,13 @@
             <input type="hidden" name="opaqueDataValue" id="beOpaqueDataValue">
             <input type="hidden" name="opaqueDataDescriptor" id="beOpaqueDataDescriptor">
             <div class="px-6 py-4 space-y-4">
+                {{-- Extension-flow context (step 2 of Add Extension Charge) --}}
+                <div id="bePayContext" class="hidden rounded-lg border border-orange-200 bg-orange-50 px-3 py-2">
+                    <p class="text-xs font-semibold text-orange-700 uppercase tracking-wide">Extension Created</p>
+                    <p id="bePayContextText" class="text-sm text-orange-800 mt-0.5"></p>
+                </div>
+                {{-- Failure reason when a payment attempt was declined --}}
+                <div id="bePayError" class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></div>
                 {{-- Amount --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
@@ -3559,7 +3576,7 @@
                 {{-- Responsible Person --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Responsible Person</label>
-                    <select name="responsible_person"
+                    <select name="responsible_person" id="bePayPerson"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" required>
                         <option value="">Select person...</option>
                         @foreach($employees as $emp)
@@ -3576,7 +3593,7 @@
                 </div>
             </div>
             <div class="px-6 py-4 border-t flex justify-end gap-3">
-                <button type="button" onclick="beCloseModal('beFuelPaymentModal')"
+                <button type="button" id="bePayCancelBtn" onclick="beCloseModal('beFuelPaymentModal')"
                         class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
                     Cancel
                 </button>
@@ -6671,9 +6688,19 @@
         let beActiveTotal = 0;
         let beActiveType = 'fuel';
 
+        // Extension-flow state: when the payment modal is step 2 of Add
+        // Extension Charge, closing it must refresh the page so the newly
+        // created (still unpaid) extension row appears in the Billing Engine.
+        let beExtensionFlow = false;
+        let bePayBtnLabel   = 'Record Payment';
+
         window.beCloseModal = function(id) {
             const el = document.getElementById(id);
             if (el) { el.classList.remove('flex'); el.classList.add('hidden'); }
+            if (id === 'beFuelPaymentModal' && beExtensionFlow) {
+                beExtensionFlow = false;
+                window.location.reload();
+            }
         };
 
         function beOpenModal(id) {
@@ -6694,6 +6721,13 @@
         const beCustomerCards = @json($order->customer?->cards?->map(fn($c) => ['id' => $c->unique_id, 'label' => $c->card_number])->values() ?? []);
 
         function resetBePaymentState() {
+            beExtensionFlow = false;
+            bePayBtnLabel   = 'Record Payment';
+            document.getElementById('bePayContext').classList.add('hidden');
+            const errBox = document.getElementById('bePayError');
+            errBox.classList.add('hidden');
+            errBox.textContent = '';
+            document.getElementById('bePayCancelBtn').textContent = 'Cancel';
             const paymentType   = document.getElementById('bePaymentType');
             const chequeField   = document.getElementById('bePayChequeField');
             const cardOptions   = document.getElementById('bePayCardOptions');
@@ -6719,7 +6753,7 @@
             const bt = document.getElementById('bePayBtnText');
             const sp = document.getElementById('bePayBtnSpinner');
             if (sb) sb.disabled = false;
-            if (bt) bt.textContent = 'Record Payment';
+            if (bt) bt.textContent = bePayBtnLabel;
             if (sp) sp.classList.add('hidden');
         }
 
@@ -6805,7 +6839,7 @@
                         const msg = response.messages.message?.[0]?.text || 'Tokenization failed.';
                         notyf.error(msg);
                         submitBtn.disabled = false;
-                        btnText.textContent = 'Record Payment';
+                        btnText.textContent = bePayBtnLabel;
                         btnSpinner.classList.add('hidden');
                         return;
                     }
@@ -6817,7 +6851,7 @@
             } catch (err) {
                 notyf.error('Something went wrong during payment processing.');
                 submitBtn.disabled = false;
-                btnText.textContent = 'Record Payment';
+                btnText.textContent = bePayBtnLabel;
                 btnSpinner.classList.add('hidden');
             }
         });
@@ -6845,6 +6879,61 @@
             }
             beOpenModal('beFuelPaymentModal');
         };
+
+        // Step 2 of Add Extension Charge: open the SAME payment modal against
+        // the just-created charge — no hunting for the Billing Engine row.
+        // Same form, same controller, same gateway path as the row action.
+        window.beOpenExtensionPayment = function(charge, personId) {
+            resetBePaymentState();
+            beExtensionFlow = true;
+            bePayBtnLabel   = 'Create Extension & Record Payment';
+
+            document.getElementById('bePayChargeUniqueId').value = charge.unique_id;
+            document.getElementById('bePayCaUniqueId').value     = '';
+            document.getElementById('bePayCustomerId').value     = charge.customer_id;
+            document.getElementById('bePayAmount').value         = Number(charge.total).toFixed(2);
+            document.getElementById('bePayType').value           = 'extension';
+            document.getElementById('bePayBtnText').textContent  = bePayBtnLabel;
+            document.getElementById('bePayCancelBtn').textContent = 'Save as Pay Later';
+
+            // Carry the extension's responsible person into the payment step
+            if (personId) document.getElementById('bePayPerson').value = personId;
+
+            const context = document.getElementById('bePayContext');
+            document.getElementById('bePayContextText').textContent =
+                'Extension ' + charge.order_number + ' — $' + Number(charge.total).toFixed(2)
+                + '. Record the payment now, or save as Pay Later.';
+            context.classList.remove('hidden');
+
+            // Same saved-card prepopulation as the row action
+            const cardSelect = document.getElementById('bePayExistingCard');
+            const cardOption = document.getElementById('bePayCardOption');
+            cardSelect.innerHTML = '<option value="">-- Select a saved card --</option>';
+            if (Array.isArray(beCustomerCards) && beCustomerCards.length > 0) {
+                beCustomerCards.forEach(card => {
+                    cardSelect.insertAdjacentHTML('beforeend', `<option value="${card.id}">${card.label}</option>`);
+                });
+                cardOption.value = 'CardOnFile';
+            } else {
+                cardOption.value = 'NewCard';
+            }
+            beOpenModal('beFuelPaymentModal');
+        };
+
+        @if (session('be_reopen_charge'))
+        // A payment attempt failed on this charge — put the employee straight
+        // back into the Make a Payment step with the failure reason visible.
+        (function () {
+            const row = document.querySelector('[data-be-unique-id="{{ session('be_reopen_charge') }}"]');
+            if (!row) return;
+            window.beOpenPayment(row);
+            @if (session('error'))
+                const errBox = document.getElementById('bePayError');
+                errBox.textContent = @json(session('error'));
+                errBox.classList.remove('hidden');
+            @endif
+        })();
+        @endif
 
         window.beOpenResolve = function(row) {
             beSetActive(row);
@@ -7120,7 +7209,13 @@
             document.getElementById('extSummaryTotal').textContent = fmtExtCurrency(base + tax);
         }
 
+        // Duplicate-click guard: one key per modal open — the server refuses
+        // a second create carrying the same key.
+        let extRequestUuid = '';
+
         function openExtensionModal() {
+            extRequestUuid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+                : 'ext-' + Date.now() + '-' + Math.random().toString(36).slice(2);
             extModal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
         }
@@ -7149,7 +7244,10 @@
         document.getElementById('closeExtensionModalX').addEventListener('click', closeExtensionModal);
         document.getElementById('closeExtensionModalBtn').addEventListener('click', closeExtensionModal);
 
-        document.getElementById('extSubmitBtn').addEventListener('click', function () {
+        // Shared creation path. payNow=false → create + reload (Pay Later,
+        // the original behavior). payNow=true → create, then advance straight
+        // into the existing Make a Payment modal against the new charge.
+        function submitExtension(payNow, btn, btnText, spinner) {
             const description = getExtDescription();
             const baseAmount  = parseFloat(document.getElementById('extBaseAmount').value);
             const person      = document.getElementById('extPerson').value;
@@ -7165,10 +7263,11 @@
             if (!person) valid = false;
             if (!valid) return;
 
-            const btn     = this;
-            const btnText = document.getElementById('extBtnText');
-            const spinner = document.getElementById('extBtnSpinner');
-            btn.disabled = true;
+            // Both buttons lock while a create is in flight
+            const payLaterBtn = document.getElementById('extSubmitBtn');
+            const payNowBtn   = document.getElementById('extPayNowBtn');
+            payLaterBtn.disabled = true;
+            payNowBtn.disabled   = true;
             btnText.classList.add('hidden');
             spinner.classList.remove('hidden');
 
@@ -7184,13 +7283,23 @@
                     add_tax:            addTax ? 1 : 0,
                     responsible_person: person,
                     notes:              notes || null,
+                    request_uuid:       extRequestUuid,
                 }),
             })
-            .then(res => res.json())
-            .then(data => {
+            .then(res => res.json().then(data => ({ status: res.status, data })))
+            .then(({ status, data }) => {
                 if (data.success) {
                     notyf.success(data.message);
                     closeExtensionModal();
+                    if (payNow && data.billing_charge && window.beOpenExtensionPayment) {
+                        // Step 2: the existing payment modal, prefilled
+                        window.beOpenExtensionPayment(data.billing_charge, person);
+                    } else {
+                        window.location.reload();
+                    }
+                } else if (status === 409 && data.duplicate) {
+                    // Already created by an earlier click — just show it
+                    notyf.success('Extension already created.');
                     window.location.reload();
                 } else {
                     notyf.error(data.message || 'Failed to create extension charge.');
@@ -7201,10 +7310,19 @@
                 notyf.error('An error occurred. Please try again.');
             })
             .finally(() => {
-                btn.disabled = false;
+                payLaterBtn.disabled = false;
+                payNowBtn.disabled   = false;
                 btnText.classList.remove('hidden');
                 spinner.classList.add('hidden');
             });
+        }
+
+        document.getElementById('extSubmitBtn').addEventListener('click', function () {
+            submitExtension(false, this, document.getElementById('extBtnText'), document.getElementById('extBtnSpinner'));
+        });
+
+        document.getElementById('extPayNowBtn').addEventListener('click', function () {
+            submitExtension(true, this, document.getElementById('extPayNowText'), document.getElementById('extPayNowSpinner'));
         });
 
         updateExtSummary();

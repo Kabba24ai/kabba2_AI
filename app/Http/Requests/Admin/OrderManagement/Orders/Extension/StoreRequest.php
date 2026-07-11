@@ -19,6 +19,8 @@ class StoreRequest extends FormRequest
             'add_tax'            => ['required', 'boolean'],
             'responsible_person' => ['required', 'exists:users,id'],
             'notes'              => ['nullable', 'string', 'max:1000'],
+            // Duplicate-click guard key generated per modal open
+            'request_uuid'       => ['nullable', 'string', 'max:64'],
         ];
     }
 }

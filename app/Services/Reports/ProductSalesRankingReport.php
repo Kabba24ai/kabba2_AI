@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ProductSalesRankingReport
 {
-    public function __construct(private SalesReportingService $reporting) {}
+    public function __construct(
+        private SalesReportingService $reporting,
+        private BillingRevenueAttributionService $billingAttribution,
+    ) {}
 
     public function rankingData(array $filters): array
     {
@@ -31,6 +34,26 @@ class ProductSalesRankingReport
             ->groupBy('order_products.product_id', 'products.product_name', 'products.product_type')
             ->orderByDesc($orderBy)
             ->get();
+
+        // Attributed Billing Engine revenue (extensions) counts toward the
+        // parent rental's product — revenue only, qty_sold untouched
+        foreach ($this->billingAttribution->groupedRevenue('product', $filters) as $billing) {
+            $existing = $rows->first(fn ($r) => $r->product_id == $billing->product_id);
+
+            if ($existing) {
+                $existing->revenue = (float) $existing->revenue + (float) $billing->revenue;
+            } else {
+                $rows->push((object) [
+                    'product_id'   => $billing->product_id,
+                    'product_name' => $billing->product_name,
+                    'product_type' => $billing->product_type,
+                    'qty_sold'     => 0,
+                    'revenue'      => (float) $billing->revenue,
+                ]);
+            }
+        }
+
+        $rows = $rows->sortByDesc(fn ($r) => (float) ($orderBy === 'qty_sold' ? $r->qty_sold : $r->revenue))->values();
 
         $totalRevenue = (float) $rows->sum('revenue');
         $totalQty     = (int)   $rows->sum('qty_sold');

@@ -14,10 +14,19 @@ use Illuminate\Support\Facades\DB;
  *
  * This engine contains ZERO accounting formulas. It measures product demand,
  * not realized cash revenue. It will NOT reconcile to Pure Sales Summary.
+ *
+ * Billing Engine attribution (Phase 2B): paid extension revenue is added to
+ * the parent rental's product/category/store buckets through
+ * BillingRevenueAttributionService — revenue only, never qty or txn counts,
+ * so an extension raises the rental's reported revenue without becoming a
+ * second rental.
  */
 class ProductSalesPerformanceEngine
 {
-    public function __construct(private SalesReportingService $reporting) {}
+    public function __construct(
+        private SalesReportingService $reporting,
+        private BillingRevenueAttributionService $billingAttribution,
+    ) {}
 
     // ─── Public orchestrator ──────────────────────────────────────────────────
 
@@ -63,6 +72,13 @@ class ProductSalesPerformanceEngine
             ->groupBy('pc.id', 'pc.title')
             ->orderByDesc($orderCol)
             ->get();
+
+        $rows = $this->withBillingRevenue($rows, 'category', $filters, ['category_id'], fn ($b) => (object) [
+            'category_id'   => $b->category_id,
+            'category_name' => $b->category_name,
+            'qty'           => 0,
+            'revenue'       => 0,
+        ], $orderCol);
 
         $totalRevenue = (float) $rows->sum('revenue');
         $totalQty     = (int)   $rows->sum('qty');
@@ -114,6 +130,16 @@ class ProductSalesPerformanceEngine
             ->groupBy('order_products.product_id', 'products.product_name', 'products.product_type', 'pc.id', 'pc.title')
             ->orderByDesc($orderCol)
             ->get();
+
+        $rows = $this->withBillingRevenue($rows, 'product', $filters, ['product_id'], fn ($b) => (object) [
+            'product_id'    => $b->product_id,
+            'product_name'  => $b->product_name,
+            'product_type'  => $b->product_type,
+            'category_id'   => $b->category_id,
+            'category_name' => $b->category_name,
+            'qty'           => 0,
+            'revenue'       => 0,
+        ], $orderCol);
 
         $totalRevenue = (float) $rows->sum('revenue');
         $totalQty     = (int)   $rows->sum('qty');
@@ -173,6 +199,15 @@ class ProductSalesPerformanceEngine
             ->orderByDesc('revenue')
             ->get();
 
+        $rows = $this->withBillingRevenue($rows, 'category_store', $baseFilters, ['category_id', 'store_id'], fn ($b) => (object) [
+            'category_id'   => $b->category_id,
+            'category_name' => $b->category_name,
+            'store_id'      => $b->store_id,
+            'store_name'    => $b->store_name ?? 'Other',
+            'qty'           => 0,
+            'revenue'       => 0,
+        ], 'revenue');
+
         $limit  = $filters['limit']   ?? '10';
         $sortBy = $filters['sort_by'] ?? 'revenue';
         return $this->pivotByStore($rows, 'category_id', 'category_name', $storeIds, $storeNames, $limit, $sortBy);
@@ -202,6 +237,17 @@ class ProductSalesPerformanceEngine
             ->orderByDesc('revenue')
             ->get();
 
+        $rows = $this->withBillingRevenue($rows, 'product_store', $baseFilters, ['item_id', 'store_id'], fn ($b) => (object) [
+            'item_id'       => $b->product_id,
+            'item_name'     => $b->product_name,
+            'category_id'   => $b->category_id,
+            'category_name' => $b->category_name,
+            'store_id'      => $b->store_id,
+            'store_name'    => $b->store_name ?? 'Other',
+            'qty'           => 0,
+            'revenue'       => 0,
+        ], 'revenue', ['item_id' => 'product_id']);
+
         $limit  = $filters['limit']   ?? '10';
         $sortBy = $filters['sort_by'] ?? 'revenue';
         return $this->pivotByStore($rows, 'item_id', 'item_name', $storeIds, $storeNames, $limit, $sortBy);
@@ -222,6 +268,13 @@ class ProductSalesPerformanceEngine
             ->groupBy('order_products.delivery_store_id', 'stores.store_name')
             ->orderByDesc('revenue')
             ->get();
+
+        $rows = $this->withBillingRevenue($rows, 'store', $baseFilters, ['store_id'], fn ($b) => (object) [
+            'store_id'   => $b->store_id,
+            'store_name' => $b->store_name ?? 'Other',
+            'qty'        => 0,
+            'revenue'    => 0,
+        ], 'revenue');
 
         $totalRevenue = (float) $rows->sum('revenue');
         $totalQty     = (int)   $rows->sum('qty');
@@ -272,7 +325,12 @@ class ProductSalesPerformanceEngine
             ->selectRaw("SUM({$expr}) AS r")
             ->value('r') ?? 0);
 
-        $totalRevenue = (float) ($total->total_revenue ?? 0);
+        // Attributed billing revenue (extensions) is settled cash: it raises
+        // total and paid revenue equally, never qty or transaction counts
+        $billingRevenue = $this->billingAttribution->totalRevenue($filters);
+        $paidRevenue   += $billingRevenue;
+
+        $totalRevenue = (float) ($total->total_revenue ?? 0) + $billingRevenue;
         $acctRevenue  = round($totalRevenue - $paidRevenue, 2);
         $txnCount     = (int)   ($total->txn_count  ?? 0);
         $totalQty     = (int)   ($total->total_qty   ?? 0);
@@ -317,6 +375,54 @@ class ProductSalesPerformanceEngine
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Merge attributed Billing Engine revenue (extensions) into grouped demand
+     * rows: matching buckets gain revenue only (qty/txn untouched); buckets
+     * with billing revenue but no demand rows in the period are appended so
+     * the revenue still surfaces under the parent rental's identity.
+     *
+     * $billingKeyMap maps a row match-key to the billing row's field name when
+     * the aliases differ (e.g. item_id → product_id in the by-store pivots).
+     */
+    private function withBillingRevenue(
+        \Illuminate\Support\Collection $rows,
+        string $groupBy,
+        array $filters,
+        array $matchKeys,
+        \Closure $newRow,
+        string $sortCol,
+        array $billingKeyMap = [],
+    ): \Illuminate\Support\Collection {
+        $billing = $this->billingAttribution->groupedRevenue($groupBy, $filters);
+
+        if ($billing->isEmpty()) {
+            return $rows;
+        }
+
+        $rows = $rows->values();
+
+        foreach ($billing as $b) {
+            $existing = $rows->first(function ($r) use ($b, $matchKeys, $billingKeyMap) {
+                foreach ($matchKeys as $key) {
+                    $billingKey = $billingKeyMap[$key] ?? $key;
+                    if (($r->$key ?? null) != ($b->$billingKey ?? null)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            if ($existing) {
+                $existing->revenue = (float) $existing->revenue + (float) $b->revenue;
+            } else {
+                $rows->push($newRow($b));
+                $rows->last()->revenue = (float) $b->revenue;
+            }
+        }
+
+        return $rows->sortByDesc(fn ($r) => (float) ($r->{$sortCol} ?? 0))->values();
+    }
 
     /**
      * Base demand query: paid + account orders, fully-refunded orders excluded,

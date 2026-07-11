@@ -13,7 +13,10 @@ use Illuminate\Support\Collection;
  */
 class SalesByStoresReport
 {
-    public function __construct(private SalesReportingService $reporting) {}
+    public function __construct(
+        private SalesReportingService $reporting,
+        private BillingRevenueAttributionService $billingAttribution,
+    ) {}
 
     /**
      * Return per-store metrics for the current period, each paired with the
@@ -97,7 +100,7 @@ class SalesByStoresReport
 
     private function queryByStore(array $filters): Collection
     {
-        return $this->reporting->baseQuery($filters)
+        $rows = $this->reporting->baseQuery($filters)
             ->selectRaw("
                 COALESCE(stores.store_name, 'Unassigned')  AS store_name,
                 SUM(order_products.sub_total)               AS revenue,
@@ -106,5 +109,24 @@ class SalesByStoresReport
             ->groupBy('order_products.delivery_store_id', 'stores.store_name')
             ->orderByDesc('revenue')
             ->get();
+
+        // Attributed Billing Engine revenue (extensions) lands in the parent
+        // rental's store bucket — revenue only, transaction counts untouched
+        foreach ($this->billingAttribution->groupedRevenue('store', $filters) as $billing) {
+            $name     = $billing->store_name ?? 'Unassigned';
+            $existing = $rows->first(fn ($r) => $r->store_name === $name);
+
+            if ($existing) {
+                $existing->revenue = (float) $existing->revenue + (float) $billing->revenue;
+            } else {
+                $rows->push((object) [
+                    'store_name'   => $name,
+                    'revenue'      => (float) $billing->revenue,
+                    'transactions' => 0,
+                ]);
+            }
+        }
+
+        return $rows->sortByDesc(fn ($r) => (float) $r->revenue)->values();
     }
 }

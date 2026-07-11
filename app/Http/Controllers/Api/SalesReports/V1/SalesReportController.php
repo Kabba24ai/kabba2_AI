@@ -199,6 +199,50 @@ class SalesReportController extends Controller
             });
         }
 
+        // Attributed Billing Engine revenue (extensions) counts toward the
+        // parent rental's product — sales only, order_count untouched
+        $billingRows     = $this->billingAttributionRows('product', $startDate, $endDate, $filters);
+        $prevBillingRows = collect();
+        if ($includePrevious) {
+            [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
+            $prevBillingRows = $this->billingAttributionRows('product', $prevStart, $prevEnd, $filters)
+                ->keyBy('product_id');
+        }
+
+        $billingTotal = 0.0;
+        foreach ($billingRows as $billing) {
+            $billingTotal += (float) $billing->revenue;
+            $existing = $topProducts->firstWhere('id', $billing->product_id);
+
+            if ($existing) {
+                $existing->total_sales = (float) $existing->total_sales + (float) $billing->revenue;
+            } else {
+                $row = (object) [
+                    'id'          => $billing->product_id,
+                    'name'        => $billing->product_name,
+                    'total_sales' => (float) $billing->revenue,
+                    'order_count' => 0,
+                ];
+                if ($includePrevious) {
+                    $row->previous_total_sales = (float) ($prevBillingRows[$billing->product_id]->revenue ?? 0);
+                }
+                $topProducts->push($row);
+            }
+        }
+
+        if ($includePrevious && $prevBillingRows->isNotEmpty()) {
+            // Demand-sourced rows (order_count > 0) gain their previous-period
+            // billing portion; appended billing-only rows were set above
+            $topProducts = $topProducts->map(function ($product) use ($prevBillingRows) {
+                if (isset($product->previous_total_sales, $prevBillingRows[$product->id]) && $product->order_count > 0) {
+                    $product->previous_total_sales += (float) $prevBillingRows[$product->id]->revenue;
+                }
+                return $product;
+            });
+        }
+
+        $topProducts = $topProducts->sortByDesc('total_sales')->take((int) $limit)->values();
+
         // Calculate total sales for the same filters
         $totalSalesQuery = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -208,20 +252,20 @@ class SalesReportController extends Controller
                 $startDate->format('Y-m-d'),
                 $endDate->format('Y-m-d')
             ]);
-        
+
         $this->applyFiltersToQuery($totalSalesQuery, $filters);
-        
+
         $totalSales = $totalSalesQuery->select(
-            DB::raw('SUM(CASE 
-                WHEN order_payments.refund_amount > 0 
-                THEN -(order_products.total - order_products.tax) 
-                ELSE (order_products.total - order_products.tax) 
+            DB::raw('SUM(CASE
+                WHEN order_payments.refund_amount > 0
+                THEN -(order_products.total - order_products.tax)
+                ELSE (order_products.total - order_products.tax)
             END) as total')
         )->value('total');
 
         return response()->json([
             'products' => $topProducts,
-            'total_sales' => (float)($totalSales ?? 0)
+            'total_sales' => (float)($totalSales ?? 0) + $billingTotal
         ]);
     }
 
@@ -304,6 +348,48 @@ class SalesReportController extends Controller
             });
         }
 
+        // Attributed Billing Engine revenue (extensions) counts toward the
+        // parent rental's primary category — sales only, order_count untouched
+        $billingRows     = $this->billingAttributionRows('category', $startDate, $endDate, $filtersWithoutCategory);
+        $prevBillingRows = collect();
+        if ($includePrevious) {
+            [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
+            $prevBillingRows = $this->billingAttributionRows('category', $prevStart, $prevEnd, $filtersWithoutCategory)
+                ->keyBy('category_id');
+        }
+
+        $billingTotal = 0.0;
+        foreach ($billingRows as $billing) {
+            $billingTotal += (float) $billing->revenue;
+            $existing = $topCategories->firstWhere('id', $billing->category_id);
+
+            if ($existing) {
+                $existing->total_sales = (float) $existing->total_sales + (float) $billing->revenue;
+            } else {
+                $row = (object) [
+                    'id'          => $billing->category_id,
+                    'name'        => $billing->category_name,
+                    'total_sales' => (float) $billing->revenue,
+                    'order_count' => 0,
+                ];
+                if ($includePrevious) {
+                    $row->previous_total_sales = (float) ($prevBillingRows[$billing->category_id]->revenue ?? 0);
+                }
+                $topCategories->push($row);
+            }
+        }
+
+        if ($includePrevious && $prevBillingRows->isNotEmpty()) {
+            $topCategories = $topCategories->map(function ($category) use ($prevBillingRows) {
+                if (isset($category->previous_total_sales, $prevBillingRows[$category->id]) && $category->order_count > 0) {
+                    $category->previous_total_sales += (float) $prevBillingRows[$category->id]->revenue;
+                }
+                return $category;
+            });
+        }
+
+        $topCategories = $topCategories->sortByDesc('total_sales')->take((int) $limit)->values();
+
         // Calculate total sales for the same filters
         $totalSalesQuery = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
@@ -313,20 +399,20 @@ class SalesReportController extends Controller
                 $startDate->format('Y-m-d'),
                 $endDate->format('Y-m-d')
             ]);
-        
+
         $this->applyFiltersToQuery($totalSalesQuery, $filtersWithoutCategory);
-        
+
         $totalSales = $totalSalesQuery->select(
-            DB::raw('SUM(CASE 
-                WHEN order_payments.refund_amount > 0 
-                THEN -(order_products.total - order_products.tax) 
-                ELSE (order_products.total - order_products.tax) 
+            DB::raw('SUM(CASE
+                WHEN order_payments.refund_amount > 0
+                THEN -(order_products.total - order_products.tax)
+                ELSE (order_products.total - order_products.tax)
             END) as total')
         )->value('total');
 
         return response()->json([
             'categories' => $topCategories,
-            'total_sales' => (float)($totalSales ?? 0)
+            'total_sales' => (float)($totalSales ?? 0) + $billingTotal
         ]);
     }
 
@@ -1287,6 +1373,26 @@ class SalesReportController extends Controller
             default:
                 return [Carbon::now()->subDays(60), Carbon::now()->subDays(31)];
         }
+    }
+
+    /**
+     * Attributed Billing Engine revenue (extensions) for this stack's filters.
+     * Maps the React filter keys onto the shared attribution service so
+     * extension revenue appears under the parent rental's product/category.
+     */
+    private function billingAttributionRows(string $groupBy, $startDate, $endDate, array $filters): \Illuminate\Support\Collection
+    {
+        $normalize = fn ($v) => ($v === 'all' || $v === null || $v === '') ? null : $v;
+
+        return app(\App\Services\Reports\BillingRevenueAttributionService::class)->groupedRevenue($groupBy, [
+            'date_range' => 'custom',
+            'start_date' => $startDate->format('Y-m-d'),
+            'end_date'   => $endDate->format('Y-m-d'),
+            'store'      => $normalize($filters['store'] ?? null),
+            'category'   => $normalize($filters['category'] ?? null),
+            'product'    => $normalize($filters['product'] ?? null),
+            'item_type'  => $normalize($filters['itemType'] ?? null),
+        ]);
     }
 
     /**

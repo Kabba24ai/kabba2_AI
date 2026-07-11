@@ -576,6 +576,17 @@ class SalesReportEngineV2
             ->whereNull('deleted_at')
             ->whereBetween(DB::raw('DATE(paid_at)'), [$startDate, $endDate]);
 
+        // Product/category-filtered views (incl. Product & Category Comparison):
+        // attributed charge types (extensions) only qualify when the PARENT
+        // order's primary product line matches the filter — previously every
+        // extension leaked into every filtered view. Unfiltered totals are
+        // unchanged; non-attributed charge types keep their existing behavior.
+        if (!empty($filters['category']) || !empty($filters['product'])
+            || (!empty($filters['item_type']) && $filters['item_type'] !== 'all')
+            || (!empty($filters['sale_type']) && $filters['sale_type'] !== 'all')) {
+            BillingRevenueAttributionService::scopeChargesToParentLine($query, $filters);
+        }
+
         if (!empty($filters['store'])) {
             $storeId = (int) $filters['store'];
             $query->where(function ($q) use ($storeId) {
@@ -619,6 +630,14 @@ class SalesReportEngineV2
             ->whereNull('customer_account_id')
             ->whereNull('deleted_at')
             ->whereBetween(DB::raw('DATE(paid_at)'), [$startDate, $endDate]);
+
+        // Keep daily chart rows consistent with queryBillingEngineRevenue():
+        // attributed types (extensions) respect product/category filters
+        if (!empty($filters['category']) || !empty($filters['product'])
+            || (!empty($filters['item_type']) && $filters['item_type'] !== 'all')
+            || (!empty($filters['sale_type']) && $filters['sale_type'] !== 'all')) {
+            BillingRevenueAttributionService::scopeChargesToParentLine($query, $filters);
+        }
 
         if (!empty($filters['store'])) {
             $storeId = (int) $filters['store'];

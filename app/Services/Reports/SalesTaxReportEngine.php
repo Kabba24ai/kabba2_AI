@@ -54,6 +54,12 @@ class SalesTaxReportEngine
                   });
             })
             ->whereRelation('lastPayment', 'payment_method', '!=', 'Account')
+            // Only orders that own rental/retail product lines — matching the
+            // rest of the reporting architecture (SalesReportingService::baseQuery).
+            // Extension child orders have NO order_products rows; their money is
+            // already represented by the linked Billing Engine extension charge
+            // (Stream D), so admitting them here counted every paid extension twice.
+            ->whereHas('products')
             ->whereBetween('order_date', [$start, $end]);
 
         if (!empty($filters['payment_method']) && $filters['payment_method'] !== 'All Methods') {
@@ -117,10 +123,35 @@ class SalesTaxReportEngine
         }
 
         if (!empty($filters['store'])) {
-            $query->whereHas('order.products', fn($sub) => $sub->where(
-                fn($s) => $s->where('delivery_store_id', $filters['store'])
-                             ->orWhere('pickup_store_id', $filters['store'])
-            ));
+            $storeId = (int) $filters['store'];
+            $query->where(function ($outer) use ($storeId) {
+                $outer->whereHas('order.products', fn($sub) => $sub->where(
+                    fn($s) => $s->where('delivery_store_id', $storeId)
+                                 ->orWhere('pickup_store_id', $storeId)
+                ))
+                // Extension-child refunds: the child owns no product rows, so
+                // match through the linked charge's store — the same attribution
+                // Stream D uses for the positive side (bc.store_id, falling back
+                // to the parent order's product stores when store_id is null).
+                ->orWhereHas('order.extensionCharge', function ($c) use ($storeId) {
+                    $c->where(function ($q) use ($storeId) {
+                        $q->where('store_id', $storeId)
+                          ->orWhere(function ($q2) use ($storeId) {
+                              $q2->whereNull('store_id')
+                                 ->whereExists(function ($sub) use ($storeId) {
+                                     $sub->selectRaw('1')
+                                         ->from('order_products as op_bc')
+                                         ->whereColumn('op_bc.order_id', 'billing_charges.parent_order_id')
+                                         ->whereNull('op_bc.deleted_at')
+                                         ->where(function ($s) use ($storeId) {
+                                             $s->where('op_bc.delivery_store_id', $storeId)
+                                               ->orWhere('op_bc.pickup_store_id', $storeId);
+                                         });
+                                 });
+                          });
+                    });
+                });
+            });
         }
 
         return $query->get()
@@ -255,6 +286,22 @@ class SalesTaxReportEngine
             ->where('bc.status', 'paid')
             ->whereNull('bc.customer_account_id')
             ->whereNull('bc.deleted_at')
+            // Gateway voids UPDATE the child's Paid payment row to 'Voided' (the
+            // money never settled) but leave the charge status 'paid' — count an
+            // extension only while its child order still holds an active Paid
+            // payment. Refunds keep the original Paid row (a separate Refunded
+            // row is added), so refunded extensions stay here and Stream B's
+            // negative row nets them out on the refund date.
+            ->where(function ($q) {
+                $q->where('bc.billing_charge_type', '!=', 'extension')
+                  ->orWhereExists(function ($sub) {
+                      $sub->selectRaw('1')
+                          ->from('order_payments as op_paid')
+                          ->whereColumn('op_paid.order_id', 'bc.child_order_id')
+                          ->whereNull('op_paid.deleted_at')
+                          ->where('op_paid.status', 'Paid');
+                  });
+            })
             ->whereBetween(DB::raw('DATE(bc.paid_at)'), [$start->toDateString(), $end->toDateString()]);
 
         if (!empty($filters['store'])) {

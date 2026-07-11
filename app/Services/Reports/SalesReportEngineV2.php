@@ -402,6 +402,20 @@ class SalesReportEngineV2
 
         $this->applyRefundContextFilters($query, $filters);
 
+        // Employee view only: extension-child refunds reverse the EX-TAX
+        // portion, mirroring the settled-extension rules — the billing bucket
+        // credited the responsible employee ex-tax, so a full refund nets that
+        // employee to exactly zero. Company/unfiltered behavior is unchanged.
+        if (!empty($filters['employee_id'])) {
+            $extChildExists = $this->extensionChildExistsSql('o.id');
+
+            return (float) $query->selectRaw(
+                "SUM(CASE WHEN {$extChildExists}
+                     THEN op.refund_amount - COALESCE(op.tax_refunded, 0)
+                     ELSE op.refund_amount END) AS refund_total"
+            )->value('refund_total');
+        }
+
         return (float) $query->sum('op.refund_amount');
     }
 
@@ -587,6 +601,19 @@ class SalesReportEngineV2
             BillingRevenueAttributionService::scopeChargesToParentLine($query, $filters);
         }
 
+        // Employee Performance: billing revenue credits ONLY the charge's
+        // explicitly selected responsible employee (billing_charges.
+        // responsible_person_id, a users.id). Previously the full company-wide
+        // billing revenue was added to EVERY employee's totals. Charges with
+        // no responsible person stay in company totals (no employee filter)
+        // but are never credited to an employee. Attributed types also apply
+        // the settled guard here (an extension whose child payment was voided
+        // credits no one) — company-level behavior is unchanged this phase.
+        if (!empty($filters['employee_id'])) {
+            $query->where('billing_charges.responsible_person_id', $filters['employee_id']);
+            $this->applySettledExtensionGuard($query);
+        }
+
         if (!empty($filters['store'])) {
             $storeId = (int) $filters['store'];
             $query->where(function ($q) use ($storeId) {
@@ -637,6 +664,12 @@ class SalesReportEngineV2
             || (!empty($filters['item_type']) && $filters['item_type'] !== 'all')
             || (!empty($filters['sale_type']) && $filters['sale_type'] !== 'all')) {
             BillingRevenueAttributionService::scopeChargesToParentLine($query, $filters);
+        }
+
+        // …and with its employee attribution (responsible person + settled guard)
+        if (!empty($filters['employee_id'])) {
+            $query->where('billing_charges.responsible_person_id', $filters['employee_id']);
+            $this->applySettledExtensionGuard($query);
         }
 
         if (!empty($filters['store'])) {
@@ -735,11 +768,62 @@ class SalesReportEngineV2
             });
         }
 
-        // Employee filter — only include refunds on orders created by this employee
+        // Employee filter — refunds follow the order's creator, EXCEPT refunds
+        // on extension child orders, which follow the linked charge's
+        // responsible employee (the same person the billing revenue credited).
+        // Without this, employee A could earn the extension while the person
+        // who happened to create it absorbed the refund.
         if (!empty($filters['employee_id'])) {
-            $query->where('o.created_by_id', $filters['employee_id'])
-                  ->where('o.created_by_type', \App\Models\Iam\Personnel\User::class);
+            $employeeId = $filters['employee_id'];
+
+            $query->where(function ($outer) use ($employeeId) {
+                $outer->whereExists(function ($sub) use ($employeeId) {
+                    $sub->selectRaw('1')
+                        ->from('billing_charges as bc_rf')
+                        ->whereColumn('bc_rf.child_order_id', 'o.id')
+                        ->whereIn('bc_rf.billing_charge_type', BillingRevenueAttributionService::ATTRIBUTED_TYPES)
+                        ->where('bc_rf.responsible_person_id', $employeeId);
+                })
+                ->orWhere(function ($own) use ($employeeId) {
+                    $own->where('o.created_by_id', $employeeId)
+                        ->where('o.created_by_type', \App\Models\Iam\Personnel\User::class)
+                        ->whereRaw('NOT ' . $this->extensionChildExistsSql('o.id'));
+                });
+            });
         }
+    }
+
+    /**
+     * SQL fragment: the given order id belongs to an extension child (has an
+     * attributed billing charge pointing at it via child_order_id).
+     */
+    private function extensionChildExistsSql(string $orderIdColumn): string
+    {
+        $types = implode("','", array_map('addslashes', BillingRevenueAttributionService::ATTRIBUTED_TYPES));
+
+        return "EXISTS (SELECT 1 FROM billing_charges bc_ext
+                WHERE bc_ext.child_order_id = {$orderIdColumn}
+                  AND bc_ext.billing_charge_type IN ('{$types}'))";
+    }
+
+    /**
+     * Attributed charge types only count while the child order still holds an
+     * active Paid payment — a gateway void flips that row to Voided in place,
+     * so voided extensions credit no one. Same rule as the Sales Tax Report
+     * and BillingRevenueAttributionService.
+     */
+    private function applySettledExtensionGuard(\Illuminate\Database\Query\Builder $query): void
+    {
+        $query->where(function ($q) {
+            $q->whereNotIn('billing_charges.billing_charge_type', BillingRevenueAttributionService::ATTRIBUTED_TYPES)
+              ->orWhereExists(function ($sub) {
+                  $sub->selectRaw('1')
+                      ->from('order_payments as op_settled')
+                      ->whereColumn('op_settled.order_id', 'billing_charges.child_order_id')
+                      ->whereNull('op_settled.deleted_at')
+                      ->where('op_settled.status', 'Paid');
+              });
+        });
     }
 
     /**

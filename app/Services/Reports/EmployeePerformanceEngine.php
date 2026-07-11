@@ -15,6 +15,12 @@ use Illuminate\Support\Facades\DB;
  * employee_id filter path injected into SalesReportingService::applyFilters().
  * This guarantees that sum(employee qualified revenues) reconciles with
  * Pure Sales Summary for the same date range and store filter.
+ *
+ * Employee performance credit for Billing Engine revenue (extensions) follows
+ * billing_charges.responsible_person_id — the employee explicitly selected at
+ * extension creation — INCLUDING extension refunds, which reverse against the
+ * responsible employee rather than the child order's creator. Charges with no
+ * responsible person credit no employee but remain in company totals.
  */
 class EmployeePerformanceEngine
 {
@@ -32,23 +38,35 @@ class EmployeePerformanceEngine
     // ─── Public API ───────────────────────────────────────────────────────────
 
     /**
-     * Return all users who have created at least one non-deleted order.
+     * Return all users who have created at least one non-deleted order OR are
+     * the responsible person on attributed Billing Engine revenue (extensions)
+     * — an employee whose only sales are extensions must still get a row.
      */
     public function availableEmployees(): Collection
     {
         return DB::table('users')
-            ->join('orders', function ($join) {
-                $join->on('orders.created_by_id', '=', 'users.id')
-                     ->where('orders.created_by_type', User::class);
-            })
-            ->whereNull('orders.deleted_at')
             ->whereNull('users.deleted_at')
+            ->where(function ($q) {
+                $q->whereExists(function ($sub) {
+                    $sub->selectRaw('1')
+                        ->from('orders')
+                        ->whereColumn('orders.created_by_id', 'users.id')
+                        ->where('orders.created_by_type', User::class)
+                        ->whereNull('orders.deleted_at');
+                })
+                ->orWhereExists(function ($sub) {
+                    $sub->selectRaw('1')
+                        ->from('billing_charges')
+                        ->whereColumn('billing_charges.responsible_person_id', 'users.id')
+                        ->whereIn('billing_charges.billing_charge_type', BillingRevenueAttributionService::ATTRIBUTED_TYPES)
+                        ->whereNull('billing_charges.deleted_at');
+                });
+            })
             ->select(
                 'users.id',
                 DB::raw("CONCAT(users.first_name, ' ', users.last_name) AS name"),
                 'users.employee_code',
             )
-            ->distinct()
             ->orderBy('users.first_name')
             ->get();
     }

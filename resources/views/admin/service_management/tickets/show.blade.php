@@ -357,13 +357,23 @@
         {{-- ================= LEFT RAIL — persistent context ================= --}}
         <div class="space-y-6">
 
-            {{-- Complaint --}}
+            {{-- Complaint — structured selections + freeform details --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-3">
                     <x-heroicon-o-chat-bubble-left-ellipsis class="w-4 h-4 text-gray-400" /> Complaint
                 </h2>
+                @if ($ticket->complaints->isNotEmpty())
+                    <div class="flex flex-wrap gap-1.5 mb-3">
+                        @foreach ($ticket->complaints as $complaint)
+                            <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800"
+                                title="{{ $complaint->system_group->label() }}">
+                                {{ $complaint->name }}
+                            </span>
+                        @endforeach
+                    </div>
+                @endif
                 <p class="text-sm {{ $ticket->customer_complaint ? 'text-gray-700 whitespace-pre-line' : 'text-gray-300 italic' }}">
-                    {{ $ticket->customer_complaint ?: 'No complaint recorded at intake.' }}
+                    {{ $ticket->customer_complaint ?: ($ticket->complaints->isNotEmpty() ? 'No additional details recorded.' : 'No complaint recorded at intake.') }}
                 </p>
             </div>
 

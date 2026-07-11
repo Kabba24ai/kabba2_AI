@@ -49,6 +49,17 @@ class SaveTicketRequest extends FormRequest
             // the order-scoped rule below applies to equipment_id only.
             'equipment_override_id'     => ['nullable', 'exists:equipment,id'],
             'equipment_override_reason' => ['nullable', 'string', 'max:255'],
+
+            // Structured complaints: each selection becomes its own
+            // ServiceTicketComplaint record. Evidence rides the standard
+            // ticket-media pipeline (same limits as SaveMediaRequest).
+            'complaints'   => ['nullable', 'array'],
+            'complaints.*' => ['integer', 'exists:service_complaint_types,id'],
+            'evidence'     => ['nullable', 'array'],
+            'evidence.*'   => [
+                'file', 'max:51200', // 50 MB
+                'mimes:jpg,jpeg,png,gif,webp,heic,mp4,mov,avi,webm',
+            ],
             'personnel'                => ['nullable', 'array'],
             'personnel.*'              => ['integer', 'exists:users,id'],
             'team_leader_id'           => ['nullable', 'integer', 'exists:users,id'],

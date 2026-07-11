@@ -4,6 +4,7 @@ namespace App\Enums\Service;
 
 enum ServiceMediaCategory: string
 {
+    case ComplaintEvidence           = 'complaint_evidence';
     case BeforeRepair                = 'before_repair';
     case DuringRepair                = 'during_repair';
     case AfterRepair                 = 'after_repair';
@@ -14,6 +15,7 @@ enum ServiceMediaCategory: string
     public function label(): string
     {
         return match ($this) {
+            self::ComplaintEvidence           => 'Complaint Evidence',
             self::BeforeRepair                => 'Before Repair',
             self::DuringRepair                => 'During Repair',
             self::AfterRepair                 => 'After Repair',

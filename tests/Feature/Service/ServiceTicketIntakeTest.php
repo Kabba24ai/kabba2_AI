@@ -14,10 +14,13 @@ use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductCategory;
+use App\Models\Service\ServiceComplaintType;
 use App\Models\Service\ServiceTicket;
 use App\Models\Stores\Store;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -217,6 +220,98 @@ class ServiceTicketIntakeTest extends TestCase
         $this->assertStringContainsString('"label":"Scissor Lift (SL-1)","product_id":null', $content);
         // The product→category map that resolves category filtering is present
         $this->assertStringContainsString('"name":"TB290","category_ids":[' . $excavators->id . ']', $content);
+    }
+
+    // ── Structured complaint intake ──────────────────────────────────
+
+    public function test_create_page_ships_the_grouped_complaint_library(): void
+    {
+        $content = $this->get(route('admin.service-management.tickets.create'))->getContent();
+
+        // Library seeded by the migration, serialized for client-side filtering
+        $this->assertStringContainsString('"name":"Will not start"', $content);
+        $this->assertStringContainsString('"name":"Hydraulic leak"', $content);
+        $this->assertStringContainsString('"group_label":"Engine \\u0026 Starting"', $content); // @json hex-encodes &
+        $this->assertStringContainsString('Other \/ Not Listed', $content);
+        // Capability requirements travel with each complaint
+        $this->assertStringContainsString('"required_capabilities":["enclosed_cab"]', $content);
+        // Order equipment entries carry the keys the filter needs
+        $this->assertStringContainsString('"capabilities":null', $content);
+        // Structured section scaffold + evidence controls + Notes intact
+        $this->assertStringContainsString('id="st-complaint-list"', $content);
+        $this->assertStringContainsString('Selected Complaints', $content);
+        $this->assertStringContainsString('Complaint Details', $content);
+        $this->assertStringContainsString('Complaint Evidence', $content);
+        $this->assertStringContainsString('name="evidence[]"', $content);
+        $this->assertStringContainsString('>Notes<', $content);
+    }
+
+    public function test_intake_creates_one_structured_record_per_selected_complaint(): void
+    {
+        $leak  = ServiceComplaintType::where('name', 'Hydraulic leak')->firstOrFail();
+        $start = ServiceComplaintType::where('name', 'Will not start')->firstOrFail();
+        $other = ServiceComplaintType::where('name', 'Other / Not Listed')->firstOrFail();
+
+        $this->store([
+            'complaints'         => [$leak->id, $start->id, $other->id],
+            'customer_complaint' => 'Leak near the boom cylinder; dies after 20 minutes.',
+        ])->assertSessionHasNoErrors();
+
+        $ticket = ServiceTicket::firstOrFail();
+        $this->assertSame(3, $ticket->complaints()->count());
+
+        // Individually identifiable records with name + group snapshots
+        $this->assertDatabaseHas('service_ticket_complaints', [
+            'service_ticket_id'         => $ticket->id,
+            'service_complaint_type_id' => $leak->id,
+            'name'                      => 'Hydraulic leak',
+            'system_group'              => 'hydraulic',
+        ]);
+        $this->assertDatabaseHas('service_ticket_complaints', [
+            'name' => 'Will not start', 'system_group' => 'engine_starting',
+        ]);
+
+        // Freeform details still land on the shared column
+        $this->assertSame('Leak near the boom cylinder; dies after 20 minutes.', $ticket->customer_complaint);
+    }
+
+    public function test_unknown_complaint_ids_are_rejected(): void
+    {
+        $this->store(['complaints' => [999999]])->assertSessionHasErrors('complaints.0');
+        $this->assertDatabaseCount('service_tickets', 0);
+    }
+
+    public function test_complaint_evidence_attaches_photos_and_video_to_the_ticket(): void
+    {
+        Storage::fake('public_asset');
+
+        $this->store([
+            'evidence' => [
+                UploadedFile::fake()->image('leak-photo.jpg', 800, 600),
+                UploadedFile::fake()->create('walkaround.mp4', 2048, 'video/mp4'),
+            ],
+        ])->assertSessionHasNoErrors();
+
+        $ticket = ServiceTicket::firstOrFail();
+        $media  = $ticket->media()->get();
+
+        $this->assertCount(2, $media);
+        $this->assertTrue($media->every(fn ($m) => $m->category->value === 'complaint_evidence'));
+        $this->assertTrue($media->contains(fn ($m) => $m->original_filename === 'leak-photo.jpg'));
+        $this->assertTrue($media->contains(fn ($m) => $m->original_filename === 'walkaround.mp4'));
+    }
+
+    public function test_workbench_displays_structured_complaints_as_chips(): void
+    {
+        $leak = ServiceComplaintType::where('name', 'Hydraulic leak')->firstOrFail();
+
+        $this->store(['complaints' => [$leak->id], 'customer_complaint' => null]);
+        session()->forget('flash_notification');
+
+        $this->get(route('admin.service-management.tickets.show', ServiceTicket::firstOrFail()))
+            ->assertOk()
+            ->assertSee('Hydraulic leak')
+            ->assertSee('No additional details recorded.');
     }
 
     // Assigned-team avatar display: presentation scaffold ships with the

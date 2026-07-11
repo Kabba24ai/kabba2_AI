@@ -94,6 +94,7 @@ class Equipment extends Model
         'downgrade_requires_approval',
         'equipment_key_comparison_notes',
         'assigned_product_id',
+        'capabilities',
     ];
 
     protected $casts = [
@@ -102,6 +103,9 @@ class Equipment extends Model
         'key_starting_mechanism' => EquipmentKeyStartingMechanism::class,
         'volts' => 'array',
         'amps'  => 'array',
+        // null = capabilities unknown (complaint list hides nothing);
+        // a list (even empty) enforces complaint capability requirements
+        'capabilities' => 'array',
         'similar_equipment_ids' => 'array',
         'comparable_ai_profile_ids' => 'array',
         'critical_matching_criteria' => 'array',

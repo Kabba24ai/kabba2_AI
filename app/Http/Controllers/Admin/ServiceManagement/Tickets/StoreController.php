@@ -7,9 +7,13 @@ use App\Enums\Service\FinancialStatus;
 use App\Enums\Service\RepairStatus;
 use App\Enums\Service\ServiceLocation;
 use App\Enums\Service\ServiceType;
+use App\Enums\Service\ServiceMediaCategory;
+use App\Enums\Service\ServiceMediaType;
 use App\Enums\Service\ServiceTicketEventType;
+use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ServiceManagement\SaveTicketRequest;
+use App\Models\Service\ServiceComplaintType;
 use App\Models\Service\ServiceTicket;
 use App\Models\Service\ServiceTicketEvent;
 
@@ -25,6 +29,7 @@ class StoreController extends Controller
             collect($validated)->except([
                 'personnel', 'team_leader_id', 'intake', 'order_id', 'rental_date',
                 'equipment_override_id', 'equipment_override_reason',
+                'complaints', 'evidence',
             ])->all(),
             $this->orderReferenceFields($validated),
             $this->equipmentOverrideFields($validated),
@@ -53,6 +58,37 @@ class StoreController extends Controller
                 $ticket->equipment?->equipment_name . ($ticket->equipment?->equipment_id ? ' (' . $ticket->equipment->equipment_id . ')' : ''),
                 $ticket->equipment_override_reason,
             );
+        }
+
+        // Structured complaints: one record each, with name/group snapshots
+        // so the ticket keeps what was reported even if the library changes.
+        $complaintTypes = ServiceComplaintType::whereIn('id', $validated['complaints'] ?? [])->get();
+        foreach ($complaintTypes as $type) {
+            $ticket->complaints()->create([
+                'service_complaint_type_id' => $type->id,
+                'name'                      => $type->name,
+                'system_group'              => $type->system_group->value,
+            ]);
+        }
+
+        // Complaint evidence rides the standard ticket-media pipeline
+        foreach ($request->file('evidence', []) as $file) {
+            $uploaded = MediaHelper::uploadStorageFile('Public Asset', $file, 'service_tickets', $ticket);
+            $mediaObj = $uploaded['mediaObj'] ?? null;
+            if (!$mediaObj) {
+                continue;
+            }
+
+            $ticket->media()->create([
+                'media_id'          => $mediaObj->id,
+                'media_type'        => ServiceMediaType::fromMime($mediaObj->mime_type, $mediaObj->file_extension),
+                'category'          => ServiceMediaCategory::ComplaintEvidence->value,
+                'file_path'         => $mediaObj->getFilePath(),
+                'original_filename' => $mediaObj->original_file_name,
+                'mime_type'         => $mediaObj->mime_type,
+                'file_size'         => $mediaObj->file_size,
+                'uploaded_by'       => auth()->id(),
+            ]);
         }
 
         $ticket->syncPersonnel(

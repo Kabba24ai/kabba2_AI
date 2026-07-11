@@ -40,6 +40,10 @@ trait BuildsTicketFormData
                     'id'    => $product->equipment->id,
                     'label' => $product->equipment->equipment_name
                         . ($product->equipment->equipment_id ? ' (' . $product->equipment->equipment_id . ')' : ''),
+                    // Complaint-list keys: the rented product + what the
+                    // machine is equipped with (null = unknown, hide nothing)
+                    'product_id'   => $product->product_id ?? $product->equipment->assigned_product_id,
+                    'capabilities' => $product->equipment->capabilities,
                 ])->unique('id')->values(),
             // Search-aid keys for the intake filters — never stored on the ticket
             'product_ids'  => $order->products->pluck('product_id')->filter()->unique()->values(),
@@ -75,12 +79,29 @@ trait BuildsTicketFormData
                 'product_id' => $unit->assigned_product_id,
             ])->values();
 
+        // Structured complaint library — grouped, capability-aware. The
+        // client filters it against the selected equipment's product,
+        // categories, and recorded capabilities.
+        $complaintTypes = \App\Models\Service\ServiceComplaintType::active()
+            ->orderBy('display_order')
+            ->get()
+            ->map(fn (\App\Models\Service\ServiceComplaintType $type) => [
+                'id'                    => $type->id,
+                'name'                  => $type->name,
+                'group'                 => $type->system_group->value,
+                'group_label'           => $type->system_group->label(),
+                'group_order'           => $type->system_group->sortOrder(),
+                'required_capabilities' => $type->required_capabilities ?? [],
+                'product_ids'           => $type->applicable_product_ids,
+                'category_ids'          => $type->applicable_category_ids,
+            ])->values();
+
         $employees = User::active()->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);
 
         $stores = Store::where('status', 'Active')->orderBy('store_name')->get(['id', 'store_name']);
 
-        return compact('orderOptions', 'filterCategories', 'filterProducts', 'overrideEquipment', 'employees', 'stores');
+        return compact('orderOptions', 'filterCategories', 'filterProducts', 'overrideEquipment', 'complaintTypes', 'employees', 'stores');
     }
 
     /** Shared dropdown data for the create/edit ticket forms. */

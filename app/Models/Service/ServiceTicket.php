@@ -409,6 +409,12 @@ class ServiceTicket extends Model
         }
     }
 
+    /** Structured complaints selected at intake — one row per complaint. */
+    public function complaints()
+    {
+        return $this->hasMany(ServiceTicketComplaint::class, 'service_ticket_id');
+    }
+
     public function equipment()
     {
         return $this->belongsTo(Equipment::class);

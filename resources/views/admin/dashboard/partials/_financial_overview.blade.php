@@ -53,11 +53,13 @@
     </div>
 </div>
 
-{{-- Sales Trend chart (dominant) + Report Shortcuts (narrow) --}}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+{{-- Sales Trend chart (dominant) + Report Shortcuts (narrow).
+     4-column grid with a 3-span chart so the chart's right edge and the
+     shortcuts column align exactly with the 4 preview cards below (same gap). --}}
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
 
     {{-- Sales Trend --}}
-    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-300">
+    <div class="lg:col-span-3 bg-white rounded-xl shadow-sm p-6 border border-gray-300">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <h3 class="text-base font-bold text-gray-900">Sales Trend</h3>
             <div class="flex flex-wrap gap-2">

@@ -3,12 +3,23 @@
 namespace App\Http\Controllers\Api\SalesReports\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\Reports\ApiSalesReportAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class SalesReportController extends Controller
 {
+    /**
+     * Phase 2D consolidation: the trend, top-products/categories, summary,
+     * discounts, and refunds endpoints read their numbers from the canonical
+     * reporting engines through this adapter instead of endpoint-specific SQL.
+     * Response contracts are unchanged. revenue-breakdown, tax-and-payments,
+     * and product-sales-details remain on legacy queries (no canonical engine
+     * models their semantics yet) — documented in the Phase 2D report.
+     */
+    public function __construct(private ApiSalesReportAdapter $adapter) {}
+
     /**
      * Get rolling 30 days comparison data
      * Compares last 30 days vs previous 30 days
@@ -33,7 +44,7 @@ class SalesReportController extends Controller
             $filtersWithoutDateRange = $filters;
             unset($filtersWithoutDateRange['dateRange']);
             
-            $data = $this->getSalesData($startDate, $endDate, $filtersWithoutDateRange);
+            $data = $this->adapter->dailyNetSales($startDate, $endDate, $filtersWithoutDateRange);
             return response()->json($this->formatMonthlyData($data, $dateRange));
         }
         
@@ -51,8 +62,8 @@ class SalesReportController extends Controller
             $filtersWithoutDateRange = $filters;
             unset($filtersWithoutDateRange['dateRange']);
 
-            $data = $this->getSalesData($lastMonthStart, $today, $filtersWithoutDateRange);
-            
+            $data = $this->adapter->dailyNetSales($lastMonthStart, $today, $filtersWithoutDateRange);
+
             return response()->json($this->formatThisMonthData($data, $thisMonthStart, $lastMonthStart, $today));
         }
         
@@ -70,8 +81,8 @@ class SalesReportController extends Controller
             $filtersWithoutDateRange = $filters;
             unset($filtersWithoutDateRange['dateRange']);
 
-            $data = $this->getSalesData($monthBeforeLastStart, $lastMonthEnd, $filtersWithoutDateRange);
-            
+            $data = $this->adapter->dailyNetSales($monthBeforeLastStart, $lastMonthEnd, $filtersWithoutDateRange);
+
             return response()->json($this->formatLastMonthData($data, $lastMonthStart, $monthBeforeLastStart));
         }
 
@@ -79,9 +90,9 @@ class SalesReportController extends Controller
         // Remove dateRange from filters since we're handling dates explicitly
         $filtersWithoutDateRange = $filters;
         unset($filtersWithoutDateRange['dateRange']);
-        
-        $data = $this->getSalesData($sixtyDaysAgo, $today, $filtersWithoutDateRange);
-        
+
+        $data = $this->adapter->dailyNetSales($sixtyDaysAgo, $today, $filtersWithoutDateRange);
+
         return response()->json($this->formatRolling30DaysData($data, $today));
     }
 
@@ -96,8 +107,8 @@ class SalesReportController extends Controller
         $sevenDaysAgo = Carbon::today()->subDays(7);
         $fourteenDaysAgo = Carbon::today()->subDays(14);
 
-        $data = $this->getSalesData($fourteenDaysAgo, $today, $filters);
-        
+        $data = $this->adapter->dailyNetSales($fourteenDaysAgo, $today, $filters);
+
         return response()->json($this->format7DayData($data, $today));
     }
 
@@ -121,8 +132,8 @@ class SalesReportController extends Controller
         $monthBeforeLastStart = $lastMonthStart->copy()->subMonth()->startOfMonth();
         $monthBeforeLastEnd = $lastMonthStart->copy()->subDay()->endOfDay();
 
-        $data = $this->getSalesData($monthBeforeLastStart, $lastMonthEnd, $filters);
-        
+        $data = $this->adapter->dailyNetSales($monthBeforeLastStart, $lastMonthEnd, $filters);
+
         return response()->json($this->formatLastMonthData($data, $lastMonthStart, $monthBeforeLastStart));
     }
 
@@ -131,141 +142,31 @@ class SalesReportController extends Controller
      */
     public function getTopProducts(Request $request)
     {
-        $limit = $request->input('limit', 10);
+        $limit = (int) $request->input('limit', 10);
         $filters = $request->all();
         $includePrevious = $request->input('include_previous', false);
-        
+
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
         [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
-        $query = DB::table('order_products')
-            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-            ->join('products', 'order_products.product_id', '=', 'products.id')
-            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
-            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                $startDate->format('Y-m-d'),
-                $endDate->format('Y-m-d')
-            ]);
+        // Canonical product revenue (ProductSalesPerformanceEngine): partial
+        // refunds netted, extension revenue attributed to the parent rental
+        [$topProducts, $totalSales] = $this->adapter->topProducts($filters, $startDate, $endDate);
 
-        $this->applyFiltersToQuery($query, $filters);
-
-        $topProducts = $query->select(
-                'order_products.product_id as id',
-                'products.product_name as name',
-                DB::raw('SUM(CASE 
-                    WHEN order_payments.refund_amount > 0 
-                    THEN -(order_products.total - order_products.tax) 
-                    ELSE (order_products.total - order_products.tax) 
-                END) as total_sales'),
-                DB::raw('COUNT(DISTINCT order_products.order_id) as order_count')
-            )
-            ->groupBy('order_products.product_id', 'products.product_name')
-            ->orderBy('total_sales', 'desc')
-            ->limit($limit)
-            ->get();
-
-        // Fetch previous period sales for the same product IDs
-        if ($includePrevious && $topProducts->isNotEmpty()) {
-            [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
-            $productIds = $topProducts->pluck('id')->toArray();
-
-            $prevQuery = DB::table('order_products')
-                ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-                ->join('products', 'order_products.product_id', '=', 'products.id')
-                ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
-                ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                    $prevStart->format('Y-m-d'),
-                    $prevEnd->format('Y-m-d')
-                ])
-                ->whereIn('order_products.product_id', $productIds);
-
-            $this->applyFiltersToQuery($prevQuery, $filters);
-
-            $prevSales = $prevQuery->select(
-                    'order_products.product_id as id',
-                    DB::raw('SUM(CASE 
-                        WHEN order_payments.refund_amount > 0 
-                        THEN -(order_products.total - order_products.tax) 
-                        ELSE (order_products.total - order_products.tax) 
-                    END) as total_sales')
-                )
-                ->groupBy('order_products.product_id')
-                ->get()
-                ->keyBy('id');
-
-            $topProducts = $topProducts->map(function ($product) use ($prevSales) {
-                $product->previous_total_sales = (float)($prevSales[$product->id]->total_sales ?? 0);
-                return $product;
-            });
-        }
-
-        // Attributed Billing Engine revenue (extensions) counts toward the
-        // parent rental's product — sales only, order_count untouched
-        $billingRows     = $this->billingAttributionRows('product', $startDate, $endDate, $filters);
-        $prevBillingRows = collect();
         if ($includePrevious) {
             [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
-            $prevBillingRows = $this->billingAttributionRows('product', $prevStart, $prevEnd, $filters)
-                ->keyBy('product_id');
-        }
+            [$prevRows] = $this->adapter->topProducts($filters, $prevStart, $prevEnd);
+            $prevById = $prevRows->keyBy('id');
 
-        $billingTotal = 0.0;
-        foreach ($billingRows as $billing) {
-            $billingTotal += (float) $billing->revenue;
-            $existing = $topProducts->firstWhere('id', $billing->product_id);
-
-            if ($existing) {
-                $existing->total_sales = (float) $existing->total_sales + (float) $billing->revenue;
-            } else {
-                $row = (object) [
-                    'id'          => $billing->product_id,
-                    'name'        => $billing->product_name,
-                    'total_sales' => (float) $billing->revenue,
-                    'order_count' => 0,
-                ];
-                if ($includePrevious) {
-                    $row->previous_total_sales = (float) ($prevBillingRows[$billing->product_id]->revenue ?? 0);
-                }
-                $topProducts->push($row);
-            }
-        }
-
-        if ($includePrevious && $prevBillingRows->isNotEmpty()) {
-            // Demand-sourced rows (order_count > 0) gain their previous-period
-            // billing portion; appended billing-only rows were set above
-            $topProducts = $topProducts->map(function ($product) use ($prevBillingRows) {
-                if (isset($product->previous_total_sales, $prevBillingRows[$product->id]) && $product->order_count > 0) {
-                    $product->previous_total_sales += (float) $prevBillingRows[$product->id]->revenue;
-                }
+            $topProducts = $topProducts->map(function ($product) use ($prevById) {
+                $product->previous_total_sales = (float) ($prevById[$product->id]->total_sales ?? 0);
                 return $product;
             });
         }
 
-        $topProducts = $topProducts->sortByDesc('total_sales')->take((int) $limit)->values();
-
-        // Calculate total sales for the same filters
-        $totalSalesQuery = DB::table('order_products')
-            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-            ->join('products', 'order_products.product_id', '=', 'products.id')
-            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
-            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                $startDate->format('Y-m-d'),
-                $endDate->format('Y-m-d')
-            ]);
-
-        $this->applyFiltersToQuery($totalSalesQuery, $filters);
-
-        $totalSales = $totalSalesQuery->select(
-            DB::raw('SUM(CASE
-                WHEN order_payments.refund_amount > 0
-                THEN -(order_products.total - order_products.tax)
-                ELSE (order_products.total - order_products.tax)
-            END) as total')
-        )->value('total');
-
         return response()->json([
-            'products' => $topProducts,
-            'total_sales' => (float)($totalSales ?? 0) + $billingTotal
+            'products' => $topProducts->take($limit)->values(),
+            'total_sales' => $totalSales
         ]);
     }
 
@@ -274,145 +175,30 @@ class SalesReportController extends Controller
      */
     public function getTopCategories(Request $request)
     {
-        $limit = $request->input('limit', 5);
+        $limit = (int) $request->input('limit', 5);
         $filters = $request->all();
         $includePrevious = $request->input('include_previous', false);
-        
+
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
         [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
-        $query = DB::table('order_products')
-            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-            ->join('products', 'order_products.product_id', '=', 'products.id')
-            ->join('product_category_children', 'products.id', '=', 'product_category_children.product_id')
-            ->join('product_categories', 'product_category_children.product_category_id', '=', 'product_categories.id')
-            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
-            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                $startDate->format('Y-m-d'),
-                $endDate->format('Y-m-d')
-            ]);
+        // Canonical category revenue keyed by the product's primary category
+        [$topCategories, $totalSales] = $this->adapter->topCategories($filters, $startDate, $endDate);
 
-        $filtersWithoutCategory = $filters;
-        unset($filtersWithoutCategory['category']);
-        $this->applyFiltersToQuery($query, $filtersWithoutCategory);
-
-        $topCategories = $query->select(
-                'product_categories.id',
-                'product_categories.title as name',
-                DB::raw('SUM(CASE 
-                    WHEN order_payments.refund_amount > 0 
-                    THEN -(order_products.total - order_products.tax) 
-                    ELSE (order_products.total - order_products.tax) 
-                END) as total_sales'),
-                DB::raw('COUNT(DISTINCT order_products.order_id) as order_count')
-            )
-            ->groupBy('product_categories.id', 'product_categories.title')
-            ->orderBy('total_sales', 'desc')
-            ->limit($limit)
-            ->get();
-
-        // Fetch previous period sales for the same category IDs
-        if ($includePrevious && $topCategories->isNotEmpty()) {
-            [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
-            $categoryIds = $topCategories->pluck('id')->toArray();
-
-            $prevQuery = DB::table('order_products')
-                ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-                ->join('products', 'order_products.product_id', '=', 'products.id')
-                ->join('product_category_children', 'products.id', '=', 'product_category_children.product_id')
-                ->join('product_categories', 'product_category_children.product_category_id', '=', 'product_categories.id')
-                ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
-                ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                    $prevStart->format('Y-m-d'),
-                    $prevEnd->format('Y-m-d')
-                ])
-                ->whereIn('product_categories.id', $categoryIds);
-
-            $this->applyFiltersToQuery($prevQuery, $filtersWithoutCategory);
-
-            $prevSales = $prevQuery->select(
-                    'product_categories.id',
-                    DB::raw('SUM(CASE 
-                        WHEN order_payments.refund_amount > 0 
-                        THEN -(order_products.total - order_products.tax) 
-                        ELSE (order_products.total - order_products.tax) 
-                    END) as total_sales')
-                )
-                ->groupBy('product_categories.id')
-                ->get()
-                ->keyBy('id');
-
-            $topCategories = $topCategories->map(function ($category) use ($prevSales) {
-                $category->previous_total_sales = (float)($prevSales[$category->id]->total_sales ?? 0);
-                return $category;
-            });
-        }
-
-        // Attributed Billing Engine revenue (extensions) counts toward the
-        // parent rental's primary category — sales only, order_count untouched
-        $billingRows     = $this->billingAttributionRows('category', $startDate, $endDate, $filtersWithoutCategory);
-        $prevBillingRows = collect();
         if ($includePrevious) {
             [$prevStart, $prevEnd] = $this->getPreviousPeriodDates($dateRange, $filters);
-            $prevBillingRows = $this->billingAttributionRows('category', $prevStart, $prevEnd, $filtersWithoutCategory)
-                ->keyBy('category_id');
-        }
+            [$prevRows] = $this->adapter->topCategories($filters, $prevStart, $prevEnd);
+            $prevById = $prevRows->keyBy('id');
 
-        $billingTotal = 0.0;
-        foreach ($billingRows as $billing) {
-            $billingTotal += (float) $billing->revenue;
-            $existing = $topCategories->firstWhere('id', $billing->category_id);
-
-            if ($existing) {
-                $existing->total_sales = (float) $existing->total_sales + (float) $billing->revenue;
-            } else {
-                $row = (object) [
-                    'id'          => $billing->category_id,
-                    'name'        => $billing->category_name,
-                    'total_sales' => (float) $billing->revenue,
-                    'order_count' => 0,
-                ];
-                if ($includePrevious) {
-                    $row->previous_total_sales = (float) ($prevBillingRows[$billing->category_id]->revenue ?? 0);
-                }
-                $topCategories->push($row);
-            }
-        }
-
-        if ($includePrevious && $prevBillingRows->isNotEmpty()) {
-            $topCategories = $topCategories->map(function ($category) use ($prevBillingRows) {
-                if (isset($category->previous_total_sales, $prevBillingRows[$category->id]) && $category->order_count > 0) {
-                    $category->previous_total_sales += (float) $prevBillingRows[$category->id]->revenue;
-                }
+            $topCategories = $topCategories->map(function ($category) use ($prevById) {
+                $category->previous_total_sales = (float) ($prevById[$category->id]->total_sales ?? 0);
                 return $category;
             });
         }
 
-        $topCategories = $topCategories->sortByDesc('total_sales')->take((int) $limit)->values();
-
-        // Calculate total sales for the same filters
-        $totalSalesQuery = DB::table('order_products')
-            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-            ->join('products', 'order_products.product_id', '=', 'products.id')
-            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
-            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                $startDate->format('Y-m-d'),
-                $endDate->format('Y-m-d')
-            ]);
-
-        $this->applyFiltersToQuery($totalSalesQuery, $filtersWithoutCategory);
-
-        $totalSales = $totalSalesQuery->select(
-            DB::raw('SUM(CASE
-                WHEN order_payments.refund_amount > 0
-                THEN -(order_products.total - order_products.tax)
-                ELSE (order_products.total - order_products.tax)
-            END) as total')
-        )->value('total');
-
         return response()->json([
-            'categories' => $topCategories,
-            'total_sales' => (float)($totalSales ?? 0) + $billingTotal
+            'categories' => $topCategories->take($limit)->values(),
+            'total_sales' => $totalSales
         ]);
     }
 
@@ -471,67 +257,23 @@ class SalesReportController extends Controller
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
         [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
-        $query = DB::table('order_products')
-            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-            ->join('products', 'order_products.product_id', '=', 'products.id')
-            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
-            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                $startDate->format('Y-m-d'),
-                $endDate->format('Y-m-d')
-            ]);
+        // Canonical KPI snapshot — same numbers as the Blade Pure Sales
+        // Summary (extension revenue, real discounts, refund netting included)
+        $kpis      = $this->adapter->kpis($filters, $startDate, $endDate);
+        $itemsSold = $this->adapter->itemsSold($filters, $startDate, $endDate);
 
-        $this->applyFiltersToQuery($query, $filters);
-
-        $data = $query->select(
-            'order_products.order_id',
-            'order_products.total',
-            'order_products.tax',
-            'order_products.quantity',
-            'order_payments.refund_amount'
-        )->get();
-
-        $totalGrossSales = 0;
-        $totalDiscounts  = 0;
-        $totalRefunds    = 0;
-        $totalTax        = 0;
-        $itemsSold       = 0;
-        $orderIds        = collect();
-
-        foreach ($data as $item) {
-            $lineTotal = (float)($item->total ?? 0);
-            $lineTax   = (float)($item->tax ?? 0);
-            $quantity  = $item->quantity ?? 1;
-
-            // Gross Sales = face value of ALL sales (before any deductions)
-            $totalGrossSales += $lineTotal;
-
-            if ($item->refund_amount > 0) {
-                // Refunded: track the full line amount as a return
-                $totalRefunds += $lineTotal;
-            } else {
-                $totalTax += $lineTax;
-                $itemsSold += $quantity;
-                $orderIds->push($item->order_id);
-            }
-        }
-
-        // Net Sales = Gross Sales − Returns − Discounts − Allowances (tax is NOT a deduction here)
-        $totalNetSales = $totalGrossSales - $totalRefunds - $totalDiscounts;
-
-        $transactionCount    = $orderIds->unique()->count();
-        $averageSaleValue    = $transactionCount > 0 ? $totalNetSales / $transactionCount : 0;
-        $averageItemsPerSale = $transactionCount > 0 ? $itemsSold / $transactionCount : 0;
+        $transactionCount = (int) $kpis['transaction_count'];
 
         return response()->json([
-            'totalGrossSales'    => (float)$totalGrossSales,
-            'totalDiscounts'     => (float)$totalDiscounts,
-            'totalRefunds'       => (float)$totalRefunds,
-            'totalNetSales'      => (float)$totalNetSales,
-            'totalTax'           => (float)$totalTax,
+            'totalGrossSales'    => (float) $kpis['gross_sales'],
+            'totalDiscounts'     => (float) $kpis['discounts'],
+            'totalRefunds'       => (float) $kpis['refunds'],
+            'totalNetSales'      => (float) $kpis['net_sales'],
+            'totalTax'           => (float) $kpis['tax_collected'],
             'transactionCount'   => $transactionCount,
-            'itemsSold'          => (int)$itemsSold,
-            'averageSaleValue'   => (float)$averageSaleValue,
-            'averageItemsPerSale' => (float)$averageItemsPerSale,
+            'itemsSold'          => (int) $itemsSold,
+            'averageSaleValue'   => (float) $kpis['average_ticket'],
+            'averageItemsPerSale' => $transactionCount > 0 ? (float) round($itemsSold / $transactionCount, 2) : 0.0,
         ]);
     }
 
@@ -731,26 +473,18 @@ class SalesReportController extends Controller
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
         [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
-        // Note: This assumes there's a discount field in order_products or orders table
-        // Adjust based on your actual database schema
-        $query = DB::table('order_products')
-            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-            ->join('products', 'order_products.product_id', '=', 'products.id')
-            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
-            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                $startDate->format('Y-m-d'),
-                $endDate->format('Y-m-d')
-            ]);
+        // Real numbers via the canonical engine (orders.discount_amount) —
+        // this endpoint previously returned hardcoded zeros
+        $kpis      = $this->adapter->kpis($filters, $startDate, $endDate);
+        $discounts = (float) $kpis['discounts'];
+        $gross     = (float) $kpis['gross_sales'];
+        $withDiscounts = $this->adapter->discountedTransactionCount($filters, $startDate, $endDate);
 
-        $this->applyFiltersToQuery($query, $filters);
-
-        // For now, return zeros as discount tracking may need additional schema
-        // You can add discount_amount field if available
         return response()->json([
-            'totalDiscounts' => 0,
-            'discountPercentage' => 0,
-            'transactionsWithDiscounts' => 0,
-            'averageDiscountPerTransaction' => 0
+            'totalDiscounts' => $discounts,
+            'discountPercentage' => $gross > 0 ? round($discounts / $gross * 100, 2) : 0,
+            'transactionsWithDiscounts' => $withDiscounts,
+            'averageDiscountPerTransaction' => $withDiscounts > 0 ? round($discounts / $withDiscounts, 2) : 0
         ]);
     }
 
@@ -763,65 +497,24 @@ class SalesReportController extends Controller
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
         [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
-        $query = DB::table('order_products')
-            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-            ->join('products', 'order_products.product_id', '=', 'products.id')
-            ->whereIn('order_payments.status', ['Refunded'])
-            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                $startDate->format('Y-m-d'),
-                $endDate->format('Y-m-d')
-            ]);
+        // Canonical refund rows (PaymentReconciliationLedger refund stream):
+        // one row per refund transaction, dated by the refund date, covering
+        // BOTH full and partial refunds — the legacy query missed Partial
+        // Refund entirely and fanned out across product lines
+        $rows = $this->adapter->refundRows($filters, $startDate, $endDate);
 
-        $this->applyFiltersToQuery($query, $filters);
+        $totalRefundAmount = round(abs($rows->sum(fn ($r) => (float) $r->grand_total)), 2);
+        $refundTransactionCount = $rows->count();
+        $fullRefunds    = $rows->where('payment_status', 'Refunded')->count();
+        $partialRefunds = $rows->where('payment_status', 'Partial Refund')->count();
 
-        $data = $query->select(
-            'order_products.order_id',
-            'order_products.total',
-            'order_products.tax',
-            'order_payments.refund_amount'
-        )->get();
-
-        $totalRefundAmount = 0;
-        $refundTransactionCount = 0;
-        $fullRefunds = 0;
-        $partialRefunds = 0;
-        $refundsByReason = [];
-
-        foreach ($data as $item) {
-            $amount = $item->total - $item->tax;
-            $refundAmount = $item->refund_amount ?? 0;
-
-            if ($refundAmount > 0) {
-                $totalRefundAmount += $amount;
-                $refundTransactionCount++;
-
-                // Determine if full or partial refund
-                if ($refundAmount >= $item->total) {
-                    $fullRefunds++;
-                } else {
-                    $partialRefunds++;
-                }
-
-                // Group by reason if available (you may need to add refund_reason field)
-                $reason = 'Not specified';
-                if (!isset($refundsByReason[$reason])) {
-                    $refundsByReason[$reason] = ['count' => 0, 'amount' => 0];
-                }
-                $refundsByReason[$reason]['count']++;
-                $refundsByReason[$reason]['amount'] += $amount;
-            }
-        }
-
-        $refundsByReasonArray = array_map(function($reason, $data) {
-            return [
-                'reason' => $reason,
-                'count' => $data['count'],
-                'amount' => (float)$data['amount']
-            ];
-        }, array_keys($refundsByReason), $refundsByReason);
+        // No refund-reason field exists in the schema — single bucket preserved
+        $refundsByReasonArray = $refundTransactionCount > 0
+            ? [['reason' => 'Not specified', 'count' => $refundTransactionCount, 'amount' => $totalRefundAmount]]
+            : [];
 
         return response()->json([
-            'totalRefundAmount' => (float)$totalRefundAmount,
+            'totalRefundAmount' => (float) $totalRefundAmount,
             'refundTransactionCount' => $refundTransactionCount,
             'fullRefunds' => $fullRefunds,
             'partialRefunds' => $partialRefunds,
@@ -945,106 +638,10 @@ class SalesReportController extends Controller
     }
 
     /**
-     * Private helper: Get sales data with filters
-     */
-    private function getSalesData($startDate, $endDate, $filters = [])
-    {
-        // All date range calculations are now handled in getRolling30Days
-        // This method just uses the dates passed to it
-        
-        $query = DB::table('order_products')
-            ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
-            ->join('products', 'order_products.product_id', '=', 'products.id')
-            ->whereIn('order_payments.status', ['Paid', 'Account', 'Invoice Card', 'Invoice Cash', 'Invoice Online', 'Invoice Cheque', 'Invoice Other'])
-            ->whereBetween(DB::raw('DATE(order_payments.payment_datetime)'), [
-                $startDate->format('Y-m-d'),
-                $endDate->format('Y-m-d')
-            ])
-            ->select(
-                DB::raw('DATE(order_payments.payment_datetime) as payment_date'),
-                'order_products.total',
-                'order_products.tax',
-                'order_payments.refund_amount',
-                'products.product_type',
-                'products.product_name'
-            );
-            
-        // Apply store filter
-        if (!empty($filters['store']) && $filters['store'] !== 'all') {
-            $query->where(function($q) use ($filters) {
-                $q->where('order_products.delivery_store_id', $filters['store'])
-                  ->orWhere('order_products.pickup_store_id', $filters['store']);
-            });
-        }
-
-        // Apply category filter
-        if (!empty($filters['category']) && $filters['category'] !== 'all') {
-            $query->join('product_category_children', 'products.id', '=', 'product_category_children.product_id')
-                ->where('product_category_children.product_category_id', $filters['category']);
-        }
-
-        // Apply product filter
-        if (!empty($filters['product']) && $filters['product'] !== 'all') {
-            $query->where('order_products.product_id', $filters['product']);
-        }
-
-        // Apply item type filter
-        if (!empty($filters['itemType']) && $filters['itemType'] !== 'all') {
-            $itemType = $filters['itemType'] === 'rental' ? 'Rental' : 'Retail';
-            $query->where('products.product_type', $itemType);
-        }
-
-        // Apply waiver filters — rental_damage_waiver in product_data.product_rental_items
-        if (!empty($filters['waiverOnly']) && $filters['waiverOnly'] === 'true') {
-            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NOT NULL");
-        } elseif (!empty($filters['excludeWaiver']) && $filters['excludeWaiver'] === 'true') {
-            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_damage_waiver', NULL, '$.product_rental_items') IS NULL");
-        }
-
-        // Apply insurance filters — rental_track_insurance in product_data.product_rental_items
-        if (!empty($filters['insuranceOnly']) && $filters['insuranceOnly'] === 'true') {
-            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NOT NULL");
-        } elseif (!empty($filters['excludeInsurance']) && $filters['excludeInsurance'] === 'true') {
-            $query->whereRaw("JSON_SEARCH(order_products.product_data, 'one', 'rental_track_insurance', NULL, '$.product_rental_items') IS NULL");
-        }
-
-        // Apply shipping filter — orders with no shipping have terms_collection length of 0
-        if (!empty($filters['excludeShipping']) && $filters['excludeShipping'] === 'true') {
-            $query->whereRaw("JSON_LENGTH((SELECT terms_collection FROM orders WHERE id = order_products.order_id)) = 0");
-        }
-
-        // Apply delivery filters — product_data.service_method
-        if (!empty($filters['deliveryOnly']) && $filters['deliveryOnly'] === 'true') {
-            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'Delivery'");
-        } elseif (!empty($filters['excludeDelivery']) && $filters['excludeDelivery'] === 'true') {
-            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.service_method')) = 'In Store Pickup'");
-        }
-
-        return $query->get();
-    }
-
-    /**
      * Format data for rolling 30 days
      */
-    private function formatRolling30DaysData($data, $today)
+    private function formatRolling30DaysData(array $salesByDate, $today)
     {
-        $salesByDate = [];
-        
-        foreach ($data as $item) {
-            $date = $item->payment_date;
-            $amount = $item->total - $item->tax; // Exclude tax
-            
-            // If refunded, subtract the amount
-            if ($item->refund_amount > 0) {
-                $amount = -$amount;
-            }
-            
-            if (!isset($salesByDate[$date])) {
-                $salesByDate[$date] = 0;
-            }
-            $salesByDate[$date] += $amount;
-        }
-
         $result = [];
         // i=59 down to i=0: 60 data points where i=0 is today
         // current period  → i=0  to i=29 (today back 29 days = 30 days total)
@@ -1066,24 +663,8 @@ class SalesReportController extends Controller
     /**
      * Format data for 7 day comparison
      */
-    private function format7DayData($data, $today)
+    private function format7DayData(array $salesByDate, $today)
     {
-        $salesByDate = [];
-        
-        foreach ($data as $item) {
-            $date = $item->payment_date;
-            $amount = $item->total - $item->tax;
-            
-            if ($item->refund_amount > 0) {
-                $amount = -$amount;
-            }
-            
-            if (!isset($salesByDate[$date])) {
-                $salesByDate[$date] = 0;
-            }
-            $salesByDate[$date] += $amount;
-        }
-
         $result = [];
         for ($i = 14; $i >= 1; $i--) {
             $date = Carbon::parse($today)->subDays($i);
@@ -1102,24 +683,8 @@ class SalesReportController extends Controller
     /**
      * Format data for last month comparison
      */
-    private function formatLastMonthData($data, $lastMonthStart, $monthBeforeLastStart)
+    private function formatLastMonthData(array $salesByDate, $lastMonthStart, $monthBeforeLastStart)
     {
-        $salesByDate = [];
-        
-        foreach ($data as $item) {
-            $date = $item->payment_date;
-            $amount = $item->total - $item->tax;
-            
-            if ($item->refund_amount > 0) {
-                $amount = -$amount;
-            }
-            
-            if (!isset($salesByDate[$date])) {
-                $salesByDate[$date] = 0;
-            }
-            $salesByDate[$date] += $amount;
-        }
-
         $result = [];
         
         // Get number of days in last month (we'll use this as the basis)
@@ -1164,24 +729,8 @@ class SalesReportController extends Controller
     /**
      * Format data for this month comparison
      */
-    private function formatThisMonthData($data, $thisMonthStart, $lastMonthStart, $today)
+    private function formatThisMonthData(array $salesByDate, $thisMonthStart, $lastMonthStart, $today)
     {
-        $salesByDate = [];
-        
-        foreach ($data as $item) {
-            $date = $item->payment_date;
-            $amount = $item->total - $item->tax;
-            
-            if ($item->refund_amount > 0) {
-                $amount = -$amount;
-            }
-            
-            if (!isset($salesByDate[$date])) {
-                $salesByDate[$date] = 0;
-            }
-            $salesByDate[$date] += $amount;
-        }
-
         $result = [];
         
         // Get the current day of month (how many days into the month we are)
@@ -1219,24 +768,13 @@ class SalesReportController extends Controller
     /**
      * Format data for yearly comparison with monthly aggregation
      */
-    private function formatMonthlyData($data, $dateRange)
+    private function formatMonthlyData(array $salesByDate, $dateRange)
     {
         $salesByMonth = [];
-        
-        foreach ($data as $item) {
-            $date = Carbon::parse($item->payment_date);
-            $monthKey = $date->format('Y-m'); // e.g., "2024-01"
-            $amount = $item->total - $item->tax; // Exclude tax
-            
-            // If refunded, subtract the amount
-            if ($item->refund_amount > 0) {
-                $amount = -$amount;
-            }
-            
-            if (!isset($salesByMonth[$monthKey])) {
-                $salesByMonth[$monthKey] = 0;
-            }
-            $salesByMonth[$monthKey] += $amount;
+
+        foreach ($salesByDate as $dateStr => $amount) {
+            $monthKey = substr($dateStr, 0, 7); // e.g., "2024-01"
+            $salesByMonth[$monthKey] = ($salesByMonth[$monthKey] ?? 0) + $amount;
         }
 
         $result = [];
@@ -1373,26 +911,6 @@ class SalesReportController extends Controller
             default:
                 return [Carbon::now()->subDays(60), Carbon::now()->subDays(31)];
         }
-    }
-
-    /**
-     * Attributed Billing Engine revenue (extensions) for this stack's filters.
-     * Maps the React filter keys onto the shared attribution service so
-     * extension revenue appears under the parent rental's product/category.
-     */
-    private function billingAttributionRows(string $groupBy, $startDate, $endDate, array $filters): \Illuminate\Support\Collection
-    {
-        $normalize = fn ($v) => ($v === 'all' || $v === null || $v === '') ? null : $v;
-
-        return app(\App\Services\Reports\BillingRevenueAttributionService::class)->groupedRevenue($groupBy, [
-            'date_range' => 'custom',
-            'start_date' => $startDate->format('Y-m-d'),
-            'end_date'   => $endDate->format('Y-m-d'),
-            'store'      => $normalize($filters['store'] ?? null),
-            'category'   => $normalize($filters['category'] ?? null),
-            'product'    => $normalize($filters['product'] ?? null),
-            'item_type'  => $normalize($filters['itemType'] ?? null),
-        ]);
     }
 
     /**

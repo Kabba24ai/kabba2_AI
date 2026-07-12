@@ -21,7 +21,7 @@
                 <x-heroicon-o-bell-alert class="w-5 h-5 text-red-600" />
             </div>
             <div>
-                <h2 class="text-lg font-semibold text-gray-900">Alerts & Activities</h2>
+                <h2 class="text-lg font-semibold text-gray-900">Task Manager Alerts</h2>
                 <p class="text-sm text-gray-500">Team members with pending calls or tasks</p>
             </div>
         </div>

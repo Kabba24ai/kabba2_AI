@@ -279,4 +279,24 @@ class AlertLifecycleService
             ->distinct()
             ->count(DB::raw("CONCAT(source_type, '-', source_id)"));
     }
+
+    /**
+     * Distinct alert sources that left the queue during the CURRENT calendar
+     * week for the given alert type. The week runs Sunday 00:00 → Saturday
+     * 23:59:59 in the business timezone (resets each Sunday). Companion to the
+     * daily completedTodayCount; both count distinct sources, not raw rows.
+     */
+    public static function resolvedThisWeekCount(string $alertType): int
+    {
+        $storeTz = config('app.timezone') ?: 'UTC';
+        $start = Carbon::now(self::BUSINESS_TZ)->startOfWeek(Carbon::SUNDAY)->setTimezone($storeTz);
+        $end   = Carbon::now(self::BUSINESS_TZ)->endOfWeek(Carbon::SATURDAY)->setTimezone($storeTz);
+
+        return (int) AlertStatusTransition::query()
+            ->where('alert_type', $alertType)
+            ->whereIn('new_status', self::TERMINAL_STATUSES)
+            ->whereBetween('transitioned_at', [$start, $end])
+            ->distinct()
+            ->count(DB::raw("CONCAT(source_type, '-', source_id)"));
+    }
 }

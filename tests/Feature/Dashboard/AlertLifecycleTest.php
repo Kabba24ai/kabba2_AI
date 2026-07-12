@@ -287,6 +287,42 @@ class AlertLifecycleTest extends TestCase
         Carbon::setTestNow();
     }
 
+    /**
+     * Resolved This Week counts distinct sources within the current Sun–Sat
+     * calendar week (business tz); a transition from last week is excluded, and
+     * a transition earlier this week but not today counts for the week only.
+     */
+    public function test_resolved_this_week_uses_sunday_to_saturday_week(): void
+    {
+        // Anchor to a fixed instant; derive the week start (Sunday) from it.
+        Carbon::setTestNow(Carbon::parse('2026-07-15 12:00:00', 'America/Chicago'));
+        $weekStart = Carbon::now('America/Chicago')->startOfWeek(Carbon::SUNDAY);
+
+        // Earlier this week (day after Sunday), not today → counts for week, not today.
+        $thisWeek = $this->makeOrderProduct('fuel');
+        AlertStatusTransition::create([
+            'alert_type' => 'fuel', 'source_type' => 'order_product', 'source_id' => $thisWeek->id,
+            'previous_status' => 'pending', 'new_status' => 'resolved',
+            'idempotency_key' => "fuel:order_product:{$thisWeek->id}:c1",
+            'transitioned_at' => $weekStart->copy()->addDay()->setTime(9, 0),
+        ]);
+
+        // Last week (an hour before this week's Sunday) → excluded.
+        $lastWeek = $this->makeOrderProduct('fuel');
+        AlertStatusTransition::create([
+            'alert_type' => 'fuel', 'source_type' => 'order_product', 'source_id' => $lastWeek->id,
+            'previous_status' => 'pending', 'new_status' => 'completed',
+            'idempotency_key' => "fuel:order_product:{$lastWeek->id}:c1",
+            'transitioned_at' => $weekStart->copy()->subHour(),
+        ]);
+
+        $this->assertSame(1, AlertLifecycleService::resolvedThisWeekCount('fuel'));
+        // The mid-week transition is not "today" (test now is a later day).
+        $this->assertSame(0, AlertLifecycleService::completedTodayCount('fuel'));
+
+        Carbon::setTestNow();
+    }
+
     /** Completed Today counts DISTINCT sources, not raw rows. */
     public function test_completed_today_counts_distinct_sources(): void
     {

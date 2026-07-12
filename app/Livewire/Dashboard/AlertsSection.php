@@ -30,8 +30,8 @@ class AlertsSection extends Component
      * unavailable rather than reconstructed from ambiguous activity history
      * (deferred to a Phase 2 alert-lifecycle table). See render()/view.
      */
-    public array $fuelSummary   = ['outstanding' => 0, 'completed_today' => 0, 'new_today' => 0, 'avg_age_days' => 0];
-    public array $damageSummary = ['outstanding' => 0, 'completed_today' => 0, 'new_today' => 0, 'avg_age_days' => 0];
+    public array $fuelSummary   = ['outstanding' => 0, 'completed_today' => 0, 'resolved_this_week' => 0, 'new_today' => 0, 'avg_age_days' => 0];
+    public array $damageSummary = ['outstanding' => 0, 'completed_today' => 0, 'resolved_this_week' => 0, 'new_today' => 0, 'avg_age_days' => 0];
 
     public function refreshAlerts()
     {
@@ -371,12 +371,14 @@ class AlertsSection extends Component
         }
 
         return [
-            'outstanding'     => $outstanding,
+            'outstanding'        => $outstanding,
             // Completed Today: distinct alert sources that left the queue today
-            // (business tz), from the canonical lifecycle log.
-            'completed_today' => AlertLifecycleService::completedTodayCount($alertType),
-            'new_today'       => $newToday,
-            'avg_age_days'    => $avgAgeDays,
+            // (business tz). Resolved This Week: same, for the current Sun–Sat
+            // calendar week. Both from the canonical lifecycle log.
+            'completed_today'    => AlertLifecycleService::completedTodayCount($alertType),
+            'resolved_this_week' => AlertLifecycleService::resolvedThisWeekCount($alertType),
+            'new_today'          => $newToday,
+            'avg_age_days'       => $avgAgeDays,
         ];
     }
 

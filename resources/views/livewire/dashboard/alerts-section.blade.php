@@ -18,6 +18,7 @@
         action-label="Resolve Fuel Charges"
         :outstanding="$fuelSummary['outstanding'] ?? 0"
         :completed-today="$fuelSummary['completed_today'] ?? 0"
+        :resolved-this-week="$fuelSummary['resolved_this_week'] ?? 0"
         :new-today="$fuelSummary['new_today'] ?? 0"
         :avg-age-days="$fuelSummary['avg_age_days'] ?? 0">
         <x-slot:icon>
@@ -34,9 +35,10 @@
         chart-id="damage-charge-donut"
         action-class="bg-red-500 hover:bg-red-600"
         :href="route('admin.reports.calls-log.index') . '?tab=damage'"
-        action-label="Create Service Tickets"
+        action-label="Resolve Damage"
         :outstanding="$damageSummary['outstanding'] ?? 0"
         :completed-today="$damageSummary['completed_today'] ?? 0"
+        :resolved-this-week="$damageSummary['resolved_this_week'] ?? 0"
         :new-today="$damageSummary['new_today'] ?? 0"
         :avg-age-days="$damageSummary['avg_age_days'] ?? 0">
         <x-slot:icon>

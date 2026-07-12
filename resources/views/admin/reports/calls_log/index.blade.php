@@ -1126,5 +1126,15 @@ document.addEventListener('change', function (e) {
     document.getElementById('manual-contact-section').classList.toggle('hidden', isCustomer);
 });
 
+// Dashboard V2 Phase 1B — deep-link to a tab via ?tab=calls|fuel|damage.
+// Defaults to Calls when the parameter is missing or invalid; reading the
+// query string on every load means the selected tab survives a refresh.
+document.addEventListener('DOMContentLoaded', function () {
+    const requested = new URLSearchParams(window.location.search).get('tab');
+    if (TABS.includes(requested) && requested !== 'calls') {
+        switchTab(requested);
+    }
+});
+
 </script>
 @endpush

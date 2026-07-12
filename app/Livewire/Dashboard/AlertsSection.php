@@ -10,10 +10,27 @@ use Illuminate\Support\Facades\Log;
 use App\Helpers\ConfigurationHelper;
 use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 use App\Models\Orders\BillingCharge;
+use Carbon\Carbon;
 
 class AlertsSection extends Component
 {
+    /**
+     * Business day boundary + age are reported in the operational timezone,
+     * NOT UTC (Dashboard V2 Phase 1B).
+     */
+    private const BUSINESS_TZ = 'America/Chicago';
+
     protected $listeners = ['refreshAlerts'];
+
+    /**
+     * Canonical Charge Alerts summary payloads consumed by the dashboard cards.
+     * 'resolved' is intentionally null — there is no reliable terminal-status
+     * transition timestamp in the current schema, so the metric is rendered as
+     * unavailable rather than reconstructed from ambiguous activity history
+     * (deferred to a Phase 2 alert-lifecycle table). See render()/view.
+     */
+    public array $fuelSummary   = ['outstanding' => 0, 'resolved' => null, 'new_today' => 0, 'avg_age_days' => 0];
+    public array $damageSummary = ['outstanding' => 0, 'resolved' => null, 'new_today' => 0, 'avg_age_days' => 0];
 
     public function refreshAlerts()
     {
@@ -310,8 +327,47 @@ class AlertsSection extends Component
 
         $fuelChargeAlerts = $fuelChargeAlerts->concat($crmFuelCharges)->sortByDesc('_sort_ts')->values();
 
-        //  Send data to JS
-        $this->dispatch('alerts-updated', alerts: $alerts, fuelAlerts: $fuelChargeAlerts);
+        // Dashboard V2 Phase 1B — summarize the outstanding queues into the
+        // action-card metrics. Outstanding = the exact collections built above
+        // (unchanged inclusion/exclusion/dedup/CRM rules). New Today + Average
+        // Age use each item's queue-entry timestamp (_sort_ts = OrderProduct
+        // created_at, or CRM CustomerAccount date→created_at fallback), measured
+        // in the business timezone. Resolved stays null (unavailable).
+        $this->fuelSummary   = $this->summarize($fuelChargeAlerts);
+        $this->damageSummary = $this->summarize($alerts);
+    }
+
+    /**
+     * Reduce an outstanding-alert collection to the card metrics.
+     * New Today: queue-entry timestamp falls within today in BUSINESS_TZ.
+     * Average Age: mean(now - queue-entry timestamp) over outstanding items,
+     * whole days, 0 when the queue is empty. Resolved: null (unavailable).
+     */
+    private function summarize(\Illuminate\Support\Collection $collection): array
+    {
+        $todayStart = Carbon::now(self::BUSINESS_TZ)->startOfDay()->timestamp;
+        $now        = Carbon::now()->timestamp;
+
+        $outstanding = $collection->count();
+
+        $newToday = $collection->filter(
+            fn ($a) => (int) ($a['_sort_ts'] ?? 0) >= $todayStart
+        )->count();
+
+        $avgAgeDays = 0;
+        if ($outstanding > 0) {
+            $avgSeconds = $collection->avg(
+                fn ($a) => max(0, $now - (int) ($a['_sort_ts'] ?? $now))
+            );
+            $avgAgeDays = (int) round($avgSeconds / 86400);
+        }
+
+        return [
+            'outstanding'  => $outstanding,
+            'resolved'     => null, // Tracking not yet available (Phase 2)
+            'new_today'    => $newToday,
+            'avg_age_days' => $avgAgeDays,
+        ];
     }
 
     public function mount()

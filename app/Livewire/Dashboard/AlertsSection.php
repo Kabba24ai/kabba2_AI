@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Helpers\ConfigurationHelper;
 use App\Models\MaintenanceManagement\EquipmentSoftAssign;
 use App\Models\Orders\BillingCharge;
+use App\Services\AlertLifecycleService;
 use Carbon\Carbon;
 
 class AlertsSection extends Component
@@ -29,8 +30,8 @@ class AlertsSection extends Component
      * unavailable rather than reconstructed from ambiguous activity history
      * (deferred to a Phase 2 alert-lifecycle table). See render()/view.
      */
-    public array $fuelSummary   = ['outstanding' => 0, 'resolved' => null, 'new_today' => 0, 'avg_age_days' => 0];
-    public array $damageSummary = ['outstanding' => 0, 'resolved' => null, 'new_today' => 0, 'avg_age_days' => 0];
+    public array $fuelSummary   = ['outstanding' => 0, 'completed_today' => 0, 'new_today' => 0, 'avg_age_days' => 0];
+    public array $damageSummary = ['outstanding' => 0, 'completed_today' => 0, 'new_today' => 0, 'avg_age_days' => 0];
 
     public function refreshAlerts()
     {
@@ -333,8 +334,15 @@ class AlertsSection extends Component
         // Age use each item's queue-entry timestamp (_sort_ts = OrderProduct
         // created_at, or CRM CustomerAccount date→created_at fallback), measured
         // in the business timezone. Resolved stays null (unavailable).
-        $this->fuelSummary   = $this->summarize($fuelChargeAlerts);
-        $this->damageSummary = $this->summarize($alerts);
+        $this->fuelSummary   = $this->summarize($fuelChargeAlerts, 'fuel');
+        $this->damageSummary = $this->summarize($alerts, 'damage');
+
+        // Feed the donut canvases (wire:ignore) with fresh values on mount and
+        // on each 30s poll. Blade-rendered numbers refresh via the poll itself.
+        $this->dispatch('charge-alerts-updated', charts: [
+            'fuel-charge-donut'   => ['outstanding' => $this->fuelSummary['outstanding'],   'completed' => $this->fuelSummary['completed_today']],
+            'damage-charge-donut' => ['outstanding' => $this->damageSummary['outstanding'], 'completed' => $this->damageSummary['completed_today']],
+        ]);
     }
 
     /**
@@ -343,7 +351,7 @@ class AlertsSection extends Component
      * Average Age: mean(now - queue-entry timestamp) over outstanding items,
      * whole days, 0 when the queue is empty. Resolved: null (unavailable).
      */
-    private function summarize(\Illuminate\Support\Collection $collection): array
+    private function summarize(\Illuminate\Support\Collection $collection, string $alertType): array
     {
         $todayStart = Carbon::now(self::BUSINESS_TZ)->startOfDay()->timestamp;
         $now        = Carbon::now()->timestamp;
@@ -363,10 +371,12 @@ class AlertsSection extends Component
         }
 
         return [
-            'outstanding'  => $outstanding,
-            'resolved'     => null, // Tracking not yet available (Phase 2)
-            'new_today'    => $newToday,
-            'avg_age_days' => $avgAgeDays,
+            'outstanding'     => $outstanding,
+            // Completed Today: distinct alert sources that left the queue today
+            // (business tz), from the canonical lifecycle log.
+            'completed_today' => AlertLifecycleService::completedTodayCount($alertType),
+            'new_today'       => $newToday,
+            'avg_age_days'    => $avgAgeDays,
         ];
     }
 

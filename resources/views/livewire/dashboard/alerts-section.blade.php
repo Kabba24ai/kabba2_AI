@@ -1,21 +1,23 @@
 {{--
-    Charge Alerts summary cards (Dashboard V2 Phase 1B). Polls every 30s to
-    keep the outstanding/new-today/age metrics current, matching the previous
-    alert-list refresh cadence. Detailed records live on the dedicated Fuel /
-    Damage tabs of the Dash Reports page (deep-linked from each card).
+    Charge Alerts summary donut cards (Dashboard V2 Phase 1B). Polls every 30s;
+    Blade numbers refresh on poll and the donut canvases update via the
+    'charge-alerts-updated' browser event (see index.blade.php). Detailed
+    records live on the deep-linked Fuel / Damage tabs of the Dash Reports page.
 --}}
 <div wire:poll.30s="refreshAlerts" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
     {{-- Fuel Charge Alerts --}}
     <x-admin.dashboard.charge-alert-card
         title="Fuel Charge Alerts"
-        :subtitle="($fuelSummary['outstanding'] ?? 0) > 0 ? ($fuelSummary['outstanding'] . ' outstanding') : 'No outstanding fuel charges'"
+        subtitle="Fuel charges requiring resolution"
         icon-gradient="from-orange-500 to-orange-600"
+        accent-hex="#f97316"
+        chart-id="fuel-charge-donut"
         action-class="bg-orange-500 hover:bg-orange-600"
         :href="route('admin.reports.calls-log.index') . '?tab=fuel'"
         action-label="Resolve Fuel Charges"
         :outstanding="$fuelSummary['outstanding'] ?? 0"
-        :resolved="$fuelSummary['resolved'] ?? null"
+        :completed-today="$fuelSummary['completed_today'] ?? 0"
         :new-today="$fuelSummary['new_today'] ?? 0"
         :avg-age-days="$fuelSummary['avg_age_days'] ?? 0">
         <x-slot:icon>
@@ -26,13 +28,15 @@
     {{-- Damage Alerts --}}
     <x-admin.dashboard.charge-alert-card
         title="Damage Alerts"
-        :subtitle="($damageSummary['outstanding'] ?? 0) > 0 ? ($damageSummary['outstanding'] . ' outstanding') : 'No outstanding damage alerts'"
+        subtitle="Damage alerts requiring review"
         icon-gradient="from-red-500 to-red-600"
+        accent-hex="#ef4444"
+        chart-id="damage-charge-donut"
         action-class="bg-red-500 hover:bg-red-600"
         :href="route('admin.reports.calls-log.index') . '?tab=damage'"
         action-label="Create Service Tickets"
         :outstanding="$damageSummary['outstanding'] ?? 0"
-        :resolved="$damageSummary['resolved'] ?? null"
+        :completed-today="$damageSummary['completed_today'] ?? 0"
         :new-today="$damageSummary['new_today'] ?? 0"
         :avg-age-days="$damageSummary['avg_age_days'] ?? 0">
         <x-slot:icon>

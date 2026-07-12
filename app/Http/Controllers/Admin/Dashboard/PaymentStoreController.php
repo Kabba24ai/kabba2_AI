@@ -76,33 +76,9 @@ class PaymentStoreController extends Controller
 
             $record->save();
 
-// Mark damage as paid if this is a damage charge
-if (
-    ($validated['type'] ?? null) === 'damage'
-    && $orderProduct
-) {
-    $orderProduct->damage_status = 'completed';
-    $orderProduct->save();
-
-    Log::debug('OrderProduct damage status updated to Completed', [
-        'order_product_id' => $orderProduct->id,
-    ]);
-}
-
-
-
-// Mark damage as paid if this is a damage charge
-if (
-    ($validated['type'] ?? null) === 'fuel'
-    && $orderProduct
-) {
-    $orderProduct->fuel_charge_status = 'completed';
-    $orderProduct->save();
-
-    Log::debug('OrderProduct fuel status updated to Completed', [
-        'order_product_id' => $orderProduct->id,
-    ]);
-}
+            // OrderProduct completion (status + lifecycle) is performed under a
+            // row lock inside ChargeService::recordPayment below, within this
+            // same transaction — no separate/duplicate status write here.
 
             // Create CustomerAccount payment ledger entry and sync linked CA charge status
             if ($orderProduct) {
@@ -424,14 +400,16 @@ if (
                 }
             }
 
-            // Mark the original CRM charge as completed so it disappears from alerts
+            // Mark the original CRM charge completed under a row lock and record
+            // the lifecycle transition (pure-CRM only) atomically within this
+            // transaction. Only the alert type actually pending on this account
+            // applies; a CA charge is either a Fuel Charge or a Damages charge.
             if ($chargeAccount->fuel_alert_status === 'pending') {
-                $chargeAccount->fuel_alert_status = 'completed';
+                \App\Services\AlertLifecycleService::transitionCustomerAccount((int) $chargeAccount->id, 'fuel', 'completed', auth()->id());
             }
             if ($chargeAccount->damage_alert_status === 'pending') {
-                $chargeAccount->damage_alert_status = 'completed';
+                \App\Services\AlertLifecycleService::transitionCustomerAccount((int) $chargeAccount->id, 'damage', 'completed', auth()->id());
             }
-            $chargeAccount->save();
 
             // If this payment is for a specific billing charge, mark it paid
             if (! empty($validated['billing_charge_unique_id'])) {

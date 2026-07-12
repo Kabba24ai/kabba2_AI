@@ -10,6 +10,7 @@ use App\Models\Orders\OrderExtraCharges;
 use App\Models\Orders\OrderProduct;
 use App\Models\Iam\Personnel\User;
 use App\Events\Admin\Orders\OrderExtraChargeEvent;
+use App\Services\AlertLifecycleService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -138,9 +139,9 @@ class ChargeService
 
         LedgerBalanceService::applyTransaction($payment);
 
-        // Mark the OrderProduct status as completed
-        $orderProduct->$statusField = OrderProductChargeStatus::Completed->value;
-        $orderProduct->save();
+        // Mark the OrderProduct completed under a row lock and record the
+        // lifecycle transition atomically (caller runs inside a transaction).
+        AlertLifecycleService::transitionOrderProduct((int) $orderProduct->id, $type, 'completed', $responsibleUserId);
 
         // Mark any linked CA charge record as completed so it disappears from alerts
         CustomerAccount::where('order_product_id', $orderProduct->id)
@@ -168,15 +169,17 @@ class ChargeService
         string $resolutionNote,
         int $resolvedByUserId
     ): void {
-        $order       = $orderProduct->order ?? $orderProduct->load('order')->order;
         $reason      = $type === 'fuel' ? 'Fuel Charge' : 'Damages';
         $alertField  = $type === 'fuel' ? 'fuel_alert_status' : 'damage_alert_status';
-        $statusField = $type === 'fuel' ? 'fuel_charge_status' : 'damage_status';
         $user        = User::find($resolvedByUserId);
 
-        // Mark OP status
-        $orderProduct->$statusField = OrderProductChargeStatus::Resolved->value;
-        $orderProduct->save();
+        // Lock the OrderProduct, mark it resolved, and record the lifecycle
+        // transition atomically. Skip safely if it already left the queue.
+        $orderProduct = AlertLifecycleService::transitionOrderProduct((int) $orderProduct->id, $type, 'resolved', $resolvedByUserId);
+        if (! $orderProduct) {
+            return;
+        }
+        $order = $orderProduct->order ?? $orderProduct->load('order')->order;
 
         // Mark linked CA charge records as resolved and create reversal entries
         $chargeRecords = CustomerAccount::where('order_product_id', $orderProduct->id)
@@ -233,10 +236,13 @@ class ChargeService
     ): void {
         $reason      = $type === 'fuel' ? 'Fuel Charge' : 'Damages';
         $alertField  = $type === 'fuel' ? 'fuel_alert_status' : 'damage_alert_status';
-        $statusField = $type === 'fuel' ? 'fuel_charge_status' : 'damage_status';
 
-        $orderProduct->$statusField = OrderProductChargeStatus::Uncollectible->value;
-        $orderProduct->save();
+        // Lock the OrderProduct, mark it uncollectible, and record the lifecycle
+        // transition atomically. Skip safely if it already left the queue.
+        $orderProduct = AlertLifecycleService::transitionOrderProduct((int) $orderProduct->id, $type, 'uncollectible', $markedByUserId);
+        if (! $orderProduct) {
+            return;
+        }
 
         CustomerAccount::where('order_product_id', $orderProduct->id)
             ->where('type', 'charge')

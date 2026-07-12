@@ -349,6 +349,89 @@ document.addEventListener('livewire:init', () => {
 });
 
 
+/* ── Charge Alerts donut charts (Dashboard V2 Phase 1B) ───────────────────
+   One ApexCharts donut per card (Outstanding vs Completed Today). Canvases
+   are wire:ignore, so we own their lifecycle: render once, then updateSeries
+   on the 30s poll WITHOUT re-animating. Instances are cached by element id so
+   Livewire refreshes never leak duplicate charts/canvases. */
+window.chargeDonuts = window.chargeDonuts || {};
+
+function buildChargeDonutSeries(outstanding, completed) {
+    const empty = (outstanding + completed) === 0;
+    return {
+        empty,
+        series: empty ? [1] : [outstanding, completed],
+    };
+}
+
+function renderChargeDonut(id) {
+    const el = document.getElementById(id);
+    if (!el || typeof ApexCharts === 'undefined') return;
+
+    const outstanding = parseInt(el.dataset.outstanding || '0', 10);
+    const completed   = parseInt(el.dataset.completed || '0', 10);
+    const accent      = el.dataset.color || '#f97316';
+    const { empty, series } = buildChargeDonutSeries(outstanding, completed);
+
+    // Rebuild cleanly if one already exists for this id.
+    if (window.chargeDonuts[id]) {
+        try { window.chargeDonuts[id].destroy(); } catch (e) {}
+        delete window.chargeDonuts[id];
+    }
+
+    const chart = new ApexCharts(el, {
+        chart: { type: 'donut', height: 200, animations: { enabled: true } },
+        series: series,
+        labels: empty ? ['No Active Alerts'] : ['Outstanding', 'Completed Today'],
+        colors: empty ? ['#e5e7eb'] : [accent, '#d1d5db'],
+        legend: { show: false },
+        dataLabels: { enabled: false },
+        stroke: { width: 0 },
+        plotOptions: { pie: { donut: { size: '72%' } } },
+        tooltip: { enabled: !empty },
+        states: { hover: { filter: { type: 'none' } }, active: { filter: { type: 'none' } } },
+    });
+    chart.render();
+    window.chargeDonuts[id] = chart;
+}
+
+function updateChargeDonut(id, outstanding, completed) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Keep data attrs current (used for first render / re-render).
+    el.dataset.outstanding = outstanding;
+    el.dataset.completed = completed;
+
+    const chart = window.chargeDonuts[id];
+    if (!chart) { renderChargeDonut(id); return; }
+
+    const { empty, series } = buildChargeDonutSeries(outstanding, completed);
+    // A change to/from the empty state changes label/color/tooltip config, so
+    // re-render; otherwise just swap series without a distracting re-animation.
+    const wasEmpty = chart.w?.config?.series?.length === 1
+        && chart.w?.config?.labels?.[0] === 'No Active Alerts';
+    if (empty !== wasEmpty) {
+        renderChargeDonut(id);
+    } else {
+        chart.updateSeries(series, false);
+    }
+}
+
+document.addEventListener('livewire:init', () => {
+    // Initial render from server-rendered data attributes.
+    renderChargeDonut('fuel-charge-donut');
+    renderChargeDonut('damage-charge-donut');
+
+    // Live updates on mount dispatch + every poll.
+    Livewire.on('charge-alerts-updated', (payload) => {
+        const charts = (payload && (payload.charts ?? (Array.isArray(payload) ? payload[0]?.charts : null))) || {};
+        Object.keys(charts).forEach((id) => {
+            updateChargeDonut(id, charts[id].outstanding || 0, charts[id].completed || 0);
+        });
+    });
+});
+
+
 
 
 

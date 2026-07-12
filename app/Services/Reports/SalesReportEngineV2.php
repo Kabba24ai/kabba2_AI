@@ -119,13 +119,46 @@ class SalesReportEngineV2
             'netSales'               => $netSales,
             'previousNetSales'       => $previousNetSales,
             'dailyNetAverage'        => $days > 0 ? round($netSales / $days, 2) : 0,
-            'growthRate'             => $previousNetSales > 0
-                ? round((($netSales - $previousNetSales) / $previousNetSales) * 100, 1)
-                : 0,
+            'growthRate'             => $this->growthRate($netSales, $previousNetSales),
             'netSalesPerTransaction' => $currentSnapshot['transaction_count'] > 0
                 ? round($netSales / $currentSnapshot['transaction_count'], 2)
                 : 0,
         ];
+    }
+
+    /**
+     * Net-sales comparison between the current filter window and an EXPLICIT
+     * previous window (e.g. a specific calendar month), rather than trendData()'s
+     * default immediately-preceding equal-length window. Reusable by any report
+     * that needs a bespoke comparison period. All figures — including the growth
+     * rate — are computed here in the canonical layer via snapshot().
+     *
+     * @return array{netSales: float, previousNetSales: float, growthRate: float}
+     */
+    public function periodComparison(array $filters, string $previousStartDate, string $previousEndDate): array
+    {
+        [$start, $end] = $this->reporting->resolveDateRange($filters);
+        $netSales = ($start && $end) ? $this->snapshot($filters, $start, $end)['net_sales'] : 0.0;
+
+        $previousNetSales = $this->netSalesForPeriod($previousStartDate, $previousEndDate, $filters);
+
+        return [
+            'netSales'         => $netSales,
+            'previousNetSales' => $previousNetSales,
+            'growthRate'       => $this->growthRate($netSales, $previousNetSales),
+        ];
+    }
+
+    /**
+     * The ONE growth-rate formula. Percentage change of net sales vs a previous
+     * period; 0 when there is no previous baseline. Used by trendData() and
+     * periodComparison() so growth is defined in exactly one place.
+     */
+    private function growthRate(float $netSales, float $previousNetSales): float
+    {
+        return $previousNetSales > 0
+            ? round((($netSales - $previousNetSales) / $previousNetSales) * 100, 1)
+            : 0;
     }
 
     // ─── Private: Revenue Snapshot ────────────────────────────────────────────

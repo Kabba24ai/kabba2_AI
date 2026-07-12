@@ -35,16 +35,10 @@
             <livewire:dashboard.alerts-section />
         </div>
 
-        <!-- Section 3: Sales Trend Analysis -->
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-300">
-             @include('admin.dashboard.partials._sales_trend_analysis')
+        <!-- Section 4: Financial Overview (Dashboard V2 Phase 3) -->
+        <div class="mb-6">
+            @include('admin.dashboard.partials._financial_overview')
         </div>
-
-        <!-- Section 4: Maintenance & Damaged Items Tracking -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
-            @include('admin.dashboard.partials._maintenance_and_damaged')
-        </div>
-    <livewire:dashboard.maintenance-charts />
     </div>
 
 @endsection
@@ -67,8 +61,6 @@ const salesDataFromServer = @json($salesData);
 
     window.AUTH_USER_ID = {{ auth()->id() }};
 
-    window.chartData = @json($chartData);
-
 /**
  * Vanilla JavaScript Dashboard Controller
  * Replaces Alpine.js completely.
@@ -84,8 +76,6 @@ const salesDataFromServer = @json($salesData);
 
             // charts
             this.salesChart = null;
-            this.maintenanceChart = null;
-            this.damagedChart = null;
 
             // initialize
             this.init();
@@ -98,24 +88,20 @@ const salesDataFromServer = @json($salesData);
      *      COMPUTED METRICS
      --------------------------*/
     get currentMetrics() {
+        // Values are pre-computed by the canonical Sales Reporting Engine
+        // (see App\Services\Dashboard\DashboardFinancialPresenter). No financial
+        // math is performed here — the dashboard only displays canonical output.
         const data = salesDataFromServer[this.salesPeriod];
-        const totalSales = data.totalSales || 0;
-        const previousTotalSales = data.previousTotalSales || 0;
-        const growthRate =
-            previousTotalSales > 0
-                ? ((totalSales - previousTotalSales) / previousTotalSales) * 100
-                : 0;
-
-        const dailyAverage =
-            this.salesPeriod === "rolling30"
-                ? totalSales / 30
-                : totalSales / data.current.length;
-
-        return { totalSales, previousTotalSales, growthRate, dailyAverage };
+        return {
+            totalSales: data.totalSales || 0,
+            previousTotalSales: data.previousTotalSales || 0,
+            growthRate: data.growthRate || 0,
+            dailyAverage: data.dailyAverage || 0,
+        };
     }
 
     updatePeriodButtons() {
-        const periods = ["rolling30", "currentMonth", "lastMonth"];
+        const periods = ["rolling30", "mtd", "lastMonth"];
 
         periods.forEach(period => {
             const btn = document.getElementById(`btn-${period}`);
@@ -135,8 +121,6 @@ const salesDataFromServer = @json($salesData);
      --------------------------*/
     init() {
         this.initSalesChart();
-        this.initMaintenanceChart();
-        this.initDamagedChart();
 
         this.updateSalesMetrics();
         this.updatePeriodButtons();
@@ -264,71 +248,6 @@ const salesDataFromServer = @json($salesData);
         ]);
     }
 
-    initMaintenanceChart() {
-        const el = document.getElementById("maintenanceChart");
-        if (!el) return;
-
-        this.maintenanceChart = new ApexCharts(el, {
-            series: [
-                { name: "Due", data: window.chartData.maintenance.due },
-                { name: "Completed", data:  window.chartData.maintenance.completed },
-            ], 
-            xaxis: {
-                categories: window.chartData.labels,
-            },
-            chart: { height: 300, type: "line", toolbar: { show: false } },
-        });
-
-        this.maintenanceChart.render();
-    }
-
-    initDamagedChart() {
-        const el = document.getElementById("damagedChart");
-        if (!el) return;
-
-        this.damagedChart = new ApexCharts(el, {
-            series: [
-                { name: "Due", data: window.chartData.damaged.due },
-                { name: "Completed", data: window.chartData.damaged.completed },
-            ],
-             xaxis: {
-                categories: window.chartData.labels,
-            },
-            chart: { height: 300, type: "line", toolbar: { show: false } },
-        });
-
-        this.damagedChart.render();
-    }
-
-
-
-    updateMaintenanceChart(chartData) {
-    if (!this.maintenanceChart) return;
-
-        this.maintenanceChart.updateOptions({
-            xaxis: { categories: chartData.labels }
-        });
-
-        this.maintenanceChart.updateSeries([
-            { name: "Due", data: chartData.maintenance.due },
-            { name: "Completed", data: chartData.maintenance.completed },
-        ]);
-    }
-
-    updateDamagedChart(chartData) {
-        if (!this.damagedChart) return;
-
-        this.damagedChart.updateOptions({
-            xaxis: { categories: chartData.labels }
-        });
-
-        this.damagedChart.updateSeries([
-            { name: "Due", data: chartData.damaged.due },
-            { name: "Completed", data: chartData.damaged.completed },
-        ]);
-    }
-
-
 }
 
 
@@ -338,15 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 });
 
-
-document.addEventListener('livewire:init', () => {
-    Livewire.on('maintenance-charts-updated', ({ chartData }) => {
-        if (!window.dashboardApp) return;
-
-        window.dashboardApp.updateMaintenanceChart(chartData);
-        window.dashboardApp.updateDamagedChart(chartData);
-    });
-});
 
 
 /* ── Charge Alerts donut charts (Dashboard V2 Phase 1B) ───────────────────

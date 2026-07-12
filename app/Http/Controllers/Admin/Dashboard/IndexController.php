@@ -41,7 +41,7 @@ class IndexController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, \App\Services\Dashboard\DashboardFinancialPresenter $financial)
     {
 
         $damagedOrderAlerts = EquipmentSoftAssign::with([
@@ -341,10 +341,14 @@ class IndexController extends Controller
 
         $fuelChargeAlerts = $fuelChargeAlerts->concat($crmFuelCharges)->sortByDesc('_sort_ts')->values();
 
-            // Get sales data for different periods
-        $salesData = $this->getSalesData();
-
-        $chartData = $this->getMaintenanceChartData();
+        // Financial Overview (Dashboard V2 Phase 3): every value below comes
+        // from the canonical Sales Reporting Engine via the thin presenter.
+        $salesData           = $financial->salesData();
+        $topProducts         = $financial->topProducts();
+        $topCategories       = $financial->topCategories();
+        $salesByStore        = $financial->salesByStore();
+        $employeePerformance = $financial->employeePerformance();
+        $reportRoutes        = $financial->reportRoutes();
 
         $users = User::active()->orderBy('first_name')->get();
 
@@ -402,7 +406,7 @@ class IndexController extends Controller
         $statuses   = TaskStatus::cases();
         ['productCategories' => $productCategories, 'equipmentList' => $equipmentList] = $this->getEquipmentDataForDashboard();
 
-        return view('admin.dashboard.index', compact('salesData','customers','suppliers','damagedOrderAlerts','chartData','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets','fuelNotePresets','sales_tax','teamWorkload','categories','priorities','statuses','productCategories','equipmentList'));
+        return view('admin.dashboard.index', compact('salesData','topProducts','topCategories','salesByStore','employeePerformance','reportRoutes','customers','suppliers','damagedOrderAlerts','users','paymentSetting','fuelChargeAlerts','pendingCount','overdueCount','overdueOrderCount','resolutionPresets','fuelNotePresets','sales_tax','teamWorkload','categories','priorities','statuses','productCategories','equipmentList'));
 
     }
 
@@ -470,269 +474,6 @@ class IndexController extends Controller
     }
 
 
-        private function getMaintenanceChartData()
-        {
-           $days = collect(range(13, 0))->map(fn ($i) =>
-            Carbon::today()->subDays($i)->toDateString()
-        );
-
-        $maintenanceDue = [];
-        $maintenanceCompleted = [];
-        $damagedDue = [];
-        $damagedCompleted = [];
-
-        foreach ($days as $day) {
-
-            //  IF TODAY → USE DASHBOARD LOGIC
-            if ($day === Carbon::today()->toDateString()) {
-
-                $maintenanceDue[] = Equipment::where('current_status', EquipmentCurrentStatus::Maintenance)
-                    ->where('not_for_rent', 0)
-                    ->whereNull('deleted_at')
-                    ->count();
-
-                $maintenanceCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                    ->where('from_status', EquipmentCurrentStatus::Maintenance->value)
-                    ->whereIn('to_status', [
-                        EquipmentCurrentStatus::Available->value,
-                        EquipmentCurrentStatus::Rented->value,
-                    ])
-                    ->count();
-
-                $damagedDue[] = Equipment::where('current_status', EquipmentCurrentStatus::Damaged)
-                    ->where('not_for_rent', 0)
-                    ->whereNull('deleted_at')
-                    ->count();
-
-                $damagedCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                    ->where('from_status', EquipmentCurrentStatus::Damaged->value)
-                    ->whereIn('to_status', [
-                        EquipmentCurrentStatus::Available->value,
-                        EquipmentCurrentStatus::Rented->value,
-                    ])
-                    ->count();
-
-                continue;
-            }
-
-            //  OTHER DAYS → KEEP YOUR EXISTING LOGIC
-            $maintenanceDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                ->where('to_status', EquipmentCurrentStatus::Maintenance->value)
-                ->count();
-
-            $maintenanceCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                ->where('from_status', EquipmentCurrentStatus::Maintenance->value)
-                ->whereIn('to_status', [
-                    EquipmentCurrentStatus::Available->value,
-                    EquipmentCurrentStatus::Rented->value,
-                ])
-                ->count();
-
-            $damagedDue[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                ->where('to_status', EquipmentCurrentStatus::Damaged->value)
-                ->count();
-
-            $damagedCompleted[] = EquipmentStatusLog::whereDate('changed_at', $day)
-                ->where('from_status', EquipmentCurrentStatus::Damaged->value)
-                ->whereIn('to_status', [
-                    EquipmentCurrentStatus::Available->value,
-                    EquipmentCurrentStatus::Rented->value,
-                ])
-                ->count();
-        }
-
-        return [
-            'labels' => collect($days)->map(fn ($d) => CustomHelper::formatDate($d)),
-            'maintenance' => [
-                'due' => $maintenanceDue,
-                'completed' => $maintenanceCompleted,
-            ],
-            'damaged' => [
-                'due' => $damagedDue,
-                'completed' => $damagedCompleted,
-            ],
-        ];
-        }
-
-
-
-    /**
-     * Get sales data grouped by different periods
-     */
-    private function getSalesData()
-    {
-        $now = Carbon::now();
-
-        // Rolling 30 days data
-        $rolling30Days = $this->getRolling30DaysData($now);
-
-        // Current month data
-        $currentMonth = $this->getCurrentMonthData($now);
-
-        // Last month data
-        $lastMonth = $this->getLastMonthData($now);
-
-        return [
-            'rolling30' => $rolling30Days,
-            'currentMonth' => $currentMonth,
-            'lastMonth' => $lastMonth,
-        ];
-    }
-
-    private function getRolling30DaysData($now)
-{
-    $endDate = $now->copy()->endOfDay();
-    $startDate = $now->copy()->subDays(29)->startOfDay();
-
-    // ---------- CURRENT PERIOD ----------
-    $currentRows = $this->getRevenueRows($startDate, $endDate);
-
-    $currentPeriodData = $currentRows
-        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
-        ->map(fn ($items) => $items->sum('grand_total'))
-        ->toArray();
-
-    // ---------- PREVIOUS PERIOD ----------
-    $prevEndDate = $startDate->copy()->subDay()->endOfDay();
-    $prevStartDate = $prevEndDate->copy()->subDays(29)->startOfDay();
-
-    $previousRows = $this->getRevenueRows($prevStartDate, $prevEndDate);
-
-    $previousPeriodData = $previousRows
-        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
-        ->map(fn ($items) => $items->sum('grand_total'))
-        ->toArray();
-
-    // ---------- BUILD OUTPUT ----------
-    $categories = [];
-    $currentData = [];
-    $previousData = [];
-
-    for ($i = 0; $i < 30; $i++) {
-        $date = $startDate->copy()->addDays($i);
-        $dateStr = $date->format('Y-m-d');
-
-        $categories[] = CustomHelper::formatDate($date);
-
-        $currentData[] = (float) ($currentPeriodData[$dateStr] ?? 0);
-
-        $prevDate = $prevStartDate->copy()->addDays($i);
-        $previousData[] = (float) ($previousPeriodData[$prevDate->format('Y-m-d')] ?? 0);
-    }
-
-    return [
-        'categories' => $categories,
-        'current' => $currentData,
-        'previous' => $previousData,
-        'totalSales' => array_sum($currentData),
-        'previousTotalSales' => array_sum($previousData),
-    ];
-}
-
-
-
-private function getCurrentMonthData($now)
-{
-    $startDate = $now->copy()->startOfMonth()->startOfDay();
-    $endDate   = $now->copy()->endOfMonth()->endOfDay();
-
-    // ---------- CURRENT PERIOD ----------
-    $currentRows = $this->getRevenueRows($startDate, $endDate);
-
-    $currentPeriodData = $currentRows
-        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
-        ->map(fn ($items) => $items->sum('grand_total'))
-        ->toArray();
-
-    // ---------- PREVIOUS PERIOD (last month) ----------
-    $prevStart = $startDate->copy()->subMonth()->startOfMonth();
-    $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
-
-    $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
-
-    $previousPeriodData = $previousRows
-        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
-        ->map(fn ($items) => $items->sum('grand_total'))
-        ->toArray();
-
-    // ---------- BUILD OUTPUT ----------
-    $daysInMonth = $startDate->daysInMonth;
-
-    $categories = [];
-    $currentData = [];
-    $previousData = [];
-
-    for ($i = 0; $i < $daysInMonth; $i++) {
-        $date = $startDate->copy()->addDays($i);
-        $dateStr = $date->format('Y-m-d');
-
-        $categories[] = CustomHelper::formatDate($date);
-        $currentData[] = (float) ($currentPeriodData[$dateStr] ?? 0);
-
-        $prevDate = $prevStart->copy()->addDays($i);
-        $previousData[] = (float) ($previousPeriodData[$prevDate->format('Y-m-d')] ?? 0);
-    }
-
-    return [
-        'categories' => $categories,
-        'current' => $currentData,
-        'previous' => $previousData,
-        'totalSales' => array_sum($currentData),
-        'previousTotalSales' => array_sum($previousData),
-    ];
-}
-
-
-private function getLastMonthData($now)
-{
-    $startDate = $now->copy()->subMonth()->startOfMonth()->startOfDay();
-    $endDate   = $now->copy()->subMonth()->endOfMonth()->endOfDay();
-
-    // ---------- CURRENT PERIOD ----------
-    $currentRows = $this->getRevenueRows($startDate, $endDate);
-
-    $currentPeriodData = $currentRows
-        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
-        ->map(fn ($items) => $items->sum('grand_total'))
-        ->toArray();
-
-    // ---------- PREVIOUS PERIOD (two months ago) ----------
-    $prevStart = $startDate->copy()->subMonth()->startOfMonth();
-    $prevEnd   = $startDate->copy()->subMonth()->endOfMonth();
-
-    $previousRows = $this->getRevenueRows($prevStart, $prevEnd);
-
-    $previousPeriodData = $previousRows
-        ->groupBy(fn ($row) => Carbon::parse($row->date)->format('Y-m-d'))
-        ->map(fn ($items) => $items->sum('grand_total'))
-        ->toArray();
-
-    // ---------- BUILD OUTPUT ----------
-    $daysInMonth = $startDate->daysInMonth;
-
-    $categories = [];
-    $currentData = [];
-    $previousData = [];
-
-    for ($i = 0; $i < $daysInMonth; $i++) {
-        $date = $startDate->copy()->addDays($i);
-        $dateStr = $date->format('Y-m-d');
-
-        $categories[] = CustomHelper::formatDate($date);
-        $currentData[] = (float) ($currentPeriodData[$dateStr] ?? 0);
-
-        $prevDate = $prevStart->copy()->addDays($i);
-        $previousData[] = (float) ($previousPeriodData[$prevDate->format('Y-m-d')] ?? 0);
-    }
-
-    return [
-        'categories' => $categories,
-        'current' => $currentData,
-        'previous' => $previousData,
-        'totalSales' => array_sum($currentData),
-        'previousTotalSales' => array_sum($previousData),
-    ];
-}
 
 
 
@@ -781,79 +522,6 @@ private function getLastMonthData($now)
 
 
 
-private function getRevenueRows(Carbon $start, Carbon $end)
-{
-    // ORDERS (same rules as Sales Tax)
-    $orders = Order::with(['payments'])->whereBetween('order_date', [$start, $end])
-        // ->whereRelation('lastPayment', 'payment_method', '!=', 'COD')
-        ->whereHas('lastPayment', function ($q) {
-                $q->where('payment_method', '!=', 'COD')
-                ->orWhere(function ($q) {
-                    $q->where('payment_method', 'COD')
-                        ->where('status', 'Paid');
-                });
-            })
-        ->whereRelation('lastPayment', 'payment_method', '!=', 'Account')
-        ->get();
-        // ->map(fn ($order) => (object) [
-        //     'date' => $order->order_date,
-        //     'grand_total' => (float) $order->grand_total,
-        // ]);
-
-         $orderRows = $orders->map(fn ($order) => (object) [
-        'date' => $order->order_date,
-        'grand_total' => (float) $order->subtotal,
-        ]);
-
-        $orderRefundedPayments = $orders->flatMap(function ($order) {
-        return $order->payments
-            ->filter(function ($payment) {
-                return in_array($payment->status?->value ?? $payment->status, [
-                    'Refunded',
-                    'Partial Refund',
-                ]);
-            })
-            ->map(function ($payment) use ($order) {
-                return (object) [
-                    'date' => $payment->refunded_at
-                        ?? $payment->payment_datetime
-                        ?? $payment->created_at
-                        ?? $order->order_date,
-                    'grand_total' => -((float) $payment->refund_amount),
-                ];
-            });
-    });
-
-    // PAYMENT ACCOUNTS (same rules as Sales Tax)
-    $payments = Customer::with('paymentAccounts')
-        ->get()
-        ->pluck('paymentAccounts')
-        ->flatten()
-        ->filter(fn ($p) => $p->date >= $start && $p->date <= $end)
-        // ->map(fn ($p) => (object) [
-        //     'date' => $p->date,
-        //     'grand_total' => (float) $p->amount,
-        // ]);
-
-        ->map(function ($p) {
-            $amount = (float) $p->amount;
-            $salesTaxRate = (float) $p->sales_tax;
-
-            // Formula sourced from TaxCalculationService — see Financial Engine Phase 2.3.
-            // amount is tax-inclusive for payment rows, so the base is extracted via
-            // division, not multiplication (the confirmed bug this phase corrects).
-            $baseAmount = TaxCalculationService::extractBaseFromInclusiveAmountRaw($amount, $salesTaxRate);
-
-            return (object) [
-                'date' => $p->date,
-                'grand_total' => $baseAmount,
-            ];
-        });
-
-      return $orderRows
-        ->concat($orderRefundedPayments)
-        ->concat($payments);
-}
 
 private function getTeamWorkloadSummary(): Collection
 {

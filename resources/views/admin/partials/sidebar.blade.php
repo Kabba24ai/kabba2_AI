@@ -481,6 +481,16 @@
                                                     Employee Performance
                                                 </a>
                                             </li>
+
+                                            {{-- Delivery Performance --}}
+                                            <li>
+                                                <a href="{{ route('admin.reports.sales-reports.delivery-performance.index') }}"
+                                                    class="menu-dropdown-item group
+                                                    {{ Route::is('admin.reports.sales-reports.delivery-performance.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                    <x-heroicon-o-truck class="w-5 h-5" />
+                                                    Delivery Performance
+                                                </a>
+                                            </li>
                                         </ul>
                                     </div>
                                 </li>

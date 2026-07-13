@@ -54,8 +54,12 @@ return new class extends Migration {
         // included category into the profile's checklist.
         Schema::create('service_symptom_profile_categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_symptom_profile_id')->constrained('service_symptom_profiles')->cascadeOnDelete();
-            $table->foreignId('service_symptom_category_id')->constrained('service_symptom_categories')->cascadeOnDelete();
+            $table->foreignId('service_symptom_profile_id')
+                ->constrained('service_symptom_profiles', indexName: 'symptom_profile_categories_profile_id_foreign')
+                ->cascadeOnDelete();
+            $table->foreignId('service_symptom_category_id')
+                ->constrained('service_symptom_categories', indexName: 'symptom_profile_categories_category_id_foreign')
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->unique(['service_symptom_profile_id', 'service_symptom_category_id'], 'symptom_profile_category_unique');
         });
@@ -67,7 +71,9 @@ return new class extends Migration {
         // blocks adding a parent_profile_id later.
         Schema::create('service_symptom_profile_symptoms', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_symptom_profile_id')->constrained('service_symptom_profiles')->cascadeOnDelete();
+            $table->foreignId('service_symptom_profile_id')
+                ->constrained('service_symptom_profiles', indexName: 'symptom_profile_symptoms_profile_id_foreign')
+                ->cascadeOnDelete();
             $table->foreignId('service_symptom_id')->constrained('service_symptoms')->cascadeOnDelete();
             $table->string('mode');
             $table->timestamps();

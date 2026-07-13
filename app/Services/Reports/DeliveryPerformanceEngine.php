@@ -35,7 +35,6 @@ class DeliveryPerformanceEngine
             'kpis'    => $this->kpis($drivers),
             'drivers' => $drivers,
             'funnel'  => $this->stepFunnel($start, $end, $storeId),
-            'flagged' => $this->flaggedQuestions($start, $end, $storeId),
         ];
     }
 
@@ -266,56 +265,5 @@ class DeliveryPerformanceEngine
             'return_checklist'   => (clone $base)->where('order_products.is_returned', 1)->count(),
             'return_video'       => $hasMedia($base, 'pickup', 'order_product_id'),
         ];
-    }
-
-    // ─── Private: Flagged checklist questions ──────────────────────────────────
-
-    /**
-     * Top 10 checklist questions most often answered with a flagged
-     * (is_damaged) response during delivery or return, grouped by category.
-     */
-    private function flaggedQuestions(?\Carbon\Carbon $start, ?\Carbon\Carbon $end, ?int $storeId): array
-    {
-        $query = DB::table('order_product_checklist_question_answers as a')
-            ->join('order_product_checklist_questions as q', 'q.id', '=', 'a.order_product_checklist_question_id')
-            ->join('order_products', 'order_products.id', '=', 'q.order_product_id')
-            ->join('orders', 'orders.id', '=', 'order_products.order_id')
-            ->join('customer_admin_question_answers as caa', 'caa.id', '=', 'a.answer_id')
-            ->leftJoin('customer_admin_questions as caq', 'caq.id', '=', 'q.question_id')
-            ->leftJoin('customer_admin_categories as cac', 'cac.id', '=', 'q.question_category_id')
-            ->whereNull('a.deleted_at')
-            ->whereNull('q.deleted_at')
-            ->whereNull('order_products.deleted_at')
-            ->whereNull('orders.deleted_at')
-            ->where(function ($w) {
-                $w->where('a.is_delivery_answer', true)
-                  ->orWhere('a.is_return_answer', true);
-            })
-            ->where('caa.is_damaged', true);
-
-        if ($start && $end) {
-            $query->whereBetween('orders.order_date', [$start->toDateString(), $end->toDateString()]);
-        }
-        if ($storeId) {
-            $query->where(function ($w) use ($storeId) {
-                $w->where('order_products.delivery_store_id', $storeId)
-                  ->orWhere('order_products.pickup_store_id', $storeId);
-            });
-        }
-
-        $rows = $query
-            ->selectRaw("COALESCE(caq.question_name, q.question_name, 'Untitled Question') as question_name")
-            ->selectRaw("COALESCE(cac.category_name, 'Uncategorized') as category_name")
-            ->selectRaw('COUNT(*) as flagged_count')
-            ->groupByRaw("COALESCE(caq.question_name, q.question_name, 'Untitled Question'), COALESCE(cac.category_name, 'Uncategorized')")
-            ->orderByDesc('flagged_count')
-            ->limit(10)
-            ->get();
-
-        return $rows->map(fn($r) => [
-            'question'      => $r->question_name,
-            'category'      => $r->category_name,
-            'flagged_count' => (int) $r->flagged_count,
-        ])->toArray();
     }
 }

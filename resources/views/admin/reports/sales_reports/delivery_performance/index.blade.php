@@ -111,11 +111,6 @@
             </div>
         </div>
 
-        <div id="chart-flagged-wrap" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6 shadow-sm hidden">
-            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Top Flagged Checklist Questions</h4>
-            <div id="chart-flagged" style="min-height:280px;"></div>
-        </div>
-
     </div>
 
     {{-- ── EMPTY STATE ─────────────────────────────────────────────────────── --}}
@@ -244,7 +239,6 @@
 
         renderDriverChart(drivers);
         renderFunnelChart(data.funnel || {});
-        renderFlaggedChart(data.flagged || []);
         renderDriverTable(drivers);
     }
 
@@ -311,32 +305,6 @@
             grid: { borderColor: '#e5e7eb', strokeDashArray: 4 },
         });
         charts['chart-funnel'].render();
-    }
-
-    function renderFlaggedChart(flagged) {
-        if (charts['chart-flagged']) charts['chart-flagged'].destroy();
-
-        const wrap = document.getElementById('chart-flagged-wrap');
-
-        if (!flagged.length) {
-            wrap.classList.add('hidden');
-            return;
-        }
-
-        wrap.classList.remove('hidden');
-        charts['chart-flagged'] = new ApexCharts(document.getElementById('chart-flagged'), {
-            chart: { type: 'bar', height: 280, toolbar: { show: false } },
-            series: [{ name: 'Flagged Answers', data: flagged.map(f => f.flagged_count) }],
-            xaxis: {
-                categories: flagged.map(f => `${f.question} (${f.category})`),
-                labels: { formatter: v => Math.round(v).toLocaleString('en-US') },
-            },
-            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%' } },
-            colors: ['#ef4444'],
-            dataLabels: { enabled: true },
-            grid: { borderColor: '#e5e7eb', strokeDashArray: 4 },
-        });
-        charts['chart-flagged'].render();
     }
 
     function renderDriverTable(drivers) {

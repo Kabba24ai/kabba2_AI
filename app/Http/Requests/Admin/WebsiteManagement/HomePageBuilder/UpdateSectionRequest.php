@@ -67,6 +67,9 @@ class UpdateSectionRequest extends FormRequest
             'content.title_color'         => ['nullable', 'string', 'max:20'],
             'content.subtitle_position'   => ['nullable', 'string', 'in:left,center,right'],
             'content.subtitle_color'      => ['nullable', 'string', 'max:20'],
+            'content.text_background_enabled'  => ['nullable', 'boolean'],
+            'content.text_background_style'    => ['nullable', 'string', 'in:dark,light'],
+            'content.text_background_strength' => ['nullable', 'string', 'in:light,medium,strong'],
         ];
     }
 

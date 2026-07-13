@@ -50,6 +50,16 @@ class HomePageService
     private function buildHero($section): object
     {
         $c = $section?->content ?? [];
+
+        // Text-readability panel (Home Builder → Hero → Text Readability).
+        // Backward-compatible: heroes saved before this feature have no keys,
+        // so the DOCUMENTED default is an enabled dark medium panel with white
+        // text — matching the approved current homepage treatment.
+        $style    = in_array($c['text_background_style'] ?? null, ['dark', 'light'], true)
+                        ? $c['text_background_style'] : 'dark';
+        $strength = in_array($c['text_background_strength'] ?? null, ['light', 'medium', 'strong'], true)
+                        ? $c['text_background_strength'] : 'medium';
+
         return (object) [
             'imageUrl'         => $section?->image_url,
             'title'            => $section?->title ?? "THE RIGHT EQUIPMENT.\nTHE RIGHT SUPPORT.",
@@ -60,6 +70,9 @@ class HomePageService
             'subtitlePosition' => $c['subtitle_position'] ?? 'left',
             'titleColor'       => $c['title_color']       ?? '#ffffff',
             'subtitleColor'    => $c['subtitle_color']    ?? '#ffffff',
+            'textBgEnabled'    => (bool) ($c['text_background_enabled'] ?? true),
+            'textBgStyle'      => $style,
+            'textBgStrength'   => $strength,
         ];
     }
 

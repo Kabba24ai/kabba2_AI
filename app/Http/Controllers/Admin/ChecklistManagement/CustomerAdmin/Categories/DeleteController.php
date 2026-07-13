@@ -3,20 +3,19 @@
 namespace App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Categories;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminCategory;
+use App\Services\ChecklistManagement\CategoryCrudService;
 
 class DeleteController extends Controller
 {
+    public function __construct(private CategoryCrudService $categoryCrudService)
+    {
+    }
+
     public function __invoke($unique_id)
     {
-        DB::beginTransaction();
-
         try {
-            $category = CustomerAdminCategory::where('unique_id', $unique_id)->firstOrFail();
-            $category->delete();
-
-            DB::commit();
+            $this->categoryCrudService->delete(CustomerAdminCategory::class, $unique_id);
 
             flash('Category deleted successfully.')->success();
 
@@ -28,7 +27,6 @@ class DeleteController extends Controller
                 ->with('success', 'Category deleted successfully.');
 
         } catch (\Throwable $e) {
-            DB::rollBack();
             report($e);
 
             flash('Something went wrong while deleting the category.')->error();

@@ -143,7 +143,7 @@ None for Phase 2 if confirmed. If a future phase later decides to pursue the dee
 
 | # | Decision | Decided by | Date | Outcome |
 |---|---|---|---|---|
-| D1 | Warn before bulk unassignment? | | | |
+| D1 | Warn before bulk unassignment? | Client (Phase 2 approval) | 2026-07-08 | Approved recommended option — implemented as `api_errors` log warning in PR-B1 (`ChecklistAssignmentService::bulkAssign()`); UI confirmation dialog explicitly deferred as a fast-follow, see `PR-B1_ASSIGNMENT_CONSOLIDATION.md` §5 |
 | D2 | Server-compute admin-web Rental Ready status? | | | |
 | D3 | Re-enable required-questions guard? | | | |
 | D4 | Re-enable invalid-equipment-status guard? | | | |

@@ -11,11 +11,15 @@ use App\Http\Requests\Admin\ChecklistManagement\ChecklistMaster\UpdateRequest;
 
 use App\Http\Requests\Admin\ChecklistManagement\ChecklistMaster\StoreRequest;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
-use App\Models\MaintenanceManagement\Equipment;
+use App\Services\ChecklistManagement\ChecklistAssignmentService;
 
 
 class UpdateController extends Controller
 {
+    public function __construct(private ChecklistAssignmentService $checklistAssignmentService)
+    {
+    }
+
     /**
      * Handle the incoming request.
      */
@@ -39,17 +43,13 @@ class UpdateController extends Controller
             //  Assign new equipment (if selected)
         if (!empty($validated['assign_equipment']) ){
 
-                //  Remove old assignments
-                Equipment::where('checklist_master_id', $ChecklistMaster->id)
-                ->update(['checklist_master_id' => null]);
-
-
                 $equipmentIds = explode(',', $validated['equipment_ids']);
 
-                Equipment::whereIn('id', $equipmentIds)
-                    ->update([
-                        'checklist_master_id' => $ChecklistMaster->id
-                    ]);
+                // Unassign any equipment currently on this master but excluded from the
+                // new list, then assign the new list — via the shared service so the
+                // side effect is logged (Phase 2 decision D1) instead of silent, unlike
+                // the raw Eloquent calls this replaced.
+                $this->checklistAssignmentService->bulkAssign($ChecklistMaster, $equipmentIds, unassignExisting: true);
             }
 
             DB::commit();

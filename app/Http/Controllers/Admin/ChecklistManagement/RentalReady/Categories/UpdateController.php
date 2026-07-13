@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\Admin\ChecklistManagement\RentalReady\Categories;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistCategory;
+use App\Services\ChecklistManagement\CategoryCrudService;
 
 // Request
 use App\Http\Requests\Admin\ChecklistManagement\RentalReady\Categories\UpdateRequest;
 
 class UpdateController extends Controller
 {
+    public function __construct(private CategoryCrudService $categoryCrudService)
+    {
+    }
+
     /**
      * Handle the incoming request.
      */
@@ -18,17 +22,15 @@ class UpdateController extends Controller
     {
         $validated = $request->validated();
 
-        DB::beginTransaction();
-
         try {
-            $category = RentalReadyChecklistCategory::where('unique_id',$id)->first();
-
-            $category->update([
-                'category_name' => $validated['category_name'],
-                'description'   => $validated['description'] ?? null,
-            ]);
-
-            DB::commit();
+            $this->categoryCrudService->update(
+                RentalReadyChecklistCategory::class,
+                $id,
+                [
+                    'category_name' => $validated['category_name'],
+                    'description'   => $validated['description'] ?? null,
+                ]
+            );
 
             flash('Category updated successfully.')->success();
 
@@ -40,9 +42,8 @@ class UpdateController extends Controller
 
         } catch (\Throwable $e) {
 
-            DB::rollBack();
             report($e);
-            
+
             flash('Something went wrong while updating the category.')->error();
 
             return redirect()

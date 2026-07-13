@@ -3,26 +3,19 @@
 namespace App\Http\Controllers\Admin\ChecklistManagement\RentalReady\Question;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistQuestion;
+use App\Services\ChecklistManagement\QuestionCrudService;
 
 class DeleteController extends Controller
 {
+    public function __construct(private QuestionCrudService $questionCrudService)
+    {
+    }
+
     public function __invoke($unique_id)
     {
-        DB::beginTransaction();
-
-          try {
-            // Find question by unique_id
-            $question = RentalReadyChecklistQuestion::where('unique_id', $unique_id)->firstOrFail();
-
-            // Delete related answers first (if no cascade)
-            $question->answers()->delete();
-
-            // Delete the question
-            $question->delete();
-
-            DB::commit();
+        try {
+            $this->questionCrudService->delete(RentalReadyChecklistQuestion::class, $unique_id);
 
             flash('Question deleted successfully.')->success();
 
@@ -33,7 +26,6 @@ class DeleteController extends Controller
                 ->route('admin.checklist-management.rental-ready.index');
 
         } catch (\Throwable $e) {
-            DB::rollBack();
             report($e);
 
             flash('Something went wrong while deleting the question.')->error();

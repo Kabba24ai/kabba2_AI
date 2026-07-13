@@ -13,6 +13,7 @@ use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistQuestionAnswe
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Iam\Personnel\User;
 use App\Helpers\CustomHelper;
+use App\Services\ChecklistManagement\RentalReadyCompletionCalculator;
 use Illuminate\Http\Request;
 
 use App\Http\Requests\Admin\ChecklistManagement\EquipmentManagement\StoreRequest;
@@ -196,7 +197,7 @@ class StoreController extends Controller
 
                 $template = EquipmentRentalReadyTemplate::create([
                     'equipment_id' => $request->input('equipment_id'),
-                    'employee_id' => $request->input('insepectorSlect'),
+                    'employee_id' => $request->input('inspectorSelect'),
                     'employee_name' => optional($inspectionUser)->full_name,
                     'order_product_id' => $orderProductId,
                     'order_id' => $orderId,
@@ -301,6 +302,14 @@ class StoreController extends Controller
                     'equipment_hours' => $request->input('equipmentHours'),
                 ]);
                 Log::info('Equipment status updated', ['equipment_id' => $equipment->id, 'current_status' => $equipment->current_status]);
+
+                // PR-B2 Stage 3 (Phase 2, D2: observability-first): compute the
+                // server-trusted completion result and log a warning when it disagrees
+                // with what the client submitted. Observation only — does not change
+                // $templateStatus/$counts (still persisted as submitted, above/below)
+                // and does not route through EquipmentStatusService. See
+                // docs/checklist-system-audit/PR-B2_STAGE3_ADMIN_OBSERVABILITY.md.
+                $this->logCompletionMismatchIfAny($equipment, $qaPayload, $templateStatus, $status, $counts);
             } else {
                 Log::warning('Equipment not found when updating status', ['equipment_id' => $request->input('equipment_id')]);
             }
@@ -328,5 +337,96 @@ class StoreController extends Controller
             flash('Something went wrong while saving checklist: ' . $e->getMessage())->error();
             return redirect()->back()->withInput();
         }
+    }
+
+    /**
+     * PR-B2 Stage 3 (D2: observability-first). Computes the server-trusted
+     * completion result via RentalReadyCompletionCalculator and logs a structured
+     * warning to the api_errors channel when it disagrees with the client-submitted
+     * status/counts this controller still persists. Enforcement (actually using
+     * $result instead of the submitted values) is deferred to a later stage, per D2.
+     *
+     * @param  array<string, mixed>  $counts  the client-submitted counts this
+     *         controller persists today (unchanged by this method).
+     */
+    private function logCompletionMismatchIfAny(
+        Equipment $equipment,
+        array $qaPayload,
+        string $submittedTemplateStatus,
+        string $submittedEquipmentStatus,
+        array $counts
+    ): void {
+        $normalizedQuestions = $this->resolveNormalizedQuestionsFromPayload($qaPayload);
+
+        $result = app(RentalReadyCompletionCalculator::class)->calculate($normalizedQuestions);
+
+        $statusMismatch = $submittedTemplateStatus !== $result->status;
+
+        $mismatchedCountFields = collect($result->counts)
+            ->filter(fn ($computedValue, $key) => (int) ($counts[$key] ?? 0) !== (int) $computedValue)
+            ->keys()
+            ->all();
+
+        if (!$statusMismatch && empty($mismatchedCountFields)) {
+            return;
+        }
+
+        Log::channel('api_errors')->warning('Admin Rental Ready submission disagrees with server-computed completion result', [
+            'equipment_id'                 => $equipment->id,
+            'equipment_unique_id'          => $equipment->unique_id,
+            'submitted_equipment_status'   => $submittedEquipmentStatus,
+            'submitted_template_status'    => $submittedTemplateStatus,
+            'computed_status'              => $result->status,
+            'submitted_counts'             => $counts,
+            'computed_counts'              => $result->counts,
+            'mismatched_count_fields'      => $mismatchedCountFields,
+            'actor_id'                     => auth()->id(),
+        ]);
+    }
+
+    /**
+     * Builds the calculator's normalized input from the real DB models — never from
+     * the submitted JSON's own 'required'/'status' fields — per PR-B2's D2 principle
+     * that business-determining facts (is this question required? what type is the
+     * selected answer?) must be resolved server-side, not trusted from the client.
+     *
+     * @return array<int, array{required_question: bool, selected_answer: array{type: string}|null}>
+     */
+    private function resolveNormalizedQuestionsFromPayload(array $qaPayload): array
+    {
+        $normalized = [];
+
+        foreach ((array) data_get($qaPayload, 'questions', []) as $q) {
+            $qidRaw = data_get($q, 'id');
+            $mainId = data_get($q, 'main_id');
+
+            $questionModel = null;
+            if ($mainId) {
+                $questionModel = RentalReadyChecklistQuestion::find((int) $mainId);
+            }
+            if (!$questionModel && $qidRaw) {
+                $questionModel = RentalReadyChecklistQuestion::where('unique_id', $qidRaw)
+                    ->orWhere('id', $qidRaw)
+                    ->first();
+            }
+            if (!$questionModel) {
+                continue;
+            }
+
+            $selectedRaw = data_get($q, 'selected_answer.id');
+            $answerModel = null;
+            if (!empty($selectedRaw)) {
+                $answerModel = is_numeric($selectedRaw)
+                    ? RentalReadyChecklistQuestionAnswer::find((int) $selectedRaw)
+                    : RentalReadyChecklistQuestionAnswer::where('unique_id', $selectedRaw)->orWhere('id', $selectedRaw)->first();
+            }
+
+            $normalized[] = [
+                'required_question' => (bool) $questionModel->required_question,
+                'selected_answer'   => $answerModel ? ['type' => $answerModel->type] : null,
+            ];
+        }
+
+        return $normalized;
     }
 }

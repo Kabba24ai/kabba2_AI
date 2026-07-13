@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin\V1\RentalReadyChecklists;
 
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\RentalReadyChecklists\IndexRequest;
@@ -30,16 +31,27 @@ class IndexController extends BaseController
 
         $equipment = Equipment::with(['store','lastRentalReadyTemplate','orderProduct','checklistMaster.rentalReadyTemplate.templateQuestions.question.answers','checklistMaster.rentalReadyTemplate.templateQuestions.question.category'])->where('unique_id', $uniqueId)->first();
 
-        // if ($equipment && $equipment->orderProduct &&
-        //     ($equipment->current_status->isRented() || $equipment->current_status->isAvailable())) {
-        //     return response()->json(
-        //         [
-        //             'success' => false,
-        //             'message' => trans('messages.api.admin.v1.rental_ready_checklists.invalid_equipment_status'),
-        //         ],
-        //         JsonResponse::HTTP_NOT_FOUND,
-        //     );
-        // }
+        // PR-B3 (Phase 2, decision D3): the original guard here rejected equipment that
+        // was either isRented() OR isAvailable(). The isAvailable() half is confirmed
+        // obsolete and has been removed permanently — line ~83 of this same method
+        // explicitly treats available equipment as a normal, expected case (it's the
+        // very state a piece of equipment is in before its first rental-ready
+        // inspection), and SaveController.php's own docblock confirms "Available" is a
+        // valid pre-rental-inspection state. Rejecting it here would have been wrong.
+        //
+        // The isRented() half is kept as observability-only logging, not deleted: the
+        // sibling SaveController.php DOES enforce an equivalent live rule on the write
+        // path (equipment cannot be inspected while actively rented), so it's plausible
+        // this read-only listing endpoint should eventually match that. Log the
+        // frequency before deciding — do not reject requests here yet.
+        // See docs/checklist-system-audit/PR-B3_VALIDATION_GUARDS.md.
+        if ($equipment && $equipment->orderProduct && $equipment->current_status->isRented()) {
+            Log::channel('api_errors')->warning('Rental Ready checklist questions listed for currently-rented equipment', [
+                'equipment_id'        => $equipment->id,
+                'equipment_unique_id' => $uniqueId,
+                'order_product_id'    => $equipment->orderProduct->id,
+            ]);
+        }
 
         if (isset($equipment->orderProduct)) {
             // find from order product's rental ready checklist if exists

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Categorie
 
 use App\Http\Controllers\Controller;
 
-use Illuminate\Support\Facades\DB;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminCategory;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistCategory;
+use App\Services\ChecklistManagement\CategoryCrudService;
 
 // Request
 use App\Http\Requests\Admin\ChecklistManagement\CustomerAdmin\Categories\StoreRequest;
@@ -14,6 +14,10 @@ use App\Http\Requests\Admin\ChecklistManagement\CustomerAdmin\Categories\StoreRe
 
 class StoreController extends Controller
 {
+    public function __construct(private CategoryCrudService $categoryCrudService)
+    {
+    }
+
     /**
      * Handle the incoming request.
      */
@@ -21,26 +25,16 @@ class StoreController extends Controller
     {
         $validated = $request->validated();
 
-        DB::beginTransaction();
-
         try {
-            $category = CustomerAdminCategory::create([
-                'category_name' => $validated['category_name'],
-                'description'   => $validated['description'] ?? null,
-            ]);
-
-
-
-            // If checkbox is checked, also create identical Customer Admin category
-            if (!empty($validated['create_rental_folder']) && $validated['create_rental_folder'] == 1) {
-
-                 RentalReadyChecklistCategory::create([
+            $this->categoryCrudService->store(
+                CustomerAdminCategory::class,
+                [
                     'category_name' => $validated['category_name'],
                     'description'   => $validated['description'] ?? null,
-                ]);
-            }
-
-            DB::commit();
+                ],
+                RentalReadyChecklistCategory::class,
+                !empty($validated['create_rental_folder']) && $validated['create_rental_folder'] == 1
+            );
 
             flash('Category created successfully.')->success();
 
@@ -53,7 +47,6 @@ class StoreController extends Controller
 
         } catch (\Throwable $e) {
 
-            DB::rollBack();
             report($e);
 
             flash('Something went wrong while creating the category.')->error();

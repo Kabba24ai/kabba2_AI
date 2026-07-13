@@ -3,37 +3,32 @@
 namespace App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Question;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestion;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestionAnswer;
+use App\Services\ChecklistManagement\QuestionCrudService;
 
 class CopyController extends Controller
 {
+    public function __construct(private QuestionCrudService $questionCrudService)
+    {
+    }
+
     /**
      * Handle the incoming request.
      */
     public function __invoke($id)
     {
-        DB::beginTransaction();
-
         try {
-            // Original question with answers
-            $question = CustomerAdminQuestion::with('answers')->findOrFail($id);
-
-          // Copy question
-$newQuestion = $question->replicate();
-
-//  IMPORTANT: reset unique_id so boot() generates a new one
-$newQuestion->unique_id = null;
-
-$newQuestion->question_name = $question->question_name . ' (Copy)';
-$newQuestion->save();
-
-            // Copy answers
-            foreach ($question->answers as $answer) {
-                CustomerAdminQuestionAnswer::create([
-                    'question_id'          => $newQuestion->id,
+            $newQuestion = $this->questionCrudService->copy(
+                CustomerAdminQuestion::class,
+                CustomerAdminQuestionAnswer::class,
+                (int) $id,
+                function ($newQuestion, $original) {
+                    // IMPORTANT: reset unique_id so boot() generates a new one
+                    $newQuestion->unique_id = null;
+                },
+                fn ($answer) => [
                     'index_number'         => $answer->index_number,
                     'answer_delivery_text' => $answer->answer_delivery_text,
                     'answer_return_text'   => $answer->answer_return_text,
@@ -42,10 +37,8 @@ $newQuestion->save();
                     'required'             => $answer->required,
                     'sync_texts'           => $answer->sync_texts,
                     'is_damaged'           => $answer->is_damaged,
-                ]);
-            }
-
-            DB::commit();
+                ]
+            );
 
             //  OPEN EDIT QUESTION MODAL
             session()->flash('active_tab', 'questions');
@@ -57,7 +50,6 @@ $newQuestion->save();
             return redirect()->route('admin.checklist-management.customer-admin.index');
 
         } catch (\Throwable $e) {
-            DB::rollBack();
             report($e);
 
             session()->flash('active_tab', 'questions');

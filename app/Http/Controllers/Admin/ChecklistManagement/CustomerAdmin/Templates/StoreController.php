@@ -4,19 +4,18 @@ namespace App\Http\Controllers\Admin\ChecklistManagement\CustomerAdmin\Templates
 
 use App\Http\Controllers\Controller;
 
-use Illuminate\Support\Facades\DB;
-use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminCategory;
-use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestion;
-use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestionAnswer;
-
-
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplateQuestion;
+use App\Services\ChecklistManagement\TemplateCrudService;
 // Request
 use App\Http\Requests\Admin\ChecklistManagement\CustomerAdmin\Templates\StoreRequest;
 
 class StoreController extends Controller
 {
+    public function __construct(private TemplateCrudService $templateCrudService)
+    {
+    }
+
     /**
      * Handle the incoming request.
      */
@@ -24,41 +23,42 @@ class StoreController extends Controller
     {
         $validated = $request->validated();
 
-        // dd($validated);
-       
-        DB::beginTransaction();
-
         try {
-            // Save the template
-            $template = CustomerAdminTemplate::create([
-                'template_name' => $validated['template_name'],
-                'description' => $validated['description'] ?? null,
-                'equipment_category_id' => $validated['equipment_category'],
-                'active_template' => $validated['is_active'] ?? 0, 
-            ]);
-
-            // Decode the JSON options (questions)
             $questions = json_decode($validated['questions'], true);
 
+            // A plain foreach — not collect($questions), which silently treats a
+            // null (invalid-JSON) $questions as an empty collection. The original
+            // code's raw foreach over null triggers a PHP warning that this app's
+            // exception handler converts into a catchable error, and that exact
+            // behavior must be preserved (see PR-B4_3_TEMPLATE_REFACTOR.md).
+            $questionRows = [];
             foreach ($questions as $index => $q) {
-                CustomerAdminTemplateQuestion::create([
-                    'template_id' => $template->id,
-                    'question_id' => $q['id'], 
+                $questionRows[] = [
+                    'question_id'  => $q['id'],
                     'index_number' => $index + 1,
-                ]);
+                ];
             }
 
-            DB::commit();
+            $this->templateCrudService->store(
+                CustomerAdminTemplate::class,
+                [
+                    'template_name'         => $validated['template_name'],
+                    'description'           => $validated['description'] ?? null,
+                    'equipment_category_id' => $validated['equipment_category'],
+                    'active_template'       => $validated['is_active'] ?? 0,
+                ],
+                CustomerAdminTemplateQuestion::class,
+                $questionRows
+            );
 
             flash('Question Template created successfully.')->success();
 
              session()->flash('active_tab', 'templates');
-        
+
             return redirect()
                 ->route('admin.checklist-management.customer-admin.index');
 
         } catch (\Throwable $e) {
-            DB::rollBack();
             report($e);
 
             session()->flash('active_tab', 'templates');

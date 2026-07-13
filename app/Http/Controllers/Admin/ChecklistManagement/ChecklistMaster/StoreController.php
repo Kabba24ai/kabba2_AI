@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Admin\ChecklistManagement\ChecklistMaster;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-use App\Models\MaintenanceManagement\Equipment;
 // Request
 use App\Http\Requests\Admin\ChecklistManagement\ChecklistMaster\StoreRequest;
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
+use App\Services\ChecklistManagement\ChecklistAssignmentService;
 
 class StoreController extends Controller
 {
+    public function __construct(private ChecklistAssignmentService $checklistAssignmentService)
+    {
+    }
+
     /**
      * Handle the incoming request.
      */
@@ -38,11 +42,9 @@ class StoreController extends Controller
                 // Convert CSV to array
                 $equipmentIds = explode(',', $validated['equipment_ids']);
 
-                // Assign checklist_master_id to equipment
-                Equipment::whereIn('id', $equipmentIds)
-                    ->update([
-                        'checklist_master_id' => $checklistMaster->id
-                    ]);
+                // Assign checklist_master_id to equipment — nothing to unassign yet for
+                // a brand-new master, so $unassignExisting stays false.
+                $this->checklistAssignmentService->bulkAssign($checklistMaster, $equipmentIds);
             }
 
             DB::commit();

@@ -2,59 +2,49 @@
 namespace App\Http\Controllers\Admin\ChecklistManagement\RentalReady\Templates;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
-use App\Helpers\ModelHelper;
 
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistTemplate;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistTemplateQuestion;
-// Request
-use App\Http\Requests\Admin\ChecklistManagement\RentalReady\Templates\StoreRequest;
-
-use App\Http\Requests\Admin\ChecklistManagement\RentalReady\Templates\UpdateRequest;
+use App\Services\ChecklistManagement\TemplateCrudService;
 
 class CopyController extends Controller
 {
+    public function __construct(private TemplateCrudService $templateCrudService)
+    {
+    }
+
     /**
      * Handle the incoming request.
      */
      public function __invoke( $unique_id)
     {
-        DB::beginTransaction();
+        try {
+            $new = $this->templateCrudService->copy(
+                RentalReadyChecklistTemplate::class,
+                RentalReadyChecklistTemplateQuestion::class,
+                $unique_id,
+                'TQS',
+                fn ($templateQuestion) => [
+                    'question_id'  => $templateQuestion->question_id,
+                    'index_number' => $templateQuestion->index_number,
+                ]
+            );
 
-    try {
-        $template = RentalReadyChecklistTemplate::where('unique_id', $unique_id)->firstOrFail();
+            //  Flash new template ID
+            session()->flash('active_tab', 'templates');
+            session()->flash('open_edit_template', $new->unique_id);
 
-        $new = $template->replicate();
-        $new->template_name = $template->template_name . ' (Copy)';
-        $new->unique_id = ModelHelper::generateUniqueID(new RentalReadyChecklistTemplate, 'TQS');
-        $new->save();
+            flash('Template copied successfully.')->success();
 
-        foreach ($template->templateQuestions as $q) {
-            RentalReadyChecklistTemplateQuestion::create([
-                'template_id' => $new->id,
-                'question_id' => $q->question_id,
-                'index_number' => $q->index_number,
-            ]);
+            return redirect()->route('admin.checklist-management.rental-ready.index');
+
+        } catch (\Throwable $e) {
+            report($e);
+
+            session()->flash('active_tab', 'templates');
+            flash('Something went wrong while copying the template.')->error();
+
+            return redirect()->back();
         }
-
-        DB::commit();
-
-        //  Flash new template ID
-        session()->flash('active_tab', 'templates');
-        session()->flash('open_edit_template', $new->unique_id);
-
-        flash('Template copied successfully.')->success();
-
-        return redirect()->route('admin.checklist-management.rental-ready.index');
-
-    } catch (\Throwable $e) {
-        DB::rollBack();
-        report($e);
-
-        session()->flash('active_tab', 'templates');
-        flash('Something went wrong while copying the template.')->error();
-
-        return redirect()->back();
-    }
     }
 }

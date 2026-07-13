@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api\Admin\V1\Orders\RentalReadyChecklists;
 
 use App\Enums\Api\ApiErrorCode;
 use App\Services\Equipment\EquipmentStatusService;
+use App\Services\ChecklistManagement\RentalReadyCompletionCalculator;
 use App\Helpers\ApiResponseHelper;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\RentalReadyChecklists\SaveRequest;
@@ -132,66 +134,36 @@ class SaveController extends BaseController
             }
         }
 
-        $counts = [
-            'total_questions' => collect($newQuestions)->count(),
-            'required_questions' => collect($newQuestions)->whereStrict('required_question', true)->count(),
-            'optional_questions' => collect($newQuestions)->whereStrict('required_question', false)->count(),
-            'required_items_completed' => collect($newQuestions)
-                    ->filter(fn ($q) => (bool)($q['required_question'] ?? false))
-                    ->filter(fn ($q) => !is_null(data_get($q, 'selected_answer')))
-                    ->filter(fn ($q) => data_get($q, 'selected_answer.type') === 'Rental Ready')
-                    ->count(),
+        // PR-B2 (Phase 2, Stage 2): completion counts/flags/status are now computed by
+        // RentalReadyCompletionCalculator, extracted verbatim from this controller's
+        // former inline logic. See docs/checklist-system-audit/PR-B2_CALCULATOR_DESIGN.md.
+        $result = app(RentalReadyCompletionCalculator::class)->calculate($newQuestions);
 
-            'items_requiring_maintenance' => collect($newQuestions)
-                    ->filter(fn ($q) => data_get($q, 'selected_answer.type') === 'Maint. Hold')
-                    ->count(),
-
-            'damaged_items' => collect($newQuestions)
-                    ->filter(fn ($q) => data_get($q, 'selected_answer.type') === 'Damaged')
-                    ->count(),
-        ];
-
+        $counts         = $result->counts;
+        $hasDamaged     = $result->hasDamaged;
+        $hasMaintenance = $result->hasMaintenance;
+        $allRentalReady = $result->allRentalReady;
+        $status         = $result->status;
 
         $logArray = [
             'counts' => $counts,
             'questions' => $newQuestions,
         ];
 
-        // Check if all questions have no selected answer
-        // $anyAnswerMissing = collect($newQuestions)->contains(function ($q) {
-        //     return empty($q['selected_answer']);
-        // });
-
-        // if ($anyAnswerMissing) {
-        //     return response()->json(
-        //         [
-        //             'success' => false,
-        //             'message' => trans('messages.api.admin.v1.rental_ready_checklists.all_questions_unanswered'),
-        //         ],
-        //         JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-        //     );
-        // }
-
-        $status = null;
-
-        // Flag: does any selected answer have type 'Damaged'?
-        $hasDamaged = collect($newQuestions)
-            ->contains(fn($q) => data_get($q, 'selected_answer.type') === 'Damaged');
-
-        $hasMaintenance = collect($newQuestions)
-            ->contains(fn($q) => data_get($q, 'selected_answer.type') === 'Maint. Hold');
-
-        // Check if all required questions have 'Rental Ready' as selected answer
-        $allRentalReady = collect($newQuestions)
-            ->filter(fn ($q) => (bool)($q['required_question'] ?? false))
-            ->every(fn ($q) => data_get($q, 'selected_answer.type') === 'Rental Ready');
-
-        if ($hasDamaged) {
-            $status = 'Damaged';
-        } elseif ($allRentalReady) {
-            $status = 'Rental Ready';
-        } else {
-            $status = 'Draft';
+        // PR-B3 (Phase 2, observability-first per decision D3): this check was written
+        // already-disabled when the endpoint was first built (commit edaf9ef4, 2025-09-11)
+        // — it has never actually rejected a request in this codebase's history. No
+        // evidence was found that it's incorrect, so rather than deleting it, log what
+        // it WOULD reject without changing the response. Do not reject requests here —
+        // enforcement is a separate future decision gated on reviewing this telemetry.
+        // See docs/checklist-system-audit/PR-B3_VALIDATION_GUARDS.md.
+        if ($result->anyAnswerMissing) {
+            Log::channel('api_errors')->warning('Rental Ready checklist saved despite unanswered questions', [
+                'equipment_id'         => $equipment->id,
+                'equipment_unique_id'  => $uniqueId,
+                'total_questions'      => $counts['total_questions'],
+                'unanswered_count'     => collect($newQuestions)->filter(fn ($q) => empty($q['selected_answer']))->count(),
+            ]);
         }
 
         if($template = EquipmentRentalReadyTemplate::with('checklistQuestions')->where('equipment_id', $equipment->id)

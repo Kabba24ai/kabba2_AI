@@ -3,20 +3,19 @@
 namespace App\Http\Controllers\Admin\ChecklistManagement\RentalReady\Categories;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 use App\Models\ChecklistManagement\RentalReady\RentalReadyChecklistCategory;
+use App\Services\ChecklistManagement\CategoryCrudService;
 
 class DeleteController extends Controller
 {
+    public function __construct(private CategoryCrudService $categoryCrudService)
+    {
+    }
+
     public function __invoke($unique_id)
     {
-        DB::beginTransaction();
-
         try {
-            $category = RentalReadyChecklistCategory::where('unique_id', $unique_id)->firstOrFail();
-            $category->delete();
-
-            DB::commit();
+            $this->categoryCrudService->delete(RentalReadyChecklistCategory::class, $unique_id);
 
             flash('Category deleted successfully.')->success();
 
@@ -27,7 +26,6 @@ class DeleteController extends Controller
                 ->route('admin.checklist-management.rental-ready.index');
 
         } catch (\Throwable $e) {
-            DB::rollBack();
             report($e);
 
             flash('Something went wrong while deleting the category.')->error();

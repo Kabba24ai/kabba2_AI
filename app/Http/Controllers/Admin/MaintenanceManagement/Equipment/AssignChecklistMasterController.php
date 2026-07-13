@@ -10,9 +10,14 @@ use App\Http\Requests\Admin\MaintenanceManagement\Equipment\AssignChecklistMaste
 // Models
 use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Services\ChecklistManagement\ChecklistAssignmentService;
 
 class AssignChecklistMasterController extends Controller
 {
+    public function __construct(private ChecklistAssignmentService $checklistAssignmentService)
+    {
+    }
+
     /**
      * Handle the incoming request.
      *
@@ -33,16 +38,14 @@ class AssignChecklistMasterController extends Controller
             ], 404);
         }
 
-        if ($equipment->checklist_master_id === $checklistMaster->id) {
+        $assigned = $this->checklistAssignmentService->assignSingle($equipment, $checklistMaster);
+
+        if (!$assigned) {
             return response()->json([
                 'success' => false,
                 'message' => 'This Checklist Master is already assigned to the Equipment.',
             ], 400);
         }
-
-        // Assign equipment details to order product
-        $equipment->checklist_master_id = $checklistMaster->id;
-        $equipment->save();
 
         return response()->json([
             'success' => true,

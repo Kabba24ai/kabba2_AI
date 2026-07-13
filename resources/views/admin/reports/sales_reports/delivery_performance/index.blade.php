@@ -14,7 +14,7 @@
             <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Delivery Performance</h3>
         </div>
         <div class="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg px-3 py-2 max-w-sm">
-            Driver Performance is built from delivery/return checklist completion and question-answer results.
+            Truck-dispatched jobs only — Store-mode counter pickups/returns never go through Dispatch and are excluded. Backlog is a live queue snapshot (ignores date range; store filter still applies); driver completion counts are scoped to the selected period.
         </div>
     </div>
 
@@ -90,27 +90,19 @@
 
     {{-- ── DATE RANGE LABEL ─────────────────────────────────────────────────── --}}
     <div id="date-range-label" class="text-sm text-gray-500 dark:text-gray-400 mb-4 font-medium">
-        {{ $dateRangeLabel }}
+        {{ $dateRangeLabel }} <span class="text-gray-400">(driver completion counts only — backlog below is live)</span>
     </div>
 
-    {{-- ── KPI CARDS ────────────────────────────────────────────────────────── --}}
+    {{-- ── DISPATCH BACKLOG KPI CARDS ──────────────────────────────────────────── --}}
+    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Dispatch Backlog — Live</h4>
     <div id="kpi-section" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6"></div>
 
     {{-- ── CHARTS ───────────────────────────────────────────────────────────── --}}
     <div id="charts-section">
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
-                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Driver Leaderboard — Completed Deliveries &amp; Returns</h4>
-                <div id="chart-drivers" style="min-height:280px;"></div>
-            </div>
-
-            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
-                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Delivery / Return Step Funnel</h4>
-                <div id="chart-funnel" style="min-height:280px;"></div>
-            </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6 shadow-sm">
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Current Pending Workload by Driver</h4>
+            <div id="chart-drivers" style="min-height:280px;"></div>
         </div>
-
     </div>
 
     {{-- ── EMPTY STATE ─────────────────────────────────────────────────────── --}}
@@ -123,21 +115,19 @@
     {{-- ── DRIVER TABLE ─────────────────────────────────────────────────────── --}}
     <div id="table-section" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden mt-6">
         <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Driver Performance Overview</h4>
-            <span class="text-xs text-gray-400">Sorted by Total Completed</span>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Driver Dispatch Overview</h4>
+            <span class="text-xs text-gray-400">Sorted by Total Pending</span>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-700/50 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     <tr>
                         <th class="px-4 py-2 text-left">Driver</th>
-                        <th class="px-4 py-2 text-right">Deliveries</th>
-                        <th class="px-4 py-2 text-right">Returns</th>
-                        <th class="px-4 py-2 text-right">Pending Del.</th>
-                        <th class="px-4 py-2 text-right">Pending Ret.</th>
-                        <th class="px-4 py-2 text-right">Checklist Pass %</th>
-                        <th class="px-4 py-2 text-right">Avg Delivery Time</th>
-                        <th class="px-4 py-2 text-right">Avg Return Time</th>
+                        <th class="px-4 py-2 text-right">Pending Deliveries</th>
+                        <th class="px-4 py-2 text-right">Pending Returns</th>
+                        <th class="px-4 py-2 text-right">Total Pending</th>
+                        <th class="px-4 py-2 text-right">Deliveries Completed</th>
+                        <th class="px-4 py-2 text-right">Returns Completed</th>
                     </tr>
                 </thead>
                 <tbody id="driver-tbody"></tbody>
@@ -173,7 +163,6 @@
     const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
     const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const pct = v => v === null || v === undefined ? '—' : v + '%';
-    const mins = v => v === null || v === undefined ? '—' : (v >= 60 ? (v / 60).toFixed(1) + ' hrs' : Math.round(v) + ' min');
 
     let charts = {};
 
@@ -238,15 +227,17 @@
         if (!hasData) return;
 
         renderDriverChart(drivers);
-        renderFunnelChart(data.funnel || {});
         renderDriverTable(drivers);
     }
 
     function buildKpiCards(kpis) {
         const cards = [
-            { label: 'Total Deliveries', value: (kpis.total_deliveries ?? 0).toLocaleString('en-US') },
-            { label: 'Total Returns', value: (kpis.total_returns ?? 0).toLocaleString('en-US') },
-            { label: 'Avg Checklist Pass Rate', value: pct(kpis.avg_checklist_pass) },
+            { label: 'Pending Deliveries', value: (kpis.pending_deliveries ?? 0).toLocaleString('en-US') },
+            { label: 'Unassigned Deliveries', value: (kpis.unassigned_deliveries ?? 0).toLocaleString('en-US') },
+            { label: 'Delivery Assignment Rate', value: pct(kpis.delivery_assignment_rate) },
+            { label: 'Pending Returns', value: (kpis.pending_returns ?? 0).toLocaleString('en-US') },
+            { label: 'Unassigned Returns', value: (kpis.unassigned_returns ?? 0).toLocaleString('en-US') },
+            { label: 'Return Assignment Rate', value: pct(kpis.return_assignment_rate) },
         ];
         return cards.map(c => `
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
@@ -262,8 +253,8 @@
         charts['chart-drivers'] = new ApexCharts(document.getElementById('chart-drivers'), {
             chart: { type: 'bar', height: 280, stacked: true, toolbar: { show: false } },
             series: [
-                { name: 'Deliveries', data: drivers.map(d => d.deliveries_completed) },
-                { name: 'Returns',    data: drivers.map(d => d.returns_completed) },
+                { name: 'Pending Deliveries', data: drivers.map(d => d.pending_deliveries) },
+                { name: 'Pending Returns',    data: drivers.map(d => d.pending_returns) },
             ],
             xaxis: { categories: drivers.map(d => d.name), labels: { style: { fontSize: '12px' } } },
             yaxis: { labels: { formatter: v => Math.round(v).toLocaleString('en-US') } },
@@ -275,49 +266,15 @@
         charts['chart-drivers'].render();
     }
 
-    function renderFunnelChart(funnel) {
-        if (charts['chart-funnel']) charts['chart-funnel'].destroy();
-
-        const total = funnel.total || 0;
-        const steps = [
-            { label: 'Terms Signed',       value: funnel.delivery_terms },
-            { label: 'License Uploaded',   value: funnel.delivery_license },
-            { label: 'Delivery Checklist', value: funnel.delivery_checklist },
-            { label: 'Delivery Video',     value: funnel.delivery_video },
-            { label: 'Return Checklist',   value: funnel.return_checklist },
-            { label: 'Return Video',       value: funnel.return_video },
-        ];
-
-        charts['chart-funnel'] = new ApexCharts(document.getElementById('chart-funnel'), {
-            chart: { type: 'bar', height: 280, toolbar: { show: false } },
-            series: [{ name: 'Orders Completed', data: steps.map(s => s.value || 0) }],
-            xaxis: {
-                categories: steps.map(s => s.label),
-                labels: { formatter: v => Math.round(v).toLocaleString('en-US') },
-            },
-            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '55%' } },
-            colors: [COLORS[0]],
-            dataLabels: {
-                enabled: true,
-                formatter: v => total ? Math.round(v / total * 100) + '%' : '0%',
-            },
-            tooltip: { y: { formatter: v => Math.round(v).toLocaleString('en-US') + ` of ${total.toLocaleString('en-US')} orders` } },
-            grid: { borderColor: '#e5e7eb', strokeDashArray: 4 },
-        });
-        charts['chart-funnel'].render();
-    }
-
     function renderDriverTable(drivers) {
         document.getElementById('driver-tbody').innerHTML = drivers.map(d => `
             <tr class="border-t border-gray-100 dark:border-gray-700">
                 <td class="px-4 py-2 font-medium text-gray-700 dark:text-gray-200">${esc(d.name)}</td>
-                <td class="px-4 py-2 text-right">${d.deliveries_completed}</td>
-                <td class="px-4 py-2 text-right">${d.returns_completed}</td>
                 <td class="px-4 py-2 text-right">${d.pending_deliveries}</td>
                 <td class="px-4 py-2 text-right">${d.pending_returns}</td>
-                <td class="px-4 py-2 text-right">${pct(d.checklist_pass_rate)}</td>
-                <td class="px-4 py-2 text-right">${mins(d.avg_delivery_minutes)}</td>
-                <td class="px-4 py-2 text-right">${mins(d.avg_return_minutes)}</td>
+                <td class="px-4 py-2 text-right">${d.total_pending}</td>
+                <td class="px-4 py-2 text-right">${d.deliveries_completed}</td>
+                <td class="px-4 py-2 text-right">${d.returns_completed}</td>
             </tr>
         `).join('');
     }

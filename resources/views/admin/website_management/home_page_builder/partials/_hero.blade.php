@@ -12,6 +12,10 @@
     $descValue        = old('content.description',          $heroContent['description']          ?? '');
     $descPosition     = $oldContent['description_position'] ?? $heroContent['description_position'] ?? 'left';
     $descColor        = $oldContent['description_color']    ?? $heroContent['description_color']    ?? '#ffffff';
+    // Text-readability panel (default ON / dark / medium for backward-compat)
+    $textBgEnabled    = (bool)(int)($oldContent['text_background_enabled'] ?? $heroContent['text_background_enabled'] ?? true);
+    $textBgStyle      = $oldContent['text_background_style']    ?? $heroContent['text_background_style']    ?? 'dark';
+    $textBgStrength   = $oldContent['text_background_strength'] ?? $heroContent['text_background_strength'] ?? 'medium';
     $isActive         = ($section?->status ?? 'Active') === 'Active';
 @endphp
 
@@ -45,6 +49,29 @@
           descriptionText:     @js($descValue),
           descriptionPosition: @js($descPosition),
           descriptionColor:    @js($descColor),
+          textBgEnabled:    @js($textBgEnabled),
+          textBgStyle:      @js($textBgStyle),
+          textBgStrength:   @js($textBgStrength),
+          panelStyle() {
+              if (!this.textBgEnabled) return {};
+              const op = ({ light: 0.28, medium: 0.42, strong: 0.60 })[this.textBgStrength] ?? 0.42;
+              const light = this.textBgStyle === 'light';
+              return {
+                  display: 'inline-block', maxWidth: 'min(92%,520px)',
+                  padding: '16px 20px', borderRadius: '10px',
+                  background: light ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`,
+                  color: light ? '#111827' : '#ffffff',
+                  backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+              };
+          },
+          panelTextColor() {
+              if (!this.textBgEnabled) return null;
+              return this.textBgStyle === 'light' ? '#111827' : '#ffffff';
+          },
+          panelShadow() {
+              return (this.textBgEnabled && this.textBgStyle === 'light')
+                  ? '0 1px 2px rgba(255,255,255,.35)' : '0 1px 2px rgba(0,0,0,.45)';
+          },
       }">
     @csrf
 
@@ -218,6 +245,41 @@
             </div>
         </div>
 
+        {{-- ── Text Readability Panel ───────────────────────────────── --}}
+        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50/50 lg:col-span-2">
+            <h4 class="text-sm font-semibold text-gray-700 mb-1">Text Readability</h4>
+            <p class="text-xs text-gray-500 mb-3">A soft panel behind the heading &amp; subtitle keeps them readable over busy photos.</p>
+            <label class="flex items-center gap-3 cursor-pointer mb-4">
+                <input type="hidden" name="content[text_background_enabled]" value="0">
+                <input type="checkbox" name="content[text_background_enabled]" value="1"
+                       x-model="textBgEnabled"
+                       class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <span class="text-sm text-gray-700">Show a contrast panel behind the hero text</span>
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                 :class="textBgEnabled ? '' : 'opacity-40 pointer-events-none'">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Panel Style</label>
+                    <select name="content[text_background_style]" x-model="textBgStyle"
+                            class="w-full text-sm border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white">
+                        <option value="dark">Dark panel · white text</option>
+                        <option value="light">Light panel · dark text</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Strength</label>
+                    <select name="content[text_background_strength]" x-model="textBgStrength"
+                            class="w-full text-sm border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white">
+                        <option value="light">Light</option>
+                        <option value="medium">Medium</option>
+                        <option value="strong">Strong</option>
+                    </select>
+                </div>
+            </div>
+            @error('content.text_background_style')    <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            @error('content.text_background_strength') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+        </div>
+
     </div>
 
     {{-- ── Description (contact page only) ──────────────────────── --}}
@@ -282,26 +344,28 @@
                  class="absolute inset-0 bg-black"
                  :style="{ opacity: overlayOpacity / 100 }"></div>
 
-            {{-- Text content --}}
+            {{-- Text content — same panel treatment as the public hero --}}
             <div class="absolute inset-0 flex items-center px-8 py-8">
-                <div class="w-full">
-                    <div :style="{ textAlign: titlePosition }">
-                        <p class="text-lg sm:text-xl font-bold uppercase leading-snug"
-                           :style="{ whiteSpace: 'pre-line', color: titleColor }"
-                           x-text="titleText || 'Heading / Title…'"></p>
+                <div class="w-full" :style="{ textAlign: titlePosition }">
+                    <div :style="panelStyle()">
+                        <div :style="{ textAlign: titlePosition }">
+                            <p class="text-lg sm:text-xl font-bold uppercase leading-snug"
+                               :style="{ whiteSpace: 'pre-line', color: panelTextColor() || titleColor, textShadow: panelShadow() }"
+                               x-text="titleText || 'Heading / Title…'"></p>
+                        </div>
+                        <div class="mt-2" :style="{ textAlign: subtitlePosition }">
+                            <p class="text-sm leading-relaxed"
+                               :style="{ whiteSpace: 'pre-line', color: panelTextColor() || subtitleColor, textShadow: panelShadow() }"
+                               x-text="subtitleText || 'Subtitle / Description…'"></p>
+                        </div>
+                        @if($showDescription ?? false)
+                        <div class="mt-2" x-show="descriptionText" :style="{ textAlign: descriptionPosition }">
+                            <p class="text-xs leading-relaxed"
+                               :style="{ whiteSpace: 'pre-line', color: panelTextColor() || descriptionColor, textShadow: panelShadow() }"
+                               x-text="descriptionText"></p>
+                        </div>
+                        @endif
                     </div>
-                    <div class="mt-2" :style="{ textAlign: subtitlePosition }">
-                        <p class="text-sm leading-relaxed"
-                           :style="{ whiteSpace: 'pre-line', color: subtitleColor }"
-                           x-text="subtitleText || 'Subtitle / Description…'"></p>
-                    </div>
-                    @if($showDescription ?? false)
-                    <div class="mt-2" x-show="descriptionText" :style="{ textAlign: descriptionPosition }">
-                        <p class="text-xs leading-relaxed"
-                           :style="{ whiteSpace: 'pre-line', color: descriptionColor }"
-                           x-text="descriptionText"></p>
-                    </div>
-                    @endif
                 </div>
             </div>
 

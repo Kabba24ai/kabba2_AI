@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Admin\ServiceManagement\Tickets;
 
+use App\Enums\Service\ServiceSymptomProfileSymptomMode;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\Order;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductCategory;
+use App\Models\Service\ServiceSymptom;
+use App\Models\Service\ServiceSymptomCategory;
+use App\Models\Service\ServiceSymptomProfile;
 use App\Models\Stores\Store;
 
 trait BuildsTicketFormData
@@ -79,21 +83,44 @@ trait BuildsTicketFormData
                 'product_id' => $unit->assigned_product_id,
             ])->values();
 
-        // Structured complaint library — grouped, capability-aware. The
-        // client filters it against the selected equipment's product,
-        // categories, and recorded capabilities.
-        $complaintTypes = \App\Models\Service\ServiceComplaintType::active()
+        // Symptom library: reusable categories + symptoms, plus equipment
+        // symptom profiles. The client resolves the applicable profile
+        // against the selected equipment's product/category (product-level
+        // assignment wins over category-level) and assembles its checklist
+        // from the profile's included categories + additions - exclusions.
+        // Equipment with no matching profile yet sees the full library —
+        // the same "hide nothing until scoped" default the old capability
+        // gating used, and the current de facto behavior in production
+        // since no complaint was ever actually product/category-scoped.
+        $symptomCategories = ServiceSymptomCategory::active()
+            ->orderBy('display_order')
+            ->get(['id', 'name', 'display_order']);
+
+        $symptoms = ServiceSymptom::active()
+            ->orderBy('display_order')
+            ->get(['id', 'name', 'service_symptom_category_id', 'display_order'])
+            ->map(fn (ServiceSymptom $symptom) => [
+                'id'            => $symptom->id,
+                'name'          => $symptom->name,
+                'category_id'   => $symptom->service_symptom_category_id,
+                'display_order' => $symptom->display_order,
+            ])->values();
+
+        $symptomProfiles = ServiceSymptomProfile::active()
+            ->with(['profileCategories', 'profileSymptoms'])
             ->orderBy('display_order')
             ->get()
-            ->map(fn (\App\Models\Service\ServiceComplaintType $type) => [
-                'id'                    => $type->id,
-                'name'                  => $type->name,
-                'group'                 => $type->system_group->value,
-                'group_label'           => $type->system_group->label(),
-                'group_order'           => $type->system_group->sortOrder(),
-                'required_capabilities' => $type->required_capabilities ?? [],
-                'product_ids'           => $type->applicable_product_ids,
-                'category_ids'          => $type->applicable_category_ids,
+            ->map(fn (ServiceSymptomProfile $profile) => [
+                'id'                   => $profile->id,
+                'product_id'           => $profile->product_id,
+                'product_category_id'  => $profile->product_category_id,
+                'category_ids'         => $profile->profileCategories->pluck('service_symptom_category_id')->values(),
+                'additions'            => $profile->profileSymptoms
+                    ->where('mode', ServiceSymptomProfileSymptomMode::Include)
+                    ->pluck('service_symptom_id')->values(),
+                'exclusions'           => $profile->profileSymptoms
+                    ->where('mode', ServiceSymptomProfileSymptomMode::Exclude)
+                    ->pluck('service_symptom_id')->values(),
             ])->values();
 
         $employees = User::active()->orderBy('first_name')
@@ -101,7 +128,7 @@ trait BuildsTicketFormData
 
         $stores = Store::where('status', 'Active')->orderBy('store_name')->get(['id', 'store_name']);
 
-        return compact('orderOptions', 'filterCategories', 'filterProducts', 'overrideEquipment', 'complaintTypes', 'employees', 'stores');
+        return compact('orderOptions', 'filterCategories', 'filterProducts', 'overrideEquipment', 'symptomCategories', 'symptoms', 'symptomProfiles', 'employees', 'stores');
     }
 
     /** Shared dropdown data for the create/edit ticket forms. */

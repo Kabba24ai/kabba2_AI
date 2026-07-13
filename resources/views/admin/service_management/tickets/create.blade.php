@@ -583,9 +583,11 @@ document.addEventListener('DOMContentLoaded', function () {
         applyOverrideFilter();
     });
 
-    // ── Structured complaint intake ───────────────────────────────────
-    const COMPLAINT_TYPES = @json($complaintTypes);
-    const OLD_COMPLAINTS  = @json(collect(old('complaints', []))->map(fn ($v) => (int) $v)->values());
+    // ── Structured complaint intake (categorized symptom library) ──────
+    const SYMPTOM_CATEGORIES = @json($symptomCategories);
+    const SYMPTOMS           = @json($symptoms);
+    const SYMPTOM_PROFILES   = @json($symptomProfiles);
+    const OLD_COMPLAINTS     = @json(collect(old('complaints', []))->map(fn ($v) => (int) $v)->values());
 
     const complaintEmpty     = document.getElementById('st-complaint-empty');
     const complaintList      = document.getElementById('st-complaint-list');
@@ -601,33 +603,49 @@ document.addEventListener('DOMContentLoaded', function () {
         return order ? order.equipment.find(u => String(u.id) === String(equipmentSelect.value)) : null;
     }
 
-    function complaintApplies(type, unit) {
-        if (type.product_ids && !type.product_ids.some(id => String(id) === String(unit.product_id))) return false;
-        if (type.category_ids) {
-            const categories = PRODUCT_CATEGORIES[unit.product_id] || [];
-            if (!type.category_ids.some(id => categories.some(c => String(c) === String(id)))) return false;
-        }
-        // null capabilities = unknown machine, hide nothing; a recorded list
-        // (even empty) must satisfy every requirement
-        if (type.required_capabilities.length && unit.capabilities !== null && unit.capabilities !== undefined) {
-            if (!type.required_capabilities.every(cap => unit.capabilities.includes(cap))) return false;
-        }
-        return true;
+    // Resolve the equipment's symptom profile: an exact product-level
+    // assignment wins over a broader product-category assignment. Equipment
+    // with no matching profile yet shows the full library (same "hide
+    // nothing until scoped" default the checklist has always used).
+    function resolveSymptomProfile(unit) {
+        let profile = SYMPTOM_PROFILES.find(p => p.product_id && String(p.product_id) === String(unit.product_id));
+        if (profile) return profile;
+
+        const categories = PRODUCT_CATEGORIES[unit.product_id] || [];
+        return SYMPTOM_PROFILES.find(p => p.product_category_id
+            && categories.some(id => String(id) === String(p.product_category_id))) || null;
+    }
+
+    // Included Categories + Individual Additions - Individual Exclusions.
+    function applicableSymptoms(unit) {
+        const profile = resolveSymptomProfile(unit);
+        if (!profile) return SYMPTOMS;
+
+        const categoryIds = profile.category_ids.map(String);
+        const additions    = profile.additions.map(String);
+        const exclusions   = profile.exclusions.map(String);
+
+        return SYMPTOMS.filter(function (symptom) {
+            const id = String(symptom.id);
+            if (exclusions.includes(id)) return false;
+            if (additions.includes(id)) return true;
+            return categoryIds.includes(String(symptom.category_id));
+        });
     }
 
     function syncComplaintChips() {
         complaintChips.replaceChildren();
         checkedComplaints.forEach(function (id) {
-            const type = COMPLAINT_TYPES.find(t => String(t.id) === id);
-            if (!type) return;
+            const symptom = SYMPTOMS.find(s => String(s.id) === id);
+            if (!symptom) return;
             const chip = document.createElement('span');
             chip.className = 'inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 pl-3 pr-1.5 py-1 text-sm font-medium text-amber-800';
-            chip.appendChild(document.createTextNode(type.name));
+            chip.appendChild(document.createTextNode(symptom.name));
             const remove = document.createElement('button');
             remove.type = 'button';
             remove.className = 'w-4 h-4 rounded-full flex items-center justify-center text-amber-500 hover:text-amber-700 hover:bg-amber-100 text-xs font-bold leading-none';
             remove.textContent = '×';
-            remove.title = 'Remove ' + type.name;
+            remove.title = 'Remove ' + symptom.name;
             remove.addEventListener('click', function () {
                 checkedComplaints.delete(id);
                 const box = complaintList.querySelector('input[value="' + id + '"]');
@@ -652,17 +670,24 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const applicable = COMPLAINT_TYPES.filter(t => complaintApplies(t, unit));
+        const applicable = applicableSymptoms(unit);
 
         // Drop selections the new equipment can no longer report
         checkedComplaints.forEach(function (id) {
-            if (!applicable.some(t => String(t.id) === id)) checkedComplaints.delete(id);
+            if (!applicable.some(s => String(s.id) === id)) checkedComplaints.delete(id);
         });
 
         const groups = new Map();
-        applicable.forEach(function (type) {
-            if (!groups.has(type.group)) groups.set(type.group, { label: type.group_label, order: type.group_order, types: [] });
-            groups.get(type.group).types.push(type);
+        applicable.forEach(function (symptom) {
+            if (!groups.has(symptom.category_id)) {
+                const category = SYMPTOM_CATEGORIES.find(c => c.id === symptom.category_id);
+                groups.set(symptom.category_id, {
+                    label: category ? category.name : 'Other',
+                    order: category ? category.display_order : 999,
+                    symptoms: [],
+                });
+            }
+            groups.get(symptom.category_id).symptoms.push(symptom);
         });
 
         Array.from(groups.values()).sort((a, b) => a.order - b.order).forEach(function (group) {
@@ -673,26 +698,29 @@ document.addEventListener('DOMContentLoaded', function () {
             heading.textContent = group.label;
             box.appendChild(heading);
 
-            group.types.forEach(function (type) {
-                const row = document.createElement('label');
-                row.className = 'flex items-center gap-2 py-0.5 cursor-pointer';
-                const check = document.createElement('input');
-                check.type = 'checkbox';
-                check.name = 'complaints[]';
-                check.value = type.id;
-                check.className = 'st-complaint-check text-amber-600 rounded focus:ring-amber-500';
-                check.checked = checkedComplaints.has(String(type.id));
-                check.addEventListener('change', function () {
-                    check.checked ? checkedComplaints.add(String(type.id)) : checkedComplaints.delete(String(type.id));
-                    syncComplaintChips();
+            group.symptoms
+                .slice()
+                .sort((a, b) => a.display_order - b.display_order)
+                .forEach(function (symptom) {
+                    const row = document.createElement('label');
+                    row.className = 'flex items-center gap-2 py-0.5 cursor-pointer';
+                    const check = document.createElement('input');
+                    check.type = 'checkbox';
+                    check.name = 'complaints[]';
+                    check.value = symptom.id;
+                    check.className = 'st-complaint-check text-amber-600 rounded focus:ring-amber-500';
+                    check.checked = checkedComplaints.has(String(symptom.id));
+                    check.addEventListener('change', function () {
+                        check.checked ? checkedComplaints.add(String(symptom.id)) : checkedComplaints.delete(String(symptom.id));
+                        syncComplaintChips();
+                    });
+                    row.appendChild(check);
+                    const text = document.createElement('span');
+                    text.className = 'text-sm text-gray-700';
+                    text.textContent = symptom.name;
+                    row.appendChild(text);
+                    box.appendChild(row);
                 });
-                row.appendChild(check);
-                const text = document.createElement('span');
-                text.className = 'text-sm text-gray-700';
-                text.textContent = type.name;
-                row.appendChild(text);
-                box.appendChild(row);
-            });
             complaintList.appendChild(box);
         });
 

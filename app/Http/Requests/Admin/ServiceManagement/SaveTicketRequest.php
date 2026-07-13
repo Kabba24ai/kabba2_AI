@@ -54,7 +54,7 @@ class SaveTicketRequest extends FormRequest
             // ServiceTicketComplaint record. Evidence rides the standard
             // ticket-media pipeline (same limits as SaveMediaRequest).
             'complaints'   => ['nullable', 'array'],
-            'complaints.*' => ['integer', 'exists:service_complaint_types,id'],
+            'complaints.*' => ['integer', 'exists:service_symptoms,id'],
             'evidence'     => ['nullable', 'array'],
             'evidence.*'   => [
                 'file', 'max:51200', // 50 MB

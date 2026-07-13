@@ -107,7 +107,7 @@
                         <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/svg+xml" class="sr-only"
                                @change="mediaId = ''; imgSrc = URL.createObjectURL($event.target.files[0])">
                     </label>
-                    <p class="text-xs text-gray-400">Recommended 1920×450 · JPG/PNG/WebP/SVG · max 4 MB</p>
+                    <p class="text-xs text-gray-400">Max 1920×450 (450 px is a height cap, not a required size — shorter images display at their natural height; taller images are cropped, never stretched) · JPG/PNG/WebP/SVG · max 4 MB</p>
                     @if($section->image_url)
                     <button type="submit"
                             form="hero-remove-img-form"
@@ -268,9 +268,10 @@
         {{-- Preview viewport --}}
         <div class="relative overflow-hidden bg-gray-900" style="min-height: 200px;">
 
-            {{-- Background image --}}
+            {{-- Background image — same max-height/crop rule as the public hero partial --}}
             <img :src="imgSrc" x-show="imgSrc"
                  class="w-full h-auto block"
+                 style="max-height: 450px; object-fit: cover;"
                  aria-hidden="true">
             <div x-show="!imgSrc"
                  class="w-full bg-gradient-to-br from-gray-700 to-gray-900"

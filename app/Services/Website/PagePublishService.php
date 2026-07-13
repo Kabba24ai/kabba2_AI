@@ -96,8 +96,21 @@ class PagePublishService
         $this->log($page, null, 'auto_saved', null);
     }
 
+    /**
+     * Central invalidation point for every lifecycle action that can change
+     * what the public site renders (publish, unpublish, archive, restore).
+     *
+     * The public homepage is served from HomePageService's cache — that is
+     * the cache that actually matters. The generic website_page_* keys below
+     * are kept for forward-compat with future per-page caches, but they are
+     * not currently written anywhere.
+     */
     public function clearPublishedCache(WebsitePage $page): void
     {
+        if ($page->page_key === 'home') {
+            HomePageService::clearCache();
+        }
+
         Cache::forget("website_page_{$page->page_key}");
         Cache::forget("website_page_slug_{$page->slug}");
         Cache::forget("website_page_id_{$page->id}");

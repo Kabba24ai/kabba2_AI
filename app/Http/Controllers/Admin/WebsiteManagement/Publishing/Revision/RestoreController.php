@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\WebsiteManagement\WebsitePage;
 use App\Models\WebsiteManagement\WebsitePageRevision;
 use App\Models\WebsiteManagement\WebsiteRevisionLog;
+use App\Services\Website\PagePublishService;
 use App\Services\Website\PageRevisionService;
 use Illuminate\Http\Request;
 
 class RestoreController extends Controller
 {
-    public function __construct(private PageRevisionService $revisionService) {}
+    public function __construct(
+        private PageRevisionService $revisionService,
+        private PagePublishService $publishService,
+    ) {}
 
     public function __invoke(Request $request, string $page_unique_id, string $rev_unique_id)
     {
@@ -23,6 +27,10 @@ class RestoreController extends Controller
                         ->firstOrFail();
 
         $newRevision = $this->revisionService->restoreRevision($revision);
+
+        // Restore rewrites the live section rows — the public site must not
+        // keep serving the pre-restore content from cache.
+        $this->publishService->clearPublishedCache($page);
 
         WebsiteRevisionLog::create([
             'website_page_id'          => $page->id,

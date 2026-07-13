@@ -230,8 +230,18 @@
                         <h3 class="text-lg font-bold text-gray-900">Home Page Settings</h3>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {{-- Home Page Image --}}
+                        {{-- Home Page Image (LEGACY — not shown on the current homepage) --}}
                         <div class="md:col-span-2">
+                            <div class="mb-3 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
+                                <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                                <p class="text-sm text-amber-800">
+                                    <strong>Legacy setting — no longer displayed.</strong>
+                                    The live homepage hero is managed in
+                                    <a href="{{ route('admin.website-management.home-builder.index', ['tab' => 'hero']) }}"
+                                       class="font-semibold underline text-amber-900 hover:text-amber-700">Home Builder → Hero</a>.
+                                    Changes made here will <em>not</em> appear on the website.
+                                </p>
+                            </div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Upload Home Page Image
                                 <span class="text-red-600 text-xs">(Recommended Size: 1900px × 430px)</span>

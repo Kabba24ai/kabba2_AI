@@ -1,6 +1,13 @@
 {{-- ============================================================
      Section: Hero
-     Image renders at its natural proportions (w-full h-auto).
+     Image renders at its natural proportions (w-full h-auto) up to a
+     450px maximum height. 1920×450 is the MAXIMUM supported canvas,
+     not a mandatory rendered size: a shorter image (e.g. 1920×400)
+     displays at its natural proportional height with no blank space;
+     a proportionally taller image is capped at 450px and center-
+     cropped via object-fit: cover — never stretched or distorted.
+     Inline style is used (not a Tailwind class) because compiled CSS
+     is committed and deploys do not run an asset build.
      The section has pt-16 so the banner starts below the fixed
      navbar rather than sliding behind it.
 ============================================================ --}}
@@ -16,12 +23,13 @@
     {{-- Wrapper — height driven by the image itself (no aspect-ratio constraint) --}}
     <div class="relative w-full">
 
-        {{-- Full-width image, height scales proportionally — no cropping --}}
+        {{-- Full-width image, proportional height, hard-capped at 450px --}}
         @if($hero->imageUrl)
         <img
             src="{{ $hero->imageUrl }}"
             alt="Equipment rental background"
             class="w-full h-auto block"
+            style="max-height: 450px; object-fit: cover;"
             aria-hidden="true"
         >
         @else

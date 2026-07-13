@@ -91,7 +91,7 @@
 
     {{-- ── DISPATCH BACKLOG KPI CARDS ──────────────────────────────────────────── --}}
     <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Dispatch Backlog — Live</h4>
-    <div id="kpi-section" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6"></div>
+    <div id="kpi-section" class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6"></div>
 
     {{-- ── CHARTS ───────────────────────────────────────────────────────────── --}}
     <div id="charts-section">

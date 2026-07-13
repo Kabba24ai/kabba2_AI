@@ -58,13 +58,13 @@
                     <label class="block text-xs text-gray-500 mb-1">Start</label>
                     {!! html()->text('start_date', $filters['start_date'] ?? '')->class([
                         'rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 datepicker dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-                    ])->attributes(['id' => 'f-start-date', 'placeholder' => 'Start Date', 'autocomplete' => 'off']) !!}
+                    ])->attributes(['id' => 'f-start-date', 'placeholder' => 'Start Date', 'autocomplete' => 'off', 'data-format' => config('app.aire_datepicker_format', 'MM/dd/yyyy')]) !!}
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">End</label>
                     {!! html()->text('end_date', $filters['end_date'] ?? '')->class([
                         'rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 datepicker dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-                    ])->attributes(['id' => 'f-end-date', 'placeholder' => 'End Date', 'autocomplete' => 'off']) !!}
+                    ])->attributes(['id' => 'f-end-date', 'placeholder' => 'End Date', 'autocomplete' => 'off', 'data-format' => config('app.aire_datepicker_format', 'MM/dd/yyyy')]) !!}
                 </div>
             </div>
 
@@ -80,10 +80,6 @@
                 </select>
             </div>
 
-            <button type="button" id="btn-run"
-                class="px-4 py-2 bg-brand-500 text-white rounded-md text-sm font-medium hover:bg-brand-600 transition">
-                Run Report
-            </button>
         </div>
 
     </div>
@@ -156,7 +152,6 @@
     const fStartDate  = document.getElementById('f-start-date');
     const fEndDate    = document.getElementById('f-end-date');
     const fStore      = document.getElementById('f-store');
-    const btnRun      = document.getElementById('btn-run');
     const btnClear    = document.getElementById('btn-clear-filters');
     const overlay     = document.getElementById('loading-overlay');
 
@@ -203,8 +198,49 @@
         .finally(() => overlay.classList.add('hidden'));
     }
 
-    btnRun.addEventListener('click', runReport);
     [fDateRange, fStore].forEach(el => el.addEventListener('change', runReport));
+
+    // AirDatepicker dispatches a native 'change' event on selection, so a
+    // custom start/end pick auto-runs too — only once both ends are set.
+    // End must not be before Start: the end picker's minDate is kept in sync
+    // with the chosen start date, and any already-invalid end value is
+    // cleared rather than silently sent to the server.
+    function pickedDate(el) {
+        return el?._airDatepicker?.selectedDates?.[0] ?? null;
+    }
+
+    fStartDate?.addEventListener('change', () => {
+        const start = pickedDate(fStartDate);
+        fEndDate?._airDatepicker?.update({ minDate: start || false });
+
+        const end = pickedDate(fEndDate);
+        if (start && end && end < start) {
+            fEndDate.value = '';
+            fEndDate._airDatepicker?.clear();
+            window.notyf?.error('End date cannot be before the start date.');
+            return;
+        }
+
+        if (fDateRange.value === 'custom' && fStartDate.value && fEndDate.value) {
+            runReport();
+        }
+    });
+
+    fEndDate?.addEventListener('change', () => {
+        const start = pickedDate(fStartDate);
+        const end = pickedDate(fEndDate);
+
+        if (start && end && end < start) {
+            fEndDate.value = '';
+            fEndDate._airDatepicker?.clear();
+            window.notyf?.error('End date cannot be before the start date.');
+            return;
+        }
+
+        if (fDateRange.value === 'custom' && fStartDate.value && fEndDate.value) {
+            runReport();
+        }
+    });
 
     btnClear.addEventListener('click', () => {
         fDateRange.value = 'mtd';

@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\Admin\V1\Orders;
 
 use App\Helpers\CustomHelper;
 use App\Http\Resources\Api\Admin\V1\OrderAddresses\ListResource as OrderAddressesListResource;
+use App\Services\PaymentDescriptionPresenter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -43,6 +44,12 @@ class ListResource extends JsonResource
             'platform' => $this->platform ?? '',
             'payment_type' => $this->last_payment_type ?? '',
             'payment_status' => $this->last_payment_status ?? '',
+            // Human-readable canonical labels, additive alongside the raw
+            // machine values above (which stay unchanged for existing
+            // clients) — the same wording Order Details/receipts/reports
+            // use, so a client can display them without its own mapping.
+            'payment_type_label' => PaymentDescriptionPresenter::methodLabel($this->last_payment_type),
+            'payment_status_label' => PaymentDescriptionPresenter::statusLabel($this->last_payment_status),
             'delivery_address' => new OrderAddressesListResource($this->whenLoaded('shippingAddress') ?? []),
             'billing_address' => new OrderAddressesListResource($this->whenLoaded('billingAddress') ?? []),
 

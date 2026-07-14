@@ -20,12 +20,28 @@ class RefundRequest extends ApiBaseFormRequest
         return array_merge([
             'amount' => ['required', 'numeric', 'min:0.01'],
 
-            'payment_type' => ['required', 'string', 'in:' . implode(',', array_column(\App\Enums\Customers\PaymentMethod::cases(), 'value'))],
+            'payment_type' => ['required', 'string', 'in:' . implode(',', array_column(\App\Enums\Customers\PaymentMethod::canonical(), 'value'))],
 
             'cheque_number' => ['required_if:payment_type,Cheque', 'nullable', 'string', 'max:255'],
 
+            // "Other" carries no inherent meaning on its own — require a
+            // description of what was actually used, same as Receive Payment.
+            'payment_note' => ['required_if:payment_type,Other', 'nullable', 'string', 'max:255'],
+
             // 'reason' is now the structured reason dropdown (see
             // VerifiesProcessedBy) instead of the old free-text field.
+
+            // Client-generated, one per modal-open — lets a Store Credit
+            // refund recognize a duplicate double-click/network-retry of
+            // the same submit rather than granting credit twice.
+            'idempotency_token' => ['nullable', 'string', 'max:64'],
         ], $this->processedByRules());
+    }
+
+    public function messages(): array
+    {
+        return [
+            'payment_note.required_if' => 'Describe the payment method used (e.g. Manufacturer Credit, Trade Credit).',
+        ];
     }
 }

@@ -138,7 +138,7 @@ class ReceiptPaymentStatusTest extends TestCase
 
         $status = ReceiptService::currentPaymentStatusLabel($order);
         $this->assertNotSame('Paid in Full', $status);
-        $this->assertSame('Partial Payment', $status);
+        $this->assertSame('Partially Paid', $status);
     }
 
     // ── 5. Refunded / voided follow canonical rules ─────────────────────
@@ -192,7 +192,7 @@ class ReceiptPaymentStatusTest extends TestCase
 
         $status = ReceiptService::currentPaymentStatusLabel($order);
         $this->assertNotSame('Paid in Full', $status);
-        $this->assertSame('Partial Refund', $status);
+        $this->assertSame('Partially Refunded', $status);
     }
 
     public function test_voided_payment_does_not_show_paid_in_full(): void

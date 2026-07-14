@@ -167,10 +167,43 @@ class ReceivePaymentController extends Controller
                 $orderPaymentMethod = match ($paymentMethod) {
                     'Cash' => OrderPaymentMethod::Cash->value,
                     'Cheque' => OrderPaymentMethod::Cheque->value,
-                    'BankTransfer' => OrderPaymentMethod::Online->value,
+                    'TapToPay' => OrderPaymentMethod::TapToPay->value,
+                    'StoreCredit' => OrderPaymentMethod::StoreCredit->value,
+                    'GiftCard' => OrderPaymentMethod::GiftCard->value,
+                    'ZelleVenmo' => OrderPaymentMethod::ZelleVenmo->value,
                     'Other' => OrderPaymentMethod::Other->value,
                     default => null,
                 };
+
+                // Store Credit actually deducts from the customer's real
+                // credit balance — never just a label, per the "Cash means
+                // cash" principle applied to every method: selecting Store
+                // Credit must mean the balance genuinely decreased.
+                if ($orderPaymentMethod === OrderPaymentMethod::StoreCredit->value) {
+                    // Namespaced so a duplicate submit of *this* payment is
+                    // recognized (redeem() returns the existing row instead
+                    // of redeeming twice) without colliding with an
+                    // unrelated redeem()/createFinancialCredit() call that
+                    // happened to reuse the same raw client token.
+                    $idempotencyKey = !empty($validated['idempotency_token'])
+                        ? "receive-payment:{$order->id}:{$validated['idempotency_token']}"
+                        : null;
+
+                    try {
+                        \App\Services\CustomerCreditService::redeem(
+                            customerId: $customer->id,
+                            amount: $amount,
+                            reason: "Applied to Order {$order->order_number}",
+                            responsibleUserId: $user->id,
+                            idempotencyKey: $idempotencyKey,
+                            orderId: $order->id,
+                        );
+                    } catch (\RuntimeException $e) {
+                        DB::rollBack();
+
+                        return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+                    }
+                }
 
                 $payment = $order->payments()->create([
                     'payment_datetime' => now(),

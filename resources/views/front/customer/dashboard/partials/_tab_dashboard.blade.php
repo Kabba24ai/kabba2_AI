@@ -241,7 +241,7 @@
                                         <td class="px-4 py-3">
                                             <!-- <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">paid</span> -->
 
-                                            {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
+                                            {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
 
 
                                         </td>

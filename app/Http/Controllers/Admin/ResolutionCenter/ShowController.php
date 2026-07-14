@@ -27,7 +27,7 @@ class ShowController extends Controller
             'currentBalance' => $currentBalance,
             'currentStoreCredit' => $currentStoreCredit,
             'customerStatus' => $customerStatus,
-            'paymentMethodOptions' => OrderPaymentMethod::cases(),
+            'paymentMethodOptions' => OrderPaymentMethod::canonical(),
         ]);
     }
 }

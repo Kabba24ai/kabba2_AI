@@ -41,10 +41,16 @@ class PaymentRequest extends ApiBaseFormRequest
             ],
 
             // ── new fields ────────────────────────────────────────────────
-            'payment_type'       => ['required', 'string', 'in:Cash,CreditCard,Cheque,BankTransfer,Other'],
-            'payment_note'       => ['nullable', 'string', 'max:500'],
+            'payment_type'       => ['required', 'string', 'in:' . implode(',', array_column(\App\Enums\Customers\PaymentMethod::canonical(), 'value'))],
+            // "Other" carries no inherent meaning on its own — require a
+            // description of what was actually used, same as the admin flow.
+            'payment_note'       => ['nullable', 'required_if:payment_type,Other', 'string', 'max:500'],
             'responsible_person' => ['required', 'exists:users,id'],
             'cheque_number'      => ['nullable', 'required_if:payment_type,Cheque', 'string', 'max:50'],
+            // Client-generated, one per distinct payment attempt — lets
+            // Store Credit redemption recognize a duplicate network retry
+            // of the same request rather than redeeming twice.
+            'idempotency_token'  => ['nullable', 'string', 'max:64'],
         ];
     }
 
@@ -53,9 +59,12 @@ class PaymentRequest extends ApiBaseFormRequest
      */
     public function messages(): array
     {
+        $accepted = implode(', ', array_column(\App\Enums\Customers\PaymentMethod::canonical(), 'value'));
+
         return [
-            'payment_type.required' => 'The payment_type field is required. Accepted: Cash, CreditCard, Cheque, BankTransfer, Other.',
-            'payment_type.in'       => 'Invalid payment_type. Accepted values: Cash, CreditCard, Cheque, BankTransfer, Other.',
+            'payment_type.required' => "The payment_type field is required. Accepted: {$accepted}.",
+            'payment_type.in'       => "Invalid payment_type. Accepted values: {$accepted}.",
+            'payment_note.required_if' => 'Describe the payment method used (e.g. Manufacturer Credit, Trade Credit) when payment_type is Other.',
             'responsible_person.required' => 'The responsible_person field is required. Send the user ID (integer).',
             'responsible_person.exists'   => 'The responsible_person ID does not exist in the users table.',
             'cheque_number.required_if'   => 'The cheque_number field is required when payment_type is Cheque.',
@@ -82,10 +91,10 @@ class PaymentRequest extends ApiBaseFormRequest
                 'required'    => true,
             ],
             'payment_type' => [
-                'description' => 'Payment method. Accepted values: Cash · CreditCard · Cheque · BankTransfer · Other',
+                'description' => 'Payment method. Accepted values: Cash · CreditCard · Cheque · TapToPay · StoreCredit · GiftCard · ZelleVenmo · Other. "Other" requires payment_note describing what was actually used.',
                 'example'     => 'Cash',
                 'type'        => 'string',
-                'enum'        => ['Cash', 'CreditCard', 'Cheque', 'BankTransfer', 'Other'],
+                'enum'        => ['Cash', 'CreditCard', 'Cheque', 'TapToPay', 'StoreCredit', 'GiftCard', 'ZelleVenmo', 'Other'],
                 'required'    => true,
             ],
             'responsible_person' => [
@@ -129,8 +138,14 @@ class PaymentRequest extends ApiBaseFormRequest
 
             // ── optional always ───────────────────────────────────────────
             'payment_note' => [
-                'description' => 'Optional note for this payment (max 500 characters).',
-                'example'     => 'Paid at front desk.',
+                'description' => 'Note for this payment (max 500 characters). REQUIRED when payment_type = Other.',
+                'example'     => 'Manufacturer Credit',
+                'type'        => 'string',
+                'required'    => false,
+            ],
+            'idempotency_token' => [
+                'description' => 'Client-generated unique token, one per distinct payment attempt (e.g. a UUID). Strongly recommended when payment_type = StoreCredit, so a network retry of the same request is recognized rather than redeeming the customer\'s credit twice.',
+                'example'     => '8f14e45f-ceea-4f9b-9e2c-1234567890ab',
                 'type'        => 'string',
                 'required'    => false,
             ],

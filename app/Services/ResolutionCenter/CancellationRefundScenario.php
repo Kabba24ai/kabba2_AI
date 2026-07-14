@@ -55,7 +55,7 @@ class CancellationRefundScenario implements ResolutionScenario
                 key: 'payment_method',
                 prompt: 'What payment method was used?',
                 type: ResolutionQuestion::TYPE_SELECT,
-                options: collect(OrderPaymentMethod::cases())->mapWithKeys(fn ($m) => [$m->value => $m->label()])->all(),
+                options: collect(OrderPaymentMethod::canonical())->mapWithKeys(fn ($m) => [$m->value => $m->label()])->all(),
                 dependsOn: 'credit_would_satisfy',
             ),
         ];

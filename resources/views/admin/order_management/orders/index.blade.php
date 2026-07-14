@@ -114,7 +114,10 @@
                 <select id="payment_method" name="payment_method"
                     class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Payment Types</option>
-                    @foreach (\App\Enums\Orders\OrderPaymentMethod::cases() as $method)
+                    {{-- COD kept here (unlike other filters) so staff can find orders still
+                         awaiting delivery payment — canonical() alone excludes it as a
+                         completed method, which this filter still wants to offer. --}}
+                    @foreach (array_merge([\App\Enums\Orders\OrderPaymentMethod::COD], \App\Enums\Orders\OrderPaymentMethod::canonical()) as $method)
                         <option value="{{ $method->value }}" @selected(request('payment_method') === $method->value)>
                             {{ $method->label() }}
                         </option>

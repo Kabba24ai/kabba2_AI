@@ -100,7 +100,7 @@ class ChargeService
      * @param  OrderProduct  $orderProduct
      * @param  string        $type         'fuel' | 'damage'
      * @param  float         $amount
-     * @param  string        $paymentType  'Cash'|'Cheque'|'CreditCard'|'BankTransfer'
+     * @param  string        $paymentType  One of App\Enums\Customers\PaymentMethod::canonical()
      * @param  int           $responsibleUserId
      * @param  array         $extra        Optional gateway fields (auth_code, transaction_id, etc.)
      * @return CustomerAccount  The payment CustomerAccount record.

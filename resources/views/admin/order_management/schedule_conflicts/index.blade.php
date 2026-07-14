@@ -682,7 +682,7 @@
 
                             {{-- Payment --}}
                             <td class="py-4 px-6 text-center">
-                                {!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}
+                                {!! \App\Helpers\CustomHelper::paymentStatusBadge($order?->last_payment_status) !!}
                             </td>
 
                             {{-- Actions --}}
@@ -925,7 +925,7 @@
 
                         {{-- Payment --}}
                         <td class="py-4 px-6 text-center">
-                            {!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}
+                            {!! \App\Helpers\CustomHelper::paymentStatusBadge($order?->last_payment_status) !!}
                         </td>
 
                         {{-- Actions --}}
@@ -1160,7 +1160,7 @@
                     </td>
 
                     <td class="py-4 px-6 text-center">
-                        {!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}
+                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($order?->last_payment_status) !!}
                     </td>
 
                     <td class="py-4 px-6">
@@ -1321,7 +1321,7 @@
                             <span class="text-xs text-red-400 mt-1">Was due</span>
                         </div>
                     </td>
-                    <td class="py-4 px-6 text-center">{!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}</td>
+                    <td class="py-4 px-6 text-center">{!! \App\Helpers\CustomHelper::paymentStatusBadge($order?->last_payment_status) !!}</td>
                     <td class="py-4 px-6">
                         <div class="flex gap-2 items-center justify-center">
                             <a href="{{ route('admin.order-management.orders.edit', $order?->unique_id ?? 0) }}"
@@ -1420,7 +1420,7 @@
                             </span>
                         </div>
                     </td>
-                    <td class="py-4 px-6 text-center">{!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}</td>
+                    <td class="py-4 px-6 text-center">{!! \App\Helpers\CustomHelper::paymentStatusBadge($order?->last_payment_status) !!}</td>
                     <td class="py-4 px-6">
                         <div class="flex gap-2 items-center justify-center">
                             <a href="{{ route('admin.order-management.orders.edit', $order?->unique_id ?? 0) }}"
@@ -1633,7 +1633,7 @@
                     </td>
 
                     <td class="py-4 px-6 text-center">
-                        {!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}
+                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($order?->last_payment_status) !!}
                     </td>
 
                     <td class="py-4 px-6">
@@ -1830,7 +1830,7 @@
                     </td>
 
                     <td class="py-4 px-6 text-center">
-                        {!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}
+                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($order?->last_payment_status) !!}
                     </td>
 
                     <td class="py-4 px-6">

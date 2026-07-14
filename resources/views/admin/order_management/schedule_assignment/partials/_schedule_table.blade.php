@@ -218,7 +218,7 @@
                 </td>
 
                 <td class="whitespace-nowrap px-4 py-3 text-center">
-                    {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
+                    {!! \App\Helpers\CustomHelper::paymentStatusBadge($orderProduct->order?->last_payment_status) !!}
                 </td>
                 <td class="whitespace-nowrap px-4 py-3">
                     <div class="flex gap-2 items-center justify-center">

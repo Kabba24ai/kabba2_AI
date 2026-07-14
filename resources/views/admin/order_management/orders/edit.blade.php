@@ -2275,6 +2275,11 @@
                     'class' => 'flex-1',
                     'id' => 'paymentForm',
                 ])->open() }}
+            {{-- Regenerated fresh each time the modal opens (never on retry
+                 of the same submit) — lets the server recognize a duplicate
+                 double-click/network-retry of the same payment attempt
+                 without blocking a genuinely new, separate payment. --}}
+            <input type="hidden" name="idempotency_token" id="paymentIdempotencyToken" value="">
 
             <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
 
@@ -2422,10 +2427,10 @@
                             ])->required() !!}
                     </div>
 
-                    <!-- Notes -->
+                    <!-- Notes (required when Payment Method is "Other") -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                        {!! html()->textarea('payment_note', old('payment_note'))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->rows(3)->placeholder('Enter any additional notes...') !!}
+                        <label id="paymentNoteLabel" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                        {!! html()->textarea('payment_note', old('payment_note'))->id('payment_note')->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->rows(3)->placeholder('Enter any additional notes...') !!}
                     </div>
                 </div>
             </div>
@@ -2550,6 +2555,10 @@
                     'parsley-validate' => true,
                 ])->open() }}
             @csrf
+            {{-- Regenerated fresh each time the modal opens — lets a Store
+                 Credit refund recognize a duplicate double-click/network-retry
+                 of the same submit without blocking a genuinely new refund. --}}
+            <input type="hidden" name="idempotency_token" id="refundIdempotencyToken" value="">
 
             <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
                 <!-- Order details -->
@@ -2647,23 +2656,15 @@
                                 Payment Type
                             </label>
                             @php
-                                $refundOptions = [
-                                    '' => 'Select payment method',
-                                    \App\Enums\Customers\PaymentMethod::Cash->value => 'Cash',
-                                    \App\Enums\Customers\PaymentMethod::Cheque->value => 'Check',
-                                    \App\Enums\Customers\PaymentMethod::BankTransfer->value => 'Bank Transfer',
-                                    \App\Enums\Customers\PaymentMethod::Other->value => 'Other',
-                                ];
+                                // Credit/Debit Card is only offered when that was actually
+                                // the original payment method — every other canonical
+                                // method comes straight from PaymentMethod::options(),
+                                // never a second hand-typed copy of its labels.
+                                $refundOptions = \App\Enums\Customers\PaymentMethod::options();
 
-                                if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card) {
-                                    $refundOptions =
-                                        array_slice($refundOptions, 0, 1, true)
-                                        + [
-                                            \App\Enums\Customers\PaymentMethod::CreditCard->value => 'Credit / Debit Card',
-                                        ]
-                                        + array_slice($refundOptions, 1, null, true);
+                                if ($order->last_payment_type !== \App\Enums\Orders\OrderPaymentMethod::Card) {
+                                    unset($refundOptions[\App\Enums\Customers\PaymentMethod::CreditCard->value]);
                                 }
-
                             @endphp
                             {!! html()->select('payment_type', $refundOptions)->id('refund_payment_type')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
                             <small class="text-gray-500 mt-1 block">Note: Credit/Debit Card option is only available if the
@@ -2678,6 +2679,16 @@
                             <input type="text" id="refund_cheque_number" name="cheque_number"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"
                                 placeholder="Enter Check number" />
+                        </div>
+
+                        <!-- Other — description required (hidden by default) -->
+                        <div id="refund_payment_note_field" class="hidden">
+                            <label class="text-sm font-medium text-gray-700 required" for="refund_payment_note">
+                                Describe Payment Method
+                            </label>
+                            <input type="text" id="refund_payment_note" name="payment_note" maxlength="255"
+                                placeholder="E.g. Manufacturer Credit, Trade Credit"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" />
                         </div>
 
                         <!-- Type indicator -->
@@ -3561,7 +3572,7 @@
      ║  'damage'. Type is set dynamically via beActiveType.               ║
      ╚══════════════════════════════════════════════════════════════════════╝ --}}
 
-{{-- Make a Payment — Cash/Cheque/BankTransfer/Other + Credit/Debit Card with Authorize.net --}}
+{{-- Make a Payment — canonical methods (Cash/Check/Tap to Pay/Store Credit/Gift Card/Zelle/Venmo/Other) + Credit/Debit Card with Authorize.net --}}
 <div id="beFuelPaymentModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh]">
         <div class="flex items-center justify-between px-6 py-4 border-b">
@@ -3652,10 +3663,10 @@
                         @endforeach
                     </select>
                 </div>
-                {{-- Notes --}}
+                {{-- Notes (required when Payment Type is "Other") --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <textarea name="notes" rows="2"
+                    <label id="bePayNotesLabel" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea name="notes" id="bePayNotes" rows="2"
                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
                               placeholder="Optional notes..."></textarea>
                 </div>
@@ -4964,6 +4975,16 @@
             function openProcessPaymentModal() {
                 processPaymentModal.classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
+                // Fresh token per modal-open — a double-click/retry of the
+                // same submit reuses it (server treats as a duplicate); a
+                // genuinely new payment attempt (re-opening the modal) gets
+                // a new one.
+                const tokenField = document.getElementById('paymentIdempotencyToken');
+                if (tokenField) {
+                    tokenField.value = (window.crypto && crypto.randomUUID)
+                        ? crypto.randomUUID()
+                        : 'idem-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+                }
             }
 
             function closeProcessPaymentModal() {
@@ -5108,6 +5129,16 @@
             const expiryInput = document.getElementById('expiry');
             const cvcInput = document.getElementById('cvc');
             const chequeNumberField = document.getElementById('chequeNumberField');
+            const paymentNoteLabel = document.getElementById('paymentNoteLabel');
+
+            // "Other" carries no inherent meaning on its own — the note
+            // becomes required so the record stays as accurate as every
+            // named method (mirrors ReceivePaymentRequest's server-side rule).
+            function syncPaymentNoteRequirement() {
+                const isOther = paymentType.value === 'Other';
+                paymentNoteLabel.textContent = isOther ? 'Describe Payment Method' : 'Notes (Optional)';
+                paymentNoteLabel.classList.toggle('required', isOther);
+            }
 
             // ===== Show/hide card sections =====
             function resetCreditCardFields() {
@@ -5137,7 +5168,9 @@
                     creditCardOptions.classList.add('hidden');
                     chequeNumberField.classList.add('hidden');
                 }
+                syncPaymentNoteRequirement();
             });
+            syncPaymentNoteRequirement();
 
             // ===== Input formatting =====
             cardNumberInput.addEventListener('input', function() {
@@ -5417,6 +5450,12 @@
             function openRefundModal() {
                 refundModal.classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
+                const tokenField = document.getElementById('refundIdempotencyToken');
+                if (tokenField) {
+                    tokenField.value = (window.crypto && crypto.randomUUID)
+                        ? crypto.randomUUID()
+                        : 'idem-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+                }
             }
 
             function closeRefundModal() {
@@ -5473,14 +5512,20 @@
             // ===== Show/hide refund cheque field =====
             const refundPaymentType = document.getElementById('refund_payment_type');
             const refundChequeNumberField = document.getElementById('refund_cheque_number_field');
+            const refundPaymentNoteField = document.getElementById('refund_payment_note_field');
 
             refundPaymentType.addEventListener('change', function() {
-                if (this.value === 'Cheque') {
-                    refundChequeNumberField.classList.remove('hidden');
-                } else {
-                    refundChequeNumberField.classList.add('hidden');
-                }
+                refundChequeNumberField.classList.toggle('hidden', this.value !== 'Cheque');
+                refundPaymentNoteField.classList.toggle('hidden', this.value !== 'Other');
             });
+
+            function refundPaymentNoteValid() {
+                if (refundPaymentType.value === 'Other' && !document.getElementById('refund_payment_note').value.trim()) {
+                    notyf.error('Describe the payment method when "Other" is selected.');
+                    return false;
+                }
+                return true;
+            }
 
             // "Other" reason reveals its describe field
             const refundReasonOtherField = document.getElementById('refund_reason_other_field');
@@ -5536,7 +5581,7 @@
                     return;
                 }
 
-                if (!refundReasonOtherValid() || !refundProcessedByValid()) {
+                if (!refundReasonOtherValid() || !refundPaymentNoteValid() || !refundProcessedByValid()) {
                     return;
                 }
 
@@ -5562,7 +5607,10 @@
                             employee_code: refundEmployeeCode.value.trim(),
                             payment_type: document.getElementById('refund_payment_type').value,
                             cheque_number: document.getElementById('refund_cheque_number')
-                                .value || null
+                                .value || null,
+                            payment_note: document.getElementById('refund_payment_note')
+                                .value.trim() || null,
+                            idempotency_token: document.getElementById('refundIdempotencyToken').value || null
                         })
                     })
                     .then(res => {
@@ -5605,7 +5653,7 @@
                     return;
                 }
 
-                if (!refundReasonOtherValid() || !refundProcessedByValid()) {
+                if (!refundReasonOtherValid() || !refundPaymentNoteValid() || !refundProcessedByValid()) {
                     return;
                 }
 
@@ -6876,6 +6924,15 @@
             } else if (this.value === 'Cheque') {
                 document.getElementById('bePayChequeField').classList.remove('hidden');
             }
+
+            // "Other" carries no inherent meaning on its own — the note
+            // becomes required (mirrors PaymentStoreRequest's server-side rule).
+            const isOther = this.value === 'Other';
+            const notesLabel = document.getElementById('bePayNotesLabel');
+            const notesField = document.getElementById('bePayNotes');
+            notesLabel.textContent = isOther ? 'Describe Payment Method' : 'Notes';
+            notesLabel.classList.toggle('required', isOther);
+            notesField.placeholder = isOther ? 'E.g. Manufacturer Credit, Trade Credit' : 'Optional notes...';
         });
 
         document.getElementById('bePayCardOption')?.addEventListener('change', function() {

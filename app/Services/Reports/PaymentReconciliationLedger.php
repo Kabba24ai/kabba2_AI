@@ -424,7 +424,6 @@ class PaymentReconciliationLedger
             'Card'          => 'Credit / Debit Card',
             'Cash'          => 'Cash',
             'Cheque'        => 'Check',
-            'Online'        => 'Direct Bank Transfer (ACH)',
             'COD'           => 'Pay on Delivery (COD)',
             'Other'         => 'Other',
             'billing_engine'=> 'Billing Engine',
@@ -460,10 +459,9 @@ class PaymentReconciliationLedger
             'Card'           => 1,
             'Cash'           => 2,
             'Cheque'         => 3,
-            'Online'         => 4,
-            'COD'            => 5,
-            'Other'          => 6,
-            'billing_engine' => 7,
+            'COD'            => 4,
+            'Other'          => 5,
+            'billing_engine' => 6,
         ];
     }
 }

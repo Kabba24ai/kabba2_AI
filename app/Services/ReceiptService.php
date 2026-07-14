@@ -123,7 +123,7 @@ class ReceiptService
         $totalRefunded = (float) $order->total_refunded;
 
         if ($totalRefunded > 0) {
-            return $totalRefunded >= $grandTotal ? 'Refunded' : 'Partial Refund';
+            return $totalRefunded >= $grandTotal ? 'Refunded' : 'Partially Refunded';
         }
 
         if ($order->is_paid && (float) $order->balance_due <= 0) {
@@ -131,7 +131,7 @@ class ReceiptService
         }
 
         if ((float) $order->total_paid > 0) {
-            return 'Partial Payment';
+            return 'Partially Paid';
         }
 
         if ($order->last_payment_status === \App\Enums\Orders\OrderPaymentStatus::Failed->value) {
@@ -142,7 +142,11 @@ class ReceiptService
     }
 
     /**
-     * Map last payment method to receipt payment method
+     * Map last payment method to receipt payment method. Cash means cash:
+     * COD (a payment-terms placeholder, never itself a completed method)
+     * and Account (an Accounts Receivable workflow marker, not a way
+     * funds were transferred) must never guess their way into 'cash' —
+     * they resolve to null (method not yet actually known) instead.
      */
     private static function mapPaymentMethod(Order $order): string|null
     {
@@ -152,17 +156,18 @@ class ReceiptService
             return null;
         }
 
-        $method = $lastPayment->payment_method->value; // Enum value
-
-        return match ($method) {
-            'Card'     => 'card',
-            'COD'      => 'cash',
-            'Account'  => 'other',
-            'Cash'     => 'cash',
-            'Online'   => 'online',
-            'Cheque'   => 'cheque',
-            'Other'    => 'other',
-            default    => 'other',
+        return match ($lastPayment->payment_method) {
+            \App\Enums\Orders\OrderPaymentMethod::Card => 'card',
+            \App\Enums\Orders\OrderPaymentMethod::Cash => 'cash',
+            \App\Enums\Orders\OrderPaymentMethod::Online => 'online',
+            \App\Enums\Orders\OrderPaymentMethod::Cheque => 'cheque',
+            \App\Enums\Orders\OrderPaymentMethod::TapToPay => 'tap_to_pay',
+            \App\Enums\Orders\OrderPaymentMethod::StoreCredit => 'store_credit',
+            \App\Enums\Orders\OrderPaymentMethod::GiftCard => 'gift_card',
+            \App\Enums\Orders\OrderPaymentMethod::ZelleVenmo => 'zelle_venmo',
+            \App\Enums\Orders\OrderPaymentMethod::Other => 'other',
+            \App\Enums\Orders\OrderPaymentMethod::COD, \App\Enums\Orders\OrderPaymentMethod::Account => null,
+            default => 'other',
         };
     }
 }

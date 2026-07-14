@@ -336,7 +336,7 @@
                     </td>
 
                     <td class="py-4 px-2 text-center w-[80px]">
-                        {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
+                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($orderProduct->order?->last_payment_status) !!}
                     </td>
 
                     <td class="py-4 px-1 text-center w-8">

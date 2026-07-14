@@ -795,7 +795,7 @@ $lockInvoiceActions = $isEdit &&
                                             
                                             <button
                                             @if($account->type === 'order' && $account->order)
-                                                @if ($account->order->last_payment_status == 'Paid at Front Desk' || $account->last_payment_status == 'Paid by CC on File' || $account->last_payment_status == 'Paid by Direct Bank' || $account->last_payment_status == 'Paid')
+                                                @if (\App\Enums\Orders\OrderPaymentStatus::tryFrom($account->order->last_payment_status ?? '')?->isSettled())
                                                 disabled
                                                 @endif
 

@@ -28,7 +28,10 @@ class RefundPaymentController extends Controller
             PaymentMethod::CreditCard->value => OrderPaymentMethod::Card->value,
             PaymentMethod::Cash->value => OrderPaymentMethod::Cash->value,
             PaymentMethod::Cheque->value => OrderPaymentMethod::Cheque->value,
-            PaymentMethod::BankTransfer->value => OrderPaymentMethod::Online->value,
+            PaymentMethod::TapToPay->value => OrderPaymentMethod::TapToPay->value,
+            PaymentMethod::StoreCredit->value => OrderPaymentMethod::StoreCredit->value,
+            PaymentMethod::GiftCard->value => OrderPaymentMethod::GiftCard->value,
+            PaymentMethod::ZelleVenmo->value => OrderPaymentMethod::ZelleVenmo->value,
             PaymentMethod::Other->value => OrderPaymentMethod::Other->value,
             default => OrderPaymentMethod::Other->value,
         };
@@ -146,6 +149,28 @@ class RefundPaymentController extends Controller
                 ? round($currentRefundAmount - ($currentRefundAmount / (1 + $originalTaxRate)), 2)
                 : 0.0;
 
+            // Refunding to Store Credit must actually grant the credit —
+            // never just a label — the same "Cash means cash" principle
+            // applied to every method: selecting Store Credit must mean
+            // the customer's real balance genuinely increased.
+            if ($refundPaymentType === PaymentMethod::StoreCredit->value) {
+                // Namespaced so a duplicate submit of *this* refund is
+                // recognized without colliding with an unrelated grant/
+                // redemption that happened to reuse the same raw token.
+                $idempotencyKey = !empty($validated['idempotency_token'])
+                    ? "refund:{$order->id}:{$validated['idempotency_token']}"
+                    : null;
+
+                \App\Services\CustomerCreditService::createFinancialCredit(
+                    customerId: $order->customer_id,
+                    amount: $currentRefundAmount,
+                    reason: "Refund on Order {$order->order_number}: {$reasonText}",
+                    responsibleUserId: $processedBy->id,
+                    idempotencyKey: $idempotencyKey,
+                    orderId: $order->id,
+                );
+            }
+
             // Decide status using accessor
             $willRemain = $remaining - $currentRefundAmount;
             $refundStatus = $willRemain <= 0 ? OrderPaymentStatus::Refund : OrderPaymentStatus::PartialRefund;
@@ -162,6 +187,7 @@ class RefundPaymentController extends Controller
                 'refund_amount'           => $currentRefundAmount,
                 'tax_refunded'            => $taxRefunded,
                 'refund_note'             => $reasonText,
+                'payment_note'            => $validated['payment_note'] ?? null,
                 'cheque_number'           => $validated['cheque_number'] ?? null,
                 'created_by_type'         => get_class($user),
                 'created_by_id'           => $user->id,

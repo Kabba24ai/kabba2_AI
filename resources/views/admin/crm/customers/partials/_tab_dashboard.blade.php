@@ -447,7 +447,7 @@
                     <td class="py-4 px-6 text-right">
 
 
-                        {!! \App\Helpers\CustomHelper::statusBadge($order?->last_payment_status) !!}
+                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($order?->last_payment_status) !!}
 
 
                     </td>

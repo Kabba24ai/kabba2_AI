@@ -6,8 +6,8 @@ use App\Events\Admin\Orders\PaymentInitiateEvent;
 // enums
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
-use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Services\PaymentDescriptionPresenter;
 
 class PaymentInitiateListener
 {
@@ -20,20 +20,19 @@ class PaymentInitiateListener
         $user = $event->user;
         $payment = $event->payment;
 
-        $methodLabel   = $payment->payment_method?->label() ?? 'Unknown';
         $amountDisplay = '$' . number_format((float) $payment->amount, 2);
         $personName    = $user?->full_name ?? 'Unknown';
 
-        // Determine payment action and description
+        // Determine payment action; description always comes from the
+        // centralized presenter so it reflects the payment actually taken
+        // (not an assumption that every completed payment was by card).
         if ($payment->status === OrderPaymentStatus::PartialPayment) {
             $action      = OrderHistoryAction::PartialPaymentReceived;
+            $methodLabel = PaymentDescriptionPresenter::methodLabel($payment->payment_method);
             $description = "Partial Payment: {$methodLabel} | {$amountDisplay} | {$personName}";
-        } elseif ($payment->payment_method === OrderPaymentMethod::Card && $payment->status->isPaid()) {
-            $action      = OrderHistoryAction::OrderPaid;
-            $description = "Paid In Full Via - Credit/Debit Card";
         } else {
-            $action      = OrderHistoryAction::PaymentInitiated;
-            $description = "Payment initiated via {$methodLabel}";
+            $action      = $payment->status->isSettled() ? OrderHistoryAction::OrderPaid : OrderHistoryAction::PaymentInitiated;
+            $description = PaymentDescriptionPresenter::historyDescription($payment);
         }
 
         $order->history()->create([
@@ -52,7 +51,7 @@ class PaymentInitiateListener
                 'action_by' => OrderHistoryActionBy::User,
                 'action_date' => now(),
                 'action' => OrderHistoryAction::PaymentFailed,
-                'description' => "Payment failed via {$payment->payment_method->label()}",
+                'description' => PaymentDescriptionPresenter::failureDescription($payment),
             ]);
         }
 

@@ -8,6 +8,7 @@ use App\Events\Admin\Invoices\InvoicePaidEvent;
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Services\PaymentDescriptionPresenter;
 
 use Illuminate\Support\Facades\Log;
 
@@ -32,25 +33,11 @@ class CreateInvoiceActivityListener
             'handled_by_admin' => $employee ? true : false,
         ]);
 
-        // Determine payment action and description
-        if ($payment->status->isPaid() || $payment->status->isInvoice()) {
-            $action = OrderHistoryAction::OrderPaid;
-            $description = match ($payment->status) {
-                OrderPaymentStatus::Paid => "Paid In Full Via - Credit/Debit Card",
-                OrderPaymentStatus::InvoiceCard => "Paid Invoice Via CC on File From Customer Dashboard",
-                OrderPaymentStatus::InvoiceCash => "Paid Invoice Via Front Desk From Admin Panel",
-                OrderPaymentStatus::InvoiceOnline => "Paid Invoice Via Direct Bank From Admin Panel",
-                OrderPaymentStatus::InvoiceCheque => "Paid Invoice Via Check From Admin Panel",
-                OrderPaymentStatus::InvoiceOther => "Paid Invoice Via Other Method From Admin Panel",
-                default => "Paid In Full",
-            };
-        } else {
-            $action = OrderHistoryAction::PaymentInitiated;
-            $methodLabel = is_object($payment->payment_method) && method_exists($payment->payment_method, 'label')
-                ? $payment->payment_method->label()
-                : ucfirst($payment->payment_method);
-            $description = "Payment initiated via {$methodLabel}";
-        }
+        // Determine payment action; description always comes from the
+        // centralized presenter so it reflects the payment actually taken
+        // (not a hand-typed paraphrase that can drift from the enum).
+        $action = $payment->status->isSettled() ? OrderHistoryAction::OrderPaid : OrderHistoryAction::PaymentInitiated;
+        $description = PaymentDescriptionPresenter::historyDescription($payment);
 
         
         Log::debug('Logging order history entry for payment', [
@@ -80,7 +67,7 @@ class CreateInvoiceActivityListener
                 'action_by' => ($employee) ? OrderHistoryActionBy::User : OrderHistoryActionBy::Customer,
                 'action_date' => now(),
                 'action' => OrderHistoryAction::PaymentFailed,
-                'description' => "Payment failed via {$payment->payment_method->label()}",
+                'description' => PaymentDescriptionPresenter::failureDescription($payment),
             ]);
         }
 

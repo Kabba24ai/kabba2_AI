@@ -21,19 +21,17 @@ class IndexController extends Controller
         $context = $this->builder->getBuilderContext($page);
 
         // Ordered to match the contact page's visual flow, not the registry registration order.
-        $allowedKeys = ['hero', 'contact_strip', 'locations', 'question_cta', 'seo'];
+        // No `hero`: the contact page has no header band — it opens with the
+        // shared contact strip (historical hero rows stay in the DB, unrendered).
+        $allowedKeys = ['contact_strip', 'locations', 'question_cta', 'seo'];
         $components  = collect($allowedKeys)
             ->filter(fn ($key) => $this->registry->has($key))
             ->mapWithKeys(fn ($key) => [$key => $this->registry->find($key)]);
 
-        // The hero image is homepage-only. The contact page's `hero` section is
-        // presented as a simple Page Header (title/subtitle/description) instead.
-        $components->put('hero', new \App\Services\Website\Components\PageHeaderComponent());
-
         return view('admin.website_management.contact_page_builder.index', array_merge($context, [
             'registry'    => $this->registry,
             'components'  => $components,
-            'activeTab'   => $request->get('tab', 'hero'),
+            'activeTab'   => $request->get('tab', 'contact_strip'),
             'routePrefix' => 'admin.website-management.contact-builder',
         ]));
     }

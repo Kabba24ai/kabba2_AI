@@ -22,6 +22,10 @@ Route::prefix('contact-builder')
             Route::delete('/{unique_id}/remove-image', HPSection\RemoveImageController::class)->name('remove-image');
         });
 
+        // Contact page store DISPLAY order (independent of Store Management)
+        Route::post('/store-order', \App\Http\Controllers\Admin\WebsiteManagement\ContactPageBuilder\StoreOrder\UpdateController::class)
+            ->name('store-order.update');
+
         Route::prefix('item')->name('item.')->group(function () {
             Route::post('/store', Item\StoreController::class)->name('store');
             Route::post('/{unique_id}/update', Item\UpdateController::class)->name('update');

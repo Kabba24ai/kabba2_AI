@@ -70,9 +70,8 @@ class HeroScopeTest extends TestCase
         }
         $this->assertStringNotContainsString('Contact Us background', $html); // old hero <img alt>
 
-        // Simple page header instead, preserving the section's title text
-        $this->assertStringContainsString('id="contact-page-header"', $html);
-        $this->assertStringContainsString('CONTACT US', $html);
+        // No header band of any kind — the page opens with the shared contact strip
+        $this->assertStringNotContainsString('contact-page-header', $html);
     }
 
     public function test_checkout_does_not_render_hero_markup(): void
@@ -88,13 +87,14 @@ class HeroScopeTest extends TestCase
 
     // ── Administrative UI ────────────────────────────────────────────────────
 
-    public function test_contact_builder_exposes_page_header_without_image_or_overlay_controls(): void
+    public function test_contact_builder_exposes_no_hero_image_or_overlay_controls(): void
     {
         $this->actingAsAdmin();
 
         $this->get(route('admin.website-management.contact-builder.index'))
             ->assertOk()
-            ->assertSee('Page Header')
+            ->assertDontSee('Page Header')
+            ->assertDontSee('Hero Banner')
             ->assertDontSee('Choose from Library')
             ->assertDontSee('Overlay Settings')
             ->assertDontSee('Text Readability')
@@ -116,32 +116,6 @@ class HeroScopeTest extends TestCase
     }
 
     // ── Persistence ─────────────────────────────────────────────────────────
-
-    public function test_contact_page_header_save_persists_text_and_rejects_nothing_needed(): void
-    {
-        $this->actingAsAdmin();
-
-        $section = WebsitePage::where('page_key', 'contact')->firstOrFail()
-            ->sections()->where('section_key', 'hero')->firstOrFail();
-
-        $this->post(
-            route('admin.website-management.contact-builder.section.update', $section->unique_id),
-            [
-                'title'    => 'CONTACT US',
-                'subtitle' => 'REAL PEOPLE. REAL SUPPORT.',
-                'status'   => 'Active',
-                'content'  => ['description' => 'We call everyone back.'],
-            ]
-        )->assertRedirect();
-
-        $section->refresh();
-        $this->assertSame('CONTACT US', $section->title);
-        $this->assertSame('We call everyone back.', $section->content['description']);
-
-        $this->get($this->frontUrl('/contact-us'))
-            ->assertOk()
-            ->assertSee('We call everyone back.');
-    }
 
     public function test_homepage_hero_settings_remain_unaffected(): void
     {

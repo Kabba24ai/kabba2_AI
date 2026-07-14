@@ -13,7 +13,7 @@ class UpdateSectionRequest extends FormRequest
 
     protected function getRedirectUrl(): string
     {
-        $tab = $this->getSection()?->section_key ?? 'hero';
+        $tab = $this->getSection()?->section_key ?? 'contact_strip';
         return route('admin.website-management.contact-builder.index', ['tab' => $tab]);
     }
 
@@ -25,7 +25,6 @@ class UpdateSectionRequest extends FormRequest
     public function rules(): array
     {
         return match($this->getSection()?->section_key) {
-            'hero'          => $this->heroRules(),
             'contact_strip' => $this->contactStripRules(),
             'locations'     => $this->locationsRules(),
             'question_cta'  => $this->questionCtaRules(),
@@ -37,7 +36,6 @@ class UpdateSectionRequest extends FormRequest
     public function messages(): array
     {
         return match($this->getSection()?->section_key) {
-            'hero'          => $this->heroMessages(),
             'contact_strip' => $this->contactStripMessages(),
             'locations'     => $this->locationsMessages(),
             'question_cta'  => $this->questionCtaMessages(),
@@ -46,51 +44,20 @@ class UpdateSectionRequest extends FormRequest
         };
     }
 
-    // ── Page Header (section_key `hero`) ─────────────────────────────────
-    // The hero IMAGE is homepage-only — interior pages get a simple title
-    // band, so no image/overlay/color/position fields are accepted here.
-
-    private function heroRules(): array
-    {
-        return [
-            'title'               => ['required', 'string', 'max:255'],
-            'subtitle'            => ['nullable', 'string', 'max:500'],
-            'status'              => ['required', 'string', 'in:Active,Inactive'],
-            'content'             => ['nullable', 'array'],
-            'content.description' => ['nullable', 'string', 'max:1000'],
-        ];
-    }
-
-    private function heroMessages(): array
-    {
-        return [
-            'title.required'  => 'Page header title is required.',
-            'title.max'       => 'Page header title may not exceed 255 characters.',
-            'subtitle.max'    => 'Subtitle may not exceed 500 characters.',
-            'status.required' => 'Section status is required.',
-            'status.in'       => 'Section status must be Active or Inactive.',
-        ];
-    }
-
     // ── Contact Strip ─────────────────────────────────────────────────────
+    // Content is managed globally (Home Page Builder → Contact Strip).
+    // The contact page owns ONLY the show/hide state of the shared strip.
 
     private function contactStripRules(): array
     {
         return [
-            'title'     => ['required', 'string', 'max:255'],
-            'subtitle'  => ['nullable', 'string', 'max:500'],
-            'status'    => ['required', 'string', 'in:Active,Inactive'],
-            'content'   => ['nullable', 'array'],
-            'content.*' => ['nullable'],
+            'status' => ['required', 'string', 'in:Active,Inactive'],
         ];
     }
 
     private function contactStripMessages(): array
     {
         return [
-            'title.required'  => 'Section title is required.',
-            'title.max'       => 'Section title may not exceed 255 characters.',
-            'subtitle.max'    => 'Section subtitle may not exceed 500 characters.',
             'status.required' => 'Section status is required.',
             'status.in'       => 'Section status must be Active or Inactive.',
         ];

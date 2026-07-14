@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\Admin\V1\OrderProducts;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -51,6 +52,15 @@ class ListResource extends JsonResource
             'delivery_priority' => $this->delivery_priority,
             'delivery_date' => CustomHelper::formatDate($this->delivery_date) ?? '',
             'delivery_time' => CustomHelper::formatTime($this->delivery_time) ?? '',
+            'dispatch_delivery_date' => CustomHelper::formatDate($this->dispatch_delivery_date) ?? '',
+            'is_delivery_overdue' => (bool) (
+                ($this->dispatch_delivery_date ?? $this->delivery_date)
+                && Carbon::parse($this->dispatch_delivery_date ?? $this->delivery_date)->lt(Carbon::today())
+            ),
+            'is_early' => (bool) (
+                $this->dispatch_delivery_date && $this->delivery_date
+                && Carbon::parse($this->dispatch_delivery_date)->lt(Carbon::parse($this->delivery_date))
+            ),
 
             'delivery_media' => OrderMediasListResource::collection($this->whenLoaded('deliveryMedia') ?? []),
 
@@ -72,6 +82,15 @@ class ListResource extends JsonResource
             'pickup_time' => CustomHelper::formatTime($this->pickup_time) ?? '',
             'pickup_by' => $this->pickup_by ?? '',
             'pickup_priority' => $this->pickup_priority,
+            'dispatch_return_date' => CustomHelper::formatDate($this->dispatch_return_date) ?? '',
+            'is_pickup_overdue' => (bool) (
+                ($this->dispatch_return_date ?? $this->pickup_date)
+                && Carbon::parse($this->dispatch_return_date ?? $this->pickup_date)->lt(Carbon::today())
+            ),
+            'is_late_pickup' => (bool) (
+                $this->dispatch_return_date && $this->pickup_date
+                && Carbon::parse($this->dispatch_return_date)->gt(Carbon::parse($this->pickup_date))
+            ),
 
             'pickup_media' => OrderMediasListResource::collection($this->whenLoaded('pickupMedia') ?? []),
 

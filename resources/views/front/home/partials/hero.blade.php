@@ -38,7 +38,7 @@
         : '';
 @endphp
 
-<section id="home-v2-hero" class="relative pt-[4.2rem] lg:pt-16 bg-gray-900">
+<section id="home-hero" class="relative pt-[4.2rem] lg:pt-16 bg-gray-900">
 
     {{-- Wrapper — height driven by the image itself (no aspect-ratio constraint) --}}
     <div class="relative w-full">

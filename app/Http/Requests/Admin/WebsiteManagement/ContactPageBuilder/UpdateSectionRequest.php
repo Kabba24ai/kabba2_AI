@@ -6,7 +6,6 @@ use App\Helpers\PurifyHelper;
 use App\Models\WebsiteManagement\WebsitePageSection;
 use App\Rules\FlexibleUrl;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateSectionRequest extends FormRequest
 {
@@ -47,48 +46,29 @@ class UpdateSectionRequest extends FormRequest
         };
     }
 
-    // ── Hero ──────────────────────────────────────────────────────────────
+    // ── Page Header (section_key `hero`) ─────────────────────────────────
+    // The hero IMAGE is homepage-only — interior pages get a simple title
+    // band, so no image/overlay/color/position fields are accepted here.
 
     private function heroRules(): array
     {
         return [
-            'title'                       => ['required', 'string', 'max:255'],
-            'subtitle'                    => ['nullable', 'string', 'max:500'],
-            'image'                       => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,svg', 'max:4096'],
-            'media_id'                    => ['nullable', 'integer', Rule::exists('media', 'id')],
-            'status'                      => ['required', 'string', 'in:Active,Inactive'],
-            'content'                     => ['nullable', 'array'],
-            'content.overlay_enabled'     => ['nullable', 'boolean'],
-            'content.overlay_opacity'     => [
-                'required_if:content.overlay_enabled,1',
-                'nullable', 'numeric', 'min:0', 'max:100',
-            ],
-            'content.title_position'      => ['nullable', 'string', 'in:left,center,right'],
-            'content.title_color'         => ['nullable', 'string', 'max:20'],
-            'content.subtitle_position'   => ['nullable', 'string', 'in:left,center,right'],
-            'content.subtitle_color'      => ['nullable', 'string', 'max:20'],
-            'content.description'          => ['nullable', 'string', 'max:1000'],
-            'content.description_position' => ['nullable', 'string', 'in:left,center,right'],
-            'content.description_color'    => ['nullable', 'string', 'max:20'],
+            'title'               => ['required', 'string', 'max:255'],
+            'subtitle'            => ['nullable', 'string', 'max:500'],
+            'status'              => ['required', 'string', 'in:Active,Inactive'],
+            'content'             => ['nullable', 'array'],
+            'content.description' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
     private function heroMessages(): array
     {
         return [
-            'title.required'                      => 'Hero title is required.',
-            'title.max'                           => 'Hero title may not exceed 255 characters.',
-            'subtitle.max'                        => 'Subtitle may not exceed 500 characters.',
-            'image.mimes'                         => 'Background image must be a JPG, PNG, WebP, or SVG file.',
-            'image.max'                           => 'Background image may not exceed 4 MB.',
-            'media_id.integer'                    => 'Invalid media selection — please choose again.',
-            'media_id.exists'                     => 'The selected image no longer exists in the media library.',
-            'status.required'                     => 'Section status is required.',
-            'status.in'                           => 'Section status must be Active or Inactive.',
-            'content.overlay_opacity.required_if' => 'Overlay opacity is required when the overlay is enabled.',
-            'content.overlay_opacity.numeric'     => 'Overlay opacity must be a number.',
-            'content.overlay_opacity.min'         => 'Overlay opacity must be between 0 and 100.',
-            'content.overlay_opacity.max'         => 'Overlay opacity must be between 0 and 100.',
+            'title.required'  => 'Page header title is required.',
+            'title.max'       => 'Page header title may not exceed 255 characters.',
+            'subtitle.max'    => 'Subtitle may not exceed 500 characters.',
+            'status.required' => 'Section status is required.',
+            'status.in'       => 'Section status must be Active or Inactive.',
         ];
     }
 

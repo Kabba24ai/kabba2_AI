@@ -6,6 +6,7 @@ use App\Events\Front\Checkout\OrderPlacedEvent;
 // enums
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
+use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
 use App\Services\PaymentDescriptionPresenter;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -51,7 +52,9 @@ class CreateOrderListener implements ShouldQueue
         // A failed payment still logs this first entry as "initiated" —
         // the dedicated PaymentFailed entry below carries the outcome,
         // preserving the original two-entry (attempt + outcome) trail.
+        $isStoreCredit = $payment->payment_method === OrderPaymentMethod::StoreCredit;
         $action = match (true) {
+            $isStoreCredit && ($payment->status === OrderPaymentStatus::PartialPayment || $payment->status->isSettled()) => OrderHistoryAction::StoreCreditApplied,
             $payment->status === OrderPaymentStatus::PartialPayment => OrderHistoryAction::PartialPaymentReceived,
             $payment->status->isSettled() => OrderHistoryAction::OrderPaid,
             default => OrderHistoryAction::PaymentInitiated,
@@ -59,6 +62,7 @@ class CreateOrderListener implements ShouldQueue
 
         $order->history()->create([
             'customer_id' => $customer->id,
+            'order_payment_id' => $payment->id,
             'user_id' => ($employee) ? $employee->id : null,
             'action_by' => ($employee) ? OrderHistoryActionBy::User : OrderHistoryActionBy::Customer,
             'action_date' => now(),
@@ -69,6 +73,7 @@ class CreateOrderListener implements ShouldQueue
         if ($payment->status->isFailed()) {
             $order->history()->create([
                 'customer_id' => $customer->id,
+                'order_payment_id' => $payment->id,
                 'user_id' => ($employee) ? $employee->id : null,
                 'action_by' => ($employee) ? OrderHistoryActionBy::User : OrderHistoryActionBy::Customer,
                 'action_date' => now(),

@@ -306,4 +306,35 @@ class CustomerCreditService
 
         return round((float) $redeemed - (float) $reversed, 2);
     }
+
+    /**
+     * Store Credit transparency (Phase 2 payment experience): the
+     * customer's balance immediately before a specific ledger row, so a
+     * past redemption can show its true "Beginning Credit" even after
+     * later grants/redemptions have moved the live balance. Same sum
+     * pattern as remainingBalance(), scoped to rows strictly before this
+     * one — ties broken by id, matching history()'s ordering.
+     *
+     * Soft-deleted grants/redemptions are excluded here exactly as they
+     * are from remainingBalance() (Eloquent's default global scope) — a
+     * later-deleted row disappears from both the live and the historical
+     * view, there is no way to reconstruct "as it truly was including
+     * since-deleted rows" without withTrashed().
+     */
+    public static function balanceBefore(CustomerCredit $entry): float
+    {
+        $granted = CustomerCredit::where('customer_id', $entry->customer_id)
+            ->where('type', self::TYPE_GRANT)
+            ->where(fn ($q) => $q->where('created_at', '<', $entry->created_at)
+                ->orWhere(fn ($q2) => $q2->where('created_at', $entry->created_at)->where('id', '<', $entry->id)))
+            ->sum('amount');
+
+        $redeemed = CustomerCredit::where('customer_id', $entry->customer_id)
+            ->where('type', self::TYPE_REDEMPTION)
+            ->where(fn ($q) => $q->where('created_at', '<', $entry->created_at)
+                ->orWhere(fn ($q2) => $q2->where('created_at', $entry->created_at)->where('id', '<', $entry->id)))
+            ->sum('amount');
+
+        return round((float) $granted - (float) $redeemed, 2);
+    }
 }

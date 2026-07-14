@@ -3,8 +3,10 @@
 namespace Tests\Unit\Services;
 
 use App\Enums\Customers\PaymentMethod as CustomerPaymentMethod;
+use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Models\Orders\OrderHistory;
 use App\Models\Orders\OrderPayment;
 use App\Services\PaymentDescriptionPresenter;
 use Mockery;
@@ -272,5 +274,131 @@ class PaymentDescriptionPresenterTest extends TestCase
         $payment->payment_method = OrderPaymentMethod::GiftCard;
 
         $this->assertSame('Partial payment received via Gift Card', PaymentDescriptionPresenter::historyDescription($payment));
+    }
+
+    // ── timelineEntry() — Phase 2 structured Payment Timeline ───────────
+
+    private function makeHistory(string $action, ?OrderPayment $payment = null, string $description = 'fallback text'): OrderHistory
+    {
+        $history = new OrderHistory(['action' => $action, 'description' => $description]);
+        $history->setRelation('orderPayment', $payment);
+
+        return $history;
+    }
+
+    public function test_timeline_entry_falls_back_to_description_when_no_payment_is_linked(): void
+    {
+        $history = $this->makeHistory(OrderHistoryAction::TermsSigned->value, null, 'Terms signed by customer');
+
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Terms signed by customer', $entry['headline']);
+        $this->assertNull($entry['method']);
+        $this->assertNull($entry['amount']);
+        $this->assertSame('neutral', $entry['dot']);
+    }
+
+    public function test_timeline_entry_for_a_received_payment_shows_method_and_amount(): void
+    {
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->payment_method = OrderPaymentMethod::Cash;
+        $payment->amount = 250.0;
+        $payment->payment_note = null;
+
+        $history = $this->makeHistory(OrderHistoryAction::OrderPaid->value, $payment);
+
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Payment received', $entry['headline']);
+        $this->assertSame('Cash', $entry['method']);
+        $this->assertSame(250.0, $entry['amount']);
+        $this->assertSame('pos', $entry['sign']);
+        $this->assertSame('good', $entry['dot']);
+    }
+
+    public function test_timeline_entry_for_store_credit_hides_the_redundant_method_field(): void
+    {
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->payment_method = OrderPaymentMethod::StoreCredit;
+        $payment->amount = 125.0;
+        $payment->payment_note = null;
+
+        $history = $this->makeHistory(OrderHistoryAction::StoreCreditApplied->value, $payment);
+
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Store Credit applied', $entry['headline']);
+        $this->assertNull($entry['method']);
+        $this->assertSame(125.0, $entry['amount']);
+        $this->assertSame('pos', $entry['sign']);
+    }
+
+    public function test_timeline_entry_for_a_refund_reads_refund_amount_not_amount(): void
+    {
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->payment_method = OrderPaymentMethod::Card;
+        $payment->amount = null;
+        $payment->refund_amount = 85.0;
+        $payment->payment_note = null;
+
+        $history = $this->makeHistory(OrderHistoryAction::OrderRefunded->value, $payment);
+
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Refund processed', $entry['headline']);
+        $this->assertNull($entry['method']);
+        $this->assertSame(85.0, $entry['amount']);
+        $this->assertSame('neg', $entry['sign']);
+    }
+
+    public function test_timeline_entry_for_a_void_reads_amount_not_refund_amount(): void
+    {
+        // Void reverses the original row in place (no new refund row), so
+        // its amount lives on `amount`, unlike a Refund's `refund_amount`.
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->payment_method = OrderPaymentMethod::Card;
+        $payment->amount = 199.99;
+        $payment->refund_amount = null;
+        $payment->payment_note = null;
+
+        $history = $this->makeHistory(OrderHistoryAction::TransactionVoided->value, $payment);
+
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Payment voided', $entry['headline']);
+        $this->assertSame(199.99, $entry['amount']);
+        $this->assertSame('neg', $entry['sign']);
+    }
+
+    public function test_timeline_entry_surfaces_the_payment_note(): void
+    {
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->payment_method = OrderPaymentMethod::Other;
+        $payment->amount = 642.04;
+        $payment->payment_note = 'Zelle from John Smith';
+
+        $history = $this->makeHistory(OrderHistoryAction::OrderPaid->value, $payment);
+
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Zelle from John Smith', $entry['note']);
+    }
+
+    public function test_timeline_entry_a_pending_payment_shows_no_amount(): void
+    {
+        // Nothing has actually moved yet — showing a green amount would
+        // misleadingly imply money was collected.
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->payment_method = OrderPaymentMethod::Cash;
+        $payment->amount = 200.0;
+        $payment->payment_note = null;
+
+        $history = $this->makeHistory(OrderHistoryAction::PaymentInitiated->value, $payment);
+
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Payment initiated', $entry['headline']);
+        $this->assertSame('Cash', $entry['method']);
+        $this->assertNull($entry['amount']);
     }
 }

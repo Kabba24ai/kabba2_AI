@@ -62,8 +62,13 @@
 
                     @if ($order->last_payment_status === OrderPaymentStatus::PartialPayment->value && $totalPartialPaid > 0)
                         <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-orange-700 bg-orange-100 rounded-full">
-                            Partial Payment: {{ \App\Helpers\CustomHelper::formatCurrency($totalPartialPaid) }}
+                            Partial Payment: {{ $order->last_payment_type?->label() ?? 'Unknown' }} · {{ \App\Helpers\CustomHelper::formatCurrency($totalPartialPaid) }}
                         </span>
+                        @if ($order->balance_due > 0)
+                            <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full">
+                                Balance Due: {{ \App\Helpers\CustomHelper::formatCurrency($order->balance_due) }}
+                            </span>
+                        @endif
                     @endif
 
                     @if ($order->last_payment_status === OrderPaymentStatus::Pending->value && $order->last_payment_type !== 'Card')
@@ -79,6 +84,7 @@
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
                             Paid In Full Via -
                             {{ $order->last_payment_type->label() }}
+                            · {{ \App\Helpers\CustomHelper::formatCurrency($order->total_paid) }}
                         </span>
                     @endif
 
@@ -126,6 +132,14 @@
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 transition rounded-lg">
                             <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-red-600" />
                             Full Refund
+                        </button>
+                    @endif
+
+                    @if ($order->payments->isNotEmpty())
+                        <button id="paymentDetailsBtn" type="button"
+                            class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
+                            <x-heroicon-o-information-circle class="w-4 h-4 mr-1 text-gray-600" />
+                            Payment Details
                         </button>
                     @endif
 
@@ -758,32 +772,72 @@
                     <h3 class="text-sm font-semibold text-gray-800">History</h3>
                 </div>
             </div>
-            <div class="p-6 max-h-60 overflow-y-auto">
+            <div class="p-4 max-h-60 overflow-y-auto">
                 @php
-                    $orderHistory = $order->history->map(fn($h) => [
-                        'description' => $h->description,
-                        'created_at'  => $h->created_at,
-                        'is_pod'      => false,
-                    ]);
+                    // Payment-related entries render via the presenter's
+                    // structured timelineEntry() (headline/method/amount as
+                    // distinct fields); every other entry keeps today's
+                    // plain description — no behavior change for non-payment
+                    // history rows.
+                    $orderHistory = $order->history->map(function ($h) {
+                        $timeline = \App\Services\PaymentDescriptionPresenter::timelineEntry($h);
+                        return [
+                            'headline'    => $timeline['headline'],
+                            'method'      => $timeline['method'],
+                            'amount'      => $timeline['amount'],
+                            'sign'        => $timeline['sign'],
+                            'dot'         => $timeline['dot'],
+                            'note'        => $timeline['note'],
+                            'created_at'  => $h->created_at,
+                            'is_pod'      => false,
+                        ];
+                    });
 
                     $podActivities = ($order->podPaymentLink?->activities ?? collect())->map(fn($a) => [
-                        'description' => 'POD — ' . $a->event->label(),
+                        'headline'    => 'POD — ' . $a->event->label(),
+                        'method'      => null,
+                        'amount'      => null,
+                        'sign'        => null,
+                        'dot'         => 'info',
+                        'note'        => null,
                         'created_at'  => $a->created_at,
                         'is_pod'      => true,
                     ]);
 
                     $allHistory = $orderHistory->concat($podActivities)->sortBy('created_at')->values();
+
+                    $dotClasses = [
+                        'good'    => 'bg-green-500',
+                        'info'    => 'bg-blue-500',
+                        'bad'     => 'bg-red-500',
+                        'neutral' => 'bg-gray-400',
+                    ];
                 @endphp
-                <ul class="list-disc text-sm text-gray-700 space-y-1 pl-3">
+                <ul class="text-sm text-gray-700 space-y-3">
                     @forelse ($allHistory as $entry)
-                        <li>
-                            <span class="{{ $entry['is_pod'] ? 'text-blue-700' : '' }}">
-                                {{ $entry['description'] }}
-                                <br>
-                                <span class="text-xs text-gray-500">
+                        <li class="flex gap-2">
+                            <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0 {{ $dotClasses[$entry['dot']] ?? $dotClasses['neutral'] }}"></span>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-baseline justify-between gap-2">
+                                    <span class="font-medium {{ $entry['is_pod'] ? 'text-blue-700' : 'text-gray-800' }}">
+                                        {{ $entry['headline'] }}
+                                        @if ($entry['method'])
+                                            <span class="font-normal text-gray-500">· {{ $entry['method'] }}</span>
+                                        @endif
+                                    </span>
+                                    @if ($entry['amount'] !== null)
+                                        <span class="font-semibold flex-shrink-0 {{ $entry['sign'] === 'neg' ? 'text-red-600' : 'text-green-700' }}">
+                                            {{ $entry['sign'] === 'neg' ? '-' : '' }}{{ \App\Helpers\CustomHelper::formatCurrency($entry['amount']) }}
+                                        </span>
+                                    @endif
+                                </div>
+                                @if ($entry['note'])
+                                    <div class="text-xs text-gray-500 mt-0.5">Note: {{ $entry['note'] }}</div>
+                                @endif
+                                <div class="text-xs text-gray-400 mt-0.5">
                                     {{ \App\Helpers\CustomHelper::formatDateTime($entry['created_at']) }}
-                                </span>
-                            </span>
+                                </div>
+                            </div>
                         </li>
                     @empty
                         <li class="text-gray-400 text-sm">No history available.</li>
@@ -2805,6 +2859,117 @@
                 </div>
             </div>
             {{ html()->form()->close() }}
+        </div>
+    </div>
+
+    {{-- Payment Details Modal — read-only, opened from the "Payment Details"
+         button next to the header status pills. Everything not needed at a
+         glance (reference numbers, notes, Store Credit breakdown) lives
+         here instead of cluttering the header. --}}
+    @php
+        $pdPayment = $order->lastPaidPayment ?? $order->lastPayment;
+        $pdStoreCreditEntry = null;
+        if ($pdPayment && $pdPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::StoreCredit) {
+            $pdStoreCreditEntry = \App\Models\Customers\CustomerCredit::where('order_id', $order->id)
+                ->where('type', \App\Services\CustomerCreditService::TYPE_REDEMPTION)
+                ->latest('id')
+                ->first();
+        }
+    @endphp
+    <div id="paymentDetailsModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-lg font-semibold">Payment Details</h2>
+                <button type="button"
+                    class="close-payment-details-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                @if ($pdPayment)
+                    <div class="bg-gray-50 rounded-lg p-4 text-sm space-y-1 text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Status:</span>
+                            {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Method:</span>
+                            <span class="font-medium text-gray-900">{{ \App\Services\PaymentDescriptionPresenter::methodLabel($pdPayment->payment_method) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Date:</span>
+                            <span class="font-medium text-gray-900">{{ \App\Helpers\CustomHelper::formatDateTime($pdPayment->payment_datetime) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Employee:</span>
+                            <span class="font-medium text-gray-900">{{ $pdPayment->createdBy?->full_name ?? 'Unknown' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Amount Paid:</span>
+                            <span class="font-medium text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($order->total_paid) }}</span>
+                        </div>
+                        <div class="flex justify-between border-t border-gray-200 pt-1">
+                            <span>Remaining Balance:</span>
+                            <span class="font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($order->balance_due) }}</span>
+                        </div>
+                    </div>
+
+                    @php
+                        $pdReferenceLabel = match (true) {
+                            $pdPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Card => 'Card / Authorization',
+                            $pdPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Cheque => 'Check Number',
+                            default => null,
+                        };
+                    @endphp
+
+                    @if ($pdReferenceLabel)
+                        <div class="bg-white border border-gray-200 rounded-lg p-3 text-sm">
+                            <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">{{ $pdReferenceLabel }}</div>
+                            @if ($pdPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Card)
+                                <div class="text-gray-800">
+                                    @if ($pdPayment->card_number) •••• {{ $pdPayment->card_number }} @endif
+                                    @if ($pdPayment->auth_code) &nbsp;·&nbsp;Auth {{ $pdPayment->auth_code }} @endif
+                                    @if ($pdPayment->transaction_id) &nbsp;·&nbsp;Txn {{ $pdPayment->transaction_id }} @endif
+                                </div>
+                            @else
+                                <div class="text-gray-800">#{{ $pdPayment->cheque_number }}</div>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if ($pdPayment->payment_note)
+                        <div class="bg-white border border-gray-200 rounded-lg p-3 text-sm">
+                            <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Note</div>
+                            <div class="text-gray-800">{{ $pdPayment->payment_note }}</div>
+                        </div>
+                    @endif
+
+                    @if ($pdStoreCreditEntry)
+                        @php
+                            $pdBeginningCredit = \App\Services\CustomerCreditService::balanceBefore($pdStoreCreditEntry);
+                            $pdAppliedCredit = (float) $pdStoreCreditEntry->amount;
+                            $pdRemainingCredit = round($pdBeginningCredit - $pdAppliedCredit, 2);
+                        @endphp
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm space-y-1">
+                            <div class="font-medium text-gray-900 mb-1">Store Credit Applied</div>
+                            <div class="flex justify-between"><span>Beginning Credit:</span><span class="font-medium text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($pdBeginningCredit) }}</span></div>
+                            <div class="flex justify-between"><span>Applied:</span><span class="font-medium text-red-700">-{{ \App\Helpers\CustomHelper::formatCurrency($pdAppliedCredit) }}</span></div>
+                            <div class="flex justify-between border-t border-blue-200 pt-1"><span>Remaining Credit:</span><span class="font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($pdRemainingCredit) }}</span></div>
+                        </div>
+                    @endif
+                @else
+                    <p class="text-sm text-gray-500">No payment recorded for this order yet.</p>
+                @endif
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button"
+                    class="close-payment-details-modal-btn px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Close
+                </button>
+            </div>
         </div>
     </div>
 
@@ -5485,6 +5650,38 @@
             document.querySelectorAll('.close-refund-modal-btn').forEach(btn => btn.addEventListener('click',
                 closeRefundModal));
 
+            // Payment Details modal — read-only, no form/idempotency token to manage.
+            const paymentDetailsModal = document.getElementById('paymentDetailsModal');
+            const paymentDetailsBtn = document.getElementById('paymentDetailsBtn');
+
+            function openPaymentDetailsModal() {
+                paymentDetailsModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closePaymentDetailsModal() {
+                paymentDetailsModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            if (paymentDetailsBtn) {
+                paymentDetailsBtn.addEventListener('click', openPaymentDetailsModal);
+            }
+
+            document.querySelectorAll('.close-payment-details-modal-btn').forEach(btn => btn.addEventListener('click',
+                closePaymentDetailsModal));
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && paymentDetailsModal && !paymentDetailsModal.classList.contains('hidden')) {
+                    closePaymentDetailsModal();
+                }
+            });
+
+            if (paymentDetailsModal) {
+                paymentDetailsModal.addEventListener('click', (e) => {
+                    if (e.target === paymentDetailsModal) closePaymentDetailsModal();
+                });
+            }
 
             function updateTypeIndicator() {
                 const amt = parseFloat(amountInput.value) || 0;

@@ -49,6 +49,9 @@
             </div>
 
                 <!-- STATUS -->
+                @php
+                    $ovStatusHandled = in_array($order->last_payment_status, ['Pending', 'Failed'], true) || $order->is_paid;
+                @endphp
                 <div class="flex flex-wrap gap-2 items-center">
 
                     @if ($order->last_payment_status === 'Pending' || $order->last_payment_status === 'Failed')
@@ -68,6 +71,15 @@
                         Payment Failed
                     </span>
                     @endif
+
+                    {{-- Fallback for every status the three checks above don't
+                         cover (Partially Paid, Voided, Refunded, ...) — this
+                         page used to show nothing at all for those, while the
+                         dashboard list correctly showed a badge for the same
+                         order via CustomHelper::paymentStatusBadge(). --}}
+                    @unless ($ovStatusHandled)
+                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
+                    @endunless
 
                 </div>
 

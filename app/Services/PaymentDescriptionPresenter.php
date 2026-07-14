@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Enums\Customers\PaymentMethod as CustomerPaymentMethod;
+use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
 use App\Models\Orders\Order;
+use App\Models\Orders\OrderHistory;
 use App\Models\Orders\OrderPayment;
 
 /**
@@ -162,6 +164,95 @@ class PaymentDescriptionPresenter
     public static function failureDescription(OrderPayment $payment): string
     {
         return 'Payment failed via ' . self::methodLabel($payment->payment_method);
+    }
+
+    /**
+     * Structured Payment Timeline row: a plain-language headline plus
+     * method/amount as distinct fields (never a hand-formatted sentence),
+     * for one OrderHistory entry. Replaces the single free-text
+     * `description` string every timeline row used to be reduced to.
+     *
+     * Falls back to the entry's stored `description` (today's exact
+     * behavior) whenever the row has no linked OrderPayment — either
+     * because it predates the `order_payment_id` column, or because it's
+     * a non-payment event (address change, terms signed, etc.) that never
+     * had one to begin with. Never throws.
+     */
+    public static function timelineEntry(OrderHistory $history): array
+    {
+        $action = $history->action instanceof OrderHistoryAction ? $history->action : null;
+        $payment = $history->orderPayment;
+
+        $entry = [
+            'headline' => $history->description,
+            'method' => null,
+            'amount' => null,
+            'sign' => null, // 'pos' | 'neg' | null — null means "don't show an amount"
+            'dot' => 'neutral',
+            'note' => null,
+        ];
+
+        if ($action !== null) {
+            $entry['dot'] = match ($action) {
+                OrderHistoryAction::OrderPaid, OrderHistoryAction::PaymentCollected => 'good',
+                OrderHistoryAction::PartialPaymentReceived, OrderHistoryAction::PaymentInitiated,
+                OrderHistoryAction::StoreCreditApplied, OrderHistoryAction::AddedToAccount => 'info',
+                OrderHistoryAction::PaymentFailed, OrderHistoryAction::OrderRefunded,
+                OrderHistoryAction::OrderPartialRefund, OrderHistoryAction::TransactionVoided,
+                OrderHistoryAction::PaymentUncollectable => 'bad',
+                default => 'neutral',
+            };
+
+            $entry['headline'] = match ($action) {
+                OrderHistoryAction::OrderPaid => 'Payment received',
+                OrderHistoryAction::PartialPaymentReceived => 'Partial payment received',
+                OrderHistoryAction::PaymentInitiated => 'Payment initiated',
+                OrderHistoryAction::PaymentFailed => 'Payment failed',
+                OrderHistoryAction::StoreCreditApplied => 'Store Credit applied',
+                OrderHistoryAction::OrderRefunded, OrderHistoryAction::OrderPartialRefund => 'Refund processed',
+                OrderHistoryAction::TransactionVoided => 'Payment voided',
+                OrderHistoryAction::AddedToAccount => 'Added to account',
+                default => $history->description,
+            };
+        }
+
+        if ($payment !== null) {
+            // Method is shown next to a receive/initiate/fail event (it's
+            // the whole point of that row); it's redundant on Store
+            // Credit/refund/void rows, whose headline already says what
+            // happened, so it's left out there — matches the operational
+            // wording given for this feature.
+            if (in_array($action, [
+                OrderHistoryAction::OrderPaid,
+                OrderHistoryAction::PartialPaymentReceived,
+                OrderHistoryAction::PaymentInitiated,
+                OrderHistoryAction::PaymentFailed,
+            ], true)) {
+                $entry['method'] = self::methodLabel($payment->payment_method);
+            }
+
+            // Refund creates a new row with the reversed amount on
+            // refund_amount; Void reverses the original row in place, so
+            // its amount is still on the plain `amount` column.
+            if (in_array($action, [OrderHistoryAction::OrderRefunded, OrderHistoryAction::OrderPartialRefund], true)) {
+                $entry['amount'] = (float) $payment->refund_amount;
+                $entry['sign'] = 'neg';
+            } elseif ($action === OrderHistoryAction::TransactionVoided) {
+                $entry['amount'] = (float) $payment->amount;
+                $entry['sign'] = 'neg';
+            } elseif (in_array($action, [
+                OrderHistoryAction::OrderPaid,
+                OrderHistoryAction::PartialPaymentReceived,
+                OrderHistoryAction::StoreCreditApplied,
+            ], true)) {
+                $entry['amount'] = (float) $payment->amount;
+                $entry['sign'] = 'pos';
+            }
+
+            $entry['note'] = $payment->payment_note ?: null;
+        }
+
+        return $entry;
     }
 
     private static function resolveStatus(OrderPaymentStatus|string|null $status): ?OrderPaymentStatus

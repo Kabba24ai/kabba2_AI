@@ -50,6 +50,15 @@ class ListResource extends JsonResource
             // use, so a client can display them without its own mapping.
             'payment_type_label' => PaymentDescriptionPresenter::methodLabel($this->last_payment_type),
             'payment_status_label' => PaymentDescriptionPresenter::statusLabel($this->last_payment_status),
+            // Phase 2 payment experience: the figures a mobile client needs
+            // to answer "has the customer paid / how much / how much is
+            // left" without a second request — sourced from the same
+            // aggregate accessors (not last_payment_type/status) so a
+            // split/partial payment history is reflected correctly.
+            'amount_paid' => CustomHelper::formatCurrency($this->total_paid) ?? '',
+            'balance_due' => CustomHelper::formatCurrency($this->balance_due) ?? '',
+            'payment_date' => CustomHelper::formatDateTime(optional($this->lastPaidPayment ?? $this->lastPayment)->payment_datetime) ?? '',
+            'payment_reference' => $this->paymentReferenceForApi(),
             'delivery_address' => new OrderAddressesListResource($this->whenLoaded('shippingAddress') ?? []),
             'billing_address' => new OrderAddressesListResource($this->whenLoaded('billingAddress') ?? []),
 
@@ -69,5 +78,30 @@ class ListResource extends JsonResource
         ];
 
         return $return;
+    }
+
+    /**
+     * The reference a mobile client would actually want to show alongside
+     * the payment — last 4 + auth code for Card, check number for Cheque,
+     * otherwise whatever note was captured (Gift Card #, Zelle sender,
+     * etc.). Null when there's nothing to show, same "only when relevant"
+     * rule the admin Payment Details panel follows.
+     */
+    private function paymentReferenceForApi(): ?string
+    {
+        $payment = $this->lastPaidPayment ?? $this->lastPayment;
+
+        if (!$payment) {
+            return null;
+        }
+
+        return match ($payment->payment_method) {
+            \App\Enums\Orders\OrderPaymentMethod::Card => trim(
+                ($payment->card_number ? '•••• ' . $payment->card_number : '')
+                . ($payment->auth_code ? ' · Auth ' . $payment->auth_code : '')
+            ) ?: null,
+            \App\Enums\Orders\OrderPaymentMethod::Cheque => $payment->cheque_number ? '#' . $payment->cheque_number : null,
+            default => $payment->payment_note ?: null,
+        };
     }
 }

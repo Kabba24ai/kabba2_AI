@@ -24,6 +24,7 @@ class OrderHistory extends Model
     protected $fillable = [
         'unique_id',
         'order_id',
+        'order_payment_id',
         'customer_id',
         'user_id',
         'action_date',
@@ -51,6 +52,11 @@ class OrderHistory extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function orderPayment()
+    {
+        return $this->belongsTo(OrderPayment::class);
     }
 
     protected static function boot()

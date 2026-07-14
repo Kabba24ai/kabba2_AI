@@ -7,6 +7,7 @@ use App\Events\Admin\Invoices\InvoicePaidEvent;
 // Enums
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
+use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
 use App\Services\PaymentDescriptionPresenter;
 
@@ -36,7 +37,12 @@ class CreateInvoiceActivityListener
         // Determine payment action; description always comes from the
         // centralized presenter so it reflects the payment actually taken
         // (not a hand-typed paraphrase that can drift from the enum).
-        $action = $payment->status->isSettled() ? OrderHistoryAction::OrderPaid : OrderHistoryAction::PaymentInitiated;
+        $isStoreCredit = $payment->payment_method === OrderPaymentMethod::StoreCredit;
+        $action = match (true) {
+            $isStoreCredit && $payment->status->isSettled() => OrderHistoryAction::StoreCreditApplied,
+            $payment->status->isSettled() => OrderHistoryAction::OrderPaid,
+            default => OrderHistoryAction::PaymentInitiated,
+        };
         $description = PaymentDescriptionPresenter::historyDescription($payment);
 
         
@@ -47,6 +53,7 @@ class CreateInvoiceActivityListener
 
         $order->history()->create([
             'customer_id' => $customer->id,
+            'order_payment_id' => $payment->id,
             'user_id' => ($employee) ? $employee->id : null,
             'action_by' => ($employee) ? OrderHistoryActionBy::User : OrderHistoryActionBy::Customer,
             'action_date' => now(),
@@ -63,6 +70,7 @@ class CreateInvoiceActivityListener
 
             $order->history()->create([
                 'customer_id' => $customer->id,
+                'order_payment_id' => $payment->id,
                 'user_id' => ($employee) ? $employee->id : null,
                 'action_by' => ($employee) ? OrderHistoryActionBy::User : OrderHistoryActionBy::Customer,
                 'action_date' => now(),

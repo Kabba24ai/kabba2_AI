@@ -5,7 +5,7 @@
      - Wire up submission logic when ready
 ============================================================ --}}
 
-<section id="home-v2-newsletter">
+<section id="home-newsletter">
 
     <div>
         {{-- Headline --}}

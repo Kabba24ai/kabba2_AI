@@ -1,5 +1,15 @@
 {{-- ── SEO Settings ──────────────────────────────────────────────────── --}}
-@php $routePrefix = $routePrefix ?? 'admin.website-management.home-builder'; @endphp
+@php
+    $routePrefix = $routePrefix ?? 'admin.website-management.home-builder';
+
+    // OG fields are OPTIONAL — blank fields inherit the Meta values at
+    // render time (SeoResolver). Never copy Meta text into the OG inputs:
+    // keeping them blank lets future Meta edits flow through automatically.
+    $isContact       = str_contains($routePrefix, 'contact');
+    $ogImageFallback = $isContact
+        ? "the website's default social-sharing image"
+        : 'the homepage hero image';
+@endphp
 <form method="POST"
       action="{{ route($routePrefix . '.update') }}"
       enctype="multipart/form-data" data-parsley-validate>
@@ -8,7 +18,7 @@
     <div class="flex items-center justify-between mb-5">
         <div>
             <h3 class="text-base font-semibold text-gray-900">SEO Settings</h3>
-            <p class="text-xs text-gray-500 mt-0.5">Meta tags, Open Graph, and canonical URL for the home page.</p>
+            <p class="text-xs text-gray-500 mt-0.5">Meta tags, Open Graph, and canonical URL for {{ $isContact ? 'the Contact Us page' : 'the home page' }}. OG fields are optional — blank fields automatically use the Meta values.</p>
         </div>
         <button type="submit"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-sm font-medium shadow-sm">
@@ -52,10 +62,16 @@
 
         {{-- OG Title --}}
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">OG Title</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                OG Title
+                <span class="text-gray-400 font-normal text-xs ml-1">Optional. When blank, the Meta Title is used.</span>
+            </label>
             {!! html()->text('og_title', old('og_title', $page?->og_title ?? ''))
                 ->class('w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:outline-none')
-                ->attributes(['placeholder' => 'Rent n King – Equipment Rentals', 'maxlength' => '160']) !!}
+                ->attributes(['placeholder' => 'Leave blank to use the Meta Title', 'maxlength' => '160']) !!}
+            @if(blank(old('og_title', $page?->og_title ?? '')) && filled($page?->meta_title))
+                <p class="mt-1 text-xs text-gray-500">Using Meta Title: <span class="font-medium">{{ $page->meta_title }}</span></p>
+            @endif
             @error('og_title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
 
@@ -70,11 +86,17 @@
 
         {{-- OG Description --}}
         <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">OG Description</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                OG Description
+                <span class="text-gray-400 font-normal text-xs ml-1">Optional. When blank, the Meta Description is used.</span>
+            </label>
             {!! html()->textarea('og_description', old('og_description', $page?->og_description ?? ''))
                 ->class('w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:outline-none')
                 ->rows(2)
-                ->attributes(['placeholder' => 'Open Graph description for social sharing...', 'maxlength' => '320']) !!}
+                ->attributes(['placeholder' => 'Leave blank to use the Meta Description', 'maxlength' => '320']) !!}
+            @if(blank(old('og_description', $page?->og_description ?? '')) && filled($page?->meta_description))
+                <p class="mt-1 text-xs text-gray-500">Using Meta Description: <span class="font-medium">{{ \Illuminate\Support\Str::limit($page->meta_description, 110) }}</span></p>
+            @endif
             @error('og_description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
 
@@ -82,6 +104,7 @@
         <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">
                 OG Image <span class="text-gray-400 font-normal">(recommended 1200×630)</span>
+                <span class="text-gray-400 font-normal text-xs ml-1">Optional. When blank, the default page or website image is used.</span>
             </label>
             <div class="flex items-center gap-4 flex-wrap">
                 @php $ogMedia = $page?->og_image ? \App\Models\Global\Media::find($page->og_image) : null; @endphp
@@ -101,6 +124,9 @@
                            onchange="hpPreviewImage(this, 'seo-og-preview', 'seo-og-placeholder')">
                 </label>
             </div>
+            @if(!$ogMedia)
+                <p class="mt-1 text-xs text-gray-500">No separate OG image selected. Using {{ $ogImageFallback }}.</p>
+            @endif
             @error('og_image') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
 

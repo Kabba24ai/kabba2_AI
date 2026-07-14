@@ -23,7 +23,15 @@ class UpdatePageRequest extends FormRequest
             'og_title'         => ['nullable', 'string', 'max:160'],
             'og_description'   => ['nullable', 'string', 'max:320'],
             'og_image'         => ['nullable', 'image', 'max:2048'],
-            'canonical_url'    => ['nullable', 'url', 'max:500'],
+            // Retired V2 routes must never reappear as canonical URLs
+            'canonical_url'    => ['nullable', 'url', 'max:500', 'not_regex:#/(home-v2|contact-us-v2)(/|$|\?)#'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'canonical_url.not_regex' => 'Canonical URL must use the current page route — /home-v2 and /contact-us-v2 are retired.',
         ];
     }
 }

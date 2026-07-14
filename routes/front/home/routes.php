@@ -2,8 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Front\HomeV2\IndexController;
-
+use App\Http\Controllers\Front\Home\IndexController;
 use App\Http\Controllers\Front\Home\SearchController;
 
 Route::prefix('/')->name('home.')->group(function () {

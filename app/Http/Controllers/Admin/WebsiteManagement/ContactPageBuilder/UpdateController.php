@@ -16,8 +16,8 @@ class UpdateController extends Controller
         $validated = $request->validated();
 
         $page = WebsitePage::firstOrCreate(
-            ['page_key' => 'contact_v2'],
-            ['title' => 'Contact Us', 'slug' => 'contact-us-v2', 'status' => 'Active']
+            ['page_key' => 'contact'],
+            ['title' => 'Contact Us', 'slug' => 'contact-us', 'status' => 'Active']
         );
 
         if ($request->hasFile('og_image')) {

@@ -17,7 +17,7 @@ class IndexController extends Controller
 
     public function __invoke(Request $request)
     {
-        $page    = WebsitePage::where('page_key', 'contact_v2')->firstOrFail();
+        $page    = WebsitePage::where('page_key', 'contact')->firstOrFail();
         $context = $this->builder->getBuilderContext($page);
 
         // Ordered to match the contact page's visual flow, not the registry registration order.

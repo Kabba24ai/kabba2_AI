@@ -41,13 +41,13 @@
  * in their original order, so the homepage never silently loses content.
  */
 $sectionPartialMap = [
-    'hero'               => 'front.home_v2.partials.hero',
-    'contact_strip'      => 'front.home_v2.partials.contact-strip',
-    'rental_specialists' => 'front.home_v2.partials.rental-specialists',
-    'featured_rentals'   => 'front.home_v2.partials.featured-categories',
+    'hero'               => 'front.home.partials.hero',
+    'contact_strip'      => 'front.home.partials.contact-strip',
+    'rental_specialists' => 'front.home.partials.rental-specialists',
+    'featured_rentals'   => 'front.home.partials.featured-categories',
     // feature_strip intentionally absent: it is a global component now,
     // rendered by the layout directly above the global footer
-    'newsletter'         => 'front.home_v2.partials.newsletter',
+    'newsletter'         => 'front.home.partials.newsletter',
 ];
 $renderedKeys = [];
 @endphp

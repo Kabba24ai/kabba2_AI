@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Front\HomeV2;
+namespace App\Http\Controllers\Front\Home;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -41,7 +41,7 @@ class IndexController extends Controller
                 ->values();
         }
 
-        return view('front.home_v2.index', [
+        return view('front.home.index', [
             'title'              => 'Home',
             'hp'                 => $hp,
             'branding'           => $branding,

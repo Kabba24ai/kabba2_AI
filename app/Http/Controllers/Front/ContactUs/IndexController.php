@@ -3,25 +3,35 @@
 namespace App\Http\Controllers\Front\ContactUs;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Stores\Store;
-use App\Models\Configurations\Setting;
+use App\Models\WebsiteManagement\WebsitePage;
+use App\Services\Website\WebsitePageBuilderService;
+use Illuminate\Http\Request;
 
 class IndexController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
+    public function __construct(private WebsitePageBuilderService $builder) {}
+
     public function __invoke(Request $request)
     {
-        $stores = Store::with(['state', 'hoursOfOperation'])->active()->orderByAdmin()->get();
+        $page = WebsitePage::where('page_key', 'contact')->firstOrFail();
 
-        $contact_settings = Setting::where('setting_type', 'Website Management Contact Us Section')->pluck('setting_value', 'setting_name')->toArray();
+        $context = $this->builder->getBuilderContext($page);
 
-        return view('front.contact_us.index', [
-            'title'            => 'Contact',
-            'stores'           => $stores,
-            'contact_settings' => $contact_settings,
-        ]);
+        // Builder only loads stores when a locations/contact_strip section exists in DB.
+        // Always ensure stores are available on the contact page regardless.
+        if ($context['stores']->isEmpty()) {
+            $context['stores'] = Store::with(['hoursOfOperation', 'state'])
+                ->active()
+                ->orderByAdmin()
+                ->get(['id', 'unique_id', 'store_name', 'address', 'city', 'zip_code',
+                       'phone', 'details', 'latitude', 'longitude', 'state_id']);
+        }
+
+        return view('front.website_pages.contact_us.index', array_merge($context, [
+            'currentPage' => $page,
+            'logo'        => \App\Helpers\ConfigurationHelper::getHpBuilderLogo(),
+            'favicon'     => \App\Helpers\ConfigurationHelper::getHpBuilderFavicon(),
+        ]));
     }
 }

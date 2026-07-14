@@ -11,8 +11,10 @@
 @php
 use App\Models\Stores\Store;
 
-function contactUsFormatTime($time): ?string {
-    return $time ? \Carbon\Carbon::parse($time)->format('g:i A') : null;
+if (!function_exists('contactUsFormatTime')) {
+    function contactUsFormatTime($time): ?string {
+        return $time ? \Carbon\Carbon::parse($time)->format('g:i A') : null;
+    }
 }
 
 $activeItems = $items->where('status', 'Active')->sortBy('display_order')->values();

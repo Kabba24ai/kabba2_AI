@@ -209,9 +209,8 @@ class HomePageBuilderSeeder extends Seeder
     {
         $quickLinks = [
             ['title' => 'Home',                'button_url' => '/',                       'display_order' => 1],
-            ['title' => 'Equipment Rentals',   'button_url' => '/product-categories',     'display_order' => 2],
-            ['title' => 'FAQ',                 'button_url' => '/faqs',                   'display_order' => 3],
-            ['title' => 'Contact Us',          'button_url' => '/contact-us',             'display_order' => 4],
+            ['title' => 'FAQ',                 'button_url' => '/faqs',                   'display_order' => 2],
+            ['title' => 'Contact Us',          'button_url' => '/contact-us',             'display_order' => 3],
         ];
 
         $otherLinks = [

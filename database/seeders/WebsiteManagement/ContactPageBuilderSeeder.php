@@ -11,12 +11,12 @@ class ContactPageBuilderSeeder extends Seeder
 {
     public function run(): void
     {
-        // ── 1. Contact V2 page record ─────────────────────────────────────────
+        // ── 1. Contact page record ─────────────────────────────────────────
         $page = WebsitePage::updateOrCreate(
-            ['page_key' => 'contact_v2'],
+            ['page_key' => 'contact'],
             [
                 'title'            => 'Contact Us',
-                'slug'             => 'contact-us-v2',
+                'slug'             => 'contact-us',
                 'status'           => 'Active',
                 'meta_title'       => 'Contact Us – Rent n King',
                 'meta_description' => 'Get in touch with Rent n King. Find our store locations, hours, phone numbers, and more.',

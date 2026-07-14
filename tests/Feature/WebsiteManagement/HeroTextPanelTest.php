@@ -93,7 +93,7 @@ class HeroTextPanelTest extends TestCase
         ]);
         $hero = $this->hero();
 
-        $html = view('front.home_v2.partials.hero', ['hp' => (object) ['hero' => $hero]])->render();
+        $html = view('front.home.partials.hero', ['hp' => (object) ['hero' => $hero]])->render();
 
         $this->assertStringContainsString('rgba(0,0,0,0.42)', $html, 'dark medium → 0.42 black');
         $this->assertStringContainsString('color: #ffffff', $html, 'dark panel → white text');
@@ -109,7 +109,7 @@ class HeroTextPanelTest extends TestCase
             'text_background_enabled' => true, 'text_background_style' => 'light',
             'text_background_strength' => 'medium',
         ]);
-        $html = view('front.home_v2.partials.hero', ['hp' => (object) ['hero' => $this->hero()]])->render();
+        $html = view('front.home.partials.hero', ['hp' => (object) ['hero' => $this->hero()]])->render();
 
         $this->assertStringContainsString('rgba(255,255,255,0.42)', $html);
         $this->assertStringContainsString('color: #111827', $html, 'light panel → dark text');
@@ -124,7 +124,7 @@ class HeroTextPanelTest extends TestCase
             WebsitePageSection::where('website_page_id', $page->id)->where('section_key', 'hero')
                 ->update(['content' => ['text_background_strength' => $strength]]);
 
-            $html = view('front.home_v2.partials.hero', ['hp' => (object) ['hero' => $this->hero()]])->render();
+            $html = view('front.home.partials.hero', ['hp' => (object) ['hero' => $this->hero()]])->render();
             $this->assertStringContainsString("rgba(0,0,0,{$op})", $html, "strength {$strength} → opacity {$op}");
             // layout dimensions are constant across strengths
             $this->assertStringContainsString('padding:16px 20px', $html);
@@ -138,7 +138,7 @@ class HeroTextPanelTest extends TestCase
             'text_background_enabled' => false,
             'title_color' => '#ff0000', 'subtitle_color' => '#00ff00',
         ]);
-        $html = view('front.home_v2.partials.hero', ['hp' => (object) ['hero' => $this->hero()]])->render();
+        $html = view('front.home.partials.hero', ['hp' => (object) ['hero' => $this->hero()]])->render();
 
         $this->assertStringNotContainsString('rgba(0,0,0,0.42)', $html, 'no panel background when disabled');
         $this->assertStringNotContainsString('backdrop-filter:blur', $html);
@@ -150,7 +150,7 @@ class HeroTextPanelTest extends TestCase
     public function public_hero_never_restores_a_button(): void
     {
         $this->homeWithHero(['button_text' => 'Should Not Appear', 'button_url' => '/nope']);
-        $html = view('front.home_v2.partials.hero', ['hp' => (object) ['hero' => $this->hero()]])->render();
+        $html = view('front.home.partials.hero', ['hp' => (object) ['hero' => $this->hero()]])->render();
 
         $this->assertStringNotContainsString('Should Not Appear', $html);
         $this->assertStringNotContainsString('<a ', $html, 'hero must not render a button/link');
@@ -186,7 +186,7 @@ class HeroTextPanelTest extends TestCase
     /** @test */
     public function public_and_preview_share_the_same_opacity_and_color_mapping(): void
     {
-        $public  = file_get_contents(resource_path('views/front/home_v2/partials/hero.blade.php'));
+        $public  = file_get_contents(resource_path('views/front/home/partials/hero.blade.php'));
         $preview = file_get_contents(resource_path('views/admin/website_management/home_page_builder/partials/_hero.blade.php'));
 
         foreach (['0.28', '0.42', '0.60'] as $op) {

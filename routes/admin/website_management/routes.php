@@ -20,9 +20,6 @@ Route::prefix('website-management')
         // branding
         require base_path('routes/admin/website_management/branding/routes.php');
 
-        // contact_us
-        require base_path('routes/admin/website_management/contact_us/routes.php');
-
         //faq_page
         require base_path('routes/admin/website_management/faq_page/routes.php');
 

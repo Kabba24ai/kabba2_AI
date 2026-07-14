@@ -4,7 +4,7 @@
      Dynamic via $category_tree (ProductCategory)
 ============================================================ --}}
 
-<section id="home-v2-featured-categories" class="bg-white pt-4 pb-10 md:pt-6 md:pb-12 lg:pt-8 lg:pb-14">
+<section id="home-featured-categories" class="bg-white pt-4 pb-10 md:pt-6 md:pb-12 lg:pt-8 lg:pb-14">
 
     <div class="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-8">
 

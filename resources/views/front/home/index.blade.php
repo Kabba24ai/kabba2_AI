@@ -12,23 +12,20 @@
 @endif
 
 @push('meta')
-    @if($hp->seo->metaDescription)
-    <meta name="description" content="{{ $hp->seo->metaDescription }}">
-    @endif
-    @if($hp->seo->metaKeywords)
-    <meta name="keywords" content="{{ $hp->seo->metaKeywords }}">
-    @endif
-    @if($hp->seo->ogTitle)
-    <meta property="og:title" content="{{ $hp->seo->ogTitle }}">
-    @endif
-    @if($hp->seo->ogDescription)
-    <meta property="og:description" content="{{ $hp->seo->ogDescription }}">
-    @endif
-    @if($hp->seo->ogImage)
-    <meta property="og:image" content="{{ $hp->seo->ogImage }}">
-    @endif
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ $hp->seo->canonicalUrl ?? url()->current() }}">
+    {{-- Blank OG fields inherit the Meta values; og:image falls back to the
+         homepage hero, then the site's default social image (SeoResolver) --}}
+    @include('front.partials.page_meta', [
+        'seoRaw' => [
+            'meta_title'       => $hp->seo->metaTitle,
+            'meta_description' => $hp->seo->metaDescription,
+            'meta_keywords'    => $hp->seo->metaKeywords,
+            'og_title'         => $hp->seo->ogTitle,
+            'og_description'   => $hp->seo->ogDescription,
+            'og_image_url'     => $hp->seo->ogImage,
+            'canonical_url'    => $hp->seo->canonicalUrl,
+        ],
+        'fallbackImage' => $hp->hero->imageUrl,
+    ])
 @endpush
 
 @section('content')

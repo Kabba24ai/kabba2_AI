@@ -5,7 +5,7 @@
      - Optional image grid / cards
 ============================================================ --}}
 
-<section id="home-v2-rental-specialists">
+<section id="home-rental-specialists">
 
     <div>
         {{-- Section heading --}}

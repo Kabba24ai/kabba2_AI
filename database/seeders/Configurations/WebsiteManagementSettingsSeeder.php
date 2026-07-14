@@ -52,34 +52,6 @@ class WebsiteManagementSettingsSeeder extends Seeder
 
         /**
          * ----------------------------------
-         * Contact Us Section
-         * ----------------------------------
-         */
-        $contactUs = [
-            'contact_title' => 'Speak with a human – No frustrating menus and bots',
-            'contact_subtitle' => '(We might be on the phone...)',
-        ];
-
-        foreach ($contactUs as $key => $value) {
-
-            $item = Setting::firstOrCreate([
-                'setting_name' => $key,
-                'setting_type' => 'Website Management Contact Us Section',
-            ]);
-
-            if ($item->wasRecentlyCreated) {
-                $item->setting_value = $value;
-                $item->save();
-            }
-
-            if ($updateExisting && !$item->wasRecentlyCreated) {
-                $item->setting_value = $value;
-                $item->save();
-            }
-        }
-
-        /**
-         * ----------------------------------
          * Default Site Logo
          * ----------------------------------
          */

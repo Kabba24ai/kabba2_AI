@@ -2,17 +2,26 @@
 
 @section('title', $currentPage->meta_title ?: $currentPage->title)
 
+@if($currentPage->canonical_url)
+@section('canonical', $currentPage->canonical_url)
+@endif
+
 @push('meta')
-    @if($currentPage->meta_description)
-        <meta name="description" content="{{ $currentPage->meta_description }}">
-    @endif
-    @if($currentPage->og_title)
-        <meta property="og:title"       content="{{ $currentPage->og_title }}">
-        <meta name="twitter:title"      content="{{ $currentPage->og_title }}">
-    @endif
-    @if($currentPage->canonical_url)
-        <link rel="canonical" href="{{ $currentPage->canonical_url }}">
-    @endif
+    {{-- Blank OG fields inherit the Meta values; og:image falls back to the
+         site's default social image (Theme Builder → Default OG Image, else logo) --}}
+    @include('front.partials.page_meta', [
+        'seoRaw' => [
+            'meta_title'       => $currentPage->meta_title,
+            'meta_description' => $currentPage->meta_description,
+            'meta_keywords'    => $currentPage->meta_keywords,
+            'og_title'         => $currentPage->og_title,
+            'og_description'   => $currentPage->og_description,
+            'og_image_url'     => $currentPage->og_image
+                                    ? \App\Models\Global\Media::find($currentPage->og_image)?->url
+                                    : null,
+            'canonical_url'    => $currentPage->canonical_url,
+        ],
+    ])
 @endpush
 
 @php

@@ -878,7 +878,6 @@
                             Route::is('admin.website-management.home-page.*') ||
                             Route::is('admin.website-management.home-builder.*') ||
                             Route::is('admin.website-management.faq-page.*') ||
-                            Route::is('admin.website-management.contact-us.*') ||
                             Route::is('admin.website-management.footer.*') ||
                             Route::is('admin.website-management.branding.*') ||
                             Route::is('admin.website-management.media-library.*') ||
@@ -923,20 +922,13 @@
                                 <li>
                                     <a href="{{ route('admin.website-management.contact-builder.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.contact-builder.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-phone class="w-5 h-5" /> Contact Page Builder
+                                        <x-heroicon-o-phone class="w-5 h-5" /> Contact Us
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('admin.website-management.faq-page.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.faq-page.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-question-mark-circle class="w-5 h-5" /> FAQ Page
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('admin.website-management.contact-us.index') }}"
-                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.contact-us.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-s-phone class="w-5 h-5" />
-                                        Contact Us
                                     </a>
                                 </li>
                                 <li>

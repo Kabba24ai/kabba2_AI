@@ -1,5 +1,4 @@
 @extends('front.layouts.app')
-@section('footer_v2', '1')
 
 {{-- ── SEO: title, meta tags, OG, canonical ─────────────────────────── --}}
 @if($hp->seo->metaTitle)
@@ -46,7 +45,8 @@ $sectionPartialMap = [
     'contact_strip'      => 'front.home_v2.partials.contact-strip',
     'rental_specialists' => 'front.home_v2.partials.rental-specialists',
     'featured_rentals'   => 'front.home_v2.partials.featured-categories',
-    'feature_strip'      => 'front.home_v2.partials.features',
+    // feature_strip intentionally absent: it is a global component now,
+    // rendered by the layout directly above the global footer
     'newsletter'         => 'front.home_v2.partials.newsletter',
 ];
 $renderedKeys = [];

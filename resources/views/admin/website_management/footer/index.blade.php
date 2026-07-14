@@ -1,6 +1,6 @@
 @extends('admin.layouts.app', ['contentClass' => 'max-w-(--breakpoint-2xl)'])
 
-@section('title', 'Footer Section')
+@section('title', 'Footer & Global Sections')
 
 @section('content')
 <div class="bg-gray-50 flex flex-col">
@@ -12,8 +12,8 @@
                     <x-heroicon-o-cog-8-tooth class="h-10 w-10" />
                     <div class="h-6 border-l border-gray-300"></div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Footer Section</h1>
-                        <p class="text-sm text-gray-600">Manage system settings and configurations</p>
+                        <h1 class="text-2xl font-bold text-gray-900">Footer &amp; Global Sections</h1>
+                        <p class="text-sm text-gray-600">The footer and feature strip shown on every public page, plus related site settings</p>
                     </div>
                 </div>
             </div>
@@ -35,4 +35,5 @@
 <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
 @vite('resources/admin/js/tinymce.js')
 
+@include('admin.website_management.home_page_builder.partials._builder_js')
 @endpush

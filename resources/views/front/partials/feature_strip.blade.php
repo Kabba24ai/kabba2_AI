@@ -1,16 +1,20 @@
 {{-- ============================================================
-     Section: Feature Strip
+     Global Feature Strip
      Compact dark-navy bar — icon LEFT · text RIGHT · 3 columns
-     Short white vertical separator via absolute positioning
+     Rendered by the shared front layout directly above the global
+     footer on every public page. One source of truth: managed in
+     Website Management → Footer (stored on the `home` website page,
+     section_key `feature_strip`, shared via $featureStripHp).
 ============================================================ --}}
 
-<section id="home-v2-features" class="bg-[#171636]">
+@if(($featureStripHp->items ?? collect())->isNotEmpty())
+<section id="global-feature-strip" class="bg-[#171636]">
 
     <div class="container mx-auto px-0">
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 
-            @foreach($hp->featureStrip->items as $item)
+            @foreach($featureStripHp->items as $item)
 
             <div class="relative flex items-center
                         gap-4
@@ -58,3 +62,4 @@
     </div>
 
 </section>
+@endif

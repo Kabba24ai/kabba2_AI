@@ -1,5 +1,4 @@
 @extends('front.layouts.app')
-@section('footer_v2', '1')
 
 @section('title', $currentPage->meta_title ?: $currentPage->title)
 
@@ -22,7 +21,8 @@ $sectionPartialMap = [
     'contact_strip'=> 'front.website_pages.contact_us.partials.contact-strip',
     'locations'    => 'front.website_pages.contact_us.partials.locations',
     'question_cta' => 'front.website_pages.contact_us.partials.question-cta',
-    'feature_strip'=> 'front.website_pages.contact_us.partials.feature-strip',
+    // feature_strip intentionally absent: it is a global component now,
+    // rendered by the layout directly above the global footer
 ];
 $renderedKeys = [];
 
@@ -41,17 +41,11 @@ $locationsActive = $locationsSection && $locationsSection->status === 'Active';
         $key = $sec->section_type ?? $sec->section_key;
         // Always mark a DB-known section as handled — even when Inactive — so the
         // fallback loop below never re-renders a section that the admin turned off.
-        if (isset($sectionPartialMap[$key]) || $key === 'feature_strip') {
+        if (isset($sectionPartialMap[$key])) {
             $renderedKeys[] = $key;
         }
     @endphp
-    @if($key === 'feature_strip')
-        {{-- Feature strip always uses home builder data, not contact_v2 --}}
-        @include('front.website_pages.contact_us.partials.feature-strip', [
-            'section' => $homeFeatureSection,
-            'items'   => $homeFeatureItems,
-        ])
-    @elseif($key === 'contact_strip' && $sec->status === 'Active')
+    @if($key === 'contact_strip' && $sec->status === 'Active')
         @include($sectionPartialMap[$key], [
             'section'        => $sec,
             'items'          => $sec->items,
@@ -65,11 +59,7 @@ $locationsActive = $locationsSection && $locationsSection->status === 'Active';
 {{-- Fallback: any mapped partial not yet in DB still renders --}}
 @foreach($sectionPartialMap as $key => $partial)
     @if(!in_array($key, $renderedKeys) && \Illuminate\Support\Facades\View::exists($partial))
-        @if($key === 'feature_strip')
-            @include($partial, ['section' => $homeFeatureSection, 'items' => $homeFeatureItems])
-        @else
-            @include($partial, ['section' => null, 'items' => collect()])
-        @endif
+        @include($partial, ['section' => null, 'items' => collect()])
     @endif
 @endforeach
 

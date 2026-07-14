@@ -8,9 +8,12 @@ use App\Http\Requests\Admin\WebsiteManagement\HomePageBuilder\UpdateSectionReque
 use App\Helpers\MediaHelper;
 use App\Models\Global\Media;
 use App\Services\Website\HomePageService;
+use App\Http\Controllers\Admin\WebsiteManagement\HomePageBuilder\Concerns\RedirectsToSectionEditor;
 
 class UpdateController extends Controller
 {
+    use RedirectsToSectionEditor;
+
     public function __invoke(UpdateSectionRequest $request, string $unique_id)
     {
         $section   = WebsitePageSection::where('unique_id', $unique_id)->firstOrFail();
@@ -44,6 +47,6 @@ class UpdateController extends Controller
 
         HomePageService::clearCache();
         session()->flash('success', ucwords(str_replace('_', ' ', $section->section_key)) . ' section updated successfully.');
-        return redirect()->route('admin.website-management.home-builder.index', ['tab' => $section->section_key]);
+        return $this->redirectToSectionEditor($section->section_key);
     }
 }

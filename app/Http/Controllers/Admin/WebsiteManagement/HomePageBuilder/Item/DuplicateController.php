@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\WebsiteManagement\WebsiteSectionItem;
 use App\Services\Website\HomePageService;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Admin\WebsiteManagement\HomePageBuilder\Concerns\RedirectsToSectionEditor;
 
 class DuplicateController extends Controller
 {
+    use RedirectsToSectionEditor;
+
     public function __invoke(Request $request, string $unique_id)
     {
         $original = WebsiteSectionItem::where('unique_id', $unique_id)
@@ -25,6 +28,6 @@ class DuplicateController extends Controller
 
         $tab = $original->section?->section_key ?? 'hero';
         session()->flash('success', 'Item duplicated successfully.');
-        return redirect()->route('admin.website-management.home-builder.index', ['tab' => $tab]);
+        return $this->redirectToSectionEditor($tab);
     }
 }

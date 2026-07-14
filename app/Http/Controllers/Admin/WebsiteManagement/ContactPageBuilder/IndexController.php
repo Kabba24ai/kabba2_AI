@@ -17,11 +17,13 @@ class IndexController extends Controller
 
     public function __invoke(Request $request)
     {
-        $page    = WebsitePage::where('page_key', 'contact_v2')->firstOrFail();
+        $page    = WebsitePage::where('page_key', 'contact')->firstOrFail();
         $context = $this->builder->getBuilderContext($page);
 
         // Ordered to match the contact page's visual flow, not the registry registration order.
-        $allowedKeys = ['hero', 'contact_strip', 'locations', 'question_cta', 'seo'];
+        // No `hero`: the contact page has no header band — it opens with the
+        // shared contact strip (historical hero rows stay in the DB, unrendered).
+        $allowedKeys = ['contact_strip', 'locations', 'question_cta', 'seo'];
         $components  = collect($allowedKeys)
             ->filter(fn ($key) => $this->registry->has($key))
             ->mapWithKeys(fn ($key) => [$key => $this->registry->find($key)]);
@@ -29,7 +31,7 @@ class IndexController extends Controller
         return view('admin.website_management.contact_page_builder.index', array_merge($context, [
             'registry'    => $this->registry,
             'components'  => $components,
-            'activeTab'   => $request->get('tab', 'hero'),
+            'activeTab'   => $request->get('tab', 'contact_strip'),
             'routePrefix' => 'admin.website-management.contact-builder',
         ]));
     }

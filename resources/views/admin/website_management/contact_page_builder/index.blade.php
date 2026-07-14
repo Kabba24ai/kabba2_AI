@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Contact Page Builder')
+@section('title', 'Contact Us')
 
 @section('content')
 
@@ -15,9 +15,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                     </svg>
-                    <h1 class="text-2xl font-semibold text-gray-900">Contact Page Builder</h1>
+                    <h1 class="text-2xl font-semibold text-gray-900">Contact Us</h1>
                 </div>
-                <p class="text-gray-600">Manage all content sections of the contact page. Run the seeder first if sections are empty.</p>
+                <p class="text-gray-600">Manage the public Contact Us page. Run the seeder first if sections are empty.</p>
             </div>
             @if(!$page)
                 <div class="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-md px-4 py-2 text-sm text-yellow-800">

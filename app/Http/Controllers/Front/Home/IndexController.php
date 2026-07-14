@@ -4,33 +4,51 @@ namespace App\Http\Controllers\Front\Home;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Configurations\Setting;
-
-// Models
 use App\Models\ProductManagement\ProductCategory;
+use App\Models\Configurations\Setting;
+use App\Models\Stores\Store;
+use App\Services\Website\HomePageService;
 
 class IndexController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
     public function __invoke(Request $request)
     {
-        $category_tree = ProductCategory::has('products')->published()->with('media')->whereNull('parent_id')->sortOrder()->get();
+        $hp = app(HomePageService::class)->getData();
 
-        $order = session('order', []);
-        $cartData = $order['cart_data'] ?? [];
+        $branding = Setting::where('setting_type', 'Website Management Branding')
+            ->pluck('setting_value', 'setting_name')
+            ->toArray();
 
-        session()->forget('order.cart_data');
+        $stores = Store::active()
+            ->with('state')
+            ->orderByAdmin()
+            ->get();
 
-        $branding = Setting::where('setting_type', 'Website Management Branding')->pluck('setting_value', 'setting_name')->toArray();
+        // Load only categories selected in the builder, in builder display order
+        $featuredCategories = collect();
+        if ($hp->featuredRentals->categoryIds->isNotEmpty()) {
+            $indexed = ProductCategory::has('products')
+                ->published()
+                ->with('media')
+                ->whereNull('parent_id')
+                ->whereIn('id', $hp->featuredRentals->categoryIds)
+                ->get()
+                ->keyBy('id');
 
-        // dd($branding);
+            $featuredCategories = $hp->featuredRentals->categoryIds
+                ->map(fn ($id) => $indexed->get($id))
+                ->filter()
+                ->values();
+        }
+
         return view('front.home.index', [
-            'title' => 'Home',
-            'category_tree' => $category_tree,
-            'cart_data' => $cartData,
-            'branding' => $branding,
-        ])->with('success', 'Something went wrong. Please try again.');
+            'title'              => 'Home',
+            'hp'                 => $hp,
+            'branding'           => $branding,
+            'stores'             => $stores,
+            'featuredCategories' => $featuredCategories,
+            'logo'               => \App\Helpers\ConfigurationHelper::getHpBuilderLogo(),
+            'favicon'            => \App\Helpers\ConfigurationHelper::getHpBuilderFavicon(),
+        ]);
     }
 }

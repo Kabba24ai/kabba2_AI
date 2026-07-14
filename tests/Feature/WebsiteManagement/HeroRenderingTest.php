@@ -21,7 +21,7 @@ class HeroRenderingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->publicHero = file_get_contents(resource_path('views/front/home_v2/partials/hero.blade.php'));
+        $this->publicHero = file_get_contents(resource_path('views/front/home/partials/hero.blade.php'));
         $this->adminHero  = file_get_contents(resource_path('views/admin/website_management/home_page_builder/partials/_hero.blade.php'));
     }
 

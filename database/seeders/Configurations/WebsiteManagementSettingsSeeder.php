@@ -19,7 +19,6 @@ class WebsiteManagementSettingsSeeder extends Seeder
          */
         $branding = [
             'site_logo' => null,
-            'home_page_image' => null,
             'site_phone' => '(615) 815-6734',
             'site_email' => 'rentnking@gmail.com',
             'site_name' => 'Rent `n King',
@@ -49,63 +48,6 @@ class WebsiteManagementSettingsSeeder extends Seeder
                 $item->setting_value = $value;
                 $item->save();
             }
-        }
-
-        /**
-         * ----------------------------------
-         * Contact Us Section
-         * ----------------------------------
-         */
-        $contactUs = [
-            'contact_title' => 'Speak with a human – No frustrating menus and bots',
-            'contact_subtitle' => '(We might be on the phone...)',
-        ];
-
-        foreach ($contactUs as $key => $value) {
-
-            $item = Setting::firstOrCreate([
-                'setting_name' => $key,
-                'setting_type' => 'Website Management Contact Us Section',
-            ]);
-
-            if ($item->wasRecentlyCreated) {
-                $item->setting_value = $value;
-                $item->save();
-            }
-
-            if ($updateExisting && !$item->wasRecentlyCreated) {
-                $item->setting_value = $value;
-                $item->save();
-            }
-        }
-
-        /**
-         * ----------------------------------
-         * Default Home Page Banner
-         * ----------------------------------
-         */
-        $home_page_image = Media::firstOrCreate(
-            ['original_file_name' => 'banner.jpg'],
-            [
-                'asset_type' => 'Public Asset',
-                'folder_name' => 'front/images',
-                'file_name' => 'banner.jpg',
-                'file_extension' => 'jpg',
-                'file_type' => 'image',
-                'mime_type' => 'image/jpeg',
-                'file_size' => 0,
-                'is_used' => 'Yes',
-            ]
-        );
-
-        $item = Setting::firstOrCreate([
-            'setting_name' => 'home_page_image',
-            'setting_type' => 'Website Management Branding',
-        ]);
-
-        if ($item->wasRecentlyCreated || $updateExisting) {
-            $item->setting_value = $home_page_image->id;
-            $item->save();
         }
 
         /**

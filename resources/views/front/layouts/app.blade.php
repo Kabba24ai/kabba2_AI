@@ -38,11 +38,13 @@
 
     @yield('content')
 
-    {{-- footer: v2 (home builder managed) for home_v2 + contact_v2; static for all other pages --}}
-    @hasSection('footer_v2')
-        @include('front.partials.footer_v2')
+    {{-- Global feature strip + footer — one source of truth (Website Mgmt → Footer),
+         rendered on every public page. A page that must not show them (payment,
+         embedded, print) declares @section('no_global_footer', '1'). --}}
+    @hasSection('no_global_footer')
     @else
-        @include('front.partials.footer')
+        @include('front.partials.feature_strip')
+        @include('front.partials.footer_v2')
     @endif
 
     @stack('js')

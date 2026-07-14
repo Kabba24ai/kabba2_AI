@@ -208,10 +208,9 @@ class HomePageBuilderSeeder extends Seeder
     private function seedFooterItems(WebsitePageSection $section): void
     {
         $quickLinks = [
-            ['title' => 'Home',                'button_url' => '/home-v2',                'display_order' => 1],
-            ['title' => 'Equipment Rentals',   'button_url' => '/product-categories',     'display_order' => 2],
-            ['title' => 'FAQ',                 'button_url' => '/faqs',                   'display_order' => 3],
-            ['title' => 'Contact Us',          'button_url' => '/contact-us',             'display_order' => 4],
+            ['title' => 'Home',                'button_url' => '/',                       'display_order' => 1],
+            ['title' => 'FAQ',                 'button_url' => '/faqs',                   'display_order' => 2],
+            ['title' => 'Contact Us',          'button_url' => '/contact-us',             'display_order' => 3],
         ];
 
         $otherLinks = [

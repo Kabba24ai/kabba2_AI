@@ -34,4 +34,5 @@ Route::prefix('test')->name('test.')
     Route::get('/payment-profile-card-info/{paymentProfileId?}', [IndexController::class, 'paymentProfileCardInfo'])->name('payment_profile_card_info');
     Route::get('/backfill-customer-card-info', [IndexController::class, 'backfillCustomerCardInfo'])->name('backfill_customer_card_info');
     Route::get('/test-openai', [IndexController::class, 'testOpenAi'])->name('test_openai');
+    Route::get('/remove-fuel-charge/{orderProductId}', [IndexController::class, 'removeFuelCharge'])->name('remove_fuel_charge');
 });

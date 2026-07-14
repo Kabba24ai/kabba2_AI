@@ -25,6 +25,8 @@ class CommonFrontDataHelper
             'logo'              => $logo,
             'favicon'           => $favicon,
             'footerHp'          => $hp->footer,
+            'featureStripHp'    => $hp->featureStrip,
+            'contactStripHp'    => $hp->contactStrip,
         ];
 
         view()->share($data);

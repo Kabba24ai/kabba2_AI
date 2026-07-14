@@ -23,7 +23,7 @@ class ContactPageService
 
     private function build(): object
     {
-        $page = WebsitePage::where('page_key', 'contact_v2')
+        $page = WebsitePage::where('page_key', 'contact')
             ->with([
                 'sections'       => fn ($q) => $q->where('status', 'Active')->orderBy('display_order'),
                 'sections.items' => fn ($q) => $q->where('status', 'Active')->orderBy('display_order'),

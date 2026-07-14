@@ -27,11 +27,8 @@
     // These match the relative paths stored in button_url in the database.
     $predefinedUrls = [
         '/'                     => 'Home',
-        '/home-v2'              => 'Home V2',
         '/faqs'                 => 'FAQ',
-        '/product-categories'   => 'Equipment Rentals',
         '/contact-us'           => 'Contact Us',
-        '/contact-us-v2'        => 'Contact Us V2',
         '/terms-and-conditions' => 'Terms & Conditions',
         '/privacy-policy'       => 'Privacy Policy',
     ];

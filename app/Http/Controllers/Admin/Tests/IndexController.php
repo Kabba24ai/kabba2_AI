@@ -6,8 +6,11 @@ use App\Enums\Communication\SmsType;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderTermsStatus;
 use App\Helpers\ConfigurationHelper;
+use App\Helpers\CustomHelper;
 use App\Http\Controllers\Controller;
+use App\Models\Customers\CustomerAccount;
 use App\Models\Iam\Personnel\User;
+use App\Models\Orders\BillingCharge;
 use App\Models\Orders\Order;
 use App\Services\TwilioService;
 use App\Services\AuthorizeNetService;
@@ -34,6 +37,76 @@ use Throwable;
 
 class IndexController extends Controller
 {
+    /**
+     * Remove a fuel charge (BillingCharge + legacy CustomerAccount) for a single order product.
+     * GET /admin/test/remove-fuel-charge/{orderProductId}
+     */
+    public function removeFuelCharge(int $orderProductId)
+    {
+        $result = DB::transaction(function () use ($orderProductId) {
+            $billingCharge = BillingCharge::where('order_product_id', $orderProductId)
+                ->where('billing_charge_type', 'fuel')
+                ->first();
+
+            $billingChargeId   = null;
+            $customerAccountId = null;
+            $customerId        = null;
+
+            if ($billingCharge) {
+                $billingChargeId   = $billingCharge->id;
+                $customerAccountId = $billingCharge->customer_account_id;
+
+                if ($customerAccountId) {
+                    $txn = CustomerAccount::find($customerAccountId);
+
+                    if ($txn) {
+                        $customerId = $txn->customer_id;
+                        CustomHelper::reverseTransactionEffect($txn);
+                        $txn->delete();
+                        CustomHelper::fixTheRunningBalance($customerId);
+                    }
+                }
+
+                $billingCharge->delete();
+            }
+
+            // Always clear the charge from the order product's own checklist display
+            // (the "Customer Owes" column on the Fuel row is read straight from
+            // fuel_total_charge, independent of billing_charges/customer_accounts) —
+            // this must run even if the BillingCharge/CustomerAccount were already
+            // removed by a previous call.
+            $orderProduct = OrderProduct::find($orderProductId);
+            $checklistCleared = false;
+
+            if ($orderProduct && (float) $orderProduct->fuel_total_charge > 0) {
+                $orderProduct->update([
+                    'fuel_total_charge' => 0,
+                    'fuel_charge_status' => \App\Enums\Orders\OrderProductChargeStatus::Resolved->value,
+                ]);
+                $checklistCleared = true;
+            }
+
+            if (!$billingCharge && !$checklistCleared) {
+                return [
+                    'success' => false,
+                    'message' => "Nothing to remove for order_product_id={$orderProductId} — no fuel BillingCharge and fuel_total_charge is already 0.",
+                ];
+            }
+
+            return [
+                'success'              => true,
+                'order_product_id'     => $orderProductId,
+                'billing_charge_id'    => $billingChargeId,
+                'customer_account_id'  => $customerAccountId,
+                'customer_id'          => $customerId,
+                'checklist_cleared'    => $checklistCleared,
+                'message'              => 'Fuel charge removed' . ($billingChargeId ? ', balance reversed,' : ' (already gone),') . ' and checklist Customer Owes cleared.',
+            ];
+        });
+
+        return response()->json($result);
+    }
+
     // new method here
     public function termDailyReminder()
     {

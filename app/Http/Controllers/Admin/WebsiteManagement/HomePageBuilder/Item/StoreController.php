@@ -8,9 +8,12 @@ use App\Models\WebsiteManagement\WebsiteSectionItem;
 use App\Http\Requests\Admin\WebsiteManagement\HomePageBuilder\Item\StoreItemRequest;
 use App\Helpers\MediaHelper;
 use App\Services\Website\HomePageService;
+use App\Http\Controllers\Admin\WebsiteManagement\HomePageBuilder\Concerns\RedirectsToSectionEditor;
 
 class StoreController extends Controller
 {
+    use RedirectsToSectionEditor;
+
     public function __invoke(StoreItemRequest $request)
     {
         $validated = $request->validated();
@@ -35,6 +38,6 @@ class StoreController extends Controller
 
         HomePageService::clearCache();
         session()->flash('success', 'Item added successfully.');
-        return redirect()->route('admin.website-management.home-builder.index', ['tab' => $section->section_key]);
+        return $this->redirectToSectionEditor($section->section_key);
     }
 }

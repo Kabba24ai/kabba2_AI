@@ -42,7 +42,9 @@ class IndexController extends Controller
 
         $stores = Store::active()->orderByAdmin()->get(['id', 'unique_id', 'store_name']);
 
-        $allowedKeys = ['hero', 'contact_strip', 'featured_rentals', 'feature_strip', 'footer', 'seo', 'branding'];
+        // Feature Strip + Footer are global site components — edited on
+        // Website Management → Footer, not here.
+        $allowedKeys = ['hero', 'contact_strip', 'featured_rentals', 'seo', 'branding'];
         $components  = collect($allowedKeys)
             ->filter(fn ($key) => $this->registry->has($key))
             ->mapWithKeys(fn ($key) => [$key => $this->registry->find($key)]);

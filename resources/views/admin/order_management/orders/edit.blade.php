@@ -1374,10 +1374,10 @@
                                                 <div class="flex gap-1">
                                                     <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold
                                                         {{ $orderProduct->is_delivered == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}"
-                                                        @if ($orderProduct->is_delivered == 1) onclick="openChecklistModal()" @endif>D</span>
+                                                        @if ($orderProduct->is_delivered == 1) onclick="openChecklistModal({{ $orderProduct->id }})" @endif>D</span>
                                                     <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold
                                                         {{ $orderProduct->is_returned == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}"
-                                                        @if ($orderProduct->is_returned == 1) onclick="openChecklistModal()" @endif>R</span>
+                                                        @if ($orderProduct->is_returned == 1) onclick="openChecklistModal({{ $orderProduct->id }})" @endif>R</span>
                                                 </div>
                                             </div>
 
@@ -2865,7 +2865,30 @@
 
                                         @foreach ($order->products as $product)
                                             @foreach ($product->checklistQuestions()->indexOrder()->get() as $question)
-                                                <tr class="border-b">
+                                                @php
+                                                    // Get the last valid answer (delivery or return != 0), sorted by index_number
+                                                    $valid = $question->answers
+                                                        ->filter(
+                                                            fn($a) => $a->is_delivery_answer == 1 ||
+                                                                $a->is_return_answer == 1,
+                                                        )
+                                                        ->sortByDesc('index_number')
+                                                        ->first();
+
+                                                    // If no valid answer, fallback to the last entry (even if 0/0)
+                                                    $latest =
+                                                        $valid ??
+                                                        $question->answers->sortByDesc('index_number')->first();
+
+                                                    $rowAmount = 0;
+                                                    if ($latest && $latest->is_return_answer == 1 && $latest->is_delivery_answer == 0) {
+                                                        $deliveryAmount = $question->deliverySelectedAnswer->delivery_amount ?? 0;
+                                                        $returnAmount = $latest->user_return_amount ?? ($latest->return_amount ?? 0);
+                                                        $rowAmount = max($returnAmount - $deliveryAmount, 0);
+                                                    }
+                                                    $checklistTotal += $rowAmount;
+                                                @endphp
+                                                <tr class="border-b checklist-row" data-product-id="{{ $product->id }}" data-amount="{{ $rowAmount }}">
                                                     <!-- Checklist Item -->
                                                     <td class="py-2 px-2">{{ $question->question_name }}</td>
 
@@ -2892,30 +2915,12 @@
                                                         @endif
                                                     </td>
 
-                                                    @php
-
-                                                        // Get the last valid answer (delivery or return != 0), sorted by index_number
-                                                        $valid = $question->answers
-                                                            ->filter(
-                                                                fn($a) => $a->is_delivery_answer == 1 ||
-                                                                    $a->is_return_answer == 1,
-                                                            )
-                                                            ->sortByDesc('index_number')
-                                                            ->first();
-
-                                                        // If no valid answer, fallback to the last entry (even if 0/0)
-                                                        $latest =
-                                                            $valid ??
-                                                            $question->answers->sortByDesc('index_number')->first();
-                                                    @endphp
-
                                                     <td class="py-2 px-2 text-right">
                                                         @if ($latest)
                                                             {{-- Case 1: Both selected --}}
                                                             @if ($latest->is_delivery_answer == 1 && $latest->is_return_answer == 1)
                                                                 <span
                                                                     class="inline-block border-b border-gray-300 min-w-10 text-gray-600">$0.00</span>
-                                                                @php $checklistTotal += 0; @endphp
 
                                                                 {{-- Case 2: Delivery only --}}
                                                             @elseif($latest->is_delivery_answer == 1 && $latest->is_return_answer == 0)
@@ -2924,36 +2929,20 @@
                                                                     <!-- ${{ $latest->user_delivery_amount ?? ($latest->delivery_amount ?? 0) }} -->
                                                                     $0
                                                                 </span>
-                                                                @php $checklistTotal +=  0; @endphp
                                                                 {{-- Case 3: Return only --}}
                                                             @elseif($latest->is_return_answer == 1 && $latest->is_delivery_answer == 0)
-                                                                @php
-                                                                    $deliveryAmount =
-                                                                        $question->deliverySelectedAnswer
-                                                                            ->delivery_amount ?? 0;
-                                                                    $returnAmount =
-                                                                        $latest->user_return_amount ??
-                                                                        ($latest->return_amount ?? 0);
-                                                                    $netAmount = max(
-                                                                        $returnAmount - $deliveryAmount,
-                                                                        0,
-                                                                    );
-                                                                    $checklistTotal += $netAmount;
-                                                                @endphp
                                                                 <span
                                                                     class="inline-block border-b border-gray-300 min-w-10 text-red-600">
-                                                                    ${{ $netAmount }}
+                                                                    ${{ $rowAmount }}
                                                                 </span>
                                                                 {{-- Case 4: Nothing selected --}}
                                                             @else
                                                                 <span
                                                                     class="inline-block border-b border-gray-300 min-w-10 text-gray-400">$0.00</span>
-                                                                @php $checklistTotal += 0; @endphp
                                                             @endif
                                                         @else
                                                             <span
                                                                 class="inline-block border-b border-gray-300 min-w-10 text-gray-400">$0.00</span>
-                                                            @php $checklistTotal += 0; @endphp
                                                         @endif
                                                     </td>
 
@@ -2965,107 +2954,101 @@
                                         @php
                                             $damageBaseTotal = 0;
                                             $damageAdjustmentTotal = 0;
-
-                                            foreach ($order->products as $product) {
-                                                $base = (float) ($product->damage_charge ?? 0);
-                                                $adjustments = $product->damageChargeLogs?->sum('change_amount') ?? 0;
-
-                                                $damageBaseTotal += $base;
-                                                $damageAdjustmentTotal += $adjustments;
-                                            }
-
-                                            $finalDamageTotal = max(0, $damageBaseTotal + $damageAdjustmentTotal);
                                         @endphp
-                                        @if ($damageBaseTotal > 0 || $damageAdjustmentTotal != 0)
-                                            {{-- DAMAGE SUMMARY ROW --}}
-                                            <tr class=" border-b ">
-                                                <td class="py-2 px-2 ">
-                                                    Damage Amount Initialized
-                                                </td>
+                                        @foreach ($order->products as $product)
+                                            @php
+                                                $productDamageBase = (float) ($product->damage_charge ?? 0);
+                                                $productDamageAdjustment = $product->damageChargeLogs?->sum('change_amount') ?? 0;
+                                                $productFinalDamage = max(0, $productDamageBase + $productDamageAdjustment);
 
-                                                <td class="py-2 px-2 ">
-                                                    Base Amount (${{ number_format($damageBaseTotal, 2) }})
-                                                </td>
+                                                $damageBaseTotal += $productDamageBase;
+                                                $damageAdjustmentTotal += $productDamageAdjustment;
+                                            @endphp
+                                            @if ($productDamageBase > 0 || $productDamageAdjustment != 0)
+                                                {{-- DAMAGE SUMMARY ROW --}}
+                                                <tr class=" border-b damage-row" data-product-id="{{ $product->id }}" data-amount="{{ $productFinalDamage }}">
+                                                    <td class="py-2 px-2 ">
+                                                        Damage Amount Initialized
+                                                    </td>
 
-                                                <td
-                                                    class="py-2 px-2  {{ $damageAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
-                                                    Adjust Amount (
-                                                    {{ $damageAdjustmentTotal >= 0 ? '+' : '-' }}
-                                                    ${{ number_format(abs($damageAdjustmentTotal), 2) }} )
-                                                </td>
+                                                    <td class="py-2 px-2 ">
+                                                        Base Amount (${{ number_format($productDamageBase, 2) }})
+                                                    </td>
 
-                                                <td class="py-2 px-2 text-right text-gray-800">
-                                                    ${{ number_format($finalDamageTotal, 2) }}
-                                                </td>
-                                            </tr>
-                                        @endif
+                                                    <td
+                                                        class="py-2 px-2  {{ $productDamageAdjustment < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                        Adjust Amount (
+                                                        {{ $productDamageAdjustment >= 0 ? '+' : '-' }}
+                                                        ${{ number_format(abs($productDamageAdjustment), 2) }} )
+                                                    </td>
+
+                                                    <td class="py-2 px-2 text-right text-gray-800">
+                                                        ${{ number_format($productFinalDamage, 2) }}
+                                                    </td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
 
                                         @php
                                             $fuelBaseTotal = 0;
                                             $fuelAdjustmentTotal = 0;
 
-                                            foreach ($order->products as $product) {
-                                                $base = (float) ($product->fuel_total_charge ?? 0);
-                                                $adjustments = $product->fuelChargeLogs?->sum('change_amount') ?? 0;
+                                            $arrFuelDelivery = [
+                                                ['id' => 10, 'name' => 'Prepaid'],
+                                                ['id' => 9, 'name' => 'Full'],
+                                                ['id' => 8, 'name' => '7/8'],
+                                                ['id' => 7, 'name' => '3/4'],
+                                                ['id' => 6, 'name' => '5/8'],
+                                                ['id' => 5, 'name' => '1/2'],
+                                                ['id' => 4, 'name' => '3/8'],
+                                                ['id' => 3, 'name' => '1/4'],
+                                                ['id' => 2, 'name' => '1/8'],
+                                                ['id' => 1, 'name' => 'Empty'],
+                                            ];
+                                            $fuelMap = collect($arrFuelDelivery)->pluck('name', 'id');
+                                        @endphp
+                                        @foreach ($order->products as $product)
+                                            @if (!is_null($product->fuel_initial_reading))
+                                                @php
+                                                    $productFuelBase = (float) ($product->fuel_total_charge ?? 0);
+                                                    $productFuelAdjustment = $product->fuelChargeLogs?->sum('change_amount') ?? 0;
+                                                    $productFinalFuel = max(0, $productFuelBase + $productFuelAdjustment);
 
-                                                $fuelBaseTotal += $base;
-                                                $fuelAdjustmentTotal += $adjustments;
-                                            }
+                                                    $fuelBaseTotal += $productFuelBase;
+                                                    $fuelAdjustmentTotal += $productFuelAdjustment;
 
+                                                    $initialFuel = $fuelMap[$product->fuel_initial_reading ?? null] ?? '-';
+                                                    $finalFuel = $fuelMap[$product->fuel_final_reading ?? null] ?? '-';
+                                                @endphp
+
+                                                <tr class="border-b fuel-row" data-product-id="{{ $product->id }}" data-amount="{{ $productFinalFuel }}">
+                                                    <td class="py-2 px-2">
+                                                        Fuel (
+                                                        {{ $product->equipment?->power_source_type
+                                                            ? $product->equipment->power_source_type->label()
+                                                            : 'Select Power Source' }})
+                                                    </td>
+
+                                                    <td class="py-2 px-2">
+                                                        {{ $initialFuel }}
+                                                    </td>
+
+                                                    <td
+                                                        class="py-2 px-2 {{ $productFuelAdjustment < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                        {{ $finalFuel }}
+                                                    </td>
+
+                                                    <td class="py-2 px-2 text-right text-gray-800">
+                                                        ${{ number_format($productFinalFuel, 2) }}
+                                                    </td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
+
+                                        @php
+                                            $finalDamageTotal = max(0, $damageBaseTotal + $damageAdjustmentTotal);
                                             $finalFuelTotal = max(0, $fuelBaseTotal + $fuelAdjustmentTotal);
                                         @endphp
-
-                                        {{-- @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0) --}}
-                                        @if ($order->products->isNotEmpty() && !is_null($product->fuel_initial_reading))
-
-                                            @php
-                                                $arrFuelDelivery = [
-                                                    ['id' => 10, 'name' => 'Prepaid'],
-                                                    ['id' => 9, 'name' => 'Full'],
-                                                    ['id' => 8, 'name' => '7/8'],
-                                                    ['id' => 7, 'name' => '3/4'],
-                                                    ['id' => 6, 'name' => '5/8'],
-                                                    ['id' => 5, 'name' => '1/2'],
-                                                    ['id' => 4, 'name' => '3/8'],
-                                                    ['id' => 3, 'name' => '1/4'],
-                                                    ['id' => 2, 'name' => '1/8'],
-                                                    ['id' => 1, 'name' => 'Empty'],
-                                                ];
-
-                                                $fuelMap = collect($arrFuelDelivery)->pluck('name', 'id');
-
-                                                $initialFuel = $fuelMap[$product->fuel_initial_reading ?? null] ?? '-';
-                                                $finalFuel = $fuelMap[$product->fuel_final_reading ?? null] ?? '-';
-                                            @endphp
-
-
-                                            <tr class="border-b">
-                                                <td class="py-2 px-2">
-                                                    Fuel (
-                                                    {{ $product->equipment?->power_source_type
-                                                        ? $product->equipment->power_source_type->label()
-                                                        : 'Select Power Source' }})
-
-
-                                                </td>
-
-                                                <td class="py-2 px-2">
-                                                    {{ $initialFuel }}
-                                                </td>
-
-                                                <td
-                                                    class="py-2 px-2 {{ $fuelAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
-                                                    {{ $finalFuel }}
-                                                </td>
-
-                                                <td class="py-2 px-2 text-right text-gray-800">
-                                                    ${{ number_format($finalFuelTotal, 2) }}
-                                                </td>
-                                            </tr>
-                                        @endif
-
-
-
 
 
 
@@ -3110,7 +3093,7 @@
 
                                                 @endphp
 
-                                                <tr class="border-b">
+                                                <tr class="border-b hour-row" data-product-id="{{ $product->id }}" data-amount="{{ $totalAmount }}">
                                                     <td class="py-2 px-2">{{ $product->product_name }}</td>
                                                     <td class="py-2 px-2">{{ $startHours }}</td>
                                                     <td class="py-2 px-2">{{ $endHours }}</td>
@@ -3132,7 +3115,7 @@
                                             <td colspan="7" class="py-2 px-2 text-right">
                                                 Checklist Total:
                                             </td>
-                                            <td class="py-2 px-2 text-right">
+                                            <td class="py-2 px-2 text-right" id="checklistTotalDisplay" data-all-amount="{{ number_format($checklistTotal, 2) }}">
                                                 ${{ number_format($checklistTotal, 2) }}
                                             </td>
                                         </tr>
@@ -3141,41 +3124,35 @@
                                             <td colspan="7" class="py-2 px-2 text-right">
                                                 Hour Tracking Total:
                                             </td>
-                                            <td class="py-2 px-2 text-right">
+                                            <td class="py-2 px-2 text-right" id="hourTrackingTotalDisplay" data-all-amount="{{ number_format($hourTrackingTotal, 2) }}">
                                                 ${{ number_format($hourTrackingTotal, 2) }}
                                             </td>
                                         </tr>
-                                        @if ($damageBaseTotal > 0 || $damageAdjustmentTotal != 0)
-                                            <tr>
-                                                <td colspan="7" class="py-2 px-2 text-right ">
-                                                    Final Damage Charge:
-                                                </td>
-                                                <td class="py-2 px-2 text-right ">
-                                                    ${{ number_format($finalDamageTotal, 2) }}
-                                                </td>
-                                            </tr>
-                                        @endif
+                                        <tr id="damageTotalRow" class="{{ $damageBaseTotal > 0 || $damageAdjustmentTotal != 0 ? '' : 'hidden' }}">
+                                            <td colspan="7" class="py-2 px-2 text-right ">
+                                                Final Damage Charge:
+                                            </td>
+                                            <td class="py-2 px-2 text-right " id="damageTotalDisplay" data-all-amount="{{ number_format($finalDamageTotal, 2) }}">
+                                                ${{ number_format($finalDamageTotal, 2) }}
+                                            </td>
+                                        </tr>
 
-                                        @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0)
-                                            <tr>
-                                                <td colspan="7" class="py-2 px-2 text-right">
-                                                    Final Fuel Charge:
-                                                </td>
-                                                <td class="py-2 px-2 text-right">
-                                                    ${{ number_format($finalFuelTotal, 2) }}
-                                                </td>
-                                            </tr>
-                                        @endif
+                                        <tr id="fuelTotalRow" class="{{ $fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0 ? '' : 'hidden' }}">
+                                            <td colspan="7" class="py-2 px-2 text-right">
+                                                Final Fuel Charge:
+                                            </td>
+                                            <td class="py-2 px-2 text-right" id="fuelTotalDisplay" data-all-amount="{{ number_format($finalFuelTotal, 2) }}">
+                                                ${{ number_format($finalFuelTotal, 2) }}
+                                            </td>
+                                        </tr>
 
 
                                         <tr class="font-bold border-t">
                                             <td colspan="7" class="py-3 px-2 text-right">
                                                 Grand Total:
                                             </td>
-                                            <td class="py-3 px-2 text-right text-gray-900">
-                                                {{-- {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal, 2) }} --}}
+                                            <td class="py-3 px-2 text-right text-gray-900" id="grandTotalDisplay" data-all-amount="{{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal + $finalFuelTotal, 2) }}">
                                                 {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal + $finalFuelTotal, 2) }}
-
                                             </td>
                                         </tr>
 
@@ -3190,7 +3167,7 @@
 
                             @foreach ($order->products as $orderProduct)
                                 @if (!empty($orderProduct->product))
-                                    <div class=" py-2">
+                                    <div class=" py-2 checklist-notes-panel" data-product-id="{{ $orderProduct->id }}">
                                         <form class="bg-white">
                                             <!-- 2-column grid (1 column on mobile) -->
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3913,9 +3890,46 @@
     <script>
         const modalEl = document.getElementById('checklistModal');
 
-        function openChecklistModal() {
+        function openChecklistModal(orderProductId) {
             modalEl.classList.remove('hidden');
             document.body.style.overflow = 'hidden'; // scroll-lock
+
+            const productId = String(orderProductId);
+            const sum = (selector) => Array.from(modalEl.querySelectorAll(selector))
+                .filter(el => el.dataset.productId === productId)
+                .reduce((total, el) => total + (parseFloat(el.dataset.amount) || 0), 0);
+
+            // Show only the rows/panels belonging to the clicked product
+            modalEl.querySelectorAll('.checklist-row, .hour-row, .damage-row, .fuel-row').forEach(row => {
+                row.classList.toggle('hidden', row.dataset.productId !== productId);
+            });
+            modalEl.querySelectorAll('.checklist-notes-panel').forEach(panel => {
+                panel.classList.toggle('hidden', panel.dataset.productId !== productId);
+            });
+
+            // Recompute totals for just this product
+            const checklistTotal = sum('.checklist-row');
+            const hourTrackingTotal = sum('.hour-row');
+            const damageTotal = sum('.damage-row');
+            const fuelTotal = sum('.fuel-row');
+            const grandTotal = checklistTotal + hourTrackingTotal + damageTotal + fuelTotal;
+
+            const fmt = (n) => '$' + n.toFixed(2);
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            setText('checklistTotalDisplay', fmt(checklistTotal));
+            setText('hourTrackingTotalDisplay', fmt(hourTrackingTotal));
+            setText('damageTotalDisplay', fmt(damageTotal));
+            setText('fuelTotalDisplay', fmt(fuelTotal));
+            setText('grandTotalDisplay', grandTotal.toFixed(2));
+
+            const damageRowHasData = modalEl.querySelectorAll(`.damage-row[data-product-id="${productId}"]`).length > 0;
+            const fuelRowHasData = modalEl.querySelectorAll(`.fuel-row[data-product-id="${productId}"]`).length > 0;
+            document.getElementById('damageTotalRow')?.classList.toggle('hidden', !damageRowHasData);
+            document.getElementById('fuelTotalRow')?.classList.toggle('hidden', !fuelRowHasData);
+
             // focus first control for a11y
             setTimeout(() => {
                 const first = modalEl.querySelector('select, input, button');

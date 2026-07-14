@@ -53,6 +53,7 @@ class SaveRequest extends FormRequest
             'include_extended_range' => 'nullable',
             'distance_unit' => 'nullable|string|in:Miles,Kilometers',
             'sales_tax' => 'nullable|numeric|min:0|max:100',
+            'credit_card_processing_fee' => 'nullable|numeric|min:0|max:100',
             'special_taxes' => 'nullable|numeric|min:0|max:100',
             'special_taxes_description' => 'nullable|string|max:255',
             'added_fees' => 'nullable|numeric|min:0',

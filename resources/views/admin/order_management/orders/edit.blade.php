@@ -788,6 +788,7 @@
                             'sign'        => $timeline['sign'],
                             'dot'         => $timeline['dot'],
                             'note'        => $timeline['note'],
+                            'detail'      => $timeline['detail'],
                             'created_at'  => $h->created_at,
                             'is_pod'      => false,
                         ];
@@ -800,6 +801,7 @@
                         'sign'        => null,
                         'dot'         => 'info',
                         'note'        => null,
+                        'detail'      => null,
                         'created_at'  => $a->created_at,
                         'is_pod'      => true,
                     ]);
@@ -833,6 +835,9 @@
                                 </div>
                                 @if ($entry['note'])
                                     <div class="text-xs text-gray-500 mt-0.5">Note: {{ $entry['note'] }}</div>
+                                @endif
+                                @if ($entry['detail'])
+                                    <div class="text-xs text-gray-500 mt-0.5">{{ $entry['detail'] }}</div>
                                 @endif
                                 <div class="text-xs text-gray-400 mt-0.5">
                                     {{ \App\Helpers\CustomHelper::formatDateTime($entry['created_at']) }}
@@ -2588,11 +2593,65 @@
         </div>
     </div>
 
+    {{-- Refund shortcut eligibility — computed once here so both the button
+         disabled-state and the JS breakdown read the same server-verified
+         numbers. The backend independently re-verifies all of this before
+         processing (see RefundPaymentController::resolveRefundCalculation)
+         — nothing here is trusted on its own. --}}
+    @php
+        $rfCcFeePercentage = (float) (\App\Helpers\ConfigurationHelper::getSettings('Product Settings', 'credit_card_processing_fee') ?? 0);
+        $rfPaidPayments = $order->payments()->where('status', \App\Enums\Orders\OrderPaymentStatus::Paid->value)->get();
+        $rfSinglePaidPayment = $rfPaidPayments->count() === 1 ? $rfPaidPayments->first() : null;
+
+        $rfCcFeeIneligibleReason = null;
+        if ($rfPaidPayments->count() !== 1) {
+            $rfCcFeeIneligibleReason = 'Not available for orders with more than one payment.';
+        } elseif ($rfSinglePaidPayment->payment_method !== \App\Enums\Orders\OrderPaymentMethod::Card || !$rfSinglePaidPayment->transaction_id) {
+            $rfCcFeeIneligibleReason = 'Only available when the original payment was made by Credit / Debit Card.';
+        } elseif ((float) $order->remaining_amount <= 0) {
+            $rfCcFeeIneligibleReason = 'No refundable balance remains.';
+        } elseif ($rfCcFeePercentage <= 0) {
+            $rfCcFeeIneligibleReason = 'Configure a Credit Card Processing Fee in System Settings to enable this option.';
+        }
+        $rfCcFeeEligible = $rfCcFeeIneligibleReason === null;
+
+        $rfCcFeeEligibleAmount = 0.0;
+        $rfCcFeeRetained = 0.0;
+        $rfCcFeeRefund = 0.0;
+        if ($rfCcFeeEligible) {
+            $rfCcFeeEligibleAmount = round(min((float) $rfSinglePaidPayment->amount, (float) $order->remaining_amount), 2);
+            $rfCcFeeRetained = round($rfCcFeeEligibleAmount * $rfCcFeePercentage / 100, 2);
+            $rfCcFeeRefund = round($rfCcFeeEligibleAmount - $rfCcFeeRetained, 2);
+            if ($rfCcFeeRetained >= $rfCcFeeEligibleAmount) {
+                $rfCcFeeEligible = false;
+                $rfCcFeeIneligibleReason = 'The Credit Card Processing Fee equals or exceeds the refundable amount.';
+            }
+        }
+
+        $rfAlreadyRefundedTax = (float) $order->payments()
+            ->whereIn('status', [\App\Enums\Orders\OrderPaymentStatus::PartialRefund->value, \App\Enums\Orders\OrderPaymentStatus::Refund->value])
+            ->sum('tax_refunded');
+        $rfRemainingRefundableTax = max(0.0, round((float) $order->tax_amount - $rfAlreadyRefundedTax, 2));
+        $rfRemainingRefundableTax = round(min($rfRemainingRefundableTax, (float) $order->remaining_amount), 2);
+        $rfTaxOnlyEligible = $rfRemainingRefundableTax > 0;
+        $rfTaxOnlyIneligibleReason = $rfTaxOnlyEligible ? null : 'No refundable sales tax remains for this order.';
+    @endphp
+
     <!-- Refund Modal -->
     <div id="refundModal"
         class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center"
         data-order-id="{{ $order->order_number }}" data-customer-name="{{ $order->customer_name }}"
         data-original-amount="{{ $order->remaining_amount }}"
+        data-order-subtotal="{{ $order->subtotal }}"
+        data-order-tax-amount="{{ $order->tax_amount }}"
+        data-cc-fee-eligible="{{ $rfCcFeeEligible ? '1' : '0' }}"
+        data-cc-fee-percentage="{{ $rfCcFeePercentage }}"
+        data-cc-fee-refund="{{ $rfCcFeeRefund }}"
+        data-cc-fee-retained="{{ $rfCcFeeRetained }}"
+        data-tax-only-eligible="{{ $rfTaxOnlyEligible ? '1' : '0' }}"
+        data-tax-original="{{ $order->tax_amount }}"
+        data-tax-already-refunded="{{ $rfAlreadyRefundedTax }}"
+        data-tax-remaining-refundable="{{ $rfRemainingRefundableTax }}"
         data-action="{{ route('admin.order-management.orders.refund-payment', $order->unique_id) }}">
         <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
             <!-- Header -->
@@ -2657,23 +2716,90 @@
                                 {{ \App\Helpers\CustomHelper::formatCurrency($order->remaining_amount) }}).
                             </p>
 
+                            <input type="hidden" id="refund_calculation_type" name="refund_calculation_type" value="standard">
+
                             <!-- Quick buttons -->
-                            <div class="flex gap-2 mt-2">
-                                <button type="button"
-                                    class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
-                                    data-percentage="100">
-                                    Full Amount
-                                </button>
-                                <button type="button"
-                                    class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
-                                    data-percentage="50">
-                                    50%
-                                </button>
-                                <button type="button"
-                                    class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
-                                    data-percentage="25">
-                                    25%
-                                </button>
+                            <div class="mt-2 space-y-2">
+                                <div>
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">Standard Refunds</p>
+                                    <div class="flex gap-2">
+                                        <button type="button"
+                                            class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
+                                            data-percentage="100">
+                                            Full Amount
+                                        </button>
+                                        <button type="button"
+                                            class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
+                                            data-percentage="50">
+                                            50%
+                                        </button>
+                                        <button type="button"
+                                            class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
+                                            data-percentage="25">
+                                            25%
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 pt-2">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">Special Refunds</p>
+                                    <div class="flex flex-col gap-2">
+                                        <div>
+                                            <button type="button" id="rf_cc_fee_btn"
+                                                class="px-3 py-1 text-xs rounded refund-special-btn {{ $rfCcFeeEligible ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-gray-50 text-gray-400 cursor-not-allowed' }}"
+                                                {{ $rfCcFeeEligible ? '' : 'disabled' }}>
+                                                Full Amount Less Card Processing Fee
+                                            </button>
+                                            <p class="text-[11px] text-gray-400 mt-0.5">
+                                                @if ($rfCcFeeEligible)
+                                                    Use only for customer cancellations where the company retains the original card-processing expense.
+                                                @else
+                                                    {{ $rfCcFeeIneligibleReason }}
+                                                @endif
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <button type="button" id="rf_tax_only_btn"
+                                                class="px-3 py-1 text-xs rounded refund-special-btn {{ $rfTaxOnlyEligible ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-gray-50 text-gray-400 cursor-not-allowed' }}"
+                                                {{ $rfTaxOnlyEligible ? '' : 'disabled' }}>
+                                                Sales Tax Only
+                                            </button>
+                                            <p class="text-[11px] text-gray-400 mt-0.5">
+                                                @if ($rfTaxOnlyEligible)
+                                                    Use only when correcting an incorrect sales-tax charge, such as for a tax-exempt customer.
+                                                @else
+                                                    {{ $rfTaxOnlyIneligibleReason }}
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic breakdown -->
+                            <div id="rf_breakdown_box" class="hidden mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm space-y-1">
+                                <p id="rf_breakdown_title" class="font-medium text-gray-900 mb-1"></p>
+
+                                <div id="rf_breakdown_standard" class="hidden space-y-1">
+                                    <div class="flex justify-between"><span class="text-gray-600">Purchase portion:</span><span id="rf_bd_purchase" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600">Sales tax portion:</span><span id="rf_bd_tax" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between border-t border-gray-200 pt-1"><span class="text-gray-600">Total refund:</span><span id="rf_bd_total" class="font-semibold text-gray-900">$0.00</span></div>
+                                    @if ((float) $order->tax_amount > 0)
+                                        <p class="text-[11px] text-gray-400 pt-1">When sales tax was charged, a standard partial refund is divided proportionally between the purchase amount and sales tax at the same rate as the original order.</p>
+                                    @endif
+                                </div>
+
+                                <div id="rf_breakdown_cc_fee" class="hidden space-y-1">
+                                    <div class="flex justify-between"><span class="text-gray-600">Refundable amount:</span><span id="rf_bd_cc_refundable" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600" id="rf_bd_cc_fee_label">Card processing fee:</span><span id="rf_bd_cc_fee" class="font-medium text-red-700">$0.00</span></div>
+                                    <div class="flex justify-between border-t border-gray-200 pt-1"><span class="text-gray-600">Customer refund:</span><span id="rf_bd_cc_total" class="font-semibold text-gray-900">$0.00</span></div>
+                                </div>
+
+                                <div id="rf_breakdown_tax_only" class="hidden space-y-1">
+                                    <div class="flex justify-between"><span class="text-gray-600">Sales tax originally charged:</span><span id="rf_bd_tax_original" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600">Sales tax previously refunded:</span><span id="rf_bd_tax_prev" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between border-t border-gray-200 pt-1"><span class="text-gray-600">Sales tax refund now:</span><span id="rf_bd_tax_now" class="font-semibold text-gray-900">$0.00</span></div>
+                                </div>
                             </div>
                         </div>
 
@@ -2804,6 +2930,10 @@
 
                     <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
                         <div class="space-y-2">
+                            <div id="rf_c_calc_type_row" class="flex justify-between hidden">
+                                <span class="text-gray-600">Refund Type:</span>
+                                <span id="rf_c_calc_type" class="font-medium text-gray-900">—</span>
+                            </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Refund Amount:</span>
                                 <span id="rf_c_amount" class="font-semibold text-red-800">$0.00</span>
@@ -5626,6 +5756,82 @@
             const show = (el) => el.classList.remove('hidden');
             const hide = (el) => el.classList.add('hidden');
 
+            // Special-refund context — server-verified numbers (the backend
+            // re-checks all of this independently before processing).
+            const calcTypeInput = document.getElementById('refund_calculation_type');
+            const orderSubtotal = parseFloat(refundModal.dataset.orderSubtotal || '0');
+            const orderTaxAmount = parseFloat(refundModal.dataset.orderTaxAmount || '0');
+
+            const ccFeeEligible = refundModal.dataset.ccFeeEligible === '1';
+            const ccFeePercentage = parseFloat(refundModal.dataset.ccFeePercentage || '0');
+            const ccFeeRefundAmount = parseFloat(refundModal.dataset.ccFeeRefund || '0');
+            const ccFeeRetainedAmount = parseFloat(refundModal.dataset.ccFeeRetained || '0');
+
+            const taxOnlyEligible = refundModal.dataset.taxOnlyEligible === '1';
+            const taxOriginal = parseFloat(refundModal.dataset.taxOriginal || '0');
+            const taxAlreadyRefunded = parseFloat(refundModal.dataset.taxAlreadyRefunded || '0');
+            const taxRemainingRefundable = parseFloat(refundModal.dataset.taxRemainingRefundable || '0');
+
+            const bdBox = document.getElementById('rf_breakdown_box');
+            const bdTitle = document.getElementById('rf_breakdown_title');
+            const bdStandard = document.getElementById('rf_breakdown_standard');
+            const bdCcFee = document.getElementById('rf_breakdown_cc_fee');
+            const bdTaxOnly = document.getElementById('rf_breakdown_tax_only');
+            const ccFeeBtn = document.getElementById('rf_cc_fee_btn');
+            const taxOnlyBtn = document.getElementById('rf_tax_only_btn');
+
+            function calcProportionalTax(refundAmount, subtotal, taxAmount) {
+                if (refundAmount <= 0 || subtotal <= 0 || taxAmount <= 0) return 0;
+                const rate = taxAmount / subtotal;
+                return Math.round((refundAmount - (refundAmount / (1 + rate))) * 100) / 100;
+            }
+
+            function setActiveShortcut(activeBtn) {
+                document.querySelectorAll('.refund-calc-btn, .refund-special-btn').forEach(b => {
+                    b.classList.remove('ring-2', 'ring-blue-500');
+                });
+                if (activeBtn) activeBtn.classList.add('ring-2', 'ring-blue-500');
+            }
+
+            function updateBreakdown() {
+                hide(bdStandard);
+                hide(bdCcFee);
+                hide(bdTaxOnly);
+                hide(bdBox);
+
+                const amt = parseFloat(amountInput.value) || 0;
+                if (amt <= 0) return;
+
+                const calcType = calcTypeInput.value;
+
+                if (calcType === 'card_processing_fee_retained' && ccFeeEligible) {
+                    show(bdBox);
+                    show(bdCcFee);
+                    bdTitle.textContent = 'Cancellation Refund';
+                    document.getElementById('rf_bd_cc_refundable').textContent = fmt(ccFeeRefundAmount + ccFeeRetainedAmount);
+                    document.getElementById('rf_bd_cc_fee_label').textContent =
+                        'Card processing fee (' + ccFeePercentage.toFixed(2) + '%):';
+                    document.getElementById('rf_bd_cc_fee').textContent = fmt(ccFeeRetainedAmount);
+                    document.getElementById('rf_bd_cc_total').textContent = fmt(ccFeeRefundAmount);
+                } else if (calcType === 'sales_tax_only' && taxOnlyEligible) {
+                    show(bdBox);
+                    show(bdTaxOnly);
+                    bdTitle.textContent = 'Sales Tax Refund';
+                    document.getElementById('rf_bd_tax_original').textContent = fmt(taxOriginal);
+                    document.getElementById('rf_bd_tax_prev').textContent = fmt(taxAlreadyRefunded);
+                    document.getElementById('rf_bd_tax_now').textContent = fmt(taxRemainingRefundable);
+                } else if (orderTaxAmount > 0 && orderSubtotal > 0) {
+                    show(bdBox);
+                    show(bdStandard);
+                    bdTitle.textContent = 'Partial Refund';
+                    const taxPortion = calcProportionalTax(amt, orderSubtotal, orderTaxAmount);
+                    const purchasePortion = Math.round((amt - taxPortion) * 100) / 100;
+                    document.getElementById('rf_bd_purchase').textContent = fmt(purchasePortion);
+                    document.getElementById('rf_bd_tax').textContent = fmt(taxPortion);
+                    document.getElementById('rf_bd_total').textContent = fmt(amt);
+                }
+            }
+
             function openRefundModal() {
                 refundModal.classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
@@ -5635,6 +5841,13 @@
                         ? crypto.randomUUID()
                         : 'idem-' + Date.now() + '-' + Math.random().toString(36).slice(2);
                 }
+                // Reset special-refund state fresh each open — otherwise a
+                // prior selection could linger if the modal was closed
+                // without submitting.
+                calcTypeInput.value = 'standard';
+                setActiveShortcut(null);
+                refundPaymentType.disabled = false;
+                updateBreakdown();
             }
 
             function closeRefundModal() {
@@ -5710,10 +5923,22 @@
             }
 
             // Event handlers
-            amountInput.addEventListener('input', function() {
+            amountInput.addEventListener('input', function(e) {
+                // A genuine keystroke (isTrusted) means the employee is
+                // typing a custom amount — that's no longer "the system's"
+                // fee/tax-only calculation, so fall back to Standard. The
+                // shortcut buttons below also dispatch an 'input' event
+                // programmatically (isTrusted === false) to trigger this
+                // same listener without resetting the type they just set.
+                if (e.isTrusted) {
+                    calcTypeInput.value = 'standard';
+                    setActiveShortcut(null);
+                    refundPaymentType.disabled = false;
+                }
                 amountInput.value = amountInput.value;
                 if (!errAmount.classList.contains('hidden')) hide(errAmount);
                 updateTypeIndicator();
+                updateBreakdown();
             });
 
             refundReasonInput.addEventListener('input', function() {
@@ -5821,6 +6046,7 @@
                                 .value || null,
                             payment_note: document.getElementById('refund_payment_note')
                                 .value.trim() || null,
+                            refund_calculation_type: calcTypeInput.value,
                             idempotency_token: document.getElementById('refundIdempotencyToken').value || null
                         })
                     })
@@ -5842,11 +6068,38 @@
             const refundCalcBtn = document.getElementsByClassName('refund-calc-btn');
             Array.from(refundCalcBtn).forEach(btn => {
                 btn.addEventListener('click', function() {
+                    calcTypeInput.value = 'standard';
+                    setActiveShortcut(btn);
+                    refundPaymentType.disabled = false;
                     amountInput.value = (originalAmount * (btn.dataset.percentage / 100)).toFixed(
                         2);
                     amountInput.dispatchEvent(new Event('input'));
                 });
             });
+
+            if (ccFeeBtn && ccFeeEligible) {
+                ccFeeBtn.addEventListener('click', function() {
+                    calcTypeInput.value = 'card_processing_fee_retained';
+                    setActiveShortcut(ccFeeBtn);
+                    // The fee is only meaningful if the refund actually goes
+                    // back to the card — lock the dropdown so it can't drift.
+                    refundPaymentType.value = 'CreditCard';
+                    refundPaymentType.dispatchEvent(new Event('change'));
+                    refundPaymentType.disabled = true;
+                    amountInput.value = ccFeeRefundAmount.toFixed(2);
+                    amountInput.dispatchEvent(new Event('input'));
+                });
+            }
+
+            if (taxOnlyBtn && taxOnlyEligible) {
+                taxOnlyBtn.addEventListener('click', function() {
+                    calcTypeInput.value = 'sales_tax_only';
+                    setActiveShortcut(taxOnlyBtn);
+                    refundPaymentType.disabled = false;
+                    amountInput.value = taxRemainingRefundable.toFixed(2);
+                    amountInput.dispatchEvent(new Event('input'));
+                });
+            }
 
             initiateBtn.addEventListener('click', function() {
                 // Handle the initiate refund button click
@@ -5884,6 +6137,19 @@
                     hide(confirmRemainingDiv);
                 } else {
                     show(confirmRemainingDiv);
+                }
+
+                const calcTypeLabels = {
+                    'card_processing_fee_retained': 'Full Amount Less Card Processing Fee',
+                    'sales_tax_only': 'Sales Tax Only',
+                };
+                const calcTypeRow = document.getElementById('rf_c_calc_type_row');
+                const calcTypeLabel = calcTypeLabels[calcTypeInput.value];
+                if (calcTypeLabel) {
+                    document.getElementById('rf_c_calc_type').textContent = calcTypeLabel;
+                    show(calcTypeRow);
+                } else {
+                    hide(calcTypeRow);
                 }
             }
 

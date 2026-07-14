@@ -7,6 +7,7 @@ use App\Events\Admin\Orders\RefundInitiateEvent;
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Services\PaymentDescriptionPresenter;
 
 class RefundInitiateListener
 {
@@ -19,16 +20,16 @@ class RefundInitiateListener
         $user = $event->user;
         $payment = $event->payment;
 
-        // Determine payment action and description from the refund row's
-        // own status — not payment_method === Card, which mis-classified
-        // a full refund on any other method as "Partial refund processed."
-        if ($payment->status === OrderPaymentStatus::Refund) {
-            $action = OrderHistoryAction::OrderRefunded;
-            $description = "Full refund processed";
-        } else {
-            $action = OrderHistoryAction::OrderPartialRefund;
-            $description = "Partial refund processed";
-        }
+        // Action from the refund row's own status — not payment_method ===
+        // Card, which mis-classified a full refund on any other method as
+        // "Partial refund processed." Description always comes from the
+        // centralized presenter so Standard/Card-Fee/Sales-Tax-Only refunds
+        // each get their correct, auditable wording instead of one hardcoded
+        // string covering every case.
+        $action = $payment->status === OrderPaymentStatus::Refund
+            ? OrderHistoryAction::OrderRefunded
+            : OrderHistoryAction::OrderPartialRefund;
+        $description = PaymentDescriptionPresenter::refundHistoryDescription($payment);
 
         $order->history()->create([
             'customer_id' => $order->customer_id,

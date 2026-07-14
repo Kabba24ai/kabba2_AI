@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 // enums
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Enums\Orders\RefundCalculationType;
 
 class OrderPayment extends Model
 {
@@ -39,6 +40,9 @@ class OrderPayment extends Model
         'refund_amount',
         'tax_refunded',
         'refund_note',
+        'refund_calculation_type',
+        'cc_fee_retained',
+        'idempotency_token',
         'payment_response',
         'voided_at',
         'processed_by_id',
@@ -60,6 +64,8 @@ class OrderPayment extends Model
         'refunded_at'      => 'datetime',
         'voided_at'        => 'datetime',
         'tax_refunded'     => 'decimal:2',
+        'cc_fee_retained'  => 'decimal:2',
+        'refund_calculation_type' => RefundCalculationType::class,
     ];
 
     protected static function boot()

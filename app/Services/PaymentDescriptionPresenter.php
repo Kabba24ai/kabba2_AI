@@ -6,6 +6,7 @@ use App\Enums\Customers\PaymentMethod as CustomerPaymentMethod;
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Enums\Orders\RefundCalculationType;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderHistory;
 use App\Models\Orders\OrderPayment;
@@ -167,6 +168,56 @@ class PaymentDescriptionPresenter
     }
 
     /**
+     * The sentence written into order history for a refund — routes on
+     * the refund's own refund_calculation_type rather than re-deriving
+     * "how" from the amount, matching the requirement that calculation
+     * type stays explicit and auditable rather than inferred later.
+     */
+    public static function refundHistoryDescription(OrderPayment $payment): string
+    {
+        $calcType = $payment->refund_calculation_type;
+        $refundAmount = (float) $payment->refund_amount;
+
+        if ($calcType === RefundCalculationType::CardProcessingFeeRetained) {
+            return sprintf(
+                'Refund processed — $%s | Credit card processing fee retained — $%s',
+                number_format($refundAmount, 2),
+                number_format((float) $payment->cc_fee_retained, 2)
+            );
+        }
+
+        if ($calcType === RefundCalculationType::SalesTaxOnly) {
+            [$originalTax, $remainingAfter] = self::salesTaxRefundContext($payment);
+
+            return sprintf(
+                'Sales Tax Refund Processed | Original Sales Tax: $%s | Sales Tax Refunded: $%s | Remaining Refundable Sales Tax: $%s',
+                number_format($originalTax, 2),
+                number_format($refundAmount, 2),
+                number_format($remainingAfter, 2)
+            );
+        }
+
+        return $payment->status === OrderPaymentStatus::Refund ? 'Full refund processed' : 'Partial refund processed';
+    }
+
+    /**
+     * [original sales tax charged, remaining refundable tax after this
+     * row] — shared by refundHistoryDescription() and timelineEntry() so
+     * both surfaces agree on the same figures.
+     */
+    private static function salesTaxRefundContext(OrderPayment $payment): array
+    {
+        $order = $payment->order;
+        $originalTax = (float) ($order?->tax_amount ?? 0);
+
+        $refundedSoFar = (float) ($order?->payments()
+            ->whereIn('status', [OrderPaymentStatus::PartialRefund, OrderPaymentStatus::Refund])
+            ->sum('tax_refunded') ?? $payment->tax_refunded);
+
+        return [$originalTax, max(0.0, round($originalTax - $refundedSoFar, 2))];
+    }
+
+    /**
      * Structured Payment Timeline row: a plain-language headline plus
      * method/amount as distinct fields (never a hand-formatted sentence),
      * for one OrderHistory entry. Replaces the single free-text
@@ -190,6 +241,7 @@ class PaymentDescriptionPresenter
             'sign' => null, // 'pos' | 'neg' | null — null means "don't show an amount"
             'dot' => 'neutral',
             'note' => null,
+            'detail' => null, // secondary line: fee retained / remaining refundable tax
         ];
 
         if ($action !== null) {
@@ -203,15 +255,19 @@ class PaymentDescriptionPresenter
                 default => 'neutral',
             };
 
-            $entry['headline'] = match ($action) {
-                OrderHistoryAction::OrderPaid => 'Payment received',
-                OrderHistoryAction::PartialPaymentReceived => 'Partial payment received',
-                OrderHistoryAction::PaymentInitiated => 'Payment initiated',
-                OrderHistoryAction::PaymentFailed => 'Payment failed',
-                OrderHistoryAction::StoreCreditApplied => 'Store Credit applied',
-                OrderHistoryAction::OrderRefunded, OrderHistoryAction::OrderPartialRefund => 'Refund processed',
-                OrderHistoryAction::TransactionVoided => 'Payment voided',
-                OrderHistoryAction::AddedToAccount => 'Added to account',
+            $isSalesTaxOnlyRefund = in_array($action, [OrderHistoryAction::OrderRefunded, OrderHistoryAction::OrderPartialRefund], true)
+                && $history->orderPayment?->refund_calculation_type === RefundCalculationType::SalesTaxOnly;
+
+            $entry['headline'] = match (true) {
+                $action === OrderHistoryAction::OrderPaid => 'Payment received',
+                $action === OrderHistoryAction::PartialPaymentReceived => 'Partial payment received',
+                $action === OrderHistoryAction::PaymentInitiated => 'Payment initiated',
+                $action === OrderHistoryAction::PaymentFailed => 'Payment failed',
+                $action === OrderHistoryAction::StoreCreditApplied => 'Store Credit applied',
+                $isSalesTaxOnlyRefund => 'Sales tax refund processed',
+                $action === OrderHistoryAction::OrderRefunded, $action === OrderHistoryAction::OrderPartialRefund => 'Refund processed',
+                $action === OrderHistoryAction::TransactionVoided => 'Payment voided',
+                $action === OrderHistoryAction::AddedToAccount => 'Added to account',
                 default => $history->description,
             };
         }
@@ -250,6 +306,15 @@ class PaymentDescriptionPresenter
             }
 
             $entry['note'] = $payment->payment_note ?: null;
+
+            if (in_array($action, [OrderHistoryAction::OrderRefunded, OrderHistoryAction::OrderPartialRefund], true)) {
+                if ($payment->refund_calculation_type === RefundCalculationType::CardProcessingFeeRetained) {
+                    $entry['detail'] = 'Credit card processing fee retained — $' . number_format((float) $payment->cc_fee_retained, 2);
+                } elseif ($payment->refund_calculation_type === RefundCalculationType::SalesTaxOnly) {
+                    [, $remainingAfter] = self::salesTaxRefundContext($payment);
+                    $entry['detail'] = 'Remaining refundable sales tax — $' . number_format($remainingAfter, 2);
+                }
+            }
         }
 
         return $entry;

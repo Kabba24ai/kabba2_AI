@@ -22,6 +22,14 @@ class RefundRequest extends ApiBaseFormRequest
 
             'payment_type' => ['required', 'string', 'in:' . implode(',', array_column(\App\Enums\Customers\PaymentMethod::canonical(), 'value'))],
 
+            // HOW the refund amount was calculated — separate from 'reason'
+            // (why). Defaults to Standard (today's proportional behavior)
+            // when omitted, so existing callers/tests are unaffected.
+            'refund_calculation_type' => [
+                'nullable', 'string',
+                'in:' . implode(',', array_column(\App\Enums\Orders\RefundCalculationType::cases(), 'value')),
+            ],
+
             'cheque_number' => ['required_if:payment_type,Cheque', 'nullable', 'string', 'max:255'],
 
             // "Other" carries no inherent meaning on its own — require a

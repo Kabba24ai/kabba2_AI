@@ -6,6 +6,8 @@ use App\Enums\Customers\PaymentMethod as CustomerPaymentMethod;
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Enums\Orders\RefundCalculationType;
+use App\Models\Orders\Order;
 use App\Models\Orders\OrderHistory;
 use App\Models\Orders\OrderPayment;
 use App\Services\PaymentDescriptionPresenter;
@@ -400,5 +402,124 @@ class PaymentDescriptionPresenterTest extends TestCase
         $this->assertSame('Payment initiated', $entry['headline']);
         $this->assertSame('Cash', $entry['method']);
         $this->assertNull($entry['amount']);
+    }
+
+    // ── Refund calculation types — Phase 2 refund workflow ──────────────
+
+    /** An Order double whose payments()->whereIn(...)->sum('tax_refunded') resolves to a fixed value, with no real DB query. */
+    private function makeOrderWithTaxHistory(float $taxAmount, float $alreadyRefundedTax): Order
+    {
+        $order = Mockery::mock(Order::class)->makePartial();
+        $order->tax_amount = $taxAmount;
+
+        $query = Mockery::mock();
+        $query->shouldReceive('whereIn')->andReturnSelf();
+        $query->shouldReceive('sum')->with('tax_refunded')->andReturn($alreadyRefundedTax);
+        $order->shouldReceive('payments')->andReturn($query);
+
+        return $order;
+    }
+
+    public function test_refund_history_description_standard_full_and_partial(): void
+    {
+        $full = Mockery::mock(OrderPayment::class)->makePartial();
+        $full->refund_calculation_type = null;
+        $full->status = OrderPaymentStatus::Refund;
+        $this->assertSame('Full refund processed', PaymentDescriptionPresenter::refundHistoryDescription($full));
+
+        $partial = Mockery::mock(OrderPayment::class)->makePartial();
+        $partial->refund_calculation_type = null;
+        $partial->status = OrderPaymentStatus::PartialRefund;
+        $this->assertSame('Partial refund processed', PaymentDescriptionPresenter::refundHistoryDescription($partial));
+    }
+
+    public function test_refund_history_description_for_card_processing_fee_retained(): void
+    {
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->refund_calculation_type = RefundCalculationType::CardProcessingFeeRetained;
+        $payment->refund_amount = 970.0;
+        $payment->cc_fee_retained = 30.0;
+
+        $this->assertSame(
+            'Refund processed — $970.00 | Credit card processing fee retained — $30.00',
+            PaymentDescriptionPresenter::refundHistoryDescription($payment)
+        );
+    }
+
+    public function test_refund_history_description_for_sales_tax_only(): void
+    {
+        // This refund row's own tax_refunded (97.50) is already included in
+        // the 97.50 "already refunded" sum, since the row is persisted
+        // before the description is built — so remaining is correctly 0.
+        $order = $this->makeOrderWithTaxHistory(taxAmount: 97.50, alreadyRefundedTax: 97.50);
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->refund_calculation_type = RefundCalculationType::SalesTaxOnly;
+        $payment->refund_amount = 97.50;
+        $payment->setRelation('order', $order);
+
+        $this->assertSame(
+            'Sales Tax Refund Processed | Original Sales Tax: $97.50 | Sales Tax Refunded: $97.50 | Remaining Refundable Sales Tax: $0.00',
+            PaymentDescriptionPresenter::refundHistoryDescription($payment)
+        );
+    }
+
+    public function test_timeline_entry_shows_fee_retained_detail_for_card_processing_fee_refund(): void
+    {
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->payment_method = OrderPaymentMethod::Card;
+        $payment->refund_amount = 970.0;
+        $payment->cc_fee_retained = 30.0;
+        $payment->refund_calculation_type = RefundCalculationType::CardProcessingFeeRetained;
+        $payment->payment_note = null;
+
+        $history = $this->makeHistory(OrderHistoryAction::OrderRefunded->value, $payment);
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Refund processed', $entry['headline']);
+        $this->assertNull($entry['method']);
+        $this->assertSame(970.0, $entry['amount']);
+        $this->assertSame('neg', $entry['sign']);
+        $this->assertSame('Credit card processing fee retained — $30.00', $entry['detail']);
+    }
+
+    public function test_timeline_entry_headline_and_detail_for_sales_tax_only_refund(): void
+    {
+        $order = $this->makeOrderWithTaxHistory(taxAmount: 100.0, alreadyRefundedTax: 60.0);
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->payment_method = OrderPaymentMethod::Card;
+        $payment->refund_amount = 60.0;
+        $payment->refund_calculation_type = RefundCalculationType::SalesTaxOnly;
+        $payment->payment_note = null;
+        $payment->setRelation('order', $order);
+
+        $history = $this->makeHistory(OrderHistoryAction::OrderRefunded->value, $payment);
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Sales tax refund processed', $entry['headline']);
+        $this->assertSame(60.0, $entry['amount']);
+        $this->assertSame('neg', $entry['sign']);
+        $this->assertSame('Remaining refundable sales tax — $40.00', $entry['detail']);
+    }
+
+    public function test_timeline_entry_standard_refund_has_no_detail_line(): void
+    {
+        $payment = Mockery::mock(OrderPayment::class)->makePartial();
+        $payment->payment_method = OrderPaymentMethod::Cash;
+        $payment->refund_amount = 50.0;
+        $payment->refund_calculation_type = RefundCalculationType::Standard;
+        $payment->payment_note = null;
+
+        $history = $this->makeHistory(OrderHistoryAction::OrderPartialRefund->value, $payment);
+        $entry = PaymentDescriptionPresenter::timelineEntry($history);
+
+        $this->assertSame('Refund processed', $entry['headline']);
+        $this->assertNull($entry['detail']);
+    }
+
+    public function test_refund_calculation_type_labels(): void
+    {
+        $this->assertSame('Standard', RefundCalculationType::Standard->label());
+        $this->assertSame('Card Processing Fee Retained', RefundCalculationType::CardProcessingFeeRetained->label());
+        $this->assertSame('Sales Tax Only', RefundCalculationType::SalesTaxOnly->label());
     }
 }

@@ -6,15 +6,19 @@ use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
 use App\Enums\Customers\PaymentMethod;
 use App\Events\Admin\Orders\RefundInitiateEvent;
+use App\Helpers\ConfigurationHelper;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 
 // Requests
 use App\Http\Requests\Admin\OrderManagement\Orders\RefundRequest;
 
 // Models
 use App\Enums\Orders\ProcessedReason;
+use App\Enums\Orders\RefundCalculationType;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
+use App\Models\Orders\OrderPayment;
 use App\Services\AuthorizeNetService;
 
 class RefundPaymentController extends Controller
@@ -36,6 +40,98 @@ class RefundPaymentController extends Controller
             default => OrderPaymentMethod::Other->value,
         };
     }
+
+    /**
+     * Resolves the authoritative refund amount/tax/fee for the requested
+     * calculation type. For the two special types the server computes the
+     * figures itself and never trusts the client-submitted `amount` — a
+     * stale or tampered value can never reach the gateway or the ledger.
+     *
+     * @return array{0: ?float, 1: ?float, 2: ?float, 3: ?string} [amount, taxRefunded, feeRetained, errorMessage]
+     */
+    private function resolveRefundCalculation(
+        Order $order,
+        RefundCalculationType $calcType,
+        float $requestedAmount,
+        float $remaining,
+        string $paymentType
+    ): array {
+        if ($calcType === RefundCalculationType::CardProcessingFeeRetained) {
+            $paidPayments = $order->payments()->where('status', OrderPaymentStatus::Paid)->get();
+
+            if ($paidPayments->count() !== 1) {
+                return [null, null, null, 'Full Amount Less Card Processing Fee is only available for orders with exactly one payment.'];
+            }
+
+            $payment = $paidPayments->first();
+
+            if ($payment->payment_method !== OrderPaymentMethod::Card || !$payment->transaction_id) {
+                return [null, null, null, 'Full Amount Less Card Processing Fee is only available when the original payment was made by Credit / Debit Card.'];
+            }
+
+            if ($paymentType !== PaymentMethod::CreditCard->value) {
+                return [null, null, null, 'Full Amount Less Card Processing Fee must be refunded to Credit / Debit Card.'];
+            }
+
+            if ($remaining <= 0) {
+                return [null, null, null, 'No refundable balance remains.'];
+            }
+
+            $feePct = (float) (ConfigurationHelper::getSettings('Product Settings', 'credit_card_processing_fee') ?? 0);
+
+            if ($feePct <= 0) {
+                return [null, null, null, 'No Credit Card Processing Fee is configured.'];
+            }
+
+            $eligibleAmount = round(min((float) $payment->amount, $remaining), 2);
+            $feeRetained = round($eligibleAmount * $feePct / 100, 2);
+
+            if ($feeRetained >= $eligibleAmount) {
+                return [null, null, null, 'The Credit Card Processing Fee equals or exceeds the refundable amount.'];
+            }
+
+            $refundAmount = round($eligibleAmount - $feeRetained, 2);
+
+            return [$refundAmount, $this->proportionalTaxRefund($order, $refundAmount), $feeRetained, null];
+        }
+
+        if ($calcType === RefundCalculationType::SalesTaxOnly) {
+            $alreadyRefundedTax = (float) $order->payments()
+                ->whereIn('status', [OrderPaymentStatus::PartialRefund, OrderPaymentStatus::Refund])
+                ->sum('tax_refunded');
+
+            $remainingRefundableTax = max(0.0, round((float) $order->tax_amount - $alreadyRefundedTax, 2));
+            $remainingRefundableTax = round(min($remainingRefundableTax, $remaining), 2);
+
+            if ($remainingRefundableTax <= 0) {
+                return [null, null, null, 'No refundable sales tax remains for this order.'];
+            }
+
+            // The whole refund IS the tax — no purchase/rental revenue impact.
+            return [$remainingRefundableTax, $remainingRefundableTax, null, null];
+        }
+
+        // Standard — unchanged behavior: the submitted amount, proportional tax split.
+        return [$requestedAmount, $this->proportionalTaxRefund($order, $requestedAmount), null, null];
+    }
+
+    /**
+     * The pre-existing proportional tax-extraction formula (unchanged),
+     * factored out so Standard and Card-Processing-Fee-Retained refunds
+     * (which both owe the correct tax split on their final amount) share
+     * one implementation instead of two copies.
+     */
+    private function proportionalTaxRefund(Order $order, float $refundAmount): float
+    {
+        $originalTaxRate = ((float) $order->subtotal > 0 && (float) $order->tax_amount > 0)
+            ? (float) $order->tax_amount / (float) $order->subtotal
+            : 0.0;
+
+        return $originalTaxRate > 0
+            ? round($refundAmount - ($refundAmount / (1 + $originalTaxRate)), 2)
+            : 0.0;
+    }
+
     /**
      * Handle refunding of orders.
      */
@@ -53,9 +149,47 @@ class RefundPaymentController extends Controller
             . ($reason === ProcessedReason::Other && filled($validated['reason_other'] ?? null)
                 ? ' — ' . $validated['reason_other'] : '');
 
+        // Refund idempotency — applies to every payment method and every
+        // calculation type (Standard, Card Processing Fee Retained, Sales
+        // Tax Only alike). One UUID per modal-open, reused across retries
+        // of that same submission (see edit.blade.php's openRefundModal()).
+        // The lock closes the concurrent-duplicate race BEFORE any gateway
+        // call or financial write is attempted; the DB-unique column on
+        // order_payments.idempotency_token is the storage-level backstop
+        // if two requests somehow still interleave.
+        $idempotencyToken = $validated['idempotency_token'] ?? null;
+        $lock = $idempotencyToken
+            ? Cache::lock("refund-idempotency:{$uniqueId}:{$idempotencyToken}", 30)
+            : null;
+
+        if ($lock && !$lock->get()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This refund is already being processed. Please wait a moment and refresh the order.',
+            ], 409);
+        }
 
         try {
             $order = Order::has('lastPaidPayment')->with('customer')->where('unique_id', $uniqueId)->firstOrFail();
+
+            if ($idempotencyToken) {
+                $alreadyProcessed = OrderPayment::where('order_id', $order->id)
+                    ->where('idempotency_token', $idempotencyToken)
+                    ->exists();
+
+                if ($alreadyProcessed) {
+                    // Same submission, already completed — return the same
+                    // outcome rather than touching the gateway or ledger
+                    // again. A prior FAILED attempt never reaches this
+                    // point (the refund row is only ever created on full
+                    // success, at the very end of this method), so a retry
+                    // after a genuine failure proceeds normally below.
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Refund processed successfully!',
+                    ]);
+                }
+            }
 
             $lastPayment = $order->lastPaidPayment;
             $lastPaymentId = $lastPayment->transaction_id;
@@ -64,58 +198,26 @@ class RefundPaymentController extends Controller
             $isCardRefund = $refundPaymentType === PaymentMethod::CreditCard->value;
             $isOriginalCard = $lastPayment->payment_method === OrderPaymentMethod::Card;
 
-            if ($isCardRefund && $isOriginalCard) {
-                // Here you would integrate with your payment gateway to process the refund.
-                $authorizeNetService = app(AuthorizeNetService::class);
+            $calcType = RefundCalculationType::tryFrom($validated['refund_calculation_type'] ?? '')
+                ?? RefundCalculationType::Standard;
 
-                if($lastPaymentId){
-                    $transactionDetails = $authorizeNetService->getTransactionDetails($lastPaymentId);
+            // Resolved BEFORE the gateway call — for the two special types
+            // this is the server-computed, authoritative amount; the raw
+            // client-submitted `amount` is never sent to the gateway or
+            // stored for those types.
+            [$currentRefundAmount, $taxRefunded, $feeRetained, $calcError] = $this->resolveRefundCalculation(
+                $order,
+                $calcType,
+                (float) $validated['amount'],
+                (float) $order->remaining_amount,
+                $refundPaymentType,
+            );
 
-                    if (!in_array($transactionDetails->status, ['settledSuccessfully','refundSettledSuccessfully'])) {
-                        return response()->json(
-                            [
-                                'success' => false,
-                                'message' => 'Last Refund transaction not settled, retry after the transaction settles.',
-                            ],
-                            400,
-                        );
-                    }
-
-                }
-
-                $response = $authorizeNetService->refundOrder($lastPaymentId, $validated['amount'], [
-                    'order_number' => $order->order_number,
-                    'refund_note' => $reasonText,
-                ]);
-
-                if (($response['status'] ?? null) !== 'success') {
-                    logger()->error('Refund failed for Order ID: ' . $order->unique_id . ' - ' . ($response['message'] ?? 'Unknown error'));
-                    return response()->json(
-                        [
-                            'success' => false,
-                            'message' => 'Refund failed: ' . ($response['message'] ?? 'Unknown error'),
-                        ],
-                        500,
-                    );
-                }
-
-                $transactionId   = $response['transaction_id']   ?? null;
-                $gatewayRefundId = $response['gateway_refund_id'] ?? null;
-                $cardNumber      = $response['card_number']       ?? null;
-                $authCode        = $response['auth_code']         ?? null;
-            } else {
-                // For non-card refunds or if original was not card, just log the refund without processing through gateway
-                logger()->info('Refund logged for Order ID: ' . $order->unique_id . ' - Refund Payment Method: ' . $refundPaymentType . ' - Amount: ' . $validated['amount'] . ' - Reason: ' . $reasonText);
-
-                $transactionId   = null;
-                $gatewayRefundId = null;
-                $cardNumber      = null;
-                $authCode        = null;
+            if ($calcError !== null) {
+                return response()->json(['success' => false, 'message' => $calcError], 422);
             }
 
-            // Use accessor instead of manual sum
             $remaining = $order->remaining_amount;
-            $currentRefundAmount = (float) $validated['amount'];
 
             if ($currentRefundAmount <= 0) {
                 return response()->json(
@@ -138,16 +240,54 @@ class RefundPaymentController extends Controller
                 );
             }
 
-            // Tax refunded: extract tax from the tax-inclusive refund_amount.
-            // refund_amount is grand-total-basis (= grand_total − already_refunded), so we
-            // use the "extract" formula: amount − amount/(1+rate), which matches
-            // CustomHelper::calculateRefundSalesTax() used as the historic-record fallback.
-            $originalTaxRate = ((float) $order->subtotal > 0 && (float) $order->tax_amount > 0)
-                ? (float) $order->tax_amount / (float) $order->subtotal
-                : 0.0;
-            $taxRefunded = ($originalTaxRate > 0)
-                ? round($currentRefundAmount - ($currentRefundAmount / (1 + $originalTaxRate)), 2)
-                : 0.0;
+            if ($isCardRefund && $isOriginalCard) {
+                // Here you would integrate with your payment gateway to process the refund.
+                $authorizeNetService = app(AuthorizeNetService::class);
+
+                if($lastPaymentId){
+                    $transactionDetails = $authorizeNetService->getTransactionDetails($lastPaymentId);
+
+                    if (!in_array($transactionDetails->status, ['settledSuccessfully','refundSettledSuccessfully'])) {
+                        return response()->json(
+                            [
+                                'success' => false,
+                                'message' => 'Last Refund transaction not settled, retry after the transaction settles.',
+                            ],
+                            400,
+                        );
+                    }
+
+                }
+
+                $response = $authorizeNetService->refundOrder($lastPaymentId, $currentRefundAmount, [
+                    'order_number' => $order->order_number,
+                    'refund_note' => $reasonText,
+                ]);
+
+                if (($response['status'] ?? null) !== 'success') {
+                    logger()->error('Refund failed for Order ID: ' . $order->unique_id . ' - ' . ($response['message'] ?? 'Unknown error'));
+                    return response()->json(
+                        [
+                            'success' => false,
+                            'message' => 'Refund failed: ' . ($response['message'] ?? 'Unknown error'),
+                        ],
+                        500,
+                    );
+                }
+
+                $transactionId   = $response['transaction_id']   ?? null;
+                $gatewayRefundId = $response['gateway_refund_id'] ?? null;
+                $cardNumber      = $response['card_number']       ?? null;
+                $authCode        = $response['auth_code']         ?? null;
+            } else {
+                // For non-card refunds or if original was not card, just log the refund without processing through gateway
+                logger()->info('Refund logged for Order ID: ' . $order->unique_id . ' - Refund Payment Method: ' . $refundPaymentType . ' - Amount: ' . $currentRefundAmount . ' - Reason: ' . $reasonText);
+
+                $transactionId   = null;
+                $gatewayRefundId = null;
+                $cardNumber      = null;
+                $authCode        = null;
+            }
 
             // Refunding to Store Credit must actually grant the credit —
             // never just a label — the same "Cash means cash" principle
@@ -157,8 +297,8 @@ class RefundPaymentController extends Controller
                 // Namespaced so a duplicate submit of *this* refund is
                 // recognized without colliding with an unrelated grant/
                 // redemption that happened to reuse the same raw token.
-                $idempotencyKey = !empty($validated['idempotency_token'])
-                    ? "refund:{$order->id}:{$validated['idempotency_token']}"
+                $idempotencyKey = $idempotencyToken
+                    ? "refund:{$order->id}:{$idempotencyToken}"
                     : null;
 
                 \App\Services\CustomerCreditService::createFinancialCredit(
@@ -186,6 +326,9 @@ class RefundPaymentController extends Controller
                 'status'                  => $refundStatus->value,
                 'refund_amount'           => $currentRefundAmount,
                 'tax_refunded'            => $taxRefunded,
+                'refund_calculation_type' => $calcType->value,
+                'cc_fee_retained'         => $feeRetained,
+                'idempotency_token'       => $idempotencyToken,
                 'refund_note'             => $reasonText,
                 'payment_note'            => $validated['payment_note'] ?? null,
                 'cheque_number'           => $validated['cheque_number'] ?? null,
@@ -205,6 +348,27 @@ class RefundPaymentController extends Controller
                 'success' => true,
                 'message' => 'Refund processed successfully!',
             ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Backstop for the narrow race the cache lock doesn't cover
+            // (e.g. lock driver unavailable): the DB-unique
+            // idempotency_token column rejected a second insert for a
+            // token that just completed on another request. Report the
+            // same success outcome rather than a scary 500.
+            if ($idempotencyToken && str_contains(strtolower($e->getMessage()), 'idempotency_token')) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Refund processed successfully!',
+                ]);
+            }
+
+            logger()->error('Refund error for Order ID: ' . $uniqueId . ' - ' . $e->getMessage());
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'An error occurred while processing the refund. Please try again.',
+                ],
+                500,
+            );
         } catch (\Exception $e) {
 
             logger()->error('Refund error for Order ID: ' . $uniqueId . ' - ' . $e->getMessage());
@@ -215,6 +379,10 @@ class RefundPaymentController extends Controller
                 ],
                 500,
             );
+        } finally {
+            if ($lock) {
+                $lock->release();
+            }
         }
     }
 }

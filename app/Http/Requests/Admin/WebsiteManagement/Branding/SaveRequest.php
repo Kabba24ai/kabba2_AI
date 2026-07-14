@@ -58,8 +58,6 @@ class SaveRequest extends FormRequest
             ],
 
 
-            'home_page_image' => 'nullable|image|dimensions:width=1900,height=430',
-
             'home_seo_title' => [
                 'nullable',
                 'string'
@@ -149,10 +147,6 @@ class SaveRequest extends FormRequest
             'site_name.required'                 => 'Business name is required.',
             'site_name.max'                      => 'Business name may not exceed 255 characters.',
             'site_tagline.max'                   => 'Tagline may not exceed 255 characters.',
-
-            // ── Home Page Image ────────────────────────────────────────────
-            'home_page_image.dimensions'         => 'Home page image must be exactly 1900 × 430 pixels.',
-            'home_page_image.image'              => 'Please upload a valid image file.',
         ];
     }
 }

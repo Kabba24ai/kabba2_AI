@@ -142,19 +142,4 @@ class ConfigurationHelper
     }
 
 
-    public static function getHomePageImage(): ?string
-    {
-        $imageId = self::getSettings('Website Management Branding', 'home_page_image');
-
-        if (empty($imageId)) {
-            return null;
-        }
-
-        $media = \App\Models\Global\Media::find($imageId);
-
-        return $media->url ?? null;
-    }
-
-
-
 }

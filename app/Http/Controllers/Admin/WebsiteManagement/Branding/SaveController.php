@@ -133,34 +133,6 @@ class SaveController extends Controller
 
         /**
          * -----------------------------
-         * Handle Home Page Image
-         * -----------------------------
-         */
-        if ($request->hasFile('home_page_image')) {
-
-            $setting = Setting::where('setting_name', 'home_page_image')
-                ->where('setting_type', 'Website Management Branding')
-                ->first();
-
-            if ($setting && !is_null($setting->media)) {
-                MediaHelper::removeFile($setting->media);
-            }
-
-            $mediaData = MediaHelper::uploadStorageFile(
-                'Public Asset',
-                $request->file('home_page_image'),
-                'branding',
-                $setting
-            );
-
-            if (!empty($mediaData['mediaObj'])) {
-                $validated['home_page_image'] = $mediaData['mediaObj']->id;
-            }
-        }
-
-
-        /**
-         * -----------------------------
          * Save Branding Settings
          * -----------------------------
          */

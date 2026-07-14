@@ -34,7 +34,6 @@
                 @php
                     $siteLogo    = \App\Helpers\ConfigurationHelper::getBrandingLogo();
                     $siteFavicon = \App\Helpers\ConfigurationHelper::getBrandingFavicon();
-                    $homeImage   = \App\Helpers\ConfigurationHelper::getHomePageImage();
                 @endphp
                 {{-- Profile Section --}}
                 <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
@@ -230,42 +229,16 @@
                         <h3 class="text-lg font-bold text-gray-900">Home Page Settings</h3>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {{-- Home Page Image (LEGACY — not shown on the current homepage) --}}
+                        {{-- The homepage hero is managed in Home Builder → Hero --}}
                         <div class="md:col-span-2">
-                            <div class="mb-3 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
-                                <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-                                <p class="text-sm text-amber-800">
-                                    <strong>Legacy setting — no longer displayed.</strong>
-                                    The live homepage hero is managed in
+                            <div class="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2">
+                                <x-heroicon-o-information-circle class="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                                <p class="text-sm text-blue-800">
+                                    The homepage hero image is managed in
                                     <a href="{{ route('admin.website-management.home-builder.index', ['tab' => 'hero']) }}"
-                                       class="font-semibold underline text-amber-900 hover:text-amber-700">Home Builder → Hero</a>.
-                                    Changes made here will <em>not</em> appear on the website.
+                                       class="font-semibold underline text-blue-900 hover:text-blue-700">Home Builder → Hero</a>.
                                 </p>
                             </div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Upload Home Page Image
-                                <span class="text-red-600 text-xs">(Recommended Size: 1900px × 430px)</span>
-                            </label>
-                            <div class="flex items-center space-x-4">
-                                @if (!empty($homeImage))
-                                    <img src="{{ $homeImage }}"
-                                        class="h-16 w-28 object-cover border rounded-md bg-gray-50">
-                                @endif
-                                {!! html()->file('home_page_image')->class([
-                                        'block w-full text-sm text-gray-500',
-                                        'file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0',
-                                        'file:text-sm file:font-semibold',
-                                        'file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100',
-                                        'border border-gray-300 rounded-md',
-                                    ])->attributes([
-                                        'accept' => 'image/*',
-                                    ]) !!}
-
-                            </div>
-                            {{--  Error Message --}}
-                            @error('home_page_image')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
                         </div>
                         {{-- Top Text --}}
                         <div>

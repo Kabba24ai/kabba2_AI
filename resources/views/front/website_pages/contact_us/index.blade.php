@@ -17,7 +17,7 @@
 
 @php
 $sectionPartialMap = [
-    'hero'         => 'front.website_pages.contact_us.partials.hero',
+    'hero'         => 'front.website_pages.contact_us.partials.page-header',
     'contact_strip'=> 'front.website_pages.contact_us.partials.contact-strip',
     'locations'    => 'front.website_pages.contact_us.partials.locations',
     'question_cta' => 'front.website_pages.contact_us.partials.question-cta',

@@ -26,6 +26,10 @@ class IndexController extends Controller
             ->filter(fn ($key) => $this->registry->has($key))
             ->mapWithKeys(fn ($key) => [$key => $this->registry->find($key)]);
 
+        // The hero image is homepage-only. The contact page's `hero` section is
+        // presented as a simple Page Header (title/subtitle/description) instead.
+        $components->put('hero', new \App\Services\Website\Components\PageHeaderComponent());
+
         return view('admin.website_management.contact_page_builder.index', array_merge($context, [
             'registry'    => $this->registry,
             'components'  => $components,

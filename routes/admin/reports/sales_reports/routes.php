@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\Reports\SalesReports\SalesByStores\IndexControlle
 use App\Http\Controllers\Admin\Reports\SalesReports\ProductPerformance\ProductSalesRanking\IndexController as ProductSalesRankingIndexController;
 use App\Http\Controllers\Admin\Reports\SalesReports\EmployeePerformance\IndexController as EmployeePerformanceIndexController;
 use App\Http\Controllers\Admin\Reports\SalesReports\ProductPerformance\IndexController as ProductPerformanceIndexController;
+use App\Http\Controllers\Admin\Reports\SalesReports\DeliveryPerformance\IndexController as DeliveryPerformanceIndexController;
 
 Route::prefix('sales-reports')
     ->name('sales-reports.')
@@ -36,6 +37,12 @@ Route::prefix('sales-reports')
             ->name('employee-performance.')
             ->group(function () {
                 Route::get('/', EmployeePerformanceIndexController::class)->name('index');
+            });
+
+        Route::prefix('delivery-performance')
+            ->name('delivery-performance.')
+            ->group(function () {
+                Route::get('/', DeliveryPerformanceIndexController::class)->name('index');
             });
 
         Route::prefix('product-performance')

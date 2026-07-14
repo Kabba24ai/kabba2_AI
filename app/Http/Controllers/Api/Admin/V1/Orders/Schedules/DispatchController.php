@@ -178,17 +178,17 @@ class DispatchController extends BaseController
         if ($isBothSelected || empty($scheduleTypes)) {
             $orderProducts = $query
                 ->orderByRaw("LEAST(COALESCE(delivery_priority, 9999), COALESCE(pickup_priority, 9999)) ASC")
-                ->orderByRaw("LEAST(COALESCE(delivery_date, '9999-12-31'), COALESCE(pickup_date, '9999-12-31')) ASC")
+                ->orderByRaw("LEAST(COALESCE(dispatch_delivery_date, delivery_date, '9999-12-31'), COALESCE(dispatch_return_date, pickup_date, '9999-12-31')) ASC")
                 ->paginate($perPage)->withQueryString();
         } elseif ($isReturnOnly) {
             $orderProducts = $query
                 ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
-                ->orderBy('pickup_date', 'asc')
+                ->orderByRaw('COALESCE(dispatch_return_date, pickup_date) ASC')
                 ->paginate($perPage)->withQueryString();
         } else {
             $orderProducts = $query
                 ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
-                ->orderBy('delivery_date', 'asc')
+                ->orderByRaw('COALESCE(dispatch_delivery_date, delivery_date) ASC')
                 ->paginate($perPage)->withQueryString();
         }
 

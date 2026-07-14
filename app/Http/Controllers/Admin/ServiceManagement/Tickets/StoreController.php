@@ -14,7 +14,7 @@ use App\Enums\Service\ServiceTicketEventType;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ServiceManagement\SaveTicketRequest;
-use App\Models\Service\ServiceComplaintType;
+use App\Models\Service\ServiceSymptom;
 use App\Models\Service\ServiceTicket;
 use App\Models\Service\ServiceTicketEvent;
 
@@ -61,14 +61,15 @@ class StoreController extends Controller
             );
         }
 
-        // Structured complaints: one record each, with name/group snapshots
-        // so the ticket keeps what was reported even if the library changes.
-        $complaintTypes = ServiceComplaintType::whereIn('id', $validated['complaints'] ?? [])->get();
-        foreach ($complaintTypes as $type) {
+        // Structured complaints: one record each, with name/category-label
+        // snapshots so the ticket keeps what was reported even if the
+        // symptom library is later renamed, reorganized, or retired.
+        $symptoms = ServiceSymptom::with('category')->whereIn('id', $validated['complaints'] ?? [])->get();
+        foreach ($symptoms as $symptom) {
             $ticket->complaints()->create([
-                'service_complaint_type_id' => $type->id,
-                'name'                      => $type->name,
-                'system_group'              => $type->system_group->value,
+                'service_symptom_id' => $symptom->id,
+                'name'                => $symptom->name,
+                'system_group'        => $symptom->category->name,
             ]);
         }
 

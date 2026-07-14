@@ -41,6 +41,11 @@ class Receipt extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function order()
+    {
+        return $this->belongsTo(\App\Models\Orders\Order::class);
+    }
+
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);

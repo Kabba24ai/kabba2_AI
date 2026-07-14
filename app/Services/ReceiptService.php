@@ -83,24 +83,62 @@ class ReceiptService
     }
 
     /**
-     * Map last payment status to receipt status
+     * Map the order's current canonical financial state to the narrow
+     * paid|pending|failed snapshot stored on the receipt row at creation
+     * time. Refunds/partial payments collapse to 'pending' here since the
+     * DB column only supports 3 values — the richer, always-live label
+     * actually shown on the receipt comes from currentPaymentStatusLabel()
+     * below, never from this stored snapshot.
      */
     private static function mapPaymentStatus(Order $order): string
     {
-        $lastPayment = $order->lastPayment;
-
-        if (!$lastPayment) {
-            return 'pending';
+        if ($order->is_paid && (float) $order->balance_due <= 0 && (float) $order->total_refunded <= 0) {
+            return 'paid';
         }
 
-        $status = $lastPayment->status->value; // Enum value
+        if ($order->last_payment_status === \App\Enums\Orders\OrderPaymentStatus::Failed->value) {
+            return 'failed';
+        }
 
-        return match ($status) {
-            'Pending', 'Account' ,'Partial Refund', 'Refunded' => 'pending',
-            'Failed'                               => 'failed',
-            'Paid', 'Invoice Other', 'Invoice Cheque', 'Invoice Online', 'Invoice Cash', 'Invoice Card' => 'paid',
-            default => 'paid',
-        };
+        return 'pending';
+    }
+
+    /**
+     * The receipt's payment status as it should read RIGHT NOW — derived
+     * live from the order's current financial state (Order::is_paid /
+     * total_paid / total_refunded / balance_due, the same canonical
+     * accessors the Order Details screen uses via $order->is_paid etc.)
+     * rather than a value captured once when the receipt row was first
+     * created. This is the single source of truth for what the receipt
+     * displays; the print_receipt view calls this directly instead of
+     * reading the (potentially stale) stored Receipt::payment_status.
+     *
+     * No independent balance math and no payment-method checks — refunds,
+     * partial payments, and voids are read straight from the existing
+     * payment ledger accessors, never re-derived here.
+     */
+    public static function currentPaymentStatusLabel(Order $order): string
+    {
+        $grandTotal    = (float) $order->grand_total;
+        $totalRefunded = (float) $order->total_refunded;
+
+        if ($totalRefunded > 0) {
+            return $totalRefunded >= $grandTotal ? 'Refunded' : 'Partial Refund';
+        }
+
+        if ($order->is_paid && (float) $order->balance_due <= 0) {
+            return 'Paid in Full';
+        }
+
+        if ((float) $order->total_paid > 0) {
+            return 'Partial Payment';
+        }
+
+        if ($order->last_payment_status === \App\Enums\Orders\OrderPaymentStatus::Failed->value) {
+            return 'Failed';
+        }
+
+        return 'Pending';
     }
 
     /**

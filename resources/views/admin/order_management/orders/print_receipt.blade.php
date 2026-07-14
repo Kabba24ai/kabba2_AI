@@ -400,7 +400,7 @@
 
                                 <!-- Text -->
                                 <div style="position:relative; font-weight:600; z-index:10;">
-                                    Payment Status: {{ ucfirst($receipt->payment_status) }}
+                                    Payment Status: {{ \App\Services\ReceiptService::currentPaymentStatusLabel($order) }}
                                 </div>
 
                             </div>

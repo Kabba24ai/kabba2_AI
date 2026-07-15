@@ -819,19 +819,38 @@
         <div class="h-3 md:h-4"></div>
 
         <!-- Delivery Fee Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-4 gap-4 mt-4 items-start"><!-- ⬅️ was items-end -->
-            <!-- Delivery Fees Group -->
-            <div class="lg:col-span-2 xl:col-span-2">
-                <label class="block w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Truck Delivery / Pickup Fee
-                </label>
+        <div class="mt-4">
+            <label class="block w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Truck Delivery / Pickup Fee <span class="font-normal text-gray-500">(one-way rates)</span>
+            </label>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- Standard Delivery Fee -->
+            @php
+                // Six tiers, one-way rates. Extended stays hidden when the global
+                // Include Option is off (existing behavior). Custom labels are
+                // administrative only; the badge shows the configured distance.
+                $deliveryFeeTiers = [
+                    'standard_delivery_fee' => ['label' => 'Standard', 'range' => $productSettings['standard_delivery_range'] ?? null],
+                ];
+                if ($productSettings['include_extended_range'] ?? false) {
+                    $deliveryFeeTiers['extended_delivery_fee'] = ['label' => 'Extended', 'range' => $productSettings['extended_delivery_range'] ?? null];
+                }
+                foreach ([1, 2, 3, 4] as $customTierNo) {
+                    $deliveryFeeTiers["custom_{$customTierNo}_delivery_fee"] = [
+                        'label' => "Custom {$customTierNo}",
+                        'range' => $productSettings["custom_{$customTierNo}_delivery_range"] ?? null,
+                    ];
+                }
+            @endphp
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach ($deliveryFeeTiers as $feeField => $feeTier)
                     <div class="flex flex-col items-center">
+                        <span class="self-start text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                            {{ $feeTier['label'] }}
+                        </span>
                         <div class="flex items-center gap-1 w-full">
                             <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
-                            {!! html()->text('standard_delivery_fee')->attributes([
+                            {!! html()->text($feeField)->attributes([
                                     'placeholder' => '0',
                                     'data-numeric-input' => 'true',
                                     'data-parsley-errors-container' => '#delivery-fee-error',
@@ -841,75 +860,56 @@
                         </div>
                         <span
                             class="mt-1 inline-block text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
-                            {{ $productSettings['standard_delivery_range'] ?? 0 }}
-                            {{ $productSettings['distance_unit'] }}
+                            @if ($feeTier['range'] !== null && $feeTier['range'] !== '')
+                                {{ $feeTier['range'] }} {{ $productSettings['distance_unit'] }}
+                            @else
+                                &mdash;
+                            @endif
                         </span>
                     </div>
-
-                    @if ($productSettings['include_extended_range'] ?? false)
-                        <div class="flex flex-col items-center">
-                            <div class="flex items-center gap-1 w-full">
-                                <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
-                                {!! html()->text('extended_delivery_fee')->attributes([
-                                        'placeholder' => '0',
-                                        'data-numeric-input' => 'true',
-                                        'data-parsley-errors-container' => '#delivery-fee-error',
-                                        'class' =>
-                                            'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                                    ]) !!}
-                            </div>
-                            <span
-                                class="mt-1 inline-block text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
-                                {{ $productSettings['extended_delivery_range'] ?? 0 }}
-                                {{ $productSettings['distance_unit'] }}
-                            </span>
-                        </div>
-                    @endif
-                </div>
-
-                <div id="delivery-fee-error" class="text-xs text-red-500 mt-1"></div>
-                @error('standard_delivery_fee')
-                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
-                @enderror
-                @error('extended_delivery_fee')
-                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
-                @enderror
+                @endforeach
             </div>
 
-            <!-- Delivery Type -->
-            <div class="lg:col-span-2 xl:col-span-2">
-                <label class="block w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Delivery Type
+            <div id="delivery-fee-error" class="text-xs text-red-500 mt-1"></div>
+            @foreach (array_keys($deliveryFeeTiers) as $feeField)
+                @error($feeField)
+                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+                @enderror
+            @endforeach
+        </div>
+
+        <!-- Delivery Type -->
+        <div class="mt-4">
+            <label class="block w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Delivery Type
+            </label>
+
+            <!-- slight top margin to align with inputs nicely -->
+            <div class="flex items-center gap-6 mt-1">
+                <label class="flex items-center text-xs font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox('in_store_pickup', old('in_store_pickup', $objProduct->in_store_pickup ?? 'Yes') === 'Yes', 'Yes')->class('mr-2')->attribute('data-parsley-errors-container', '#in-store-pickup-errors') !!}
+                    In Store Pick Up
                 </label>
 
-                <!-- slight top margin to align with inputs nicely -->
-                <div class="flex items-center gap-6 mt-1">
-                    <label class="flex items-center text-xs font-medium text-gray-700 dark:text-gray-300">
-                        {!! html()->checkbox('in_store_pickup', old('in_store_pickup', $objProduct->in_store_pickup ?? 'Yes') === 'Yes', 'Yes')->class('mr-2')->attribute('data-parsley-errors-container', '#in-store-pickup-errors') !!}
-                        In Store Pick Up
-                    </label>
-
-                    <label class="flex items-center text-xs font-medium text-gray-700 dark:text-gray-300">
-                        {!! html()->checkbox(
-                                'delivery_and_pickup',
-                                old('delivery_and_pickup', $objProduct->delivery_and_pickup ?? 'Yes') === 'Yes',
-                                'Yes',
-                            )->class('mr-2')->attribute('data-parsley-errors-container', '#delivery-and-pickup-errors') !!}
-                        Truck Delivery / Pickup
-                    </label>
-                </div>
-
-                <div id="in-store-pickup-errors"></div>
-                @error('in_store_pickup')
-                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
-                @enderror
-
-                <div id="delivery-and-pickup-errors"></div>
-                @error('delivery_and_pickup')
-                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
-                @enderror
-
+                <label class="flex items-center text-xs font-medium text-gray-700 dark:text-gray-300">
+                    {!! html()->checkbox(
+                            'delivery_and_pickup',
+                            old('delivery_and_pickup', $objProduct->delivery_and_pickup ?? 'Yes') === 'Yes',
+                            'Yes',
+                        )->class('mr-2')->attribute('data-parsley-errors-container', '#delivery-and-pickup-errors') !!}
+                    Truck Delivery / Pickup
+                </label>
             </div>
+
+            <div id="in-store-pickup-errors"></div>
+            @error('in_store_pickup')
+                <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+            @enderror
+
+            <div id="delivery-and-pickup-errors"></div>
+            @error('delivery_and_pickup')
+                <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+            @enderror
         </div>
 
         {{-- Sizes --}}
@@ -1103,33 +1103,27 @@
         const weeklyRateMultiplier = "{{ $priceRateMultiplierSettings['weekly_multiplier'] ?? '' }}";
         const monthlyRateMultiplier = "{{ $priceRateMultiplierSettings['monthly_multiplier'] ?? '' }}";
 
-        // Auto-fill delivery fees based on selected size
+        // Auto-fill delivery fees based on selected size — all six tiers.
+        // Raw (unformatted) setting values so a global 0 populates as "0"
+        // (intentionally free) and a blank global rate populates as blank.
         const sizeFeeMap = {
-            Small: {
-                standard: "{{ $productSettings['small_standard_delivery_fee_formatted'] ?? '' }}",
-                extended: "{{ $productSettings['small_extended_delivery_fee_formatted'] ?? '' }}"
+            @foreach (['Small' => 'small', 'Medium' => 'medium', 'Large' => 'large', 'X-Large' => 'x_large', '2X-Large' => '2x_large', 'Commercial' => 'commercial'] as $feeSizeLabel => $feeSizePrefix)
+            "{{ $feeSizeLabel }}": {
+                standard_delivery_fee: "{{ $productSettings[$feeSizePrefix . '_standard_delivery_fee'] ?? '' }}",
+                extended_delivery_fee: "{{ $productSettings[$feeSizePrefix . '_extended_delivery_fee'] ?? '' }}",
+                custom_1_delivery_fee: "{{ $productSettings[$feeSizePrefix . '_custom_1_delivery_fee'] ?? '' }}",
+                custom_2_delivery_fee: "{{ $productSettings[$feeSizePrefix . '_custom_2_delivery_fee'] ?? '' }}",
+                custom_3_delivery_fee: "{{ $productSettings[$feeSizePrefix . '_custom_3_delivery_fee'] ?? '' }}",
+                custom_4_delivery_fee: "{{ $productSettings[$feeSizePrefix . '_custom_4_delivery_fee'] ?? '' }}"
             },
-            Medium: {
-                standard: "{{ $productSettings['medium_standard_delivery_fee_formatted'] ?? '' }}",
-                extended: "{{ $productSettings['medium_extended_delivery_fee_formatted'] ?? '' }}"
-            },
-            Large: {
-                standard: "{{ $productSettings['large_standard_delivery_fee_formatted'] ?? '' }}",
-                extended: "{{ $productSettings['large_extended_delivery_fee_formatted'] ?? '' }}"
-            },
-            "X-Large": {
-                standard: "{{ $productSettings['x_large_standard_delivery_fee_formatted'] ?? '' }}",
-                extended: "{{ $productSettings['x_large_extended_delivery_fee_formatted'] ?? '' }}"
-            },
-            "2X-Large": {
-                standard: "{{ $productSettings['2x_large_standard_delivery_fee_formatted'] ?? '' }}",
-                extended: "{{ $productSettings['2x_large_extended_delivery_fee_formatted'] ?? '' }}"
-            },
-            Commercial: {
-                standard: "{{ $productSettings['commercial_standard_delivery_fee_formatted'] ?? '' }}",
-                extended: "{{ $productSettings['commercial_extended_delivery_fee_formatted'] ?? '' }}"
-            }
+            @endforeach
         };
+
+        const deliveryFeeFieldNames = [
+            'standard_delivery_fee', 'extended_delivery_fee',
+            'custom_1_delivery_fee', 'custom_2_delivery_fee',
+            'custom_3_delivery_fee', 'custom_4_delivery_fee'
+        ];
 
 
         // Auto-fill track insurance based on selected size
@@ -1316,39 +1310,33 @@
                 updateDamageWaiver(monthlyPriceInput, damageWaiverMonthlyInput);
             });
 
-            const standardDeliveryFeeInput = document.querySelector('input[name="standard_delivery_fee"]');
-            const extendedDeliveryFeeInput = document.querySelector('input[name="extended_delivery_fee"]');
+            // Extended's input may be absent when the global Include Option is off
+            const deliveryFeeInputs = deliveryFeeFieldNames
+                .map(name => document.querySelector('input[name="' + name + '"]'))
+                .filter(Boolean);
             const deliveryAndPickupInput = document.querySelector('input[name="delivery_and_pickup"]');
 
-            standardDeliveryFeeInput?.addEventListener('input', function() {
-                if (this.value && deliveryAndPickupInput.checked) {
-                    // If user manually changes, uncheck sizes
-                    //sizeCheckboxes.forEach(cb => cb.checked = false);
-                }
-            });
+            function fillDeliveryFeesForSize(size) {
+                const fees = sizeFeeMap[size] || {};
+                deliveryFeeInputs.forEach(input => {
+                    input.value = fees[input.name] ?? '';
+                });
+            }
 
-            extendedDeliveryFeeInput?.addEventListener('input', function() {
-                if (this.value && deliveryAndPickupInput.checked) {
-                    // If user manually changes, uncheck sizes
-                    //sizeCheckboxes.forEach(cb => cb.checked = false);
-                }
-            });
+            function clearDeliveryFees() {
+                deliveryFeeInputs.forEach(input => input.value = '');
+            }
 
             deliveryAndPickupInput?.addEventListener('change', function() {
                 if (!this.checked) {
                     // If delivery is unchecked, clear fees and sizes
-                    if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = '';
-                    if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = '';
+                    clearDeliveryFees();
                     sizeCheckboxes.forEach(cb => cb.checked = false);
                 } else {
-                    // If checked and a size is selected, auto-fill fees
+                    // If checked and a size is selected, auto-fill all six fees
                     const selectedSize = sizeCheckboxes.find(cb => cb.checked);
                     if (selectedSize) {
-                        const fees = sizeFeeMap[selectedSize.value];
-                        if (fees) {
-                            if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = fees.standard;
-                            if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = fees.extended;
-                        }
+                        fillDeliveryFeesForSize(selectedSize.value);
                     }
                 }
             });
@@ -1364,19 +1352,12 @@
                         return;
                     }
 
-                    // Auto-fill delivery fees if delivery is enabled
+                    // Auto-fill all six delivery fees if delivery is enabled
                     if (cb.checked && deliveryAndPickupInput.checked) {
-                        const fees = sizeFeeMap[cb.value];
-                        if (fees) {
-                            if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = fees
-                                .standard;
-                            if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = fees
-                                .extended;
-                        }
+                        fillDeliveryFeesForSize(cb.value);
                     } else {
                         // If unchecked, clear fees
-                        if (standardDeliveryFeeInput) standardDeliveryFeeInput.value = '';
-                        if (extendedDeliveryFeeInput) extendedDeliveryFeeInput.value = '';
+                        clearDeliveryFees();
                     }
                     enforceSingleSizeSelection(e.target);
                 });

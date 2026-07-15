@@ -83,6 +83,10 @@ class StoreRequest extends ApiBaseFormRequest
             // Delivery
             'standard_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'extended_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'custom_1_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'custom_2_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'custom_3_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'custom_4_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
 
             'in_store_pickup' => ['nullable', 'in:Yes,No'],
             'delivery_and_pickup' => ['nullable', 'in:Yes,No'],
@@ -149,17 +153,24 @@ class StoreRequest extends ApiBaseFormRequest
 
             // Only apply if product_type is Rental
             if (($data['product_type'] ?? null) === 'Rental') {
-                // At least one delivery fee required and > 0
-                $stdFee = floatval($data['standard_delivery_fee'] ?? 0);
-                $extFee = floatval($data['extended_delivery_fee'] ?? 0);
+                // At least one of the six delivery tiers must be CONFIGURED
+                // (non-null). An explicit 0.00 is an intentionally free rate and
+                // counts — Custom-only pricing is valid.
+                $feeFields = [
+                    'standard_delivery_fee', 'extended_delivery_fee',
+                    'custom_1_delivery_fee', 'custom_2_delivery_fee',
+                    'custom_3_delivery_fee', 'custom_4_delivery_fee',
+                ];
+                $hasConfiguredFee = collect($feeFields)->contains(function ($field) use ($data) {
+                    return isset($data[$field]) && $data[$field] !== '';
+                });
 
                 // At least one pickup option "Yes"
                 $pickup = $data['in_store_pickup'] ?? null;
                 $deliveryPickup = $data['delivery_and_pickup'] ?? null;
 
-                if ($stdFee <= 0 && $extFee <= 0 && $deliveryPickup == 'Yes') {
-                    $validator->errors()->add('standard_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
-                    //$validator->errors()->add('extended_delivery_fee', 'At least one delivery fee (standard or extended) must be greater than zero for rental products.');
+                if (!$hasConfiguredFee && $deliveryPickup == 'Yes') {
+                    $validator->errors()->add('standard_delivery_fee', 'At least one delivery fee (Standard, Extended, or Custom) must be configured for rental products.');
                 }
 
 

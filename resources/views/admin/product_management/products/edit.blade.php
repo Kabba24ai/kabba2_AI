@@ -119,16 +119,18 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             const parsleyForm = $('#productForm').parsley(); // requires jQuery + Parsley jQuery adapter
-            // Live error clearing when user types
-            const stdInput = document.querySelector('input[name="standard_delivery_fee"]');
-            const extInput = document.querySelector('input[name="extended_delivery_fee"]');
+            // All six delivery tiers share the readonly toggle and error clearing
+            const feeInputs = [
+                'standard_delivery_fee', 'extended_delivery_fee',
+                'custom_1_delivery_fee', 'custom_2_delivery_fee',
+                'custom_3_delivery_fee', 'custom_4_delivery_fee'
+            ].map(name => document.querySelector('input[name="' + name + '"]')).filter(Boolean);
             const delCheck = document.querySelector('input[name="delivery_and_pickup"]');
             const errorBox = document.getElementById('delivery-fee-error');
 
             // helper to toggle readonly + subtle styling
             function setFeesReadonly(isReadonly) {
-                [stdInput, extInput].forEach(el => {
-                    if (!el) return;
+                feeInputs.forEach(el => {
                     if (isReadonly) {
                         el.value = "";
                         el.readOnly = true; // readonly attr
@@ -153,8 +155,8 @@
             }
 
             // live error clearing when user types
-            if (stdInput && extInput && errorBox) {
-                [stdInput, extInput].forEach(el => {
+            if (feeInputs.length && errorBox) {
+                feeInputs.forEach(el => {
                     el.addEventListener('input', () => (errorBox.textContent = ''));
                 });
             }
@@ -170,14 +172,14 @@
                 // Only enforce delivery-fee rule when "Truck Delivery / Pickup" is selected
                 const deliveryEnabled = !!delCheck?.checked;
 
-                if (deliveryEnabled && stdInput && extInput && errorBox && productType === 'Rental') {
-                    const stdVal = parseFloat(stdInput.value || 0);
-                    const extVal = parseFloat(extInput.value || 0);
+                // Six-tier rule (matches the server): at least one delivery fee
+                // is CONFIGURED (non-empty) — an explicit 0 counts as configured
+                if (deliveryEnabled && feeInputs.length && errorBox && productType === 'Rental') {
+                    const hasConfiguredFee = feeInputs.some(el => el.value.trim() !== '');
 
-                    if (stdVal <= 0 && extVal <= 0) {
-                        errorBox.textContent =
-                            'At least one delivery fee (standard or extended) must be greater than zero.';
-                        stdInput.focus();
+                    if (!hasConfiguredFee) {
+                        errorBox.textContent = 'At least one delivery fee (Standard, Extended, or Custom) must be configured.';
+                        feeInputs[0].focus();
                         return; // Stop submission
                     } else {
                         errorBox.textContent = '';

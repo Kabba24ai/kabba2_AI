@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\ProductManagement\Products;
 
+use App\Helpers\DeliveryTierHelper;
 use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductManagement\Products\UpdateRequest;
@@ -85,6 +86,10 @@ class UpdateController extends Controller
                     'rental_prepaid_fuel' => null,
                     'standard_delivery_fee' => null,
                     'extended_delivery_fee' => null,
+                    'custom_1_delivery_fee' => null,
+                    'custom_2_delivery_fee' => null,
+                    'custom_3_delivery_fee' => null,
+                    'custom_4_delivery_fee' => null,
                     'in_store_pickup' => null,
                     'delivery_and_pickup' => null,
                     // 'hour_tracking' => null,
@@ -130,6 +135,9 @@ class UpdateController extends Controller
 
                     'standard_delivery_fee' => $validated['standard_delivery_fee'] ?? null,
                     'extended_delivery_fee' => $validated['extended_delivery_fee'] ?? null,
+                    // Submitted Custom rates win (blank = NULL); fields absent from the
+                    // request fall back to the global rates for the selected size
+                    ...DeliveryTierHelper::resolveCustomFees($validated),
                     'in_store_pickup' => $validated['in_store_pickup'] ?? null,
                     'delivery_and_pickup' => $validated['delivery_and_pickup'] ?? 'No',
                     // 'hour_tracking' => $validated['hour_tracking'] ?? 'No',

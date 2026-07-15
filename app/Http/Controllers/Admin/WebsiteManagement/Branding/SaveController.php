@@ -14,9 +14,7 @@ class SaveController extends Controller
     public function __invoke(SaveRequest $request)
     {
 
-    // dd($request->all());
-
-      $validated = collect($request->validated())->except('_context')->all();
+      $validated = $request->validated();
 
 
         /**
@@ -77,62 +75,6 @@ class SaveController extends Controller
 
         /**
          * -----------------------------
-         * Handle HP Builder Logo
-         * -----------------------------
-         */
-        if ($request->hasFile('hp_builder_logo')) {
-
-            $setting = Setting::where('setting_name', 'hp_builder_logo')
-                ->where('setting_type', 'Website Management Branding')
-                ->first();
-
-            if ($setting && !is_null($setting->media)) {
-                MediaHelper::removeFile($setting->media);
-            }
-
-            $mediaData = MediaHelper::uploadStorageFile(
-                'Public Asset',
-                $request->file('hp_builder_logo'),
-                'branding',
-                $setting
-            );
-
-            if (!empty($mediaData['mediaObj'])) {
-                $validated['hp_builder_logo'] = $mediaData['mediaObj']->id;
-            }
-        }
-
-
-        /**
-         * -----------------------------
-         * Handle HP Builder Favicon
-         * -----------------------------
-         */
-        if ($request->hasFile('hp_builder_favicon')) {
-
-            $setting = Setting::where('setting_name', 'hp_builder_favicon')
-                ->where('setting_type', 'Website Management Branding')
-                ->first();
-
-            if ($setting && !is_null($setting->media)) {
-                MediaHelper::removeFile($setting->media);
-            }
-
-            $mediaData = MediaHelper::uploadStorageFile(
-                'Public Asset',
-                $request->file('hp_builder_favicon'),
-                'branding',
-                $setting
-            );
-
-            if (!empty($mediaData['mediaObj'])) {
-                $validated['hp_builder_favicon'] = $mediaData['mediaObj']->id;
-            }
-        }
-
-
-        /**
-         * -----------------------------
          * Save Branding Settings
          * -----------------------------
          */
@@ -163,10 +105,6 @@ class SaveController extends Controller
         }
 
         flash()->success(__('Branding settings updated successfully.'));
-
-        if ($request->input('_context') === 'hp_builder') {
-            return redirect()->route('admin.website-management.home-builder.index', ['tab' => 'branding']);
-        }
 
         return redirect()->back();
     }

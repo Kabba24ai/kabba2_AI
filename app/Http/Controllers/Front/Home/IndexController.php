@@ -47,8 +47,12 @@ class IndexController extends Controller
             'branding'           => $branding,
             'stores'             => $stores,
             'featuredCategories' => $featuredCategories,
-            'logo'               => \App\Helpers\ConfigurationHelper::getHpBuilderLogo(),
-            'favicon'            => \App\Helpers\ConfigurationHelper::getHpBuilderFavicon(),
+            // Canonical branding assets (Website Management → Branding);
+            // legacy hp_builder slots only as fallback for unmigrated data
+            'logo'               => \App\Helpers\ConfigurationHelper::getBrandingLogo()
+                                        ?: \App\Helpers\ConfigurationHelper::getHpBuilderLogo(),
+            'favicon'            => \App\Helpers\ConfigurationHelper::getBrandingFavicon()
+                                        ?: \App\Helpers\ConfigurationHelper::getHpBuilderFavicon(),
         ]);
     }
 }

@@ -152,6 +152,15 @@ class OrderPaymentFormulasTest extends TestCase
 
     // ── remainingRefundableForPayment(): the per-payment cap ────────────
 
+    /**
+     * Phase 3B: remainingRefundableForPayment() now delegates to
+     * PaymentAllocationService::remainingRefundable(), which checks
+     * receivedRefundAllocations()->exists() first and only falls back to
+     * childRefunds() when no allocation rows exist yet for this payment.
+     * Mocking receivedRefundAllocations() to report none keeps this helper
+     * exercising exactly the legacy-fallback formula it did in Phase 3A —
+     * the allocation-aware path is covered in the Feature test suite.
+     */
     private function makePaymentWithChildRefunds(float $amount, OrderPaymentStatus $status, float $alreadyRefunded): OrderPayment
     {
         $payment = Mockery::mock(OrderPayment::class)->makePartial();
@@ -162,6 +171,10 @@ class OrderPaymentFormulasTest extends TestCase
         $childRefundsQuery->shouldReceive('whereIn')->andReturnSelf();
         $childRefundsQuery->shouldReceive('sum')->andReturn($alreadyRefunded);
         $payment->shouldReceive('childRefunds')->andReturn($childRefundsQuery);
+
+        $receivedAllocationsQuery = Mockery::mock(HasMany::class);
+        $receivedAllocationsQuery->shouldReceive('exists')->andReturn(false);
+        $payment->shouldReceive('receivedRefundAllocations')->andReturn($receivedAllocationsQuery);
 
         return $payment;
     }

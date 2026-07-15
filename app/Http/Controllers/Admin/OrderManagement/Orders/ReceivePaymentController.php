@@ -231,6 +231,7 @@ class ReceivePaymentController extends Controller
                 // credit balance — never just a label, per the "Cash means
                 // cash" principle applied to every method: selecting Store
                 // Credit must mean the balance genuinely decreased.
+                $storeCreditRedemption = null;
                 if ($orderPaymentMethod === OrderPaymentMethod::StoreCredit->value) {
                     // Namespaced so a duplicate submit of *this* payment is
                     // recognized (redeem() returns the existing row instead
@@ -242,7 +243,7 @@ class ReceivePaymentController extends Controller
                         : null;
 
                     try {
-                        \App\Services\CustomerCreditService::redeem(
+                        $storeCreditRedemption = \App\Services\CustomerCreditService::redeem(
                             customerId: $customer->id,
                             amount: $amount,
                             reason: "Applied to Order {$order->order_number}",
@@ -275,6 +276,10 @@ class ReceivePaymentController extends Controller
                     'created_by_id' => $user->id,
                     'created_by_type' => User::class,
                 ]);
+
+                if ($storeCreditRedemption) {
+                    $storeCreditRedemption->update(['order_payment_id' => $payment->id]);
+                }
 
             }
             // When full payment is recorded via any method other than COD itself,

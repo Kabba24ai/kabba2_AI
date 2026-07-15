@@ -20,6 +20,7 @@ use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderPayment;
 use App\Services\AuthorizeNetService;
+use App\Services\Orders\PaymentAllocationService;
 
 class RefundPaymentController extends Controller
 {
@@ -334,7 +335,11 @@ class RefundPaymentController extends Controller
             // Refunding to Store Credit must actually grant the credit —
             // never just a label — the same "Cash means cash" principle
             // applied to every method: selecting Store Credit must mean
-            // the customer's real balance genuinely increased.
+            // the customer's real balance genuinely increased. The grant
+            // row's order_payment_id is linked to the refund's own row
+            // below (once created), so that customer_credits row always
+            // traces back to the refund that produced it.
+            $storeCreditGrant = null;
             if ($refundPaymentType === PaymentMethod::StoreCredit->value) {
                 // Namespaced so a duplicate submit of *this* refund is
                 // recognized without colliding with an unrelated grant/
@@ -343,7 +348,7 @@ class RefundPaymentController extends Controller
                     ? "refund:{$order->id}:{$idempotencyToken}"
                     : null;
 
-                \App\Services\CustomerCreditService::createFinancialCredit(
+                $storeCreditGrant = \App\Services\CustomerCreditService::createFinancialCredit(
                     customerId: $order->customer_id,
                     amount: $currentRefundAmount,
                     reason: "Refund on Order {$order->order_number}: {$reasonText}",
@@ -389,6 +394,25 @@ class RefundPaymentController extends Controller
                 'processed_reason_label'  => $reason->label(),
                 'processed_reason_other'  => $validated['reason_other'] ?? null,
             ]);
+
+            // Phase 3B: record the durable allocation for this refund
+            // alongside the parent_order_payment_id set above — $lastPayment
+            // is the same verified, unambiguous original payment either way,
+            // so this is never a second, independent decision about "which
+            // payment is this," only the allocation-table record of it.
+            PaymentAllocationService::allocateSingleSource(
+                refund: $payment,
+                original: $lastPayment,
+                allocatedAmount: $currentRefundAmount,
+                allocatedBaseAmount: round($currentRefundAmount - $taxRefunded, 2),
+                allocatedTaxAmount: $taxRefunded,
+                processingFeeRetained: $feeRetained,
+                gatewayTransactionId: $gatewayRefundId,
+            );
+
+            if ($storeCreditGrant) {
+                $storeCreditGrant->update(['order_payment_id' => $payment->id]);
+            }
 
             event(new RefundInitiateEvent($order, $user, $payment));
 

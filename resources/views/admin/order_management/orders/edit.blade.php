@@ -1737,6 +1737,12 @@
                                         </div>
                                     @endif
 
+                                    @if(\App\Services\Orders\PaymentAllocationService::attributionState($refund) === \App\Services\Orders\PaymentAllocationService::STATE_AMBIGUOUS)
+                                        <div class="text-xs text-amber-600 font-medium mt-1">
+                                            Allocation unavailable for legacy transaction
+                                        </div>
+                                    @endif
+
                                 </div>
 
                                 <div class="text-right">

@@ -416,26 +416,19 @@ class Order extends Model
 
     /**
      * Per-payment remaining refundable balance for a single original
-     * payment row: its own settled amount, minus successful child refunds
-     * already recorded against it (via parent_order_payment_id), minus its
-     * full amount if it was voided (a voided payment is immediately
-     * non-refundable — it was already reversed at the gateway).
+     * payment row. This enforces the SECOND, narrower cap the refund flow
+     * must respect alongside the order-level cap above — a refund must
+     * never exceed whichever of the two is smaller.
      *
-     * This enforces the SECOND, narrower cap the refund flow must respect
-     * alongside the order-level cap above — a refund must never exceed
-     * whichever of the two is smaller.
+     * Phase 3B: delegates to PaymentAllocationService, the canonical
+     * source for allocation-aware remaining-refundable math (with a
+     * built-in legacy fallback for payments that predate the allocation
+     * table and have not yet been backfilled) — this method is kept only
+     * so existing call sites don't need to know the service exists.
      */
     public function remainingRefundableForPayment(OrderPayment $payment): float
     {
-        if ($payment->status === \App\Enums\Orders\OrderPaymentStatus::Voided) {
-            return 0.0;
-        }
-
-        $alreadyRefunded = (float) $payment->childRefunds()
-            ->whereIn('status', [\App\Enums\Orders\OrderPaymentStatus::PartialRefund, \App\Enums\Orders\OrderPaymentStatus::Refund])
-            ->sum('refund_amount');
-
-        return max(0.0, (float) $payment->amount - $alreadyRefunded);
+        return \App\Services\Orders\PaymentAllocationService::remainingRefundable($payment);
     }
 
     /**

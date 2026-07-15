@@ -538,6 +538,7 @@ class PaymentStoreController extends Controller
             $user = User::findOrFail($validated['responsible_person']);
 
             $paymentResult = null;
+            $storeCreditRedemption = null;
 
             // Phase 3A fix: selecting Store Credit for an extension charge
             // previously never called CustomerCreditService::redeem() — the
@@ -546,7 +547,7 @@ class PaymentStoreController extends Controller
             // Credit entry point in this codebase.
             if (strtolower($validated['payment_type']) === 'storecredit') {
                 try {
-                    \App\Services\CustomerCreditService::redeem(
+                    $storeCreditRedemption = \App\Services\CustomerCreditService::redeem(
                         customerId: $customer->id,
                         amount: (float) $validated['amount'],
                         reason: "Applied to Extension Charge {$billingCharge->unique_id}",
@@ -684,11 +685,16 @@ class PaymentStoreController extends Controller
 
                 if ($placeholder) {
                     $placeholder->update($paymentData);
+                    $extensionOrderPayment = $placeholder;
                 } else {
-                    $billingCharge->childOrder->payments()->create($paymentData + [
+                    $extensionOrderPayment = $billingCharge->childOrder->payments()->create($paymentData + [
                         'created_by_id'   => $user->id,
                         'created_by_type' => User::class,
                     ]);
+                }
+
+                if ($storeCreditRedemption) {
+                    $storeCreditRedemption->update(['order_payment_id' => $extensionOrderPayment->id]);
                 }
             }
 

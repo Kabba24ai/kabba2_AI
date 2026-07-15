@@ -226,6 +226,7 @@ class PaymentController extends BaseController
                 // Store Credit actually deducts from the customer's real
                 // credit balance — never just a label. Same rule as the
                 // admin Receive Payment flow.
+                $storeCreditRedemption = null;
                 if ($orderPaymentMethod === OrderPaymentMethod::StoreCredit->value) {
                     // Callers should send a client-generated idempotency_token
                     // per distinct payment attempt so a network retry of the
@@ -235,7 +236,7 @@ class PaymentController extends BaseController
                         : null;
 
                     try {
-                        \App\Services\CustomerCreditService::redeem(
+                        $storeCreditRedemption = \App\Services\CustomerCreditService::redeem(
                             customerId: $customer->id,
                             amount: $amount,
                             reason: "Applied to Order {$order->order_number}",
@@ -268,6 +269,10 @@ class PaymentController extends BaseController
                     'created_by_id'      => $responsibleUser->id,
                     'created_by_type'    => User::class,
                 ]);
+
+                if ($storeCreditRedemption) {
+                    $storeCreditRedemption->update(['order_payment_id' => $payment->id]);
+                }
             }
 
             DB::commit();

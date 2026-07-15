@@ -12,6 +12,7 @@ use App\Models\Orders\Order;
 use App\Services\AuthorizeNetService;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -76,15 +77,52 @@ class OrderPaymentController extends Controller
         $opaqueDataDescriptor = $request->input('opaqueDataDescriptor');
         $firstName            = $request->input('firstName');
         $lastName             = $request->input('lastName');
+        $idempotencyToken     = $request->input('idempotency_token');
 
         if (!$opaqueDataValue || !$opaqueDataDescriptor) {
             return response()->json(['success' => false, 'message' => 'Payment data missing or invalid.']);
         }
 
+        // Idempotency — same lock pattern as the admin Receive Payment and
+        // Refund flows, extended here since this is a customer-facing
+        // gateway charge with no prior duplicate-submit protection: a
+        // double-click or a reload after gateway latency could otherwise
+        // charge the customer's card twice for the same balance.
+        $lock = $idempotencyToken
+            ? Cache::lock("pod-payment-idempotency:{$uniqueId}:{$idempotencyToken}", 30)
+            : null;
+
+        if ($lock && !$lock->get()) {
+            return response()->json(['success' => false, 'message' => 'This payment is already being processed. Please wait a moment and refresh.']);
+        }
+
         try {
             DB::beginTransaction();
 
-            $amount = $order->balance_due;
+            if ($idempotencyToken) {
+                $alreadyProcessed = $order->payments()
+                    ->where('idempotency_token', $idempotencyToken)
+                    ->exists();
+
+                if ($alreadyProcessed) {
+                    DB::commit();
+
+                    $redirectUrl = SignedUrlHelper::make('front.checkout.thank-you', ['order' => $order->unique_id], 5);
+
+                    return response()->json(['success' => true, 'redirect_url' => $redirectUrl]);
+                }
+            }
+
+            // Re-check the balance inside the lock/transaction, immediately
+            // before charging — closes the race window between the initial
+            // balance_due read above (before the lock) and an admin manual
+            // payment or a concurrent checkout attempt landing in between.
+            $amount = $order->fresh()->balance_due;
+
+            if ($amount <= 0) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'This order is already fully paid.']);
+            }
 
             $authorizeNetService = new AuthorizeNetService();
 
@@ -117,6 +155,7 @@ class OrderPaymentController extends Controller
                 'card_last_name'      => $lastName,
                 'status'              => $paymentResult['payment_status'] ?? 'Paid',
                 'payment_response'    => $paymentResult['payment_response'] ?? null,
+                'idempotency_token'   => $idempotencyToken,
                 'created_by_id'       => $customer->id,
                 'created_by_type'     => Customer::class,
             ]);
@@ -149,6 +188,17 @@ class OrderPaymentController extends Controller
                 'redirect_url' => $redirectUrl,
             ]);
 
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+
+            if ($idempotencyToken && str_contains(strtolower($e->getMessage()), 'idempotency_token')) {
+                $redirectUrl = SignedUrlHelper::make('front.checkout.thank-you', ['order' => $order->unique_id], 5);
+
+                return response()->json(['success' => true, 'redirect_url' => $redirectUrl]);
+            }
+
+            Log::error('Order payment error', ['message' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'An error occurred while processing payment.']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Order payment error', [
@@ -157,6 +207,10 @@ class OrderPaymentController extends Controller
                 'line'    => $e->getLine(),
             ]);
             return response()->json(['success' => false, 'message' => 'An error occurred while processing payment.']);
+        } finally {
+            if ($lock) {
+                $lock->release();
+            }
         }
     }
 }

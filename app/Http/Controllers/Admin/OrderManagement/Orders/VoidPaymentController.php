@@ -86,6 +86,7 @@ class VoidPaymentController extends Controller
                 $order->history()->create([
                     'user_id'     => $user->id,
                     'customer_id' => $order->customer_id,
+                    'order_payment_id' => $payment->id,
                     'action_date' => now(),
                     'action_by'   => OrderHistoryActionBy::User,
                     'action'      => OrderHistoryAction::TransactionVoided,

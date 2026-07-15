@@ -7,6 +7,7 @@ use App\Enums\Orders\OrderPaymentStatus;
 use App\Events\Admin\Orders\PaymentInitiateEvent;
 use App\Http\Controllers\Api\BaseController;
 use DB;
+use Illuminate\Support\Facades\Cache;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\PaymentRequest;
@@ -30,17 +31,67 @@ class PaymentController extends BaseController
     {
         $validated = $request->validated();
 
-        DB::beginTransaction();
-
         $user            = auth('api_user')->user();
         $paymentMethod   = $validated['payment_type'];
         $paymentNote     = $validated['payment_note'] ?? null;
         $responsibleUser = User::find($validated['responsible_person']);
 
+        // Idempotency — same pattern as the admin Receive Payment and
+        // Refund flows: one client-generated token per distinct payment
+        // attempt, reused across retries (e.g. a mobile client retrying
+        // after a timeout on a poor connection). The lock closes the
+        // concurrent-duplicate race BEFORE any gateway call or financial
+        // write; the DB-unique order_payments.idempotency_token column is
+        // the storage-level backstop.
+        $idempotencyToken = $validated['idempotency_token'] ?? null;
+        $lock = $idempotencyToken
+            ? Cache::lock("api-payment-idempotency:{$validated['order_unique_id']}:{$idempotencyToken}", 30)
+            : null;
+
+        if ($lock && !$lock->get()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This payment is already being processed. Please retry shortly.',
+            ], 409);
+        }
+
+        DB::beginTransaction();
+
         try {
             $order    = Order::where('unique_id', $validated['order_unique_id'])->with('customer')->firstOrFail();
             $customer = $order->customer;
-            $amount   = $order->grand_total;
+
+            if ($idempotencyToken) {
+                $alreadyProcessed = $order->payments()
+                    ->where('idempotency_token', $idempotencyToken)
+                    ->exists();
+
+                if ($alreadyProcessed) {
+                    DB::commit();
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Order payment confirmed!',
+                    ]);
+                }
+            }
+
+            // Phase 3A fix: previously always the order's full grand_total,
+            // regardless of any payment already recorded on the order via
+            // this or another channel (admin manual payment, a prior
+            // partial, another mobile submit) — a confirmed double-payment/
+            // double-record defect. Charge only what's actually still owed,
+            // same as the admin Receive Payment flow.
+            $amount = (float) $order->balance_due;
+
+            if ($amount <= 0) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This order is already fully paid.',
+                ], 422);
+            }
 
             if ($paymentMethod === 'CreditCard') {
 
@@ -84,6 +135,7 @@ class PaymentController extends BaseController
                         'card_last_name'     => $cardDetail->last_name ?? null,
                         'status'             => $paymentResult['payment_status'] ?? 'Pending',
                         'payment_note'       => $paymentNote,
+                        'idempotency_token'  => $idempotencyToken,
                         'created_by_id'      => $responsibleUser->id,
                         'created_by_type'    => User::class,
                     ]);
@@ -103,10 +155,19 @@ class PaymentController extends BaseController
                         'customer'     => $customer->toArray(),
                     ]);
 
-                    if ($paymentResult['status'] !== 'success') {
-                        logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
-                        // DB::rollback();
-                        // return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                    if (($paymentResult['status'] ?? null) !== 'success') {
+                        // Phase 3A fix: this previously logged the failure
+                        // and fell through anyway, creating a payment row
+                        // and reporting success for a declined card — a
+                        // live-money defect. A failed gateway attempt must
+                        // never be recorded as a payment.
+                        logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . ($paymentResult['message'] ?? 'Unknown error'));
+                        DB::rollBack();
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => $paymentResult['message'] ?? 'Payment failed.',
+                        ], 400);
                     }
 
                     $payment = $order->payments()->create([
@@ -122,6 +183,7 @@ class PaymentController extends BaseController
                         'card_last_name'     => $validated['lastName'] ?? null,
                         'status'             => $paymentResult['payment_status'] ?? 'Pending',
                         'payment_note'       => $paymentNote,
+                        'idempotency_token'  => $idempotencyToken,
                         'created_by_id'      => $responsibleUser->id,
                         'created_by_type'    => User::class,
                     ]);
@@ -202,6 +264,7 @@ class PaymentController extends BaseController
                     'status'             => OrderPaymentStatus::Paid->value,
                     'payment_note'       => $paymentNote,
                     'cheque_number'      => $validated['cheque_number'] ?? null,
+                    'idempotency_token'  => $idempotencyToken,
                     'created_by_id'      => $responsibleUser->id,
                     'created_by_type'    => User::class,
                 ]);
@@ -216,6 +279,27 @@ class PaymentController extends BaseController
                 'message' => 'Order payment confirmed!',
             ]);
 
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+
+            // Backstop for the narrow race the cache lock doesn't cover:
+            // the DB-unique idempotency_token column rejected a second
+            // insert for a token that just completed on another request.
+            if ($idempotencyToken && str_contains(strtolower($e->getMessage()), 'idempotency_token')) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Order payment confirmed!',
+                ]);
+            }
+
+            logger()->error('Payment error for Order ID: ' . $validated['order_unique_id'] . ' - ' . $e->getMessage());
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'An error occurred while processing the payment. Please try again.',
+                ],
+                500,
+            );
         } catch (\Exception $e) {
             DB::rollBack();
             logger()->error('Payment error for Order ID: ' . $validated['order_unique_id'] . ' - ' . $e->getMessage());
@@ -226,6 +310,10 @@ class PaymentController extends BaseController
                 ],
                 500,
             );
+        } finally {
+            if ($lock) {
+                $lock->release();
+            }
         }
     }
 }

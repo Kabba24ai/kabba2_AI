@@ -3860,6 +3860,7 @@
             <input type="hidden" name="billing_charge_unique_id" id="bePayChargeUniqueId" value="">
             <input type="hidden" name="opaqueDataValue" id="beOpaqueDataValue">
             <input type="hidden" name="opaqueDataDescriptor" id="beOpaqueDataDescriptor">
+            <input type="hidden" name="idempotency_token" id="bePayIdempotencyToken">
             <div class="px-6 py-4 space-y-4">
                 {{-- Extension-flow context (step 2 of Add Extension Charge) --}}
                 <div id="bePayContext" class="hidden rounded-lg border border-orange-200 bg-orange-50 px-3 py-2">
@@ -7355,6 +7356,14 @@
         function resetBePaymentState() {
             beExtensionFlow = false;
             bePayBtnLabel   = 'Record Payment';
+            // One token per modal-open, reused across retries of that same
+            // submission — same pattern as openRefundModal()/
+            // openProcessPaymentModal() — now actually enforced
+            // server-side by PaymentStoreController's Cache::lock.
+            document.getElementById('bePayIdempotencyToken').value =
+                (window.crypto && window.crypto.randomUUID)
+                    ? window.crypto.randomUUID()
+                    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
             document.getElementById('bePayContext').classList.add('hidden');
             const errBox = document.getElementById('bePayError');
             errBox.classList.add('hidden');

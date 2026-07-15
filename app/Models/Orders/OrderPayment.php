@@ -6,6 +6,7 @@ use App\Helpers\ModelHelper;
 use App\Models\Orders\Order;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // enums
@@ -82,6 +83,25 @@ class OrderPayment extends Model
         return $this->belongsTo(Order::class);
     }
 
+    /**
+     * The original settled payment this row refunds/reverses, when this row
+     * is itself a refund. Self-referencing on parent_order_payment_id —
+     * see RefundPaymentController for how it's populated.
+     */
+    public function parentPayment(): BelongsTo
+    {
+        return $this->belongsTo(OrderPayment::class, 'parent_order_payment_id');
+    }
+
+    /**
+     * The refund/void rows that have been recorded against this row as
+     * their original payment (inverse of parentPayment()).
+     */
+    public function childRefunds(): HasMany
+    {
+        return $this->hasMany(OrderPayment::class, 'parent_order_payment_id');
+    }
+
     // Polymorphic relations for created_by and updated_by
     public function createdBy()
     {
@@ -117,6 +137,23 @@ class OrderPayment extends Model
     public function scopeCod($query)
     {
         return $query->where('payment_method', OrderPaymentMethod::COD);
+    }
+
+    /**
+     * Rows that represent real, settled money — Paid, Partial Payment, or
+     * any legacy Invoice* status (isSettled() unwinds that fusion). This is
+     * the canonical "did this row contribute settled funds" check; prefer
+     * it over a hardcoded where('status', 'Paid') so a settled Invoice*
+     * row is never silently excluded from a settled-payments total.
+     */
+    public function scopeSettled($query)
+    {
+        $settledValues = collect(OrderPaymentStatus::cases())
+            ->filter(fn (OrderPaymentStatus $status) => $status->isSettled() || $status === OrderPaymentStatus::PartialPayment)
+            ->map(fn (OrderPaymentStatus $status) => $status->value)
+            ->all();
+
+        return $query->whereIn('status', $settledValues);
     }
 
 }

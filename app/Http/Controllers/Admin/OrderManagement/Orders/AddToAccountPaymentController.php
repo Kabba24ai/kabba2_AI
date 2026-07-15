@@ -55,26 +55,47 @@ class AddToAccountPaymentController extends Controller
 
             $products = $order->products;
 
+            // Phase 3A fix: this used to push every product's full
+            // sub_total to the customer's Account balance unconditionally,
+            // independent of anything already collected on this order via
+            // another channel. Cap the total amount converted at the
+            // order's actual remaining collection balance (grand_total −
+            // settled payments) instead of re-deriving it from product
+            // totals — in the common case (nothing paid yet, the only
+            // scenario this flow has historically been used for) the
+            // remaining balance equals the full product-subtotal sum and
+            // every row is created exactly as before; only a
+            // partially-paid order changes behavior, capping the total so
+            // the already-collected portion is never double-counted.
+            $remainingToConvert = max(0.0, (float) $order->balance_due);
+
             foreach ($products as $product) {
-                    $record = new CustomerAccount();
-                    $record->customer_id = $customer->id;
-                    $record->order_id = $order->id;
-
-                    $record->amount = $product->sub_total;
-                    // $record->sales_tax = $product->tax ?? 0;
-                    $record->sales_tax = $product->tax > 0 ? $salesTaxSetting?->setting_value : 0.0;
-
-                    $record->date = now();
-                    $record->type = 'order';
-                    $record->reason = $product->product_name;
-
-                    $record->balance = $customer->available_credit_balance ?? 0; // Optional: adjust this if you need per-product logic
-
-                    $record->save();
-
-                    // Update credit balance per product (optional, depends on logic)
-                    LedgerBalanceService::applyTransaction($record, $product->tax ?? 0);
+                if ($remainingToConvert <= 0) {
+                    break;
                 }
+
+                $productAmount = min((float) $product->sub_total, $remainingToConvert);
+                $remainingToConvert -= $productAmount;
+
+                $record = new CustomerAccount();
+                $record->customer_id = $customer->id;
+                $record->order_id = $order->id;
+
+                $record->amount = $productAmount;
+                // $record->sales_tax = $product->tax ?? 0;
+                $record->sales_tax = $product->tax > 0 ? $salesTaxSetting?->setting_value : 0.0;
+
+                $record->date = now();
+                $record->type = 'order';
+                $record->reason = $product->product_name;
+
+                $record->balance = $customer->available_credit_balance ?? 0; // Optional: adjust this if you need per-product logic
+
+                $record->save();
+
+                // Update credit balance per product (optional, depends on logic)
+                LedgerBalanceService::applyTransaction($record, $product->tax ?? 0);
+            }
 
             // Update credit balance
             // CustomHelper::updateCreditBalance($record, $order->tax_amount);

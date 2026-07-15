@@ -25,6 +25,7 @@ use App\Services\ChargeService;
 use App\Models\Orders\BillingCharge;
 use App\Services\BillingEngine;
 use App\Services\LedgerBalanceService;
+use Illuminate\Support\Facades\Cache;
 
 class PaymentStoreController extends Controller
 {
@@ -36,19 +37,44 @@ class PaymentStoreController extends Controller
 
         $validated = $request->validated();
 
-        // CRM-originated fuel charge payment — save to CustomerAccount, mark charge completed
-        if (($validated['source'] ?? 'order') === 'crm') {
-            return $this->handleCrmPayment($validated);
+        // Idempotency — same lock pattern as the admin Receive Payment,
+        // Refund, and mobile API payment flows. This form previously had
+        // NO duplicate-submit protection at all, including on live gateway
+        // card charges. There is no order_payments-style DB-unique column
+        // backstop for the OrderExtraCharges/CustomerAccount rows this
+        // controller writes (out of scope for this phase — no schema
+        // change), so the lock is the primary defense here; still
+        // opt-in/nullable like every other flow, so omitting the token
+        // does not block a submission, only forfeits duplicate protection.
+        $idempotencyToken = $validated['idempotency_token'] ?? null;
+        $lockSubject = $validated['order_product_id']
+            ?? $validated['billing_charge_unique_id']
+            ?? $validated['customer_account_id']
+            ?? $validated['customer_id'];
+        $lock = $idempotencyToken
+            ? Cache::lock("dashboard-payment-idempotency:{$lockSubject}:{$idempotencyToken}", 30)
+            : null;
+
+        if ($lock && !$lock->get()) {
+            return redirect()->back()->withInput()->withErrors([
+                'error' => 'This payment is already being processed. Please wait a moment and refresh.',
+            ]);
         }
 
-        $order = Order::where('unique_id', $validated['order_id'])->firstOrFail();
-        $orderProduct = OrderProduct::whereHas('order')
-            ->where('unique_id', $validated['order_product_id'])
-            ->firstOrFail();
+        try {
+            // CRM-originated fuel charge payment — save to CustomerAccount, mark charge completed
+            if (($validated['source'] ?? 'order') === 'crm') {
+                return $this->handleCrmPayment($validated);
+            }
 
-        Log::debug('OrderExtraCharges validated data:', $validated);
+            $order = Order::where('unique_id', $validated['order_id'])->firstOrFail();
+            $orderProduct = OrderProduct::whereHas('order')
+                ->where('unique_id', $validated['order_product_id'])
+                ->firstOrFail();
 
-        DB::beginTransaction();
+            Log::debug('OrderExtraCharges validated data:', $validated);
+
+            DB::beginTransaction();
 
         try {
             Log::debug('Creating new OrderExtraCharges record...');
@@ -135,6 +161,32 @@ class PaymentStoreController extends Controller
 
                     $customer = Customer::findOrFail($validated['customer_id']);
                     Log::debug('Customer loaded:', $customer->toArray());
+
+            // Phase 3A fix: selecting Store Credit for a fuel/damage charge
+            // payment previously never called CustomerCreditService::redeem()
+            // — the charge was marked paid but the customer's real credit
+            // balance was never decreased. Same rule enforced on every other
+            // Store Credit entry point in this codebase.
+            if (strtolower($validated['payment_type']) === 'storecredit') {
+                $idempotencyKey = $idempotencyToken
+                    ? "dashboard-extra-charge:{$record->id}:{$idempotencyToken}"
+                    : null;
+
+                try {
+                    \App\Services\CustomerCreditService::redeem(
+                        customerId: $customer->id,
+                        amount: (float) $validated['amount'],
+                        reason: "Applied to Order {$order->order_number}",
+                        responsibleUserId: $user->id,
+                        idempotencyKey: $idempotencyKey,
+                        orderId: $order->id,
+                    );
+                } catch (\RuntimeException $e) {
+                    DB::rollBack();
+
+                    return redirect()->back()->withInput()->withErrors(['error' => $e->getMessage()]);
+                }
+            }
 
             if (strtolower($validated['payment_type']) === 'creditcard') {
                 Log::debug('---- Starting CreditCard payment process ----');
@@ -286,7 +338,11 @@ class PaymentStoreController extends Controller
                 'error' => 'An error occurred while recording the payment.',
             ]);
         }
-
+        } finally {
+            if ($lock) {
+                $lock->release();
+            }
+        }
     }
 
     private function handleCrmPayment(array $validated)
@@ -303,6 +359,34 @@ class PaymentStoreController extends Controller
 
         try {
             $user = User::findOrFail($validated['responsible_person']);
+
+            // Phase 3A fix: selecting Store Credit here previously only
+            // ever created a CustomerAccount row labeled "StoreCredit" —
+            // it never called CustomerCreditService::redeem(), so the
+            // customer's real credit balance was never actually decreased,
+            // unlike the admin Receive Payment and mobile API flows (which
+            // both redeem correctly). Same "cash means cash" rule applied
+            // here: selecting Store Credit must mean the balance genuinely
+            // decreased.
+            if (strtolower($validated['payment_type']) === 'storecredit') {
+                $idempotencyKey = !empty($validated['idempotency_token'])
+                    ? "dashboard-crm-payment:{$chargeAccount->id}:{$validated['idempotency_token']}"
+                    : null;
+
+                try {
+                    \App\Services\CustomerCreditService::redeem(
+                        customerId: $customer->id,
+                        amount: (float) $validated['amount'],
+                        reason: "Applied to Charge {$chargeAccount->unique_id}",
+                        responsibleUserId: $user->id,
+                        idempotencyKey: $idempotencyKey,
+                    );
+                } catch (\RuntimeException $e) {
+                    DB::rollBack();
+
+                    return back()->withInput()->with('error', $e->getMessage());
+                }
+            }
 
             $payment = new CustomerAccount();
             $payment->customer_id             = $validated['customer_id'];
@@ -454,6 +538,27 @@ class PaymentStoreController extends Controller
             $user = User::findOrFail($validated['responsible_person']);
 
             $paymentResult = null;
+
+            // Phase 3A fix: selecting Store Credit for an extension charge
+            // previously never called CustomerCreditService::redeem() — the
+            // charge was marked paid but the customer's real credit balance
+            // was never decreased. Same rule enforced on every other Store
+            // Credit entry point in this codebase.
+            if (strtolower($validated['payment_type']) === 'storecredit') {
+                try {
+                    \App\Services\CustomerCreditService::redeem(
+                        customerId: $customer->id,
+                        amount: (float) $validated['amount'],
+                        reason: "Applied to Extension Charge {$billingCharge->unique_id}",
+                        responsibleUserId: $user->id,
+                        idempotencyKey: "dashboard-extension-payment:{$billingCharge->id}",
+                    );
+                } catch (\RuntimeException $e) {
+                    DB::rollBack();
+
+                    return $this->extensionPaymentFailure($validated, $e->getMessage());
+                }
+            }
 
             if (strtolower($validated['payment_type']) === 'creditcard') {
                 $amount = $validated['amount'];

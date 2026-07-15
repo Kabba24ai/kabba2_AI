@@ -880,6 +880,7 @@
                             Route::is('admin.website-management.faq-page.*') ||
                             Route::is('admin.website-management.footer.*') ||
                             Route::is('admin.website-management.branding.*') ||
+                            Route::is('admin.website-management.high-demand-alert.*') ||
                             Route::is('admin.website-management.media-library.*') ||
                             Route::is('admin.website-management.navigation-builder.*') ||
                             Route::is('admin.website-management.theme-builder.*') ||
@@ -941,6 +942,12 @@
                                     <a href="{{ route('admin.website-management.branding.index') }}"
                                         class="menu-dropdown-item group {{ Route::is('admin.website-management.branding.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-paint-brush class="w-5 h-5" /> Branding
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.website-management.high-demand-alert.index') }}"
+                                        class="menu-dropdown-item group {{ Route::is('admin.website-management.high-demand-alert.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-bell-alert class="w-5 h-5" /> High Demand Alert
                                     </a>
                                 </li>
                                 {{--

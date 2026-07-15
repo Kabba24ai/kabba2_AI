@@ -52,8 +52,10 @@ class SeoResolver
      */
     public function defaultSocialImage(): ?string
     {
+        // Canonical branding logo first (Website Management → Branding);
+        // legacy hp_builder slot only as a fallback for unmigrated data.
         return $this->theme->imageUrl('og_image_default')
-            ?: ConfigurationHelper::getHpBuilderLogo()
-            ?: ConfigurationHelper::getBrandingLogo();
+            ?: ConfigurationHelper::getBrandingLogo()
+            ?: ConfigurationHelper::getHpBuilderLogo();
     }
 }

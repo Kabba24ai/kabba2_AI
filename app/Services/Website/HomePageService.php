@@ -117,7 +117,8 @@ class HomePageService
         $items = $section?->items ?? collect();
         return (object) [
             'copyrightText' => $c['copyright_text'] ?? null,
-            'poweredByText' => $c['powered_by_text'] ?? null,
+            // powered-by attribution comes from config('app.powered_by_*'),
+            // never from stored website data
             'quickLinks'    => $items->where('item_key', 'quick_link')->sortBy('display_order')->values(),
             'otherLinks'    => $items->where('item_key', 'other_link')->sortBy('display_order')->values(),
             'socialLinks'   => $items->where('item_key', 'social_link')->sortBy('display_order')->values(),

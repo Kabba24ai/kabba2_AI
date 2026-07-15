@@ -148,8 +148,8 @@ class UpdateSectionRequest extends FormRequest
             'content'                 => ['nullable', 'array'],
             'content.*'               => ['nullable'],
             'content.copyright_text'  => ['nullable', 'string', 'max:500'],
-            'content.powered_by_text' => ['nullable', 'string', 'max:255'],
-            'content.powered_by_url'  => ['nullable', new FlexibleUrl(), 'max:500'],
+            // powered_by_* is platform attribution (config app.powered_by_*),
+            // deliberately not accepted from the builder
         ];
     }
 
@@ -157,7 +157,6 @@ class UpdateSectionRequest extends FormRequest
     {
         return [
             'content.copyright_text.max'  => 'Copyright text may not exceed 500 characters.',
-            'content.powered_by_text.max' => 'Powered by text may not exceed 255 characters.',
             'status.required'             => 'Section status is required.',
             'status.in'                   => 'Section status must be Active or Inactive.',
         ];

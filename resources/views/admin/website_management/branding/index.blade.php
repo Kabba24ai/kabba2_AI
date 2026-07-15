@@ -25,7 +25,7 @@
                         </h1>
                     </div>
                     <p class="text-gray-600">
-                        Manage your website branding, logo and homepage content
+                        Manage your company identity — logo, favicon, site name, and contact details
                     </p>
                 </div>
             </div>
@@ -95,7 +95,7 @@
                         {{-- Site Name --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Site Name (opportunities page title, footer, etc.)
+                                Site Name (opportunities page title, etc.)
                             </label>
                             {!! html()->text('site_name', old('site_name', $settings['site_name'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'Example: Rent n King',
@@ -104,10 +104,13 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        {{-- Phone --}}
+                        {{-- Phone — the canonical company phone: structured data (schema),
+                             the Custom Range delivery popup, and the fallback for popups
+                             without their own number. The High Demand Alert phone is edited
+                             on Website Mgt → High Demand Alert. --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                High Demand Alert / Custom Range Phone Number
+                                Company Phone Number
                             </label>
                             {!! html()->text('site_phone', old('site_phone', old('site_phone', $settings['site_phone'] ?? '')))->class([
                                     'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
@@ -121,6 +124,12 @@
                                     'id' => 'site_phone',
                                     'autocomplete' => 'tel',
                                 ]) !!}
+                            <p class="mt-1 text-xs text-gray-500">
+                                Used across the website (delivery popups, search-engine business info).
+                                The High Demand Alert popup phone is managed on
+                                <a href="{{ route('admin.website-management.high-demand-alert.index') }}"
+                                   class="text-blue-600 hover:underline">High Demand Alert</a>.
+                            </p>
                             @error('site_phone')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -137,223 +146,21 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        {{-- Powered By --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Footer - All rights reserved.
-                            </label>
-                            {!! html()->text('all_rights_reserved', old('all_rights_reserved', $settings['all_rights_reserved'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
-                                    'placeholder' => 'Example: Rent `n King',
-                                ]) !!}
-                            @error('all_rights_reserved')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        {{-- Powered By --}}
-                        <div class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Footer - Powered By
-                            </label>
-                            {!! html()->text('powered_by', old('powered_by', $settings['powered_by'] ?? ''))->class('w-full border border-gray-300 -md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
-                                    'placeholder' => 'Example: Kabba.ai',
-                                    'readonly' => true,
-                                ]) !!}
-                            @error('powered_by')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        {{-- Footer copyright + "Powered by" are managed in
+                             Website Management → Footer (Footer Content tab) —
+                             the sole owner of footer content. --}}
                     </div>
 
-                    <div class="mt-6 border border-gray-200 rounded-md p-4 bg-gray-50">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-medium text-sm text-gray-700">Search Engine Optimize</span>
-                            <a href="#" onclick="document.getElementById('home-seo-fields').classList.toggle('hidden'); return false;"
-                                class="text-sm text-blue-600 hover:underline">Edit SEO meta</a>
-                        </div>
-
-                        <div class="text-sm text-gray-800">
-                            <p class="text-blue-600 font-semibold truncate">
-                                {{ old('home_seo_title', $settings['home_seo_title'] ?? '') }}
-                            </p>
-                            <p class="text-green-700 text-xs truncate">
-                                <a href="{{ route('front.home.index') }}" class="text-blue-600 hover:underline break-all" target="_blank">
-                                    {{ route('front.home.index') }}
-                                </a>
-                            </p>
-                            <p class="text-gray-700 mt-1">
-                                {{ old('home_seo_description', $settings['home_seo_description'] ?? '') }}
-                            </p>
-                        </div>
-
-                        <div id="home-seo-fields" class="mt-4 space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    SEO Title
-                                </label>
-                                {!! html()->text('home_seo_title', old('home_seo_title', $settings['home_seo_title'] ?? ''))
-                                ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
-                                ->attributes([
-                                'placeholder' => 'SEO Title',
-                                'maxlength' => 60,
-                                'data-parsley-maxlength' => 60,
-                                ]) !!}
-                                @error('home_seo_title')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    SEO Description
-                                </label>
-                                {!! html()->textarea('home_seo_description', old('home_seo_description', $settings['home_seo_description'] ?? ''))
-                                ->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')
-                                ->attributes([
-                                'rows' => 3,
-                                'placeholder' => 'SEO Description',
-                                'maxlength' => 160,
-                                'data-parsley-maxlength' => 160,
-                                ]) !!}
-                                @error('home_seo_description')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
+                    {{-- Homepage SEO is managed in Home Page Builder → SEO — the single
+                         editor for the public homepage title/description metadata. --}}
                 </div>
 
-                <div class="border border-gray-200 rounded-md p-4 bg-gray-50">
-                    <div class="flex items-center space-x-2 mb-6">
-                        <x-heroicon-o-paint-brush class="h-5 w-5 text-blue-600" />
-                        <h3 class="text-lg font-bold text-gray-900">Home Page Settings</h3>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {{-- The homepage hero is managed in Home Builder → Hero --}}
-                        <div class="md:col-span-2">
-                            <div class="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2">
-                                <x-heroicon-o-information-circle class="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
-                                <p class="text-sm text-blue-800">
-                                    The homepage hero image is managed in
-                                    <a href="{{ route('admin.website-management.home-builder.index', ['tab' => 'hero']) }}"
-                                       class="font-semibold underline text-blue-900 hover:text-blue-700">Home Builder → Hero</a>.
-                                </p>
-                            </div>
-                        </div>
-                        {{-- Top Text --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Top Text
-                            </label>
-                            {!! html()->text('top_text', old('top_text', $settings['top_text'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
-                                    'placeholder' => 'Call for Live Assistance from a Real Person',
-                                ]) !!}
-                            @error('top_text')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        {{-- Phone Number --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Phone Number for Top Text
-                            </label>
-                            {!! html()->text('top_phone', old('top_phone', old('top_phone', $settings['top_phone'] ?? '')))->class([
-                                    'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
-                                    'border-red-500' => $errors->has('top_phone'),
-                                    'border-gray-300' => !$errors->has('top_phone'),
-                                ])->attributes([
-                                    'maxlength' => 14,
-                                    'data-parsley-pattern' => '^\(\d{3}\)\s\d{3}-\d{4}$',
-                                    'data-parsley-error-message' => 'Please enter phone number in format (xxx) xxx-xxxx',
-                                    'placeholder' => '(xxx) xxx-xxxx',
-                                    'id' => 'top_phone',
-                                    'autocomplete' => 'tel',
-                                ]) !!}
-                            @error('top_phone')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        {{-- Bottom Title --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Bottom Text Title
-                            </label>
-                            {!! html()->text('bottom_title', old('bottom_title', old('bottom_title', $settings['bottom_title'] ?? '')))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none') !!}
-                            @error('bottom_title')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        {{-- Bottom Text --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Bottom Text
-                            </label>
-                            {!! html()->textarea('bottom_text', old('bottom_text', $settings['bottom_text'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
-                                    'rows' => 4,
-                                ]) !!}
-                            @error('bottom_text')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
-                <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
-                    <div class="flex items-center space-x-2 mb-6">
-                        <x-heroicon-o-document-text class="h-5 w-5 text-blue-600" />
-                        <h3 class="text-lg font-bold text-gray-900">Terms and Conditions (Order)</h3>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Terms &amp; Conditions Line 1
-                            </label>
-                            {!! html()->text(
-                                    'terms_condition_text_1',
-                                    old('Terms & Conditions Text 1', $settings['terms_condition_text_1']),
-                                )->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none') !!}
-                            @error('terms_condition_text_1')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Terms &amp; Conditions Line 2
-                            </label>
-                            {!! html()->text(
-                                    'terms_condition_text_2',
-                                    old('Terms & Conditions Text 2', $settings['terms_condition_text_2']),
-                                )->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none') !!}
-                            @error('terms_condition_text_2')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Terms &amp; Conditions Line 3
-                            </label>
-                            {!! html()->text(
-                                    'terms_condition_text_3',
-                                    old('Terms & Conditions Text 3', $settings['terms_condition_text_3']),
-                                )->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none') !!}
-                            @error('terms_condition_text_3')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <a href="{{ asset('storage/admin/images/samples/terms-layout-preview.png') }}" target="_blank"
-                                class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium underline">
-                                See Layout
-                            </a>
-                            <a href="{{ asset('storage/admin/images/samples/terms-layout-preview.png') }}" target="_blank">
-                                <img src="{{ asset('storage/admin/images/samples/terms-layout-preview.png') }}"
-                                    onerror="this.style.display='none'"
-                                    class="h-16 w-24 object-cover border border-gray-200 rounded shadow-sm object-scale-down"
-                                    alt="Terms Layout Preview">
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                {{-- Retired: the "Home Page Settings" card (top_text / top_phone /
+                     bottom_title / bottom_text). Those legacy homepage fields have no
+                     front-end consumers — homepage content is managed in the Home Page
+                     Builder, and structured-data phone now uses site_phone. --}}
+                {{-- The Rental Agreement Header (order terms lines) is managed in
+                     Settings → Terms & Conditions — not part of branding. --}}
                 {{-- Save Button --}}
                 <div class="mt-6 text-right">
                     <button type="submit"

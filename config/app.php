@@ -17,6 +17,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Platform Attribution
+    |--------------------------------------------------------------------------
+    |
+    | The "Powered by" attribution rendered in the public footer. This is
+    | platform branding controlled by Kabba — deliberately NOT editable
+    | through the Footer Builder, Branding, Theme Builder, or any
+    | database-managed website setting.
+    |
+    */
+
+    'powered_by_name' => env('POWERED_BY_NAME', 'Kabba.ai'),
+    'powered_by_url'  => env('POWERED_BY_URL', 'https://kabba.ai'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

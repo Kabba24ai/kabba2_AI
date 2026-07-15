@@ -11,12 +11,16 @@ use App\Http\Controllers\Admin\TermsAndConditions\UpdateController;
 use App\Http\Controllers\Admin\TermsAndConditions\DeleteController;
 
 use App\Http\Controllers\Admin\TermsAndConditions\GlobalTermsController;
+use App\Http\Controllers\Admin\TermsAndConditions\UpdateHeaderController;
 
 Route::prefix('terms-and-conditions')
 ->name('terms-and-conditions.')
 ->group(function ($router) {
 
     Route::get('/', IndexController::class)->name('index');
+
+    // Rental Agreement Header (lines shown atop the customer signing page)
+    Route::post('/header', UpdateHeaderController::class)->name('header.update');
 
     // Create
     Route::get('/create/{termsId?}', CreateController::class)->name('create');

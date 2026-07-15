@@ -26,6 +26,9 @@ Route::prefix('website-management')
         // footer
         require base_path('routes/admin/website_management/footer/routes.php');
 
+        // high demand alert (global popup content)
+        require base_path('routes/admin/website_management/high_demand_alert/routes.php');
+
         // home_page
         require base_path('routes/admin/website_management/home_page/routes.php');
 

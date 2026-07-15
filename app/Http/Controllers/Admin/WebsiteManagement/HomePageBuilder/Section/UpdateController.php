@@ -39,6 +39,11 @@ class UpdateController extends Controller
 
         // Merge JSON content fields
         if (isset($validated['content']) && is_array($validated['content'])) {
+            // powered_by_* is platform attribution (config app.powered_by_*) —
+            // never accepted from admin input; historical stored values are
+            // left untouched but ignored at render time
+            unset($validated['content']['powered_by_text'], $validated['content']['powered_by_url']);
+
             $existing = $section->content ?? [];
             $validated['content'] = array_merge($existing, $validated['content']);
         }

@@ -8,7 +8,7 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-truck class="w-5 h-5 text-blue-600" aria-hidden="true" />
-        <h3 class="text-lg font-bold text-gray-900">Delivery Range & Credit Card Rate</h3>
+        <h3 class="text-lg font-bold text-gray-900">Delivery Range</h3>
     </div>
 
     <div class="flex flex-wrap items-end gap-8">
@@ -113,49 +113,7 @@
         </div>
     </div>
 
-    <div class="flex flex-col max-w-xs mt-6">
-        <label for="credit_card_processing_fee" class="block text-sm font-medium text-gray-700 mb-1">
-            Credit Card Processing Fee (%)
-        </label>
-
-        <div class="flex items-center flex-wrap gap-2 relative">
-            {!! html()->input(
-                    'number',
-                    'credit_card_processing_fee',
-                    $settings['Product Settings']['credit_card_processing_fee']['setting_value'],
-                )->class([
-                    'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                    'border-gray-300' => !$errors->has('credit_card_processing_fee'),
-                    'border-red-500' => $errors->has('credit_card_processing_fee'),
-                ])->attributes([
-                    'autocomplete' => 'off',
-                    'placeholder' => $settings['Product Settings']['credit_card_processing_fee']['placeholder'] ?? '3.00',
-                    'step' => '0.01',
-                    'id' => 'credit_card_processing_fee',
-                ]) !!}
-
-            <!-- Tooltip trigger -->
-            <div class="relative group">
-                <span class="text-blue-400 hover:text-blue-500 text-sm flex items-center cursor-pointer">
-                    <x-heroicon-o-information-circle class="w-5 h-5" />
-                </span>
-
-                <!-- Tooltip -->
-                <div class="tooltip-panel">
-                    <p>Used by the <strong>Full Amount Less Card Processing Fee</strong> refund option on Order
-                        Details, so the company can retain the original card-processing expense on a cancellation
-                        refund instead of absorbing it.</p>
-                    <br>
-                    <strong>Example:</strong> Refundable amount <strong>$1,000.00</strong> × Fee
-                    <strong>3% = $30.00</strong> retained, <strong>$970.00</strong> refunded to the customer.
-                </div>
-            </div>
-        </div>
-
-        @error('credit_card_processing_fee')
-            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-        @enderror
-    </div>
+    {{-- Credit Card Processing Fee moved to Tax Settings & Credit Card Rate --}}
 </div>
 
 @include('admin.configurations.partials._allocated_settings')

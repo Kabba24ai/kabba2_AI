@@ -28,7 +28,7 @@ class FooterComponent extends AbstractSectionComponent
     {
         return [
             'section' => [
-                'content' => ['copyright_text' => '© ' . date('Y') . ' Your Company. All rights reserved.', 'powered_by_text' => ''],
+                'content' => ['copyright_text' => '© ' . date('Y') . ' Your Company. All rights reserved.'],
             ],
             'items' => [],
         ];

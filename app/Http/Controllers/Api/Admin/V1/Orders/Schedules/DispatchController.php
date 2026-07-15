@@ -61,7 +61,6 @@ class DispatchController extends BaseController
         $isReturnOnly = $isReturnSelected && !$isDeliverySelected;
         $isDeliveryOnly = $isDeliverySelected && !$isReturnSelected;
 
-        // Default (show_all=false): hide completed rows — only show actionable items
         if (!empty($scheduleTypes)) {
             $query->where(function ($q) use ($isDeliverySelected, $isReturnSelected, $isReturnOnly, $isBothSelected) {
                 if ($isDeliverySelected) {
@@ -123,7 +122,18 @@ class DispatchController extends BaseController
                 } elseif ($isReturnOnly) {
                     $q->where('pickup_by', $driverId);
                 } else {
-                    $q->where('delivery_by', $driverId)->orWhere('pickup_by', $driverId);
+                    $q->where('delivery_by', $driverId)
+                        ->orWhere(function ($sub) use ($driverId) {
+                            // Match on the return leg only if the delivery leg is
+                            // either this driver's too, or already completed —
+                            // don't surface a return row while delivery is still
+                            // pending with a different driver assigned.
+                            $sub->where('pickup_by', $driverId)
+                                ->where(function ($deliveryCheck) use ($driverId) {
+                                    $deliveryCheck->where('delivery_by', $driverId)
+                                        ->orWhere('delivery_status', '!=', 'Pending');
+                                });
+                        });
                 }
             });
         }
@@ -176,19 +186,23 @@ class DispatchController extends BaseController
         }
 
         if ($isBothSelected || empty($scheduleTypes)) {
+            // Only weigh a leg's priority/date when that leg is still Pending —
+            // a Completed delivery's leftover priority shouldn't outrank the
+            // actual pending leg (e.g. the return) in the sort. Date is the
+            // primary sort key; priority only breaks ties on the same date.
             $orderProducts = $query
-                ->orderByRaw("LEAST(COALESCE(delivery_priority, 9999), COALESCE(pickup_priority, 9999)) ASC")
-                ->orderByRaw("LEAST(COALESCE(dispatch_delivery_date, delivery_date, '9999-12-31'), COALESCE(dispatch_return_date, pickup_date, '9999-12-31')) ASC")
+                ->orderByRaw("LEAST(CASE WHEN delivery_status = 'Pending' THEN COALESCE(dispatch_delivery_date, delivery_date, '9999-12-31') ELSE '9999-12-31' END, CASE WHEN pickup_status = 'Pending' THEN COALESCE(dispatch_return_date, pickup_date, '9999-12-31') ELSE '9999-12-31' END) ASC")
+                ->orderByRaw("LEAST(CASE WHEN delivery_status = 'Pending' THEN COALESCE(delivery_priority, 9999) ELSE 9999 END, CASE WHEN pickup_status = 'Pending' THEN COALESCE(pickup_priority, 9999) ELSE 9999 END) ASC")
                 ->paginate($perPage)->withQueryString();
         } elseif ($isReturnOnly) {
             $orderProducts = $query
-                ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
                 ->orderByRaw('COALESCE(dispatch_return_date, pickup_date) ASC')
+                ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
                 ->paginate($perPage)->withQueryString();
         } else {
             $orderProducts = $query
-                ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
                 ->orderByRaw('COALESCE(dispatch_delivery_date, delivery_date) ASC')
+                ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
                 ->paginate($perPage)->withQueryString();
         }
 

@@ -108,7 +108,23 @@ class AIPageMetadataGenerator
     public function generateForHome(): ?AiPageMetadata
     {
         try {
-            $hash   = md5(config('app.name') . now()->format('Y-m-d'));
+            // Canonical homepage SEO lives on the home WebsitePage
+            // (Home Page Builder → SEO); the retired Branding
+            // home_seo_* settings survive only as a read fallback.
+            $homePage = \App\Models\WebsiteManagement\WebsitePage::where('page_key', 'home')
+                ->first(['id', 'meta_title', 'meta_description']);
+
+            $settings = Setting::where('setting_type', 'Website Management Branding')
+                ->whereIn('setting_name', ['home_seo_title', 'home_seo_description'])
+                ->pluck('setting_value', 'setting_name');
+
+            $aiTitle   = $homePage?->meta_title
+                ?: ($settings['home_seo_title'] ?? null)
+                ?: config('app.name');
+            $aiSummary = $homePage?->meta_description
+                ?: ($settings['home_seo_description'] ?? null);
+
+            $hash   = md5(config('app.name') . $aiTitle . $aiSummary . now()->format('Y-m-d'));
             $record = AiPageMetadata::findForHome();
 
             if ($record && $record->generated_from_hash === $hash) {
@@ -123,17 +139,14 @@ class AIPageMetadataGenerator
                 $schemas[] = $this->schema->buildLocalBusinessSchema($primary);
             }
 
-            $settings = Setting::where('setting_type', 'Website Management Branding')
-                ->pluck('setting_value', 'setting_name');
-
             return AiPageMetadata::updateOrCreate(
                 ['page_type' => 'home', 'page_id' => null],
                 [
                     'page_type'           => 'home',
                     'page_id'             => null,
                     'url'                 => url('/'),
-                    'ai_title'            => $settings['home_seo_title'] ?? config('app.name'),
-                    'ai_summary'          => $settings['home_seo_description'] ?? null,
+                    'ai_title'            => $aiTitle,
+                    'ai_summary'          => $aiSummary,
                     'ai_keywords'         => [],
                     'schema_json'         => $schemas,
                     'generated_from_hash' => $hash,

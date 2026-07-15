@@ -36,7 +36,6 @@ class SaveRequest extends FormRequest
 
             // ── Business Identity ─────────────────────────────────────────────
             'site_name' => ['sometimes', 'required', 'string', 'max:255'],
-            'site_tagline' => ['nullable', 'string', 'max:255'],
 
             'site_phone' => [
                 'nullable',
@@ -48,52 +47,16 @@ class SaveRequest extends FormRequest
                 'string'
             ],
 
-
-            'home_seo_title' => [
-                'nullable',
-                'string'
-            ],
-
-            'home_seo_description' => [
-                'nullable',
-                'string'
-            ],
-
-            'home_page_subtitle' => [
-                'nullable',
-                'string'
-            ],
-
-            'top_text' => [
-                'nullable',
-                'string'
-            ],
-
-            'top_phone' => [
-                'nullable',
-                'string',
-            ],
-
-            'bottom_title' => [
-                'nullable',
-                'string',
-            ],
-
-            'bottom_text' => [
-                'nullable',
-                'string'
-            ],
-
             'powered_by' => 'nullable',
             'all_rights_reserved' => 'nullable',
 
-            'terms_and_conditions_url' => [
-                'nullable',
-                'string'
-            ],
-
-            // The Rental Agreement Header lines (terms_condition_text_1/2/3)
-            // are managed exclusively in Settings → Terms & Conditions.
+            // Retired (not accepted here anymore):
+            //  - home_seo_title / home_seo_description — homepage SEO is managed
+            //    in Home Page Builder → SEO (website_pages meta columns)
+            //  - top_text / top_phone / bottom_title / bottom_text — legacy
+            //    homepage fields with no front-end consumers; structured data
+            //    reads site_phone
+            //  - terms_condition_text_1/2/3 — Settings → Terms & Conditions
 
         ];
     }
@@ -110,7 +73,6 @@ class SaveRequest extends FormRequest
             // ── Business Identity ──────────────────────────────────────────
             'site_name.required'                 => 'Business name is required.',
             'site_name.max'                      => 'Business name may not exceed 255 characters.',
-            'site_tagline.max'                   => 'Tagline may not exceed 255 characters.',
         ];
     }
 }

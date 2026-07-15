@@ -17,15 +17,14 @@ class WebsiteManagementSettingsSeeder extends Seeder
          * Branding Settings
          * ----------------------------------
          */
+        // Retired keys no longer seeded: top_text / top_phone / bottom_title /
+        // bottom_text — legacy homepage fields with no consumers (structured
+        // data reads site_phone). Existing DB rows are left untouched.
         $branding = [
             'site_logo' => null,
             'site_phone' => '(615) 815-6734',
             'site_email' => 'rentnking@gmail.com',
             'site_name' => 'Rent `n King',
-            'top_text' => 'Call For Live Assistance from a Real Person:',
-            'top_phone' => '(615) 815-6734',
-            'bottom_title' => 'About the company',
-            'bottom_text' => 'Locally owned and committed to 1st-tier customer service...',
             'all_rights_reserved' => 'Rent `n King',
             'powered_by' => 'Kabba.ai',
         ];

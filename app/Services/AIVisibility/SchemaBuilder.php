@@ -243,8 +243,11 @@ class SchemaBuilder
                 'url'   => $logoUrl,
             ];
         }
-        if (!empty($settings['top_phone'])) {
-            $schema['telephone'] = $settings['top_phone'];
+        // Canonical company phone is site_phone (Branding page); the retired
+        // top_phone setting survives only as a read fallback.
+        $phone = $settings['site_phone'] ?? $settings['top_phone'] ?? null;
+        if (!empty($phone)) {
+            $schema['telephone'] = $phone;
         }
 
         // Primary store address — geo belongs on LocalBusiness/Place, not Organization
@@ -269,7 +272,7 @@ class SchemaBuilder
             '@type'     => 'LocalBusiness',
             'name'      => $store->store_name,
             'address'   => $this->buildPostalAddress($store),
-            'telephone' => $store->phone ?? ($settings['top_phone'] ?? null),
+            'telephone' => $store->phone ?? $settings['site_phone'] ?? $settings['top_phone'] ?? null,
             'url'       => url('/'),
         ];
 
@@ -507,17 +510,13 @@ class SchemaBuilder
         return $settings['organization_name'] ?? config('app.name', 'Kabba');
     }
 
+    /** Per-instance cache — a `static` local would leak state across requests in tests/queues */
+    private ?array $brandingSettings = null;
+
     private function loadBrandingSettings(): array
     {
-        static $cache = null;
-        if ($cache !== null) {
-            return $cache;
-        }
-
-        $cache = Setting::where('setting_type', 'Website Management Branding')
+        return $this->brandingSettings ??= Setting::where('setting_type', 'Website Management Branding')
             ->pluck('setting_value', 'setting_name')
             ->toArray();
-
-        return $cache;
     }
 }

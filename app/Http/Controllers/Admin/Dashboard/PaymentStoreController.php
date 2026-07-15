@@ -543,7 +543,10 @@ class PaymentStoreController extends Controller
                     'CreditCard'   => \App\Enums\Orders\OrderPaymentMethod::Card,
                     'Cash'         => \App\Enums\Orders\OrderPaymentMethod::Cash,
                     'Cheque'       => \App\Enums\Orders\OrderPaymentMethod::Cheque,
-                    'BankTransfer' => \App\Enums\Orders\OrderPaymentMethod::Online,
+                    'TapToPay'     => \App\Enums\Orders\OrderPaymentMethod::TapToPay,
+                    'StoreCredit'  => \App\Enums\Orders\OrderPaymentMethod::StoreCredit,
+                    'GiftCard'     => \App\Enums\Orders\OrderPaymentMethod::GiftCard,
+                    'ZelleVenmo'   => \App\Enums\Orders\OrderPaymentMethod::ZelleVenmo,
                     default        => \App\Enums\Orders\OrderPaymentMethod::Other,
                 };
 

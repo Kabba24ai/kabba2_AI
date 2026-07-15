@@ -34,9 +34,11 @@ class PaymentStoreRequest extends FormRequest
         'customer_id' => ['required'],
         'invoice_id' => ['required'],
         'amount' => ['required'],
-        'payment_type' => ['required', Rule::in(['Cash', 'Cheque', 'CreditCard', 'BankTransfer', 'Other'])],
+        'payment_type' => ['required', Rule::in(array_column(\App\Enums\Customers\PaymentMethod::canonical(), 'value'))],
         'responsible_person' => ['required'],
-        'notes' => ['nullable'],
+        // "Other" carries no inherent meaning on its own — require a
+        // description of what was actually used, same as Receive Payment.
+        'notes' => ['nullable', 'required_if:payment_type,Other'],
         'existing_card_id' => ['nullable', 'exists:customer_cards,unique_id'],
 
         'opaqueDataValue' => ['nullable', 'string'],
@@ -56,6 +58,7 @@ class PaymentStoreRequest extends FormRequest
 public function messages(): array
 {
     return [
+        'notes.required_if' => 'Describe the payment method used (e.g. Manufacturer Credit, Trade Credit).',
     ];
 }
 

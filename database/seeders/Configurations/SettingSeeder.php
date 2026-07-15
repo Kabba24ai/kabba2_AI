@@ -468,6 +468,14 @@ class SettingSeeder extends Seeder
                 'sort_order' => $sortOrder++,
             ],
             [
+                'value_type' => 'number',
+                'setting_name' => 'credit_card_processing_fee',
+                'setting_title' => 'Credit Card Processing Fee',
+                'default_value' => 0,
+                'placeholder' => '3.00',
+                'sort_order' => $sortOrder++,
+            ],
+            [
                 'value_type' => 'options',
                 'setting_name' => 'distance_unit',
                 'setting_title' => 'Distance Unit',

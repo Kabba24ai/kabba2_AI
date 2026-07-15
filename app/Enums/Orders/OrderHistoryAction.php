@@ -37,6 +37,7 @@ enum OrderHistoryAction: string
     case DriverChecklistUpdated = 'driver_checklist_updated';
 
     case TransactionVoided = 'transaction_voided';
+    case StoreCreditApplied = 'store_credit_applied';
 
     public function label(): string
     {
@@ -72,6 +73,7 @@ enum OrderHistoryAction: string
             self::ExtensionChargeDeleted => 'Extension Charge Deleted',
             self::DriverChecklistUpdated => 'Driver Checklist Updated',
             self::TransactionVoided => 'Transaction Voided',
+            self::StoreCreditApplied => 'Store Credit Applied',
         };
     }
 }

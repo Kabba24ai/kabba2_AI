@@ -13,9 +13,9 @@ enum Invoice: string
     public function label(): string
     {
         return match ($this) {
-            self::Cash => 'Pay at Front Desk',
+            self::Cash => 'Cash',
             self::Card => 'CC on File',
-            self::Online => 'Direct Bank Transfer',
+            self::Online => 'Bank Transfer',
             self::Cheque => 'Check Payment',
             self::Other => 'Other Payment Method',
         };

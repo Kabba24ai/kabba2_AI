@@ -381,10 +381,23 @@
                             
                          @else
 <!-- View -->
-                            <button class="openTransactionViewModalBtn cursor-pointer" title="View" data-transaction='@json($transaction)' data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}">
+                            @php
+                                // A native PHP enum serializes to JSON as its raw
+                                // backing value ("CreditCard", "Cheque", ...), so
+                                // @json($transaction) alone would leak that value
+                                // straight into the customer-facing modal below.
+                                // payment_type stays raw (the JS still branches on
+                                // it, e.g. for the Cheque-number row) — only a
+                                // label is added alongside it for display.
+                                $transactionJson = $transaction->toArray();
+                                $transactionJson['payment_type_label'] = $transaction->payment_type
+                                    ? \App\Services\PaymentDescriptionPresenter::methodLabel($transaction->payment_type)
+                                    : null;
+                            @endphp
+                            <button class="openTransactionViewModalBtn cursor-pointer" title="View" data-transaction='@json($transactionJson)' data-date="{{ App\Helpers\CustomHelper::formatDate($transaction->date) }}">
                                 <x-heroicon-o-eye class="w-4 h-4 text-blue-600" />
                             </button>
-                            
+
                          @endif
 
                             <!-- Download -->
@@ -528,7 +541,7 @@
                         extraFields += `
                         <div class="flex justify-between">
                             <span class="text-gray-500 font-medium">Payment Type:</span>
-                            <span class="text-gray-700">${tx.payment_type || '-'}</span>
+                            <span class="text-gray-700">${tx.payment_type_label || tx.payment_type || '-'}</span>
                         </div>
                         `;
 

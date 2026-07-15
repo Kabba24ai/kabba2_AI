@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Orders\Order;
-use App\Models\Customers\Receipt;
+use App\Services\ReceiptService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +14,13 @@ class CreateReceiptJob implements ShouldQueue
 
     /**
      * Create a new job instance.
+     *
+     * @deprecated $paymentMethod is no longer used — ReceiptService derives
+     * the receipt's payment method and status from the order's actual
+     * payment record instead of trusting a caller-supplied guess (which
+     * previously defaulted to 'Card'/'paid' regardless of how the order
+     * was really paid). Kept as a constructor param only so existing
+     * dispatch(...) call sites don't need to change.
      */
     public function __construct(
         public int $orderId,
@@ -31,50 +38,15 @@ class CreateReceiptJob implements ShouldQueue
                 ->with(['products'])
                 ->findOrFail($this->orderId);
 
-            $receipt = Receipt::create([
-                'customer_id' => $order->customer_id,
-                'order_id' => $order->id,
-                'payment_method' => $this->paymentMethod,
-                'receipt_date' => now(),
-                'order_date' => $order->order_date,
-                'payment_status' => 'paid',
-                'subtotal' => $order->subtotal,
-                'sales_tax' => $order->tax_amount,
-                'total' => $order->grand_total,
-            ]);
+            $receipt = ReceiptService::getOrCreateReceipt($order);
 
-            // Build receipt items in bulk
-            $receiptNow = now();
-            $rows = [];
-
-            foreach ($order->products as $invItem) {
-                $rows[] = [
+            if ($receipt) {
+                Log::info('Receipt Created for Order', [
+                    'order_id' => $order->id,
+                    'order_num' => $order->order_number,
                     'receipt_id' => $receipt->id,
-                    'type' => 'order',
-                    'item_name' => $invItem->product_name,
-                    'unit' => $invItem->price,
-                    'qty' => $invItem->quantity,
-                    'tax' => $invItem->tax,
-                    'total' => $invItem->total,
-                    'item_id' => $invItem->unique_id,
-                    'created_at' => $receiptNow,
-                    'updated_at' => $receiptNow,
-                ];
+                ]);
             }
-
-            if ($rows) {
-                $receipt->items()->insert($rows);
-            }
-
-            // Mark order receipt as created
-            $order->receipt_status = 'created';
-            $order->saveQuietly();
-
-            Log::info('Receipt Created for Order', [
-                'order_id' => $order->id,
-                'order_num' => $order->order_number,
-                'receipt_id' => $receipt->id,
-            ]);
         } catch (\Throwable $e) {
             Log::error('Receipt creation FAILED for order ' . $this->orderId, [
                 'error' => $e->getMessage(),

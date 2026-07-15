@@ -23,7 +23,7 @@
 
                     {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
                     </td>
-                    <td class="px-4 py-3 text-gray-700">{{ $order->last_payment_type ?? 'N/A' }}</td>
+                    <td class="px-4 py-3 text-gray-700">{{ $order->last_payment_type?->label() ?? 'N/A' }}</td>
                     <td class="px-4 py-3">
                         @php
                             $statusColors = [

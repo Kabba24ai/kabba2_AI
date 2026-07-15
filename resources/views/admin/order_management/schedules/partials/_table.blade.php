@@ -262,7 +262,7 @@
 
                     {{-- Payment --}}
                     <td class="py-4 px-4 text-center">
-                        {!! \App\Helpers\CustomHelper::statusBadge($orderProduct->order?->last_payment_status) !!}
+                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($orderProduct->order?->last_payment_status) !!}
                     </td>
 
                     {{-- Actions (no header text) --}}

@@ -28,11 +28,25 @@ class ReceivePaymentRequest extends ApiBaseFormRequest
             'lastName' => ['nullable', 'required_if:card_option,NewCard', 'string', 'max:50'],
             'opaqueDataValue' => ['nullable', 'required_if:card_option,NewCard', 'string', 'max:255'],
             'opaqueDataDescriptor' => ['nullable', 'required_if:card_option,NewCard', 'string', 'max:255'],
-            'payment_note' => ['nullable','max:255'],
+            // "Other" carries no inherent meaning on its own — require a
+            // description of what was actually used so the record stays
+            // as accurate as every named method.
+            'payment_note' => ['nullable', 'required_if:payment_type,Other', 'max:255'],
             'card_number' => ['nullable','string','max:4'],
             'mm_yy' => ['nullable','string','max:6'],
             'partial_payment' => ['nullable', 'boolean'],
             'payment_amount' => ['nullable', 'numeric', 'min:0.01'],
+            // Client-generated, one per modal-open — lets Store Credit
+            // redemption recognize a duplicate double-click/network-retry
+            // of the same submit rather than redeeming twice.
+            'idempotency_token' => ['nullable', 'string', 'max:64'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'payment_note.required_if' => 'Describe the payment method used (e.g. Manufacturer Credit, Trade Credit).',
         ];
     }
 }

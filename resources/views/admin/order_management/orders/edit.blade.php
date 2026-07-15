@@ -62,8 +62,13 @@
 
                     @if ($order->last_payment_status === OrderPaymentStatus::PartialPayment->value && $totalPartialPaid > 0)
                         <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-orange-700 bg-orange-100 rounded-full">
-                            Partial Payment: {{ \App\Helpers\CustomHelper::formatCurrency($totalPartialPaid) }}
+                            Partial Payment: {{ $order->last_payment_type?->label() ?? 'Unknown' }} · {{ \App\Helpers\CustomHelper::formatCurrency($totalPartialPaid) }}
                         </span>
+                        @if ($order->balance_due > 0)
+                            <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full">
+                                Balance Due: {{ \App\Helpers\CustomHelper::formatCurrency($order->balance_due) }}
+                            </span>
+                        @endif
                     @endif
 
                     @if ($order->last_payment_status === OrderPaymentStatus::Pending->value && $order->last_payment_type !== 'Card')
@@ -79,6 +84,7 @@
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
                             Paid In Full Via -
                             {{ $order->last_payment_type->label() }}
+                            · {{ \App\Helpers\CustomHelper::formatCurrency($order->total_paid) }}
                         </span>
                     @endif
 
@@ -126,6 +132,14 @@
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 transition rounded-lg">
                             <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-red-600" />
                             Full Refund
+                        </button>
+                    @endif
+
+                    @if ($order->payments->isNotEmpty())
+                        <button id="paymentDetailsBtn" type="button"
+                            class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
+                            <x-heroicon-o-information-circle class="w-4 h-4 mr-1 text-gray-600" />
+                            Payment Details
                         </button>
                     @endif
 
@@ -758,32 +772,77 @@
                     <h3 class="text-sm font-semibold text-gray-800">History</h3>
                 </div>
             </div>
-            <div class="p-6 max-h-60 overflow-y-auto">
+            <div class="p-4 max-h-60 overflow-y-auto">
                 @php
-                    $orderHistory = $order->history->map(fn($h) => [
-                        'description' => $h->description,
-                        'created_at'  => $h->created_at,
-                        'is_pod'      => false,
-                    ]);
+                    // Payment-related entries render via the presenter's
+                    // structured timelineEntry() (headline/method/amount as
+                    // distinct fields); every other entry keeps today's
+                    // plain description — no behavior change for non-payment
+                    // history rows.
+                    $orderHistory = $order->history->map(function ($h) {
+                        $timeline = \App\Services\PaymentDescriptionPresenter::timelineEntry($h);
+                        return [
+                            'headline'    => $timeline['headline'],
+                            'method'      => $timeline['method'],
+                            'amount'      => $timeline['amount'],
+                            'sign'        => $timeline['sign'],
+                            'dot'         => $timeline['dot'],
+                            'note'        => $timeline['note'],
+                            'detail'      => $timeline['detail'],
+                            'created_at'  => $h->created_at,
+                            'is_pod'      => false,
+                        ];
+                    });
 
                     $podActivities = ($order->podPaymentLink?->activities ?? collect())->map(fn($a) => [
-                        'description' => 'POD — ' . $a->event->label(),
+                        'headline'    => 'POD — ' . $a->event->label(),
+                        'method'      => null,
+                        'amount'      => null,
+                        'sign'        => null,
+                        'dot'         => 'info',
+                        'note'        => null,
+                        'detail'      => null,
                         'created_at'  => $a->created_at,
                         'is_pod'      => true,
                     ]);
 
                     $allHistory = $orderHistory->concat($podActivities)->sortBy('created_at')->values();
+
+                    $dotClasses = [
+                        'good'    => 'bg-green-500',
+                        'info'    => 'bg-blue-500',
+                        'bad'     => 'bg-red-500',
+                        'neutral' => 'bg-gray-400',
+                    ];
                 @endphp
-                <ul class="list-disc text-sm text-gray-700 space-y-1 pl-3">
+                <ul class="text-sm text-gray-700 space-y-3">
                     @forelse ($allHistory as $entry)
-                        <li>
-                            <span class="{{ $entry['is_pod'] ? 'text-blue-700' : '' }}">
-                                {{ $entry['description'] }}
-                                <br>
-                                <span class="text-xs text-gray-500">
+                        <li class="flex gap-2">
+                            <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0 {{ $dotClasses[$entry['dot']] ?? $dotClasses['neutral'] }}"></span>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-baseline justify-between gap-2">
+                                    <span class="font-medium {{ $entry['is_pod'] ? 'text-blue-700' : 'text-gray-800' }}">
+                                        {{ $entry['headline'] }}
+                                        @if ($entry['method'])
+                                            <span class="font-normal text-gray-500">· {{ $entry['method'] }}</span>
+                                        @endif
+                                    </span>
+                                    @if ($entry['amount'] !== null)
+                                        <span class="font-semibold flex-shrink-0 {{ $entry['sign'] === 'neg' ? 'text-red-600' : 'text-green-700' }}">
+                                            {{ $entry['sign'] === 'neg' ? '-' : '' }}{{ \App\Helpers\CustomHelper::formatCurrency($entry['amount']) }}
+                                        </span>
+                                    @endif
+                                </div>
+                                @if ($entry['note'])
+                                    <div class="text-xs text-gray-500 mt-0.5">Note: {{ $entry['note'] }}</div>
+                                @endif
+                                @if ($entry['detail'])
+                                    <div class="text-xs text-gray-500 mt-0.5">{{ $entry['detail'] }}</div>
+                                @endif
+                                <div class="text-xs text-gray-400 mt-0.5">
                                     {{ \App\Helpers\CustomHelper::formatDateTime($entry['created_at']) }}
-                                </span>
-                            </span>
+                                </div>
+                            </div>
                         </li>
                     @empty
                         <li class="text-gray-400 text-sm">No history available.</li>
@@ -1374,10 +1433,10 @@
                                                 <div class="flex gap-1">
                                                     <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold
                                                         {{ $orderProduct->is_delivered == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}"
-                                                        @if ($orderProduct->is_delivered == 1) onclick="openChecklistModal()" @endif>D</span>
+                                                        @if ($orderProduct->is_delivered == 1) onclick="openChecklistModal({{ $orderProduct->id }})" @endif>D</span>
                                                     <span class="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold
                                                         {{ $orderProduct->is_returned == 1 ? 'bg-green-500 hover:bg-green-600 cursor-pointer' : 'bg-red-500 cursor-not-allowed' }}"
-                                                        @if ($orderProduct->is_returned == 1) onclick="openChecklistModal()" @endif>R</span>
+                                                        @if ($orderProduct->is_returned == 1) onclick="openChecklistModal({{ $orderProduct->id }})" @endif>R</span>
                                                 </div>
                                             </div>
 
@@ -2275,6 +2334,11 @@
                     'class' => 'flex-1',
                     'id' => 'paymentForm',
                 ])->open() }}
+            {{-- Regenerated fresh each time the modal opens (never on retry
+                 of the same submit) — lets the server recognize a duplicate
+                 double-click/network-retry of the same payment attempt
+                 without blocking a genuinely new, separate payment. --}}
+            <input type="hidden" name="idempotency_token" id="paymentIdempotencyToken" value="">
 
             <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
 
@@ -2422,10 +2486,10 @@
                             ])->required() !!}
                     </div>
 
-                    <!-- Notes -->
+                    <!-- Notes (required when Payment Method is "Other") -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                        {!! html()->textarea('payment_note', old('payment_note'))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->rows(3)->placeholder('Enter any additional notes...') !!}
+                        <label id="paymentNoteLabel" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                        {!! html()->textarea('payment_note', old('payment_note'))->id('payment_note')->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700')->rows(3)->placeholder('Enter any additional notes...') !!}
                     </div>
                 </div>
             </div>
@@ -2529,11 +2593,65 @@
         </div>
     </div>
 
+    {{-- Refund shortcut eligibility — computed once here so both the button
+         disabled-state and the JS breakdown read the same server-verified
+         numbers. The backend independently re-verifies all of this before
+         processing (see RefundPaymentController::resolveRefundCalculation)
+         — nothing here is trusted on its own. --}}
+    @php
+        $rfCcFeePercentage = (float) (\App\Helpers\ConfigurationHelper::getSettings('Product Settings', 'credit_card_processing_fee') ?? 0);
+        $rfPaidPayments = $order->payments()->where('status', \App\Enums\Orders\OrderPaymentStatus::Paid->value)->get();
+        $rfSinglePaidPayment = $rfPaidPayments->count() === 1 ? $rfPaidPayments->first() : null;
+
+        $rfCcFeeIneligibleReason = null;
+        if ($rfPaidPayments->count() !== 1) {
+            $rfCcFeeIneligibleReason = 'Not available for orders with more than one payment.';
+        } elseif ($rfSinglePaidPayment->payment_method !== \App\Enums\Orders\OrderPaymentMethod::Card || !$rfSinglePaidPayment->transaction_id) {
+            $rfCcFeeIneligibleReason = 'Only available when the original payment was made by Credit / Debit Card.';
+        } elseif ((float) $order->remaining_amount <= 0) {
+            $rfCcFeeIneligibleReason = 'No refundable balance remains.';
+        } elseif ($rfCcFeePercentage <= 0) {
+            $rfCcFeeIneligibleReason = 'Configure a Credit Card Processing Fee in System Settings to enable this option.';
+        }
+        $rfCcFeeEligible = $rfCcFeeIneligibleReason === null;
+
+        $rfCcFeeEligibleAmount = 0.0;
+        $rfCcFeeRetained = 0.0;
+        $rfCcFeeRefund = 0.0;
+        if ($rfCcFeeEligible) {
+            $rfCcFeeEligibleAmount = round(min((float) $rfSinglePaidPayment->amount, (float) $order->remaining_amount), 2);
+            $rfCcFeeRetained = round($rfCcFeeEligibleAmount * $rfCcFeePercentage / 100, 2);
+            $rfCcFeeRefund = round($rfCcFeeEligibleAmount - $rfCcFeeRetained, 2);
+            if ($rfCcFeeRetained >= $rfCcFeeEligibleAmount) {
+                $rfCcFeeEligible = false;
+                $rfCcFeeIneligibleReason = 'The Credit Card Processing Fee equals or exceeds the refundable amount.';
+            }
+        }
+
+        $rfAlreadyRefundedTax = (float) $order->payments()
+            ->whereIn('status', [\App\Enums\Orders\OrderPaymentStatus::PartialRefund->value, \App\Enums\Orders\OrderPaymentStatus::Refund->value])
+            ->sum('tax_refunded');
+        $rfRemainingRefundableTax = max(0.0, round((float) $order->tax_amount - $rfAlreadyRefundedTax, 2));
+        $rfRemainingRefundableTax = round(min($rfRemainingRefundableTax, (float) $order->remaining_amount), 2);
+        $rfTaxOnlyEligible = $rfRemainingRefundableTax > 0;
+        $rfTaxOnlyIneligibleReason = $rfTaxOnlyEligible ? null : 'No refundable sales tax remains for this order.';
+    @endphp
+
     <!-- Refund Modal -->
     <div id="refundModal"
         class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center"
         data-order-id="{{ $order->order_number }}" data-customer-name="{{ $order->customer_name }}"
         data-original-amount="{{ $order->remaining_amount }}"
+        data-order-subtotal="{{ $order->subtotal }}"
+        data-order-tax-amount="{{ $order->tax_amount }}"
+        data-cc-fee-eligible="{{ $rfCcFeeEligible ? '1' : '0' }}"
+        data-cc-fee-percentage="{{ $rfCcFeePercentage }}"
+        data-cc-fee-refund="{{ $rfCcFeeRefund }}"
+        data-cc-fee-retained="{{ $rfCcFeeRetained }}"
+        data-tax-only-eligible="{{ $rfTaxOnlyEligible ? '1' : '0' }}"
+        data-tax-original="{{ $order->tax_amount }}"
+        data-tax-already-refunded="{{ $rfAlreadyRefundedTax }}"
+        data-tax-remaining-refundable="{{ $rfRemainingRefundableTax }}"
         data-action="{{ route('admin.order-management.orders.refund-payment', $order->unique_id) }}">
         <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
             <!-- Header -->
@@ -2550,6 +2668,10 @@
                     'parsley-validate' => true,
                 ])->open() }}
             @csrf
+            {{-- Regenerated fresh each time the modal opens — lets a Store
+                 Credit refund recognize a duplicate double-click/network-retry
+                 of the same submit without blocking a genuinely new refund. --}}
+            <input type="hidden" name="idempotency_token" id="refundIdempotencyToken" value="">
 
             <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
                 <!-- Order details -->
@@ -2594,23 +2716,90 @@
                                 {{ \App\Helpers\CustomHelper::formatCurrency($order->remaining_amount) }}).
                             </p>
 
+                            <input type="hidden" id="refund_calculation_type" name="refund_calculation_type" value="standard">
+
                             <!-- Quick buttons -->
-                            <div class="flex gap-2 mt-2">
-                                <button type="button"
-                                    class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
-                                    data-percentage="100">
-                                    Full Amount
-                                </button>
-                                <button type="button"
-                                    class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
-                                    data-percentage="50">
-                                    50%
-                                </button>
-                                <button type="button"
-                                    class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
-                                    data-percentage="25">
-                                    25%
-                                </button>
+                            <div class="mt-2 space-y-2">
+                                <div>
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">Standard Refunds</p>
+                                    <div class="flex gap-2">
+                                        <button type="button"
+                                            class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
+                                            data-percentage="100">
+                                            Full Amount
+                                        </button>
+                                        <button type="button"
+                                            class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
+                                            data-percentage="50">
+                                            50%
+                                        </button>
+                                        <button type="button"
+                                            class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 refund-calc-btn"
+                                            data-percentage="25">
+                                            25%
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 pt-2">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">Special Refunds</p>
+                                    <div class="flex flex-col gap-2">
+                                        <div>
+                                            <button type="button" id="rf_cc_fee_btn"
+                                                class="px-3 py-1 text-xs rounded refund-special-btn {{ $rfCcFeeEligible ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-gray-50 text-gray-400 cursor-not-allowed' }}"
+                                                {{ $rfCcFeeEligible ? '' : 'disabled' }}>
+                                                Full Amount Less Card Processing Fee
+                                            </button>
+                                            <p class="text-[11px] text-gray-400 mt-0.5">
+                                                @if ($rfCcFeeEligible)
+                                                    Use only for customer cancellations where the company retains the original card-processing expense.
+                                                @else
+                                                    {{ $rfCcFeeIneligibleReason }}
+                                                @endif
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <button type="button" id="rf_tax_only_btn"
+                                                class="px-3 py-1 text-xs rounded refund-special-btn {{ $rfTaxOnlyEligible ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-gray-50 text-gray-400 cursor-not-allowed' }}"
+                                                {{ $rfTaxOnlyEligible ? '' : 'disabled' }}>
+                                                Sales Tax Only
+                                            </button>
+                                            <p class="text-[11px] text-gray-400 mt-0.5">
+                                                @if ($rfTaxOnlyEligible)
+                                                    Use only when correcting an incorrect sales-tax charge, such as for a tax-exempt customer.
+                                                @else
+                                                    {{ $rfTaxOnlyIneligibleReason }}
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic breakdown -->
+                            <div id="rf_breakdown_box" class="hidden mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm space-y-1">
+                                <p id="rf_breakdown_title" class="font-medium text-gray-900 mb-1"></p>
+
+                                <div id="rf_breakdown_standard" class="hidden space-y-1">
+                                    <div class="flex justify-between"><span class="text-gray-600">Purchase portion:</span><span id="rf_bd_purchase" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600">Sales tax portion:</span><span id="rf_bd_tax" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between border-t border-gray-200 pt-1"><span class="text-gray-600">Total refund:</span><span id="rf_bd_total" class="font-semibold text-gray-900">$0.00</span></div>
+                                    @if ((float) $order->tax_amount > 0)
+                                        <p class="text-[11px] text-gray-400 pt-1">When sales tax was charged, a standard partial refund is divided proportionally between the purchase amount and sales tax at the same rate as the original order.</p>
+                                    @endif
+                                </div>
+
+                                <div id="rf_breakdown_cc_fee" class="hidden space-y-1">
+                                    <div class="flex justify-between"><span class="text-gray-600">Refundable amount:</span><span id="rf_bd_cc_refundable" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600" id="rf_bd_cc_fee_label">Card processing fee:</span><span id="rf_bd_cc_fee" class="font-medium text-red-700">$0.00</span></div>
+                                    <div class="flex justify-between border-t border-gray-200 pt-1"><span class="text-gray-600">Customer refund:</span><span id="rf_bd_cc_total" class="font-semibold text-gray-900">$0.00</span></div>
+                                </div>
+
+                                <div id="rf_breakdown_tax_only" class="hidden space-y-1">
+                                    <div class="flex justify-between"><span class="text-gray-600">Sales tax originally charged:</span><span id="rf_bd_tax_original" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600">Sales tax previously refunded:</span><span id="rf_bd_tax_prev" class="font-medium text-gray-900">$0.00</span></div>
+                                    <div class="flex justify-between border-t border-gray-200 pt-1"><span class="text-gray-600">Sales tax refund now:</span><span id="rf_bd_tax_now" class="font-semibold text-gray-900">$0.00</span></div>
+                                </div>
                             </div>
                         </div>
 
@@ -2647,23 +2836,15 @@
                                 Payment Type
                             </label>
                             @php
-                                $refundOptions = [
-                                    '' => 'Select payment method',
-                                    \App\Enums\Customers\PaymentMethod::Cash->value => 'Cash',
-                                    \App\Enums\Customers\PaymentMethod::Cheque->value => 'Check',
-                                    \App\Enums\Customers\PaymentMethod::BankTransfer->value => 'Bank Transfer',
-                                    \App\Enums\Customers\PaymentMethod::Other->value => 'Other',
-                                ];
+                                // Credit/Debit Card is only offered when that was actually
+                                // the original payment method — every other canonical
+                                // method comes straight from PaymentMethod::options(),
+                                // never a second hand-typed copy of its labels.
+                                $refundOptions = \App\Enums\Customers\PaymentMethod::options();
 
-                                if ($order->last_payment_type === \App\Enums\Orders\OrderPaymentMethod::Card) {
-                                    $refundOptions =
-                                        array_slice($refundOptions, 0, 1, true)
-                                        + [
-                                            \App\Enums\Customers\PaymentMethod::CreditCard->value => 'Credit / Debit Card',
-                                        ]
-                                        + array_slice($refundOptions, 1, null, true);
+                                if ($order->last_payment_type !== \App\Enums\Orders\OrderPaymentMethod::Card) {
+                                    unset($refundOptions[\App\Enums\Customers\PaymentMethod::CreditCard->value]);
                                 }
-
                             @endphp
                             {!! html()->select('payment_type', $refundOptions)->id('refund_payment_type')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
                             <small class="text-gray-500 mt-1 block">Note: Credit/Debit Card option is only available if the
@@ -2678,6 +2859,16 @@
                             <input type="text" id="refund_cheque_number" name="cheque_number"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"
                                 placeholder="Enter Check number" />
+                        </div>
+
+                        <!-- Other — description required (hidden by default) -->
+                        <div id="refund_payment_note_field" class="hidden">
+                            <label class="text-sm font-medium text-gray-700 required" for="refund_payment_note">
+                                Describe Payment Method
+                            </label>
+                            <input type="text" id="refund_payment_note" name="payment_note" maxlength="255"
+                                placeholder="E.g. Manufacturer Credit, Trade Credit"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700" />
                         </div>
 
                         <!-- Type indicator -->
@@ -2739,6 +2930,10 @@
 
                     <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
                         <div class="space-y-2">
+                            <div id="rf_c_calc_type_row" class="flex justify-between hidden">
+                                <span class="text-gray-600">Refund Type:</span>
+                                <span id="rf_c_calc_type" class="font-medium text-gray-900">—</span>
+                            </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Refund Amount:</span>
                                 <span id="rf_c_amount" class="font-semibold text-red-800">$0.00</span>
@@ -2794,6 +2989,117 @@
                 </div>
             </div>
             {{ html()->form()->close() }}
+        </div>
+    </div>
+
+    {{-- Payment Details Modal — read-only, opened from the "Payment Details"
+         button next to the header status pills. Everything not needed at a
+         glance (reference numbers, notes, Store Credit breakdown) lives
+         here instead of cluttering the header. --}}
+    @php
+        $pdPayment = $order->lastPaidPayment ?? $order->lastPayment;
+        $pdStoreCreditEntry = null;
+        if ($pdPayment && $pdPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::StoreCredit) {
+            $pdStoreCreditEntry = \App\Models\Customers\CustomerCredit::where('order_id', $order->id)
+                ->where('type', \App\Services\CustomerCreditService::TYPE_REDEMPTION)
+                ->latest('id')
+                ->first();
+        }
+    @endphp
+    <div id="paymentDetailsModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-lg font-semibold">Payment Details</h2>
+                <button type="button"
+                    class="close-payment-details-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+
+            <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                @if ($pdPayment)
+                    <div class="bg-gray-50 rounded-lg p-4 text-sm space-y-1 text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Status:</span>
+                            {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Method:</span>
+                            <span class="font-medium text-gray-900">{{ \App\Services\PaymentDescriptionPresenter::methodLabel($pdPayment->payment_method) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Date:</span>
+                            <span class="font-medium text-gray-900">{{ \App\Helpers\CustomHelper::formatDateTime($pdPayment->payment_datetime) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Employee:</span>
+                            <span class="font-medium text-gray-900">{{ $pdPayment->createdBy?->full_name ?? 'Unknown' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Amount Paid:</span>
+                            <span class="font-medium text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($order->total_paid) }}</span>
+                        </div>
+                        <div class="flex justify-between border-t border-gray-200 pt-1">
+                            <span>Remaining Balance:</span>
+                            <span class="font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($order->balance_due) }}</span>
+                        </div>
+                    </div>
+
+                    @php
+                        $pdReferenceLabel = match (true) {
+                            $pdPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Card => 'Card / Authorization',
+                            $pdPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Cheque => 'Check Number',
+                            default => null,
+                        };
+                    @endphp
+
+                    @if ($pdReferenceLabel)
+                        <div class="bg-white border border-gray-200 rounded-lg p-3 text-sm">
+                            <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">{{ $pdReferenceLabel }}</div>
+                            @if ($pdPayment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Card)
+                                <div class="text-gray-800">
+                                    @if ($pdPayment->card_number) •••• {{ $pdPayment->card_number }} @endif
+                                    @if ($pdPayment->auth_code) &nbsp;·&nbsp;Auth {{ $pdPayment->auth_code }} @endif
+                                    @if ($pdPayment->transaction_id) &nbsp;·&nbsp;Txn {{ $pdPayment->transaction_id }} @endif
+                                </div>
+                            @else
+                                <div class="text-gray-800">#{{ $pdPayment->cheque_number }}</div>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if ($pdPayment->payment_note)
+                        <div class="bg-white border border-gray-200 rounded-lg p-3 text-sm">
+                            <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Note</div>
+                            <div class="text-gray-800">{{ $pdPayment->payment_note }}</div>
+                        </div>
+                    @endif
+
+                    @if ($pdStoreCreditEntry)
+                        @php
+                            $pdBeginningCredit = \App\Services\CustomerCreditService::balanceBefore($pdStoreCreditEntry);
+                            $pdAppliedCredit = (float) $pdStoreCreditEntry->amount;
+                            $pdRemainingCredit = round($pdBeginningCredit - $pdAppliedCredit, 2);
+                        @endphp
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm space-y-1">
+                            <div class="font-medium text-gray-900 mb-1">Store Credit Applied</div>
+                            <div class="flex justify-between"><span>Beginning Credit:</span><span class="font-medium text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($pdBeginningCredit) }}</span></div>
+                            <div class="flex justify-between"><span>Applied:</span><span class="font-medium text-red-700">-{{ \App\Helpers\CustomHelper::formatCurrency($pdAppliedCredit) }}</span></div>
+                            <div class="flex justify-between border-t border-blue-200 pt-1"><span>Remaining Credit:</span><span class="font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($pdRemainingCredit) }}</span></div>
+                        </div>
+                    @endif
+                @else
+                    <p class="text-sm text-gray-500">No payment recorded for this order yet.</p>
+                @endif
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button"
+                    class="close-payment-details-modal-btn px-5 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Close
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2865,7 +3171,30 @@
 
                                         @foreach ($order->products as $product)
                                             @foreach ($product->checklistQuestions()->indexOrder()->get() as $question)
-                                                <tr class="border-b">
+                                                @php
+                                                    // Get the last valid answer (delivery or return != 0), sorted by index_number
+                                                    $valid = $question->answers
+                                                        ->filter(
+                                                            fn($a) => $a->is_delivery_answer == 1 ||
+                                                                $a->is_return_answer == 1,
+                                                        )
+                                                        ->sortByDesc('index_number')
+                                                        ->first();
+
+                                                    // If no valid answer, fallback to the last entry (even if 0/0)
+                                                    $latest =
+                                                        $valid ??
+                                                        $question->answers->sortByDesc('index_number')->first();
+
+                                                    $rowAmount = 0;
+                                                    if ($latest && $latest->is_return_answer == 1 && $latest->is_delivery_answer == 0) {
+                                                        $deliveryAmount = $question->deliverySelectedAnswer->delivery_amount ?? 0;
+                                                        $returnAmount = $latest->user_return_amount ?? ($latest->return_amount ?? 0);
+                                                        $rowAmount = max($returnAmount - $deliveryAmount, 0);
+                                                    }
+                                                    $checklistTotal += $rowAmount;
+                                                @endphp
+                                                <tr class="border-b checklist-row" data-product-id="{{ $product->id }}" data-amount="{{ $rowAmount }}">
                                                     <!-- Checklist Item -->
                                                     <td class="py-2 px-2">{{ $question->question_name }}</td>
 
@@ -2892,30 +3221,12 @@
                                                         @endif
                                                     </td>
 
-                                                    @php
-
-                                                        // Get the last valid answer (delivery or return != 0), sorted by index_number
-                                                        $valid = $question->answers
-                                                            ->filter(
-                                                                fn($a) => $a->is_delivery_answer == 1 ||
-                                                                    $a->is_return_answer == 1,
-                                                            )
-                                                            ->sortByDesc('index_number')
-                                                            ->first();
-
-                                                        // If no valid answer, fallback to the last entry (even if 0/0)
-                                                        $latest =
-                                                            $valid ??
-                                                            $question->answers->sortByDesc('index_number')->first();
-                                                    @endphp
-
                                                     <td class="py-2 px-2 text-right">
                                                         @if ($latest)
                                                             {{-- Case 1: Both selected --}}
                                                             @if ($latest->is_delivery_answer == 1 && $latest->is_return_answer == 1)
                                                                 <span
                                                                     class="inline-block border-b border-gray-300 min-w-10 text-gray-600">$0.00</span>
-                                                                @php $checklistTotal += 0; @endphp
 
                                                                 {{-- Case 2: Delivery only --}}
                                                             @elseif($latest->is_delivery_answer == 1 && $latest->is_return_answer == 0)
@@ -2924,36 +3235,20 @@
                                                                     <!-- ${{ $latest->user_delivery_amount ?? ($latest->delivery_amount ?? 0) }} -->
                                                                     $0
                                                                 </span>
-                                                                @php $checklistTotal +=  0; @endphp
                                                                 {{-- Case 3: Return only --}}
                                                             @elseif($latest->is_return_answer == 1 && $latest->is_delivery_answer == 0)
-                                                                @php
-                                                                    $deliveryAmount =
-                                                                        $question->deliverySelectedAnswer
-                                                                            ->delivery_amount ?? 0;
-                                                                    $returnAmount =
-                                                                        $latest->user_return_amount ??
-                                                                        ($latest->return_amount ?? 0);
-                                                                    $netAmount = max(
-                                                                        $returnAmount - $deliveryAmount,
-                                                                        0,
-                                                                    );
-                                                                    $checklistTotal += $netAmount;
-                                                                @endphp
                                                                 <span
                                                                     class="inline-block border-b border-gray-300 min-w-10 text-red-600">
-                                                                    ${{ $netAmount }}
+                                                                    ${{ $rowAmount }}
                                                                 </span>
                                                                 {{-- Case 4: Nothing selected --}}
                                                             @else
                                                                 <span
                                                                     class="inline-block border-b border-gray-300 min-w-10 text-gray-400">$0.00</span>
-                                                                @php $checklistTotal += 0; @endphp
                                                             @endif
                                                         @else
                                                             <span
                                                                 class="inline-block border-b border-gray-300 min-w-10 text-gray-400">$0.00</span>
-                                                            @php $checklistTotal += 0; @endphp
                                                         @endif
                                                     </td>
 
@@ -2965,107 +3260,101 @@
                                         @php
                                             $damageBaseTotal = 0;
                                             $damageAdjustmentTotal = 0;
-
-                                            foreach ($order->products as $product) {
-                                                $base = (float) ($product->damage_charge ?? 0);
-                                                $adjustments = $product->damageChargeLogs?->sum('change_amount') ?? 0;
-
-                                                $damageBaseTotal += $base;
-                                                $damageAdjustmentTotal += $adjustments;
-                                            }
-
-                                            $finalDamageTotal = max(0, $damageBaseTotal + $damageAdjustmentTotal);
                                         @endphp
-                                        @if ($damageBaseTotal > 0 || $damageAdjustmentTotal != 0)
-                                            {{-- DAMAGE SUMMARY ROW --}}
-                                            <tr class=" border-b ">
-                                                <td class="py-2 px-2 ">
-                                                    Damage Amount Initialized
-                                                </td>
+                                        @foreach ($order->products as $product)
+                                            @php
+                                                $productDamageBase = (float) ($product->damage_charge ?? 0);
+                                                $productDamageAdjustment = $product->damageChargeLogs?->sum('change_amount') ?? 0;
+                                                $productFinalDamage = max(0, $productDamageBase + $productDamageAdjustment);
 
-                                                <td class="py-2 px-2 ">
-                                                    Base Amount (${{ number_format($damageBaseTotal, 2) }})
-                                                </td>
+                                                $damageBaseTotal += $productDamageBase;
+                                                $damageAdjustmentTotal += $productDamageAdjustment;
+                                            @endphp
+                                            @if ($productDamageBase > 0 || $productDamageAdjustment != 0)
+                                                {{-- DAMAGE SUMMARY ROW --}}
+                                                <tr class=" border-b damage-row" data-product-id="{{ $product->id }}" data-amount="{{ $productFinalDamage }}">
+                                                    <td class="py-2 px-2 ">
+                                                        Damage Amount Initialized
+                                                    </td>
 
-                                                <td
-                                                    class="py-2 px-2  {{ $damageAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
-                                                    Adjust Amount (
-                                                    {{ $damageAdjustmentTotal >= 0 ? '+' : '-' }}
-                                                    ${{ number_format(abs($damageAdjustmentTotal), 2) }} )
-                                                </td>
+                                                    <td class="py-2 px-2 ">
+                                                        Base Amount (${{ number_format($productDamageBase, 2) }})
+                                                    </td>
 
-                                                <td class="py-2 px-2 text-right text-gray-800">
-                                                    ${{ number_format($finalDamageTotal, 2) }}
-                                                </td>
-                                            </tr>
-                                        @endif
+                                                    <td
+                                                        class="py-2 px-2  {{ $productDamageAdjustment < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                        Adjust Amount (
+                                                        {{ $productDamageAdjustment >= 0 ? '+' : '-' }}
+                                                        ${{ number_format(abs($productDamageAdjustment), 2) }} )
+                                                    </td>
+
+                                                    <td class="py-2 px-2 text-right text-gray-800">
+                                                        ${{ number_format($productFinalDamage, 2) }}
+                                                    </td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
 
                                         @php
                                             $fuelBaseTotal = 0;
                                             $fuelAdjustmentTotal = 0;
 
-                                            foreach ($order->products as $product) {
-                                                $base = (float) ($product->fuel_total_charge ?? 0);
-                                                $adjustments = $product->fuelChargeLogs?->sum('change_amount') ?? 0;
+                                            $arrFuelDelivery = [
+                                                ['id' => 10, 'name' => 'Prepaid'],
+                                                ['id' => 9, 'name' => 'Full'],
+                                                ['id' => 8, 'name' => '7/8'],
+                                                ['id' => 7, 'name' => '3/4'],
+                                                ['id' => 6, 'name' => '5/8'],
+                                                ['id' => 5, 'name' => '1/2'],
+                                                ['id' => 4, 'name' => '3/8'],
+                                                ['id' => 3, 'name' => '1/4'],
+                                                ['id' => 2, 'name' => '1/8'],
+                                                ['id' => 1, 'name' => 'Empty'],
+                                            ];
+                                            $fuelMap = collect($arrFuelDelivery)->pluck('name', 'id');
+                                        @endphp
+                                        @foreach ($order->products as $product)
+                                            @if (!is_null($product->fuel_initial_reading))
+                                                @php
+                                                    $productFuelBase = (float) ($product->fuel_total_charge ?? 0);
+                                                    $productFuelAdjustment = $product->fuelChargeLogs?->sum('change_amount') ?? 0;
+                                                    $productFinalFuel = max(0, $productFuelBase + $productFuelAdjustment);
 
-                                                $fuelBaseTotal += $base;
-                                                $fuelAdjustmentTotal += $adjustments;
-                                            }
+                                                    $fuelBaseTotal += $productFuelBase;
+                                                    $fuelAdjustmentTotal += $productFuelAdjustment;
 
+                                                    $initialFuel = $fuelMap[$product->fuel_initial_reading ?? null] ?? '-';
+                                                    $finalFuel = $fuelMap[$product->fuel_final_reading ?? null] ?? '-';
+                                                @endphp
+
+                                                <tr class="border-b fuel-row" data-product-id="{{ $product->id }}" data-amount="{{ $productFinalFuel }}">
+                                                    <td class="py-2 px-2">
+                                                        Fuel (
+                                                        {{ $product->equipment?->power_source_type
+                                                            ? $product->equipment->power_source_type->label()
+                                                            : 'Select Power Source' }})
+                                                    </td>
+
+                                                    <td class="py-2 px-2">
+                                                        {{ $initialFuel }}
+                                                    </td>
+
+                                                    <td
+                                                        class="py-2 px-2 {{ $productFuelAdjustment < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                        {{ $finalFuel }}
+                                                    </td>
+
+                                                    <td class="py-2 px-2 text-right text-gray-800">
+                                                        ${{ number_format($productFinalFuel, 2) }}
+                                                    </td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
+
+                                        @php
+                                            $finalDamageTotal = max(0, $damageBaseTotal + $damageAdjustmentTotal);
                                             $finalFuelTotal = max(0, $fuelBaseTotal + $fuelAdjustmentTotal);
                                         @endphp
-
-                                        {{-- @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0) --}}
-                                        @if ($order->products->isNotEmpty() && !is_null($product->fuel_initial_reading))
-
-                                            @php
-                                                $arrFuelDelivery = [
-                                                    ['id' => 10, 'name' => 'Prepaid'],
-                                                    ['id' => 9, 'name' => 'Full'],
-                                                    ['id' => 8, 'name' => '7/8'],
-                                                    ['id' => 7, 'name' => '3/4'],
-                                                    ['id' => 6, 'name' => '5/8'],
-                                                    ['id' => 5, 'name' => '1/2'],
-                                                    ['id' => 4, 'name' => '3/8'],
-                                                    ['id' => 3, 'name' => '1/4'],
-                                                    ['id' => 2, 'name' => '1/8'],
-                                                    ['id' => 1, 'name' => 'Empty'],
-                                                ];
-
-                                                $fuelMap = collect($arrFuelDelivery)->pluck('name', 'id');
-
-                                                $initialFuel = $fuelMap[$product->fuel_initial_reading ?? null] ?? '-';
-                                                $finalFuel = $fuelMap[$product->fuel_final_reading ?? null] ?? '-';
-                                            @endphp
-
-
-                                            <tr class="border-b">
-                                                <td class="py-2 px-2">
-                                                    Fuel (
-                                                    {{ $product->equipment?->power_source_type
-                                                        ? $product->equipment->power_source_type->label()
-                                                        : 'Select Power Source' }})
-
-
-                                                </td>
-
-                                                <td class="py-2 px-2">
-                                                    {{ $initialFuel }}
-                                                </td>
-
-                                                <td
-                                                    class="py-2 px-2 {{ $fuelAdjustmentTotal < 0 ? 'text-red-600' : 'text-green-600' }}">
-                                                    {{ $finalFuel }}
-                                                </td>
-
-                                                <td class="py-2 px-2 text-right text-gray-800">
-                                                    ${{ number_format($finalFuelTotal, 2) }}
-                                                </td>
-                                            </tr>
-                                        @endif
-
-
-
 
 
 
@@ -3110,7 +3399,7 @@
 
                                                 @endphp
 
-                                                <tr class="border-b">
+                                                <tr class="border-b hour-row" data-product-id="{{ $product->id }}" data-amount="{{ $totalAmount }}">
                                                     <td class="py-2 px-2">{{ $product->product_name }}</td>
                                                     <td class="py-2 px-2">{{ $startHours }}</td>
                                                     <td class="py-2 px-2">{{ $endHours }}</td>
@@ -3132,7 +3421,7 @@
                                             <td colspan="7" class="py-2 px-2 text-right">
                                                 Checklist Total:
                                             </td>
-                                            <td class="py-2 px-2 text-right">
+                                            <td class="py-2 px-2 text-right" id="checklistTotalDisplay" data-all-amount="{{ number_format($checklistTotal, 2) }}">
                                                 ${{ number_format($checklistTotal, 2) }}
                                             </td>
                                         </tr>
@@ -3141,41 +3430,35 @@
                                             <td colspan="7" class="py-2 px-2 text-right">
                                                 Hour Tracking Total:
                                             </td>
-                                            <td class="py-2 px-2 text-right">
+                                            <td class="py-2 px-2 text-right" id="hourTrackingTotalDisplay" data-all-amount="{{ number_format($hourTrackingTotal, 2) }}">
                                                 ${{ number_format($hourTrackingTotal, 2) }}
                                             </td>
                                         </tr>
-                                        @if ($damageBaseTotal > 0 || $damageAdjustmentTotal != 0)
-                                            <tr>
-                                                <td colspan="7" class="py-2 px-2 text-right ">
-                                                    Final Damage Charge:
-                                                </td>
-                                                <td class="py-2 px-2 text-right ">
-                                                    ${{ number_format($finalDamageTotal, 2) }}
-                                                </td>
-                                            </tr>
-                                        @endif
+                                        <tr id="damageTotalRow" class="{{ $damageBaseTotal > 0 || $damageAdjustmentTotal != 0 ? '' : 'hidden' }}">
+                                            <td colspan="7" class="py-2 px-2 text-right ">
+                                                Final Damage Charge:
+                                            </td>
+                                            <td class="py-2 px-2 text-right " id="damageTotalDisplay" data-all-amount="{{ number_format($finalDamageTotal, 2) }}">
+                                                ${{ number_format($finalDamageTotal, 2) }}
+                                            </td>
+                                        </tr>
 
-                                        @if ($fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0)
-                                            <tr>
-                                                <td colspan="7" class="py-2 px-2 text-right">
-                                                    Final Fuel Charge:
-                                                </td>
-                                                <td class="py-2 px-2 text-right">
-                                                    ${{ number_format($finalFuelTotal, 2) }}
-                                                </td>
-                                            </tr>
-                                        @endif
+                                        <tr id="fuelTotalRow" class="{{ $fuelBaseTotal > 0 || $fuelAdjustmentTotal != 0 ? '' : 'hidden' }}">
+                                            <td colspan="7" class="py-2 px-2 text-right">
+                                                Final Fuel Charge:
+                                            </td>
+                                            <td class="py-2 px-2 text-right" id="fuelTotalDisplay" data-all-amount="{{ number_format($finalFuelTotal, 2) }}">
+                                                ${{ number_format($finalFuelTotal, 2) }}
+                                            </td>
+                                        </tr>
 
 
                                         <tr class="font-bold border-t">
                                             <td colspan="7" class="py-3 px-2 text-right">
                                                 Grand Total:
                                             </td>
-                                            <td class="py-3 px-2 text-right text-gray-900">
-                                                {{-- {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal, 2) }} --}}
+                                            <td class="py-3 px-2 text-right text-gray-900" id="grandTotalDisplay" data-all-amount="{{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal + $finalFuelTotal, 2) }}">
                                                 {{ number_format($checklistTotal + $hourTrackingTotal + $finalDamageTotal + $finalFuelTotal, 2) }}
-
                                             </td>
                                         </tr>
 
@@ -3190,7 +3473,7 @@
 
                             @foreach ($order->products as $orderProduct)
                                 @if (!empty($orderProduct->product))
-                                    <div class=" py-2">
+                                    <div class=" py-2 checklist-notes-panel" data-product-id="{{ $orderProduct->id }}">
                                         <form class="bg-white">
                                             <!-- 2-column grid (1 column on mobile) -->
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3561,7 +3844,7 @@
      ║  'damage'. Type is set dynamically via beActiveType.               ║
      ╚══════════════════════════════════════════════════════════════════════╝ --}}
 
-{{-- Make a Payment — Cash/Cheque/BankTransfer/Other + Credit/Debit Card with Authorize.net --}}
+{{-- Make a Payment — canonical methods (Cash/Check/Tap to Pay/Store Credit/Gift Card/Zelle/Venmo/Other) + Credit/Debit Card with Authorize.net --}}
 <div id="beFuelPaymentModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh]">
         <div class="flex items-center justify-between px-6 py-4 border-b">
@@ -3652,10 +3935,10 @@
                         @endforeach
                     </select>
                 </div>
-                {{-- Notes --}}
+                {{-- Notes (required when Payment Type is "Other") --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <textarea name="notes" rows="2"
+                    <label id="bePayNotesLabel" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea name="notes" id="bePayNotes" rows="2"
                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
                               placeholder="Optional notes..."></textarea>
                 </div>
@@ -3913,9 +4196,46 @@
     <script>
         const modalEl = document.getElementById('checklistModal');
 
-        function openChecklistModal() {
+        function openChecklistModal(orderProductId) {
             modalEl.classList.remove('hidden');
             document.body.style.overflow = 'hidden'; // scroll-lock
+
+            const productId = String(orderProductId);
+            const sum = (selector) => Array.from(modalEl.querySelectorAll(selector))
+                .filter(el => el.dataset.productId === productId)
+                .reduce((total, el) => total + (parseFloat(el.dataset.amount) || 0), 0);
+
+            // Show only the rows/panels belonging to the clicked product
+            modalEl.querySelectorAll('.checklist-row, .hour-row, .damage-row, .fuel-row').forEach(row => {
+                row.classList.toggle('hidden', row.dataset.productId !== productId);
+            });
+            modalEl.querySelectorAll('.checklist-notes-panel').forEach(panel => {
+                panel.classList.toggle('hidden', panel.dataset.productId !== productId);
+            });
+
+            // Recompute totals for just this product
+            const checklistTotal = sum('.checklist-row');
+            const hourTrackingTotal = sum('.hour-row');
+            const damageTotal = sum('.damage-row');
+            const fuelTotal = sum('.fuel-row');
+            const grandTotal = checklistTotal + hourTrackingTotal + damageTotal + fuelTotal;
+
+            const fmt = (n) => '$' + n.toFixed(2);
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            setText('checklistTotalDisplay', fmt(checklistTotal));
+            setText('hourTrackingTotalDisplay', fmt(hourTrackingTotal));
+            setText('damageTotalDisplay', fmt(damageTotal));
+            setText('fuelTotalDisplay', fmt(fuelTotal));
+            setText('grandTotalDisplay', grandTotal.toFixed(2));
+
+            const damageRowHasData = modalEl.querySelectorAll(`.damage-row[data-product-id="${productId}"]`).length > 0;
+            const fuelRowHasData = modalEl.querySelectorAll(`.fuel-row[data-product-id="${productId}"]`).length > 0;
+            document.getElementById('damageTotalRow')?.classList.toggle('hidden', !damageRowHasData);
+            document.getElementById('fuelTotalRow')?.classList.toggle('hidden', !fuelRowHasData);
+
             // focus first control for a11y
             setTimeout(() => {
                 const first = modalEl.querySelector('select, input, button');
@@ -4964,6 +5284,16 @@
             function openProcessPaymentModal() {
                 processPaymentModal.classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
+                // Fresh token per modal-open — a double-click/retry of the
+                // same submit reuses it (server treats as a duplicate); a
+                // genuinely new payment attempt (re-opening the modal) gets
+                // a new one.
+                const tokenField = document.getElementById('paymentIdempotencyToken');
+                if (tokenField) {
+                    tokenField.value = (window.crypto && crypto.randomUUID)
+                        ? crypto.randomUUID()
+                        : 'idem-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+                }
             }
 
             function closeProcessPaymentModal() {
@@ -5108,6 +5438,16 @@
             const expiryInput = document.getElementById('expiry');
             const cvcInput = document.getElementById('cvc');
             const chequeNumberField = document.getElementById('chequeNumberField');
+            const paymentNoteLabel = document.getElementById('paymentNoteLabel');
+
+            // "Other" carries no inherent meaning on its own — the note
+            // becomes required so the record stays as accurate as every
+            // named method (mirrors ReceivePaymentRequest's server-side rule).
+            function syncPaymentNoteRequirement() {
+                const isOther = paymentType.value === 'Other';
+                paymentNoteLabel.textContent = isOther ? 'Describe Payment Method' : 'Notes (Optional)';
+                paymentNoteLabel.classList.toggle('required', isOther);
+            }
 
             // ===== Show/hide card sections =====
             function resetCreditCardFields() {
@@ -5137,7 +5477,9 @@
                     creditCardOptions.classList.add('hidden');
                     chequeNumberField.classList.add('hidden');
                 }
+                syncPaymentNoteRequirement();
             });
+            syncPaymentNoteRequirement();
 
             // ===== Input formatting =====
             cardNumberInput.addEventListener('input', function() {
@@ -5414,9 +5756,98 @@
             const show = (el) => el.classList.remove('hidden');
             const hide = (el) => el.classList.add('hidden');
 
+            // Special-refund context — server-verified numbers (the backend
+            // re-checks all of this independently before processing).
+            const calcTypeInput = document.getElementById('refund_calculation_type');
+            const orderSubtotal = parseFloat(refundModal.dataset.orderSubtotal || '0');
+            const orderTaxAmount = parseFloat(refundModal.dataset.orderTaxAmount || '0');
+
+            const ccFeeEligible = refundModal.dataset.ccFeeEligible === '1';
+            const ccFeePercentage = parseFloat(refundModal.dataset.ccFeePercentage || '0');
+            const ccFeeRefundAmount = parseFloat(refundModal.dataset.ccFeeRefund || '0');
+            const ccFeeRetainedAmount = parseFloat(refundModal.dataset.ccFeeRetained || '0');
+
+            const taxOnlyEligible = refundModal.dataset.taxOnlyEligible === '1';
+            const taxOriginal = parseFloat(refundModal.dataset.taxOriginal || '0');
+            const taxAlreadyRefunded = parseFloat(refundModal.dataset.taxAlreadyRefunded || '0');
+            const taxRemainingRefundable = parseFloat(refundModal.dataset.taxRemainingRefundable || '0');
+
+            const bdBox = document.getElementById('rf_breakdown_box');
+            const bdTitle = document.getElementById('rf_breakdown_title');
+            const bdStandard = document.getElementById('rf_breakdown_standard');
+            const bdCcFee = document.getElementById('rf_breakdown_cc_fee');
+            const bdTaxOnly = document.getElementById('rf_breakdown_tax_only');
+            const ccFeeBtn = document.getElementById('rf_cc_fee_btn');
+            const taxOnlyBtn = document.getElementById('rf_tax_only_btn');
+
+            function calcProportionalTax(refundAmount, subtotal, taxAmount) {
+                if (refundAmount <= 0 || subtotal <= 0 || taxAmount <= 0) return 0;
+                const rate = taxAmount / subtotal;
+                return Math.round((refundAmount - (refundAmount / (1 + rate))) * 100) / 100;
+            }
+
+            function setActiveShortcut(activeBtn) {
+                document.querySelectorAll('.refund-calc-btn, .refund-special-btn').forEach(b => {
+                    b.classList.remove('ring-2', 'ring-blue-500');
+                });
+                if (activeBtn) activeBtn.classList.add('ring-2', 'ring-blue-500');
+            }
+
+            function updateBreakdown() {
+                hide(bdStandard);
+                hide(bdCcFee);
+                hide(bdTaxOnly);
+                hide(bdBox);
+
+                const amt = parseFloat(amountInput.value) || 0;
+                if (amt <= 0) return;
+
+                const calcType = calcTypeInput.value;
+
+                if (calcType === 'card_processing_fee_retained' && ccFeeEligible) {
+                    show(bdBox);
+                    show(bdCcFee);
+                    bdTitle.textContent = 'Cancellation Refund';
+                    document.getElementById('rf_bd_cc_refundable').textContent = fmt(ccFeeRefundAmount + ccFeeRetainedAmount);
+                    document.getElementById('rf_bd_cc_fee_label').textContent =
+                        'Card processing fee (' + ccFeePercentage.toFixed(2) + '%):';
+                    document.getElementById('rf_bd_cc_fee').textContent = fmt(ccFeeRetainedAmount);
+                    document.getElementById('rf_bd_cc_total').textContent = fmt(ccFeeRefundAmount);
+                } else if (calcType === 'sales_tax_only' && taxOnlyEligible) {
+                    show(bdBox);
+                    show(bdTaxOnly);
+                    bdTitle.textContent = 'Sales Tax Refund';
+                    document.getElementById('rf_bd_tax_original').textContent = fmt(taxOriginal);
+                    document.getElementById('rf_bd_tax_prev').textContent = fmt(taxAlreadyRefunded);
+                    document.getElementById('rf_bd_tax_now').textContent = fmt(taxRemainingRefundable);
+                } else if (orderTaxAmount > 0 && orderSubtotal > 0) {
+                    show(bdBox);
+                    show(bdStandard);
+                    bdTitle.textContent = 'Partial Refund';
+                    const taxPortion = calcProportionalTax(amt, orderSubtotal, orderTaxAmount);
+                    const purchasePortion = Math.round((amt - taxPortion) * 100) / 100;
+                    document.getElementById('rf_bd_purchase').textContent = fmt(purchasePortion);
+                    document.getElementById('rf_bd_tax').textContent = fmt(taxPortion);
+                    document.getElementById('rf_bd_total').textContent = fmt(amt);
+                }
+            }
+
             function openRefundModal() {
                 refundModal.classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
+                const tokenField = document.getElementById('refundIdempotencyToken');
+                if (tokenField) {
+                    tokenField.value = (window.crypto && crypto.randomUUID)
+                        ? crypto.randomUUID()
+                        : 'idem-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+                }
+                // Reset special-refund state fresh each open — otherwise a
+                // prior selection could linger if the modal was closed
+                // without submitting.
+                calcTypeInput.value = 'standard';
+                setActiveShortcut(null);
+                refundPaymentType.disabled = false;
+                updateBreakdown();
             }
 
             function closeRefundModal() {
@@ -5432,6 +5863,38 @@
             document.querySelectorAll('.close-refund-modal-btn').forEach(btn => btn.addEventListener('click',
                 closeRefundModal));
 
+            // Payment Details modal — read-only, no form/idempotency token to manage.
+            const paymentDetailsModal = document.getElementById('paymentDetailsModal');
+            const paymentDetailsBtn = document.getElementById('paymentDetailsBtn');
+
+            function openPaymentDetailsModal() {
+                paymentDetailsModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closePaymentDetailsModal() {
+                paymentDetailsModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            if (paymentDetailsBtn) {
+                paymentDetailsBtn.addEventListener('click', openPaymentDetailsModal);
+            }
+
+            document.querySelectorAll('.close-payment-details-modal-btn').forEach(btn => btn.addEventListener('click',
+                closePaymentDetailsModal));
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && paymentDetailsModal && !paymentDetailsModal.classList.contains('hidden')) {
+                    closePaymentDetailsModal();
+                }
+            });
+
+            if (paymentDetailsModal) {
+                paymentDetailsModal.addEventListener('click', (e) => {
+                    if (e.target === paymentDetailsModal) closePaymentDetailsModal();
+                });
+            }
 
             function updateTypeIndicator() {
                 const amt = parseFloat(amountInput.value) || 0;
@@ -5460,10 +5923,22 @@
             }
 
             // Event handlers
-            amountInput.addEventListener('input', function() {
+            amountInput.addEventListener('input', function(e) {
+                // A genuine keystroke (isTrusted) means the employee is
+                // typing a custom amount — that's no longer "the system's"
+                // fee/tax-only calculation, so fall back to Standard. The
+                // shortcut buttons below also dispatch an 'input' event
+                // programmatically (isTrusted === false) to trigger this
+                // same listener without resetting the type they just set.
+                if (e.isTrusted) {
+                    calcTypeInput.value = 'standard';
+                    setActiveShortcut(null);
+                    refundPaymentType.disabled = false;
+                }
                 amountInput.value = amountInput.value;
                 if (!errAmount.classList.contains('hidden')) hide(errAmount);
                 updateTypeIndicator();
+                updateBreakdown();
             });
 
             refundReasonInput.addEventListener('input', function() {
@@ -5473,14 +5948,20 @@
             // ===== Show/hide refund cheque field =====
             const refundPaymentType = document.getElementById('refund_payment_type');
             const refundChequeNumberField = document.getElementById('refund_cheque_number_field');
+            const refundPaymentNoteField = document.getElementById('refund_payment_note_field');
 
             refundPaymentType.addEventListener('change', function() {
-                if (this.value === 'Cheque') {
-                    refundChequeNumberField.classList.remove('hidden');
-                } else {
-                    refundChequeNumberField.classList.add('hidden');
-                }
+                refundChequeNumberField.classList.toggle('hidden', this.value !== 'Cheque');
+                refundPaymentNoteField.classList.toggle('hidden', this.value !== 'Other');
             });
+
+            function refundPaymentNoteValid() {
+                if (refundPaymentType.value === 'Other' && !document.getElementById('refund_payment_note').value.trim()) {
+                    notyf.error('Describe the payment method when "Other" is selected.');
+                    return false;
+                }
+                return true;
+            }
 
             // "Other" reason reveals its describe field
             const refundReasonOtherField = document.getElementById('refund_reason_other_field');
@@ -5536,7 +6017,7 @@
                     return;
                 }
 
-                if (!refundReasonOtherValid() || !refundProcessedByValid()) {
+                if (!refundReasonOtherValid() || !refundPaymentNoteValid() || !refundProcessedByValid()) {
                     return;
                 }
 
@@ -5562,7 +6043,11 @@
                             employee_code: refundEmployeeCode.value.trim(),
                             payment_type: document.getElementById('refund_payment_type').value,
                             cheque_number: document.getElementById('refund_cheque_number')
-                                .value || null
+                                .value || null,
+                            payment_note: document.getElementById('refund_payment_note')
+                                .value.trim() || null,
+                            refund_calculation_type: calcTypeInput.value,
+                            idempotency_token: document.getElementById('refundIdempotencyToken').value || null
                         })
                     })
                     .then(res => {
@@ -5583,11 +6068,38 @@
             const refundCalcBtn = document.getElementsByClassName('refund-calc-btn');
             Array.from(refundCalcBtn).forEach(btn => {
                 btn.addEventListener('click', function() {
+                    calcTypeInput.value = 'standard';
+                    setActiveShortcut(btn);
+                    refundPaymentType.disabled = false;
                     amountInput.value = (originalAmount * (btn.dataset.percentage / 100)).toFixed(
                         2);
                     amountInput.dispatchEvent(new Event('input'));
                 });
             });
+
+            if (ccFeeBtn && ccFeeEligible) {
+                ccFeeBtn.addEventListener('click', function() {
+                    calcTypeInput.value = 'card_processing_fee_retained';
+                    setActiveShortcut(ccFeeBtn);
+                    // The fee is only meaningful if the refund actually goes
+                    // back to the card — lock the dropdown so it can't drift.
+                    refundPaymentType.value = 'CreditCard';
+                    refundPaymentType.dispatchEvent(new Event('change'));
+                    refundPaymentType.disabled = true;
+                    amountInput.value = ccFeeRefundAmount.toFixed(2);
+                    amountInput.dispatchEvent(new Event('input'));
+                });
+            }
+
+            if (taxOnlyBtn && taxOnlyEligible) {
+                taxOnlyBtn.addEventListener('click', function() {
+                    calcTypeInput.value = 'sales_tax_only';
+                    setActiveShortcut(taxOnlyBtn);
+                    refundPaymentType.disabled = false;
+                    amountInput.value = taxRemainingRefundable.toFixed(2);
+                    amountInput.dispatchEvent(new Event('input'));
+                });
+            }
 
             initiateBtn.addEventListener('click', function() {
                 // Handle the initiate refund button click
@@ -5605,7 +6117,7 @@
                     return;
                 }
 
-                if (!refundReasonOtherValid() || !refundProcessedByValid()) {
+                if (!refundReasonOtherValid() || !refundPaymentNoteValid() || !refundProcessedByValid()) {
                     return;
                 }
 
@@ -5625,6 +6137,19 @@
                     hide(confirmRemainingDiv);
                 } else {
                     show(confirmRemainingDiv);
+                }
+
+                const calcTypeLabels = {
+                    'card_processing_fee_retained': 'Full Amount Less Card Processing Fee',
+                    'sales_tax_only': 'Sales Tax Only',
+                };
+                const calcTypeRow = document.getElementById('rf_c_calc_type_row');
+                const calcTypeLabel = calcTypeLabels[calcTypeInput.value];
+                if (calcTypeLabel) {
+                    document.getElementById('rf_c_calc_type').textContent = calcTypeLabel;
+                    show(calcTypeRow);
+                } else {
+                    hide(calcTypeRow);
                 }
             }
 
@@ -6876,6 +7401,15 @@
             } else if (this.value === 'Cheque') {
                 document.getElementById('bePayChequeField').classList.remove('hidden');
             }
+
+            // "Other" carries no inherent meaning on its own — the note
+            // becomes required (mirrors PaymentStoreRequest's server-side rule).
+            const isOther = this.value === 'Other';
+            const notesLabel = document.getElementById('bePayNotesLabel');
+            const notesField = document.getElementById('bePayNotes');
+            notesLabel.textContent = isOther ? 'Describe Payment Method' : 'Notes';
+            notesLabel.classList.toggle('required', isOther);
+            notesField.placeholder = isOther ? 'E.g. Manufacturer Credit, Trade Credit' : 'Optional notes...';
         });
 
         document.getElementById('bePayCardOption')?.addEventListener('change', function() {

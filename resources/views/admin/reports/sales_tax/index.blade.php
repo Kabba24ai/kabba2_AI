@@ -83,7 +83,7 @@
                 <select id="payment_method" name="payment_method"
                     class=" border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Payment Types</option>
-                    @foreach (\App\Enums\Orders\OrderPaymentMethod::cases() as $method)
+                    @foreach (array_merge([\App\Enums\Orders\OrderPaymentMethod::COD], \App\Enums\Orders\OrderPaymentMethod::canonical()) as $method)
                         <option value="{{ $method->value }}" @selected(request('payment_method') === $method->value)>
                             {{ $method->label() }}
                         </option>

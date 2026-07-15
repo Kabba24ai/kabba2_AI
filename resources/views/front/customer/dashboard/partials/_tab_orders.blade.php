@@ -117,7 +117,7 @@
                                    {{ $order?->last_payment_type?->label() ?? '-' }}
                                </td>
                                <td class="px-4 py-3">
-                                   {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
+                                   {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
                                </td>
                                <td class="px-4 py-3">
                                    {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }}</td>

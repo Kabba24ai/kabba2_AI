@@ -254,6 +254,24 @@ class CustomHelper
         return sprintf('(%s) %s-%s', substr($digits, 0, 3), substr($digits, 3, 3), substr($digits, 6, 4));
     }
 
+    /**
+     * Order-payment status badge — always via the centralized presenter,
+     * covering every OrderPaymentStatus case (the generic statusBadge()
+     * below has no entries for the five Invoice* cases or PartialPayment,
+     * and its string-keyed map isn't safe to widen to cover them: several
+     * unrelated status vocabularies elsewhere in the app — e.g.
+     * terms_and_conditions.status, product_categories.status — also use
+     * the literal value "Pending", so guessing intent from the string
+     * alone risks mislabeling an unrelated badge).
+     */
+    public static function paymentStatusBadge(string|OrderPaymentStatus|null $status): string
+    {
+        $label = \App\Services\PaymentDescriptionPresenter::statusLabel($status);
+        $class = \App\Services\PaymentDescriptionPresenter::statusBadgeClasses($status);
+
+        return '<span class="px-2 py-1 rounded text-xs font-semibold ' . $class . '">' . e($label) . '</span>';
+    }
+
     public static function statusBadge(string|OrderPaymentStatus|null $status): string
     {
         // Convert enum to string value if needed

@@ -93,7 +93,7 @@
                     </td>
 
                     <td class="py-4 px-3 text-center">
-                        {!! \App\Helpers\CustomHelper::statusBadge($order->last_payment_status) !!}
+                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
                     </td>
                     <td class="py-4 px-3 text-center">
                         {!! \App\Helpers\CustomHelper::statusBadge($order->terms_status->label() ?? '-') !!}

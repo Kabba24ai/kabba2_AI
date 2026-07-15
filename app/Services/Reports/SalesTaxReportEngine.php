@@ -221,7 +221,6 @@ class SalesTaxReportEngine
         // scopes to that subset, so no additional payment_type constraint is needed.
         $accountMethodMap = [
             'Card'   => 'CreditCard',
-            'Online' => 'BankTransfer',
             'Cash'   => 'Cash',
             'Cheque' => 'Cheque',
             'Other'  => 'Other',

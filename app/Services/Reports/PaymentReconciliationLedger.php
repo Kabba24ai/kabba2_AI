@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Helpers\CustomHelper;
 use App\Services\TaxCalculationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -148,9 +149,12 @@ class PaymentReconciliationLedger
                 'o.unique_id as order_unique_id',
                 DB::raw('DATE(o.order_date) as order_date'),
                 'o.customer_name',
+                'o.subtotal as order_subtotal',
+                'o.tax_amount as order_tax_amount',
                 'op.payment_method',
                 'op.status as payment_status',
                 'op.refund_amount',
+                'op.tax_refunded',
                 DB::raw('COALESCE(op.refunded_at, op.payment_datetime, op.created_at) as payment_date'),
             ]);
 
@@ -172,6 +176,19 @@ class PaymentReconciliationLedger
             $isPartial    = $row->payment_status === 'Partial Refund';
             $pmLabel      = $this->mapOrderPaymentMethod($row->payment_method);
 
+            // Same split SalesTaxReportEngine::refundRows() uses: trust the
+            // stored tax_refunded when present (this is what makes a
+            // Sales-Tax-Only refund reduce tax only, not revenue); fall
+            // back to the proportional estimate only for legacy rows that
+            // predate the tax_refunded column. Previously this stream
+            // ignored tax_refunded entirely and folded the whole refund
+            // into base_amount (revenue) — that broke reconciliation
+            // against the Sales Tax Report the moment a refund's tax
+            // portion didn't match its proportional share.
+            $refundTax = ((float) ($row->tax_refunded ?? 0) > 0)
+                ? (float) $row->tax_refunded
+                : CustomHelper::calculateRefundSalesTax($refundAmount, (float) $row->order_subtotal, (float) $row->order_tax_amount);
+
             return (object) [
                 'stream'             => 'refund',
                 'payment_date'       => $row->payment_date,
@@ -184,8 +201,8 @@ class PaymentReconciliationLedger
                 'payment_method'     => $pmLabel,
                 'payment_method_key' => $row->payment_method ?? 'Other',
                 'payment_status'     => $row->payment_status,
-                'base_amount'        => -$refundAmount,
-                'tax_amount'         => 0.0,
+                'base_amount'        => -round($refundAmount - $refundTax, 2),
+                'tax_amount'         => -$refundTax,
                 'grand_total'        => -$refundAmount,
                 'included_because'   => 'Refund Processed This Period',
                 'notes'              => null,
@@ -424,7 +441,6 @@ class PaymentReconciliationLedger
             'Card'          => 'Credit / Debit Card',
             'Cash'          => 'Cash',
             'Cheque'        => 'Check',
-            'Online'        => 'Direct Bank Transfer (ACH)',
             'COD'           => 'Pay on Delivery (COD)',
             'Other'         => 'Other',
             'billing_engine'=> 'Billing Engine',
@@ -460,10 +476,9 @@ class PaymentReconciliationLedger
             'Card'           => 1,
             'Cash'           => 2,
             'Cheque'         => 3,
-            'Online'         => 4,
-            'COD'            => 5,
-            'Other'          => 6,
-            'billing_engine' => 7,
+            'COD'            => 4,
+            'Other'          => 5,
+            'billing_engine' => 6,
         ];
     }
 }

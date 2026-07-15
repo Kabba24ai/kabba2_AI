@@ -64,7 +64,7 @@ class ReceiptServiceLabelTest extends TestCase
         $order = $this->mockOrder([
             'is_paid' => false, 'total_paid' => 75.0, 'balance_due' => 125.0, 'grand_total' => 200.0,
         ]);
-        $this->assertSame('Partial Payment', ReceiptService::currentPaymentStatusLabel($order));
+        $this->assertSame('Partially Paid', ReceiptService::currentPaymentStatusLabel($order));
     }
 
     public function test_fully_refunded_overrides_is_paid_never_shows_paid_in_full(): void
@@ -85,7 +85,7 @@ class ReceiptServiceLabelTest extends TestCase
             'is_paid' => true, 'total_paid' => 150.0, 'total_refunded' => 50.0,
             'balance_due' => 0.0, 'grand_total' => 150.0,
         ]);
-        $this->assertSame('Partial Refund', ReceiptService::currentPaymentStatusLabel($order));
+        $this->assertSame('Partially Refunded', ReceiptService::currentPaymentStatusLabel($order));
     }
 
     public function test_voided_payment_reverts_to_pending(): void

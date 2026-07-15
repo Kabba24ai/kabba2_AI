@@ -7,22 +7,62 @@ enum OrderPaymentMethod : string
     case COD = 'COD';
     case Account = 'Account';
     case Card = 'Card';
-    case Cash = 'Cash';      // Pay at Front Desk
-    case Online = 'Online';  // Direct Bank Transfer
-    case Cheque = 'Cheque';  // Paid by Cheque
-    case Other = 'Other';    // Other Method
+    case Cash = 'Cash';
+    /**
+     * @deprecated Not part of the approved canonical method list — this
+     * system has never accepted or recorded Bank Transfer payments.
+     * Excluded from canonical()/every dropdown/every validation rule. The
+     * case and its label are kept only so a legacy stored row (if any is
+     * ever found — none were found in the data searched at the time of
+     * removal) can still render without throwing, never so it can be
+     * newly selected again.
+     */
+    case Online = 'Online';
+    case Cheque = 'Cheque';
+    case Other = 'Other';
+    case TapToPay = 'TapToPay';
+    case StoreCredit = 'StoreCredit';
+    case GiftCard = 'GiftCard';
+    case ZelleVenmo = 'ZelleVenmo';
 
+    /**
+     * Cash means cash: this label is shown wherever a payment method is
+     * displayed, so it must say only what the employee actually selected —
+     * never a channel, location, or workflow guess layered on top.
+     */
     public function label(): string
     {
         return match ($this) {
             self::COD => 'Pay on Delivery',
-            self::Account => 'Account Payment',
-            self::Card => 'Credit/Debit Card',
-            self::Cash => 'Pay at Front Desk',
-            self::Online => 'Direct Bank Transfer',
+            self::Account => 'Account',
+            self::Card => 'Credit / Debit Card',
+            self::Cash => 'Cash',
+            self::Online => 'Bank Transfer',
             self::Cheque => 'Check',
-            self::Other => 'Other Payment Method',
+            self::Other => 'Other',
+            self::TapToPay => 'Tap to Pay',
+            self::StoreCredit => 'Store Credit',
+            self::GiftCard => 'Gift Card',
+            self::ZelleVenmo => 'Zelle / Venmo',
         };
+    }
+
+    /**
+     * The eight approved payment methods a customer actually paid with.
+     * Excludes COD (a payment-terms placeholder set at order creation,
+     * never itself a completed method), Account (an Accounts Receivable
+     * workflow marker, not a way funds were transferred), and Online/Bank
+     * Transfer (never an accepted payment method in this system — see the
+     * @deprecated note on the case itself). Use this — not self::cases()
+     * — to build any payment-method selection dropdown, validation rule,
+     * or report filter.
+     */
+    public static function canonical(): array
+    {
+        return array_values(array_filter(
+            self::cases(),
+            fn (self $case) => !in_array($case, [self::COD, self::Account, self::Online], true),
+        ));
     }
 
     public static function getValues(): array

@@ -8,6 +8,7 @@ use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Services\PaymentDescriptionPresenter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class CreateOrderListener implements ShouldQueue
@@ -25,9 +26,6 @@ class CreateOrderListener implements ShouldQueue
 
         $employeeName = $employee?->full_name ?? 'System';
         $customerName = $customer?->full_name ?? 'Customer';
-        $methodLabel = is_object($payment->payment_method) && method_exists($payment->payment_method, 'label')
-            ? $payment->payment_method->label()
-            : ucfirst((string) $payment->payment_method);
 
         $message = match($orderActionType) {
             'reorder' => "Reorder by {$employeeName}",
@@ -48,49 +46,39 @@ class CreateOrderListener implements ShouldQueue
             'description' => "Order {$order->order_number} placed - ".$message,
         ]);
 
-        // Determine payment action and description
-        // if ($payment->payment_method === OrderPaymentMethod::Card && $payment->status->isPaid()) {
-        //     $action = OrderHistoryAction::OrderPaid;
-        //     $description = "Paid In Full Via - Credit/Debit Card";
-        // } else {
-        //     $action = OrderHistoryAction::PaymentInitiated;
-        //     $description = "Payment initiated via {$payment->payment_method->label()}";
-        // }
-
-        // Determine payment action and description
-        if ($payment->status->isPaid() || $payment->status->isInvoice()) {
-            $action = OrderHistoryAction::OrderPaid;
-            $description = match ($payment->status) {
-                OrderPaymentStatus::Paid => "Paid In Full Via - Credit/Debit Card",
-                OrderPaymentStatus::InvoiceCard => "Paid Invoice Via CC on File From Customer Dashboard",
-                OrderPaymentStatus::InvoiceCash => "Paid Invoice Via Front Desk From Admin Panel",
-                OrderPaymentStatus::InvoiceOnline => "Paid Invoice Via Direct Bank From Admin Panel",
-                OrderPaymentStatus::InvoiceCheque => "Paid Invoice Via Check From Admin Panel",
-                OrderPaymentStatus::InvoiceOther => "Paid Invoice Via Other Method From Admin Panel",
-                default => "Paid In Full",
-            };
-        } else {
-            $action = OrderHistoryAction::PaymentInitiated;
-            $description = "Payment initiated via {$methodLabel}";
-        }
+        // Determine payment action; description always comes from the
+        // centralized presenter so it reflects the payment actually taken
+        // (not an assumption that every completed payment was by card).
+        // A failed payment still logs this first entry as "initiated" —
+        // the dedicated PaymentFailed entry below carries the outcome,
+        // preserving the original two-entry (attempt + outcome) trail.
+        $isStoreCredit = $payment->payment_method === OrderPaymentMethod::StoreCredit;
+        $action = match (true) {
+            $isStoreCredit && ($payment->status === OrderPaymentStatus::PartialPayment || $payment->status->isSettled()) => OrderHistoryAction::StoreCreditApplied,
+            $payment->status === OrderPaymentStatus::PartialPayment => OrderHistoryAction::PartialPaymentReceived,
+            $payment->status->isSettled() => OrderHistoryAction::OrderPaid,
+            default => OrderHistoryAction::PaymentInitiated,
+        };
 
         $order->history()->create([
             'customer_id' => $customer->id,
+            'order_payment_id' => $payment->id,
             'user_id' => ($employee) ? $employee->id : null,
             'action_by' => ($employee) ? OrderHistoryActionBy::User : OrderHistoryActionBy::Customer,
             'action_date' => now(),
             'action' => $action,
-            'description' => $description,
+            'description' => PaymentDescriptionPresenter::historyDescription($payment),
         ]);
 
         if ($payment->status->isFailed()) {
             $order->history()->create([
                 'customer_id' => $customer->id,
+                'order_payment_id' => $payment->id,
                 'user_id' => ($employee) ? $employee->id : null,
                 'action_by' => ($employee) ? OrderHistoryActionBy::User : OrderHistoryActionBy::Customer,
                 'action_date' => now(),
                 'action' => OrderHistoryAction::PaymentFailed,
-                'description' => "Payment failed via {$methodLabel}",
+                'description' => PaymentDescriptionPresenter::failureDescription($payment),
             ]);
         }
     }

@@ -403,6 +403,20 @@
                                     Payment Status: {{ \App\Services\ReceiptService::currentPaymentStatusLabel($order) }}
                                 </div>
 
+                                @php
+                                    $receiptMethodLabel = \App\Services\ReceiptService::currentPaymentMethodLabel($order);
+                                    $receiptTermsLabel = \App\Services\PaymentDescriptionPresenter::termsLabel($order);
+                                @endphp
+                                @if ($receiptMethodLabel)
+                                    <div style="position:relative; font-weight:600; z-index:10; margin-top:4px;">
+                                        Payment Method: {{ $receiptMethodLabel }}
+                                    </div>
+                                @elseif ($receiptTermsLabel)
+                                    <div style="position:relative; font-weight:600; z-index:10; margin-top:4px;">
+                                        Payment Terms: {{ $receiptTermsLabel }}
+                                    </div>
+                                @endif
+
                             </div>
                         </td>
                     </tr>

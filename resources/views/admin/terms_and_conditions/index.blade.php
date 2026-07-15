@@ -7,6 +7,9 @@
 
 @section('content')
 
+    {{-- Same centered container as the Website Builder pages (Home/Contact/Branding) --}}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
     @include('flash::message')
 
     {{-- Page Header --}}
@@ -26,6 +29,7 @@
         </div>
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
             These three lines appear at the top of every customer rental agreement (order signing page).
+            Select <span class="font-semibold">View Example</span> to see where they are displayed.
         </p>
 
         <form method="POST" action="{{ route('admin.terms-and-conditions.header.update') }}" data-parsley-validate>
@@ -68,7 +72,7 @@
                     <a href="{{ asset('storage/admin/images/samples/terms-layout-preview.png') }}" target="_blank"
                         class="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-md bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700">
                         <x-heroicon-o-eye class="h-4 w-4" />
-                        Preview Rental Agreement
+                        View Example
                     </a>
                     <button type="submit"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md text-sm font-medium shadow-sm">
@@ -131,6 +135,8 @@
         <div id="terms-table-wrapper" aria-live="polite">
             @include('admin.terms_and_conditions.partials._table', ['terms' => []])
         </div>
+    </div>
+
     </div>
 @endsection
 

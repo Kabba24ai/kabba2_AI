@@ -50,7 +50,7 @@ class TermsHeaderConsolidationTest extends TestCase
             ->assertSee('Rental Agreement Header')
             ->assertSee('Terms &amp; Conditions Line 1', false)
             ->assertSee('Terms &amp; Conditions Line 3', false)
-            ->assertSee('Preview Rental Agreement')
+            ->assertSee('View Example')
             ->assertSee('Save Header')
             ->assertSee('Terms Library')
             ->assertSee('Create Terms');

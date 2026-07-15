@@ -141,31 +141,30 @@
         </div>
     </div>
 
-    <!-- High Demand Alert Modal -->
-    <div id="modalHighDemandAlert" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] hidden">
+    <!-- High Demand Alert Modal — content managed in Website Mgt → High Demand Alert -->
+    @php $hdAlert = app(\App\Services\Website\HighDemandAlertService::class)->config(); @endphp
+    <div id="modalHighDemandAlert" role="dialog" aria-modal="true" aria-labelledby="hdAlertTitle"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] hidden">
         <div
             class="bg-white rounded-lg shadow-lg w-full md:max-w-3xl p-6 relative max-w-[95%] flex flex-col md:flex-row items-center gap-6">
             <div class="w-full md:w-1/3 flex justify-center">
-                <img src="{{ asset('storage/front/images/lady-image.webp') }}" alt="Customer Service Representative"
+                <img src="{{ $hdAlert->imageUrl }}" alt="Customer Service Representative"
                     class="max-h-64 object-contain">
             </div>
 
             <div class="flex-1 text-center md:text-left">
                 <!-- Header -->
-                <h2 class="text-red-600 font-bold text-2xl mb-4">High Demand Alert!</h2>
+                <h2 id="hdAlertTitle" class="text-red-600 font-bold text-2xl mb-4">{{ $hdAlert->title }}</h2>
 
-                <!-- Message -->
-                <p class="text-gray-700 mb-4">
-                    This item is currently experiencing a spike in demand, please complete the reservation and then
-                    <span class="font-semibold italic">call Customer Service</span> to confirm the schedule details:
-                </p>
+                <!-- Message (purified on save — limited emphasis tags only; line breaks kept) -->
+                <p class="text-gray-700 mb-4">{!! nl2br($hdAlert->message) !!}</p>
 
-                @if (!empty($brandingSettings['site_phone']))
+                @if (!empty($hdAlert->phone))
                     <!-- Phone Number -->
                     <p class="text-black text-lg mb-6">
-                        <a href="tel:{{ $brandingSettings['site_phone'] }}"
+                        <a href="tel:{{ $hdAlert->phone }}"
                             class="font-bold hover:underline focus:underline">
-                            {{ $brandingSettings['site_phone'] }}
+                            {{ $hdAlert->phone }}
                         </a>
                     </p>
                 @endif
@@ -174,7 +173,7 @@
                 <div class="flex flex-col sm:flex-row justify-center md:justify-end gap-3">
                     <button id="continueReservationBtn"
                         class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                        Continue Reservation
+                        {{ $hdAlert->buttonText }}
                     </button>
                 </div>
             </div>

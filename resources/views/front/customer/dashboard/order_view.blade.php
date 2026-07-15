@@ -321,6 +321,12 @@
                         {{ \App\Helpers\CustomHelper::formatCurrency($orderProduct->product_data['service_option_price'] ?? 0) }}
                     </span>
                 </div>
+
+                @if (!empty($orderProduct->service_option))
+                    <div class="text-xs text-gray-500">
+                        {{ \App\Helpers\CustomHelper::serviceOptionLabel($orderProduct->service_option) }}
+                    </div>
+                @endif
             </div>
             @endif
 

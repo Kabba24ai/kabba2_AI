@@ -182,45 +182,73 @@
         </div>
     </div>
 
-    <div id="customServiceOption" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] hidden">
-        <div
-            class="bg-white rounded-lg shadow-lg w-full md:max-w-3xl p-6 relative max-w-[95%] flex flex-col md:flex-row items-center gap-6">
-            <div class="w-full md:w-1/3 flex justify-center">
-                <img src="{{ asset('storage/front/images/delivery-range.webp') }}" alt="Customer Service Representative"
-                    class="max-h-64 object-contain">
+    {{-- Custom Delivery selector — replaces the old informational Custom Range popup.
+         Tier identifiers (custom_1..4) are internal only; customers see distances. --}}
+    @php
+        $customDeliveryTiers = \App\Helpers\DeliveryTierHelper::availableCustomTiersForProduct($productDetail, $productSettings);
+    @endphp
+    <div id="customDeliveryModal" role="dialog" aria-modal="true" aria-labelledby="customDeliveryTitle"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full md:max-w-xl p-6 relative max-w-[95%] max-h-[90vh] overflow-y-auto">
+            <h2 id="customDeliveryTitle" class="font-bold text-2xl mb-4">Custom Delivery</h2>
+
+            <!-- Distance range section -->
+            <h3 class="font-semibold text-lg mb-2">Select Distance Range</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6" role="radiogroup" aria-label="Select Distance Range">
+                @foreach ($customDeliveryTiers as $customDeliveryTier)
+                    <label
+                        class="flex items-center gap-2 border-2 border-gray-200 rounded-lg px-4 py-3 cursor-pointer transition-colors has-[:checked]:border-yellow-500 has-[:checked]:bg-yellow-50 hover:border-yellow-400">
+                        <input type="radio" name="custom_delivery_tier" class="sr-only peer"
+                            value="{{ $customDeliveryTier['tier'] }}"
+                            data-distance="{{ $customDeliveryTier['distance'] }}"
+                            data-unit="{{ $customDeliveryTier['unit'] }}"
+                            data-rate="{{ $customDeliveryTier['one_way_rate'] }}" />
+                        <span
+                            class="w-[16px] h-[16px] shrink-0 rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
+                            <span class="w-2 h-2 rounded-full bg-white"></span>
+                        </span>
+                        <span class="text-gray-800">Up to {{ $customDeliveryTier['distance'] }} {{ $customDeliveryTier['unit'] }}</span>
+                    </label>
+                @endforeach
             </div>
 
-            <div class="flex-1 text-center md:text-left">
-                <!-- Header -->
-                <h2 class="text-red-600 font-bold text-2xl mb-4">Custom Range</h2>
-
-                <!-- Message -->
-                <p class="text-gray-700 mb-4">
-                    Your reservation will be completed using the Extended Range Delivery and we will call you to make the
-                    final arrangements based upon your delivery requirements.
-                </p>
-
-                <!-- Phone Number — the canonical Company Phone (Branding);
-                     Custom Range has no feature-specific number -->
-                @if (!empty($brandingSettings['site_phone']))
-                    <p class="text-black text-lg mb-6">
-                        <a href="tel:{{ $brandingSettings['site_phone'] }}"
-                            class="font-bold hover:underline focus:underline">
-                            {{ $brandingSettings['site_phone'] }}
-                        </a>
-                    </p>
-                @endif
-
-                <!-- Buttons -->
-                <div class="flex flex-col sm:flex-row justify-center md:justify-end gap-3">
-                    <button id="continueReservationBtnCustom"
-                        class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                        Continue Reservation
-                    </button>
-                </div>
+            <!-- Delivery service section -->
+            <h3 class="font-semibold text-lg mb-2">Select Delivery Service</h3>
+            <div class="flex flex-col gap-2 mb-6" role="radiogroup" aria-label="Select Delivery Service">
+                @foreach ([
+                    'Delivery + Pickup' => 'Delivery + Return Pickup',
+                    'Delivery Only' => 'Delivery Only',
+                    'Return Only' => 'Return Pickup Only',
+                ] as $serviceValue => $serviceLabel)
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="custom_delivery_service" class="sr-only peer"
+                            value="{{ $serviceValue }}" {{ $serviceValue === 'Delivery + Pickup' ? 'checked' : '' }} />
+                        <span
+                            class="w-[16px] h-[16px] shrink-0 rounded-full border-2 border-yellow-400 peer-checked:border-yellow-500 peer-checked:bg-yellow-500 flex justify-center items-center">
+                            <span class="w-2 h-2 rounded-full bg-white"></span>
+                        </span>
+                        <span class="text-gray-800">{{ $serviceLabel }}</span>
+                    </label>
+                @endforeach
             </div>
 
+            <!-- Price summary (live) -->
+            <div id="customDeliveryPriceSummary" aria-live="polite"
+                class="mb-6 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                Choose a distance range to see pricing.
+            </div>
 
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row justify-end gap-3">
+                <button type="button" id="customDeliveryCancelBtn"
+                    class="px-5 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-100 order-2 sm:order-1">
+                    Cancel
+                </button>
+                <button type="button" id="customDeliveryContinueBtn" disabled
+                    class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2">
+                    Continue with Reservation
+                </button>
+            </div>
         </div>
     </div>
 
@@ -244,6 +272,9 @@
             cartSaveUrl: "{{ route('front.cart.save') }}",
             csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             hasHighDemandAlert: "{{ $productDetail->has_high_demand_alert ?? false }}",
+            // Available Custom tiers (identifiers are internal; customers see distances)
+            customTiers: @json($customDeliveryTiers ?? []),
+            customDelivery: { confirmed: null },
         };
 
         document.addEventListener('DOMContentLoaded', function() {

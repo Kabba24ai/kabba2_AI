@@ -1,3 +1,10 @@
+import {
+    openCustomDeliveryModal,
+    clearCustomSelection,
+    getConfirmedCustomSelection,
+    renderConfirmedSummary,
+} from './custom-delivery';
+
 export function updateDeliveryPrices(type, context) {
     const {
         formattedStandardFeeX2,
@@ -8,10 +15,6 @@ export function updateDeliveryPrices(type, context) {
     } = context;
 
     const dropdown = document.getElementById('deliveryOptionsDropdown');
-    const customBox = document.getElementById('customServiceOption');
-    const title = document.getElementById('distanceTypeTitle');
-    const addToCartBtn = document.getElementById('addToCart');
-    const continueReservationBtnCustom = document.getElementById('continueReservationBtnCustom');
     // Reset dropdown to first option
     const deliveryOptionSelect = document.getElementById('deliveryOptionSelect');
     if (deliveryOptionSelect) {
@@ -19,61 +22,12 @@ export function updateDeliveryPrices(type, context) {
         deliveryOptionSelect.dispatchEvent(new Event('change'));
     }
 
-    if (continueReservationBtnCustom) {
-        continueReservationBtnCustom.onclick = () => {
-            deliveryOptionSelect.selectedIndex = 1;
-            deliveryOptionSelect.dispatchEvent(new Event('change'));
-            addToCartBtn.click();
-            customBox.classList.add('hidden');
-        };
-    }
-
-    // Clear price spans
-    // ['DeliveryPickupPrice', 'DeliveryReturnPrice', 'PickupReturnPrice'].forEach(id => {
-    //     const el = document.getElementById(id);
-    //     if (el) el.innerText = '';
-    // });
-
-    // let radio = document.querySelector('input[name="distance_type"]:checked');
-    // if (radio && radio.dataset.text) {
-    //     title.textContent = `(${radio.dataset.text})`;
-    // } else {
-    //     title.textContent = '';
-    // }
-
-    // if (type === 'Standard' || type === 'Extended') {
-    //     dropdown.classList.remove('hidden');
-    //     customBox.classList.add('hidden');
-    //     if (type === 'Standard') {
-    //         document.getElementById('DeliveryPickupPrice').innerText = formattedStandardFeeX2;
-    //         document.getElementById('DeliveryReturnPrice').innerText = formattedStandardFee;
-    //         document.getElementById('PickupReturnPrice').innerText = formattedStandardFee;
-    //     } else {
-    //         document.getElementById('DeliveryPickupPrice').innerText = formattedExtendedFeeX2;
-    //         document.getElementById('DeliveryReturnPrice').innerText = formattedExtendedFee;
-    //         document.getElementById('PickupReturnPrice').innerText = formattedExtendedFee;
-    //     }
-    // }else if(type === 'Custom'){
-    //     dropdown.classList.add('hidden');
-    //     customBox.classList.remove('hidden');
-    //     document.getElementById('DeliveryPickupPrice').innerText = formattedExtendedFeeX2;
-    //     document.getElementById('DeliveryReturnPrice').innerText = formattedExtendedFee;
-    //     document.getElementById('PickupReturnPrice').innerText = formattedExtendedFee;
-
-    // } else {
-    //     dropdown.classList.remove('hidden');
-    //     customBox.classList.add('hidden');
-    // }
-
-    // ------- ---------------------------------------------------------------
-
     const select = document.getElementById('deliveryOptionSelect');
     const isParentLockedRelatedProduct = Boolean(context?.parentRentalLock?.enabled);
     const zeroFee = formattedZeroFee || '$0.00';
 
     if (isParentLockedRelatedProduct) {
         dropdown.classList.remove('hidden');
-        customBox.classList.add('hidden');
         updateOptionText(select, 'Delivery + Pickup', zeroFee);
         updateOptionText(select, 'Delivery Only', zeroFee);
         updateOptionText(select, 'Return Only', zeroFee);
@@ -82,7 +36,9 @@ export function updateDeliveryPrices(type, context) {
 
     if (type === 'Standard' || type === 'Extended') {
         dropdown.classList.remove('hidden');
-        customBox.classList.add('hidden');
+        // Leaving Custom clears the confirmed tier — a later return to Custom
+        // requires a fresh selection
+        clearCustomSelection(context);
 
         if (type === 'Standard') {
             updateOptionText(select, 'Delivery + Pickup', formattedStandardFeeX2);
@@ -95,16 +51,19 @@ export function updateDeliveryPrices(type, context) {
         }
 
     } else if (type === 'Custom') {
+        // The service is chosen inside the Custom Delivery popup — the
+        // Standard/Extended dropdown stays hidden
         dropdown.classList.add('hidden');
-        customBox.classList.remove('hidden');
 
-        updateOptionText(select, 'Delivery + Pickup', formattedExtendedFeeX2);
-        updateOptionText(select, 'Delivery Only', formattedExtendedFee);
-        updateOptionText(select, 'Return Only', formattedExtendedFee);
+        if (getConfirmedCustomSelection(context)) {
+            // Restored/confirmed selection: show the compact summary only
+            renderConfirmedSummary(context);
+        } else {
+            openCustomDeliveryModal(context);
+        }
 
     } else {
         dropdown.classList.remove('hidden');
-        customBox.classList.add('hidden');
     }
 }
 

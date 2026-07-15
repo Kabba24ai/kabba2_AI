@@ -1,3 +1,5 @@
+import { getConfirmedCustomSelection, openCustomDeliveryModal } from './custom-delivery';
+
 export function initAddToCart(context) {
     const addToCartBtn = document.getElementById('addToCart');
 
@@ -38,12 +40,21 @@ export function initAddToCart(context) {
             document.getElementById('qty').value = 1;
         }
         const storeId = document.getElementById('storeSelect')?.value || '';
-        const serviceOption = document.getElementById('deliveryOptionSelect')?.value || '';
         const serviceMethod = document.querySelector('input[name="service_method"]:checked')?.value || '';
         const dateError = document.getElementById('dateError');
         const qtyError = document.getElementById('qtyError');
         const storeError = document.getElementById('storeError');
         const deliveryOptionSelectError = document.getElementById('deliveryOptionSelectError');
+
+        // Custom delivery picks its service inside the popup; Standard and
+        // Extended keep using the dropdown
+        const selectedDistanceType = serviceMethod === 'Delivery'
+            ? (document.querySelector('input[name="distance_type"]:checked')?.value || '')
+            : '';
+        const confirmedCustom = selectedDistanceType === 'Custom' ? getConfirmedCustomSelection(context) : null;
+        const serviceOption = selectedDistanceType === 'Custom'
+            ? (confirmedCustom?.serviceOption || '')
+            : (document.getElementById('deliveryOptionSelect')?.value || '');
 
         // Clear previous errors
         if (storeError) storeError.classList.add('hidden');
@@ -51,10 +62,18 @@ export function initAddToCart(context) {
         if (qtyError) qtyError.classList.add('hidden');
 
         let errorMsg = '';
+        let customIncomplete = false;
         if(serviceMethod === 'Delivery'){
 
             if (deliveryOptionSelectError) deliveryOptionSelectError.classList.add('hidden');
-            if(!serviceOption){
+            if (selectedDistanceType === 'Custom' && !confirmedCustom) {
+                customIncomplete = true;
+                errorMsg = 'Please complete your custom delivery selection before adding to cart.';
+                if (deliveryOptionSelectError) {
+                    deliveryOptionSelectError.textContent = errorMsg;
+                    deliveryOptionSelectError.classList.remove('hidden');
+                }
+            } else if(!serviceOption){
                 errorMsg = 'Please select a delivery option before adding to cart.';
                 if (deliveryOptionSelectError) {
                     deliveryOptionSelectError.textContent = errorMsg;
@@ -84,18 +103,18 @@ export function initAddToCart(context) {
             }
         }
 
-        if ((context.productType === 'Rental' && !storeId && serviceOption !== 'Delivery + Pickup') || (context.productType === 'Rental' && !scheduleDate) || !qty) {
+        if (customIncomplete || (context.productType === 'Rental' && !storeId && serviceOption !== 'Delivery + Pickup') || (context.productType === 'Rental' && !scheduleDate) || !qty) {
             if (loader) loader.classList.add('hidden');
             addToCartBtn.disabled = false;
             addToCartBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+            if (customIncomplete) {
+                openCustomDeliveryModal(context);
+            }
             return;
         }
 
 
-        let distanceType = '';
-        if (serviceMethod === 'Delivery') {
-            distanceType = document.querySelector('input[name="distance_type"]:checked')?.value || '';
-        }
+        const distanceType = selectedDistanceType;
 
         let distanceRange = '';
         let unit = context.distanceUnit || '';
@@ -103,6 +122,8 @@ export function initAddToCart(context) {
             distanceRange = context.standardDeliveryRange + ' ' + unit;
         } else if (distanceType === 'Extended') {
             distanceRange = context.extendedDeliveryRange + ' ' + unit;
+        } else if (distanceType === 'Custom' && confirmedCustom) {
+            distanceRange = confirmedCustom.distance + ' ' + confirmedCustom.unit;
         }
         const productOptionItems = [];
         const productRentalItems = [];
@@ -126,6 +147,9 @@ export function initAddToCart(context) {
             service_method: serviceMethod,
             distance_type: distanceType,
             distance_range: distanceRange,
+            // Internal tier identifier only — the server resolves the canonical
+            // distance, one-way rate, and final amount itself
+            custom_tier: distanceType === 'Custom' ? (confirmedCustom?.tier || '') : '',
             service_option: serviceOption,
             delivery_store_id: storeId,
             product_option_items: productOptionItems,

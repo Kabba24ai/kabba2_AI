@@ -98,8 +98,16 @@ window.CartStorage = (function(){
             });
         }
 
-        // Distance Type (radio)
+        // Distance Type (radio) — for Custom, restore the confirmed tier BEFORE
+        // dispatching the change so the popup does not reopen; a stale tier
+        // (no longer available) stays unconfirmed and the popup asks again
         if (cartItem.distance_type) {
+            if (cartItem.distance_type === 'Custom'
+                && cartItem.custom_tier
+                && window.productPageContext
+                && window.CustomDeliveryRestore) {
+                window.CustomDeliveryRestore(window.productPageContext, cartItem.custom_tier, cartItem.service_option);
+            }
             document.querySelectorAll('input[name="distance_type"]').forEach(radio => {
                 if (radio.value === cartItem.distance_type) {
                     radio.checked = true;

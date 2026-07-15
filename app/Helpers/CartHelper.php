@@ -167,16 +167,26 @@ class CartHelper
             $storeName = $store ? $store->store_name : null;
         }
 
+        // Resolve the Custom tier canonically (client input is only an identifier;
+        // distance, rate, and amount always come from settings + product columns)
+        $customTier = self::resolveCustomTier($product, $validated, $productSettings);
+
         // Add distance_range from product settings based on distance_type
         $distanceRange = null;
         if (!empty($validated['distance_type'])) {
             $distanceType = $validated['distance_type'];
-            // Example: keys like 'standard_distance_range', 'extended_distance_range'
-            $settingKey = strtolower($distanceType) . '_delivery_range';
-            if (isset($productSettings[$settingKey])) {
-                $distanceRange = $productSettings[$settingKey] . ' ' . $productSettings['distance_unit'];
-            }else{
-                $distanceRange = $productSettings['extended_delivery_range'] . ' ' . $productSettings['distance_unit'];
+            if ($distanceType === 'Custom' && $customTier) {
+                $distanceRange = $customTier['distance'] . ' ' . $customTier['unit'];
+            } else {
+                // Example: keys like 'standard_delivery_range', 'extended_delivery_range'.
+                // Legacy Custom items without a resolvable tier keep the historical
+                // Extended fallback so pre-existing carts continue to price/display.
+                $settingKey = strtolower($distanceType) . '_delivery_range';
+                if (isset($productSettings[$settingKey])) {
+                    $distanceRange = $productSettings[$settingKey] . ' ' . $productSettings['distance_unit'];
+                } else {
+                    $distanceRange = $productSettings['extended_delivery_range'] . ' ' . $productSettings['distance_unit'];
+                }
             }
         }
         // --- Sale logic based on product type/variant ---
@@ -199,7 +209,7 @@ class CartHelper
         [$selectedRentalItemsWithPrices, $rentalItemsTotal] = self::resolveRentalItems($product, $validated, $variant, $quantity);
 
         // --- Calculate delivery/service option price ---
-        $serviceOptionPrice = self::resolveServiceOptionPrice($product, $validated, $hasParentInCart);
+        [$serviceOptionPrice, $deliveryOneWayRate] = self::resolveServiceOptionPrice($product, $validated, $hasParentInCart, $customTier);
 
         // --- Calculate options/add-ons from product_option_items ---
         [$resolvedOptions, $optionsTotal] = self::resolveProductOptions($product, $validated, $variant, $quantity);
@@ -285,7 +295,9 @@ class CartHelper
             'service_method' => $validated['service_method'] ?? null,
             'distance_type' => $validated['distance_type'] ?? null,
             'distance_range' => $distanceRange,
+            'custom_tier' => $customTier['tier'] ?? null,
             'service_option' => $validated['service_option'] ?? null,
+            'delivery_one_way_rate' => $deliveryOneWayRate !== null ? round($deliveryOneWayRate, 2) : null,
             'service_option_price' => round($serviceOptionPrice, 2),
             'store_address' => $storeAddress ?? null,
             'store_name' => $storeName ?? null,
@@ -334,13 +346,47 @@ class CartHelper
         return [$selectedRentalItemsWithPrices, $rentalItemsTotal];
     }
 
-    private static function resolveServiceOptionPrice($product, $validated, $hasParentInCart = false)
+    /**
+     * Canonical Custom tier resolution for a cart item. Returns the tier
+     * descriptor (tier/distance/unit/one_way_rate) only when the submitted
+     * identifier is one of the four allowed tiers AND that tier is currently
+     * available for the product (global distance non-null + product rate
+     * non-null — a 0.00 rate is valid). Anything else — missing identifier
+     * (pre-existing carts), tampered value, or a tier that is no longer
+     * configured — resolves to null and prices via the legacy Extended
+     * fallback, never via client-submitted numbers.
+     */
+    private static function resolveCustomTier($product, $validated, $productSettings): ?array
+    {
+        if (($validated['distance_type'] ?? null) !== 'Custom') {
+            return null;
+        }
+
+        $tier = $validated['custom_tier'] ?? null;
+        if (!in_array($tier, DeliveryTierHelper::CUSTOM_TIERS, true)) {
+            return null;
+        }
+
+        foreach (DeliveryTierHelper::availableCustomTiersForProduct($product, $productSettings) as $available) {
+            if ($available['tier'] === $tier) {
+                return $available;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{0: float, 1: ?float} [final service price, one-way rate used]
+     */
+    private static function resolveServiceOptionPrice($product, $validated, $hasParentInCart = false, ?array $customTier = null)
     {
         if ($hasParentInCart) {
-            return 0;
+            return [0, null];
         }
 
         $serviceOptionPrice = 0;
+        $deliveryFee = null;
         if (($validated['service_method'] ?? null) === 'Delivery' && !empty($validated['distance_type']) && !empty($validated['service_option'])) {
             $distanceType = $validated['distance_type'];
             $serviceOption = $validated['service_option'];
@@ -350,7 +396,11 @@ class CartHelper
             } elseif ($distanceType === 'Extended') {
                 $deliveryFee = floatval($product->extended_delivery_fee ?? 0);
             } elseif ($distanceType === 'Custom') {
-                $deliveryFee = floatval($product->extended_delivery_fee ?? 0);
+                // Canonical tier rate; legacy Extended fallback for carts
+                // created before Custom tiers existed
+                $deliveryFee = $customTier !== null
+                    ? floatval($customTier['one_way_rate'])
+                    : floatval($product->extended_delivery_fee ?? 0);
             } else {
                 $deliveryFee = 0;
             }
@@ -367,7 +417,7 @@ class CartHelper
                     $serviceOptionPrice = 0;
             }
         }
-        return $serviceOptionPrice;
+        return [$serviceOptionPrice, $deliveryFee];
     }
 
     private static function resolveProductOptions($product, $validated, $variant, $quantity)

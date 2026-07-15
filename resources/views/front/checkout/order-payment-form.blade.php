@@ -248,7 +248,7 @@
                                                 <span class="text-black font-bold">+${{ number_format($d['service_option_price'] ?? 0, 2) }}</span>
                                             </div>
                                             <ul>
-                                                <li class="text-xs before:content-['-'] before:pr-1">{{ $d['service_option'] }}</li>
+                                                <li class="text-xs before:content-['-'] before:pr-1">{{ \App\Helpers\CustomHelper::serviceOptionLabel($d['service_option']) }}</li>
                                             </ul>
                                         </div>
                                     @endif

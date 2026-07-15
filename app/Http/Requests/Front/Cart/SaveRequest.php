@@ -36,6 +36,11 @@ class SaveRequest extends FormRequest
             $data['service_option'] = null;
         }
 
+        // The Custom tier identifier only exists for a Custom delivery selection
+        if (($data['distance_type'] ?? null) !== 'Custom') {
+            $data['custom_tier'] = null;
+        }
+
         $this->merge($data);
     }
 
@@ -57,6 +62,7 @@ class SaveRequest extends FormRequest
             'delivery_date' => ['nullable','required_if:product_type,Rental'],
             'service_method' => ['nullable', 'in:In Store Pickup,Delivery'],
             'distance_type'  => ['nullable','required_if:service_method,Delivery', 'in:Standard,Extended,Custom'],
+            'custom_tier'    => ['nullable', 'required_if:distance_type,Custom', 'in:custom_1,custom_2,custom_3,custom_4'],
             'service_option' => ['nullable', 'in:Delivery + Pickup,Delivery Only,Return Only'],
             'delivery_store_id' => ['nullable', 'integer', 'exists:stores,id'],
             'product_option_items' => ['nullable', 'array'],
@@ -87,6 +93,41 @@ class SaveRequest extends FormRequest
         $validator->sometimes('service_option', 'required', function ($input) {
             // Only required if method is Delivery and product_type is Rental
             return $input->product_type === 'Rental' && $input->service_method === 'Delivery';
+        });
+
+        // A Custom selection must reference a tier that is currently available
+        // for this product: global distance non-null AND product one-way rate
+        // non-null (0.00 is a valid free rate). Client-side prices are never
+        // read — the identifier is the only Custom input the server accepts.
+        $validator->after(function ($validator) {
+            $input = $this->all();
+
+            if (($input['distance_type'] ?? null) !== 'Custom') {
+                return;
+            }
+
+            $tier = $input['custom_tier'] ?? null;
+            if (!in_array($tier, \App\Helpers\DeliveryTierHelper::CUSTOM_TIERS, true)) {
+                return; // the in: rule already reports invalid identifiers
+            }
+
+            $product = \App\Models\ProductManagement\Product::published()
+                ->where('unique_id', $input['product_unique_id'] ?? null)
+                ->first();
+            if (!$product) {
+                return; // the exists: rule already reports missing products
+            }
+
+            $productSettings = \App\Helpers\ConfigurationHelper::getSettings('Product Settings');
+            $availableTiers = collect(\App\Helpers\DeliveryTierHelper::availableCustomTiersForProduct($product, $productSettings))
+                ->pluck('tier');
+
+            if (!$availableTiers->contains($tier)) {
+                $validator->errors()->add(
+                    'custom_tier',
+                    'The selected custom delivery range is no longer available for this product. Please choose another range.',
+                );
+            }
         });
     }
 
@@ -127,6 +168,8 @@ class SaveRequest extends FormRequest
             'service_method.required'      => 'Service option is required for rentals.',
             'distance_type.required_if'    => 'Please select a distance type for delivery.',
             'distance_type.in'             => 'Distance type must be Standard, Extended, or Custom.',
+            'custom_tier.required_if'      => 'Please choose a custom distance range before adding to cart.',
+            'custom_tier.in'               => 'The selected custom delivery range is invalid.',
             'service_option.required'      => 'Delivery option is required for rental delivery.',
             'service_option.in'            => 'Please select a valid Delivery option.',
             'delivery_store_id.required'   => 'Please select a store location.',

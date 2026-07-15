@@ -166,9 +166,8 @@ class HighDemandAlertTest extends TestCase
         $this->makeProduct(true);
         $html = $this->get($this->productUrl())->assertOk()->getContent();
 
-        // The HD popup shows ITS phone; the Custom Range modal shows the company phone
+        // The HD popup shows ITS phone, not the company phone
         $this->assertStringContainsString('href="tel:(888) 777-6666"', $html);
-        $this->assertStringContainsString('href="tel:(615) 815-6734"', $html);
     }
 
     public function test_branding_page_labels_the_phone_as_company_phone_only(): void
@@ -194,18 +193,16 @@ class HighDemandAlertTest extends TestCase
         $this->assertSame('(888) 777-6666', $this->alertSetting('high_demand_alert_phone'));
     }
 
-    public function test_custom_range_modal_renders_the_company_phone(): void
+    public function test_the_custom_delivery_selector_replaced_the_informational_custom_range_modal(): void
     {
-        Setting::updateOrCreate(
-            ['setting_name' => 'site_phone', 'setting_type' => 'Website Management Branding'],
-            ['setting_value' => '(615) 815-6734'],
-        );
+        // Phase 3: the "call us, we'll bill Extended" modal is gone; the
+        // interactive Custom Delivery selector took its place
         $this->makeProduct(false);
 
         $html = $this->get($this->productUrl())->assertOk()->getContent();
 
-        $this->assertStringContainsString('id="customServiceOption"', $html);
-        $this->assertStringContainsString('(615) 815-6734', $html);
+        $this->assertStringNotContainsString('id="customServiceOption"', $html);
+        $this->assertStringContainsString('id="customDeliveryModal"', $html);
     }
 
     // ── Admin editor ──────────────────────────────────────────────────────────

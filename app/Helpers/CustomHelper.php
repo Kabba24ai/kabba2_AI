@@ -850,4 +850,20 @@ public static function formatCallReason(?string $reason): string
 
     return $labels[$reason] ?? ucwords(str_replace('_', ' ', $reason ?? ''));
 }
+
+/**
+ * Customer-facing label for a delivery service option. The stored enum
+ * values ('Delivery + Pickup', 'Delivery Only', 'Return Only') are kept for
+ * data compatibility; only the display wording changes — "Return Pickup"
+ * avoids confusion with in-store pickup.
+ */
+public static function serviceOptionLabel(?string $serviceOption): string
+{
+    return match ($serviceOption) {
+        'Delivery + Pickup' => 'Delivery + Return Pickup',
+        'Delivery Only'     => 'Delivery Only',
+        'Return Only'       => 'Return Pickup Only',
+        default             => (string) $serviceOption,
+    };
+}
 }

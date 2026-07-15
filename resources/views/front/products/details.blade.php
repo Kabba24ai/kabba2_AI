@@ -160,12 +160,17 @@
                             $hasStandard = $productDetail->standard_delivery_fee !== null;
                             $hasExtended = $productDetail->extended_delivery_fee !== null;
 
+                            // Custom is offered only when at least one tier has both a
+                            // global distance and a product one-way rate (0.00 counts)
+                            $availableCustomTiers = \App\Helpers\DeliveryTierHelper::availableCustomTiersForProduct($productDetail, $productSettings);
+                            $hasCustomTiers = count($availableCustomTiers) > 0;
+
                             // Determine default checked value
                             $checkedDistanceType = $hasStandard
                                 ? 'Standard'
                                 : ($hasExtended
                                     ? 'Extended'
-                                    : 'Custom');
+                                    : ($hasCustomTiers ? 'Custom' : 'Standard'));
                         @endphp
                         @if ($showInStore || $showDelivery)
                             <label for="rentalDeliveryMethod" class="font-medium">Rental Delivery Method</label>
@@ -218,6 +223,10 @@
                                             </div>
                                             <span>{{ $productSettings['extended_delivery_range'] . ' ' . $productSettings['distance_unit'] }}</span>
                                         </label>
+                                    @endif
+
+                                    @if ($hasCustomTiers)
+                                        {{-- Hidden entirely when no Custom tier is valid — no dead-end popup --}}
                                         <label class="inline-flex items-center space-x-2">
                                             <input type="radio" name="distance_type" value="Custom"
                                                 class="sr-only peer"
@@ -231,43 +240,34 @@
                                     @endif
                                 </div>
 
+                                {{-- Compact confirmed-Custom summary; filled by custom-delivery.js --}}
+                                <div id="customSelectionSummary" class="hidden mt-2 text-sm text-gray-700">
+                                    <span class="font-medium">Selected:</span>
+                                    <span id="customSelectionSummaryText"></span>
+                                    <button type="button" id="customSelectionEditBtn"
+                                        class="ml-2 text-blue-600 underline hover:text-blue-800">Edit</button>
+                                </div>
+
                                 <div id="deliveryOptionsDropdown" class="hidden w-full mt-5 mb-5">
                                     <label for="deliveryOptionSelect" class="block font-medium mb-1">
                                         Choose Delivery Type
                                         <span id="distanceTypeTitle"></span>
                                     </label>
-                                    {{-- <select id="deliveryOptionSelect"
-                                        class="block w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
-                                        <option value="">Select Delivery Options</option>
-                                        <option data-id="1" value="Delivery + Pickup">
-                                            Delivery + Pick Up (To/From My Job Site)
-                                            [<span id="DeliveryPickupPrice"></span>]
-                                        </option>
-                                        <option data-id="2" value="Delivery Only">
-                                            Delivery but I'll Return to Store
-                                            [<span id="DeliveryReturnPrice"></span>]
-                                        </option>
-                                        <option data-id="3" value="Return Only">
-                                            I'll Pick Up In-Store but Need Return Service Pick Up
-                                            [<span id="PickupReturnPrice"></span>]
-                                        </option>
-                                    </select> --}}
-
                                     <select id="deliveryOptionSelect"
                                         class="block w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none appearance-none">
 
                                         <option value="">Select Delivery Options</option>
 
                                         <option value="Delivery + Pickup"
-                                            data-label="Delivery + Pick Up (To/From My Job Site)">
+                                            data-label="Delivery + Return Pickup">
                                         </option>
 
                                         <option value="Delivery Only"
-                                            data-label="Delivery but I'll Return to Store">
+                                            data-label="Delivery Only">
                                         </option>
 
                                         <option value="Return Only"
-                                            data-label="I'll Pick Up In-Store but Need Return Service Pick Up">
+                                            data-label="Return Pickup Only">
                                         </option>
 
                                     </select>

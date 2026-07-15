@@ -74,7 +74,7 @@
                                 </span>
                             </div>
                             <ul class="ml-3 text-sm text-gray-500 list-disc list-inside">
-                                <li>{{ $item['service_option'] }}</li>
+                                <li>{{ \App\Helpers\CustomHelper::serviceOptionLabel($item['service_option']) }}</li>
                             </ul>
                         </div>
                     @endif

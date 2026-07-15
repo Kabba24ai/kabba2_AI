@@ -70,7 +70,7 @@
                                     </span>
                                 </div>
                                 <ul class="flex flex-col">
-                                    <li class="text-xs before:content-['-'] before:pr-1">{{ $item['service_option'] }}
+                                    <li class="text-xs before:content-['-'] before:pr-1">{{ \App\Helpers\CustomHelper::serviceOptionLabel($item['service_option']) }}
                                     </li>
                                 </ul>
                             </div>

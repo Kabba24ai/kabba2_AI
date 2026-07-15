@@ -81,7 +81,6 @@ class ThemeService
         'footer' => [
             'footer_layout'      => ['type' => 'select',   'label' => 'Footer Layout',       'default' => 'standard'],
             'footer_copyright'   => ['type' => 'textarea', 'label' => 'Copyright Text',      'default' => ''],
-            'footer_powered_by'  => ['type' => 'boolean',  'label' => 'Show Powered By',     'default' => '0'],
             'footer_newsletter'  => ['type' => 'boolean',  'label' => 'Newsletter Enable',   'default' => '0'],
             'footer_social'      => ['type' => 'boolean',  'label' => 'Social Icons',        'default' => '1'],
             'footer_back_to_top' => ['type' => 'boolean',  'label' => 'Back To Top Button',  'default' => '1'],

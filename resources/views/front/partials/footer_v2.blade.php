@@ -105,10 +105,13 @@
             @endif
         </div>
 
+        {{-- Platform attribution — controlled by Kabba via config
+             (app.powered_by_name / app.powered_by_url), never by website data --}}
         <div class="mt-4 text-white font-bold">
             <span>Powered by :</span>
-            <a href="javascript:void(0)" rel="noopener noreferrer" class="text-white font-bold hover:text-yellow-400">
-                {{ $footerHp->poweredByText ?? ($brandingSettings['powered_by'] ?? 'kabba.ai') }}
+            <a href="{{ config('app.powered_by_url') }}" target="_blank" rel="noopener noreferrer"
+               class="text-white font-bold hover:text-yellow-400">
+                {{ config('app.powered_by_name') }}
             </a>
         </div>
 

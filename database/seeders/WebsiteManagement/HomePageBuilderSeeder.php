@@ -77,7 +77,6 @@ class HomePageBuilderSeeder extends Seeder
                 'subtitle'     => '',
                 'content'      => [
                     'copyright_text' => "© " . date('Y') . " Rent 'n King. All rights reserved.",
-                    'powered_by_text' => 'Development360',
                 ],
                 'display_order' => 6,
                 'status'        => 'Active',

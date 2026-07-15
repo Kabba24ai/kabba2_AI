@@ -322,7 +322,6 @@ $th = $theme; // shorthand
                       class="w-full text-sm border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
                       placeholder="© {{ date('Y') }} Company Name. All rights reserved.">{{ $th['footer_copyright'] ?? '' }}</textarea>
         </div>
-        <x-theme-toggle name="footer_powered_by"  label="Show Powered By"     :value="$th['footer_powered_by']"/>
         <x-theme-toggle name="footer_newsletter"  label="Newsletter Subscribe" :value="$th['footer_newsletter']"/>
         <x-theme-toggle name="footer_social"      label="Social Icons"         :value="$th['footer_social']"/>
         <x-theme-toggle name="footer_back_to_top" label="Back To Top Button"   :value="$th['footer_back_to_top']"/>

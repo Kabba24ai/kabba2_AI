@@ -79,29 +79,15 @@ class SaveController extends Controller
          * -----------------------------
          */
         foreach ($validated as $key => $value) {
-            if($key!='powered_by')
-            {
-                Setting::updateOrCreate(
-                    [
-                        'setting_name' => $key,
-                        'setting_type' => 'Website Management Branding',
-                    ],
-                    [
-                        'setting_value' => $value, 
-                    ]
-                );
-            }
-            else{
-                Setting::updateOrCreate(
-                    [
-                        'setting_name' => $key,
-                        'setting_type' => 'Website Management Branding',
-                    ],
-                    [
-                        'setting_value' => "Kabba.ai",
-                    ]
-                );
-            }
+            Setting::updateOrCreate(
+                [
+                    'setting_name' => $key,
+                    'setting_type' => 'Website Management Branding',
+                ],
+                [
+                    'setting_value' => $value,
+                ]
+            );
         }
 
         flash()->success(__('Branding settings updated successfully.'));

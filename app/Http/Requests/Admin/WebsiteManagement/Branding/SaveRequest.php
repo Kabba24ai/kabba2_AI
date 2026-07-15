@@ -47,15 +47,14 @@ class SaveRequest extends FormRequest
                 'string'
             ],
 
-            'powered_by' => 'nullable',
-            'all_rights_reserved' => 'nullable',
-
             // Retired (not accepted here anymore):
             //  - home_seo_title / home_seo_description — homepage SEO is managed
             //    in Home Page Builder → SEO (website_pages meta columns)
             //  - top_text / top_phone / bottom_title / bottom_text — legacy
             //    homepage fields with no front-end consumers; structured data
             //    reads site_phone
+            //  - all_rights_reserved / powered_by — footer content is managed
+            //    in Website Management → Footer (copyright_text/powered_by_text)
             //  - terms_condition_text_1/2/3 — Settings → Terms & Conditions
 
         ];

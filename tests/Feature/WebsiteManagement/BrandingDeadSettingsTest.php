@@ -119,16 +119,14 @@ class BrandingDeadSettingsTest extends TestCase
         $this->actingAsAdmin();
 
         $this->post(route('admin.website-management.branding.update'), [
-            'site_name'           => 'Rent n King Updated',
-            'site_phone'          => '(615) 555-0001',
-            'site_email'          => 'hello@rentnking.com',
-            'all_rights_reserved' => 'Rent n King LLC',
+            'site_name'  => 'Rent n King Updated',
+            'site_phone' => '(615) 555-0001',
+            'site_email' => 'hello@rentnking.com',
         ])->assertRedirect()->assertSessionHasNoErrors();
 
         $this->assertSame('Rent n King Updated', $this->branding('site_name'));
         $this->assertSame('(615) 555-0001', $this->branding('site_phone'));
         $this->assertSame('hello@rentnking.com', $this->branding('site_email'));
-        $this->assertSame('Rent n King LLC', $this->branding('all_rights_reserved'));
     }
 
     // ── AI metadata: canonical homepage SEO source ───────────────────────────

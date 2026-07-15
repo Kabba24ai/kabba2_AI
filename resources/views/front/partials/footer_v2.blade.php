@@ -91,14 +91,17 @@
 
     <div class="container mt-4 text-sm text-neutral-200/60 flex flex-col sm:flex-row items-center sm:justify-between gap-2">
 
+        {{-- Copyright + Powered By are owned by Website Management → Footer
+             (copyright_text / powered_by_text). The retired Branding settings
+             (all_rights_reserved / powered_by) have no editor anymore and act
+             only as a frozen compatibility fallback when the Footer Builder
+             values are blank. --}}
         <div class="mt-4 text-left">
             @if($footerHp->copyrightText)
                 {{ $footerHp->copyrightText }}
             @else
                 © {{ date('Y') }}
-                <a href="javascript:void(0)" rel="noopener noreferrer">
-                    {{ $brandingSettings['all_rights_reserved'] ?? $brandingSettings['site_name'] }}
-                </a>. All rights reserved.
+                {{ $brandingSettings['all_rights_reserved'] ?? config('app.name') }}. All rights reserved.
             @endif
         </div>
 

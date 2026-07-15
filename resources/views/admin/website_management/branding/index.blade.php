@@ -95,7 +95,7 @@
                         {{-- Site Name --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Site Name (opportunities page title, footer, etc.)
+                                Site Name (opportunities page title, etc.)
                             </label>
                             {!! html()->text('site_name', old('site_name', $settings['site_name'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
                                     'placeholder' => 'Example: Rent n King',
@@ -137,31 +137,9 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        {{-- Powered By --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Footer - All rights reserved.
-                            </label>
-                            {!! html()->text('all_rights_reserved', old('all_rights_reserved', $settings['all_rights_reserved'] ?? ''))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
-                                    'placeholder' => 'Example: Rent `n King',
-                                ]) !!}
-                            @error('all_rights_reserved')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        {{-- Powered By --}}
-                        <div class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Footer - Powered By
-                            </label>
-                            {!! html()->text('powered_by', old('powered_by', $settings['powered_by'] ?? ''))->class('w-full border border-gray-300 -md px-3 py-3 text-sm shadow-sm focus:ring-2 focus:outline-none')->attributes([
-                                    'placeholder' => 'Example: Kabba.ai',
-                                    'readonly' => true,
-                                ]) !!}
-                            @error('powered_by')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        {{-- Footer copyright + "Powered by" are managed in
+                             Website Management → Footer (Footer Content tab) —
+                             the sole owner of footer content. --}}
                     </div>
 
                     {{-- Homepage SEO is managed in Home Page Builder → SEO — the single

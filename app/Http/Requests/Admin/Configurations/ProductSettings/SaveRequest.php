@@ -50,6 +50,12 @@ class SaveRequest extends FormRequest
 
             'standard_delivery_range' => 'nullable|numeric|min:0',
             'extended_delivery_range' => 'nullable|numeric|min:0',
+            // Custom 1–4 tiers: blank = not configured; values need not be
+            // sequential or ascending, so no cross-tier comparison rules.
+            'custom_1_delivery_range' => 'nullable|numeric|min:0',
+            'custom_2_delivery_range' => 'nullable|numeric|min:0',
+            'custom_3_delivery_range' => 'nullable|numeric|min:0',
+            'custom_4_delivery_range' => 'nullable|numeric|min:0',
             'include_extended_range' => 'nullable',
             'distance_unit' => 'nullable|string|in:Miles,Kilometers',
             'sales_tax' => 'nullable|numeric|min:0|max:100',
@@ -102,6 +108,34 @@ class SaveRequest extends FormRequest
             'x_large_extended_delivery_fee' => 'nullable|numeric|min:0',
             '2x_large_extended_delivery_fee' => 'nullable|numeric|min:0',
             'commercial_extended_delivery_fee' => 'nullable|numeric|min:0',
+
+            'small_custom_1_delivery_fee' => 'nullable|numeric|min:0',
+            'medium_custom_1_delivery_fee' => 'nullable|numeric|min:0',
+            'large_custom_1_delivery_fee' => 'nullable|numeric|min:0',
+            'x_large_custom_1_delivery_fee' => 'nullable|numeric|min:0',
+            '2x_large_custom_1_delivery_fee' => 'nullable|numeric|min:0',
+            'commercial_custom_1_delivery_fee' => 'nullable|numeric|min:0',
+
+            'small_custom_2_delivery_fee' => 'nullable|numeric|min:0',
+            'medium_custom_2_delivery_fee' => 'nullable|numeric|min:0',
+            'large_custom_2_delivery_fee' => 'nullable|numeric|min:0',
+            'x_large_custom_2_delivery_fee' => 'nullable|numeric|min:0',
+            '2x_large_custom_2_delivery_fee' => 'nullable|numeric|min:0',
+            'commercial_custom_2_delivery_fee' => 'nullable|numeric|min:0',
+
+            'small_custom_3_delivery_fee' => 'nullable|numeric|min:0',
+            'medium_custom_3_delivery_fee' => 'nullable|numeric|min:0',
+            'large_custom_3_delivery_fee' => 'nullable|numeric|min:0',
+            'x_large_custom_3_delivery_fee' => 'nullable|numeric|min:0',
+            '2x_large_custom_3_delivery_fee' => 'nullable|numeric|min:0',
+            'commercial_custom_3_delivery_fee' => 'nullable|numeric|min:0',
+
+            'small_custom_4_delivery_fee' => 'nullable|numeric|min:0',
+            'medium_custom_4_delivery_fee' => 'nullable|numeric|min:0',
+            'large_custom_4_delivery_fee' => 'nullable|numeric|min:0',
+            'x_large_custom_4_delivery_fee' => 'nullable|numeric|min:0',
+            '2x_large_custom_4_delivery_fee' => 'nullable|numeric|min:0',
+            'commercial_custom_4_delivery_fee' => 'nullable|numeric|min:0',
 
             'small_daily_track_insurance_fee' => 'nullable|numeric|min:0',
             'medium_daily_track_insurance_fee' => 'nullable|numeric|min:0',

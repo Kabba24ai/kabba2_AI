@@ -98,21 +98,22 @@ class SaveController extends Controller
             }
         }
 
+        /**
+         * Push delivery fees to products for every tier (Standard, Extended,
+         * Custom 1–4). The global setting always wins: any product-level value
+         * for a tier is overwritten when that global rate is submitted, and
+         * blank keeps NULL (not configured) while an explicit 0 stays 0.00.
+         */
         foreach ($sizeMap as $dbSize => $prefix) {
             $update = [];
 
-            // Standard delivery fee (only if present in request)
-            $stdKey = "{$prefix}_standard_delivery_fee";
-            if ($request->has($stdKey)) {
-                $val = $request->input($stdKey);
-                $update['standard_delivery_fee'] = $val === null || $val === '' ? null : floatval($val);
-            }
+            foreach (\App\Helpers\DeliveryTierHelper::TIERS as $tier) {
+                $key = \App\Helpers\DeliveryTierHelper::feeSettingKey($prefix, $tier);
 
-            // Extended delivery fee (only if present in request)
-            $extKey = "{$prefix}_extended_delivery_fee";
-            if ($request->has($extKey)) {
-                $val = $request->input($extKey);
-                $update['extended_delivery_fee'] = $val === null || $val === '' ? null : floatval($val);
+                if ($request->has($key)) {
+                    $val = $request->input($key);
+                    $update[\App\Helpers\DeliveryTierHelper::productColumn($tier)] = $val === null || $val === '' ? null : floatval($val);
+                }
             }
 
             if (!empty($update)) {

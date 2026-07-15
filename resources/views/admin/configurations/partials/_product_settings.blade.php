@@ -5,13 +5,36 @@
         }
     </style>
 @endpush
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+<div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-truck class="w-5 h-5 text-blue-600" aria-hidden="true" />
-        <h3 class="text-lg font-bold text-gray-900">Delivery Range</h3>
+        <h3 class="text-lg font-bold text-gray-900">Delivery Range &amp; Delivery Fees</h3>
     </div>
 
-    <div class="flex flex-wrap items-end gap-8">
+    @php
+        // Six administrative delivery tiers. "Custom 1–4" names are admin-only;
+        // customers eventually see only the configured distance values.
+        $deliveryTiers = [
+            'standard' => 'Standard',
+            'extended' => 'Extended',
+            'custom_1' => 'Custom 1',
+            'custom_2' => 'Custom 2',
+            'custom_3' => 'Custom 3',
+            'custom_4' => 'Custom 4',
+        ];
+        $deliverySizes = [
+            'small' => 'Small',
+            'medium' => 'Medium',
+            'large' => 'Large',
+            'x_large' => 'X-Large',
+            '2x_large' => '2X Large',
+            'commercial' => 'Commercial',
+        ];
+        $distanceUnitValue = data_get($settings, 'Product Settings.distance_unit.setting_value');
+    @endphp
+
+    {{-- Delivery range configuration --}}
+    <div class="flex flex-wrap items-end gap-6">
         {{-- Standard Delivery --}}
         <div class="flex flex-col">
             <label for="standard_delivery_range" class="block text-sm font-medium text-gray-700 mb-1">
@@ -85,6 +108,36 @@
             @enderror
         </div>
 
+        {{-- Custom 1–4 distances (blank = tier not configured) --}}
+        @foreach (['custom_1', 'custom_2', 'custom_3', 'custom_4'] as $customTier)
+            @php
+                $rangeName = "{$customTier}_delivery_range";
+            @endphp
+            <div class="flex flex-col">
+                <label for="{{ $rangeName }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ $deliveryTiers[$customTier] }}
+                </label>
+                {!! html()->input(
+                        'number',
+                        $rangeName,
+                        old($rangeName, data_get($settings, "Product Settings.$rangeName.setting_value")),
+                    )->class([
+                        'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                        'border-gray-300' => !$errors->has($rangeName),
+                        'border-red-500' => $errors->has($rangeName),
+                    ])->attributes([
+                        'data-parsley-type' => 'number',
+                        'autocomplete' => 'off',
+                        'min' => '0',
+                        'placeholder' => data_get($settings, "Product Settings.$rangeName.placeholder"),
+                        'id' => $rangeName,
+                    ]) !!}
+                @error($rangeName)
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        @endforeach
+
         {{-- Distance Unit --}}
         <div class="flex flex-col">
             <label for="distance_unit" class="block text-sm font-medium text-gray-700 mb-1">
@@ -110,6 +163,77 @@
             @error('distance_unit')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
+        </div>
+    </div>
+
+    <p class="mt-2 text-xs text-gray-500">
+        Custom 1&ndash;4 names are administrative only &mdash; customers see just the configured distance.
+        Leave a distance blank to keep that tier unconfigured. The Distance Unit applies to all six tiers.
+    </p>
+
+    {{-- Delivery fee matrix (one-way rates) --}}
+    <div class="mt-6">
+        <h4 class="text-md font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-1">Delivery Fees</h4>
+        <p class="text-xs text-gray-500 mb-3">
+            One-way rates &mdash; the amount charged for one direction of service.
+            Blank = rate not configured; 0.00 = intentionally free.
+        </p>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="text-left py-2 pr-4 font-medium text-gray-700 whitespace-nowrap">Equipment Size</th>
+                        @foreach ($deliveryTiers as $tierKey => $tierLabel)
+                            @php
+                                $tierRange = data_get($settings, "Product Settings.{$tierKey}_delivery_range.setting_value");
+                            @endphp
+                            <th class="text-left py-2 pr-4 font-medium text-gray-700 whitespace-nowrap">
+                                {{ $tierLabel }}
+                                <span class="block text-xs font-normal text-gray-400">
+                                    {{ $tierRange !== null && $tierRange !== '' ? $tierRange . ' ' . $distanceUnitValue : '—' }}
+                                </span>
+                            </th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($deliverySizes as $sizeKey => $sizeLabel)
+                        <tr class="border-b border-gray-100">
+                            <td class="py-2 pr-4 font-medium text-gray-800 whitespace-nowrap">{{ $sizeLabel }}</td>
+                            @foreach ($deliveryTiers as $tierKey => $tierLabel)
+                                @php
+                                    $name = "{$sizeKey}_{$tierKey}_delivery_fee";
+                                    $hasError = $errors->has($name);
+                                    $value = old($name, data_get($settings, "Product Settings.$name.setting_value"));
+                                    $placeholder = data_get($settings, "Product Settings.$name.placeholder");
+                                    $isCustomTier = str_starts_with($tierKey, 'custom_');
+                                @endphp
+                                <td class="py-2 pr-4">
+                                    {!! html()->input('number', $name, $value)->class([
+                                            'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                                            'border-gray-300' => !$hasError,
+                                            'border-red-500' => $hasError,
+                                        ])->attributes(array_filter([
+                                            'data-parsley-type' => 'number',
+                                            'autocomplete' => 'off',
+                                            'step' => '0.01',
+                                            'min' => '0',
+                                            'placeholder' => $placeholder,
+                                            'required' => $isCustomTier ? null : true,
+                                            'id' => $name,
+                                            'aria-label' => "$sizeLabel $tierLabel delivery fee",
+                                        ], fn ($attr) => $attr !== null)) !!}
+
+                                    @error($name)
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -536,76 +660,7 @@
     </div>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex items-center space-x-2 mb-4">
-        <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
-        <h3 class="text-lg font-bold text-gray-900">Delivery Fees</h3>
-    </div>
-
-    @php
-        // Exact keys you listed → pretty labels for the card heading
-        $sizes = [
-            'small' => 'Small',
-            'medium' => 'Medium',
-            'large' => 'Large',
-            'x_large' => 'X-Large',
-            '2x_large' => '2X Large',
-            'commercial' => 'Commercial',
-        ];
-
-        // Period key → label (these appear in the field names)
-        $periods = [
-            'standard' => 'Standard',
-            'extended' => 'Extended',
-        ];
-    @endphp
-
-    @foreach ($sizes as $sizeKey => $sizeLabel)
-        <div class="mb-6">
-            <h4 class="text-md font-semibold text-gray-800 border-b border-gray-200 my-2">{{ $sizeLabel }}</h4>
-
-            <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0">
-                @foreach ($periods as $periodKey => $periodLabel)
-                    @php
-                        // Build the exact field name you have in settings/validation
-                        // e.g. small_standard_delivery_fee, x_large_extended_delivery_fee, etc.
-                        $name = "{$sizeKey}_{$periodKey}_delivery_fee";
-                        $id = $name;
-                        $hasError = $errors->has($name);
-                        $value = old($name, data_get($settings, "Product Settings.$name.setting_value"));
-                        $placeholder = data_get($settings, "Product Settings.$name.placeholder");
-                    @endphp
-
-                    <div>
-                        <label for="{{ $id }}" class="block text-sm font-medium text-gray-700 mb-1">
-                            {{ $periodLabel }}
-                        </label>
-
-                        <div class="relative">
-                            {!! html()->input('number', $name, $value)->class([
-                                    'w-20 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
-                                    'border-gray-300' => !$hasError,
-                                    'border-red-500' => $hasError,
-                                ])->attributes([
-                                    'data-parsley-type' => 'number',
-                                    'autocomplete' => 'off',
-                                    'placeholder' => $placeholder,
-                                    'required' => true,
-                                    'id' => $id,
-                                ]) !!}
-                        </div>
-
-                        @error($name)
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    @endforeach
-
-</div>
-
+{{-- Delivery Fees consolidated into the "Delivery Range & Delivery Fees" card above --}}
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">

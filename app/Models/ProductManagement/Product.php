@@ -72,6 +72,10 @@ class Product extends Model
 
         'standard_delivery_fee',
         'extended_delivery_fee',
+        'custom_1_delivery_fee', // One-way rate copied from global Custom 1 tier for the product's size
+        'custom_2_delivery_fee',
+        'custom_3_delivery_fee',
+        'custom_4_delivery_fee',
 
         'in_store_pickup', // Boolean: is in-store pickup available
         'delivery_and_pickup', // Boolean: is delivery and pickup available

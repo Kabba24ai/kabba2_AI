@@ -8,6 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 // Models
+use App\Models\Configurations\Setting;
 use App\Models\TermsAndConditions\Terms;
 
 class IndexController extends Controller
@@ -45,6 +46,17 @@ class IndexController extends Controller
             ]);
         }
 
-        return view('admin.terms_and_conditions.index');
+        // Rental Agreement Header lines — same settings rows the front
+        // signing page reads via CommonFrontDataHelper::brandingSettings()
+        $headerSettings = Setting::where('setting_type', 'Website Management Branding')
+            ->whereIn('setting_name', [
+                'terms_condition_text_1',
+                'terms_condition_text_2',
+                'terms_condition_text_3',
+            ])
+            ->pluck('setting_value', 'setting_name')
+            ->toArray();
+
+        return view('admin.terms_and_conditions.index', compact('headerSettings'));
     }
 }

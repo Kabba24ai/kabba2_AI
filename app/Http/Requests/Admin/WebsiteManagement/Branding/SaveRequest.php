@@ -102,22 +102,8 @@ class SaveRequest extends FormRequest
                 'string'
             ],
 
-            'terms_condition_text_1' => [
-                'nullable',
-                'string'
-            ],
-
-            'terms_condition_text_2' => [
-                'nullable',
-                'string'
-            ],
-
-            'terms_condition_text_3' => [
-                'nullable',
-                'string'
-            ],
-
-
+            // The Rental Agreement Header lines (terms_condition_text_1/2/3)
+            // are managed exclusively in Settings → Terms & Conditions.
 
         ];
     }

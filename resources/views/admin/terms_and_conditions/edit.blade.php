@@ -3,6 +3,8 @@
 @section('title', 'Edit Terms')
 
 @section('content')
+    {{-- Same centered container as the Website Builder pages (Home/Contact/Branding) --}}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     {{-- Page header --}}
     <div class="flex items-center justify-between mb-6">
         <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Edit Terms</h3>
@@ -54,5 +56,5 @@
         </div>
     </div>
 
-
+    </div>
 @endsection

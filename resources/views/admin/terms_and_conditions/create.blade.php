@@ -6,6 +6,8 @@
 @endpush
 
 @section('content')
+    {{-- Same centered container as the Website Builder pages (Home/Contact/Branding) --}}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     {{-- Flash --}}
     @include('flash::message')
     <!-- Header -->
@@ -69,6 +71,8 @@
             </div>
         </div>
 
+
+    </div>
 
     </div>
 @endsection

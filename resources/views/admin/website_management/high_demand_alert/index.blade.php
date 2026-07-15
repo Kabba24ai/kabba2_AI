@@ -107,7 +107,10 @@
                             'placeholder' => '(xxx) xxx-xxxx',
                             'x-model' => 'phone',
                         ]) !!}
-                    <p class="mt-1 text-xs text-gray-500">Blank = the company phone from Branding.</p>
+                    <p class="mt-1 text-xs text-gray-500">
+                        This is the phone number displayed in the High Demand Alert popup — this screen is the
+                        only place it is edited. Blank = compatibility fallback to the Company Phone Number.
+                    </p>
                     @error('high_demand_alert_phone') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 

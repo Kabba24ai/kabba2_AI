@@ -153,6 +153,61 @@ class HighDemandAlertTest extends TestCase
         $this->assertStringNotContainsString('lady-image.webp', $html);
     }
 
+    // ── Phone ownership: HD editor is the only editable source ───────────────
+
+    public function test_configured_hd_phone_wins_over_the_company_phone(): void
+    {
+        Setting::updateOrCreate(
+            ['setting_name' => 'site_phone', 'setting_type' => 'Website Management Branding'],
+            ['setting_value' => '(615) 815-6734'],
+        );
+        $this->setAlertSetting('high_demand_alert_phone', '(888) 777-6666');
+
+        $this->makeProduct(true);
+        $html = $this->get($this->productUrl())->assertOk()->getContent();
+
+        // The HD popup shows ITS phone; the Custom Range modal shows the company phone
+        $this->assertStringContainsString('href="tel:(888) 777-6666"', $html);
+        $this->assertStringContainsString('href="tel:(615) 815-6734"', $html);
+    }
+
+    public function test_branding_page_labels_the_phone_as_company_phone_only(): void
+    {
+        $this->actingAsAdmin();
+
+        $this->get(route('admin.website-management.branding.index'))
+            ->assertOk()
+            ->assertSee('Company Phone Number')
+            ->assertDontSee('High Demand Alert / Custom Range Phone Number');
+    }
+
+    public function test_branding_save_cannot_alter_the_hd_alert_phone(): void
+    {
+        $this->actingAsAdmin();
+        $this->setAlertSetting('high_demand_alert_phone', '(888) 777-6666');
+
+        $this->post(route('admin.website-management.branding.update'), [
+            'site_name'               => 'Rent n King',
+            'high_demand_alert_phone' => '(111) 222-3333',
+        ])->assertRedirect();
+
+        $this->assertSame('(888) 777-6666', $this->alertSetting('high_demand_alert_phone'));
+    }
+
+    public function test_custom_range_modal_renders_the_company_phone(): void
+    {
+        Setting::updateOrCreate(
+            ['setting_name' => 'site_phone', 'setting_type' => 'Website Management Branding'],
+            ['setting_value' => '(615) 815-6734'],
+        );
+        $this->makeProduct(false);
+
+        $html = $this->get($this->productUrl())->assertOk()->getContent();
+
+        $this->assertStringContainsString('id="customServiceOption"', $html);
+        $this->assertStringContainsString('(615) 815-6734', $html);
+    }
+
     // ── Admin editor ──────────────────────────────────────────────────────────
 
     public function test_editor_page_renders_with_preview(): void

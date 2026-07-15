@@ -17,8 +17,12 @@ use Illuminate\Support\Facades\Cache;
  *
  * Every field falls back to the original hard-coded popup content, so
  * installations with no configuration render exactly what they did before
- * this feature existed. The phone additionally falls back to the legacy
- * Branding site_phone, which the popup historically displayed.
+ * this feature existed.
+ *
+ * PHONE OWNERSHIP: high_demand_alert_phone (this editor) is the ONLY
+ * editable source for the popup phone. When it is blank, the popup shows
+ * the canonical Company Phone Number (Branding site_phone) as a read-only
+ * compatibility fallback — the popup historically displayed that value.
  */
 class HighDemandAlertService
 {
@@ -47,7 +51,8 @@ class HighDemandAlertService
                                     ? $s['high_demand_alert_message'] : self::DEFAULT_MESSAGE,
                 'phone'        => filled($s['high_demand_alert_phone'] ?? null)
                                     ? $s['high_demand_alert_phone']
-                                    // Legacy fallback: the popup always showed the Branding phone
+                                    // Compatibility fallback: the canonical Company Phone
+                                    // Number (read-only here — edited on Branding)
                                     : ConfigurationHelper::getSettings('Website Management Branding', 'site_phone'),
                 'buttonText'   => filled($s['high_demand_alert_button_text'] ?? null)
                                     ? $s['high_demand_alert_button_text'] : self::DEFAULT_BUTTON_TEXT,

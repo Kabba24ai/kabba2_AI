@@ -200,7 +200,8 @@
                     final arrangements based upon your delivery requirements.
                 </p>
 
-                <!-- Phone Number -->
+                <!-- Phone Number — the canonical Company Phone (Branding);
+                     Custom Range has no feature-specific number -->
                 @if (!empty($brandingSettings['site_phone']))
                     <p class="text-black text-lg mb-6">
                         <a href="tel:{{ $brandingSettings['site_phone'] }}"

@@ -109,7 +109,18 @@ class DispatchController extends BaseController
             } elseif ($isReturnOnly) {
                 $q->whereIn('pickup_by', $driverIds);
             } else {
-                $q->whereIn('delivery_by', $driverIds)->orWhereIn('pickup_by', $driverIds);
+                $q->whereIn('delivery_by', $driverIds)
+                    ->orWhere(function ($sub) use ($driverIds) {
+                        // Match on the return leg only if delivery is also
+                        // covered by an active driver, or already completed —
+                        // don't surface a row via a return-only assignment while
+                        // delivery is still unassigned/pending.
+                        $sub->whereIn('pickup_by', $driverIds)
+                            ->where(function ($deliveryCheck) use ($driverIds) {
+                                $deliveryCheck->whereIn('delivery_by', $driverIds)
+                                    ->orWhere('delivery_status', '!=', 'Pending');
+                            });
+                    });
             }
         });
 

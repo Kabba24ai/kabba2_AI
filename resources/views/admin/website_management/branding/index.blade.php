@@ -104,10 +104,13 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        {{-- Phone --}}
+                        {{-- Phone — the canonical company phone: structured data (schema),
+                             the Custom Range delivery popup, and the fallback for popups
+                             without their own number. The High Demand Alert phone is edited
+                             on Website Mgt → High Demand Alert. --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                High Demand Alert / Custom Range Phone Number
+                                Company Phone Number
                             </label>
                             {!! html()->text('site_phone', old('site_phone', old('site_phone', $settings['site_phone'] ?? '')))->class([
                                     'masked-phone w-full border rounded-md px-3 py-3 text-sm shadow-sm focus:outline-none focus:ring-2',
@@ -121,6 +124,12 @@
                                     'id' => 'site_phone',
                                     'autocomplete' => 'tel',
                                 ]) !!}
+                            <p class="mt-1 text-xs text-gray-500">
+                                Used across the website (delivery popups, search-engine business info).
+                                The High Demand Alert popup phone is managed on
+                                <a href="{{ route('admin.website-management.high-demand-alert.index') }}"
+                                   class="text-blue-600 hover:underline">High Demand Alert</a>.
+                            </p>
                             @error('site_phone')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror

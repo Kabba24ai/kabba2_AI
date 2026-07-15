@@ -73,6 +73,12 @@ class PaymentStoreRequest extends FormRequest
             'source'               => ['nullable', 'string', Rule::in(['order', 'crm'])],
             'customer_account_id'  => ['nullable', 'string', 'exists:customer_accounts,unique_id'],
             'billing_charge_unique_id' => ['nullable', 'string', 'exists:billing_charges,unique_id'],
+
+            // Client-generated, one per distinct payment attempt — lets a
+            // duplicate double-click/network-retry of this quick-payment
+            // form be recognized rather than double-charging a card or
+            // double-creating a charge record.
+            'idempotency_token' => ['nullable', 'string', 'max:64'],
         ];
     }
 

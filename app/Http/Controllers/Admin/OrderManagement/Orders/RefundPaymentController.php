@@ -20,6 +20,7 @@ use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderPayment;
 use App\Services\AuthorizeNetService;
+use App\Services\Orders\PaymentAllocationService;
 
 class RefundPaymentController extends Controller
 {
@@ -51,13 +52,19 @@ class RefundPaymentController extends Controller
      */
     private function resolveRefundCalculation(
         Order $order,
+        \App\Services\Orders\OrderPaymentSummary $summary,
         RefundCalculationType $calcType,
         float $requestedAmount,
         float $remaining,
         string $paymentType
     ): array {
         if ($calcType === RefundCalculationType::CardProcessingFeeRetained) {
-            $paidPayments = $order->payments()->where('status', OrderPaymentStatus::Paid)->get();
+            // Filtered in-memory from the already-loaded settled-payments
+            // collection (one query, done once in __invoke()) rather than a
+            // fresh query here — narrower than "settled" on purpose: the
+            // fee-retained shortcut only ever applies to a genuine, fully
+            // Paid card charge, never a PartialPayment/Invoice* row.
+            $paidPayments = $summary->originalSettledPayments->where('status', OrderPaymentStatus::Paid);
 
             if ($paidPayments->count() !== 1) {
                 return [null, null, null, 'Full Amount Less Card Processing Fee is only available for orders with exactly one payment.'];
@@ -172,6 +179,22 @@ class RefundPaymentController extends Controller
         try {
             $order = Order::has('lastPaidPayment')->with('customer')->where('unique_id', $uniqueId)->firstOrFail();
 
+            // Phase 3A: refuse to guess which original payment a refund
+            // belongs to. Today's single-source refund flow can only ever
+            // safely target an order with exactly one settled original
+            // payment — on a genuinely multi-payment order there is no
+            // unambiguous target, and silently picking "the last paid
+            // payment" (the prior behavior) is exactly the defect this
+            // phase fixes. Source-payment selection across multiple
+            // payments is Phase 3B/3C scope, not this one.
+            $summary = $order->paymentSummary();
+            if (!$summary->hasUnambiguousRefundSource()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This order was paid using more than one payment, so the system cannot yet determine which payment a refund should be drawn from. Refunds on multi-payment orders are not supported in this release — selecting a specific source payment is planned for an upcoming update.',
+                ], 422);
+            }
+
             if ($idempotencyToken) {
                 $alreadyProcessed = OrderPayment::where('order_id', $order->id)
                     ->where('idempotency_token', $idempotencyToken)
@@ -191,7 +214,13 @@ class RefundPaymentController extends Controller
                 }
             }
 
-            $lastPayment = $order->lastPaidPayment;
+            // The one unambiguous settled original payment confirmed above —
+            // not Order::lastPaidPayment, which (being a bare "highest id
+            // with status Paid" lookup) is a coincidence in the single-
+            // payment case, not a guarantee. Using the already-verified
+            // $summary keeps there being exactly one place that decides
+            // "which payment is this."
+            $lastPayment = $summary->unambiguousRefundSource();
             $lastPaymentId = $lastPayment->transaction_id;
 
             $refundPaymentType = $validated['payment_type'];
@@ -207,9 +236,10 @@ class RefundPaymentController extends Controller
             // stored for those types.
             [$currentRefundAmount, $taxRefunded, $feeRetained, $calcError] = $this->resolveRefundCalculation(
                 $order,
+                $summary,
                 $calcType,
                 (float) $validated['amount'],
-                (float) $order->remaining_amount,
+                $summary->orderRefundableBalance,
                 $refundPaymentType,
             );
 
@@ -217,7 +247,20 @@ class RefundPaymentController extends Controller
                 return response()->json(['success' => false, 'message' => $calcError], 422);
             }
 
-            $remaining = $order->remaining_amount;
+            // Two independent caps: the order-level refundable balance
+            // (Total Settled Payments − Total Successful Refunds — fixed in
+            // Phase 3A to no longer be anchored to grand_total, which was
+            // wrong for a partially-paid order) and this specific payment's
+            // own remaining refundable amount. In today's guarded single-
+            // source case the two are mathematically identical (this is the
+            // only settled payment on the order), but both are enforced
+            // explicitly so the invariant is real and testable, not just a
+            // coincidence of the current single-payment scope. Reused from
+            // $summary (computed once above) rather than re-querying —
+            // one canonical snapshot for the whole request.
+            $remaining = $summary->orderRefundableBalance;
+            $paymentRemaining = $order->remainingRefundableForPayment($lastPayment);
+            $effectiveCap = min($remaining, $paymentRemaining);
 
             if ($currentRefundAmount <= 0) {
                 return response()->json(
@@ -229,12 +272,12 @@ class RefundPaymentController extends Controller
                 );
             }
 
-            if ($currentRefundAmount > $remaining) {
+            if ($currentRefundAmount > $effectiveCap) {
                 return response()->json(
                     [
                         'success' => false,
-                        'message' => "Refund exceeds remaining refundable amount. Remaining: {$remaining}.",
-                        'remaining' => $remaining,
+                        'message' => "Refund exceeds remaining refundable amount. Remaining: {$effectiveCap}.",
+                        'remaining' => $effectiveCap,
                     ],
                     400,
                 );
@@ -292,7 +335,11 @@ class RefundPaymentController extends Controller
             // Refunding to Store Credit must actually grant the credit —
             // never just a label — the same "Cash means cash" principle
             // applied to every method: selecting Store Credit must mean
-            // the customer's real balance genuinely increased.
+            // the customer's real balance genuinely increased. The grant
+            // row's order_payment_id is linked to the refund's own row
+            // below (once created), so that customer_credits row always
+            // traces back to the refund that produced it.
+            $storeCreditGrant = null;
             if ($refundPaymentType === PaymentMethod::StoreCredit->value) {
                 // Namespaced so a duplicate submit of *this* refund is
                 // recognized without colliding with an unrelated grant/
@@ -301,7 +348,7 @@ class RefundPaymentController extends Controller
                     ? "refund:{$order->id}:{$idempotencyToken}"
                     : null;
 
-                \App\Services\CustomerCreditService::createFinancialCredit(
+                $storeCreditGrant = \App\Services\CustomerCreditService::createFinancialCredit(
                     customerId: $order->customer_id,
                     amount: $currentRefundAmount,
                     reason: "Refund on Order {$order->order_number}: {$reasonText}",
@@ -317,7 +364,13 @@ class RefundPaymentController extends Controller
             $payment = $order->payments()->create([
                 'payment_datetime'        => now(),
                 'refunded_at'             => now(),
-                'parent_order_payment_id' => $order->lastPayment->id,
+                // Fixed Phase 3A defect: previously $order->lastPayment->id
+                // (highest-id row of ANY status), which on an order's
+                // second-or-later refund resolved to the FIRST refund row
+                // instead of the original payment, corrupting the audit
+                // chain. $lastPayment here is the verified, unambiguous
+                // original settled payment resolved above.
+                'parent_order_payment_id' => $lastPayment->id,
                 'payment_method'          => $this->mapPaymentMethod($refundPaymentType),
                 'transaction_id'          => $transactionId,
                 'gateway_refund_id'       => $gatewayRefundId,
@@ -341,6 +394,25 @@ class RefundPaymentController extends Controller
                 'processed_reason_label'  => $reason->label(),
                 'processed_reason_other'  => $validated['reason_other'] ?? null,
             ]);
+
+            // Phase 3B: record the durable allocation for this refund
+            // alongside the parent_order_payment_id set above — $lastPayment
+            // is the same verified, unambiguous original payment either way,
+            // so this is never a second, independent decision about "which
+            // payment is this," only the allocation-table record of it.
+            PaymentAllocationService::allocateSingleSource(
+                refund: $payment,
+                original: $lastPayment,
+                allocatedAmount: $currentRefundAmount,
+                allocatedBaseAmount: round($currentRefundAmount - $taxRefunded, 2),
+                allocatedTaxAmount: $taxRefunded,
+                processingFeeRetained: $feeRetained,
+                gatewayTransactionId: $gatewayRefundId,
+            );
+
+            if ($storeCreditGrant) {
+                $storeCreditGrant->update(['order_payment_id' => $payment->id]);
+            }
 
             event(new RefundInitiateEvent($order, $user, $payment));
 

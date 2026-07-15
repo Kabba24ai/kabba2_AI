@@ -21,6 +21,7 @@ class PaymentAddedToAccountListener
 
         $order->history()->create([
             'customer_id' => $order->customer_id,
+            'order_payment_id' => $payment->id,
             'user_id' => $user?->id,
             'action_by' => OrderHistoryActionBy::User,
             'action_date' => now(),

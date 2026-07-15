@@ -352,6 +352,14 @@
             const payBtnText   = document.getElementById('payBtnText');
             const payBtnLoader = document.getElementById('payBtnLoader');
 
+            // One token per page load, reused across retries of the same
+            // submission (a double-click, or a resubmit after the button
+            // is re-enabled on failure) — lets the server recognize a
+            // duplicate rather than charging the card twice.
+            const idempotencyToken = (window.crypto && window.crypto.randomUUID)
+                ? window.crypto.randomUUID()
+                : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
             const cardNumberInput  = document.getElementById('cardNumber');
             const firstNameInput   = document.getElementById('firstName');
             const lastNameInput    = document.getElementById('lastName');
@@ -497,6 +505,7 @@
                                 lastName:             lName,
                                 opaqueDataValue:      response.opaqueData.dataValue,
                                 opaqueDataDescriptor: response.opaqueData.dataDescriptor,
+                                idempotency_token:    idempotencyToken,
                             })
                         })
                         .then(res => {

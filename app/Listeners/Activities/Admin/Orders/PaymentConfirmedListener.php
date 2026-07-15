@@ -20,6 +20,7 @@ class PaymentConfirmedListener
 
         $order->history()->create([
             'customer_id' => $order->customer_id,
+            'order_payment_id' => $payment->id,
             'user_id' => $user ? $user->id : null,
             'action_by' => OrderHistoryActionBy::User,
             'action_date' => now(),

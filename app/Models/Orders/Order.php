@@ -19,6 +19,7 @@ use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
 use App\Models\Customers\Customer;
 use App\Models\Customers\Invoice;
 use App\Models\MaintenanceManagement\EquipmentSoftAssign;
+use App\Services\Orders\OrderPaymentSummary;
 use stdClass;
 
 class Order extends Model
@@ -334,19 +335,31 @@ class Order extends Model
         return $lastPayment ? $lastPayment->status->value : null;
     }
 
+    /**
+     * Paid in Full is derived from the aggregate settled-payments total
+     * against grand_total — NOT from any single payments() row individually
+     * carrying status Paid. Two PartialPayment rows (e.g. $500 Cash + $500
+     * Card on a $1,000 order) together satisfy the order even though
+     * neither row is itself status Paid; the old row-existence check never
+     * flipped true for that case. A small epsilon absorbs rounding, same
+     * convention already used by ReceivePaymentController's own
+     * partial-completes-total check.
+     */
     public function getIsPaidAttribute()
     {
-        return $this->payments()->where('status', \App\Enums\Orders\OrderPaymentStatus::Paid)->exists();
+        return ($this->total_paid + 0.005) >= (float) $this->grand_total;
     }
 
+    /**
+     * Total Settled Payments — sums every payments() row that represents
+     * real, settled money (Paid, Partial Payment, or a legacy Invoice*
+     * status), via OrderPayment::scopeSettled(). Previously hardcoded to
+     * [PartialPayment, Paid] only, which silently excluded settled
+     * Invoice* rows from this total.
+     */
     public function getTotalPaidAttribute(): float
     {
-        return (float) $this->payments()
-            ->whereIn('status', [
-                \App\Enums\Orders\OrderPaymentStatus::PartialPayment->value,
-                \App\Enums\Orders\OrderPaymentStatus::Paid->value,
-            ])
-            ->sum('amount');
+        return (float) $this->payments()->settled()->sum('amount');
     }
 
     public function getBalanceDueAttribute(): float
@@ -354,6 +367,12 @@ class Order extends Model
         return max(0.0, (float) $this->grand_total - $this->total_paid);
     }
 
+    /**
+     * Total Successful Refunds — sums refund_amount across every refund/
+     * partial-refund row. A refund does not reduce Settled Payments (the
+     * customer did pay it); it reduces Net Paid / the order's refundable
+     * balance instead (see getNetPaidAttribute()/getRemainingAmountAttribute()).
+     */
     public function getTotalRefundedAttribute()
     {
         return $this->payments()
@@ -361,9 +380,66 @@ class Order extends Model
             ->sum('refund_amount');
     }
 
+    /**
+     * Order Refundable Balance = Total Settled Payments − Total Successful
+     * Refunds. This is the order-level cap a refund request must never
+     * exceed.
+     *
+     * Previously computed as (grand_total − total_refunded), which is
+     * anchored to the wrong base for a partially-paid order: a $1,000
+     * order with only $400 actually collected must never allow refunding
+     * more than $400, regardless of what grand_total says. The two
+     * formulas coincide once an order is fully paid (total_paid ==
+     * grand_total), which is why this went unnoticed — they diverge
+     * exactly on a partial payment. Kept under the original accessor name
+     * (remaining_amount) since it's read from ~10 places in the refund
+     * modal; only the formula changed, not the name or call sites.
+     */
     public function getRemainingAmountAttribute()
     {
-        return max(0, (float) $this->grand_total - (float) $this->total_refunded);
+        return max(0.0, (float) $this->total_paid - (float) $this->total_refunded);
+    }
+
+    /**
+     * Net Paid — the exact same figure as the refundable-balance cap
+     * above, exposed under its own name because it answers a different
+     * question for display purposes: "how much of this order's money is
+     * currently, actually with the business," not "how much more can
+     * still be refunded." Deliberately delegates to
+     * getRemainingAmountAttribute() rather than repeating the formula —
+     * there is exactly one place this arithmetic is written.
+     */
+    public function getNetPaidAttribute(): float
+    {
+        return $this->remaining_amount;
+    }
+
+    /**
+     * Per-payment remaining refundable balance for a single original
+     * payment row. This enforces the SECOND, narrower cap the refund flow
+     * must respect alongside the order-level cap above — a refund must
+     * never exceed whichever of the two is smaller.
+     *
+     * Phase 3B: delegates to PaymentAllocationService, the canonical
+     * source for allocation-aware remaining-refundable math (with a
+     * built-in legacy fallback for payments that predate the allocation
+     * table and have not yet been backfilled) — this method is kept only
+     * so existing call sites don't need to know the service exists.
+     */
+    public function remainingRefundableForPayment(OrderPayment $payment): float
+    {
+        return \App\Services\Orders\PaymentAllocationService::remainingRefundable($payment);
+    }
+
+    /**
+     * The canonical, multi-payment-aware payment/refund summary for this
+     * order — see App\Services\Orders\OrderPaymentSummary. Built fresh on
+     * every call (not cached on the model) so it always reflects the
+     * payments() collection as currently loaded/queried.
+     */
+    public function paymentSummary(): OrderPaymentSummary
+    {
+        return OrderPaymentSummary::for($this);
     }
 
     public function invoice()

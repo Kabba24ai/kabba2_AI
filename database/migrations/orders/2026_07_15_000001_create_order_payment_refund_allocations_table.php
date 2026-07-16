@@ -47,11 +47,13 @@ return new class extends Migration
                 ->references('id')->on('order_payments')
                 ->cascadeOnDelete();
 
-            $table->foreign('original_order_payment_id')
+            // Explicit names: the auto-generated identifiers for this table
+            // exceed MySQL's 64-character limit and fail on any fresh migrate
+            $table->foreign('original_order_payment_id', 'opra_original_payment_fk')
                 ->references('id')->on('order_payments')
                 ->restrictOnDelete();
 
-            $table->index(['original_order_payment_id', 'status']);
+            $table->index(['original_order_payment_id', 'status'], 'opra_original_payment_status_idx');
             $table->index('refund_order_payment_id');
         });
     }

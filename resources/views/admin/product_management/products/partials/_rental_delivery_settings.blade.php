@@ -705,7 +705,37 @@
                 <div id="rental-prepaid-fuel-errors"></div>
             </div>
 
+            <!-- Delivery Type (layout only — controls unchanged) -->
             <div class="col-span-2">
+                <label class="block w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Delivery Type
+                </label>
+
+                <div class="flex items-center gap-6 mt-1">
+                    <label class="flex items-center text-xs font-medium text-gray-700 dark:text-gray-300">
+                        {!! html()->checkbox('in_store_pickup', old('in_store_pickup', $objProduct->in_store_pickup ?? 'Yes') === 'Yes', 'Yes')->class('mr-2')->attribute('data-parsley-errors-container', '#in-store-pickup-errors') !!}
+                        In Store Pick Up
+                    </label>
+
+                    <label class="flex items-center text-xs font-medium text-gray-700 dark:text-gray-300">
+                        {!! html()->checkbox(
+                                'delivery_and_pickup',
+                                old('delivery_and_pickup', $objProduct->delivery_and_pickup ?? 'Yes') === 'Yes',
+                                'Yes',
+                            )->class('mr-2')->attribute('data-parsley-errors-container', '#delivery-and-pickup-errors') !!}
+                        Truck Delivery / Pickup
+                    </label>
+                </div>
+
+                <div id="in-store-pickup-errors"></div>
+                @error('in_store_pickup')
+                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+                @enderror
+
+                <div id="delivery-and-pickup-errors"></div>
+                @error('delivery_and_pickup')
+                    <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
+                @enderror
             </div>
 
             {{-- <div>
@@ -844,28 +874,33 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($deliveryFeeTiers as $feeField => $feeTier)
-                    <div class="flex flex-col items-center">
-                        <span class="self-start text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                             {{ $feeTier['label'] }}
                         </span>
-                        <div class="flex items-center gap-1 w-full">
-                            <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
-                            {!! html()->text($feeField)->attributes([
-                                    'placeholder' => '0',
-                                    'data-numeric-input' => 'true',
-                                    'data-parsley-errors-container' => '#delivery-fee-error',
-                                    'class' =>
-                                        'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
-                                ]) !!}
+                        {{-- Width capped to match the Prepaid Cleaning / Fuel inputs --}}
+                        <div class="w-full max-w-[220px]">
+                            <div class="flex items-center gap-1">
+                                <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
+                                {!! html()->text($feeField)->attributes([
+                                        'placeholder' => '0',
+                                        'data-numeric-input' => 'true',
+                                        'data-parsley-errors-container' => '#delivery-fee-error',
+                                        'class' =>
+                                            'w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white',
+                                    ]) !!}
+                            </div>
+                            <div class="mt-1 text-center">
+                                <span
+                                    class="inline-block text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white">
+                                    @if ($feeTier['range'] !== null && $feeTier['range'] !== '')
+                                        {{ $feeTier['range'] }} {{ $productSettings['distance_unit'] }}
+                                    @else
+                                        &mdash;
+                                    @endif
+                                </span>
+                            </div>
                         </div>
-                        <span
-                            class="mt-1 inline-block text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 border rounded text-gray-600 dark:text-white text-center">
-                            @if ($feeTier['range'] !== null && $feeTier['range'] !== '')
-                                {{ $feeTier['range'] }} {{ $productSettings['distance_unit'] }}
-                            @else
-                                &mdash;
-                            @endif
-                        </span>
                     </div>
                 @endforeach
             </div>
@@ -876,40 +911,6 @@
                     <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
                 @enderror
             @endforeach
-        </div>
-
-        <!-- Delivery Type -->
-        <div class="mt-4">
-            <label class="block w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Delivery Type
-            </label>
-
-            <!-- slight top margin to align with inputs nicely -->
-            <div class="flex items-center gap-6 mt-1">
-                <label class="flex items-center text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox('in_store_pickup', old('in_store_pickup', $objProduct->in_store_pickup ?? 'Yes') === 'Yes', 'Yes')->class('mr-2')->attribute('data-parsley-errors-container', '#in-store-pickup-errors') !!}
-                    In Store Pick Up
-                </label>
-
-                <label class="flex items-center text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {!! html()->checkbox(
-                            'delivery_and_pickup',
-                            old('delivery_and_pickup', $objProduct->delivery_and_pickup ?? 'Yes') === 'Yes',
-                            'Yes',
-                        )->class('mr-2')->attribute('data-parsley-errors-container', '#delivery-and-pickup-errors') !!}
-                    Truck Delivery / Pickup
-                </label>
-            </div>
-
-            <div id="in-store-pickup-errors"></div>
-            @error('in_store_pickup')
-                <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
-            @enderror
-
-            <div id="delivery-and-pickup-errors"></div>
-            @error('delivery_and_pickup')
-                <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
-            @enderror
         </div>
 
         {{-- Sizes --}}

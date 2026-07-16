@@ -118,7 +118,12 @@
     <td class="px-3 py-2 text-right whitespace-nowrap font-semibold {{ $amtClass }}">
         {{ \App\Helpers\CustomHelper::formatCurrency($row->grand_total) }}
     </td>
-    <td class="px-3 py-2 text-gray-500 dark:text-gray-400 text-xs max-w-[180px]">{{ $row->included_because }}</td>
+    <td class="px-3 py-2 text-gray-500 dark:text-gray-400 text-xs max-w-[220px]">
+        {{ $row->included_because }}
+        @if ($row->stream === 'refund')
+            @include('admin.reports.sales_reports.pure_sales_summary.partials._ledger_refund_detail', ['row' => $row])
+        @endif
+    </td>
 </tr>
 @endforeach
 </tbody>
@@ -213,7 +218,12 @@
         <td class="px-3 py-1.5 font-mono text-gray-400">
             {{ $row->order_date ? \Carbon\Carbon::parse($row->order_date)->format('M j, Y') : '—' }}
         </td>
-        <td class="px-3 py-1.5 max-w-[140px] truncate" title="{{ $row->customer_name }}">{{ $row->customer_name }}</td>
+        <td class="px-3 py-1.5 max-w-[220px] truncate" title="{{ $row->customer_name }}">
+            {{ $row->customer_name }}
+            @if ($row->stream === 'refund')
+                @include('admin.reports.sales_reports.pure_sales_summary.partials._ledger_refund_detail', ['row' => $row])
+            @endif
+        </td>
         <td class="px-3 py-1.5 text-gray-500">{{ $row->payment_method }}</td>
         <td class="px-3 py-1.5">
             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs
@@ -349,7 +359,12 @@
             {{ $row->tax_amount != 0 ? \App\Helpers\CustomHelper::formatCurrency($row->tax_amount) : '—' }}
         </td>
         <td class="px-3 py-1.5 text-right font-semibold {{ $cls }}">{{ \App\Helpers\CustomHelper::formatCurrency($row->grand_total) }}</td>
-        <td class="px-3 py-1.5 text-gray-400 max-w-[160px] truncate">{{ $row->included_because }}</td>
+        <td class="px-3 py-1.5 text-gray-400 max-w-[220px] truncate">
+            {{ $row->included_because }}
+            @if ($row->stream === 'refund')
+                @include('admin.reports.sales_reports.pure_sales_summary.partials._ledger_refund_detail', ['row' => $row])
+            @endif
+        </td>
     </tr>
     @endforeach
     </tbody>

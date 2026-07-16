@@ -169,6 +169,30 @@ class PaymentDescriptionPresenter
     }
 
     /**
+     * Final Phase — Refund Workflow Consistency: VoidPaymentController used
+     * to hand-build this sentence inline (twice — once for the gateway-void
+     * path, once for the sync-already-voided-at-gateway path), the one
+     * remaining hardcoded history string outside this presenter. $payment
+     * must already have processed_by_name/processed_reason_label saved on
+     * it (VoidPaymentController does this in the same update() call before
+     * calling this method) — $voidedByName is the acting logged-in user,
+     * a separate audit dimension from processed_by.
+     */
+    public static function voidHistoryDescription(OrderPayment $payment, string $voidedByName): string
+    {
+        $reasonText = $payment->processed_reason_label
+            . ($payment->processed_reason_other ? ' — ' . $payment->processed_reason_other : '');
+
+        return sprintf(
+            'Payment of $%s voided by %s. Processed by %s (Employee ID verified). Reason: %s.',
+            number_format((float) $payment->amount, 2),
+            $voidedByName,
+            $payment->processed_by_name,
+            $reasonText
+        );
+    }
+
+    /**
      * The sentence(s) written into order history for a refund.
      *
      * Phase 3C: a refund can now draw from more than one original payment
@@ -190,47 +214,51 @@ class PaymentDescriptionPresenter
         $allocations = $payment->refundAllocations()->with('originalPayment')->get();
 
         if ($operationStatus === RefundOperationStatus::Failed) {
-            return self::refundFailureDescription($allocations);
+            $description = self::refundFailureDescription($allocations);
+        } elseif ($operationStatus === RefundOperationStatus::PartiallyCompleted) {
+            $description = self::refundPartialDescription($allocations);
+        } elseif ($allocations->count() > 1) {
+            $description = self::refundMultiSourceDescription($payment, $allocations);
+        } else {
+            $calcType = $payment->refund_calculation_type;
+            $refundAmount = (float) $payment->refund_amount;
+
+            if ($calcType === RefundCalculationType::CardProcessingFeeRetained) {
+                $description = sprintf(
+                    'Refund processed — $%s | Credit card processing fee retained — $%s',
+                    number_format($refundAmount, 2),
+                    number_format((float) $payment->cc_fee_retained, 2)
+                );
+            } elseif ($calcType === RefundCalculationType::SalesTaxOnly) {
+                [$originalTax, $remainingAfter] = self::salesTaxRefundContext($payment);
+
+                $description = sprintf(
+                    'Sales Tax Refund Processed | Original Sales Tax: $%s | Sales Tax Refunded: $%s | Remaining Refundable Sales Tax: $%s',
+                    number_format($originalTax, 2),
+                    number_format($refundAmount, 2),
+                    number_format($remainingAfter, 2)
+                );
+            } else {
+                $description = $payment->status === OrderPaymentStatus::Refund ? 'Full refund processed' : 'Partial refund processed';
+            }
         }
 
-        if ($operationStatus === RefundOperationStatus::PartiallyCompleted) {
-            return self::refundPartialDescription($allocations);
-        }
+        $processedBy = self::processedByLine($payment);
 
-        if ($allocations->count() > 1) {
-            return self::refundMultiSourceDescription($payment, $allocations);
-        }
+        return $processedBy ? "{$description}\n\n{$processedBy}" : $description;
+    }
 
-        $calcType = $payment->refund_calculation_type;
-        $refundAmount = (float) $payment->refund_amount;
-
-        if ($calcType === RefundCalculationType::CardProcessingFeeRetained) {
-            return sprintf(
-                'Refund processed — $%s | Credit card processing fee retained — $%s',
-                number_format($refundAmount, 2),
-                number_format((float) $payment->cc_fee_retained, 2)
-            );
-        }
-
-        if ($calcType === RefundCalculationType::SalesTaxOnly) {
-            [$originalTax, $remainingAfter] = self::salesTaxRefundContext($payment);
-
-            return sprintf(
-                'Sales Tax Refund Processed | Original Sales Tax: $%s | Sales Tax Refunded: $%s | Remaining Refundable Sales Tax: $%s',
-                number_format($originalTax, 2),
-                number_format($refundAmount, 2),
-                number_format($remainingAfter, 2)
-            );
-        }
-
-        return $payment->status === OrderPaymentStatus::Refund ? 'Full refund processed' : 'Partial refund processed';
+    /** "Processed by: {employee name}" — appended once, in this one place, to every refund history sentence. Null when the row predates processed_by_name (legacy rows). */
+    private static function processedByLine(OrderPayment $payment): ?string
+    {
+        return $payment->processed_by_name ? "Processed by: {$payment->processed_by_name}" : null;
     }
 
     /**
-     * "Method — $amount", with a masked card suffix when the original
-     * payment was a card charge — the one line format every multi-source
-     * refund history entry reuses, so a source is never described twice
-     * with different wording.
+     * "Method — $amount (original payment: date)", with a masked card
+     * suffix when the original payment was a card charge — the one line
+     * format every multi-source refund history entry reuses, so a source
+     * is never described twice with different wording.
      */
     private static function allocationSourceLine(\App\Models\Orders\OrderPaymentRefundAllocation $allocation): string
     {
@@ -241,7 +269,14 @@ class PaymentDescriptionPresenter
             $label .= ' •••• '.$original->card_number;
         }
 
-        return "{$label} — \$".number_format((float) $allocation->allocated_amount, 2);
+        $line = "{$label} — \$".number_format((float) $allocation->allocated_amount, 2);
+
+        $originalDate = $original?->payment_datetime ?? $original?->created_at;
+        if ($originalDate) {
+            $line .= ' (original payment: '.$originalDate->format('M j, Y').')';
+        }
+
+        return $line;
     }
 
     private static function refundMultiSourceDescription(OrderPayment $payment, \Illuminate\Support\Collection $allocations): string

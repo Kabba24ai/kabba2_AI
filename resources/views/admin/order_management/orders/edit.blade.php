@@ -338,22 +338,29 @@
     </div>
     {{-- /Order Header Section --}}
 
-    {{-- Phase 3C — Incomplete Refund banner. Deliberately its own,
-         impossible-to-miss block directly under the header (not folded
-         into the status pills above, and not left to the "Partially
-         Completed" wording alone in the history feed) — every unresolved
-         refund event shows the actual dollar amount still outstanding,
-         which source(s) it's stuck on, and a direct way to act on it. --}}
+    {{-- Phase 3D — Order Details Refund Summary. Replaces the old,
+         outstanding-only "Refund Incomplete" banner with a single,
+         always-visible-once-a-refund-exists block covering every figure
+         the mission asks for: collected, requested, completed, still
+         unprocessed, fees retained, net paid, remaining refundable, and
+         overall status — never just a status badge on its own. See
+         PaymentAllocationService::totalFeesRetained()/totalRequestedRefund()
+         (the two genuinely new aggregates) and OrderPaymentSummary (every
+         other figure, already built, never wired into this view). --}}
     @php
+        $refundPaymentSummary = \App\Services\Orders\OrderPaymentSummary::for($order);
+        $totalFeesRetained = \App\Services\Orders\PaymentAllocationService::totalFeesRetained($order);
+        $totalRequestedRefund = \App\Services\Orders\PaymentAllocationService::totalRequestedRefund($order);
         $incompleteRefunds = \App\Services\Orders\PaymentAllocationService::incompleteRefunds($order);
         $totalOutstandingRefund = round($incompleteRefunds->sum(
             fn ($r) => \App\Services\Orders\PaymentAllocationService::outstandingRefundAmount($r)
         ), 2);
+        $allRefundEvents = $order->payments()->refund()->with('refundAllocations.originalPayment')->latest('id')->get();
 
         // The "Resolve Refund" button targets the single most recent
         // incomplete event (already ordered latest-first) — the common
         // case is exactly one outstanding refund at a time; resolving it
-        // updates this banner on reload, and a second click handles any
+        // updates this summary on reload, and a second click handles any
         // further one. Its full retry payload is precomputed here (same
         // shape the AJAX refund response uses) so the button can seed the
         // modal's recovery mode directly, WITHOUT a live submission first.
@@ -380,55 +387,107 @@
             ];
         }
     @endphp
-    @if ($incompleteRefunds->isNotEmpty() && $totalOutstandingRefund > 0)
-        <div class="bg-red-50 border border-red-300 rounded-xl shadow-sm mb-6 p-4">
+    @if ($allRefundEvents->isNotEmpty())
+        <div class="bg-white rounded-xl border {{ $totalOutstandingRefund > 0 ? 'border-red-300' : 'border-gray-200' }} shadow-sm mb-6 p-4">
             <div class="flex items-start gap-3">
-                @svg('heroicon-o-exclamation-triangle', 'w-6 h-6 text-red-600 shrink-0 mt-0.5')
+                @if ($totalOutstandingRefund > 0)
+                    @svg('heroicon-o-exclamation-triangle', 'w-6 h-6 text-red-600 shrink-0 mt-0.5')
+                @else
+                    @svg('heroicon-o-receipt-refund', 'w-6 h-6 text-gray-400 shrink-0 mt-0.5')
+                @endif
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-red-800">
-                        Refund Incomplete — {{ \App\Helpers\CustomHelper::formatCurrency($totalOutstandingRefund) }} not yet refunded
+                    <p class="text-sm font-semibold {{ $totalOutstandingRefund > 0 ? 'text-red-800' : 'text-gray-800' }}">
+                        @if ($totalOutstandingRefund > 0)
+                            Refund Partially Completed
+                        @else
+                            {{ $refundPaymentSummary->balanceStatusLabel() }}
+                        @endif
                     </p>
-                    <div class="mt-2 space-y-2">
-                        @foreach ($incompleteRefunds as $incomplete)
-                            @php
-                                $outstanding = \App\Services\Orders\PaymentAllocationService::outstandingRefundAmount($incomplete);
-                                if ($outstanding <= 0) continue;
-                                $stuckOn = $incomplete->refundAllocations
-                                    ->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Failed)
-                                    ->map(fn ($a) => \App\Services\PaymentDescriptionPresenter::methodLabel($a->originalPayment?->payment_method)
-                                        . ($a->originalPayment?->card_number ? ' •••• ' . $a->originalPayment->card_number : ''))
-                                    ->implode(', ');
-                            @endphp
-                            <div class="text-xs text-red-700 flex flex-wrap items-center gap-x-2">
-                                <span class="font-medium">{{ \App\Helpers\CustomHelper::formatCurrency($outstanding) }}</span>
-                                <span>outstanding on the refund initiated {{ $incomplete->refunded_at?->format('M j, Y g:ia') }}</span>
-                                @if ($stuckOn)
-                                    <span>— stuck on: {{ $stuckOn }}</span>
-                                @endif
-                            </div>
-                        @endforeach
+
+                    <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 text-xs">
+                        <div>
+                            <span class="block text-gray-400 uppercase tracking-wide">Payments Collected</span>
+                            <span class="font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($refundPaymentSummary->totalSettledPayments) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-400 uppercase tracking-wide">Refund Requested</span>
+                            <span class="font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($totalRequestedRefund) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-400 uppercase tracking-wide">Refund Completed</span>
+                            <span class="font-semibold text-green-700">{{ \App\Helpers\CustomHelper::formatCurrency($refundPaymentSummary->totalRefunded) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-400 uppercase tracking-wide">Still Unprocessed</span>
+                            <span class="font-semibold {{ $totalOutstandingRefund > 0 ? 'text-red-700' : 'text-gray-900' }}">{{ \App\Helpers\CustomHelper::formatCurrency($totalOutstandingRefund) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-400 uppercase tracking-wide">Card Fees Retained</span>
+                            <span class="font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($totalFeesRetained) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-400 uppercase tracking-wide">Net Paid</span>
+                            <span class="font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($refundPaymentSummary->netPaid) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-400 uppercase tracking-wide">Remaining Refundable</span>
+                            <span class="font-semibold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($refundPaymentSummary->orderRefundableBalance) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-400 uppercase tracking-wide">Overall Status</span>
+                            <span class="font-semibold text-gray-900">{{ $refundPaymentSummary->balanceStatusLabel() }}</span>
+                        </div>
                     </div>
-                    @if ($retryTargetPayload && $retryTargetPayload['token'])
-                        <button type="button" id="retryIncompleteRefundBtn"
-                            data-retry='@json($retryTargetPayload)'
-                            class="mt-3 inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700">
-                            Resolve Refund
-                        </button>
-                    @else
-                        {{-- No idempotency token on the target row (predates
-                             this feature, or was submitted by a caller that
-                             omitted one) — it cannot be safely resumed as a
-                             retry, so offer a plain, ordinary new refund for
-                             the outstanding amount instead. --}}
-                        <button type="button" id="startNewRefundForOutstandingBtn"
-                            data-outstanding="{{ $totalOutstandingRefund }}"
-                            class="mt-3 inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700">
-                            Start a New Refund for the Outstanding Amount
-                        </button>
+
+                    @if ($totalOutstandingRefund > 0)
+                        <div class="mt-3 space-y-2 border-t border-red-200 pt-3">
+                            @foreach ($incompleteRefunds as $incomplete)
+                                @php
+                                    $outstanding = \App\Services\Orders\PaymentAllocationService::outstandingRefundAmount($incomplete);
+                                    if ($outstanding <= 0) continue;
+                                    $stuckOn = $incomplete->refundAllocations
+                                        ->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Failed)
+                                        ->map(fn ($a) => \App\Services\PaymentDescriptionPresenter::methodLabel($a->originalPayment?->payment_method)
+                                            . ($a->originalPayment?->card_number ? ' •••• ' . $a->originalPayment->card_number : ''))
+                                        ->implode(', ');
+                                @endphp
+                                <div class="text-xs text-red-700 flex flex-wrap items-center gap-x-2">
+                                    <span class="font-medium">{{ \App\Helpers\CustomHelper::formatCurrency($outstanding) }}</span>
+                                    <span>outstanding on the refund initiated {{ $incomplete->refunded_at?->format('M j, Y g:ia') }}</span>
+                                    @if ($stuckOn)
+                                        <span>— stuck on: {{ $stuckOn }}</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                        @if ($retryTargetPayload && $retryTargetPayload['token'])
+                            <button type="button" id="retryIncompleteRefundBtn"
+                                data-retry='@json($retryTargetPayload)'
+                                class="mt-3 inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                Resolve Refund
+                            </button>
+                        @else
+                            {{-- No idempotency token on the target row (predates
+                                 this feature, or was submitted by a caller that
+                                 omitted one) — it cannot be safely resumed as a
+                                 retry, so offer a plain, ordinary new refund for
+                                 the outstanding amount instead. --}}
+                            <button type="button" id="startNewRefundForOutstandingBtn"
+                                data-outstanding="{{ $totalOutstandingRefund }}"
+                                class="mt-3 inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                Start a New Refund for the Outstanding Amount
+                            </button>
+                        @endif
                     @endif
                 </div>
             </div>
         </div>
+
+        {{-- Phase 3D — Allocation Details: the per-refund-event,
+             per-source breakdown (mission §2), reusing the same recovery
+             actions Phase 3C already built (enterRecoveryMode()) rather
+             than any new endpoint. --}}
+        @include('admin.order_management.orders.partials._refund_allocation_details', ['refundEvents' => $allRefundEvents])
     @endif
 
     {{-- Fuel Charge Modal --}}
@@ -1663,16 +1722,30 @@
         </div>
 
         @php
-    $refunds = $order->payments->filter(function ($payment) {
-        return in_array($payment->status?->value ?? $payment->status, [
-            \App\Enums\Orders\OrderPaymentStatus::PartialRefund->value,
-            \App\Enums\Orders\OrderPaymentStatus::Refund->value,
-        ]);
-    });
-
-    $totalRefunded = $refunds->sum('refund_amount');
+    // Phase 3D fix: was $refunds->sum('refund_amount') — the raw requested
+    // amount of every refund row, including ones that partially or fully
+    // failed. Order::total_refunded (PaymentAllocationService::totalSuccessfulRefunded())
+    // is the allocation-aware, successful-only figure, so this box no
+    // longer disagrees with the Refund Summary above it.
+    $totalRefunded = $order->total_refunded;
 
     $finalGrandTotal = max(0, $order->grand_total - $totalRefunded);
+
+    // Final Phase — Financial Integrity Audit fix: the itemized list below
+    // used to loop $refunds directly and re-derive each row's tax split
+    // with its own ad-hoc CustomHelper::calculateRefundSalesTax() call —
+    // a second, independent formula that (a) duplicated logic that already
+    // lives in ReceiptService::refundDetails()/PaymentAllocationService,
+    // and (b) summed tax across EVERY refund row including partially/fully
+    // failed ones, while $totalRefunded above is already allocation-aware
+    // (successful-only) — the two totals could disagree the moment a
+    // refund partially failed. Sourcing both from the same canonical,
+    // Allocated-only line set (already built for the receipt) closes both
+    // gaps at once and satisfies the "one presenter for every refund
+    // display" rule.
+    $orderDetailsRefundLines = \App\Services\ReceiptService::refundDetails($order);
+    $totalRefundSalesTax = collect($orderDetailsRefundLines)->sum('tax_refunded');
+    $totalRefundSubtotal = collect($orderDetailsRefundLines)->sum(fn ($l) => $l['amount'] - $l['tax_refunded']);
 @endphp
 
         {{-- Summary & Notes --}}
@@ -1776,29 +1849,11 @@
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</span>
                 </div>
 
-                @if($refunds->count())
-
-                    @php
-                        $totalRefundSalesTax = 0;
-                    @endphp
+                @if(!empty($orderDetailsRefundLines))
 
                     <div class="border-t pt-2 space-y-3">
 
-                        @foreach($refunds as $refund)
-
-                            @php
-                                // Prefer stored tax_refunded (accurate) over the proportional estimate.
-                                // Falls back to estimate for historical records where tax_refunded = 0.
-                                $refundTax = ((float) ($refund->tax_refunded ?? 0) > 0)
-                                    ? (float) $refund->tax_refunded
-                                    : \App\Helpers\CustomHelper::calculateRefundSalesTax(
-                                        $refund->refund_amount,
-                                        $order->subtotal,
-                                        $order->tax_amount
-                                    );
-
-                                $totalRefundSalesTax += $refundTax;
-                            @endphp
+                        @foreach($orderDetailsRefundLines as $line)
 
                             <div class="flex justify-between items-start">
 
@@ -1809,49 +1864,24 @@
                                     </div>
 
                                     <div class="text-xs text-gray-500">
-                                        {{ \App\Helpers\CustomHelper::formatDateTime($refund->refunded_at ?? $refund->created_at) }}
+                                        {{ $line['date']?->format('M j, Y g:ia') }}
                                     </div>
 
-                                    @if($refund->gateway_refund_id)
-                                        <div class="text-xs text-gray-400">
-                                            Ref: {{ $refund->gateway_refund_id }}
-                                        </div>
-                                    @endif
-
-                                    @if($refund->refund_note)
-                                        <div class="text-xs text-gray-500">
-                                            {{ $refund->refund_note }}
-                                        </div>
-                                    @endif
-
-                                    @if($refund->payment_method)
-                                        <div class="text-xs text-gray-500">
-                                            Method:
-                                            {{ $refund->payment_method->label() }}
-                                        </div>
-                                    @endif
-
-                                    @if(\App\Services\Orders\PaymentAllocationService::attributionState($refund) === \App\Services\Orders\PaymentAllocationService::STATE_AMBIGUOUS)
-                                        <div class="text-xs text-amber-600 font-medium mt-1">
-                                            Allocation unavailable for legacy transaction
-                                        </div>
-                                    @endif
+                                    <div class="text-xs text-gray-500">
+                                        Method: {{ $line['method'] }}
+                                    </div>
 
                                 </div>
 
                                 <div class="text-right">
 
-                                    @php
-                                        $refundSubtotal = $refund->refund_amount - $refundTax;
-                                    @endphp
-
                                     <div class="font-semibold text-green-600">
-                                        -{{ \App\Helpers\CustomHelper::formatCurrency($refundSubtotal) }}
+                                        -{{ \App\Helpers\CustomHelper::formatCurrency($line['amount'] - $line['tax_refunded']) }}
                                     </div>
 
                                     <div class="text-xs text-blue-600">
                                         Tax:
-                                        -{{ \App\Helpers\CustomHelper::formatCurrency($refundTax) }}
+                                        -{{ \App\Helpers\CustomHelper::formatCurrency($line['tax_refunded']) }}
                                     </div>
 
                                 </div>
@@ -1862,9 +1892,10 @@
 
                     </div>
 
-                    @php
-                    $totalRefundSubtotal = $totalRefunded - $totalRefundSalesTax;
-                    @endphp
+                    {{-- $totalRefundSubtotal / $totalRefundSalesTax are computed once, above,
+                         from $orderDetailsRefundLines (ReceiptService::refundDetails()) —
+                         the same canonical, Allocated-only line set the itemized list
+                         above and the printed/emailed receipt both use. --}}
 
                     <div class="flex justify-between font-bold text-gray-900 border-t pt-3">
                         <span>Total Refunded:</span>
@@ -2765,8 +2796,19 @@
         $rfAlreadyRefundedTax = (float) $order->payments()
             ->whereIn('status', [\App\Enums\Orders\OrderPaymentStatus::PartialRefund->value, \App\Enums\Orders\OrderPaymentStatus::Refund->value])
             ->sum('tax_refunded');
-        $rfRemainingRefundableTax = max(0.0, round((float) $order->tax_amount - $rfAlreadyRefundedTax, 2));
-        $rfRemainingRefundableTax = round(min($rfRemainingRefundableTax, (float) $order->remaining_amount), 2);
+
+        // Final Phase — Financial Integrity Audit fix: this used to
+        // re-derive "remaining refundable sales tax" with its own inline
+        // formula, byte-for-byte identical to the one that already lives in
+        // PaymentAllocationService::resolveRequestedTotal()'s Sales Tax
+        // Only branch (the same method RefundPaymentController/
+        // RefundPaymentPreviewController call). Calling it here instead of
+        // re-deriving means there is exactly one place this arithmetic is
+        // written.
+        [$rfRemainingRefundableTaxResolved, ] = \App\Services\Orders\PaymentAllocationService::resolveRequestedTotal(
+            $order, \App\Enums\Orders\RefundCalculationType::SalesTaxOnly, 0.0
+        );
+        $rfRemainingRefundableTax = round((float) ($rfRemainingRefundableTaxResolved ?? 0), 2);
         $rfTaxOnlyEligible = $rfRemainingRefundableTax > 0 && !$rfAmbiguous;
         $rfTaxOnlyIneligibleReason = $rfAmbiguous
             ? 'Allocation unavailable for a legacy transaction on this order.'
@@ -2790,7 +2832,8 @@
         data-tax-remaining-refundable="{{ $rfRemainingRefundableTax }}"
         data-ambiguous="{{ $rfAmbiguous ? '1' : '0' }}"
         data-sources='@json($rfSources)'
-        data-action="{{ route('admin.order-management.orders.refund-payment', $order->unique_id) }}">
+        data-action="{{ route('admin.order-management.orders.refund-payment', $order->unique_id) }}"
+        data-preview-action="{{ route('admin.order-management.orders.refund-payment.preview', $order->unique_id) }}">
         <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b">
@@ -5924,6 +5967,7 @@
             const customerName = refundModal.dataset.customerName;
             const originalAmount = parseFloat(refundModal.dataset.originalAmount || '0');
             const actionUrl = refundModal.dataset.action;
+            const previewActionUrl = refundModal.dataset.previewAction;
 
             const refundFormStep = document.getElementById('refundFormStep');
             const refundConfirmStep = document.getElementById('refundConfirmStep');
@@ -6308,6 +6352,30 @@
                     enterRecoveryMode(retry.sources);
                 });
             }
+
+            // Phase 3D — Allocation Details "Retry / Reallocate Failed
+            // Source" buttons: one per refund event, same seed-recovery-mode
+            // flow as retryIncompleteBtn above, just delegated since there
+            // can be more than one on the page.
+            document.querySelectorAll('.allocation-detail-retry-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const retry = JSON.parse(this.dataset.retry || 'null');
+                    if (!retry) return;
+
+                    refundModal.classList.remove('hidden');
+                    document.body.classList.add('overflow-hidden');
+
+                    document.getElementById('refundIdempotencyToken').value = retry.token;
+                    amountInput.value = retry.amount.toFixed(2);
+                    amountInput.disabled = true;
+                    calcTypeInput.value = retry.calc_type;
+                    document.getElementById('refund_payment_type').value = retry.payment_type;
+                    document.getElementById('refund_payment_type').dispatchEvent(new Event('change'));
+                    setActiveShortcut(null);
+
+                    enterRecoveryMode(retry.sources);
+                });
+            });
 
             // Fallback when the target refund row has no idempotency token
             // to resume — starts an ordinary NEW refund pre-filled to the
@@ -6781,6 +6849,56 @@
                 } else {
                     hide(sourcesBoxC);
                 }
+
+                // ── Phase 3D — server-authoritative preview ─────────────
+                // Replaces the client-side estimate above with real numbers
+                // from PaymentAllocationService (via RefundPaymentPreviewController)
+                // the moment they arrive — no gateway call, no write, same
+                // validation the real submission runs. The client render
+                // above stays as the instant placeholder while this is in
+                // flight so the confirm step never looks empty.
+                fetch(previewActionUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        },
+                        body: JSON.stringify({
+                            amount: parseFloat(amountInput.value) || 0,
+                            payment_type: document.getElementById('refund_payment_type').value,
+                            refund_calculation_type: calcTypeInput.value,
+                            idempotency_token: document.getElementById('refundIdempotencyToken').value || null,
+                            allocations: allocations,
+                        }),
+                    })
+                    .then(res => res.json())
+                    .then(preview => {
+                        if (!preview.success || !preview.rows) return;
+
+                        sourcesListC.innerHTML = preview.rows.map(r => `
+                            <div class="flex justify-between text-gray-800">
+                                <span>${r.method}</span>
+                                <span class="font-medium">${fmt(r.refund_now)}</span>
+                            </div>
+                            <div class="text-[11px] text-gray-500 -mt-0.5 mb-1 space-y-0.5">
+                                <div class="flex justify-between"><span>Original payment</span><span>${fmt(r.original_amount)}</span></div>
+                                <div class="flex justify-between"><span>Previously refunded</span><span>${fmt(r.previously_refunded)}</span></div>
+                                <div class="flex justify-between"><span>Remaining before</span><span>${fmt(r.remaining_before)}</span></div>
+                                ${r.fee_retained > 0 ? `<div class="flex justify-between"><span>Fee retained</span><span>${fmt(r.fee_retained)}</span></div>` : ''}
+                                ${r.already_completed
+                                    ? `<div class="text-green-600">Already completed on a prior attempt</div>`
+                                    : `<div class="flex justify-between"><span>Remaining after</span><span>${fmt(r.remaining_after)}</span></div>`}
+                            </div>
+                        `).join('');
+                        show(sourcesBoxC);
+                    })
+                    .catch(() => {
+                        // Preview is a best-effort upgrade over the client
+                        // estimate already rendered above — a network
+                        // failure here leaves that estimate in place rather
+                        // than blocking the confirm step.
+                    });
 
                 const taxRow = document.getElementById('rf_c_tax_row');
                 const purchaseRow = document.getElementById('rf_c_purchase_row');

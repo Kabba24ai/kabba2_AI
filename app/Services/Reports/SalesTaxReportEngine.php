@@ -110,6 +110,8 @@ class SalesTaxReportEngine
                     'shippingAddress:id,order_id,first_name,last_name',
                     'products:id,order_id,product_name',
                 ]),
+                'refundAllocations' => fn ($q) => $q->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Allocated->value)
+                    ->with('originalPayment'),
             ])
             ->whereIn('status', ['Refunded', 'Partial Refund'])
             ->whereNotNull('order_id')
@@ -155,42 +157,71 @@ class SalesTaxReportEngine
         }
 
         return $query->get()
-            ->map(function ($payment) {
+            ->flatMap(function ($payment) {
                 $order = $payment->order;
 
                 if (!$order) {
-                    return null;
+                    return collect();
                 }
-
-                $refundAmount = (float) $payment->refund_amount;
-
-                $refundTax = ((float) ($payment->tax_refunded ?? 0) > 0)
-                    ? (float) $payment->tax_refunded
-                    : CustomHelper::calculateRefundSalesTax(
-                        $refundAmount,
-                        $order->subtotal,
-                        $order->tax_amount
-                    );
 
                 $refundDate = $payment->refunded_at
                     ?? $payment->payment_datetime
                     ?? $payment->created_at;
+                $productsLabel = 'Refund — ' . $order->products->pluck('product_name')->implode(', ');
 
-                return (object) [
-                    'type'            => 'refund',
-                    'unique_id'       => $order->unique_id,
-                    'link'            => $order->view_link,
-                    'date'            => $refundDate,
-                    'customer_name'   => $order->shippingAddress?->full_name ?? '-',
-                    'products'        => 'Refund — ' . $order->products->pluck('product_name')->implode(', '),
-                    'payment_type'    => $payment->payment_method?->label() ?? '-',
-                    'subtotal'        => -(round($refundAmount - $refundTax, 2)),
-                    'tax_amount'      => -$refundTax,
-                    'discount_amount' => 0.0,
-                    'grand_total'     => -$refundAmount,
-                ];
+                // Phase 3D: kept in sync with PaymentReconciliationLedger::streamB() —
+                // a multi-source refund with successfully-Allocated allocations
+                // splits into one row per allocation, keyed by that
+                // allocation's original payment's method, so the Sales Tax
+                // Report and the Reconciliation Ledger never disagree about
+                // which method a given dollar of refunded tax came from.
+                $allocations = $payment->refundAllocations;
+
+                if ($allocations->isEmpty()) {
+                    $refundAmount = (float) $payment->refund_amount;
+
+                    $refundTax = ((float) ($payment->tax_refunded ?? 0) > 0)
+                        ? (float) $payment->tax_refunded
+                        : CustomHelper::calculateRefundSalesTax(
+                            $refundAmount,
+                            $order->subtotal,
+                            $order->tax_amount
+                        );
+
+                    return collect([(object) [
+                        'type'            => 'refund',
+                        'unique_id'       => $order->unique_id,
+                        'link'            => $order->view_link,
+                        'date'            => $refundDate,
+                        'customer_name'   => $order->shippingAddress?->full_name ?? '-',
+                        'products'        => $productsLabel,
+                        'payment_type'    => $payment->payment_method?->label() ?? '-',
+                        'subtotal'        => -(round($refundAmount - $refundTax, 2)),
+                        'tax_amount'      => -$refundTax,
+                        'discount_amount' => 0.0,
+                        'grand_total'     => -$refundAmount,
+                    ]]);
+                }
+
+                return $allocations->map(function ($allocation) use ($order, $refundDate, $productsLabel) {
+                    $netAmount = round((float) $allocation->allocated_amount - (float) ($allocation->processing_fee_retained ?? 0), 2);
+                    $tax = (float) $allocation->allocated_tax_amount;
+
+                    return (object) [
+                        'type'            => 'refund',
+                        'unique_id'       => $order->unique_id,
+                        'link'            => $order->view_link,
+                        'date'            => $refundDate,
+                        'customer_name'   => $order->shippingAddress?->full_name ?? '-',
+                        'products'        => $productsLabel,
+                        'payment_type'    => \App\Services\PaymentDescriptionPresenter::methodLabel($allocation->originalPayment?->payment_method),
+                        'subtotal'        => -(round($netAmount - $tax, 2)),
+                        'tax_amount'      => -$tax,
+                        'discount_amount' => 0.0,
+                        'grand_total'     => -$netAmount,
+                    ];
+                });
             })
-            ->filter()
             ->values();
     }
 

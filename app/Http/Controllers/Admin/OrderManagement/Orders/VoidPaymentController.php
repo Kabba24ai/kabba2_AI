@@ -25,9 +25,6 @@ class VoidPaymentController extends Controller
         $validated   = $request->validated();
         $processedBy = User::findOrFail($validated['processed_by']);
         $reason      = ProcessedReason::from($validated['reason']);
-        $reasonText  = $reason->label()
-            . ($reason === ProcessedReason::Other && filled($validated['reason_other'] ?? null)
-                ? ' — ' . $validated['reason_other'] : '');
         $processedAudit = [
             'processed_by_id'        => $processedBy->id,
             'processed_by_name'      => $processedBy->full_name,
@@ -102,8 +99,7 @@ class VoidPaymentController extends Controller
                     'action_date' => now(),
                     'action_by'   => OrderHistoryActionBy::User,
                     'action'      => OrderHistoryAction::TransactionVoided,
-                    'description' => 'Payment of $' . number_format((float) $payment->amount, 2) . ' voided by ' . $user->full_name
-                        . '. Processed by ' . $processedBy->full_name . ' (Employee ID verified). Reason: ' . $reasonText . '.',
+                    'description' => \App\Services\PaymentDescriptionPresenter::voidHistoryDescription($payment, $user->full_name),
                     'extras'      => json_encode($processedAudit),
                 ]);
 
@@ -139,8 +135,7 @@ class VoidPaymentController extends Controller
                 'action_date' => now(),
                 'action_by'   => OrderHistoryActionBy::User,
                 'action'      => OrderHistoryAction::TransactionVoided,
-                'description' => 'Payment of $' . number_format((float) $payment->amount, 2) . ' voided by ' . $user->full_name
-                    . '. Processed by ' . $processedBy->full_name . ' (Employee ID verified). Reason: ' . $reasonText . '.',
+                'description' => \App\Services\PaymentDescriptionPresenter::voidHistoryDescription($payment, $user->full_name),
                 'extras'      => json_encode($processedAudit),
             ]);
 

@@ -435,21 +435,69 @@ class SalesReportEngineV2
 
         $this->applyRefundContextFilters($query, $filters);
 
+        $refundAmountSql = $this->allocationAwareRefundAmountSql();
+
         // Employee view only: extension-child refunds reverse the EX-TAX
         // portion, mirroring the settled-extension rules — the billing bucket
         // credited the responsible employee ex-tax, so a full refund nets that
         // employee to exactly zero. Company/unfiltered behavior is unchanged.
         if (!empty($filters['employee_id'])) {
             $extChildExists = $this->extensionChildExistsSql('o.id');
+            $refundTaxSql = $this->allocationAwareRefundTaxSql();
 
             return (float) $query->selectRaw(
                 "SUM(CASE WHEN {$extChildExists}
-                     THEN op.refund_amount - COALESCE(op.tax_refunded, 0)
-                     ELSE op.refund_amount END) AS refund_total"
+                     THEN ({$refundAmountSql}) - ({$refundTaxSql})
+                     ELSE ({$refundAmountSql}) END) AS refund_total"
             )->value('refund_total');
         }
 
-        return (float) $query->sum('op.refund_amount');
+        return (float) $query->selectRaw("SUM({$refundAmountSql}) AS refund_total")->value('refund_total');
+    }
+
+    /**
+     * Phase 3D: SUM(op.refund_amount) counted the raw REQUESTED total of
+     * every refund row, including one that partially or fully failed —
+     * overstating actual refunds the moment Phase 3C's multi-source
+     * partial-failure recovery could leave a refund row's stated amount
+     * ahead of what was actually returned. This expression sums only the
+     * successfully-Allocated allocations' net (fee-excluded) amount for
+     * any refund that HAS allocation rows, falling back to the refund
+     * row's own refund_amount for legacy rows with none yet (unbackfilled
+     * history) — the exact same has-allocations branch
+     * PaymentAllocationService::totalSuccessfulRefunded() uses, expressed
+     * as SQL so it can run inside an aggregate query instead of loading
+     * every row into PHP.
+     */
+    private function allocationAwareRefundAmountSql(): string
+    {
+        return "CASE WHEN EXISTS (
+                    SELECT 1 FROM order_payment_refund_allocations opra_exists
+                    WHERE opra_exists.refund_order_payment_id = op.id
+                )
+                THEN COALESCE((
+                    SELECT SUM(opra_sum.allocated_amount - COALESCE(opra_sum.processing_fee_retained, 0))
+                    FROM order_payment_refund_allocations opra_sum
+                    WHERE opra_sum.refund_order_payment_id = op.id AND opra_sum.status = 'allocated'
+                ), 0)
+                ELSE op.refund_amount
+                END";
+    }
+
+    /** Allocation-aware counterpart to allocationAwareRefundAmountSql() for the tax portion — same has-allocations branch, summing allocated_tax_amount instead. */
+    private function allocationAwareRefundTaxSql(): string
+    {
+        return "CASE WHEN EXISTS (
+                    SELECT 1 FROM order_payment_refund_allocations opra_tax_exists
+                    WHERE opra_tax_exists.refund_order_payment_id = op.id
+                )
+                THEN COALESCE((
+                    SELECT SUM(opra_tax_sum.allocated_tax_amount)
+                    FROM order_payment_refund_allocations opra_tax_sum
+                    WHERE opra_tax_sum.refund_order_payment_id = op.id AND opra_tax_sum.status = 'allocated'
+                ), 0)
+                ELSE COALESCE(op.tax_refunded, 0)
+                END";
     }
 
     /**
@@ -547,12 +595,14 @@ class SalesReportEngineV2
      */
     private function queryDailyRefunds(array $filters, string $startDate, string $endDate): Collection
     {
+        $refundAmountSql = $this->allocationAwareRefundAmountSql();
+
         $query = DB::table('order_payments as op')
             ->join('orders as o', 'o.id', '=', 'op.order_id')
             ->whereNull('o.deleted_at')
             ->whereIn('op.status', ['Refunded', 'Partial Refund'])
             ->whereBetween(DB::raw('DATE(COALESCE(op.refunded_at, op.payment_datetime, op.created_at))'), [$startDate, $endDate])
-            ->selectRaw('DATE(COALESCE(op.refunded_at, op.payment_datetime, op.created_at)) AS date, SUM(op.refund_amount) AS daily_refunds')
+            ->selectRaw("DATE(COALESCE(op.refunded_at, op.payment_datetime, op.created_at)) AS date, SUM({$refundAmountSql}) AS daily_refunds")
             ->groupByRaw('DATE(COALESCE(op.refunded_at, op.payment_datetime, op.created_at))');
 
         $this->applyRefundContextFilters($query, $filters);

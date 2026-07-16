@@ -58,48 +58,6 @@ class RefundPaymentController extends Controller
     }
 
     /**
-     * Resolves the FIXED requested total for calc types that have one.
-     * Standard uses the client-submitted amount (unchanged Phase 3A/3B
-     * behavior); Sales Tax Only computes the order's remaining refundable
-     * sales tax server-side, same formula as before, now expressed at the
-     * order level rather than against one payment. Card Processing Fee
-     * Retained has no single fixed total to resolve up front — its total
-     * is a derived OUTPUT of PaymentAllocationService::calculateAllocationSplits()
-     * (gross draw per source minus that source's own capped fee), so this
-     * returns null for it and validateAllocationSet() skips the
-     * sum-equals-requested-total rule for that case.
-     *
-     * @return array{0: ?float, 1: ?string} [requestedTotal, errorMessage]
-     */
-    private function resolveRequestedTotal(Order $order, RefundCalculationType $calcType, float $clientAmount): array
-    {
-        if ($calcType === RefundCalculationType::SalesTaxOnly) {
-            $alreadyRefundedTax = (float) $order->payments()
-                ->whereIn('status', [OrderPaymentStatus::PartialRefund, OrderPaymentStatus::Refund])
-                ->sum('tax_refunded');
-
-            $remainingRefundableTax = max(0.0, round((float) $order->tax_amount - $alreadyRefundedTax, 2));
-            $remainingRefundableTax = round(min($remainingRefundableTax, (float) $order->remaining_amount), 2);
-
-            if ($remainingRefundableTax <= 0) {
-                return [null, 'No refundable sales tax remains for this order.'];
-            }
-
-            return [$remainingRefundableTax, null];
-        }
-
-        if ($calcType === RefundCalculationType::CardProcessingFeeRetained) {
-            return [null, null];
-        }
-
-        if ($clientAmount <= 0) {
-            return [null, 'Refund amount must be greater than zero.'];
-        }
-
-        return [$clientAmount, null];
-    }
-
-    /**
      * Handle refunding of orders — one or more original payments in a
      * single refund event.
      */
@@ -215,7 +173,7 @@ class RefundPaymentController extends Controller
                 'amount' => (float) ($row['amount'] ?? 0),
             ], $allocationsInput);
 
-            [$requestedTotal, $calcError] = $this->resolveRequestedTotal($order, $calcType, (float) $validated['amount']);
+            [$requestedTotal, $calcError] = PaymentAllocationService::resolveRequestedTotal($order, $calcType, (float) $validated['amount']);
             if ($calcError !== null) {
                 return response()->json(['success' => false, 'message' => $calcError], 422);
             }

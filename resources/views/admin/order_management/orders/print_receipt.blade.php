@@ -454,17 +454,108 @@
 
             <tr>
                 <td style="text-align:right; font-weight:700; font-size:16px;">
-                    Total :
+                    Order Total :
                 </td>
                 <td style="text-align:right; font-weight:700; font-size:16px;">
                    {{ \App\Helpers\CustomHelper::formatCurrency($receipt->total) }}
                 </td>
             </tr>
 
+            {{-- Phase 3D — Payment/refund summary (mission §5). Only shown
+                 once money has actually moved either way, so a brand-new,
+                 unpaid receipt is unaffected. Sourced from OrderPaymentSummary
+                 (already built, never wired into this view before) — never
+                 recomputed here. --}}
+            @php
+                $receiptPaymentSummary = \App\Services\Orders\OrderPaymentSummary::for($order);
+                $receiptRefundDetails = \App\Services\ReceiptService::refundDetails($order);
+            @endphp
+            @if ($receiptPaymentSummary->totalSettledPayments > 0 || $receiptPaymentSummary->totalRefunded > 0)
+                <tr>
+                    <td colspan="2" style="padding-top:10px;"></td>
+                </tr>
+                <tr>
+                    <td style="text-align:right; padding:4px 0;">Payments Received :</td>
+                    <td style="text-align:right; padding:4px 0;">{{ \App\Helpers\CustomHelper::formatCurrency($receiptPaymentSummary->totalSettledPayments) }}</td>
+                </tr>
+                @if ($receiptPaymentSummary->totalRefunded > 0)
+                    <tr>
+                        <td style="text-align:right; padding:4px 0;">Refunds Completed :</td>
+                        <td style="text-align:right; padding:4px 0;">-{{ \App\Helpers\CustomHelper::formatCurrency($receiptPaymentSummary->totalRefunded) }}</td>
+                    </tr>
+                @endif
+                <tr>
+                    <td style="text-align:right; font-weight:700; padding:4px 0;">Net Paid :</td>
+                    <td style="text-align:right; font-weight:700; padding:4px 0;">{{ \App\Helpers\CustomHelper::formatCurrency($receiptPaymentSummary->netPaid) }}</td>
+                </tr>
+            @endif
+
         </table>
     </td>
 </tr>
 
+                    {{-- Phase 3D — itemized refund list (mission §5). Only
+                         successful (Allocated) allocations ever reach here
+                         (see ReceiptService::refundDetails()) — pending or
+                         failed attempts never appear as a completed refund
+                         on a customer-facing receipt, and no gateway id or
+                         internal failure detail is exposed. Mixed payment
+                         methods render as separate lines. --}}
+                    @if (!empty($receiptRefundDetails))
+                        <tr>
+                            <td style="padding-top:20px;">
+                                <table role="presentation" width="100%" style="font-size:14px; border-collapse:collapse;">
+                                    <tr>
+                                        <td colspan="2" style="font-weight:700; padding-bottom:6px; border-bottom:1px solid #111827;">Refunds</td>
+                                    </tr>
+                                    @foreach ($receiptRefundDetails as $line)
+                                        <tr>
+                                            <td style="padding:6px 0 0;">
+                                                {{ $line['method'] }}<br>
+                                                <span style="color:#6b7280; font-size:12px;">{{ $line['date']?->format('F j, Y') }}</span>
+                                            </td>
+                                            <td style="text-align:right; padding:6px 0 0; vertical-align:top;">
+                                                {{ \App\Helpers\CustomHelper::formatCurrency($line['amount']) }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+
+                                    @php
+                                        $receiptFeeLines = collect($receiptRefundDetails)->where('calc_type', \App\Enums\Orders\RefundCalculationType::CardProcessingFeeRetained->value);
+                                        $receiptTaxOnlyLines = collect($receiptRefundDetails)->where('calc_type', \App\Enums\Orders\RefundCalculationType::SalesTaxOnly->value);
+                                    @endphp
+
+                                    @if ($receiptFeeLines->isNotEmpty())
+                                        @php
+                                            $receiptFeeTotal = $receiptFeeLines->sum('fee_retained');
+                                            $receiptFeeGross = $receiptFeeLines->sum(fn ($l) => $l['amount'] + $l['fee_retained']);
+                                        @endphp
+                                        <tr><td colspan="2" style="padding-top:10px;"></td></tr>
+                                        <tr>
+                                            <td style="text-align:right; padding:2px 0;">Refundable Amount :</td>
+                                            <td style="text-align:right; padding:2px 0;">{{ \App\Helpers\CustomHelper::formatCurrency($receiptFeeGross) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="text-align:right; padding:2px 0;">Card Processing Fee Retained :</td>
+                                            <td style="text-align:right; padding:2px 0;">{{ \App\Helpers\CustomHelper::formatCurrency($receiptFeeTotal) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="text-align:right; font-weight:700; padding:2px 0;">Customer Refund :</td>
+                                            <td style="text-align:right; font-weight:700; padding:2px 0;">{{ \App\Helpers\CustomHelper::formatCurrency($receiptFeeGross - $receiptFeeTotal) }}</td>
+                                        </tr>
+                                    @endif
+
+                                    @if ($receiptTaxOnlyLines->isNotEmpty())
+                                        <tr><td colspan="2" style="padding-top:10px;"></td></tr>
+                                        <tr>
+                                            <td style="text-align:right; padding:2px 0;">Sales Tax Refund :</td>
+                                            <td style="text-align:right; padding:2px 0;">{{ \App\Helpers\CustomHelper::formatCurrency($receiptTaxOnlyLines->sum('amount')) }}</td>
+                                        </tr>
+                                    @endif
+                                </table>
+                            </td>
+                        </tr>
+                    @endif
 
                     <!-- Footer -->
                     <tr>

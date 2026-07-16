@@ -63,6 +63,31 @@ class PaymentReconciliationLedger
 
     // ─── Stream A: Standard Order Payments ───────────────────────────────────
 
+    /**
+     * Phase 3D fix: this used to join each order to only its single
+     * highest-id order_payments row (via a MAX(id) subquery with no status
+     * filter — which could even resolve to a REFUND row on an order
+     * refunded since) and attribute the WHOLE order's grand_total to it.
+     * On any split-payment order that silently misattributed every other
+     * payment method's actual collected amount to whichever payment
+     * happened to be entered last. Now one ledger row is emitted per
+     * actual SETTLED payment event (OrderPayment::scopeSettled()'s status
+     * set — Paid, Partial Payment, or a legacy Invoice* row), using that
+     * row's own `amount` — never the order's grand_total. This is also
+     * why an order with no settled payment row yet (a POD/Account
+     * placeholder order with nothing actually collected) now correctly
+     * contributes zero rows here rather than fabricating one — this
+     * stream's own docblock guarantee ("sums to the actual total
+     * collected") only holds if uncollected orders emit nothing.
+     *
+     * order_payments has no per-row tax column, so each row's tax portion
+     * is the order's tax_amount split proportionally to that row's share
+     * of the order's total collected across its own settled rows — the
+     * same proportional-split convention (deterministic remainder-to-
+     * last-row rounding) PaymentAllocationService::calculateAllocationSplits()
+     * already uses for the Standard refund calc type, applied here to the
+     * collection side instead of the refund side.
+     */
     private function streamA(array $filters, string $startDate, string $endDate): Collection
     {
         // Qualifying order IDs from the same base query the KPI engine uses.
@@ -84,32 +109,70 @@ class PaymentReconciliationLedger
             ->groupBy('orp.order_id')
             ->pluck('types', 'order_id');
 
-        return DB::table('orders as o')
-            ->join('order_payments as op', function ($join) {
-                $join->on('op.order_id', '=', 'o.id')
-                    ->whereRaw('op.id = (SELECT MAX(op2.id) FROM order_payments op2 WHERE op2.order_id = o.id)');
-            })
+        $settledStatuses = collect(\App\Enums\Orders\OrderPaymentStatus::cases())
+            ->filter(fn ($s) => $s->isSettled() || $s === \App\Enums\Orders\OrderPaymentStatus::PartialPayment)
+            ->map(fn ($s) => $s->value)
+            ->all();
+
+        $paymentRows = DB::table('order_payments as op')
+            ->join('orders as o', 'o.id', '=', 'op.order_id')
             ->whereIn('o.id', $orderIds)
+            ->whereIn('op.status', $settledStatuses)
             ->select([
-                'o.id',
+                'o.id as order_id',
                 'o.order_number',
                 'o.unique_id as order_unique_id',
                 DB::raw('DATE(o.order_date) as order_date'),
                 'o.customer_name',
-                DB::raw('o.subtotal - COALESCE(o.discount_amount, 0) as base_amount'),
-                'o.tax_amount',
-                'o.grand_total',
+                'o.tax_amount as order_tax_amount',
+                'op.amount',
                 'op.payment_method',
                 'op.status as payment_status',
                 DB::raw('COALESCE(op.payment_datetime, o.order_date) as payment_date'),
             ])
-            ->get()
-            ->map(function ($row) use ($productTypes) {
-                $types = $productTypes[$row->id] ?? '';
-                $typeList = array_values(array_filter(array_unique(explode(',', $types))));
-                $source   = $this->classifyOrderRevenue($typeList);
-                $pmLabel  = $this->mapOrderPaymentMethod($row->payment_method);
-                $pmKey    = $row->payment_method ?? 'Other';
+            ->orderBy('op.id')
+            ->get();
+
+        if ($paymentRows->isEmpty()) {
+            return collect();
+        }
+
+        $rowsByOrder = $paymentRows->groupBy('order_id');
+
+        return $rowsByOrder->flatMap(function ($rows, $orderId) use ($productTypes) {
+            $types = $productTypes[$orderId] ?? '';
+            $typeList = array_values(array_filter(array_unique(explode(',', $types))));
+            $source = $this->classifyOrderRevenue($typeList);
+
+            $orderTaxAmount = (float) ($rows->first()->order_tax_amount ?? 0);
+            $totalCents = (int) round($rows->sum(fn ($r) => (float) $r->amount) * 100);
+            $orderTaxCents = (int) round($orderTaxAmount * 100);
+            $runningTaxCents = 0;
+            $count = $rows->count();
+
+            return $rows->values()->map(function ($row, $i) use ($source, $totalCents, $orderTaxCents, &$runningTaxCents, $count) {
+                $amount = (float) $row->amount;
+                $amountCents = (int) round($amount * 100);
+
+                if ($i === $count - 1) {
+                    $taxCents = $orderTaxCents - $runningTaxCents;
+                } else {
+                    $taxCents = $totalCents > 0 ? (int) round($orderTaxCents * $amountCents / $totalCents) : 0;
+                    $runningTaxCents += $taxCents;
+                }
+
+                $tax = round($taxCents / 100, 2);
+                $base = round($amount - $tax, 2);
+
+                // Legacy Invoice* rows fuse status with method and may have
+                // a null payment_method column — recover it from the
+                // status the same way PaymentDescriptionPresenter::describe()
+                // does, rather than mislabeling these as "Other."
+                $method = $row->payment_method;
+                if (!$method) {
+                    $status = \App\Enums\Orders\OrderPaymentStatus::tryFrom($row->payment_status);
+                    $method = $status?->impliedMethod()?->value;
+                }
 
                 return (object) [
                     'stream'             => 'order',
@@ -120,20 +183,31 @@ class PaymentReconciliationLedger
                     'customer_name'      => $row->customer_name ?: '—',
                     'revenue_source'     => $source['label'],
                     'revenue_source_key' => $source['key'],
-                    'payment_method'     => $pmLabel,
-                    'payment_method_key' => $pmKey,
+                    'payment_method'     => $this->mapOrderPaymentMethod($method),
+                    'payment_method_key' => $method ?? 'Other',
                     'payment_status'     => $row->payment_status ?? 'Paid',
-                    'base_amount'        => (float) ($row->base_amount ?? 0),
-                    'tax_amount'         => (float) ($row->tax_amount ?? 0),
-                    'grand_total'        => (float) ($row->grand_total ?? 0),
+                    'base_amount'        => $base,
+                    'tax_amount'         => $tax,
+                    'grand_total'        => $amount,
                     'included_because'   => $source['label'] . ' – Paid This Period',
                     'notes'              => null,
                 ];
             });
+        })->values();
     }
 
     // ─── Stream B: Refunds ────────────────────────────────────────────────────
 
+    /**
+     * Phase 3D: a multi-source refund event is now split into one row per
+     * successfully-Allocated allocation, keyed by the ALLOCATION's original
+     * payment's method — not the refund row's own payment_method, which
+     * describes how the refund was paid OUT (e.g. Store Credit), not which
+     * original payment(s) it drew down. A refund row with no allocations
+     * yet (legacy/ambiguous — see PaymentAllocationService::attributionState())
+     * keeps the prior whole-row behavior, so nothing here regresses for
+     * unbackfilled history.
+     */
     private function streamB(array $filters, string $startDate, string $endDate): Collection
     {
         $query = DB::table('order_payments as op')
@@ -145,6 +219,7 @@ class PaymentReconciliationLedger
                 [$startDate, $endDate]
             )
             ->select([
+                'op.id as payment_id',
                 'o.order_number',
                 'o.unique_id as order_unique_id',
                 DB::raw('DATE(o.order_date) as order_date'),
@@ -155,6 +230,9 @@ class PaymentReconciliationLedger
                 'op.status as payment_status',
                 'op.refund_amount',
                 'op.tax_refunded',
+                'op.refund_calculation_type',
+                'op.refund_operation_status',
+                'op.processed_by_name',
                 DB::raw('COALESCE(op.refunded_at, op.payment_datetime, op.created_at) as payment_date'),
             ]);
 
@@ -171,43 +249,108 @@ class PaymentReconciliationLedger
             });
         }
 
-        return $query->get()->map(function ($row) {
-            $refundAmount = (float) ($row->refund_amount ?? 0);
-            $isPartial    = $row->payment_status === 'Partial Refund';
-            $pmLabel      = $this->mapOrderPaymentMethod($row->payment_method);
+        $refundRows = $query->get();
 
-            // Same split SalesTaxReportEngine::refundRows() uses: trust the
-            // stored tax_refunded when present (this is what makes a
-            // Sales-Tax-Only refund reduce tax only, not revenue); fall
-            // back to the proportional estimate only for legacy rows that
-            // predate the tax_refunded column. Previously this stream
-            // ignored tax_refunded entirely and folded the whole refund
-            // into base_amount (revenue) — that broke reconciliation
-            // against the Sales Tax Report the moment a refund's tax
-            // portion didn't match its proportional share.
-            $refundTax = ((float) ($row->tax_refunded ?? 0) > 0)
-                ? (float) $row->tax_refunded
-                : CustomHelper::calculateRefundSalesTax($refundAmount, (float) $row->order_subtotal, (float) $row->order_tax_amount);
+        if ($refundRows->isEmpty()) {
+            return collect();
+        }
 
-            return (object) [
-                'stream'             => 'refund',
-                'payment_date'       => $row->payment_date,
-                'order_number'       => $row->order_number,
-                'order_unique_id'    => $row->order_unique_id,
-                'order_date'         => $row->order_date,
-                'customer_name'      => $row->customer_name ?: '—',
-                'revenue_source'     => $isPartial ? 'Partial Refund' : 'Refund',
-                'revenue_source_key' => 'refund',
-                'payment_method'     => $pmLabel,
-                'payment_method_key' => $row->payment_method ?? 'Other',
-                'payment_status'     => $row->payment_status,
-                'base_amount'        => -round($refundAmount - $refundTax, 2),
-                'tax_amount'         => -$refundTax,
-                'grand_total'        => -$refundAmount,
-                'included_because'   => 'Refund Processed This Period',
-                'notes'              => null,
+        $allocationsByRefund = \App\Models\Orders\OrderPaymentRefundAllocation::whereIn('refund_order_payment_id', $refundRows->pluck('payment_id'))
+            ->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Allocated->value)
+            ->with('originalPayment')
+            ->get()
+            ->groupBy('refund_order_payment_id');
+
+        // Phase 3D — Refund Reporting (mission §8): failed allocations per
+        // refund event, for the "unprocessed amount" / "failure reason"
+        // fields every split line for that event carries alongside its own
+        // per-source amount — reused rather than a separate report engine,
+        // per the mission's own "avoid duplicate financial sources of
+        // truth" guidance.
+        $failedAllocationsByRefund = \App\Models\Orders\OrderPaymentRefundAllocation::whereIn('refund_order_payment_id', $refundRows->pluck('payment_id'))
+            ->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Failed->value)
+            ->get()
+            ->groupBy('refund_order_payment_id');
+
+        return $refundRows->flatMap(function ($row) use ($allocationsByRefund, $failedAllocationsByRefund) {
+            $isPartial = $row->payment_status === 'Partial Refund';
+            $allocations = $allocationsByRefund->get($row->payment_id, collect());
+            $failed = $failedAllocationsByRefund->get($row->payment_id, collect());
+
+            $eventMeta = [
+                'refund_calculation_type' => $row->refund_calculation_type
+                    ? (\App\Enums\Orders\RefundCalculationType::tryFrom($row->refund_calculation_type)?->label() ?? $row->refund_calculation_type)
+                    : 'Standard',
+                'refund_operation_status' => $row->refund_operation_status ?? 'completed',
+                'employee'                => $row->processed_by_name,
+                'requested_amount'        => (float) $row->refund_amount,
+                'unprocessed_amount'      => round((float) $failed->sum(
+                    fn ($a) => (float) $a->allocated_amount - (float) ($a->processing_fee_retained ?? 0)
+                ), 2),
+                'failure_reason'          => $failed->pluck('failure_reason')->filter()->unique()->implode('; ') ?: null,
             ];
-        });
+
+            if ($allocations->isEmpty()) {
+                $refundAmount = (float) ($row->refund_amount ?? 0);
+
+                // Same split SalesTaxReportEngine::refundRows() uses: trust
+                // the stored tax_refunded when present (this is what makes
+                // a Sales-Tax-Only refund reduce tax only, not revenue);
+                // fall back to the proportional estimate only for legacy
+                // rows that predate the tax_refunded column.
+                $refundTax = ((float) ($row->tax_refunded ?? 0) > 0)
+                    ? (float) $row->tax_refunded
+                    : CustomHelper::calculateRefundSalesTax($refundAmount, (float) $row->order_subtotal, (float) $row->order_tax_amount);
+
+                return collect([(object) [
+                    'stream'             => 'refund',
+                    'payment_date'       => $row->payment_date,
+                    'order_number'       => $row->order_number,
+                    'order_unique_id'    => $row->order_unique_id,
+                    'order_date'         => $row->order_date,
+                    'customer_name'      => $row->customer_name ?: '—',
+                    'revenue_source'     => $isPartial ? 'Partial Refund' : 'Refund',
+                    'revenue_source_key' => 'refund',
+                    'payment_method'     => $this->mapOrderPaymentMethod($row->payment_method),
+                    'payment_method_key' => $row->payment_method ?? 'Other',
+                    'payment_status'     => $row->payment_status,
+                    'base_amount'        => -round($refundAmount - $refundTax, 2),
+                    'tax_amount'         => -$refundTax,
+                    'grand_total'        => -$refundAmount,
+                    'included_because'   => 'Refund Processed This Period',
+                    'notes'              => null,
+                    ...$eventMeta,
+                ]]);
+            }
+
+            return $allocations->map(function ($allocation) use ($row, $isPartial, $eventMeta) {
+                $original = $allocation->originalPayment;
+                $netAmount = round((float) $allocation->allocated_amount - (float) ($allocation->processing_fee_retained ?? 0), 2);
+                $tax = (float) $allocation->allocated_tax_amount;
+                $base = round($netAmount - $tax, 2);
+                $method = $original?->payment_method?->value;
+
+                return (object) [
+                    'stream'             => 'refund',
+                    'payment_date'       => $row->payment_date,
+                    'order_number'       => $row->order_number,
+                    'order_unique_id'    => $row->order_unique_id,
+                    'order_date'         => $row->order_date,
+                    'customer_name'      => $row->customer_name ?: '—',
+                    'revenue_source'     => $isPartial ? 'Partial Refund' : 'Refund',
+                    'revenue_source_key' => 'refund',
+                    'payment_method'     => $this->mapOrderPaymentMethod($method),
+                    'payment_method_key' => $method ?? 'Other',
+                    'payment_status'     => $row->payment_status,
+                    'base_amount'        => -$base,
+                    'tax_amount'         => -$tax,
+                    'grand_total'        => -$netAmount,
+                    'included_because'   => 'Refund Processed This Period',
+                    'notes'              => null,
+                    ...$eventMeta,
+                ];
+            });
+        })->values();
     }
 
     // ─── Stream C: Customer Account Payments ──────────────────────────────────

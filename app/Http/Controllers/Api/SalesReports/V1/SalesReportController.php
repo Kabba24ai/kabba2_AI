@@ -17,6 +17,18 @@ class SalesReportController extends Controller
      * Response contracts are unchanged. revenue-breakdown, tax-and-payments,
      * and product-sales-details remain on legacy queries (no canonical engine
      * models their semantics yet) — documented in the Phase 2D report.
+     *
+     * Refund Project Final Phase: these same three legacy-query endpoints
+     * each contained a refund-detection branch (`order_payments.refund_amount
+     * > 0`) that could never execute — their own WHERE clause only ever
+     * admits Paid/Account/Invoice* status rows, never Refunded/Partial
+     * Refund, so the branch was unreachable dead code. Removed; each
+     * method's own comment explains it. These endpoints still do not net
+     * out refunds at all (their output was already always computed as if
+     * no refund had occurred, since the dead branch never ran) — doing so
+     * correctly requires the same canonical-engine work the other endpoints
+     * on this controller already received in Phase 2D, and is deferred to
+     * Payment Architecture Finalization – Source of Truth Consolidation.
      */
     public function __construct(private ApiSalesReportAdapter $adapter) {}
 
@@ -297,6 +309,15 @@ class SalesReportController extends Controller
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
         [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
+        // Final Phase — Refund Consumer Cleanup: this query's own WHERE
+        // clause only ever admits Paid/Account/Invoice* order_payments rows
+        // (never Refunded/Partial Refund), so a joined row's
+        // order_payments.refund_amount was always 0 — refund netting here
+        // was dead code that could never execute, removed rather than left
+        // as a misleading always-zero branch. This endpoint does not net
+        // out refunds; doing so correctly is deferred to Payment
+        // Architecture Finalization, which is also why it isn't modeled by
+        // a canonical engine yet (see this class's docblock).
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
             ->join('products', 'order_products.product_id', '=', 'products.id')
@@ -313,8 +334,7 @@ class SalesReportController extends Controller
             'order_products.quantity',
             'order_products.sub_total',
             'order_products.tax',
-            'products.product_type',
-            'order_payments.refund_amount'
+            'products.product_type'
         )->get();
 
         $breakdown = [
@@ -335,9 +355,7 @@ class SalesReportController extends Controller
                 : ($item->product_data ?? []);
 
             $quantity    = (int)($item->quantity ?? 1);
-            $isRefund    = (float)($item->refund_amount ?? 0) > 0;
             $productType = $item->product_type ?? '';
-            $sign        = $isRefund ? -1 : 1;
 
             // ── Rental add-on prices stored in product_data ──────────────────
             $rentalItemPrices = $productData['product_rental_items_prices'] ?? [];
@@ -370,18 +388,18 @@ class SalesReportController extends Controller
             $baseRevenue = $basePrice * $quantity;
 
             // ── Accumulate into breakdown buckets ────────────────────────────
-            $breakdown['deliveryRevenue']        += $sign * $deliveryFee;
-            $breakdown['damageWaiverRevenue']    += $sign * $damageWaiver;
-            $breakdown['trackInsuranceRevenue']  += $sign * $trackInsurance;
-            $breakdown['prepaidCleaningRevenue'] += $sign * $prepaidCleaning;
-            $breakdown['prepaidFuelRevenue']     += $sign * $prepaidFuel;
+            $breakdown['deliveryRevenue']        += $deliveryFee;
+            $breakdown['damageWaiverRevenue']    += $damageWaiver;
+            $breakdown['trackInsuranceRevenue']  += $trackInsurance;
+            $breakdown['prepaidCleaningRevenue'] += $prepaidCleaning;
+            $breakdown['prepaidFuelRevenue']     += $prepaidFuel;
             // Tire insurance and misc option items go to feesOther
-            $breakdown['feesOtherRevenue']       += $sign * ($tireInsurance + $optionsTotal);
+            $breakdown['feesOtherRevenue']       += ($tireInsurance + $optionsTotal);
 
             if ($productType === 'Retail') {
-                $breakdown['retailSales']   += $sign * $baseRevenue;
+                $breakdown['retailSales']   += $baseRevenue;
             } else {
-                $breakdown['rentalRevenue'] += $sign * $baseRevenue;
+                $breakdown['rentalRevenue'] += $baseRevenue;
             }
         }
 
@@ -411,7 +429,6 @@ class SalesReportController extends Controller
         $data = $query->select(
             'order_products.total',
             'order_products.tax',
-            'order_payments.refund_amount',
             'order_payments.status'
         )->get();
 
@@ -425,14 +442,15 @@ class SalesReportController extends Controller
             'otherPayments' => 0
         ];
 
+        // Final Phase — Refund Consumer Cleanup: refund netting removed
+        // here — the query's own WHERE clause only ever admits
+        // Paid/Account/Invoice* rows, so order_payments.refund_amount was
+        // always 0 for every row reaching this loop; the sign-flip below
+        // was dead code. See getRevenueBreakdown()'s comment for the full
+        // explanation and deferral.
         foreach ($data as $item) {
             $amount = $item->total - $item->tax;
             $tax = $item->tax ?? 0;
-
-            if ($item->refund_amount > 0) {
-                $amount = -$amount;
-                $tax = -$tax;
-            }
 
             $salesTaxCollected += $tax;
 
@@ -550,7 +568,6 @@ class SalesReportController extends Controller
             'order_products.quantity',
             'products.product_name',
             'products.product_type',
-            'order_payments.refund_amount',
             DB::raw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_variant')) as product_variant")
         )->get();
 
@@ -564,12 +581,21 @@ class SalesReportController extends Controller
 
         $productMap = [];
 
+        // Final Phase — Refund Consumer Cleanup: the refund/non-refund
+        // split removed here was dead code — this query's own WHERE clause
+        // only ever admits Paid/Account/Invoice* order_payments rows, so
+        // order_payments.refund_amount was always 0 and the refund branch
+        // below could never execute. refundQuantity/refundAmount/
+        // refundRentalUsageQty remain in the response contract as fixed
+        // zeros rather than removed, since this endpoint's output shape is
+        // documented as unchanged; actually netting out refunds here is
+        // deferred to Payment Architecture Finalization (see
+        // getRevenueBreakdown()'s comment).
         foreach ($data as $item) {
             $productId    = (string)$item->product_id;
             $lineTotal    = (float)($item->total ?? 0);
             $lineTax      = (float)($item->tax ?? 0);
             $quantity     = $item->quantity ?? 1;
-            $isRefund     = $item->refund_amount > 0;
             $isRental     = strtolower($item->product_type ?? '') === 'rental';
             $variant      = strtolower($item->product_variant ?? 'daily');
             $multiplier   = $rentalMultipliers[$variant] ?? 1;
@@ -596,16 +622,10 @@ class SalesReportController extends Controller
             // Gross Sales = face value of ALL sales (before any deductions)
             $productMap[$productId]['grossSales'] += $lineTotal;
 
-            if ($isRefund) {
-                $productMap[$productId]['refundQuantity']       += $quantity;
-                $productMap[$productId]['refundAmount']         += ($lineTotal - $lineTax);
-                $productMap[$productId]['refundRentalUsageQty'] += $usageQty;
-            } else {
-                $productMap[$productId]['quantitySold']        += $quantity;
-                $productMap[$productId]['taxCollected']        += $lineTax;
-                $productMap[$productId]['salesCount']++;
-                $productMap[$productId]['rentalUsageQuantity'] += $usageQty;
-            }
+            $productMap[$productId]['quantitySold']        += $quantity;
+            $productMap[$productId]['taxCollected']        += $lineTax;
+            $productMap[$productId]['salesCount']++;
+            $productMap[$productId]['rentalUsageQuantity'] += $usageQty;
         }
 
         $result = [];

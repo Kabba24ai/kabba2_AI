@@ -398,7 +398,7 @@ final class PaymentAllocationService
     }
 
     /** Whether $refund already has a successful (Allocated) allocation against original payment $originalId. */
-    private static function hasSuccessfulAllocation(OrderPayment $refund, mixed $originalId): bool
+    public static function hasSuccessfulAllocation(OrderPayment $refund, mixed $originalId): bool
     {
         return $refund->refundAllocations()
             ->where('original_order_payment_id', $originalId)
@@ -432,6 +432,49 @@ final class PaymentAllocationService
         }
 
         return "{$label}: no remaining refundable balance.";
+    }
+
+    /**
+     * Resolves the FIXED requested total for calc types that have one —
+     * moved here from RefundPaymentController (Phase 3D) so both the real
+     * refund endpoint and the preview endpoint share the exact same
+     * resolution, rather than risking the two drifting apart. Standard
+     * uses the client-submitted amount; Sales Tax Only computes the
+     * order's remaining refundable sales tax server-side; Card Processing
+     * Fee Retained has no single fixed total to resolve up front — its
+     * total is a derived OUTPUT of calculateAllocationSplits() (gross draw
+     * per source minus that source's own capped fee), so this returns
+     * null for it and validateAllocationSet() skips the
+     * sum-equals-requested-total rule for that case.
+     *
+     * @return array{0: ?float, 1: ?string} [requestedTotal, errorMessage]
+     */
+    public static function resolveRequestedTotal(Order $order, RefundCalculationType $calcType, float $clientAmount): array
+    {
+        if ($calcType === RefundCalculationType::SalesTaxOnly) {
+            $alreadyRefundedTax = (float) $order->payments()
+                ->whereIn('status', [OrderPaymentStatus::PartialRefund, OrderPaymentStatus::Refund])
+                ->sum('tax_refunded');
+
+            $remainingRefundableTax = max(0.0, round((float) $order->tax_amount - $alreadyRefundedTax, 2));
+            $remainingRefundableTax = round(min($remainingRefundableTax, (float) $order->remaining_amount), 2);
+
+            if ($remainingRefundableTax <= 0) {
+                return [null, 'No refundable sales tax remains for this order.'];
+            }
+
+            return [$remainingRefundableTax, null];
+        }
+
+        if ($calcType === RefundCalculationType::CardProcessingFeeRetained) {
+            return [null, null];
+        }
+
+        if ($clientAmount <= 0) {
+            return [null, 'Refund amount must be greater than zero.'];
+        }
+
+        return [$clientAmount, null];
     }
 
     /**
@@ -615,6 +658,66 @@ final class PaymentAllocationService
                 $total += (float) $refund->refundAllocations
                     ->where('status', OrderPaymentRefundAllocationStatus::Allocated)
                     ->sum(fn (OrderPaymentRefundAllocation $a) => (float) $a->allocated_amount - (float) ($a->processing_fee_retained ?? 0));
+            } else {
+                $total += (float) $refund->refund_amount;
+            }
+        }
+
+        return round($total, 2);
+    }
+
+    /**
+     * Order-wide sum of card-processing fees retained across every
+     * successfully-allocated refund on this order — the one figure Phase
+     * 3D's Order Details / receipt summaries need that no existing
+     * accessor already provides. Only Allocated allocations count (a
+     * Failed or Superseded attempt never actually retained anything); rows
+     * with no fee (Standard/Sales Tax Only allocations, or non-card
+     * sources under Card Processing Fee Retained) contribute zero via
+     * processing_fee_retained's null coalesce, same convention as
+     * totalSuccessfulRefunded() above.
+     */
+    public static function totalFeesRetained(Order $order): float
+    {
+        $refunds = $order->payments()->refund()->with('refundAllocations')->get();
+
+        $total = 0.0;
+        foreach ($refunds as $refund) {
+            $total += (float) $refund->refundAllocations
+                ->where('status', OrderPaymentRefundAllocationStatus::Allocated)
+                ->sum(fn (OrderPaymentRefundAllocation $a) => (float) ($a->processing_fee_retained ?? 0));
+        }
+
+        return round($total, 2);
+    }
+
+    /**
+     * Order-wide "total refund requested" — the gross sum of every
+     * allocation row regardless of outcome (Allocated, Failed, or
+     * Pending; Superseded is excluded since that money's intent has
+     * already been reassigned to its replacement allocation, which is
+     * itself counted). This is deliberately distinct from
+     * totalSuccessfulRefunded() (completed only) and outstandingRefundAmount()
+     * (failed-and-unresolved only) — together the three give the Order
+     * Details summary its Requested / Completed / Outstanding triplet.
+     * Falls back to a refund row's raw refund_amount when it has no
+     * allocations yet (legacy, not backfilled), matching every other
+     * legacy fallback in this class.
+     */
+    public static function totalRequestedRefund(Order $order): float
+    {
+        $refunds = $order->payments()->refund()->with('refundAllocations')->get();
+
+        $total = 0.0;
+        foreach ($refunds as $refund) {
+            if ($refund->refundAllocations->isNotEmpty()) {
+                $total += (float) $refund->refundAllocations
+                    ->whereIn('status', [
+                        OrderPaymentRefundAllocationStatus::Allocated,
+                        OrderPaymentRefundAllocationStatus::Failed,
+                        OrderPaymentRefundAllocationStatus::Pending,
+                    ])
+                    ->sum(fn (OrderPaymentRefundAllocation $a) => (float) $a->allocated_amount);
             } else {
                 $total += (float) $refund->refund_amount;
             }
@@ -939,5 +1042,319 @@ final class PaymentAllocationService
         }
 
         return $report;
+    }
+
+    /**
+     * Phase 3D — a read-only integrity sweep of the whole allocation
+     * schema, for the `payments:audit` command. Every check here reuses an
+     * existing authoritative primitive from this class (attributionState(),
+     * remainingRefundable(), validateSplit(), incompleteRefunds()) rather
+     * than re-deriving its own notion of correctness — this method only
+     * counts and reports, it never writes anything.
+     *
+     * 'summary' entries are informational counts (expected to be non-zero
+     * in normal operation — e.g. ambiguous_legacy_refunds is a known,
+     * permanent historical condition, not a bug). 'issues' entries are
+     * genuine integrity failures — each one indicates something that
+     * should never happen if every write path in this class is behaving
+     * correctly — and drive has_integrity_failures, which the Artisan
+     * command uses for its exit code.
+     *
+     * @return array{summary: array<string, int>, issues: array<string, array<int, array<string, mixed>>>, has_integrity_failures: bool}
+     */
+    public static function auditIntegrity(): array
+    {
+        $summary = [
+            'refund_events' => 0,
+            'successful_allocations' => 0,
+            'pending_allocations' => 0,
+            'failed_allocations' => 0,
+            'superseded_allocations' => 0,
+            'unallocated_refunds' => 0,
+            'ambiguous_legacy_refunds' => 0,
+            'incomplete_refund_operations' => 0,
+            'broken_parent_pointers' => 0,
+            'allocation_total_mismatches' => 0,
+            'split_mismatches' => 0,
+            'refunds_exceeding_original' => 0,
+            'negative_remaining_balances' => 0,
+            'operation_status_disagreements' => 0,
+            'orphan_allocations' => 0,
+            'duplicate_gateway_refund_ids' => 0,
+            'duplicate_idempotency_tokens' => 0,
+            'fee_exceeds_lifetime_max' => 0,
+            'negative_refunded_tax' => 0,
+        ];
+
+        $issues = [
+            'broken_parent_pointers' => [],
+            'allocation_total_mismatches' => [],
+            'split_mismatches' => [],
+            'refunds_exceeding_original' => [],
+            'negative_remaining_balances' => [],
+            'operation_status_disagreements' => [],
+            'orphan_allocations' => [],
+            'duplicate_gateway_refund_ids' => [],
+            'duplicate_idempotency_tokens' => [],
+            'fee_exceeds_lifetime_max' => [],
+            'negative_refunded_tax' => [],
+        ];
+
+        $summary['successful_allocations'] = OrderPaymentRefundAllocation::where('status', OrderPaymentRefundAllocationStatus::Allocated->value)->count();
+        $summary['pending_allocations'] = OrderPaymentRefundAllocation::where('status', OrderPaymentRefundAllocationStatus::Pending->value)->count();
+        $summary['failed_allocations'] = OrderPaymentRefundAllocation::where('status', OrderPaymentRefundAllocationStatus::Failed->value)->count();
+        $summary['superseded_allocations'] = OrderPaymentRefundAllocation::where('status', OrderPaymentRefundAllocationStatus::Superseded->value)->count();
+
+        $refunds = OrderPayment::whereIn('status', [OrderPaymentStatus::PartialRefund, OrderPaymentStatus::Refund])
+            ->with('refundAllocations.originalPayment', 'order')
+            ->orderBy('id')
+            ->get();
+
+        $summary['refund_events'] = $refunds->count();
+
+        foreach ($refunds as $refund) {
+            $allocations = $refund->refundAllocations;
+
+            if ($allocations->isEmpty()) {
+                $summary['unallocated_refunds']++;
+
+                if (self::attributionState($refund) === self::STATE_AMBIGUOUS) {
+                    $summary['ambiguous_legacy_refunds']++;
+                }
+            }
+
+            // Parent pointer must equal syncParentPointer()'s derivation:
+            // null unless exactly one allocation row exists.
+            $expectedParent = $allocations->count() === 1 ? $allocations->first()->original_order_payment_id : null;
+            if ($allocations->isNotEmpty() && $refund->parent_order_payment_id !== $expectedParent) {
+                $summary['broken_parent_pointers']++;
+                $issues['broken_parent_pointers'][] = [
+                    'refund_order_payment_id' => $refund->id,
+                    'order_id' => $refund->order_id,
+                    'expected' => $expectedParent,
+                    'actual' => $refund->parent_order_payment_id,
+                ];
+            }
+
+            // For every allocation row, base + tax + fee must equal amount.
+            foreach ($allocations as $allocation) {
+                try {
+                    self::validateSplit(
+                        (float) $allocation->allocated_amount,
+                        (float) $allocation->allocated_base_amount,
+                        (float) $allocation->allocated_tax_amount,
+                        (float) ($allocation->processing_fee_retained ?? 0)
+                    );
+                } catch (\InvalidArgumentException $e) {
+                    $summary['split_mismatches']++;
+                    $issues['split_mismatches'][] = [
+                        'allocation_id' => $allocation->id,
+                        'refund_order_payment_id' => $refund->id,
+                        'order_id' => $refund->order_id,
+                        'message' => $e->getMessage(),
+                    ];
+                }
+            }
+
+            // The refund row's own recorded refund_amount should match the
+            // net (fee-excluded) sum of its successfully-Allocated rows.
+            if ($allocations->isNotEmpty()) {
+                $succeeded = $allocations->where('status', OrderPaymentRefundAllocationStatus::Allocated);
+                if ($succeeded->isNotEmpty()) {
+                    $netAllocated = round((float) $succeeded->sum(
+                        fn (OrderPaymentRefundAllocation $a) => (float) $a->allocated_amount - (float) ($a->processing_fee_retained ?? 0)
+                    ), 2);
+                    $recorded = round((float) $refund->refund_amount, 2);
+
+                    if (abs((int) round($netAllocated * 100) - (int) round($recorded * 100)) > 1) {
+                        $summary['allocation_total_mismatches']++;
+                        $issues['allocation_total_mismatches'][] = [
+                            'refund_order_payment_id' => $refund->id,
+                            'order_id' => $refund->order_id,
+                            'net_allocated' => $netAllocated,
+                            'refund_amount' => $recorded,
+                        ];
+                    }
+                }
+            }
+
+            if (in_array($refund->refund_operation_status, [
+                RefundOperationStatus::PartiallyCompleted,
+                RefundOperationStatus::Failed,
+            ], true)) {
+                $summary['incomplete_refund_operations']++;
+            }
+
+            // A refund marked Completed must have at least one Allocated
+            // allocation and zero currently-Failed ones — the exact
+            // condition syncRefundOperationOutcome() itself requires to
+            // ever set Completed in the first place. Finding a mismatch
+            // here means either that method was bypassed, or a row was
+            // hand-edited after the fact.
+            if ($refund->refund_operation_status === RefundOperationStatus::Completed) {
+                $succeededCount = $allocations->where('status', OrderPaymentRefundAllocationStatus::Allocated)->count();
+                $failedCount = $allocations->where('status', OrderPaymentRefundAllocationStatus::Failed)->count();
+
+                if ($succeededCount === 0 || $failedCount > 0) {
+                    $summary['operation_status_disagreements']++;
+                    $issues['operation_status_disagreements'][] = [
+                        'refund_order_payment_id' => $refund->id,
+                        'order_id' => $refund->order_id,
+                        'allocated_count' => $succeededCount,
+                        'failed_count' => $failedCount,
+                    ];
+                }
+            }
+
+            if ((float) $refund->tax_refunded < -0.005) {
+                $summary['negative_refunded_tax']++;
+                $issues['negative_refunded_tax'][] = [
+                    'refund_order_payment_id' => $refund->id,
+                    'order_id' => $refund->order_id,
+                    'tax_refunded' => (float) $refund->tax_refunded,
+                ];
+            }
+
+            foreach ($allocations as $allocation) {
+                if ((float) $allocation->allocated_tax_amount < -0.005) {
+                    $summary['negative_refunded_tax']++;
+                    $issues['negative_refunded_tax'][] = [
+                        'allocation_id' => $allocation->id,
+                        'refund_order_payment_id' => $refund->id,
+                        'order_id' => $refund->order_id,
+                        'allocated_tax_amount' => (float) $allocation->allocated_tax_amount,
+                    ];
+                }
+            }
+        }
+
+        // Orphan allocations: a row whose parent refund event no longer has
+        // a Refund/PartialRefund status (its own status query already
+        // excludes these from the loop above), or whose original/refund
+        // payment relation cannot resolve at all — defensive checks beyond
+        // what the schema's own foreign keys already guarantee, in case of
+        // a hand-edited row or a status hand-reverted after allocation.
+        $orphanAllocations = OrderPaymentRefundAllocation::whereDoesntHave('refundPayment', function ($q) {
+            $q->whereIn('status', [OrderPaymentStatus::PartialRefund->value, OrderPaymentStatus::Refund->value]);
+        })->orWhereDoesntHave('originalPayment')->with('refundPayment', 'originalPayment')->get();
+
+        foreach ($orphanAllocations as $orphan) {
+            $summary['orphan_allocations']++;
+            $issues['orphan_allocations'][] = [
+                'allocation_id' => $orphan->id,
+                'refund_order_payment_id' => $orphan->refund_order_payment_id,
+                'original_order_payment_id' => $orphan->original_order_payment_id,
+                'refund_status' => $orphan->refundPayment?->status?->value,
+            ];
+        }
+
+        // Duplicate gateway refund IDs: two different Allocated allocations
+        // referencing the same gateway transaction id would mean the same
+        // gateway refund was recorded twice against two sources.
+        OrderPaymentRefundAllocation::where('status', OrderPaymentRefundAllocationStatus::Allocated->value)
+            ->whereNotNull('gateway_transaction_id')
+            ->get()
+            ->groupBy('gateway_transaction_id')
+            ->filter(fn ($group) => $group->count() > 1)
+            ->each(function ($group, $gatewayId) use (&$summary, &$issues) {
+                $summary['duplicate_gateway_refund_ids']++;
+                $issues['duplicate_gateway_refund_ids'][] = [
+                    'gateway_transaction_id' => $gatewayId,
+                    'allocation_ids' => $group->pluck('id')->all(),
+                ];
+            });
+
+        // Duplicate idempotency tokens — already enforced by a DB-level
+        // UNIQUE constraint (migration 2026_07_14_130000), so this should
+        // never fire in practice; kept as a defense-in-depth check per the
+        // mission's explicit ask.
+        OrderPayment::whereNotNull('idempotency_token')
+            ->select('idempotency_token', 'id', 'order_id')
+            ->get()
+            ->groupBy('idempotency_token')
+            ->filter(fn ($group) => $group->count() > 1)
+            ->each(function ($group, $token) use (&$summary, &$issues) {
+                $summary['duplicate_idempotency_tokens']++;
+                $issues['duplicate_idempotency_tokens'][] = [
+                    'idempotency_token' => $token,
+                    'refund_order_payment_ids' => $group->pluck('id')->all(),
+                ];
+            });
+
+        // Currently-configured fee percentage — used only to flag an
+        // allocation's cumulative retained fee against TODAY's cap. If this
+        // percentage has changed since some of these allocations were
+        // created, a historically-correct allocation (capped under a prior
+        // percentage) could show here; treat a finding against this check
+        // as a prompt to review, not an automatic proof of a bug, the same
+        // caveat remainingCardFeeCapacity() itself is subject to since it
+        // also always evaluates against the CURRENT configured percentage.
+        $currentFeePercentage = (float) (\App\Helpers\ConfigurationHelper::getSettings('Product Settings', 'credit_card_processing_fee') ?? 0);
+
+        // Per original payment: reserved (pending + allocated) amount must
+        // never exceed what was ever collected on that payment, and total
+        // retained fee must never exceed the configured lifetime cap.
+        $originals = OrderPayment::settled()->with('receivedRefundAllocations')->get();
+
+        foreach ($originals as $original) {
+            $reserved = round((float) $original->receivedRefundAllocations
+                ->whereIn('status', [OrderPaymentRefundAllocationStatus::Pending, OrderPaymentRefundAllocationStatus::Allocated])
+                ->sum('allocated_amount'), 2);
+
+            $raw = round((float) $original->amount - $reserved, 2);
+
+            if ($raw < -0.005) {
+                $summary['refunds_exceeding_original']++;
+                $issues['refunds_exceeding_original'][] = [
+                    'original_order_payment_id' => $original->id,
+                    'order_id' => $original->order_id,
+                    'original_amount' => (float) $original->amount,
+                    'reserved' => $reserved,
+                ];
+
+                $summary['negative_remaining_balances']++;
+                $issues['negative_remaining_balances'][] = [
+                    'original_order_payment_id' => $original->id,
+                    'order_id' => $original->order_id,
+                    'raw_remaining' => $raw,
+                ];
+            }
+
+            if ($currentFeePercentage > 0 && $original->payment_method === OrderPaymentMethod::Card) {
+                $feeConsumed = round((float) $original->receivedRefundAllocations
+                    ->where('status', OrderPaymentRefundAllocationStatus::Allocated)
+                    ->sum('processing_fee_retained'), 2);
+
+                $cap = round((float) $original->amount * $currentFeePercentage / 100, 2);
+
+                if ($feeConsumed > $cap + 0.01) {
+                    $summary['fee_exceeds_lifetime_max']++;
+                    $issues['fee_exceeds_lifetime_max'][] = [
+                        'original_order_payment_id' => $original->id,
+                        'order_id' => $original->order_id,
+                        'fee_consumed' => $feeConsumed,
+                        'lifetime_cap' => $cap,
+                    ];
+                }
+            }
+        }
+
+        $hasFailures = $summary['broken_parent_pointers'] > 0
+            || $summary['allocation_total_mismatches'] > 0
+            || $summary['split_mismatches'] > 0
+            || $summary['refunds_exceeding_original'] > 0
+            || $summary['negative_remaining_balances'] > 0
+            || $summary['operation_status_disagreements'] > 0
+            || $summary['orphan_allocations'] > 0
+            || $summary['duplicate_gateway_refund_ids'] > 0
+            || $summary['duplicate_idempotency_tokens'] > 0
+            || $summary['fee_exceeds_lifetime_max'] > 0
+            || $summary['negative_refunded_tax'] > 0;
+
+        return [
+            'summary' => $summary,
+            'issues' => $issues,
+            'has_integrity_failures' => $hasFailures,
+        ];
     }
 }

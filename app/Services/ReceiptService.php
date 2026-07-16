@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\Orders\OrderPaymentRefundAllocationStatus;
 use App\Models\Orders\Order;
 use App\Models\Customers\Receipt;
 use App\Services\PaymentDescriptionPresenter;
@@ -189,6 +190,58 @@ class ReceiptService
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Phase 3D — the itemized refund list for the receipt's "Refunds"
+     * section: one line per successfully-Allocated allocation, grouped by
+     * the original payment's method (mission §5's "mixed payment methods
+     * must display as separate lines"). Deliberately mirrors
+     * paymentMethodBreakdown()'s shape above, but for refunds.
+     *
+     * Only Allocated allocations are ever included — Pending/Failed never
+     * reach the customer-facing receipt, and no internal field (gateway
+     * transaction id, failure_reason, allocation id) is exposed here.
+     * Legacy refunds with no allocation rows yet fall back to one line per
+     * refund row (whole-row date/amount/method), the same fallback shape
+     * every other legacy path in PaymentAllocationService uses.
+     *
+     * @return array<int, array{method: string, date: ?\Carbon\Carbon, amount: float, calc_type: ?string, fee_retained: float, tax_refunded: float}>
+     */
+    public static function refundDetails(Order $order): array
+    {
+        $refunds = $order->payments()->refund()->with('refundAllocations.originalPayment')->get();
+
+        $lines = [];
+
+        foreach ($refunds as $refund) {
+            $allocated = $refund->refundAllocations->where('status', OrderPaymentRefundAllocationStatus::Allocated);
+
+            if ($allocated->isNotEmpty()) {
+                foreach ($allocated as $allocation) {
+                    $original = $allocation->originalPayment;
+                    $lines[] = [
+                        'method' => PaymentDescriptionPresenter::methodLabel($original?->payment_method),
+                        'date' => $refund->refunded_at ?? $refund->created_at,
+                        'amount' => (float) $allocation->allocated_amount - (float) ($allocation->processing_fee_retained ?? 0),
+                        'calc_type' => $refund->refund_calculation_type?->value,
+                        'fee_retained' => (float) ($allocation->processing_fee_retained ?? 0),
+                        'tax_refunded' => (float) $allocation->allocated_tax_amount,
+                    ];
+                }
+            } elseif ($refund->refundAllocations->isEmpty()) {
+                $lines[] = [
+                    'method' => PaymentDescriptionPresenter::methodLabel($refund->payment_method),
+                    'date' => $refund->refunded_at ?? $refund->created_at,
+                    'amount' => (float) $refund->refund_amount,
+                    'calc_type' => $refund->refund_calculation_type?->value,
+                    'fee_retained' => (float) ($refund->cc_fee_retained ?? 0),
+                    'tax_refunded' => (float) $refund->tax_refunded,
+                ];
+            }
+        }
+
+        return $lines;
     }
 
     /**

@@ -283,6 +283,44 @@ class ApiSalesReportConsolidationTest extends TestCase
         $this->assertSame('Not specified', $response['refundsByReason'][0]['reason']);
     }
 
+    /**
+     * Refund Project Final Phase — Refund Consumer Cleanup: revenue-breakdown,
+     * tax-and-payments, and product-sales-details each had a refund-netting
+     * branch that could never execute (their own WHERE clause excludes
+     * Refunded/Partial Refund rows before the branch is ever reached) — the
+     * branches were removed as dead code. This proves the removal changed
+     * nothing observable: adding a refund on top of the parent order's
+     * $2,200 Paid payment must not move any of these three endpoints'
+     * numbers, exactly as it never did before the cleanup (the dead branch
+     * never fired, refund or no refund).
+     */
+    public function test_revenue_breakdown_tax_and_payments_and_product_details_are_unaffected_by_a_refund(): void
+    {
+        $before = [
+            'revenue' => $this->apiGet('/revenue-breakdown', $this->customQuery())->assertOk()->json(),
+            'tax'     => $this->apiGet('/tax-and-payments', $this->customQuery())->assertOk()->json(),
+            'product' => $this->apiGet('/product-sales-details', $this->customQuery())->assertOk()->json(),
+        ];
+
+        $this->parent->payments()->create([
+            'payment_method'   => OrderPaymentMethod::Cash->value,
+            'payment_datetime' => now(),
+            'refunded_at'      => now(),
+            'amount'           => 0,
+            'refund_amount'    => 2200,
+            'tax_refunded'     => 200,
+            'status'           => OrderPaymentStatus::Refund->value,
+        ]);
+
+        $after = [
+            'revenue' => $this->apiGet('/revenue-breakdown', $this->customQuery())->assertOk()->json(),
+            'tax'     => $this->apiGet('/tax-and-payments', $this->customQuery())->assertOk()->json(),
+            'product' => $this->apiGet('/product-sales-details', $this->customQuery())->assertOk()->json(),
+        ];
+
+        $this->assertSame($before, $after, 'refund netting was dead code before this cleanup — removing it must not change output');
+    }
+
     public function test_discounts_report_returns_real_numbers(): void
     {
         $this->parent->update(['discount_amount' => 150]);

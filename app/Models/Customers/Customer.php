@@ -8,12 +8,19 @@ use App\Models\Global\Media;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use Carbon\Carbon;
+use Database\Factories\Customers\CustomerFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class Customer extends Authenticatable
 {
-    use Notifiable;
+    use HasFactory, Notifiable;
+
+    protected static function newFactory(): CustomerFactory
+    {
+        return CustomerFactory::new();
+    }
 
     protected $fillable = [
         'unique_id',
@@ -193,22 +200,26 @@ class Customer extends Authenticatable
         return $this->hasMany(CustomerCard::class);
     }
 
+    /**
+     * Final Phase — Refund Consumer Cleanup: this used to join each order
+     * to only its single highest-id order_payments row (the same MAX(id)
+     * attribution flaw PaymentReconciliationLedger::streamA() had) and sum
+     * the WHOLE order's grand_total whenever that one row's status was
+     * Paid/Refunded/Partial Refund — meaning a refunded order still
+     * counted its full original price as "paid," and a split-payment
+     * order's total depended on which payment happened to be entered
+     * last. Now sums Order::net_paid (grand_total's canonical,
+     * allocation-aware "money currently, actually with the business"
+     * figure — see Order::getNetPaidAttribute()) across every order with
+     * at least one settled payment, so a refund correctly reduces this
+     * total instead of being ignored.
+     */
     public function getPaidSalesAttribute()
     {
         return $this->orders()
-            ->whereHas('payments', function ($query) {
-                $query->whereIn('status', [
-                    'Paid',
-                    'Refunded',
-                    'Partial Refund',
-                ])
-                    ->whereRaw('id = (
-                SELECT MAX(id)
-                FROM order_payments
-                WHERE order_id = orders.id
-            )');
-            })
-            ->sum('grand_total');
+            ->whereHas('payments', fn ($query) => $query->settled())
+            ->get()
+            ->sum(fn ($order) => $order->net_paid);
     }
 
     // Total Pending Sales (via OrderPayment status)

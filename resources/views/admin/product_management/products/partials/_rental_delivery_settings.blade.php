@@ -872,14 +872,15 @@
                 }
             @endphp
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {{-- Sub-container: fee columns + size selection form one visual group --}}
+            <div class="rounded-xl border border-gray-300 dark:border-gray-600 p-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
                 @foreach ($deliveryFeeTiers as $feeField => $feeTier)
                     <div class="flex flex-col">
                         <span class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                             {{ $feeTier['label'] }}
                         </span>
-                        {{-- Width capped to match the Prepaid Cleaning / Fuel inputs --}}
-                        <div class="w-full max-w-[220px]">
+                        <div class="w-full max-w-[140px]">
                             <div class="flex items-center gap-1">
                                 <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                                 {!! html()->text($feeField)->attributes([
@@ -911,10 +912,9 @@
                     <span class="text-xs text-red-500 block mt-1">{{ $message }}</span>
                 @enderror
             @endforeach
-        </div>
 
-        {{-- Sizes --}}
-        <div class="mt-3">
+            {{-- Sizes --}}
+            <div class="mt-3">
 
             <div class="flex items-center flex-wrap gap-6">
                 <label for="size_small"
@@ -978,7 +978,9 @@
                 </label>
             </div>
 
-            <div id="sizes-errors"></div>
+                <div id="sizes-errors"></div>
+            </div>
+            </div>
         </div>
 
 
@@ -986,9 +988,9 @@
         <div class="h-3 mb-5 md:h-4"></div>
 
 
-        <!-- High Demand Alert -->
-        <div class="grid grid-cols-1 gap-4 ">
-            <div class="flex flex-wrap items-center gap-8 mt-1">
+        <!-- Product option flags: sub-container keeps the checkboxes in aligned columns -->
+        <div class="rounded-xl border border-gray-300 dark:border-gray-600 p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 items-center">
                 <div class="flex items-center gap-2 relative">
                     {!! html()->checkbox('has_high_demand_alert') !!}
                     <label for="has_high_demand_alert" class="text-gray-700 dark:text-gray-300">
@@ -1018,9 +1020,10 @@
                         @checked(old('hide_cc_payment_option', $objProduct->hide_cc_payment_option ?? false))>
                     <span class="text-gray-700 dark:text-gray-300">Hide CC Payment Option</span>
                 </label>
-            </div>
 
-            <div class="flex flex-wrap items-center gap-8">
+                {{-- Empty third cell keeps the two rows column-aligned on large screens --}}
+                <div class="hidden lg:block" aria-hidden="true"></div>
+
                 <label for="is_tax_free_item" class="inline-flex items-center gap-2 cursor-pointer">
                     <input
                         type="checkbox"

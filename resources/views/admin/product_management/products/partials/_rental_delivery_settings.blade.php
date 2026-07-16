@@ -2,6 +2,17 @@
     <!-- Rental Configuration -->
     <div class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 p-2">
         <h3 class="text-center text-lg font-semibold text-gray-800 dark:text-white mb-4">Rental Pricing</h3>
+
+        {{-- Per-period source state: 'auto' tells the server to recalculate
+             the amount from the Daily Rate (submitted value discarded);
+             'manual' persists the submitted value verbatim. Defaults to
+             manual so opening/saving an existing product never rewrites its
+             prices; JS flips a period to auto only when it populates the
+             field from a committed Daily Rate change. --}}
+        <input type="hidden" name="weekend_price_source" id="weekend_price_source" value="{{ old('weekend_price_source', 'manual') }}">
+        <input type="hidden" name="weekly_price_source" id="weekly_price_source" value="{{ old('weekly_price_source', 'manual') }}">
+        <input type="hidden" name="monthly_price_source" id="monthly_price_source" value="{{ old('monthly_price_source', 'manual') }}">
+
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <!-- Daily -->
             <div>
@@ -1107,6 +1118,39 @@
         const weeklyRateMultiplier = "{{ $priceRateMultiplierSettings['weekly_multiplier'] ?? '' }}";
         const monthlyRateMultiplier = "{{ $priceRateMultiplierSettings['monthly_multiplier'] ?? '' }}";
 
+        // Smart price rounding config — mirrors \App\Helpers\RentalPriceHelper,
+        // which is the canonical server-side implementation. Empty endings =
+        // smart rounding off (raw multiplier prices, prior behavior).
+        const allowedPriceEndings = @json(\App\Helpers\RentalPriceHelper::parseEndings($priceRateMultiplierSettings[\App\Helpers\RentalPriceHelper::ENDINGS_SETTING] ?? null));
+        const hundredEntryThreshold = {{ \App\Helpers\RentalPriceHelper::parseThreshold($priceRateMultiplierSettings[\App\Helpers\RentalPriceHelper::THRESHOLD_SETTING] ?? null) }};
+
+        // Same integer-cent algorithm as RentalPriceHelper::smartRoundDollars().
+        function smartRoundDollars(rawCents, endings, thresholdDollars) {
+            const hundredCents = Math.floor(rawCents / 10000) * 10000;
+            const offsetCents = rawCents - hundredCents;
+            const hundredDollars = hundredCents / 100;
+
+            // Hundred-entry protection: stay in the previous band until the
+            // raw price is at least the threshold into the new hundred.
+            if (hundredCents >= 10000 && offsetCents < thresholdDollars * 100) {
+                for (let d = hundredDollars - 1; d >= 0; d--) {
+                    if (endings.includes(d % 10)) return d;
+                }
+            }
+
+            // Round up to the lowest allowed ending.
+            let up = Math.floor((rawCents + 99) / 100);
+            while (!endings.includes(up % 10)) up++;
+            if (up < hundredDollars + 100) return up;
+
+            // Upward rounding would cross into the next hundred: fall back to
+            // the highest allowed ending at or below the raw price in this band.
+            for (let d = Math.floor(rawCents / 100); d >= hundredDollars; d--) {
+                if (endings.includes(d % 10)) return d;
+            }
+            return up;
+        }
+
         // Auto-fill delivery fees based on selected size — all six tiers.
         // Raw (unformatted) setting values so a global 0 populates as "0"
         // (intentionally free) and a blank global rate populates as blank.
@@ -1279,38 +1323,81 @@
                     return "";
                 }
 
-                return (parsedDailyPrice * parsedMultiplier).toFixed(2);
+                // Integer cents throughout, matching RentalPriceHelper exactly.
+                const rawCents = Math.round(Math.round(parsedDailyPrice * 100) * parsedMultiplier);
+
+                if (!allowedPriceEndings.length) {
+                    return (rawCents / 100).toFixed(2);
+                }
+
+                return smartRoundDollars(rawCents, allowedPriceEndings, hundredEntryThreshold).toFixed(2);
             }
+
+            // Per-period source state hidden fields. Programmatic population
+            // below sets 'auto'; a user's own edit (the input event — never
+            // fired by assigning .value) sets 'manual' for that period only.
+            const priceSourceInputs = {
+                weekend: document.getElementById('weekend_price_source'),
+                weekly: document.getElementById('weekly_price_source'),
+                monthly: document.getElementById('monthly_price_source'),
+            };
+
+            function setPriceSource(period, source) {
+                if (priceSourceInputs[period]) priceSourceInputs[period].value = source;
+            }
+
+            const derivedPricePeriods = [
+                { period: 'weekend', input: weekendPriceInput, multiplier: weekendRateMultiplier, waiver: damageWaiverWeekendInput },
+                { period: 'weekly', input: weeklyPriceInput, multiplier: weeklyRateMultiplier, waiver: damageWaiverWeeklyInput },
+                { period: 'monthly', input: monthlyPriceInput, multiplier: monthlyRateMultiplier, waiver: damageWaiverMonthlyInput },
+            ];
 
             function updateCalculatedRentalPricesFromDaily() {
                 const dailyPrice = dailyPriceInput.value;
 
-                weekendPriceInput.value = calculatePriceByMultiplier(dailyPrice, weekendRateMultiplier);
-                weeklyPriceInput.value = calculatePriceByMultiplier(dailyPrice, weeklyRateMultiplier);
-                monthlyPriceInput.value = calculatePriceByMultiplier(dailyPrice, monthlyRateMultiplier);
+                derivedPricePeriods.forEach(({ period, input, multiplier, waiver }) => {
+                    const calculated = calculatePriceByMultiplier(dailyPrice, multiplier);
 
-                updateDamageWaiver(weekendPriceInput, damageWaiverWeekendInput);
-                updateDamageWaiver(weeklyPriceInput, damageWaiverWeeklyInput);
-                updateDamageWaiver(monthlyPriceInput, damageWaiverMonthlyInput);
+                    // Blank multiplier (or unusable daily) = period disabled:
+                    // leave the field and its source state untouched.
+                    if (calculated === "") return;
+
+                    input.value = calculated;
+                    setPriceSource(period, 'auto');
+                    updateDamageWaiver(input, waiver);
+                });
             }
 
-            dailyPriceInput.addEventListener("input", () => {
-                // if (hourTracking.checked) {
-                //     updateOverageRate(dailyPriceInput, hourRateInput);
-                // }
+            // Recalculate only when a CHANGED Daily Rate is committed (tab,
+            // click-away, or Enter) — never on intermediate keystrokes, and
+            // never on focus-and-leave without an actual change. The native
+            // change event provides exactly these semantics.
+            dailyPriceInput.addEventListener("change", () => {
                 updateCalculatedRentalPricesFromDaily();
                 updateDamageWaiver(dailyPriceInput, damageWaiverDailyInput);
             });
 
+            // Enter commits the Daily Rate (blur → change fires once if the
+            // value actually changed) instead of submitting the form.
+            dailyPriceInput.addEventListener("keydown", (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    dailyPriceInput.blur();
+                }
+            });
+
             weekendPriceInput.addEventListener("input", () => {
+                setPriceSource('weekend', 'manual');
                 updateDamageWaiver(weekendPriceInput, damageWaiverWeekendInput);
             });
 
             weeklyPriceInput.addEventListener("input", () => {
+                setPriceSource('weekly', 'manual');
                 updateDamageWaiver(weeklyPriceInput, damageWaiverWeeklyInput);
             });
 
             monthlyPriceInput.addEventListener("input", () => {
+                setPriceSource('monthly', 'manual');
                 updateDamageWaiver(monthlyPriceInput, damageWaiverMonthlyInput);
             });
 

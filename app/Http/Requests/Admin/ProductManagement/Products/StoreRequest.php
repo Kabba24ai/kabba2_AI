@@ -51,6 +51,12 @@ class StoreRequest extends ApiBaseFormRequest
             'rental_weekend' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_weekly' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
             'rental_monthly' => ['required_if:product_type,Rental','nullable', 'numeric', 'min:0', 'max:9999999'],
+            // auto = server recalculates the amount from the Daily Rate and
+            // discards the submitted value; manual (or absent, for legacy
+            // forms) = submitted value persists verbatim
+            'weekend_price_source' => ['nullable', 'string', 'in:auto,manual'],
+            'weekly_price_source' => ['nullable', 'string', 'in:auto,manual'],
+            'monthly_price_source' => ['nullable', 'string', 'in:auto,manual'],
 
             // Damage waivers
             'rental_damage_waiver_daily' => ['nullable', 'numeric', 'min:0', 'max:9999999'],

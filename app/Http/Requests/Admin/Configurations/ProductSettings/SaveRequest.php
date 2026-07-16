@@ -27,6 +27,17 @@ class SaveRequest extends FormRequest
         $input['prepaid_fuel_rates'] = $this->input('fuel', []);
         $input['prepaid_cleaning_rates'] = $this->input('clean', []);
 
+        // Smart price rounding: the form posts individual ending digits;
+        // drop blanks and persist as one comma-separated setting value.
+        if ($this->has('price_endings')) {
+            $endings = array_values(array_filter(
+                (array) $this->input('price_endings', []),
+                fn ($digit) => $digit !== null && $digit !== '',
+            ));
+            $input['price_endings'] = $endings;
+            $input['allowed_price_endings'] = implode(',', $endings);
+        }
+
         $this->merge($input);
     }
 
@@ -70,9 +81,17 @@ class SaveRequest extends FormRequest
             'weekly_hours' => 'nullable|numeric|min:0',
             'monthly_hours' => 'nullable|numeric|min:0',
             'overage_rate_percentage' => 'nullable|numeric|min:0',
-            'weekend_multiplier' => 'nullable|numeric|min:0',
-            'weekly_multiplier' => 'nullable|numeric|min:0',
-            'monthly_multiplier' => 'nullable|numeric|min:0',
+            'weekend_multiplier' => 'nullable|numeric|gt:0',
+            'weekly_multiplier' => 'nullable|numeric|gt:0',
+            'monthly_multiplier' => 'nullable|numeric|gt:0',
+
+            // Smart price rounding: unique whole digits 0–9 plus a whole-dollar
+            // hundred-entry threshold. The CSV field is assembled in
+            // prepareForValidation and is what actually persists.
+            'price_endings' => 'nullable|array|max:3',
+            'price_endings.*' => 'integer|between:0,9|distinct',
+            'allowed_price_endings' => 'nullable|string|max:20',
+            'hundred_entry_threshold' => 'nullable|integer|min:0',
 
             'prepaid_fuel_decline_label' => 'nullable|string|max:255',
             'prepaid_fuel_approve_label' => 'nullable|string|max:255',
@@ -195,12 +214,31 @@ class SaveRequest extends FormRequest
         ];
     }
 
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            // Smart rounding is active when a hundred-entry threshold is set;
+            // it can do nothing without at least one allowed ending.
+            $threshold = $this->input('hundred_entry_threshold');
+            $hasThreshold = $threshold !== null && $threshold !== '' && (int) $threshold > 0;
+            $hasEndings = ! empty($this->input('price_endings'));
+
+            if ($this->has('price_endings') && $hasThreshold && ! $hasEndings) {
+                $validator->errors()->add(
+                    'price_endings',
+                    'At least one allowed price ending is required when smart rounding is active.',
+                );
+            }
+        });
+    }
+
     public function validated($key = null, $default = null)
     {
         $data = parent::validated();
 
-        // remove from the validated payload only
-        unset($data['fuel'], $data['clean']);
+        // remove from the validated payload only (price_endings persists via
+        // the assembled allowed_price_endings setting value)
+        unset($data['fuel'], $data['clean'], $data['price_endings']);
 
         return $key ? Arr::get($data, $key, $default) : $data;
     }

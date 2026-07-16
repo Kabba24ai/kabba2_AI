@@ -395,6 +395,22 @@ class SettingSeeder extends Seeder
                 'default_value' => null,
                 'sort_order' => $sortOrder++,
             ],
+            [
+                'value_type' => 'text',
+                'setting_name' => 'allowed_price_endings',
+                'setting_title' => 'Allowed Price Endings',
+                'placeholder' => 'e.g. 4,7',
+                'default_value' => '4,7',
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'hundred_entry_threshold',
+                'setting_title' => 'Hundred-Entry Threshold',
+                'placeholder' => 'Whole dollars, e.g. 10',
+                'default_value' => '10',
+                'sort_order' => $sortOrder++,
+            ],
         ];
 
     }

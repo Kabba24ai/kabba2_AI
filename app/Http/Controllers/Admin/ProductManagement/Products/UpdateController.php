@@ -111,9 +111,10 @@ class UpdateController extends Controller
                     'is_custom_term_type' => $validated['is_custom_term_type'] ?? false,
 
                     'rental_daily' => $validated['rental_daily'] ?? null,
-                    'rental_weekend' => $validated['rental_weekend'] ?? null,
-                    'rental_weekly' => $validated['rental_weekly'] ?? null,
-                    'rental_monthly' => $validated['rental_monthly'] ?? null,
+                    // Auto-marked periods are recalculated server-side from the
+                    // Daily Rate (browser values discarded); manual/legacy
+                    // submissions persist verbatim
+                    ...\App\Helpers\RentalPriceHelper::resolveDerivedPrices($validated),
 
                     'rental_damage_waiver_daily' => $validated['rental_damage_waiver_daily'] ?? null,
                     'rental_damage_waiver_weekend' => $validated['rental_damage_waiver_weekend'] ?? null,

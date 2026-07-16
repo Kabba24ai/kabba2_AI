@@ -96,6 +96,72 @@
         </div>
     </div>
 
+    {{-- Row 1b: Smart Price Rounding --}}
+    @php
+        $configuredPriceEndings = \App\Helpers\RentalPriceHelper::parseEndings(
+            $settings['Price Rate Multiplier Settings']['allowed_price_endings']['setting_value'] ?? null,
+        );
+    @endphp
+    <div class="mb-7">
+        <div class="flex items-center gap-2 mb-2">
+            <label class="block text-sm font-medium text-gray-700">Allowed Price Endings</label>
+            <div class="relative group">
+                <span class="text-blue-400 hover:text-blue-500 flex items-center cursor-pointer">
+                    <x-heroicon-o-information-circle class="w-5 h-5" />
+                </span>
+                <div class="tooltip-panel max-w-sm">
+                    Calculated Weekend, Weekly, and Monthly prices round upward to the nearest
+                    whole-dollar amount ending in one of these digits. A price stays in the
+                    previous hundred until the calculated amount is at least the Hundred-Entry
+                    Threshold into the new hundred (e.g. with a $10 threshold, $409.99 stays at
+                    $397 while $410.00 becomes $414). Clear all endings to turn smart rounding
+                    off. Applies to rental products only.
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-4">
+            @foreach ([0, 1, 2] as $endingSlot)
+                <div class="flex flex-col">
+                    {!! html()->input('number', "price_endings[{$endingSlot}]", old("price_endings.{$endingSlot}", $configuredPriceEndings[$endingSlot] ?? ''))->class([
+                            'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                            'border-gray-300' => !$errors->has("price_endings.{$endingSlot}"),
+                            'border-red-500' => $errors->has("price_endings.{$endingSlot}"),
+                        ])->attributes([
+                            'min' => '0',
+                            'max' => '9',
+                            'step' => '1',
+                            'autocomplete' => 'off',
+                            'id' => "price_ending_{$endingSlot}",
+                            'placeholder' => '0–9',
+                        ]) !!}
+                </div>
+            @endforeach
+
+            <div class="flex flex-col">
+                <label for="hundred_entry_threshold" class="block text-sm font-medium text-gray-700 mb-1">
+                    Hundred-Entry Threshold ($)
+                </label>
+                {!! html()->input('number', 'hundred_entry_threshold', old('hundred_entry_threshold', $settings['Price Rate Multiplier Settings']['hundred_entry_threshold']['setting_value'] ?? ''))->class([
+                        'w-24 pl-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
+                        'border-gray-300' => !$errors->has('hundred_entry_threshold'),
+                        'border-red-500' => $errors->has('hundred_entry_threshold'),
+                    ])->attributes([
+                        'min' => '0',
+                        'step' => '1',
+                        'autocomplete' => 'off',
+                        'id' => 'hundred_entry_threshold',
+                    ]) !!}
+            </div>
+
+            <span class="text-xs text-gray-500 pb-3">*Whole $ amounts only</span>
+        </div>
+        @foreach (['price_endings', 'price_endings.0', 'price_endings.1', 'price_endings.2', 'hundred_entry_threshold'] as $roundingField)
+            @error($roundingField)
+                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+            @enderror
+        @endforeach
+    </div>
+
     {{-- Row 2: Allocated Hours --}}
     <div class="flex flex-wrap items-end gap-4">
 

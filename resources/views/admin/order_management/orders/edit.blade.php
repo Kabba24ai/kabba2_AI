@@ -115,6 +115,7 @@
                         <button id="voidPaymentBtn" type="button"
                             data-url="{{ $voidPaymentUrl }}"
                             data-amount="{{ $lastPaidPayment->amount }}"
+                            data-order-payment-id="{{ $lastPaidPayment->id }}"
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-800 hover:bg-orange-200 transition rounded-lg">
                             <x-heroicon-o-x-circle class="w-4 h-4 mr-1 text-orange-600" />
                             Void
@@ -336,6 +337,99 @@
         </div>
     </div>
     {{-- /Order Header Section --}}
+
+    {{-- Phase 3C — Incomplete Refund banner. Deliberately its own,
+         impossible-to-miss block directly under the header (not folded
+         into the status pills above, and not left to the "Partially
+         Completed" wording alone in the history feed) — every unresolved
+         refund event shows the actual dollar amount still outstanding,
+         which source(s) it's stuck on, and a direct way to act on it. --}}
+    @php
+        $incompleteRefunds = \App\Services\Orders\PaymentAllocationService::incompleteRefunds($order);
+        $totalOutstandingRefund = round($incompleteRefunds->sum(
+            fn ($r) => \App\Services\Orders\PaymentAllocationService::outstandingRefundAmount($r)
+        ), 2);
+
+        // The "Resolve Refund" button targets the single most recent
+        // incomplete event (already ordered latest-first) — the common
+        // case is exactly one outstanding refund at a time; resolving it
+        // updates this banner on reload, and a second click handles any
+        // further one. Its full retry payload is precomputed here (same
+        // shape the AJAX refund response uses) so the button can seed the
+        // modal's recovery mode directly, WITHOUT a live submission first.
+        $retryTarget = $incompleteRefunds->first();
+        $retryTargetPayload = null;
+        if ($retryTarget) {
+            $retryTargetPayload = [
+                'token' => $retryTarget->idempotency_token,
+                'amount' => (float) $retryTarget->refund_amount,
+                'payment_type' => $retryTarget->payment_method?->value === 'Card' ? 'CreditCard' : ($retryTarget->payment_method?->value ?? 'Cash'),
+                'calc_type' => $retryTarget->refund_calculation_type?->value ?? 'standard',
+                'sources' => $retryTarget->refundAllocations->map(function ($a) {
+                    $original = $a->originalPayment;
+                    return [
+                        'original_order_payment_id' => $a->original_order_payment_id,
+                        'method' => \App\Services\PaymentDescriptionPresenter::methodLabel($original?->payment_method)
+                            . ($original?->payment_method === \App\Enums\Orders\OrderPaymentMethod::Card && $original?->card_number ? ' •••• ' . $original->card_number : ''),
+                        'amount' => (float) $a->allocated_amount,
+                        'success' => $a->status === \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Allocated,
+                        'failure_reason' => $a->failure_reason,
+                        'needs_manual_review' => \App\Services\Orders\PaymentAllocationService::allocationNeedsManualReview($a),
+                    ];
+                })->values(),
+            ];
+        }
+    @endphp
+    @if ($incompleteRefunds->isNotEmpty() && $totalOutstandingRefund > 0)
+        <div class="bg-red-50 border border-red-300 rounded-xl shadow-sm mb-6 p-4">
+            <div class="flex items-start gap-3">
+                @svg('heroicon-o-exclamation-triangle', 'w-6 h-6 text-red-600 shrink-0 mt-0.5')
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-red-800">
+                        Refund Incomplete — {{ \App\Helpers\CustomHelper::formatCurrency($totalOutstandingRefund) }} not yet refunded
+                    </p>
+                    <div class="mt-2 space-y-2">
+                        @foreach ($incompleteRefunds as $incomplete)
+                            @php
+                                $outstanding = \App\Services\Orders\PaymentAllocationService::outstandingRefundAmount($incomplete);
+                                if ($outstanding <= 0) continue;
+                                $stuckOn = $incomplete->refundAllocations
+                                    ->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Failed)
+                                    ->map(fn ($a) => \App\Services\PaymentDescriptionPresenter::methodLabel($a->originalPayment?->payment_method)
+                                        . ($a->originalPayment?->card_number ? ' •••• ' . $a->originalPayment->card_number : ''))
+                                    ->implode(', ');
+                            @endphp
+                            <div class="text-xs text-red-700 flex flex-wrap items-center gap-x-2">
+                                <span class="font-medium">{{ \App\Helpers\CustomHelper::formatCurrency($outstanding) }}</span>
+                                <span>outstanding on the refund initiated {{ $incomplete->refunded_at?->format('M j, Y g:ia') }}</span>
+                                @if ($stuckOn)
+                                    <span>— stuck on: {{ $stuckOn }}</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                    @if ($retryTargetPayload && $retryTargetPayload['token'])
+                        <button type="button" id="retryIncompleteRefundBtn"
+                            data-retry='@json($retryTargetPayload)'
+                            class="mt-3 inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700">
+                            Resolve Refund
+                        </button>
+                    @else
+                        {{-- No idempotency token on the target row (predates
+                             this feature, or was submitted by a caller that
+                             omitted one) — it cannot be safely resumed as a
+                             retry, so offer a plain, ordinary new refund for
+                             the outstanding amount instead. --}}
+                        <button type="button" id="startNewRefundForOutstandingBtn"
+                            data-outstanding="{{ $totalOutstandingRefund }}"
+                            class="mt-3 inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700">
+                            Start a New Refund for the Outstanding Amount
+                        </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Fuel Charge Modal --}}
     <div id="orderFuelChargeModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
@@ -2599,21 +2693,48 @@
         </div>
     </div>
 
-    {{-- Refund shortcut eligibility — computed once here so both the button
-         disabled-state and the JS breakdown read the same server-verified
-         numbers. The backend independently re-verifies all of this before
-         processing (see RefundPaymentController::resolveRefundCalculation)
-         — nothing here is trusted on its own. --}}
+    {{-- Refund source/shortcut eligibility — computed once here so the
+         button disabled-states and the JS source table read the same
+         server-verified numbers. The backend independently re-verifies
+         ALL of this before processing (see RefundPaymentController and
+         PaymentAllocationService::validateAllocationSet()) — nothing here
+         is trusted on its own; it exists purely to drive the UI. --}}
     @php
         $rfCcFeePercentage = (float) (\App\Helpers\ConfigurationHelper::getSettings('Product Settings', 'credit_card_processing_fee') ?? 0);
-        $rfPaidPayments = $order->payments()->where('status', \App\Enums\Orders\OrderPaymentStatus::Paid->value)->get();
-        $rfSinglePaidPayment = $rfPaidPayments->count() === 1 ? $rfPaidPayments->first() : null;
+        $rfAmbiguous = \App\Services\Orders\PaymentAllocationService::orderHasAmbiguousRefundAttribution($order);
+        $rfEligiblePayments = $rfAmbiguous
+            ? collect()
+            : \App\Services\Orders\PaymentAllocationService::eligibleOriginalPayments($order);
+
+        // One row per eligible original payment — the "Refund Sources"
+        // table's entire data source. JS suggests/validates/sums client-side
+        // from this array for responsiveness; the server re-derives the
+        // identical figures from scratch on submit.
+        $rfSources = $rfEligiblePayments->map(function ($payment) use ($rfCcFeePercentage) {
+            $isCard = $payment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Card;
+            return [
+                'id' => $payment->id,
+                'method' => \App\Services\PaymentDescriptionPresenter::methodLabel($payment->payment_method),
+                'masked' => $isCard && $payment->card_number ? ('•••• ' . $payment->card_number) : null,
+                'is_card' => $isCard,
+                'has_transaction' => (bool) $payment->transaction_id,
+                'date' => optional($payment->payment_datetime)->format('M j, Y'),
+                'amount' => (float) $payment->amount,
+                'already_refunded' => round((float) $payment->amount - \App\Services\Orders\PaymentAllocationService::remainingRefundable($payment), 2),
+                'remaining' => round(\App\Services\Orders\PaymentAllocationService::remainingRefundable($payment), 2),
+                'card_fee_capacity' => $isCard && $rfCcFeePercentage > 0
+                    ? \App\Services\Orders\PaymentAllocationService::remainingCardFeeCapacity($payment, $rfCcFeePercentage)
+                    : 0.0,
+            ];
+        })->values();
+
+        $rfCcFeeEligibleSources = $rfSources->filter(fn ($s) => $s['is_card'] && $s['has_transaction'] && $s['card_fee_capacity'] > 0);
 
         $rfCcFeeIneligibleReason = null;
-        if ($rfPaidPayments->count() !== 1) {
-            $rfCcFeeIneligibleReason = 'Not available for orders with more than one payment.';
-        } elseif ($rfSinglePaidPayment->payment_method !== \App\Enums\Orders\OrderPaymentMethod::Card || !$rfSinglePaidPayment->transaction_id) {
-            $rfCcFeeIneligibleReason = 'Only available when the original payment was made by Credit / Debit Card.';
+        if ($rfAmbiguous) {
+            $rfCcFeeIneligibleReason = 'Allocation unavailable for a legacy transaction on this order.';
+        } elseif ($rfCcFeeEligibleSources->isEmpty()) {
+            $rfCcFeeIneligibleReason = 'Only available when at least one original payment was made by Credit / Debit Card.';
         } elseif ((float) $order->remaining_amount <= 0) {
             $rfCcFeeIneligibleReason = 'No refundable balance remains.';
         } elseif ($rfCcFeePercentage <= 0) {
@@ -2621,14 +2742,21 @@
         }
         $rfCcFeeEligible = $rfCcFeeIneligibleReason === null;
 
-        $rfCcFeeEligibleAmount = 0.0;
+        // Preview only — "if the employee draws the maximum available from
+        // every eligible card source." JS recalculates precisely once
+        // actual per-source amounts are set; see calcCcFeePreview().
         $rfCcFeeRetained = 0.0;
         $rfCcFeeRefund = 0.0;
         if ($rfCcFeeEligible) {
-            $rfCcFeeEligibleAmount = round(min((float) $rfSinglePaidPayment->amount, (float) $order->remaining_amount), 2);
-            $rfCcFeeRetained = round($rfCcFeeEligibleAmount * $rfCcFeePercentage / 100, 2);
-            $rfCcFeeRefund = round($rfCcFeeEligibleAmount - $rfCcFeeRetained, 2);
-            if ($rfCcFeeRetained >= $rfCcFeeEligibleAmount) {
+            foreach ($rfCcFeeEligibleSources as $s) {
+                $draw = round(min($s['remaining'], (float) $order->remaining_amount), 2);
+                $fee = round(min($draw * $rfCcFeePercentage / 100, $s['card_fee_capacity']), 2);
+                $rfCcFeeRetained += $fee;
+                $rfCcFeeRefund += round($draw - $fee, 2);
+            }
+            $rfCcFeeRetained = round($rfCcFeeRetained, 2);
+            $rfCcFeeRefund = round($rfCcFeeRefund, 2);
+            if ($rfCcFeeRefund <= 0) {
                 $rfCcFeeEligible = false;
                 $rfCcFeeIneligibleReason = 'The Credit Card Processing Fee equals or exceeds the refundable amount.';
             }
@@ -2639,8 +2767,10 @@
             ->sum('tax_refunded');
         $rfRemainingRefundableTax = max(0.0, round((float) $order->tax_amount - $rfAlreadyRefundedTax, 2));
         $rfRemainingRefundableTax = round(min($rfRemainingRefundableTax, (float) $order->remaining_amount), 2);
-        $rfTaxOnlyEligible = $rfRemainingRefundableTax > 0;
-        $rfTaxOnlyIneligibleReason = $rfTaxOnlyEligible ? null : 'No refundable sales tax remains for this order.';
+        $rfTaxOnlyEligible = $rfRemainingRefundableTax > 0 && !$rfAmbiguous;
+        $rfTaxOnlyIneligibleReason = $rfAmbiguous
+            ? 'Allocation unavailable for a legacy transaction on this order.'
+            : ($rfTaxOnlyEligible ? null : 'No refundable sales tax remains for this order.');
     @endphp
 
     <!-- Refund Modal -->
@@ -2658,8 +2788,10 @@
         data-tax-original="{{ $order->tax_amount }}"
         data-tax-already-refunded="{{ $rfAlreadyRefundedTax }}"
         data-tax-remaining-refundable="{{ $rfRemainingRefundableTax }}"
+        data-ambiguous="{{ $rfAmbiguous ? '1' : '0' }}"
+        data-sources='@json($rfSources)'
         data-action="{{ route('admin.order-management.orders.refund-payment', $order->unique_id) }}">
-        <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
+        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b">
                 <h2 id="refundModalTitle" class="text-lg font-semibold">Process Refund</h2>
@@ -2703,6 +2835,16 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Phase 3C — outcome of the last submit attempt, and (once
+                     a partial/full failure occurs) the recovery banner
+                     explaining what's still outstanding. Lives outside both
+                     steps so it stays visible whether the employee is
+                     reviewing the confirm step or has been sent back to
+                     step 1 to reallocate. --}}
+                <div id="rf_results_box" class="hidden rounded-lg p-4 border space-y-2 text-sm"></div>
+                {{-- Content fully owned by enterRecoveryMode()/exitRecoveryMode() in JS — see below. --}}
+                <div id="rf_recovery_banner" class="hidden rounded-lg p-3 bg-amber-50 border border-amber-200 text-sm"></div>
 
                 <!-- STEP 1: FORM -->
                 <div id="refundFormStep">
@@ -2807,6 +2949,30 @@
                                     <div class="flex justify-between border-t border-gray-200 pt-1"><span class="text-gray-600">Sales tax refund now:</span><span id="rf_bd_tax_now" class="font-semibold text-gray-900">$0.00</span></div>
                                 </div>
                             </div>
+                        </div>
+
+                        {{-- Phase 3C — Refund Sources. Hidden entirely for a
+                             single-payment order (one source is preselected
+                             and fully allocated with no employee input
+                             needed — see renderSources() in the JS below);
+                             shown as an editable table only once the order
+                             has 2+ eligible original payments. --}}
+                        <div id="rf_sources_box" class="hidden border-t border-gray-200 pt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm font-semibold text-gray-800">Refund Sources</p>
+                                <span id="rf_sources_total" class="text-xs font-medium text-gray-500">Allocated: $0.00 of $0.00</span>
+                            </div>
+                            <div id="rf_sources_list" class="space-y-2"></div>
+                            <p id="rf_sources_error" class="text-red-500 text-xs mt-2 hidden"></p>
+                        </div>
+
+                        <div id="rf_ambiguous_box" class="hidden rounded-lg p-3 bg-amber-50 border border-amber-200">
+                            <p class="text-sm font-medium text-amber-800">Refund unavailable</p>
+                            <p class="text-xs text-amber-700 mt-1">
+                                This order has a legacy refund whose original payment cannot be determined
+                                ("Allocation unavailable for legacy transaction"). New refunds are blocked
+                                until that transaction is resolved.
+                            </p>
                         </div>
 
                         <!-- Reason -->
@@ -2941,9 +3107,33 @@
                                 <span id="rf_c_calc_type" class="font-medium text-gray-900">—</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Refund Amount:</span>
+                                <span class="text-gray-600">Refund Total:</span>
                                 <span id="rf_c_amount" class="font-semibold text-red-800">$0.00</span>
                             </div>
+
+                            {{-- Phase 3C — only shown for a multi-source refund. --}}
+                            <div id="rf_c_sources_box" class="hidden border-t border-red-200 pt-2 space-y-1">
+                                <span class="text-gray-600 block mb-1">Sources:</span>
+                                <div id="rf_c_sources_list" class="space-y-1"></div>
+                            </div>
+
+                            <div id="rf_c_tax_row" class="flex justify-between hidden">
+                                <span class="text-gray-600">Sales Tax Portion:</span>
+                                <span id="rf_c_tax" class="font-medium text-gray-900">$0.00</span>
+                            </div>
+                            <div id="rf_c_purchase_row" class="flex justify-between hidden">
+                                <span class="text-gray-600">Purchase Portion:</span>
+                                <span id="rf_c_purchase" class="font-medium text-gray-900">$0.00</span>
+                            </div>
+                            <div id="rf_c_fee_row" class="flex justify-between hidden">
+                                <span class="text-gray-600">Card Processing Fee Retained:</span>
+                                <span id="rf_c_fee" class="font-medium text-red-700">$0.00</span>
+                            </div>
+                            <div id="rf_c_net_row" class="flex justify-between hidden">
+                                <span class="text-gray-600">Customer Refund:</span>
+                                <span id="rf_c_net" class="font-semibold text-gray-900">$0.00</span>
+                            </div>
+
                             <div class="flex justify-between items-start">
                                 <span class="text-gray-600">Reason:</span>
                                 <span id="rf_c_reason"
@@ -5779,6 +5969,162 @@
             const taxAlreadyRefunded = parseFloat(refundModal.dataset.taxAlreadyRefunded || '0');
             const taxRemainingRefundable = parseFloat(refundModal.dataset.taxRemainingRefundable || '0');
 
+            // ── Phase 3C — Refund Sources ───────────────────────────────
+            const rfAmbiguous = refundModal.dataset.ambiguous === '1';
+            const rfAllSources = JSON.parse(refundModal.dataset.sources || '[]');
+            const sourcesBox = document.getElementById('rf_sources_box');
+            const sourcesList = document.getElementById('rf_sources_list');
+            const sourcesTotalEl = document.getElementById('rf_sources_total');
+            const sourcesErrorEl = document.getElementById('rf_sources_error');
+            const ambiguousBox = document.getElementById('rf_ambiguous_box');
+
+            // Partial-failure recovery state (refinement: reallocate to a
+            // different source, not only retry the same one). Populated by
+            // enterRecoveryMode() after a partially-completed/failed
+            // response; { [original_order_payment_id]: lockedAmount } for
+            // every source that has ALREADY succeeded under the current
+            // idempotency token — those rows render disabled and their
+            // amount can never be edited away (they already happened).
+            let recoveryMode = false;
+            let lockedSourceAmounts = {};
+
+            // Mirrors PaymentAllocationService::suggestAllocation() —
+            // oldest eligible source first, until the requested amount is
+            // fully allocated. Client-side only for responsiveness; the
+            // server independently re-derives and validates the real
+            // allocation on submit, never trusting this.
+            function suggestAllocation(totalAmount, pool) {
+                let remaining = Math.round(totalAmount * 100) / 100;
+                const suggestions = {};
+                for (const s of pool) {
+                    if (remaining <= 0) break;
+                    if (s.remaining <= 0) continue;
+                    const take = Math.round(Math.min(s.remaining, remaining) * 100) / 100;
+                    suggestions[s.id] = take;
+                    remaining = Math.round((remaining - take) * 100) / 100;
+                }
+                return suggestions;
+            }
+
+            function sourceRowInputs() {
+                return Array.from(sourcesList.querySelectorAll('.rf-source-amount'));
+            }
+
+            // The allocations array submitted to the server. For a
+            // single-eligible-source order the table is never shown — the
+            // one source is implicitly and fully allocated, so the
+            // employee never has an extra step for the common case.
+            function getAllocations() {
+                if (rfAllSources.length <= 1) {
+                    if (rfAllSources.length === 0) return [];
+                    return [{
+                        original_order_payment_id: rfAllSources[0].id,
+                        amount: parseFloat(amountInput.value) || 0,
+                    }];
+                }
+
+                return sourceRowInputs()
+                    .map(input => ({
+                        original_order_payment_id: parseInt(input.dataset.sourceId, 10),
+                        amount: parseFloat(input.value) || 0,
+                    }))
+                    .filter(a => a.amount > 0);
+            }
+
+            function updateSourcesTotal() {
+                if (rfAllSources.length <= 1) return true;
+
+                const total = getAllocations().reduce((sum, a) => sum + a.amount, 0);
+                const requested = parseFloat(amountInput.value) || 0;
+                const balanced = Math.abs(Math.round((total - requested) * 100)) <= 1;
+
+                sourcesTotalEl.textContent = 'Allocated: ' + fmt(total) + ' of ' + fmt(requested);
+                sourcesTotalEl.className = 'text-xs font-medium ' + (balanced ? 'text-green-600' : 'text-amber-600');
+
+                if (!balanced) {
+                    sourcesErrorEl.textContent = 'The sources above must add up to exactly the refund total before this can be processed.';
+                    show(sourcesErrorEl);
+                } else {
+                    hide(sourcesErrorEl);
+                }
+
+                return balanced;
+            }
+
+            function renderSources() {
+                if (rfAmbiguous) {
+                    show(ambiguousBox);
+                    hide(sourcesBox);
+                    initiateBtn.disabled = true;
+                    return;
+                }
+
+                if (rfAllSources.length <= 1) {
+                    hide(sourcesBox);
+                    return;
+                }
+
+                show(sourcesBox);
+                sourcesList.innerHTML = '';
+
+                const requested = parseFloat(amountInput.value) || 0;
+                const lockedIds = Object.keys(lockedSourceAmounts).map(Number);
+                const lockedTotal = Object.values(lockedSourceAmounts).reduce((sum, v) => sum + v, 0);
+                // In recovery mode only the NOT-YET-successful portion is
+                // still up for a decision — locked sources are excluded
+                // from both the suggestion pool and the amount being
+                // suggested, so re-rendering never proposes changing money
+                // that already moved.
+                const toAllocate = recoveryMode ? Math.round((requested - lockedTotal) * 100) / 100 : requested;
+
+                const restrictToCard = calcTypeInput.value === 'card_processing_fee_retained';
+                const pool = (restrictToCard ? rfAllSources.filter(s => s.is_card && s.has_transaction) : rfAllSources)
+                    .filter(s => !lockedIds.includes(s.id));
+                const suggestion = suggestAllocation(toAllocate, pool);
+
+                rfAllSources.forEach(function (s) {
+                    const locked = lockedIds.includes(s.id);
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-2 border rounded-md px-3 py-2 text-sm '
+                        + (locked ? 'border-green-200 bg-green-50' : 'border-gray-200');
+
+                    const label = s.method + (s.masked ? ' ' + s.masked : '');
+                    const suggested = locked ? lockedSourceAmounts[s.id] : (suggestion[s.id] || 0);
+                    const badge = locked
+                        ? '<span class="inline-block mt-0.5 text-[11px] font-medium text-green-700">&#10003; Completed — locked</span>'
+                        : (recoveryMode ? '<span class="inline-block mt-0.5 text-[11px] font-medium text-amber-700">Needs a source</span>' : '');
+
+                    row.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-gray-900 truncate">${label}</div>
+                            <div class="text-[11px] text-gray-500">
+                                Paid: ${fmt(s.amount)} &middot; Already Refunded: ${fmt(s.already_refunded)} &middot; Remaining: ${fmt(s.remaining)}
+                            </div>
+                            ${badge}
+                        </div>
+                        <div class="w-28">
+                            <input type="text" inputmode="decimal"
+                                data-source-id="${s.id}" data-max="${s.remaining}"
+                                class="rf-source-amount w-full border border-gray-300 rounded-md px-2 py-1 text-sm text-right ${locked ? 'bg-gray-100 text-gray-500' : ''}"
+                                value="${suggested > 0 ? suggested.toFixed(2) : ''}"
+                                placeholder="0.00" ${locked ? 'disabled' : ''} />
+                        </div>
+                    `;
+                    sourcesList.appendChild(row);
+                });
+
+                sourceRowInputs().forEach(input => {
+                    input.addEventListener('input', function () {
+                        const max = parseFloat(this.dataset.max || '0');
+                        const val = parseFloat(this.value) || 0;
+                        if (val > max) this.value = max.toFixed(2);
+                        updateSourcesTotal();
+                    });
+                });
+
+                updateSourcesTotal();
+            }
+
             const bdBox = document.getElementById('rf_breakdown_box');
             const bdTitle = document.getElementById('rf_breakdown_title');
             const bdStandard = document.getElementById('rf_breakdown_standard');
@@ -5837,6 +6183,73 @@
                     document.getElementById('rf_bd_tax').textContent = fmt(taxPortion);
                     document.getElementById('rf_bd_total').textContent = fmt(amt);
                 }
+
+                renderSources();
+            }
+
+            // Enters recovery mode after a partially-completed or fully-
+            // failed response: locks every already-succeeded source's row
+            // (can't be un-charged, so it must never be editable again),
+            // keeps the SAME idempotency token so the next submit is
+            // recognized server-side as a retry of this exact event
+            // (never a new refund), fixes the total requested amount, and
+            // sends the employee back to the sources table to decide —
+            // retry the failed source at the same amount, or move that
+            // amount to a different eligible source entirely.
+            //
+            // A source flagged needs_manual_review (the gateway call
+            // succeeded but the system couldn't record it — see
+            // RefundPaymentController's documented persistence sequence)
+            // is NEVER made retryable through this UI: automatically
+            // resubmitting it could re-call the gateway for money that may
+            // have already moved. When that happens the whole recovery
+            // flow is blocked and the employee is told to contact support
+            // instead, rather than being offered a "Retry" that could
+            // double-refund.
+            function enterRecoveryMode(sources) {
+                const blocked = (sources || []).some(s => s.needs_manual_review);
+
+                if (blocked) {
+                    showRefundFormStep();
+                    hide(sourcesBox);
+                    hide(ambiguousBox);
+                    initiateBtn.disabled = true;
+                    const banner = document.getElementById('rf_recovery_banner');
+                    banner.className = 'rounded-lg p-3 bg-red-50 border border-red-200 text-sm';
+                    banner.innerHTML = '<p class="font-medium text-red-800">This refund needs manual review</p>'
+                        + '<p class="text-red-700 mt-1">Part of this refund may have already succeeded at the payment gateway but could not be recorded. '
+                        + 'Do not retry from this screen — contact support with this order number so it can be reconciled safely.</p>';
+                    show(banner);
+                    return;
+                }
+
+                recoveryMode = true;
+                lockedSourceAmounts = {};
+                (sources || []).forEach(function (s) {
+                    if (s.success) lockedSourceAmounts[s.original_order_payment_id] = s.amount;
+                });
+
+                amountInput.disabled = true;
+                initiateBtn.disabled = false;
+                initiateBtn.textContent = 'Review Reallocation';
+                const banner = document.getElementById('rf_recovery_banner');
+                banner.className = 'rounded-lg p-3 bg-amber-50 border border-amber-200 text-sm';
+                banner.innerHTML = '<p class="font-medium text-amber-800">Refund not yet complete</p>'
+                    + '<p class="text-amber-700 mt-1">Retry the failed source below at the same amount, or move that amount to a different source, then resubmit. '
+                    + 'Sources marked <span class="font-medium">Completed</span> are locked — they already succeeded and will not be charged again.</p>';
+                show(banner);
+
+                showRefundFormStep();
+                renderSources();
+            }
+
+            function exitRecoveryMode() {
+                recoveryMode = false;
+                lockedSourceAmounts = {};
+                amountInput.disabled = false;
+                initiateBtn.disabled = false;
+                initiateBtn.textContent = 'Initiate Refund';
+                hide(document.getElementById('rf_recovery_banner'));
             }
 
             function openRefundModal() {
@@ -5854,6 +6267,8 @@
                 calcTypeInput.value = 'standard';
                 setActiveShortcut(null);
                 refundPaymentType.disabled = false;
+                exitRecoveryMode();
+                hide(document.getElementById('rf_results_box'));
                 updateBreakdown();
             }
 
@@ -5864,6 +6279,50 @@
 
             if (refundPaymentBtn) {
                 refundPaymentBtn.addEventListener('click', openRefundModal);
+            }
+
+            // Phase 3C — "Resolve Refund" (Order Details incomplete-refund
+            // banner): seeds recovery mode directly from server-rendered
+            // data for the target refund event, WITHOUT a live submission
+            // first — the employee lands straight on the sources table
+            // with the same idempotency token, ready to retry the failed
+            // source or reallocate it, exactly as if they'd just seen a
+            // partial-failure response in this same session.
+            const retryIncompleteBtn = document.getElementById('retryIncompleteRefundBtn');
+            if (retryIncompleteBtn) {
+                retryIncompleteBtn.addEventListener('click', function () {
+                    const retry = JSON.parse(this.dataset.retry || 'null');
+                    if (!retry) return;
+
+                    refundModal.classList.remove('hidden');
+                    document.body.classList.add('overflow-hidden');
+
+                    document.getElementById('refundIdempotencyToken').value = retry.token;
+                    amountInput.value = retry.amount.toFixed(2);
+                    amountInput.disabled = true;
+                    calcTypeInput.value = retry.calc_type;
+                    document.getElementById('refund_payment_type').value = retry.payment_type;
+                    document.getElementById('refund_payment_type').dispatchEvent(new Event('change'));
+                    setActiveShortcut(null);
+
+                    enterRecoveryMode(retry.sources);
+                });
+            }
+
+            // Fallback when the target refund row has no idempotency token
+            // to resume — starts an ordinary NEW refund pre-filled to the
+            // outstanding amount rather than a true retry (see the blade
+            // comment next to this button).
+            const startNewForOutstandingBtn = document.getElementById('startNewRefundForOutstandingBtn');
+            if (startNewForOutstandingBtn) {
+                startNewForOutstandingBtn.addEventListener('click', function () {
+                    openRefundModal();
+                    const outstanding = parseFloat(this.dataset.outstanding || '0');
+                    if (outstanding > 0) {
+                        amountInput.value = outstanding.toFixed(2);
+                        amountInput.dispatchEvent(new Event('input'));
+                    }
+                });
             }
 
             //  attach to BOTH close buttons
@@ -6002,10 +6461,69 @@
                 return refundReasonInput.value === 'other' && other ? label + ' — ' + other : label;
             }
 
-            document.getElementById('refundForm').addEventListener('submit', function(e) {
-                e.preventDefault();
+            function renderRefundResults(data) {
+                const box = document.getElementById('rf_results_box');
+                const sources = data.sources || [];
+                const opStatus = data.refund_operation_status;
 
-                const form = e.target;
+                if (opStatus === 'completed' || !sources.length) {
+                    hide(box);
+                    hide(document.getElementById('rf_recovery_banner'));
+                    return;
+                }
+
+                const succeeded = sources.filter(s => s.success);
+                const needsReview = sources.filter(s => !s.success && s.needs_manual_review);
+                const retryable = sources.filter(s => !s.success && !s.needs_manual_review);
+                const outstanding = typeof data.outstanding_amount === 'number' ? data.outstanding_amount : null;
+
+                let html = '';
+                if (opStatus === 'failed') {
+                    box.className = 'rounded-lg p-4 border space-y-2 text-sm bg-red-50 border-red-200';
+                    html += '<p class="font-medium text-red-800">Refund failed — none of the selected sources could be refunded.</p>';
+                } else {
+                    box.className = 'rounded-lg p-4 border space-y-2 text-sm bg-amber-50 border-amber-200';
+                    html += '<p class="font-medium text-amber-800">Refund partially completed</p>';
+                }
+
+                // The outstanding DOLLAR AMOUNT leads — never just the
+                // status label (Phase 3C refinement).
+                if (outstanding !== null) {
+                    html += `<p class="text-sm"><span class="font-semibold">${fmt(outstanding)}</span> still unresolved.</p>`;
+                }
+
+                if (succeeded.length) {
+                    html += '<div><p class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-2">Completed</p>';
+                    succeeded.forEach(s => {
+                        html += `<div class="flex justify-between text-gray-800"><span>${s.method}</span><span class="font-medium">${fmt(s.amount)}</span></div>`;
+                    });
+                    html += '</div>';
+                }
+                if (retryable.length) {
+                    html += '<div><p class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-2">Failed — retry below or reallocate to another source</p>';
+                    retryable.forEach(s => {
+                        html += `<div class="flex justify-between text-gray-800"><span>${s.method}</span><span class="font-medium">${fmt(s.amount)}</span></div>`;
+                        if (s.failure_reason) {
+                            html += `<div class="text-xs text-gray-500">Reason: ${s.failure_reason}</div>`;
+                        }
+                    });
+                    html += '</div>';
+                }
+                if (needsReview.length) {
+                    html += '<div><p class="text-xs font-semibold text-red-700 uppercase tracking-wide mt-2">Needs manual review — do not retry</p>';
+                    needsReview.forEach(s => {
+                        html += `<div class="flex justify-between text-gray-800"><span>${s.method}</span><span class="font-medium">${fmt(s.amount)}</span></div>`;
+                        html += `<div class="text-xs text-red-600">${s.failure_reason || 'Contact support for reconciliation.'}</div>`;
+                    });
+                    html += '</div>';
+                }
+
+                box.innerHTML = html;
+                show(box);
+            }
+
+            function submitRefund() {
+                const form = document.getElementById('refundForm');
 
                 if (!$(form).parsley().isValid()) {
                     $(form).parsley().validate();
@@ -6028,14 +6546,28 @@
                     return;
                 }
 
-                const submitBtn = form.querySelector('button[type="submit"]');
+                // Phase 3C — explicit source allocation. Built the same way
+                // for a fresh submit and a retry: retry simply resubmits
+                // the identical set under the SAME idempotency token
+                // (never regenerated on retry — see the retry button
+                // handler below), and the server skips whatever already
+                // succeeded rather than re-charging it.
+                const allocations = getAllocations();
+                if (!allocations.length) {
+                    notyf.error('Select at least one refund source.');
+                    return;
+                }
+                if (!updateSourcesTotal()) {
+                    notyf.error('The refund sources must add up to the refund total.');
+                    return;
+                }
+
+                const submitBtn = document.getElementById('rf_btn_confirm');
                 const originalText = submitBtn.textContent;
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Processing...';
 
-                let endpoint = actionUrl;
-
-                apiFetch(endpoint, {
+                apiFetch(actionUrl, {
                         method: 'PUT',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
@@ -6054,22 +6586,50 @@
                             payment_note: document.getElementById('refund_payment_note')
                                 .value.trim() || null,
                             refund_calculation_type: calcTypeInput.value,
-                            idempotency_token: document.getElementById('refundIdempotencyToken').value || null
+                            idempotency_token: document.getElementById('refundIdempotencyToken').value || null,
+                            allocations: allocations,
                         })
                     })
                     .then(res => {
-                        if (res && res.success) {
+                        if (!res) {
+                            notyf.error('An unexpected error occurred. Please try again.');
+                            return;
+                        }
+
+                        renderRefundResults(res);
+
+                        if (res.refund_operation_status === 'completed') {
+                            exitRecoveryMode();
                             notyf.success(res.message);
                             window.location.reload();
+                        } else if (res.refund_operation_status === 'partially_completed' || res.refund_operation_status === 'failed') {
+                            notyf.error(res.message);
+                            // Send the employee back to the sources table:
+                            // successful sources lock in place, the failed
+                            // one(s) stay editable so they can retry the
+                            // same source or reallocate the outstanding
+                            // amount to a different one entirely — never
+                            // only a bare "retry the same thing" loop.
+                            enterRecoveryMode(res.sources);
                         } else {
-                            const firstError = res && res.errors ? Object.values(res.errors)[0][0] : null;
-                            notyf.error(firstError || (res && res.message));
+                            const firstError = res.errors ? res.errors[0] : null;
+                            notyf.error(firstError || res.message);
                         }
+                    })
+                    .catch(() => {
+                        notyf.error('An unexpected error occurred. Please try again.');
                     })
                     .finally(() => {
                         submitBtn.disabled = false;
-                        submitBtn.textContent = originalText;
+                        if (submitBtn.textContent === 'Processing...') {
+                            submitBtn.textContent = originalText;
+                        }
                     });
+            }
+
+            document.getElementById('refundForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitRefund();
             });
 
             const refundCalcBtn = document.getElementsByClassName('refund-calc-btn');
@@ -6093,7 +6653,12 @@
                     refundPaymentType.value = 'CreditCard';
                     refundPaymentType.dispatchEvent(new Event('change'));
                     refundPaymentType.disabled = true;
-                    amountInput.value = ccFeeRefundAmount.toFixed(2);
+                    // The source table needs the GROSS total to draw down
+                    // (what reduces each card's remaining balance) — the
+                    // customer-facing NET (ccFeeRefundAmount) is shown
+                    // separately in the breakdown/confirm steps, never
+                    // submitted as the field the sources must sum to.
+                    amountInput.value = (ccFeeRefundAmount + ccFeeRetainedAmount).toFixed(2);
                     amountInput.dispatchEvent(new Event('input'));
                 });
             }
@@ -6128,6 +6693,16 @@
                     return;
                 }
 
+                if (rfAmbiguous) {
+                    notyf.error('This order has a legacy refund that cannot be attributed — refunds are blocked.');
+                    return;
+                }
+
+                if (!getAllocations().length || !updateSourcesTotal()) {
+                    notyf.error('The refund sources must add up to the refund total before continuing.');
+                    return;
+                }
+
                 // If all validations pass, proceed with the refund
                 showConfirmationStep();
             });
@@ -6158,6 +6733,72 @@
                 } else {
                     hide(calcTypeRow);
                 }
+
+                // ── Phase 3C — sources + tax/fee/net preview ────────────
+                // A best-effort PREVIEW only, built from the same simple
+                // proportional-tax helper the standard breakdown box
+                // already used pre-Phase-3C — never the authoritative
+                // per-source split algorithm (that lives exclusively in
+                // PaymentAllocationService::calculateAllocationSplits() on
+                // the server, which recomputes and validates everything
+                // independently before anything is charged).
+                const allocations = getAllocations();
+                const sourcesBoxC = document.getElementById('rf_c_sources_box');
+                const sourcesListC = document.getElementById('rf_c_sources_list');
+
+                if (rfAllSources.length > 1 && allocations.length) {
+                    // "Remaining Refundable After This Refund" per source —
+                    // src.remaining is this payment's CURRENT remaining
+                    // refundable balance (server-computed, unaffected by
+                    // this not-yet-submitted request); subtracting what's
+                    // about to be drawn from it previews the balance it
+                    // will have once this refund actually processes.
+                    //
+                    // Skipped for a LOCKED source (recovery mode, already
+                    // succeeded on a prior attempt of this same event):
+                    // src.remaining is a snapshot from when the modal
+                    // opened and does not reflect that already-recorded
+                    // success, so previewing "after" from it here would be
+                    // wrong — a "Completed" note is shown instead.
+                    sourcesListC.innerHTML = allocations.map(a => {
+                        const src = rfAllSources.find(s => s.id === a.original_order_payment_id);
+                        const label = src ? (src.method + (src.masked ? ' ' + src.masked : '')) : ('Payment #' + a.original_order_payment_id);
+                        const locked = a.original_order_payment_id in lockedSourceAmounts;
+                        const after = (!locked && src) ? Math.max(0, Math.round((src.remaining - a.amount) * 100) / 100) : null;
+                        return `
+                            <div class="flex justify-between text-gray-800">
+                                <span>${label}</span>
+                                <span class="font-medium">${fmt(a.amount)}</span>
+                            </div>
+                            ${locked ? `<div class="text-[11px] text-green-600 -mt-0.5 mb-1">Already completed on a prior attempt</div>` : ''}
+                            ${after !== null ? `<div class="flex justify-between text-[11px] text-gray-500 -mt-0.5 mb-1">
+                                <span>Remaining Refundable After This Refund</span>
+                                <span>${fmt(after)}</span>
+                            </div>` : ''}
+                        `;
+                    }).join('');
+                    show(sourcesBoxC);
+                } else {
+                    hide(sourcesBoxC);
+                }
+
+                const taxRow = document.getElementById('rf_c_tax_row');
+                const purchaseRow = document.getElementById('rf_c_purchase_row');
+                const feeRow = document.getElementById('rf_c_fee_row');
+                const netRow = document.getElementById('rf_c_net_row');
+                hide(taxRow); hide(purchaseRow); hide(feeRow); hide(netRow);
+
+                if (calcTypeInput.value === 'card_processing_fee_retained') {
+                    document.getElementById('rf_c_fee').textContent = fmt(ccFeeRetainedAmount);
+                    document.getElementById('rf_c_net').textContent = fmt(ccFeeRefundAmount);
+                    show(feeRow); show(netRow);
+                } else if (orderTaxAmount > 0 && orderSubtotal > 0) {
+                    const taxPortion = calcProportionalTax(amt, orderSubtotal, orderTaxAmount);
+                    const purchasePortion = Math.round((amt - taxPortion) * 100) / 100;
+                    document.getElementById('rf_c_tax').textContent = fmt(taxPortion);
+                    document.getElementById('rf_c_purchase').textContent = fmt(purchasePortion);
+                    show(taxRow); show(purchaseRow);
+                }
             }
 
             function showRefundFormStep() {
@@ -6184,6 +6825,7 @@
 
             const voidUrl    = voidBtn.dataset.url;
             const voidAmount = parseFloat(voidBtn.dataset.amount || '0').toFixed(2);
+            const voidOrderPaymentId = voidBtn.dataset.orderPaymentId;
             document.getElementById('void_display_amount').textContent = '$' + voidAmount;
 
             function openVoid()  { voidModal.classList.remove('hidden'); }
@@ -6228,6 +6870,7 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     },
                     body: JSON.stringify({
+                        order_payment_id: voidOrderPaymentId,
                         reason: voidReason.value,
                         reason_other: voidReasonOther.value.trim() || null,
                         processed_by: voidProcessedBy.value,

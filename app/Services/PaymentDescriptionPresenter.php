@@ -7,6 +7,7 @@ use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
 use App\Enums\Orders\RefundCalculationType;
+use App\Enums\Orders\RefundOperationStatus;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderHistory;
 use App\Models\Orders\OrderPayment;
@@ -168,13 +169,38 @@ class PaymentDescriptionPresenter
     }
 
     /**
-     * The sentence written into order history for a refund — routes on
-     * the refund's own refund_calculation_type rather than re-deriving
-     * "how" from the amount, matching the requirement that calculation
-     * type stays explicit and auditable rather than inferred later.
+     * The sentence(s) written into order history for a refund.
+     *
+     * Phase 3C: a refund can now draw from more than one original payment
+     * and can partially or fully fail (see RefundOperationStatus). Three
+     * shapes exist, checked in this order:
+     *   1. refund_operation_status === Failed — nothing succeeded.
+     *   2. refund_operation_status === PartiallyCompleted — a mix.
+     *   3. Everything else — the ORIGINAL Phase 2/3A/3B single-source
+     *      wording is preserved EXACTLY when there is at most one
+     *      allocation (routes on refund_calculation_type, unchanged), so
+     *      existing single-payment refunds read identically to before.
+     *      Only once a SECOND allocation exists does the row switch to
+     *      the multi-source "Sources:" breakdown — see
+     *      refundMultiSourceDescription().
      */
     public static function refundHistoryDescription(OrderPayment $payment): string
     {
+        $operationStatus = $payment->refund_operation_status;
+        $allocations = $payment->refundAllocations()->with('originalPayment')->get();
+
+        if ($operationStatus === RefundOperationStatus::Failed) {
+            return self::refundFailureDescription($allocations);
+        }
+
+        if ($operationStatus === RefundOperationStatus::PartiallyCompleted) {
+            return self::refundPartialDescription($allocations);
+        }
+
+        if ($allocations->count() > 1) {
+            return self::refundMultiSourceDescription($payment, $allocations);
+        }
+
         $calcType = $payment->refund_calculation_type;
         $refundAmount = (float) $payment->refund_amount;
 
@@ -198,6 +224,104 @@ class PaymentDescriptionPresenter
         }
 
         return $payment->status === OrderPaymentStatus::Refund ? 'Full refund processed' : 'Partial refund processed';
+    }
+
+    /**
+     * "Method — $amount", with a masked card suffix when the original
+     * payment was a card charge — the one line format every multi-source
+     * refund history entry reuses, so a source is never described twice
+     * with different wording.
+     */
+    private static function allocationSourceLine(\App\Models\Orders\OrderPaymentRefundAllocation $allocation): string
+    {
+        $original = $allocation->originalPayment;
+        $label = self::methodLabel($original?->payment_method);
+
+        if ($original && $original->payment_method === OrderPaymentMethod::Card && $original->card_number) {
+            $label .= ' •••• '.$original->card_number;
+        }
+
+        return "{$label} — \$".number_format((float) $allocation->allocated_amount, 2);
+    }
+
+    private static function refundMultiSourceDescription(OrderPayment $payment, \Illuminate\Support\Collection $allocations): string
+    {
+        $lines = [
+            sprintf('Refund processed — $%s', number_format((float) $payment->refund_amount, 2)),
+            '', 'Sources:',
+        ];
+
+        // Only the sources that actually funded this refund — a
+        // Superseded allocation (an earlier attempt on this same refund
+        // event that failed and was reallocated to a different source —
+        // see PaymentAllocationService::supersedeAbandonedFailures())
+        // never contributed money and would otherwise double-list the
+        // same dollar amount against two sources here.
+        foreach ($allocations->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Allocated) as $allocation) {
+            $lines[] = self::allocationSourceLine($allocation);
+        }
+
+        $superseded = $allocations->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Superseded);
+        if ($superseded->isNotEmpty()) {
+            $lines[] = '';
+            $lines[] = 'Reallocated (attempted, then moved to a different source):';
+            foreach ($superseded as $allocation) {
+                $lines[] = self::allocationSourceLine($allocation);
+            }
+        }
+
+        if ((float) $payment->tax_refunded > 0) {
+            $lines[] = '';
+            $lines[] = 'Sales tax refunded — $'.number_format((float) $payment->tax_refunded, 2);
+        }
+
+        if ((float) ($payment->cc_fee_retained ?? 0) > 0) {
+            $lines[] = 'Card processing fee retained — $'.number_format((float) $payment->cc_fee_retained, 2);
+        }
+
+        return rtrim(implode("\n", $lines));
+    }
+
+    private static function refundPartialDescription(\Illuminate\Support\Collection $allocations): string
+    {
+        $completed = $allocations->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Allocated);
+        $failed = $allocations->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Failed);
+
+        $lines = ['Refund partially completed', ''];
+
+        if ($completed->isNotEmpty()) {
+            $lines[] = 'Completed:';
+            foreach ($completed as $allocation) {
+                $lines[] = self::allocationSourceLine($allocation);
+            }
+            $lines[] = '';
+        }
+
+        if ($failed->isNotEmpty()) {
+            $lines[] = 'Failed:';
+            foreach ($failed as $allocation) {
+                $lines[] = self::allocationSourceLine($allocation);
+                if ($allocation->failure_reason) {
+                    $lines[] = 'Reason: '.$allocation->failure_reason;
+                }
+            }
+        }
+
+        return rtrim(implode("\n", $lines));
+    }
+
+    private static function refundFailureDescription(\Illuminate\Support\Collection $allocations): string
+    {
+        $lines = ['Refund failed — no sources could be refunded.', ''];
+
+        foreach ($allocations->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Failed) as $allocation) {
+            $lines[] = self::allocationSourceLine($allocation);
+            if ($allocation->failure_reason) {
+                $lines[] = 'Reason: '.$allocation->failure_reason;
+            }
+        }
+
+        return rtrim(implode("\n", $lines));
     }
 
     /**
@@ -251,7 +375,8 @@ class PaymentDescriptionPresenter
                 OrderHistoryAction::StoreCreditApplied, OrderHistoryAction::AddedToAccount => 'info',
                 OrderHistoryAction::PaymentFailed, OrderHistoryAction::OrderRefunded,
                 OrderHistoryAction::OrderPartialRefund, OrderHistoryAction::TransactionVoided,
-                OrderHistoryAction::PaymentUncollectable => 'bad',
+                OrderHistoryAction::PaymentUncollectable, OrderHistoryAction::RefundPartiallyCompleted,
+                OrderHistoryAction::RefundFailed => 'bad',
                 default => 'neutral',
             };
 
@@ -266,6 +391,8 @@ class PaymentDescriptionPresenter
                 $action === OrderHistoryAction::StoreCreditApplied => 'Store Credit applied',
                 $isSalesTaxOnlyRefund => 'Sales tax refund processed',
                 $action === OrderHistoryAction::OrderRefunded, $action === OrderHistoryAction::OrderPartialRefund => 'Refund processed',
+                $action === OrderHistoryAction::RefundPartiallyCompleted => 'Refund partially completed',
+                $action === OrderHistoryAction::RefundFailed => 'Refund failed',
                 $action === OrderHistoryAction::TransactionVoided => 'Payment voided',
                 $action === OrderHistoryAction::AddedToAccount => 'Added to account',
                 default => $history->description,
@@ -293,6 +420,15 @@ class PaymentDescriptionPresenter
             if (in_array($action, [OrderHistoryAction::OrderRefunded, OrderHistoryAction::OrderPartialRefund], true)) {
                 $entry['amount'] = (float) $payment->refund_amount;
                 $entry['sign'] = 'neg';
+            } elseif ($action === OrderHistoryAction::RefundPartiallyCompleted) {
+                // The ACTUAL successful sub-total, never the originally
+                // requested refund_amount — this row exists specifically
+                // to avoid overstating what really left the business.
+                $entry['amount'] = (float) $payment->refundAllocations()
+                    ->where('status', \App\Enums\Orders\OrderPaymentRefundAllocationStatus::Allocated->value)
+                    ->sum('allocated_amount');
+                $entry['sign'] = 'neg';
+                $entry['detail'] = 'Some sources failed — see description for details.';
             } elseif ($action === OrderHistoryAction::TransactionVoided) {
                 $entry['amount'] = (float) $payment->amount;
                 $entry['sign'] = 'neg';

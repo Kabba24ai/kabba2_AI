@@ -11,8 +11,13 @@ class VoidRequest extends ApiBaseFormRequest
 
     public function rules(): array
     {
-        // Void carries no other inputs — the existing confirmation-only
-        // flow is unchanged apart from the Processed By verification.
-        return $this->processedByRules();
+        return array_merge([
+            // Phase 3C: the specific payment being voided must be named
+            // explicitly by the caller rather than re-derived server-side
+            // via Order::lastPaidPayment — see VoidPaymentController, which
+            // independently re-validates this id belongs to the order and
+            // is actually eligible before trusting it.
+            'order_payment_id' => ['required', 'integer'],
+        ], $this->processedByRules());
     }
 }

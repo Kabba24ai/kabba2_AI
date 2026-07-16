@@ -37,18 +37,30 @@ class VoidPaymentController extends Controller
         ];
 
         try {
-            $order = Order::with(['lastPaidPayment', 'customer'])
+            $order = Order::with('customer')
                 ->where('unique_id', $uniqueId)
                 ->firstOrFail();
 
-            $payment = $order->lastPaidPayment;
+            // Phase 3C: the payment to void is named explicitly by the
+            // caller (see VoidRequest) rather than re-derived here via the
+            // old Order::lastPaidPayment lookup — that relation is a bare
+            // "highest id with status Paid" guess, the same class of
+            // defect Phase 3A fixed for refunds. Every eligibility rule the
+            // Void button already enforces client-side (card payment,
+            // has a transaction id, dated today) is re-verified here
+            // server-side — nothing about the selection is trusted.
+            $payment = $order->payments()->find((int) $validated['order_payment_id']);
 
             if (!$payment) {
-                return response()->json(['success' => false, 'message' => 'No paid transaction found.'], 422);
+                return response()->json(['success' => false, 'message' => 'That payment could not be found on this order.'], 422);
             }
 
             if ($payment->payment_method !== OrderPaymentMethod::Card) {
                 return response()->json(['success' => false, 'message' => 'Only card payments can be voided through this system.'], 422);
+            }
+
+            if (!$payment->payment_datetime?->isToday()) {
+                return response()->json(['success' => false, 'message' => 'Only a payment made today can be voided. Use Refund instead.'], 422);
             }
 
             $transactionId = $payment->transaction_id;

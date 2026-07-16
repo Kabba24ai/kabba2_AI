@@ -30,6 +30,23 @@ class PaymentDescriptionPresenterTest extends TestCase
         parent::tearDown();
     }
 
+    /**
+     * Phase 3C: refundHistoryDescription() now always loads
+     * refundAllocations() first (to detect a multi-source refund) before
+     * falling back to the single-source Phase 2/3A/3B wording these tests
+     * pin down. Mocking it to report none keeps these tests exercising
+     * exactly that fallback path, the same pattern
+     * tests/Unit/Models/Orders/OrderPaymentFormulasTest.php already
+     * established for receivedRefundAllocations() in Phase 3B.
+     */
+    private function mockNoAllocations($payment): void
+    {
+        $relation = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+        $relation->shouldReceive('with')->andReturnSelf();
+        $relation->shouldReceive('get')->andReturn(new \Illuminate\Support\Collection());
+        $payment->shouldReceive('refundAllocations')->andReturn($relation);
+    }
+
     // ── Status labels ────────────────────────────────────────────────
 
     public function test_canonical_status_labels(): void
@@ -425,11 +442,13 @@ class PaymentDescriptionPresenterTest extends TestCase
         $full = Mockery::mock(OrderPayment::class)->makePartial();
         $full->refund_calculation_type = null;
         $full->status = OrderPaymentStatus::Refund;
+        $this->mockNoAllocations($full);
         $this->assertSame('Full refund processed', PaymentDescriptionPresenter::refundHistoryDescription($full));
 
         $partial = Mockery::mock(OrderPayment::class)->makePartial();
         $partial->refund_calculation_type = null;
         $partial->status = OrderPaymentStatus::PartialRefund;
+        $this->mockNoAllocations($partial);
         $this->assertSame('Partial refund processed', PaymentDescriptionPresenter::refundHistoryDescription($partial));
     }
 
@@ -439,6 +458,7 @@ class PaymentDescriptionPresenterTest extends TestCase
         $payment->refund_calculation_type = RefundCalculationType::CardProcessingFeeRetained;
         $payment->refund_amount = 970.0;
         $payment->cc_fee_retained = 30.0;
+        $this->mockNoAllocations($payment);
 
         $this->assertSame(
             'Refund processed — $970.00 | Credit card processing fee retained — $30.00',
@@ -456,6 +476,7 @@ class PaymentDescriptionPresenterTest extends TestCase
         $payment->refund_calculation_type = RefundCalculationType::SalesTaxOnly;
         $payment->refund_amount = 97.50;
         $payment->setRelation('order', $order);
+        $this->mockNoAllocations($payment);
 
         $this->assertSame(
             'Sales Tax Refund Processed | Original Sales Tax: $97.50 | Sales Tax Refunded: $97.50 | Remaining Refundable Sales Tax: $0.00',

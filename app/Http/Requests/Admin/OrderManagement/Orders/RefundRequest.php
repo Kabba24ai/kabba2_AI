@@ -43,6 +43,20 @@ class RefundRequest extends ApiBaseFormRequest
             // refund recognize a duplicate double-click/network-retry of
             // the same submit rather than granting credit twice.
             'idempotency_token' => ['nullable', 'string', 'max:64'],
+
+            // Phase 3C — explicit source selection. Nullable/optional for
+            // backward compatibility: an omitted `allocations` array is
+            // only accepted by the controller when the order has exactly
+            // one eligible original payment (single-source auto-derived),
+            // so an older/simpler caller submitting just `amount` still
+            // works for the common single-payment case. Required in
+            // practice for any genuinely multi-payment order — enforced
+            // by the controller via PaymentAllocationService::validateAllocationSet(),
+            // not here, since "required" depends on order state this
+            // request class has no access to.
+            'allocations' => ['nullable', 'array', 'min:1'],
+            'allocations.*.original_order_payment_id' => ['required_with:allocations', 'integer'],
+            'allocations.*.amount' => ['required_with:allocations', 'numeric', 'min:0.01'],
         ], $this->processedByRules());
     }
 

@@ -368,16 +368,26 @@ class Order extends Model
     }
 
     /**
-     * Total Successful Refunds — sums refund_amount across every refund/
-     * partial-refund row. A refund does not reduce Settled Payments (the
-     * customer did pay it); it reduces Net Paid / the order's refundable
-     * balance instead (see getNetPaidAttribute()/getRemainingAmountAttribute()).
+     * Total Successful Refunds. A refund does not reduce Settled Payments
+     * (the customer did pay it); it reduces Net Paid / the order's
+     * refundable balance instead (see
+     * getNetPaidAttribute()/getRemainingAmountAttribute()).
+     *
+     * Phase 3C fix: previously summed refund_amount directly across every
+     * PartialRefund/Refund row — correct when a refund row could only ever
+     * be a single, atomic success (Phase 3A/3B), but a multi-source refund
+     * can now PARTIALLY fail (see PaymentAllocationService::syncRefundOperationOutcome()),
+     * and refund_amount continues to represent the ORIGINALLY REQUESTED
+     * total for that event, not what actually succeeded. Delegates to
+     * PaymentAllocationService::totalSuccessfulRefunded(), which counts
+     * only the successful (Allocated) allocation amounts — falling back to
+     * a row's raw refund_amount only for legacy refunds that predate the
+     * allocation table and have not yet been backfilled, unchanged from
+     * Phase 3B.
      */
     public function getTotalRefundedAttribute()
     {
-        return $this->payments()
-            ->whereIn('status', [\App\Enums\Orders\OrderPaymentStatus::PartialRefund, \App\Enums\Orders\OrderPaymentStatus::Refund])
-            ->sum('refund_amount');
+        return \App\Services\Orders\PaymentAllocationService::totalSuccessfulRefunded($this);
     }
 
     /**

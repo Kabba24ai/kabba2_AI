@@ -39,6 +39,12 @@ enum OrderHistoryAction: string
     case TransactionVoided = 'transaction_voided';
     case StoreCreditApplied = 'store_credit_applied';
 
+    // Phase 3C — multi-source refund outcomes distinct from the ordinary
+    // OrderRefunded/OrderPartialRefund (which imply this specific refund
+    // attempt fully succeeded). Never applied to ordinary payment rows.
+    case RefundPartiallyCompleted = 'refund_partially_completed';
+    case RefundFailed = 'refund_failed';
+
     public function label(): string
     {
         return match ($this) {
@@ -74,6 +80,8 @@ enum OrderHistoryAction: string
             self::DriverChecklistUpdated => 'Driver Checklist Updated',
             self::TransactionVoided => 'Transaction Voided',
             self::StoreCreditApplied => 'Store Credit Applied',
+            self::RefundPartiallyCompleted => 'Refund Partially Completed',
+            self::RefundFailed => 'Refund Failed',
         };
     }
 }

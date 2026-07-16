@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentStatus;
 use App\Enums\Orders\RefundCalculationType;
+use App\Enums\Orders\RefundOperationStatus;
 
 class OrderPayment extends Model
 {
@@ -42,6 +43,7 @@ class OrderPayment extends Model
         'tax_refunded',
         'refund_note',
         'refund_calculation_type',
+        'refund_operation_status',
         'cc_fee_retained',
         'idempotency_token',
         'payment_response',
@@ -67,6 +69,7 @@ class OrderPayment extends Model
         'tax_refunded'     => 'decimal:2',
         'cc_fee_retained'  => 'decimal:2',
         'refund_calculation_type' => RefundCalculationType::class,
+        'refund_operation_status' => RefundOperationStatus::class,
     ];
 
     protected static function boot()

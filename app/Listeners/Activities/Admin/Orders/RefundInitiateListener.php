@@ -7,12 +7,24 @@ use App\Events\Admin\Orders\RefundInitiateEvent;
 use App\Enums\Orders\OrderHistoryAction;
 use App\Enums\Orders\OrderHistoryActionBy;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Enums\Orders\RefundOperationStatus;
 use App\Services\PaymentDescriptionPresenter;
 
 class RefundInitiateListener
 {
     /**
      * Handle the event.
+     *
+     * Phase 3C: refund_operation_status (whether THIS refund event's own
+     * allocation attempts actually succeeded) now takes priority over the
+     * refund row's OrderPaymentStatus (whether the ORDER still has a
+     * refundable balance) for deciding which history action to log — a
+     * partially or fully failed refund event must never be recorded as a
+     * plain "Order Refunded"/"Order Partial Refund" success. Exactly one
+     * history row is written per event; the old separate "Refund failed"
+     * row (which only ever fired for a status this flow could never
+     * actually produce pre-Phase-3C) is gone — RefundFailed below is that
+     * row now, written from the same single, presenter-driven description.
      */
     public function handle(RefundInitiateEvent $event)
     {
@@ -20,15 +32,13 @@ class RefundInitiateListener
         $user = $event->user;
         $payment = $event->payment;
 
-        // Action from the refund row's own status — not payment_method ===
-        // Card, which mis-classified a full refund on any other method as
-        // "Partial refund processed." Description always comes from the
-        // centralized presenter so Standard/Card-Fee/Sales-Tax-Only refunds
-        // each get their correct, auditable wording instead of one hardcoded
-        // string covering every case.
-        $action = $payment->status === OrderPaymentStatus::Refund
-            ? OrderHistoryAction::OrderRefunded
-            : OrderHistoryAction::OrderPartialRefund;
+        $action = match (true) {
+            $payment->refund_operation_status === RefundOperationStatus::Failed => OrderHistoryAction::RefundFailed,
+            $payment->refund_operation_status === RefundOperationStatus::PartiallyCompleted => OrderHistoryAction::RefundPartiallyCompleted,
+            $payment->status === OrderPaymentStatus::Refund => OrderHistoryAction::OrderRefunded,
+            default => OrderHistoryAction::OrderPartialRefund,
+        };
+
         $description = PaymentDescriptionPresenter::refundHistoryDescription($payment);
 
         $order->history()->create([
@@ -40,18 +50,5 @@ class RefundInitiateListener
             'action' => $action,
             'description' => $description,
         ]);
-
-        if ($payment->status->isFailed()) {
-            $order->history()->create([
-                'customer_id' => $order->customer_id,
-                'order_payment_id' => $payment->id,
-                'user_id' => $user ? $user->id : null,
-                'action_by' => OrderHistoryActionBy::User,
-                'action_date' => now(),
-                'action' => OrderHistoryAction::PaymentFailed,
-                'description' => "Refund failed",
-            ]);
-        }
-
     }
 }

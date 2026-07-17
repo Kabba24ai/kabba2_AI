@@ -54,7 +54,7 @@ class TwilioService
      */
     public function sendSms(string $to, string $message, array $options = [], array $context = []): array
     {
-        $to = $this->normalizePhone($to);
+        $to = self::normalizePhone($to);
 
         $result = [
             'success' => false,
@@ -74,7 +74,7 @@ class TwilioService
             'message'              => $message,
         ];
 
-        if (!$this->isValidPhone($to)) {
+        if (!self::isValidPhone($to)) {
             $result['message'] = 'Invalid destination phone number';
             $this->logSmsAttempt($logContext, 'failed', $result['message'], null);
             return $result;
@@ -156,8 +156,8 @@ class TwilioService
             'from' => $this->fromNumber,
         ];
 
-        $validTo = $this->normalizePhone($to);
-        if (!$this->isValidPhone($validTo)) {
+        $validTo = self::normalizePhone($to);
+        if (!self::isValidPhone($validTo)) {
             $result['message'] = 'Invalid destination phone number';
             return $result;
         }
@@ -208,7 +208,12 @@ class TwilioService
         Log::channel('twilio')->error($message, $context);
     }
 
-    protected function normalizePhone(string $phone): string
+    /**
+     * Public + static so recipient resolution (dedup by normalized number)
+     * can share the exact normalization used at send time without
+     * constructing the service (whose constructor requires credentials).
+     */
+    public static function normalizePhone(string $phone): string
     {
         $digits = preg_replace('/\D/', '', $phone);
         $normalized = '';
@@ -239,7 +244,7 @@ class TwilioService
         return $normalized;
     }
 
-    protected function isValidPhone(string $phone): bool
+    public static function isValidPhone(string $phone): bool
     {
         return preg_match('/^\+[1-9]\d{7,15}$/', $phone) === 1;
     }

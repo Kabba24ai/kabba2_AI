@@ -22,6 +22,7 @@ class StoreController extends Controller
                 'sms_cat_id'  => $validated['sms_cat_id'],
                 'name'        => $validated['name'],
                 'description' => $validated['description'] ?? null,
+                'created_by'  => auth()->id(),
             ]);
 
             DB::commit();

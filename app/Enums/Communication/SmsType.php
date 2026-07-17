@@ -24,4 +24,5 @@ enum SmsType: string
     case POD_DAY_BEFORE                  = 'pod_day_before';
     case POD_FINAL_REMINDER              = 'pod_final_reminder';
     case POD_LAST_DITCH                  = 'pod_last_ditch';
+    case CRM_BROADCAST                   = 'crm_broadcast';
 }

@@ -18,6 +18,13 @@
 					Manage your SMS and Email broadcast & funnel content messages.
 				</p>
 			</div>
+			<a href="{{ route('admin.crm.message-management.broadcast-queue.index') }}"
+				class="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-800 text-white font-medium px-6 py-3 text-md rounded-lg transition">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/>
+				</svg>
+				Broadcast Queue
+			</a>
 		</div>
 	</div>
 	<!-- Outer Tabs -->
@@ -35,11 +42,6 @@
 				<x-heroicon-o-rectangle-stack class="w-5 h-5" />
 				<span>Categories</span>
 			</button>
-			<button onclick="showTab('created-messages', this)" id="tab-created-messages"
-				class="tab-button inline-flex items-center gap-2 text-gray-600 font-medium text-sm px-3 pb-2 hover:text-blue-600 transition">
-				<x-heroicon-o-queue-list class="w-5 h-5" />
-				<span>Messages List</span>
-			</button>
 		</div>
 	</div>
 	<!-- ============================ -->
@@ -54,7 +56,7 @@
 					<button onclick="showTab('smsbroadcast', this)"
 						class="inner-tab inline-flex items-center px-3 pt-3 pb-2
 						text-sm font-medium text-blue-600 border-b-2 border-blue-600">
-					SMS Broadcast
+					SMS Message Library
 					</button>
 					<button onclick="showTab('smsfunnel', this)"
 						class="inner-tab inline-flex items-center px-3 pt-3 pb-2
@@ -79,7 +81,7 @@
 					<!-- ====================== -->
 					<div id="btn-smsbroadcast" class="tab-action hidden flex items-center gap-3">
 						<!-- Send New SMS Broadcast (Orange) -->
-						<a href="javascript:void(0)" onclick="openModal('send-new-sms-broadcast')"
+						<a href="{{ route('admin.crm.message-management.broadcast-wizard.create') }}"
 							class="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600
 							text-white font-medium px-6 py-3 text-md rounded-lg transition">
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -89,7 +91,7 @@
 								<path d="M22 2L11 13" />
 								<path d="M22 2L15 22L11 13L2 9L22 2Z" />
 							</svg>
-							Send New SMS Broadcast
+							New SMS Broadcast
 						</a>
 						<!-- Create Message (Green) -->
 						<a href="javascript:void(0)"  onclick="openModal('new-smsbroadcast')"
@@ -101,7 +103,7 @@
 								<path stroke-linecap="round" stroke-linejoin="round"
 									d="M12 4.5v15m7.5-7.5h-15"/>
 							</svg>
-							Create New Message
+							Create New SMS Message
 						</a>
 					</div>
 					<!-- ====================== -->
@@ -323,71 +325,7 @@
 			</div>
 		</div>
 	</div>
-	<!-- ============================ -->
-	<!--    created-messages SECTION          -->
-	<!-- ============================ -->
-	<div id="created-messages" class="tab-content hidden" data-tab-group="main">
-		<!-- Inner Tabs + Action Buttons -->
-		<div class="w-full bg-white border rounded-xl shadow-sm mb-6 ">
-			<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6 border-b p-4" data-tab-group="inner-created-msg">
-				<!-- Left: Tabs -->
-				<div class="flex flex-wrap gap-3">
-					<button onclick="showTab('created-smsbroadcast', this)"
-						class="inner-tab inline-flex items-center px-3 pt-3 pb-2
-						text-sm font-medium text-blue-600 border-b-2 border-blue-600">
-					 SMS List
-					</button>
-					<!-- <button onclick="showTab('created-smsfunnel', this)"
-						class="inner-tab inline-flex items-center px-3 pt-3 pb-2
-						text-sm font-medium text-gray-600 hover:text-blue-600">
-					SMS Created Funnel Content
-					</button> -->
-				</div>
-				<!-- Right: Action Buttons -->
-				<div class="flex items-center gap-3">
-					<!-- ====================== -->
-					<!-- 1. SMS BROADCAST BUTTONS -->
-					<!-- ====================== -->
-					<div id="btn-sms-creted" class="tab-action  flex items-center gap-3">
-						<!-- Create Message (Green) -->
-						<a href="javascript:void(0)"  onclick="openModal('new-smsbroadcast')"
-							class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
-							text-white font-medium px-6 py-3 text-md rounded-lg transition">
-							<svg xmlns="http://www.w3.org/2000/svg" fill="none"
-								viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-								class="w-4 h-4">
-								<path stroke-linecap="round" stroke-linejoin="round"
-									d="M12 4.5v15m7.5-7.5h-15"/>
-							</svg>
-							Create New Broadcast
-						</a>
-
-                        <!-- Create Message (Green) -->
-						<a href="javascript:void(0)" onclick="openModal('new-sms-funnel')"
-							class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700
-							text-white font-medium px-6 py-3 text-md rounded-lg transition">
-							<svg xmlns="http://www.w3.org/2000/svg" fill="none"
-								viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-								class="w-4 h-4">
-								<path stroke-linecap="round" stroke-linejoin="round"
-									d="M12 4.5v15m7.5-7.5h-15"/>
-							</svg>
-							Create New Funnel
-						</a>
-					</div>
-
-				</div>
-			</div>
-		</div>
-		<!-- INNER CONTENT SECTIONS -->
-		<div id="created-smsbroadcast" class="tab-content"  data-tab-group="inner-created-msg">
-			@include('admin.crm.message_management.partials._tab_created_sms')
-			<!-- Add your SMS Broadcast CRUD here -->
-		</div>
-
-	</div>
 </div>
-
 
 
 
@@ -1109,7 +1047,6 @@ function showTab(tabId, clickedBtn) {
           'emailbroadcast': 'btn-emailbroadcast',
           'emailfunnel': 'btn-emailfunnel',
 
-          'created-smsbroadcast': 'btn-sms-creted'
 
       };
 
@@ -1149,15 +1086,6 @@ function showTab(tabId, clickedBtn) {
             if (categoryActions[tabId]) {
                 document.getElementById(categoryActions[tabId]).classList.remove('hidden');
             }
-        }
-
-
-
-
-        if (tabId === 'created-messages') {
-
-            document.getElementById('btn-sms-creted').classList.remove('hidden');
-                return;
         }
 
 
@@ -1363,8 +1291,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 fetchBroadcasts();
 
-                fetchCreatedBroadcasts();
-
                  refreshCreatedBroadcastAndFunnelSelects();
             } else {
                 notyf.error(data.message || "Update failed.");
@@ -1503,8 +1429,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 closeModal('edit-sms-funnel');
                 fetchSmsfunnels(1); // Refresh table
-
-                 fetchCreatedBroadcasts();
 
                   refreshCreatedBroadcastAndFunnelSelects();
 

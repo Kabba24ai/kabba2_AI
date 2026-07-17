@@ -33,4 +33,7 @@ Route::prefix('message-management')
 
         require base_path('routes/admin/crm/message_management/sms_created_broadcast/routes.php');
 
+        // Broadcast wizard, saved audiences, and broadcast queue
+        require base_path('routes/admin/crm/message_management/broadcast_queue/routes.php');
+
 });

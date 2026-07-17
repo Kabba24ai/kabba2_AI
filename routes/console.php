@@ -96,6 +96,20 @@ Schedule::job(new \App\Jobs\SendMeetingReminderJob())
     ->onOneServer()
     ->name('send-meeting-reminder-job');
 
+Schedule::job(new \App\Jobs\ProcessScheduledSmsBroadcastsJob())
+    ->everyMinute()
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('process-scheduled-sms-broadcasts-job');
+
+Schedule::job(new \App\Jobs\ArchiveCompletedSmsBroadcastsJob())
+    ->dailyAt('03:00')
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('archive-completed-sms-broadcasts-job');
+
 Schedule::job(new \App\Jobs\PurgeCompletedTaskMediaJob())
     ->dailyAt('02:30')
     ->timezone('America/Chicago')

@@ -15,8 +15,13 @@ class IndexController extends Controller
             return view('admin.crm.message_management.sms_broadcast.index');
         }
 
-        $query = SmsBroadcast::with('category')
-         ->whereNotIn('status', ['created'])
+        // Message Library listing — reusable content only, no send state.
+        $query = SmsBroadcast::with(['category', 'createdBy'])
+            ->when(
+                $request->boolean('archived'),
+                fn ($q) => $q->whereNotNull('archived_at'),
+                fn ($q) => $q->whereNull('archived_at'),
+            )
             ->orderBy('name', 'ASC');
 
         // Filter: Category

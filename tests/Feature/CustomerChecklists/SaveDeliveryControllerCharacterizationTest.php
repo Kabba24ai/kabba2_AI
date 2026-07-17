@@ -250,14 +250,13 @@ class SaveDeliveryControllerCharacterizationTest extends TestCase
         ]);
     }
 
-    // ── BUG-2 (pre-existing, not fixed by this PR): re-delivering the SAME ──
-    // equipment never calls markRented() again, so a stale current_status from
-    // a prior cycle (e.g. left 'damaged' by a return) survives a fresh delivery
-    // untouched. See PHASE3_IMPLEMENTATION_PLAN.md BUG-2 for the full write-up;
-    // this test exists so P3-9's fix changes this exact assertion, not merely
-    // "doesn't break anything else."
+    // ── BUG-2 (fixed by P3-9): re-delivering the SAME equipment now always ──
+    // reapplies the rented transition, so a stale current_status from a prior
+    // cycle (e.g. left 'damaged' by a return) does not survive a fresh
+    // delivery untouched. See PHASE3_IMPLEMENTATION_PLAN.md BUG-2 and
+    // docs/checklist-system-audit/P3_9_BUG2_REDELIVERY_STATUS_FIX.md.
 
-    public function test_bug2_redelivering_same_equipment_does_not_call_mark_rented_again(): void
+    public function test_bug2_redelivering_same_equipment_reapplies_rented_status(): void
     {
         $orderProduct = $this->makeOrderProduct();
         $equipment    = $this->makeEquipment();
@@ -281,9 +280,10 @@ class SaveDeliveryControllerCharacterizationTest extends TestCase
         $logCountBeforeRedelivery = EquipmentStatusLog::where('equipment_id', $equipment->id)->count();
 
         // Second delivery, same equipment_unique_id — equipment_id already matches and
-        // equipment_details is already populated, so the controller's
-        // `empty($orderProduct->equipment_details) || $orderProduct->equipment_id !== $equipment->id`
-        // branch condition is false and markRented() is NOT called.
+        // equipment_details is already populated, but the fix now reapplies markRented()
+        // unconditionally on every successful delivery (guarded from ever firing while the
+        // equipment is genuinely already rented by the controller's own isRented() 409
+        // check earlier in the method).
         $this->callAs('POST', 'customer-checklists/save-delivery', [
             'order_product_unique_id' => $orderProduct->unique_id,
             'equipment_unique_id'     => $equipment->unique_id,
@@ -293,18 +293,49 @@ class SaveDeliveryControllerCharacterizationTest extends TestCase
         $orderProduct->refresh();
         $equipment->refresh();
 
-        // Response and delivery_status are unconditionally "successful"/'Completed' regardless.
         $this->assertEquals('Completed', $orderProduct->delivery_status);
         $this->assertTrue((bool) $orderProduct->is_delivered);
 
-        // But the equipment's own status is left exactly as it was — still 'damaged', not
-        // reset to 'rented' — because markRented() was skipped, and no new log row was
-        // written. This is BUG-2's documented data-integrity gap, pinned as-is.
-        $this->assertTrue($equipment->current_status->isDamaged());
+        // The equipment is transitioned back to 'rented', and a fresh status-log row
+        // records the 'damaged' -> 'rented' transition. This is BUG-2's fix, verified.
+        $this->assertTrue($equipment->current_status->isRented());
         $this->assertEquals(
-            $logCountBeforeRedelivery,
+            $logCountBeforeRedelivery + 1,
             EquipmentStatusLog::where('equipment_id', $equipment->id)->count()
         );
+        $this->assertDatabaseHas('equipment_status_logs', [
+            'equipment_id' => $equipment->id,
+            'from_status'  => 'damaged',
+            'to_status'    => 'rented',
+        ]);
+    }
+
+    public function test_bug2_redelivering_same_equipment_from_maintenance_also_reapplies_rented_status(): void
+    {
+        // Additional regression: the same fix must also cover the more common real-world
+        // re-delivery path — equipment cycled through a normal (non-damaged) return,
+        // landing in 'maintenance', then being redelivered on the same order product.
+        $orderProduct = $this->makeOrderProduct();
+        $equipment    = $this->makeEquipment();
+
+        $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $orderProduct->unique_id,
+            'equipment_unique_id'     => $equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+        ])->assertOk();
+
+        $equipment->refresh();
+        $equipment->current_status = 'maintenance';
+        $equipment->saveQuietly();
+
+        $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $orderProduct->unique_id,
+            'equipment_unique_id'     => $equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+        ])->assertOk()->assertJson(['success' => true]);
+
+        $equipment->refresh();
+        $this->assertTrue($equipment->current_status->isRented());
     }
 
     // ── BUG-4 (pre-existing, not fixed by this PR): no guard against a second ──

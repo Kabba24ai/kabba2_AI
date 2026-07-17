@@ -194,15 +194,24 @@ class SaveDeliveryController extends BaseController
                 $orderProductData['equipment_details'] = $equipment->toArray();
                 $orderProductData['assigned_by'] = $validated['user_id'];
                 $orderProductData['assigned_at'] = now();
-
-                $equipment->equipment_hours = $validated['start_hours'] ?? null;
-                EquipmentStatusService::markRented(
-                    $equipment,
-                    $orderProduct->order_id,
-                    $orderProduct->id,
-                    isset($validated['user_id']) ? (int) $validated['user_id'] : null
-                );
             }
+
+            // BUG-2 fix: reapply the rented transition on EVERY successful delivery, not
+            // only when the equipment_id/equipment_details snapshot above changes. The
+            // isRented() conflict guard earlier in this method already ensures execution
+            // only reaches here when the equipment is NOT currently rented, so a
+            // re-delivery of the SAME equipment (e.g. one that cycled through a return and
+            // was left 'damaged'/'maintenance') must still be transitioned back to
+            // 'rented' and get a fresh equipment_status_logs entry — previously this was
+            // skipped whenever equipment_id already matched the order product's prior
+            // assignment. See docs/checklist-system-audit/P3_9_BUG2_REDELIVERY_STATUS_FIX.md.
+            $equipment->equipment_hours = $validated['start_hours'] ?? null;
+            EquipmentStatusService::markRented(
+                $equipment,
+                $orderProduct->order_id,
+                $orderProduct->id,
+                isset($validated['user_id']) ? (int) $validated['user_id'] : null
+            );
 
             if ($request->hasFile('signature_media')) {
                 $mediaData = MediaHelper::uploadStorageFile('Public Asset', $request->file('signature_media'), 'orders/schedules', $orderProduct);

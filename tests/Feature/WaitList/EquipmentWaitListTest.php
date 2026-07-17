@@ -32,6 +32,7 @@ class EquipmentWaitListTest extends TestCase
     private Customer $customer;
     private ProductCategory $category;
     private Equipment $excavator;
+    private \App\Models\ProductManagement\Product $product;
 
     protected function setUp(): void
     {
@@ -52,6 +53,17 @@ class EquipmentWaitListTest extends TestCase
         ]);
 
         $this->category = ProductCategory::create(['title' => 'Excavators', 'status' => 'Published', 'sort_order' => 1]);
+
+        // A Rental product in the category — the unified form selects
+        // acceptable product types, not individual inventory units.
+        $this->product = \App\Models\ProductManagement\Product::create([
+            'unique_id'    => \Illuminate\Support\Str::uuid()->toString(),
+            'product_name' => 'Mini Excavator 3.5T',
+            'slug'         => 'mini-excavator-3-5t',
+            'product_type' => 'Rental',
+            'status'       => 'Published',
+        ]);
+        $this->product->categories()->sync([$this->category->id]);
 
         $this->excavator = Equipment::create([
             'unique_id' => 'test-exc', 'equipment_name' => 'Mini Excavator 3.5T',
@@ -99,8 +111,8 @@ class EquipmentWaitListTest extends TestCase
     {
         $this->post(route('admin.wait-list.store'), [
             'customer_id'         => $this->customer->id,
-            'request_type'        => WaitListRequestType::Category->value,
             'product_category_id' => $this->category->id,
+            'product_ids'         => [$this->product->id],
             'store_preference'    => WaitListStorePreference::AnyStore->value,
             'reason'              => WaitListReason::EquipmentFullyBooked->value,
             'priority_override'   => 2,
@@ -113,10 +125,15 @@ class EquipmentWaitListTest extends TestCase
             'phone'         => '555-0100',
             'email'         => 'mike@harrisongrading.test',
             'status'        => 'active',
+            'request_type'  => 'unified',
             // Reason arrives as a code, is stored as its readable label
             'reason'        => 'Equipment fully booked',
             'priority_override' => 2,
             'created_by'    => $this->admin->id,
+        ]);
+
+        $this->assertDatabaseHas('equipment_wait_list_products', [
+            'product_id' => $this->product->id,
         ]);
     }
 
@@ -124,8 +141,8 @@ class EquipmentWaitListTest extends TestCase
     {
         $payload = fn (string $reason) => [
             'customer_id'         => $this->customer->id,
-            'request_type'        => WaitListRequestType::Category->value,
             'product_category_id' => $this->category->id,
+            'product_ids'         => [$this->product->id],
             'store_preference'    => WaitListStorePreference::AnyStore->value,
             'reason'              => $reason,
         ];
@@ -149,8 +166,8 @@ class EquipmentWaitListTest extends TestCase
     {
         $payload = fn ($priority) => [
             'customer_id'         => $this->customer->id,
-            'request_type'        => WaitListRequestType::Category->value,
             'product_category_id' => $this->category->id,
+            'product_ids'         => [$this->product->id],
             'store_preference'    => WaitListStorePreference::AnyStore->value,
             'reason'              => WaitListReason::UnitDamaged->value,
             'priority_override'   => $priority,
@@ -176,70 +193,72 @@ class EquipmentWaitListTest extends TestCase
         $this->assertDatabaseHas('equipment_wait_lists', ['priority_override' => null]);
     }
 
-    public function test_optional_equipment_choices_may_be_left_blank(): void
+    public function test_blank_product_entries_are_dropped_not_rejected(): void
     {
-        $payload = fn (array $equipmentIds) => [
-            'customer_id'      => $this->customer->id,
-            'request_type'     => WaitListRequestType::SpecificEquipment->value,
-            'equipment_ids'    => $equipmentIds,
-            'store_preference' => WaitListStorePreference::AnyStore->value,
-            'reason'           => WaitListReason::RequestedSpecificUnit->value,
+        $payload = fn (array $productIds) => [
+            'customer_id'         => $this->customer->id,
+            'product_category_id' => $this->category->id,
+            'product_ids'         => $productIds,
+            'store_preference'    => WaitListStorePreference::AnyStore->value,
+            'reason'              => WaitListReason::RequestedSpecificUnit->value,
         ];
 
-        // Choice #1 picked, optional Choice #2/#3 submit as blanks — the blanks
-        // must be dropped, not rejected as "must be an integer"
-        $this->post(route('admin.wait-list.store'), $payload([(string) $this->excavator->id, '', '']))
+        // Blank entries in the checkbox array are dropped, not rejected
+        $this->post(route('admin.wait-list.store'), $payload([(string) $this->product->id, '', '']))
             ->assertSessionHasNoErrors()
             ->assertRedirect();
 
         $waitList = EquipmentWaitList::latest('id')->firstOrFail();
         $this->assertSame(
-            [$this->excavator->id],
-            $waitList->items()->pluck('equipment_id')->all()
+            [$this->product->id],
+            $waitList->selectedProducts()->pluck('products.id')->all()
         );
 
-        // All three blank still fails the Choice #1 requirement
+        // All blank still fails the at-least-one-product requirement
         $this->post(route('admin.wait-list.store'), $payload(['', '', '']))
-            ->assertSessionHasErrors('equipment_ids');
+            ->assertSessionHasErrors('product_ids');
     }
 
-    public function test_create_form_sections_labels_and_category_filter_contract(): void
+    public function test_create_form_renders_the_unified_workflow_contract(): void
     {
         $skidCategory = ProductCategory::create(['title' => 'Skid Steers', 'status' => 'Published', 'sort_order' => 2]);
-        $skid = Equipment::create([
-            'unique_id' => 'test-skid', 'equipment_name' => 'Skid Steer S70',
-            'equipment_id' => 'SS-210', 'brand' => 'Test',
-            'product_category_id' => $skidCategory->id,
+        $skidProduct = \App\Models\ProductManagement\Product::create([
+            'unique_id'    => \Illuminate\Support\Str::uuid()->toString(),
+            'product_name' => 'Skid Steer S70',
+            'slug'         => 'skid-steer-s70',
+            'product_type' => 'Rental',
+            'status'       => 'Published',
         ]);
+        $skidProduct->categories()->sync([$skidCategory->id]);
 
         $response = $this->get(route('admin.wait-list.create'))->assertOk()
-            ->assertSee('Equipment Request')
-            ->assertSee('If Category Wait List')
-            ->assertSee('If Specific Equipment Wait List')
-            ->assertSee('Equipment Category Filter')
-            ->assertSee('Choice #1')
-            ->assertSee('Choice #2 (Optional)')
-            ->assertSee('Choice #3 (Optional)')
+            // Unified form: one row, one category, product checklist
+            ->assertSee('CRM Customer')
+            ->assertSee('Equipment Category')
+            ->assertSee('Acceptable Equipment Products')
+            ->assertSee('Select All')
             ->assertSee('No Priority Override')
             ->assertSee('Move to Position #1')
-            ->assertSee('Move to Position #3');
+            ->assertSee('Move to Position #3')
+            // The branching pathways are gone
+            ->assertDontSee('Equipment Request')
+            ->assertDontSee('If Category Wait List')
+            ->assertDontSee('If Specific Equipment Wait List')
+            ->assertDontSee('Choice #1')
+            ->assertDontSee('Choice #2 (Optional)');
 
         $content = $response->getContent();
 
-        // All three equipment choice dropdowns ship disabled — they unlock
-        // client-side only after an Equipment Category Filter is selected
-        $this->assertSame(3, preg_match_all('/name="equipment_ids\[\]"[^>]*\bdisabled\b/', $content));
-
-        // The embedded filter data maps every unit to its category, which is what
-        // lets the dropdowns show only that category's equipment and drop
-        // incompatible selections when the filter changes (@json hex-escapes quotes)
+        // The embedded product data maps every Rental product to its
+        // categories — the checklist renders only the selected category's
+        // products and clears selections when the category changes
         $this->assertStringContainsString(sprintf(
-            '"id":%d,"label":"Skid Steer S70 (SS-210)","category_id":%d',
-            $skid->id, $skidCategory->id
+            '"id":%d,"name":"Skid Steer S70","category_ids":[%d]',
+            $skidProduct->id, $skidCategory->id
         ), $content);
         $this->assertStringContainsString(sprintf(
-            '"id":%d,"label":"Mini Excavator 3.5T (EX-100)","category_id":%d',
-            $this->excavator->id, $this->category->id
+            '"id":%d,"name":"Mini Excavator 3.5T","category_ids":[%d]',
+            $this->product->id, $this->category->id
         ), $content);
     }
 
@@ -257,49 +276,52 @@ class EquipmentWaitListTest extends TestCase
         );
     }
 
-    public function test_specific_equipment_limited_to_three_and_structured_only(): void
+    public function test_product_selection_is_structured_only_with_no_upper_limit(): void
     {
-        $extra = collect(range(1, 4))->map(fn ($i) => Equipment::create([
-            'unique_id' => "test-eq-$i", 'equipment_name' => "Unit $i", 'equipment_id' => "U-$i", 'brand' => 'Test',
-        ]));
+        // Five more products in the category — well past the old 3-choice cap
+        $extra = collect(range(1, 5))->map(function ($i) {
+            $product = \App\Models\ProductManagement\Product::create([
+                'unique_id'    => \Illuminate\Support\Str::uuid()->toString(),
+                'product_name' => "Excavator Variant $i",
+                'slug'         => "excavator-variant-$i",
+                'product_type' => 'Rental',
+                'status'       => 'Published',
+            ]);
+            $product->categories()->sync([$this->category->id]);
 
-        // Four units → rejected
-        $this->post(route('admin.wait-list.store'), [
-            'customer_id'      => $this->customer->id,
-            'request_type'     => WaitListRequestType::SpecificEquipment->value,
-            'equipment_ids'    => $extra->pluck('id')->all(),
-            'store_preference' => WaitListStorePreference::AnyStore->value,
-            'reason'           => WaitListReason::EquipmentFullyBooked->value,
-        ])->assertSessionHasErrors('equipment_ids');
+            return $product;
+        });
 
-        // Nonexistent CRM customer / equipment → rejected (no free-form entry)
+        // Nonexistent CRM customer / product → rejected (no free-form entry)
         $this->post(route('admin.wait-list.store'), [
-            'customer_id'      => 999999,
-            'request_type'     => WaitListRequestType::SpecificEquipment->value,
-            'equipment_ids'    => [999999],
-            'store_preference' => WaitListStorePreference::AnyStore->value,
-            'reason'           => WaitListReason::EquipmentFullyBooked->value,
-        ])->assertSessionHasErrors(['customer_id', 'equipment_ids.0']);
+            'customer_id'         => 999999,
+            'product_category_id' => $this->category->id,
+            'product_ids'         => [999999],
+            'store_preference'    => WaitListStorePreference::AnyStore->value,
+            'reason'              => WaitListReason::EquipmentFullyBooked->value,
+        ])->assertSessionHasErrors(['customer_id', 'product_ids.0']);
 
-        // Three units → accepted
+        // Specific store still requires a store
         $this->post(route('admin.wait-list.store'), [
-            'customer_id'      => $this->customer->id,
-            'request_type'     => WaitListRequestType::SpecificEquipment->value,
-            'equipment_ids'    => $extra->take(3)->pluck('id')->all(),
-            'store_preference' => WaitListStorePreference::SpecificStore->value,
-            'store_id'         => null,
-            'reason'           => WaitListReason::RequestedSpecificUnit->value,
-        ])->assertSessionHasErrors('store_id'); // specific store requires a store
+            'customer_id'         => $this->customer->id,
+            'product_category_id' => $this->category->id,
+            'product_ids'         => [$this->product->id],
+            'store_preference'    => WaitListStorePreference::SpecificStore->value,
+            'store_id'            => null,
+            'reason'              => WaitListReason::RequestedSpecificUnit->value,
+        ])->assertSessionHasErrors('store_id');
 
+        // Six products on one record → accepted; the old max:3 is gone
+        $allIds = $extra->pluck('id')->push($this->product->id)->all();
         $this->post(route('admin.wait-list.store'), [
-            'customer_id'      => $this->customer->id,
-            'request_type'     => WaitListRequestType::SpecificEquipment->value,
-            'equipment_ids'    => $extra->take(3)->pluck('id')->all(),
-            'store_preference' => WaitListStorePreference::AnyStore->value,
-            'reason'           => WaitListReason::RequestedSpecificUnit->value,
+            'customer_id'         => $this->customer->id,
+            'product_category_id' => $this->category->id,
+            'product_ids'         => $allIds,
+            'store_preference'    => WaitListStorePreference::AnyStore->value,
+            'reason'              => WaitListReason::RequestedSpecificUnit->value,
         ])->assertRedirect();
 
-        $this->assertDatabaseCount('equipment_wait_list_items', 3);
+        $this->assertDatabaseCount('equipment_wait_list_products', 6);
     }
 
     // ── Index dashboard ────────────────────────────────────────────
@@ -475,7 +497,11 @@ class EquipmentWaitListTest extends TestCase
         $this->assertSame($this->admin->id, $fresh->acknowledged_by);
         $this->assertNotNull($fresh->acknowledged_at);
 
-        // Acknowledged alerts drop off the open feed but stay in history
+        // Acknowledged (In Progress) alerts remain actionable in the open
+        // feed under the disposition lifecycle; resolved alerts drop off
+        $this->assertCount(1, $this->getJson('http://api.kabba.local/api/admin/v1/wait-list/alerts')->json('alerts'));
+
+        $fresh->dispose(\App\Enums\WaitList\WaitListAlertDisposition::KeepWaiting, $this->admin->id);
         $this->assertCount(0, $this->getJson('http://api.kabba.local/api/admin/v1/wait-list/alerts')->json('alerts'));
         $this->assertCount(1, $this->getJson('http://api.kabba.local/api/admin/v1/wait-list/alerts?status=all')->json('alerts'));
     }

@@ -12,13 +12,19 @@ use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 /**
- * One wait list record = one equipment need (no quantity support by design).
- * Customers come from CRM; demand comes from structured data only (a product
- * category or up to three specific equipment IDs). No automatic customer
- * notifications, reservations, holds, or expiration — every contact and
- * disposition decision is manual.
+ * One wait list record = one customer need within one equipment category,
+ * with one or more selected acceptable PRODUCTS attached (no quantity
+ * support by design). The product set is a snapshot owned by the record —
+ * later catalog changes never silently alter an existing request. No
+ * automatic customer notifications, reservations, holds, or expiration —
+ * every contact and disposition decision is manual.
+ *
+ * Legacy records (request_type category/specific_equipment) that could not
+ * be migrated to product selections keep matching through documented
+ * fallbacks in WaitListMatcher; their historical rows are never rewritten.
  */
 class EquipmentWaitList extends Model
 {
@@ -73,9 +79,19 @@ class EquipmentWaitList extends Model
         return $this->belongsTo(Store::class);
     }
 
+    /** Legacy specific-equipment unit picks — historical, no longer written. */
     public function items()
     {
         return $this->hasMany(EquipmentWaitListItem::class);
+    }
+
+    /** The selected acceptable products for this request (unified workflow). */
+    public function selectedProducts()
+    {
+        return $this->belongsToMany(
+            \App\Models\ProductManagement\Product::class,
+            'equipment_wait_list_products',
+        )->withTimestamps();
     }
 
     public function communications()
@@ -119,6 +135,37 @@ class EquipmentWaitList extends Model
             ->orderBy('created_at');
     }
 
+    /**
+     * Customer said YES but no order has been converted yet. Acceptance is
+     * not a completed sale: these records stay in the live waiting queue
+     * (status Acknowledged) and carry this distinct state until they are
+     * converted, cancelled, or re-disposed — they can never silently drop
+     * out of the actionable workflow.
+     */
+    public function scopeAcceptedAwaitingConversion(Builder $q): Builder
+    {
+        return $q->waiting()->whereHas('alerts', fn ($a) => $a
+            ->where('disposition', \App\Enums\WaitList\WaitListAlertDisposition::CustomerAccepted->value));
+    }
+
+    /** Whether this record is an accepted-but-unconverted opportunity. */
+    public function isAcceptedAwaitingConversion(): bool
+    {
+        if (! in_array($this->status->value, WaitListStatus::waiting(), true)) {
+            return false;
+        }
+
+        // Prefer a withExists('alerts as has_accepted_alert') column when the
+        // caller provided one (index lists) to avoid per-row queries.
+        if (array_key_exists('has_accepted_alert', $this->attributes)) {
+            return (bool) $this->attributes['has_accepted_alert'];
+        }
+
+        $alerts = $this->relationLoaded('alerts') ? $this->alerts : $this->alerts()->get();
+
+        return $alerts->contains(fn ($alert) => $alert->disposition === \App\Enums\WaitList\WaitListAlertDisposition::CustomerAccepted);
+    }
+
     // ── Lifecycle (all manual — no automation by design) ───────────
 
     public function markAcknowledged(): void
@@ -159,6 +206,16 @@ class EquipmentWaitList extends Model
     /** What the customer is waiting for, in one line. */
     public function demandLabel(): string
     {
+        if ($this->relationLoaded('selectedProducts') ? $this->selectedProducts->isNotEmpty() : $this->selectedProducts()->exists()) {
+            $category = $this->category?->title;
+            $count = $this->relationLoaded('selectedProducts')
+                ? $this->selectedProducts->count()
+                : $this->selectedProducts()->count();
+
+            return trim(($category ?? 'Equipment') . ' — ' . $count . ' acceptable ' . Str::plural('product', $count));
+        }
+
+        // Legacy fallbacks: un-migrated historical records
         if ($this->request_type === WaitListRequestType::Category) {
             return $this->category?->title ?? 'Category';
         }

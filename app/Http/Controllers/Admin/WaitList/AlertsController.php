@@ -15,7 +15,7 @@ class AlertsController extends Controller
 
         $alerts = EquipmentWaitListAlert::query()
             ->with(['waitList.customer', 'waitList.category', 'waitList.store', 'waitList.items.equipment',
-                'equipment', 'matchedCategory', 'acknowledgedBy'])
+                'waitList.selectedProducts', 'equipment.store', 'matchedCategory', 'matchedProduct', 'acknowledgedBy'])
             ->when($view === 'open', fn ($q) => $q->open())
             ->latest()
             ->paginate(25)

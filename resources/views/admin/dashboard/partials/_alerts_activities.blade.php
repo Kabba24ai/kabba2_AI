@@ -11,7 +11,7 @@
     ];
 @endphp
 
-<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-6">
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 h-full">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-5 flex-wrap gap-3">

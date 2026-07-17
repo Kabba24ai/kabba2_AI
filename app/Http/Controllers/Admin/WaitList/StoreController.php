@@ -23,9 +23,8 @@ class StoreController extends Controller
             'company_name'        => $customer->company_name,
             'phone'               => $customer->phone ?: $customer->company_phone,
             'email'               => $customer->email,
-            'request_type'        => $validated['request_type'],
-            'product_category_id' => $validated['request_type'] === WaitListRequestType::Category->value
-                ? $validated['product_category_id'] : null,
+            'request_type'        => WaitListRequestType::Unified,
+            'product_category_id' => $validated['product_category_id'],
             'store_preference'    => $validated['store_preference'],
             'store_id'            => $validated['store_id'] ?? null,
             // Form submits the reason code; the readable label is what gets stored
@@ -35,11 +34,8 @@ class StoreController extends Controller
             'created_by'          => auth()->id(),
         ]);
 
-        if ($validated['request_type'] === WaitListRequestType::SpecificEquipment->value) {
-            foreach (array_unique($validated['equipment_ids']) as $equipmentId) {
-                $waitList->items()->create(['equipment_id' => $equipmentId]);
-            }
-        }
+        // The selected acceptable products — a snapshot owned by this record
+        $waitList->selectedProducts()->attach(array_unique($validated['product_ids']));
 
         flash('Wait list record created for ' . $waitList->customer_name . '.')->success();
 

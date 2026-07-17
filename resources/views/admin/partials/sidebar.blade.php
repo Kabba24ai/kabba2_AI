@@ -202,7 +202,9 @@
                                     </a>
                                 </li> --}}
 
-                                @if (Route::has('admin.wait-list.index'))
+                                {{-- Same wait_list.view ability that gates the module
+                                     routes and the dashboard opportunities card --}}
+                                @if (Route::has('admin.wait-list.index') && auth()->user()?->can('wait_list.view'))
                                     <li>
                                         <a href="{{ route('admin.wait-list.index') }}"
                                             class="menu-dropdown-item group

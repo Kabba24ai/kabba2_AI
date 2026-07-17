@@ -3,11 +3,16 @@
 namespace App\Http\Requests\Admin\WaitList;
 
 use App\Enums\WaitList\WaitListReason;
-use App\Enums\WaitList\WaitListRequestType;
 use App\Enums\WaitList\WaitListStorePreference;
+use App\Models\ProductManagement\ProductCategoryChild;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Unified wait list creation: one customer, one category, and one or more
+ * selected acceptable products FROM that category. Products from any other
+ * category are rejected server-side regardless of what the form submits.
+ */
 class SaveWaitListRequest extends FormRequest
 {
     public function authorize(): bool
@@ -17,15 +22,13 @@ class SaveWaitListRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        // The optional Choice #2/#3 selects submit blank entries in the
-        // equipment_ids array; drop them so only real picks are validated.
-        if (is_array($this->input('equipment_ids'))) {
+        if (is_array($this->input('product_ids'))) {
             $ids = array_values(array_filter(
-                $this->input('equipment_ids'),
+                $this->input('product_ids'),
                 fn ($id) => $id !== null && $id !== ''
             ));
 
-            $this->merge(['equipment_ids' => $ids !== [] ? $ids : null]);
+            $this->merge(['product_ids' => $ids !== [] ? $ids : null]);
         }
     }
 
@@ -34,17 +37,10 @@ class SaveWaitListRequest extends FormRequest
         return [
             // Structured system data only — no free-form customer/equipment entry
             'customer_id'         => ['required', 'exists:customers,id'],
-            'request_type'        => ['required', Rule::enum(WaitListRequestType::class)],
-            'product_category_id' => [
-                Rule::requiredIf(fn () => $this->input('request_type') === WaitListRequestType::Category->value),
-                'nullable', 'exists:product_categories,id',
-            ],
-            // One record = one need; up to three candidate units, no quantities
-            'equipment_ids'       => [
-                Rule::requiredIf(fn () => $this->input('request_type') === WaitListRequestType::SpecificEquipment->value),
-                'nullable', 'array', 'min:1', 'max:3',
-            ],
-            'equipment_ids.*'     => ['integer', 'distinct', 'exists:equipment,id'],
+            'product_category_id' => ['required', 'exists:product_categories,id'],
+            // The selected acceptable products — at least one, no upper limit
+            'product_ids'         => ['required', 'array', 'min:1'],
+            'product_ids.*'       => ['integer', 'distinct', 'exists:products,id'],
             'store_preference'    => ['required', Rule::enum(WaitListStorePreference::class)],
             'store_id'            => [
                 Rule::requiredIf(fn () => in_array($this->input('store_preference'), [
@@ -61,12 +57,38 @@ class SaveWaitListRequest extends FormRequest
         ];
     }
 
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $categoryId = $this->input('product_category_id');
+            $productIds = (array) $this->input('product_ids', []);
+
+            if (! $categoryId || $productIds === []) {
+                return;
+            }
+
+            $inCategory = ProductCategoryChild::query()
+                ->where('product_category_id', $categoryId)
+                ->whereIn('product_id', $productIds)
+                ->distinct()
+                ->pluck('product_id')
+                ->all();
+
+            if (count($inCategory) !== count(array_unique($productIds))) {
+                $validator->errors()->add(
+                    'product_ids',
+                    'One or more selected products do not belong to the selected category.',
+                );
+            }
+        });
+    }
+
     public function messages(): array
     {
         return [
-            'equipment_ids.max'      => 'A wait list record may reference at most three equipment units.',
-            'equipment_ids.required' => 'Select at least one equipment unit for a specific-equipment wait list.',
-            'product_category_id.required' => 'Select a category for a category wait list.',
+            'product_ids.required'          => 'Select at least one acceptable equipment product.',
+            'product_ids.min'               => 'Select at least one acceptable equipment product.',
+            'product_category_id.required'  => 'Select an equipment category.',
         ];
     }
 }

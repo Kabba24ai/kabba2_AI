@@ -107,6 +107,20 @@
                         </div>
                     @endif
                 </dl>
+                @if ($waitList->selectedProducts->isNotEmpty())
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                            Acceptable Products ({{ $waitList->selectedProducts->count() }})
+                        </p>
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach ($waitList->selectedProducts as $product)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                    {{ $product->product_name }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
                 <div class="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
                     <div>
                         <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Reason</p>
@@ -193,6 +207,18 @@
 
         {{-- Right column: manual dispositions --}}
         <div class="space-y-6">
+            @if ($isOpen && $waitList->isAcceptedAwaitingConversion())
+                <div class="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4">
+                    <p class="text-sm font-semibold text-emerald-800 flex items-center gap-2">
+                        <x-heroicon-o-check-circle class="w-5 h-5" />
+                        Accepted — Awaiting Conversion
+                    </p>
+                    <p class="text-xs text-emerald-700 mt-1">
+                        The customer said yes, but the rental is not secured until the order is created
+                        and linked below. This record stays in the active queue until then.
+                    </p>
+                </div>
+            @endif
             @if ($isOpen)
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                     <h2 class="text-sm font-semibold text-gray-800 mb-3">Convert to Rental</h2>

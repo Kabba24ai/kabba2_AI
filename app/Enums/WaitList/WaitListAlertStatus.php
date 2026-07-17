@@ -11,9 +11,9 @@ enum WaitListAlertStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Unacknowledged => 'Needs Attention',
-            self::Acknowledged   => 'Acknowledged',
-            self::Dismissed      => 'Dismissed',
+            self::Unacknowledged => 'Contact Needed',
+            self::Acknowledged   => 'In Progress',
+            self::Dismissed      => 'Resolved',
         };
     }
 

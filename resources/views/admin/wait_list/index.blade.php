@@ -31,12 +31,13 @@
             default => 'border-gray-300 text-gray-500 bg-gray-50',
         };
         $thumbUrl = function ($waitList) {
-            if ($waitList->request_type === \App\Enums\WaitList\WaitListRequestType::Category) {
+            // Unified and legacy category records: the category image
+            if ($waitList->request_type !== \App\Enums\WaitList\WaitListRequestType::SpecificEquipment) {
                 return $waitList->category?->media?->getUrl();
             }
 
-            // Specific equipment: the unit's own photo, else the product image
-            // of the first equipment choice on the list
+            // Legacy specific equipment: the unit's own photo, else the
+            // product image of the first equipment choice on the list
             $equipment = $waitList->items->first()?->equipment;
 
             return $equipment?->documentImages?->first()?->media?->getUrl()
@@ -115,11 +116,11 @@
         </div>
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-start justify-between">
             <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase">Top Equipment</p>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Top Products</p>
                 @forelse ($topEquipment as $row)
                     <p class="text-xs text-gray-600 mt-1">{{ $row->equipment_name }} <span class="font-semibold">({{ $row->demand }})</span></p>
                 @empty
-                    <p class="text-xs text-gray-300 italic mt-1">No specific-equipment demand</p>
+                    <p class="text-xs text-gray-300 italic mt-1">No product demand</p>
                 @endforelse
             </div>
             <span class="p-2 rounded-full bg-orange-50 text-orange-600"><x-heroicon-o-truck class="w-5 h-5" /></span>
@@ -255,8 +256,13 @@
                         @endif
 
                         <div class="p-4 pb-3 grow">
-                            <div class="flex items-center justify-end gap-2 mb-2">
+                            <div class="flex flex-wrap items-center justify-end gap-2 mb-2">
                                 <span class="text-xs text-gray-400">Waiting {{ $waitList->age_days }}d</span>
+                                @if ($waitList->isAcceptedAwaitingConversion())
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">
+                                        Accepted — Awaiting Conversion
+                                    </span>
+                                @endif
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $waitList->status->color() }}">
                                     {{ $waitList->status->label() }}
                                 </span>
@@ -401,6 +407,11 @@
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $waitList->status->color() }}">
                                         {{ $waitList->status->label() }}
                                     </span>
+                                    @if ($waitList->isAcceptedAwaitingConversion())
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700 mt-1">
+                                            Accepted — Awaiting Conversion
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="py-2.5 text-right whitespace-nowrap">
                                     <a href="{{ route('admin.wait-list.show', $waitList) }}" class="inline-flex p-1 text-sky-600 hover:text-sky-800" title="View">

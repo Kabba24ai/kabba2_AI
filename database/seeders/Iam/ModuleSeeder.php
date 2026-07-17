@@ -125,6 +125,23 @@ class ModuleSeeder extends Seeder
                 ],
             ],
             // Resolution Center [End]
+
+            // Wait List [Start] — module access gates the admin pages AND the
+            // dashboard Wait List Opportunities card (one ability, one truth)
+            [
+                'module_category_name' => 'Wait List',
+                'modules' => [
+                    [
+                        'module_name' => 'wait_list',
+                        'module_title' => 'Equipment Wait List',
+                        'model_name' => 'EquipmentWaitList',
+                        'permission_names' => [
+                            'view' => 'View Wait List',
+                        ],
+                    ],
+                ],
+            ],
+            // Wait List [End]
         ];
     }
 

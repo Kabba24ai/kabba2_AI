@@ -16,10 +16,22 @@
             <livewire:dashboard.schedule-section />
         </div>
 
-        <!-- Section 2: Task Manager Alerts -->
-        <div class="mb-6">
-             @include('admin.dashboard.partials._alerts_activities')
-        </div>
+        {{-- Section 2: Task Manager Alerts (2/3) + Wait List Opportunities (1/3).
+             Restricted users don't get the wait list card at all — Task
+             Manager takes the full row (the component enforces the same
+             wait_list.view gate server-side on every refresh regardless). --}}
+        @can('wait_list.view')
+            <div class="mb-6 grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
+                <div class="xl:col-span-2">
+                    @include('admin.dashboard.partials._alerts_activities')
+                </div>
+                <livewire:dashboard.wait-list-opportunities />
+            </div>
+        @else
+            <div class="mb-6">
+                @include('admin.dashboard.partials._alerts_activities')
+            </div>
+        @endcan
 
         <!-- Section 3: Charge Alerts -->
         <div class="mb-6">

@@ -11,7 +11,7 @@ class ShowController extends Controller
     public function __invoke(EquipmentWaitList $waitList)
     {
         $waitList->load([
-            'customer', 'category', 'store', 'items.equipment', 'convertedOrder',
+            'customer', 'category', 'store', 'items.equipment', 'selectedProducts', 'convertedOrder',
             'createdBy', 'cancelledBy',
             'communications.user', 'alerts.equipment', 'alerts.acknowledgedBy',
         ]);

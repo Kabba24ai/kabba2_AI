@@ -24,8 +24,11 @@ class IndexController extends Controller
         $statuses = $this->requestedStatuses($request);
 
         $waitLists = EquipmentWaitList::query()
-            ->with(['customer', 'category.media', 'store', 'items.equipment.documentImages.media', 'items.equipment.assignedProduct.media', 'convertedOrder'])
+            ->with(['customer', 'category.media', 'store', 'selectedProducts:products.id,product_name',
+                'items.equipment.documentImages.media', 'items.equipment.assignedProduct.media', 'convertedOrder'])
             ->withCount(['alerts as open_alerts_count' => fn ($q) => $q->open()])
+            ->withExists(['alerts as has_accepted_alert' => fn ($q) => $q
+                ->where('disposition', \App\Enums\WaitList\WaitListAlertDisposition::CustomerAccepted->value)])
             ->when($statuses !== null, fn ($q) => $q->whereIn('status', $statuses))
             ->when($request->filled('category_id'), fn ($q) => $q->where('product_category_id', $request->integer('category_id')))
             ->when($request->filled('equipment_id'), fn ($q) => $q->whereHas('items',
@@ -66,24 +69,29 @@ class IndexController extends Controller
             ->orderByDesc('demand')->limit(3)
             ->with('category:id,title')->get();
 
-        $topEquipment = DB::table('equipment_wait_list_items')
-            ->join('equipment_wait_lists', 'equipment_wait_lists.id', '=', 'equipment_wait_list_items.equipment_wait_list_id')
-            ->join('equipment', 'equipment.id', '=', 'equipment_wait_list_items.equipment_id')
+        // Most requested acceptable PRODUCTS across live demand (unified
+        // workflow; migrated legacy records carry product rows too)
+        $topEquipment = DB::table('equipment_wait_list_products')
+            ->join('equipment_wait_lists', 'equipment_wait_lists.id', '=', 'equipment_wait_list_products.equipment_wait_list_id')
+            ->join('products', 'products.id', '=', 'equipment_wait_list_products.product_id')
             ->whereIn('equipment_wait_lists.status', WaitListStatus::waiting())
-            ->select('equipment.id', 'equipment.equipment_name', DB::raw('COUNT(*) as demand'))
-            ->groupBy('equipment.id', 'equipment.equipment_name')
+            ->select('products.id', 'products.product_name as equipment_name', DB::raw('COUNT(*) as demand'))
+            ->groupBy('products.id', 'products.product_name')
             ->orderByDesc('demand')->limit(3)->get();
 
         $converted30 = EquipmentWaitList::where('status', WaitListStatus::Converted->value)
             ->where('converted_at', '>=', now()->subDays(30))->count();
         $created30 = EquipmentWaitList::where('created_at', '>=', now()->subDays(30))->count();
 
+        // Counts come from the canonical WaitListStats service — the future
+        // dashboard must use the same source, never raw alert rows.
         $stats = [
-            'waiting'         => EquipmentWaitList::waiting()->count(),
+            'waiting'         => \App\Services\WaitList\WaitListStats::activeWaitingRecords(),
             'oldest'          => EquipmentWaitList::waiting()->orderBy('created_at')->first(),
             'converted_30'    => $converted30,
             'conversion_rate' => $created30 > 0 ? (int) round($converted30 / $created30 * 100) : null,
-            'open_alerts'     => EquipmentWaitListAlert::open()->count(),
+            'open_alerts'     => \App\Services\WaitList\WaitListStats::openMatchAlerts(),
+            'contact_opportunities' => \App\Services\WaitList\WaitListStats::contactOpportunities(),
         ];
 
         // Filter dropdown sources

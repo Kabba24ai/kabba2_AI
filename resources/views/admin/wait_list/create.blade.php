@@ -12,18 +12,10 @@
 
     @php
         use App\Enums\WaitList\WaitListReason;
-        use App\Enums\WaitList\WaitListRequestType;
         use App\Enums\WaitList\WaitListStorePreference;
         $inputClass = 'w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm bg-white focus:ring focus:border-blue-400 outline-none disabled:bg-gray-50 disabled:text-gray-400';
         $labelClass = 'block text-sm font-medium text-gray-700 mb-1';
         $helpClass  = 'text-xs text-gray-400 mt-1';
-        // Flat equipment list for the client-side category filter (search aid only —
-        // matching still runs against the submitted equipment IDs, never the filter)
-        $equipmentOptions = $equipment->map(fn ($unit) => [
-            'id'          => $unit->id,
-            'label'       => $unit->equipment_name . ($unit->equipment_id ? ' (' . $unit->equipment_id . ')' : ''),
-            'category_id' => $unit->product_category_id,
-        ])->values();
     @endphp
 
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
@@ -31,7 +23,7 @@
             <div>
                 <h1 class="text-2xl font-semibold text-gray-900">New Wait List Record</h1>
                 <p class="text-sm text-gray-500 mt-1">
-                    One record = one equipment need. If a customer needs three machines, create three records.
+                    One record = one customer need in one category. Check every equipment product the customer would accept.
                 </p>
             </div>
             <a href="{{ route('admin.wait-list.index') }}"
@@ -41,11 +33,11 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('admin.wait-list.store') }}">
+    <form method="POST" action="{{ route('admin.wait-list.store') }}" id="wl-form">
         @csrf
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6 space-y-5">
 
-            {{-- Row 1: customer / request type / priority / reserved --}}
+            {{-- Row 1: customer / category / priority / store preference --}}
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
                 <div>
                     <label class="{{ $labelClass }} required">CRM Customer</label>
@@ -64,13 +56,15 @@
                 </div>
 
                 <div>
-                    <label class="{{ $labelClass }} required">Equipment Request</label>
-                    <select name="request_type" id="wl-request-type" required class="{{ $inputClass }}">
-                        @foreach (WaitListRequestType::cases() as $type)
-                            <option value="{{ $type->value }}" @selected(old('request_type', 'category') === $type->value)>{{ $type->label() }}</option>
+                    <label class="{{ $labelClass }} required">Equipment Category</label>
+                    <select name="product_category_id" id="wl-category" required class="{{ $inputClass }}">
+                        <option value="">— Select category —</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" @selected(old('product_category_id') == $category->id)>{{ $category->title }}</option>
                         @endforeach
                     </select>
-                    <p class="{{ $helpClass }}">Select the type of equipment request.</p>
+                    <p class="{{ $helpClass }}">One category per wait list record.</p>
+                    @error('product_category_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
@@ -85,149 +79,72 @@
                     @error('priority_override')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                <div class="hidden xl:flex items-center justify-center border-l border-gray-100 text-gray-300 select-none" aria-hidden="true">—</div>
-            </div>
-
-            {{-- Category Wait List section --}}
-            <div id="wl-section-category" class="rounded-lg border border-blue-100 overflow-hidden transition-opacity">
-                <div class="flex items-center gap-2 px-4 py-2.5 bg-blue-50 border-b border-blue-100">
-                    <x-heroicon-o-table-cells class="w-4 h-4 text-blue-600" />
-                    <span class="text-sm font-semibold text-gray-800">If Category Wait List</span>
-                </div>
-                <div class="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-                    <div>
-                        <label class="{{ $labelClass }} required">Equipment Category</label>
-                        <select name="product_category_id" class="{{ $inputClass }}">
-                            <option value="">— Select category —</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}" @selected(old('product_category_id') == $category->id)>{{ $category->title }}</option>
-                            @endforeach
-                        </select>
-                        <p class="{{ $helpClass }}">Select the equipment category requested.</p>
-                        @error('product_category_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div>
-                        <label class="{{ $labelClass }} required">Store Preference</label>
-                        <select name="store_preference" data-store="#wl-cat-store" class="wl-store-pref {{ $inputClass }}">
-                            @foreach (WaitListStorePreference::cases() as $preference)
-                                <option value="{{ $preference->value }}" @selected(old('store_preference', 'any_store') === $preference->value)>{{ $preference->label() }}</option>
-                            @endforeach
-                        </select>
-                        <p class="{{ $helpClass }}">Where customer prefers to pick up.</p>
-                    </div>
-
-                    <div>
-                        <label class="{{ $labelClass }}">Store (if not Any Store)</label>
-                        <select name="store_id" id="wl-cat-store" class="{{ $inputClass }}">
-                            <option value="">— Select store —</option>
-                            @foreach ($stores as $store)
-                                <option value="{{ $store->id }}" @selected(old('store_id') == $store->id)>{{ $store->store_name }}</option>
-                            @endforeach
-                        </select>
-                        <p class="{{ $helpClass }}">Required when not Any Store.</p>
-                        @error('store_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div>
-                        <label class="{{ $labelClass }} required">Reason</label>
-                        <select name="reason" class="{{ $inputClass }}">
-                            <option value="">— Select reason —</option>
-                            @foreach (WaitListReason::options() as $value => $label)
-                                <option value="{{ $value }}" @selected(old('reason') === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        <p class="{{ $helpClass }}">Why the customer is being added to the wait list.</p>
-                        @error('reason')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                    </div>
+                <div>
+                    <label class="{{ $labelClass }} required">Store Preference</label>
+                    <select name="store_preference" id="wl-store-pref" class="{{ $inputClass }}">
+                        @foreach (WaitListStorePreference::cases() as $preference)
+                            <option value="{{ $preference->value }}" @selected(old('store_preference', 'any_store') === $preference->value)>{{ $preference->label() }}</option>
+                        @endforeach
+                    </select>
+                    <p class="{{ $helpClass }}">Where the customer prefers to pick up.</p>
+                    @error('store_preference')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                 </div>
             </div>
 
-            {{-- OR divider --}}
-            <div class="relative" aria-hidden="true">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-dashed border-gray-200"></div></div>
-                <div class="relative flex justify-center">
-                    <span class="bg-white px-3 py-0.5 rounded-full border border-gray-200 text-xs font-semibold text-gray-500">OR</span>
+            {{-- Row 2: store (when named) / reason --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                <div>
+                    <label class="{{ $labelClass }}">Store (if not Any Store)</label>
+                    <select name="store_id" id="wl-store" class="{{ $inputClass }}">
+                        <option value="">— Select store —</option>
+                        @foreach ($stores as $store)
+                            <option value="{{ $store->id }}" @selected(old('store_id') == $store->id)>{{ $store->store_name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="{{ $helpClass }}">Required when not Any Store.</p>
+                    @error('store_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label class="{{ $labelClass }} required">Reason</label>
+                    <select name="reason" required class="{{ $inputClass }}">
+                        <option value="">— Select reason —</option>
+                        @foreach (WaitListReason::options() as $value => $label)
+                            <option value="{{ $value }}" @selected(old('reason') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <p class="{{ $helpClass }}">Why the customer is being added to the wait list.</p>
+                    @error('reason')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                 </div>
             </div>
 
-            {{-- Specific Equipment Wait List section --}}
-            <div id="wl-section-specific" class="rounded-lg border border-green-100 overflow-hidden transition-opacity">
-                <div class="flex items-center gap-2 px-4 py-2.5 bg-green-50 border-b border-green-100">
-                    <x-heroicon-o-truck class="w-4 h-4 text-green-600" />
-                    <span class="text-sm font-semibold text-gray-800">If Specific Equipment Wait List</span>
-                </div>
-                <div class="p-4 space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-                        <div>
-                            <label class="{{ $labelClass }} required">Equipment Category Filter</label>
-                            <select name="equipment_category_filter" id="wl-eq-filter" class="{{ $inputClass }}">
-                                <option value="">— Select category first —</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}" @selected(old('equipment_category_filter') == $category->id)>{{ $category->title }}</option>
-                                @endforeach
-                            </select>
-                            <p class="{{ $helpClass }}">Select a category to filter equipment.</p>
-                        </div>
-
-                        @for ($i = 0; $i < 3; $i++)
-                            <div>
-                                <label class="{{ $labelClass }} {{ $i === 0 ? 'required' : '' }}">Choice #{{ $i + 1 }}{{ $i > 0 ? ' (Optional)' : '' }}</label>
-                                <select name="equipment_ids[]" data-old="{{ old("equipment_ids.$i") }}"
-                                    class="wl-choice {{ $inputClass }}" disabled>
-                                    <option value="">{{ $i === 0 ? '— Select equipment —' : '— Optional —' }}</option>
-                                </select>
-                                <p class="{{ $helpClass }}">{{ $i === 0 ? 'Required.' : 'Optional alternative.' }}</p>
-                                @if ($i === 0)
-                                    @error('equipment_ids')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                                    @error('equipment_ids.*')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                                @endif
-                            </div>
-                        @endfor
+            {{-- Acceptable equipment products checklist --}}
+            <div id="wl-products-card" class="rounded-lg border border-gray-200 overflow-hidden">
+                <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                    <div class="flex items-center gap-2">
+                        <x-heroicon-o-truck class="w-4 h-4 text-blue-600" />
+                        <span class="text-sm font-semibold text-gray-800">Acceptable Equipment Products</span>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-                        <div>
-                            <label class="{{ $labelClass }} required">Store Preference</label>
-                            <select name="store_preference" data-store="#wl-sp-store" class="wl-store-pref {{ $inputClass }}">
-                                @foreach (WaitListStorePreference::cases() as $preference)
-                                    <option value="{{ $preference->value }}" @selected(old('store_preference', 'any_store') === $preference->value)>{{ $preference->label() }}</option>
-                                @endforeach
-                            </select>
-                            <p class="{{ $helpClass }}">Where customer prefers to pick up.</p>
-                        </div>
-
-                        <div>
-                            <label class="{{ $labelClass }}">Store (if not Any Store)</label>
-                            <select name="store_id" id="wl-sp-store" class="{{ $inputClass }}">
-                                <option value="">— Select store —</option>
-                                @foreach ($stores as $store)
-                                    <option value="{{ $store->id }}" @selected(old('store_id') == $store->id)>{{ $store->store_name }}</option>
-                                @endforeach
-                            </select>
-                            <p class="{{ $helpClass }}">Required when not Any Store.</p>
-                        </div>
-
-                        <div>
-                            <label class="{{ $labelClass }} required">Reason</label>
-                            <select name="reason" class="{{ $inputClass }}">
-                                <option value="">— Select reason —</option>
-                                @foreach (WaitListReason::options() as $value => $label)
-                                    <option value="{{ $value }}" @selected(old('reason') === $value)>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            <p class="{{ $helpClass }}">Why the customer is being added to the wait list.</p>
-                        </div>
-
-                        <div class="hidden xl:flex items-center justify-center border-l border-gray-100 text-gray-300 select-none" aria-hidden="true">—</div>
+                    <div class="flex items-center gap-4">
+                        <span id="wl-product-count" class="text-xs font-medium text-gray-500"></span>
+                        <label id="wl-select-all-wrap" class="hidden items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="checkbox" id="wl-select-all" class="rounded border-gray-300">
+                            Select All
+                        </label>
                     </div>
                 </div>
+                <div id="wl-products" class="p-4">
+                    <p class="text-sm text-gray-400 italic">Select an equipment category above to load its products.</p>
+                </div>
+                <p id="wl-products-error" class="hidden px-4 pb-3 text-sm text-red-600">Select at least one acceptable equipment product.</p>
+                @error('product_ids')<p class="px-4 pb-3 text-sm text-red-600">{{ $message }}</p>@enderror
+                @error('product_ids.*')<p class="px-4 pb-3 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
 
             {{-- Internal Notes --}}
             <div>
                 <label class="{{ $labelClass }}">Internal Notes</label>
-                <textarea name="internal_notes" rows="4"
+                <textarea name="internal_notes" rows="3"
                     placeholder="Special requests, preferred equipment, transportation details, callback information, customer comments, or other internal notes."
                     class="{{ $inputClass }}">{{ old('internal_notes') }}</textarea>
                 <p class="{{ $helpClass }}">Any additional details or context about this wait list.</p>
@@ -252,70 +169,122 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const typeSelect    = document.getElementById('wl-request-type');
-    const filter        = document.getElementById('wl-eq-filter');
-    const choiceSelects = Array.from(document.querySelectorAll('.wl-choice'));
-    const sections = {
-        category: document.getElementById('wl-section-category'),
-        specific: document.getElementById('wl-section-specific'),
-    };
+    // Rental products with their category memberships. The employee selects
+    // acceptable PRODUCT TYPES — individual inventory units are evaluated
+    // later, when a return triggers matching.
+    const PRODUCTS = @json($productOptions);
+    const OLD_SELECTED = @json(collect(old('product_ids', []))->map(fn ($id) => (string) $id));
 
-    const EQUIPMENT = @json($equipmentOptions);
+    const categorySelect = document.getElementById('wl-category');
+    const container      = document.getElementById('wl-products');
+    const countEl        = document.getElementById('wl-product-count');
+    const selectAll      = document.getElementById('wl-select-all');
+    const selectAllWrap  = document.getElementById('wl-select-all-wrap');
+    const errorEl        = document.getElementById('wl-products-error');
 
-    // Rebuild the three choice dropdowns from the selected filter category.
-    // Selections that don't belong to the new category simply find no matching
-    // option and fall back to the placeholder (i.e. they are cleared).
-    function populateChoices() {
-        const catId = filter.value;
-        choiceSelects.forEach(function (sel, i) {
-            const keep = sel.value || sel.dataset.old || '';
-            sel.dataset.old = '';
-            sel.innerHTML = '';
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = i === 0 ? '— Select equipment —' : '— Optional —';
-            sel.appendChild(placeholder);
-            if (!catId) return;
-            EQUIPMENT.filter(u => String(u.category_id) === catId).forEach(function (u) {
-                const option = document.createElement('option');
-                option.value = u.id;
-                option.textContent = u.label;
-                if (String(u.id) === String(keep)) option.selected = true;
-                sel.appendChild(option);
-            });
-        });
+    function productCheckboxes() {
+        return Array.from(container.querySelectorAll('input[name="product_ids[]"]'));
     }
 
-    // Both sections stay rendered (no jumping); the inactive one is dimmed and
-    // its inputs disabled so only the active section's fields submit.
-    function setSection(el, active) {
-        el.classList.toggle('opacity-50', !active);
-        el.querySelectorAll('select, input, textarea').forEach(f => f.disabled = !active);
+    function refreshState() {
+        const boxes = productCheckboxes();
+        const checked = boxes.filter(b => b.checked).length;
+
+        countEl.textContent = boxes.length
+            ? checked + ' of ' + boxes.length + ' equipment options selected'
+            : '';
+
+        selectAll.checked = boxes.length > 0 && checked === boxes.length;
+        selectAll.indeterminate = checked > 0 && checked < boxes.length;
+
+        if (checked > 0) errorEl.classList.add('hidden');
     }
 
-    function sync() {
-        const specificMode = typeSelect.value === 'specific_equipment';
-        setSection(sections.category, !specificMode);
-        setSection(sections.specific, specificMode);
+    // Changing category clears prior selections and loads that category's
+    // products, alphabetically. Products from other categories never render.
+    function renderProducts(preselect) {
+        const catId = categorySelect.value;
+        container.innerHTML = '';
 
-        // Choice dropdowns stay locked until a filter category is chosen
-        if (specificMode) {
-            choiceSelects.forEach(sel => sel.disabled = !filter.value);
+        if (!catId) {
+            container.innerHTML = '<p class="text-sm text-gray-400 italic">Select an equipment category above to load its products.</p>';
+            selectAllWrap.classList.add('hidden');
+            selectAllWrap.classList.remove('inline-flex');
+            refreshState();
+            return;
         }
 
-        // Store selector only applies when the preference names a store
-        document.querySelectorAll('.wl-store-pref').forEach(function (pref) {
-            const store = document.querySelector(pref.dataset.store);
-            if (!pref.disabled) store.disabled = pref.value === 'any_store';
+        const products = PRODUCTS
+            .filter(p => p.category_ids.map(String).includes(String(catId)))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (!products.length) {
+            container.innerHTML = '<p class="text-sm text-gray-400 italic">No rental products found in this category.</p>';
+            selectAllWrap.classList.add('hidden');
+            selectAllWrap.classList.remove('inline-flex');
+            refreshState();
+            return;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2';
+
+        products.forEach(function (product) {
+            const label = document.createElement('label');
+            label.className = 'flex items-center gap-2.5 text-sm text-gray-700 rounded-md px-2 py-1.5 hover:bg-gray-50 cursor-pointer';
+
+            const box = document.createElement('input');
+            box.type = 'checkbox';
+            box.name = 'product_ids[]';
+            box.value = product.id;
+            box.className = 'rounded border-gray-300';
+            box.checked = (preselect || []).includes(String(product.id));
+            box.addEventListener('change', refreshState);
+
+            const text = document.createElement('span');
+            text.textContent = product.name;
+
+            label.appendChild(box);
+            label.appendChild(text);
+            grid.appendChild(label);
         });
+
+        container.appendChild(grid);
+        selectAllWrap.classList.remove('hidden');
+        selectAllWrap.classList.add('inline-flex');
+        refreshState();
     }
 
-    populateChoices();
-    sync();
+    selectAll.addEventListener('change', function () {
+        productCheckboxes().forEach(b => b.checked = selectAll.checked);
+        refreshState();
+    });
 
-    typeSelect.addEventListener('change', sync);
-    filter.addEventListener('change', function () { populateChoices(); sync(); });
-    document.querySelectorAll('.wl-store-pref').forEach(p => p.addEventListener('change', sync));
+    categorySelect.addEventListener('change', function () {
+        renderProducts([]); // stale selections never survive a category change
+    });
+
+    // At least one acceptable product before the record can be saved
+    document.getElementById('wl-form').addEventListener('submit', function (e) {
+        if (!productCheckboxes().some(b => b.checked)) {
+            e.preventDefault();
+            errorEl.classList.remove('hidden');
+            document.getElementById('wl-products-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
+    // Store selector only applies when the preference names a store
+    const storePref = document.getElementById('wl-store-pref');
+    const storeSelect = document.getElementById('wl-store');
+    function syncStore() {
+        storeSelect.disabled = storePref.value === 'any_store';
+        if (storeSelect.disabled) storeSelect.value = '';
+    }
+    storePref.addEventListener('change', syncStore);
+    syncStore();
+
+    // Restore state after a validation round-trip
+    renderProducts(OLD_SELECTED);
 
     // Searchable CRM customer selector — search box opens with the dropdown,
     // filtering across name / company / phone in the option label.

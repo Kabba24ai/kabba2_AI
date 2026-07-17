@@ -1,7 +1,8 @@
 {{--
-    Wait List banner — include with an $equipment model (checks exact-ID
-    demand AND its category) or a $categoryId (category demand only).
-    Renders nothing when no active demand exists.
+    Wait List banner — include with an $equipment model (checks demand for
+    the unit's product, plus legacy exact-ID/category demand) or a
+    $categoryId (category demand only). Renders nothing when no active
+    demand exists.
 --}}
 @php
     use App\Enums\WaitList\WaitListRequestType;
@@ -13,15 +14,28 @@
     $waitListDemand = EquipmentWaitList::waiting()
         ->where(function ($q) use ($bannerEquipment, $bannerCategoryId) {
             $applied = false;
+            if ($bannerEquipment?->assigned_product_id) {
+                // Unified workflow: the unit's product is a selected acceptable product
+                $q->orWhereHas('selectedProducts',
+                    fn ($p) => $p->where('products.id', $bannerEquipment->assigned_product_id));
+                $applied = true;
+            }
             if ($bannerEquipment) {
+                // Legacy specific-equipment records (un-migrated fallback)
                 $q->orWhere(fn ($w) => $w
                     ->where('request_type', WaitListRequestType::SpecificEquipment->value)
+                    ->whereDoesntHave('selectedProducts')
                     ->whereHas('items', fn ($i) => $i->where('equipment_id', $bannerEquipment->id)));
                 $applied = true;
             }
             if ($bannerCategoryId) {
+                // Category-level demand: unified records live in one category;
+                // legacy category records match by category alone
                 $q->orWhere(fn ($w) => $w
-                    ->where('request_type', WaitListRequestType::Category->value)
+                    ->whereIn('request_type', [
+                        WaitListRequestType::Unified->value,
+                        WaitListRequestType::Category->value,
+                    ])
                     ->where('product_category_id', $bannerCategoryId));
                 $applied = true;
             }

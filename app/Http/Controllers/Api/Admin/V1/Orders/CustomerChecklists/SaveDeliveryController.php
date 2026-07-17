@@ -81,6 +81,28 @@ class SaveDeliveryController extends BaseController
                 );
             }
 
+            // BUG-4 fix: reject a duplicate delivery submission for the CURRENT cycle
+            // before any destructive action below (checklist question/answer rebuild,
+            // media upload, equipment assignment/status change). is_delivered=true with
+            // is_returned=false means this order product has an active, still-open
+            // delivery on record: nothing has closed that cycle yet — a genuine return
+            // always sets is_returned=true (SaveReturnController), and a checklist
+            // removal always sets is_delivered=false (RemoveController) — so any further
+            // delivery submission while both hold is necessarily a resubmission of the
+            // SAME cycle, not a legitimate new one, regardless of what changed the
+            // equipment's own current_status in the meantime. Mirrors
+            // SaveReturnController's own already-submitted guard (409, same translation
+            // key). See docs/checklist-system-audit/P3_10_BUG4_DUPLICATE_DELIVERY_GUARD.md.
+            if ($orderProduct->is_delivered && !$orderProduct->is_returned) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => trans('messages.api.admin.v1.orders.checklist_already_exists'),
+                    ],
+                    JsonResponse::HTTP_CONFLICT,
+                );
+            }
+
             if(isset($validated['checklist']) && !empty($validated['checklist'])) {
                 $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)->map->question->values() ?? collect();
 

@@ -274,9 +274,14 @@ class SaveDeliveryControllerCharacterizationTest extends TestCase
 
         // Simulate the prior-cycle end state BUG-2's own description depends on: equipment
         // left 'damaged' (e.g. by a prior return), while the order product is otherwise
-        // ready for a fresh delivery of the SAME equipment.
+        // ready for a fresh delivery of the SAME equipment. is_returned=true is set
+        // alongside it (exactly as SaveReturnController would on a genuine return) so
+        // P3-10's BUG-4 duplicate-submission guard recognizes this as a legitimate new
+        // cycle rather than a same-cycle resubmission — see
+        // docs/checklist-system-audit/P3_10_BUG4_DUPLICATE_DELIVERY_GUARD.md.
         $equipment->current_status = 'damaged';
         $equipment->saveQuietly();
+        $orderProduct->update(['is_returned' => true]);
         $logCountBeforeRedelivery = EquipmentStatusLog::where('equipment_id', $equipment->id)->count();
 
         // Second delivery, same equipment_unique_id — equipment_id already matches and
@@ -327,6 +332,8 @@ class SaveDeliveryControllerCharacterizationTest extends TestCase
         $equipment->refresh();
         $equipment->current_status = 'maintenance';
         $equipment->saveQuietly();
+        // is_returned=true marks this as a legitimate new cycle for P3-10's BUG-4 guard.
+        $orderProduct->update(['is_returned' => true]);
 
         $this->callAs('POST', 'customer-checklists/save-delivery', [
             'order_product_unique_id' => $orderProduct->unique_id,
@@ -338,13 +345,79 @@ class SaveDeliveryControllerCharacterizationTest extends TestCase
         $this->assertTrue($equipment->current_status->isRented());
     }
 
-    // ── BUG-4 (pre-existing, not fixed by this PR): no guard against a second ──
-    // delivery submission — the checklist snapshot is destructively deleted and
-    // rebuilt every time, silently, with no 409/conflict response. See
-    // PHASE3_IMPLEMENTATION_PLAN.md BUG-4; P3-10's fix should change this exact
-    // assertion (the second call should be guarded, not silently rebuild).
+    // ── BUG-4 (fixed by P3-10): a duplicate delivery submission for the SAME ──
+    // cycle is now rejected with 409 before any destructive action, instead of
+    // silently deleting and rebuilding the checklist snapshot. See
+    // PHASE3_IMPLEMENTATION_PLAN.md BUG-4 and
+    // docs/checklist-system-audit/P3_10_BUG4_DUPLICATE_DELIVERY_GUARD.md.
 
-    public function test_bug4_second_delivery_submission_destructively_rebuilds_checklist_snapshot_with_no_guard(): void
+    public function test_bug4_duplicate_delivery_submission_is_rejected_and_leaves_everything_unchanged(): void
+    {
+        [$equipment, $question, $answer] = $this->makeEquipmentWithTemplate();
+        $orderProduct = $this->makeOrderProduct();
+
+        $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $orderProduct->unique_id,
+            'equipment_unique_id'     => $equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+            'signature_media'         => UploadedFile::fake()->image('signature.jpg'),
+            'checklist' => [
+                ['question_unique_id' => $question->unique_id, 'answer_unique_id' => $answer->unique_id],
+            ],
+        ])->assertOk();
+
+        $orderProduct->refresh();
+        $equipment->refresh();
+
+        $firstBatchQuestionIds = $orderProduct->checklistQuestions()->pluck('id')->toArray();
+        $this->assertNotEmpty($firstBatchQuestionIds);
+        $firstSignatureMediaId = $orderProduct->delivery_signature_media_id;
+        $this->assertNotNull($firstSignatureMediaId);
+        $logCountAfterFirstDelivery = EquipmentStatusLog::where('equipment_id', $equipment->id)->count();
+
+        // Some OTHER process changed the equipment's own current_status away from
+        // 'rented' (e.g. an admin correction) WITHOUT this order product ever actually
+        // being returned (is_returned is still false) — this is precisely the
+        // inconsistent-but-reachable state that let BUG-4's destructive rebuild fire
+        // before this fix, since it bypassed the controller's isRented() 409 guard.
+        $equipment->current_status = 'maintenance';
+        $equipment->saveQuietly();
+
+        // Second delivery submission on the same order product, same cycle (is_returned
+        // still false) — now rejected by the new duplicate-submission guard.
+        $response = $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $orderProduct->unique_id,
+            'equipment_unique_id'     => $equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+            'signature_media'         => UploadedFile::fake()->image('signature-2.jpg'),
+            'checklist' => [
+                ['question_unique_id' => $question->unique_id, 'answer_unique_id' => $answer->unique_id],
+            ],
+        ]);
+
+        $response->assertStatus(409)->assertJson(['success' => false]);
+
+        $orderProduct->refresh();
+        $equipment->refresh();
+
+        // Checklist rows: untouched — same ids as the first delivery, nothing deleted
+        // or recreated.
+        $secondBatchQuestionIds = $orderProduct->checklistQuestions()->pluck('id')->toArray();
+        $this->assertEquals($firstBatchQuestionIds, $secondBatchQuestionIds);
+
+        // No replacement media: delivery_signature_media_id is still the first upload.
+        $this->assertEquals($firstSignatureMediaId, $orderProduct->delivery_signature_media_id);
+
+        // No equipment assignment or status-log side effects: still 'maintenance' (the
+        // value forced above), and no new equipment_status_logs row was written.
+        $this->assertTrue($equipment->current_status->isMaintenance());
+        $this->assertEquals(
+            $logCountAfterFirstDelivery,
+            EquipmentStatusLog::where('equipment_id', $equipment->id)->count()
+        );
+    }
+
+    public function test_bug4_legitimate_new_delivery_cycle_after_a_return_is_still_allowed(): void
     {
         [$equipment, $question, $answer] = $this->makeEquipmentWithTemplate();
         $orderProduct = $this->makeOrderProduct();
@@ -359,20 +432,16 @@ class SaveDeliveryControllerCharacterizationTest extends TestCase
         ])->assertOk();
 
         $firstBatchQuestionIds = $orderProduct->checklistQuestions()->pluck('id')->toArray();
-        $this->assertNotEmpty($firstBatchQuestionIds);
 
-        // The first delivery left the equipment 'rented', which would trip the
-        // controller's own isRented() 409 guard on any further delivery call — so this
-        // resubmission scenario is reached the same way BUG-2's is: simulate the
-        // equipment having already cycled out of 'rented' (e.g. a prior return), leaving
-        // it eligible for a fresh delivery call against the SAME already-assigned
-        // equipment/order product pairing.
+        // A genuine return closes the cycle: is_returned=true, exactly as
+        // SaveReturnController would set it, alongside the equipment leaving 'rented'.
         $equipment->current_status = 'maintenance';
         $equipment->saveQuietly();
+        $orderProduct->update(['is_returned' => true]);
 
-        // Second delivery submission on the same order product — no guard exists today
-        // to reject or short-circuit this, unlike SaveReturnController's signature-based
-        // 409 guard (ChecklistAlreadySubmitted).
+        // A new delivery cycle for the same order product/equipment pairing must still
+        // succeed and rebuild the checklist snapshot for the new cycle — the guard must
+        // not block legitimate re-deliveries, only same-cycle duplicates.
         $response = $this->callAs('POST', 'customer-checklists/save-delivery', [
             'order_product_unique_id' => $orderProduct->unique_id,
             'equipment_unique_id'     => $equipment->unique_id,
@@ -384,12 +453,15 @@ class SaveDeliveryControllerCharacterizationTest extends TestCase
 
         $response->assertOk()->assertJson(['success' => true]);
 
-        $secondBatchQuestionIds = $orderProduct->checklistQuestions()->pluck('id')->toArray();
+        $orderProduct->refresh();
+        $equipment->refresh();
 
-        // The old rows were hard-deleted and entirely new rows created — not reused,
-        // not rejected. This is BUG-4's documented destructive-rebuild gap, pinned as-is.
+        $secondBatchQuestionIds = $orderProduct->checklistQuestions()->pluck('id')->toArray();
         $this->assertNotEmpty($secondBatchQuestionIds);
         $this->assertEmpty(array_intersect($firstBatchQuestionIds, $secondBatchQuestionIds));
+        $this->assertTrue((bool) $orderProduct->is_delivered);
+        $this->assertFalse((bool) $orderProduct->is_returned);
+        $this->assertTrue($equipment->current_status->isRented());
     }
 
     // ── Other current, unremarkable-but-load-bearing behavior ───────────────

@@ -167,15 +167,14 @@ class RemoveControllerCharacterizationTest extends TestCase
         ]);
     }
 
-    // ── BUG-5 (pre-existing, not fixed by this PR): the revert data set explicitly
-    // resets is_returned to false, but leaves pickup_status/pickup_by (and every other
-    // pickup_*/damage_status field) completely untouched — after a removal following a
-    // return, the record ends up in a genuinely contradictory state: is_returned=false
-    // alongside pickup_status still reading 'Completed' and pickup_by still populated.
-    // See PHASE3_IMPLEMENTATION_PLAN.md BUG-5; P3-11's fix (pending a product decision)
-    // should change this exact assertion.
+    // ── BUG-5 (fixed by P3-11): the revert data set now clears the pickup/return- ──
+    // side counterparts of every delivery-side field it already reset, so a removal
+    // following a return can no longer leave a contradictory record behind
+    // (is_returned=false alongside a still-'Completed' pickup_status, a still-set
+    // pickup_by, or a stale damage_status). See PHASE3_IMPLEMENTATION_PLAN.md BUG-5
+    // and docs/checklist-system-audit/P3_11_BUG5_RETURN_STATE_RESET.md.
 
-    public function test_bug5_pickup_status_and_pickup_by_are_not_reverted_even_though_is_returned_is(): void
+    public function test_bug5_pickup_status_and_return_metadata_are_reverted_alongside_is_returned(): void
     {
         $equipment = Equipment::create([
             'equipment_name' => 'Test Excavator',
@@ -190,6 +189,9 @@ class RemoveControllerCharacterizationTest extends TestCase
             'pickup_status'   => 'Completed',
             'is_returned'     => true,
             'pickup_by'       => $this->actor->id,
+            'pickup_notes'    => 'Left at the curb',
+            'end_hours'       => '120',
+            'damage_status'   => 'pending',
         ]);
         $orderProduct->checklistQuestions()->create([
             'order_id'      => $this->order->id,
@@ -203,16 +205,105 @@ class RemoveControllerCharacterizationTest extends TestCase
 
         $orderProduct->refresh();
 
-        // Delivery side correctly reverted, and is_returned is explicitly reset...
+        // Delivery side correctly reverted, as before...
         $this->assertEquals('Pending', $orderProduct->delivery_status);
         $this->assertFalse((bool) $orderProduct->is_delivered);
         $this->assertFalse((bool) $orderProduct->is_returned);
-        // ...but pickup_status/pickup_by are left exactly as they were — a removal has
-        // produced a genuinely contradictory state: is_returned=false alongside
-        // pickup_status still reading 'Completed'. This is BUG-5's documented
-        // partial-revert gap, pinned as-is.
-        $this->assertEquals('Completed', $orderProduct->pickup_status);
-        $this->assertEquals($this->actor->id, $orderProduct->pickup_by);
+        // ...and the pickup/return side is now reverted symmetrically: no more
+        // contradictory state after a removal following a return.
+        $this->assertEquals('Pending', $orderProduct->pickup_status);
+        $this->assertNull($orderProduct->pickup_by);
+        $this->assertNull($orderProduct->pickup_notes);
+        $this->assertNull($orderProduct->end_hours);
+        $this->assertNull($orderProduct->damage_status);
+    }
+
+    public function test_bug5_pickup_signature_media_is_reset_and_its_file_deleted(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public_asset');
+
+        $equipment = Equipment::create([
+            'equipment_name' => 'Test Excavator',
+            'equipment_id'   => 'EQP-TEST-' . uniqid(),
+            'brand'          => 'TestBrand',
+            'current_status' => 'maintenance',
+        ]);
+        $orderProduct = $this->makeOrderProduct($equipment->id);
+
+        // A real file on the fake disk, matching what MediaHelper::removeFile() checks
+        // for (`Storage::disk($disk)->exists($filePath)`) before it will delete the row —
+        // a Media row with no backing file would make removeFile() silently no-op.
+        \Illuminate\Support\Facades\Storage::disk('public_asset')->put('orders/schedules/pickup-signature.jpg', 'fake-image-content');
+        $media = \App\Models\Global\Media::create([
+            'asset_type'  => 'Public Asset',
+            'folder_name' => 'orders/schedules',
+            'file_name'   => 'pickup-signature.jpg',
+        ]);
+        $orderProduct->update([
+            'is_returned'                => true,
+            'pickup_status'              => 'Completed',
+            'pickup_signature_media_id'  => $media->id,
+        ]);
+        $orderProduct->checklistQuestions()->create([
+            'order_id'      => $this->order->id,
+            'question_name' => 'Test Question',
+            'index_number'  => 1,
+        ]);
+
+        $this->callAs('POST', 'customer-checklists/remove', [
+            'order_unique_id' => $this->order->unique_id,
+        ])->assertOk()->assertJson(['success' => true]);
+
+        $orderProduct->refresh();
+
+        $this->assertNull($orderProduct->pickup_signature_media_id);
+        $this->assertDatabaseMissing('media', ['id' => $media->id]);
+        \Illuminate\Support\Facades\Storage::disk('public_asset')->assertMissing('orders/schedules/pickup-signature.jpg');
+    }
+
+    // Intentionally NOT reset, matching the pre-existing (curated, not exhaustive)
+    // delivery-side pattern this fix mirrors: delivery_date/delivery_time/
+    // delivery_store_id/fuel_initial_reading were never reset by RemoveController
+    // either, so their pickup-side counterparts (pickup_date/pickup_time/
+    // pickup_store_id/fuel_final_reading/fuel_total_charge/total_charge/
+    // fuel_charge_status) are deliberately left untouched here for consistency —
+    // see the "fields intentionally preserved" section of
+    // docs/checklist-system-audit/P3_11_BUG5_RETURN_STATE_RESET.md.
+    public function test_bug5_fuel_and_scheduling_fields_are_intentionally_preserved(): void
+    {
+        $equipment = Equipment::create([
+            'equipment_name' => 'Test Excavator',
+            'equipment_id'   => 'EQP-TEST-' . uniqid(),
+            'brand'          => 'TestBrand',
+            'current_status' => 'maintenance',
+        ]);
+        $orderProduct = $this->makeOrderProduct($equipment->id);
+        $orderProduct->update([
+            'is_returned'         => true,
+            'pickup_status'       => 'Completed',
+            'pickup_date'         => '2026-07-01',
+            'pickup_time'         => '14:00',
+            'fuel_final_reading'  => '95',
+            'fuel_total_charge'   => '25.00',
+            'total_charge'        => '25.00',
+        ]);
+        $orderProduct->checklistQuestions()->create([
+            'order_id'      => $this->order->id,
+            'question_name' => 'Test Question',
+            'index_number'  => 1,
+        ]);
+
+        $this->callAs('POST', 'customer-checklists/remove', [
+            'order_unique_id' => $this->order->unique_id,
+        ])->assertOk()->assertJson(['success' => true]);
+
+        $orderProduct->refresh();
+
+        $this->assertEquals('2026-07-01', $orderProduct->pickup_date);
+        $this->assertEquals('14:00:00', $orderProduct->pickup_time);
+        $this->assertEquals(95.0, (float) $orderProduct->fuel_final_reading);
+        $this->assertEquals(25.00, (float) $orderProduct->fuel_total_charge);
+        $this->assertEquals(25.00, (float) $orderProduct->total_charge);
     }
 
     // ── BUG-3 (pre-existing, not fixed by this PR): soft-deleting checklist ──

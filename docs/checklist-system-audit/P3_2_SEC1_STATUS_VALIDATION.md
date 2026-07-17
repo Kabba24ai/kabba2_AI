@@ -77,3 +77,36 @@ No migrations, no schema changes, no controller logic changed.
 ## Verdict
 
 **PASS.** SEC-1's enum-validation gap is closed for all four fields, reusing the existing `OrderTermsStatus` enum where available and following the codebase's established `Rule::enum()` convention (mirrored from `DriverChecklistRequest`) for the three new enums. No existing behavior changed for valid or omitted values; only previously-permissive arbitrary strings are now rejected. One unrelated pre-existing bug was discovered and documented, not fixed, per scope. Stopping here — no other Sprint 1 item started.
+
+---
+
+## P3-2A follow-up (2026-07-16) — a real defect that shipped past this PR, and the coverage gap that let it through
+
+**What happened:** the `bodyParameters()` change described above (line 31) called `OrderTermsStatus::getValues()` — but unlike the three enums created fresh for this change (`DriversLicenseStatus`, `VideoInputStatus`, `ChecklistInputStatus`, each deliberately given a `getValues()` method), the *reused* `OrderTermsStatus` enum never had one. This was a genuine `Error: Call to undefined method` in shipped code. It was **not** caught by this PR's own test suite (10/10 passing above), by code review, or by any other test in the repository — it was only discovered when a real invocation of the affected code path failed in actual usage.
+
+**Root cause of the coverage gap:** `bodyParameters()` is a documentation-only method. It is invoked exclusively by Scribe's `scribe:generate` command to produce API docs — never by the real HTTP validation path (`rules()`), and never by any `UpdateDeliveryPickupInputsStatusValidationTest` test, all of which exercise `rules()` only. A method can be completely broken and every functional test still passes, because nothing ever calls it.
+
+**Fix:** added the missing `getValues(): array` method to `App\Enums\Orders\OrderTermsStatus`, matching the convention every other enum in the codebase already follows.
+
+**Coverage added — three independent layers, each confirmed to actually catch this exact bug (verified by removing the fix, re-running each test, seeing it fail with the identical error, then restoring the fix):**
+
+1. **Direct test** — `test_body_parameters_does_not_throw_and_documents_all_four_status_fields` added to `UpdateDeliveryPickupInputsStatusValidationTest.php`: instantiates the request and calls `bodyParameters()` directly, asserting no exception and asserting each field's description contains the expected content.
+2. **Generic scan (the durable fix for this bug *class*, not just this instance)** — new `tests/Unit/Documentation/RequestBodyParametersScanTest.php`: reflectively discovers every `FormRequest` under `app/Http/Requests` that declares its own `bodyParameters()` (61 found at time of writing) and invokes each one, asserting none throw. This is the direct answer to "confirm every enum method referenced by request documentation exists" — it doesn't require enumerating enum references by hand; it exercises the actual method call surface for every request class, present and future.
+3. **Scribe generation smoke test** — new `tests/Feature/Documentation/ScribeGenerationSmokeTest.php`: runs the real `scribe:generate` command end-to-end (output redirected to a scratch directory, cleaned up after; both `public/docs` and `.scribe` are gitignored regardless) and asserts a clean exit code. This is the closest possible reproduction of the exact command that surfaced the bug in real usage.
+
+**Process improvement (going forward):** every future change to a `FormRequest` class must be tested against **both** surfaces — the real HTTP validation path (`rules()`, exercised via an actual request) **and** any documentation-only methods such as `bodyParameters()` (exercised directly, or covered by the generic scan test above, which requires no per-class action to benefit from). A request class is not fully tested by proving its validation behavior alone if it also carries documentation code with its own independent failure surface.
+
+**Files changed for this follow-up:**
+- `app/Enums/Orders/OrderTermsStatus.php` (added `getValues()`)
+- `tests/Feature/Orders/Schedules/UpdateDeliveryPickupInputsStatusValidationTest.php` (added 1 test)
+- `tests/Unit/Documentation/RequestBodyParametersScanTest.php` (new, 62 tests)
+- `tests/Feature/Documentation/ScribeGenerationSmokeTest.php` (new, 1 test)
+- `docs/checklist-system-audit/P3_2_SEC1_STATUS_VALIDATION.md` (this section)
+
+**Commands run:**
+```
+php artisan test --filter="RequestBodyParametersScanTest|ScribeGenerationSmokeTest|UpdateDeliveryPickupInputsStatusValidationTest"
+```
+Result: **74 passed, 165 assertions, 0 failures.**
+
+**Verdict: PASS.** The specific defect is fixed and independently verified by three separate mechanisms, each proven (not assumed) to catch it. No production behavior changed beyond the one-line enum method addition. No other item started.

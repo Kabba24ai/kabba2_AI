@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Orders\Schedules;
 
+use App\Http\Requests\Api\Admin\V1\Orders\Schedules\UpdateDeliveryPickupInputsRequest;
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
@@ -186,5 +187,32 @@ class UpdateDeliveryPickupInputsStatusValidationTest extends TestCase
         $response = $this->callAs('POST', 'orders/schedules/update-delivery-pickup-inputs', $this->basePayload());
 
         $response->assertOk()->assertJson(['status' => true]);
+    }
+
+    // ── P3-2A: bodyParameters() / API-documentation regression coverage ────
+    //
+    // The original SEC-1 change called OrderTermsStatus::getValues() inside
+    // bodyParameters() without checking that method actually existed on the
+    // *reused* enum (it did on the three enums created fresh for this change,
+    // but not on OrderTermsStatus). No test in this class — nor any other test
+    // in the suite — ever calls bodyParameters(), because it is a
+    // documentation-only method invoked solely by Scribe's `scribe:generate`
+    // command, never by the real HTTP validation path. The bug shipped as
+    // "complete" and was only caught by a real Scribe run in production usage.
+    // See docs/checklist-system-audit/P3_2_SEC1_STATUS_VALIDATION.md.
+
+    public function test_body_parameters_does_not_throw_and_documents_all_four_status_fields(): void
+    {
+        $bodyParameters = (new UpdateDeliveryPickupInputsRequest())->bodyParameters();
+
+        $this->assertArrayHasKey('tnc_status', $bodyParameters);
+        $this->assertArrayHasKey('drivers_license_status', $bodyParameters);
+        $this->assertArrayHasKey('video_status', $bodyParameters);
+        $this->assertArrayHasKey('checklist_status', $bodyParameters);
+
+        $this->assertStringContainsString('Accepted', $bodyParameters['tnc_status']['description']);
+        $this->assertStringContainsString('Verified', $bodyParameters['drivers_license_status']['description']);
+        $this->assertStringContainsString('Completed', $bodyParameters['video_status']['description']);
+        $this->assertStringContainsString('Completed', $bodyParameters['checklist_status']['description']);
     }
 }

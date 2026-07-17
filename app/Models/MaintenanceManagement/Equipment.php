@@ -280,17 +280,17 @@ class Equipment extends Model
     }
 
 
-    public function customerAdminTemplates()
+    /**
+     * TD-3 (Phase 3 tech debt): previously a hasOneThrough() hard-wired to raw
+     * column names duplicating checklistMaster()'s own key mapping — a column
+     * rename on either side would have silently broken this at query time
+     * instead of at code-review time. Composed from the existing checklistMaster()
+     * and ChecklistMaster::customerAdminTemplate() relations instead. Confirmed
+     * unused anywhere in the app before this change (see P3_5_TECHNICAL_DEBT.md).
+     */
+    public function customerAdminTemplates(): ?CustomerAdminTemplate
     {
-        return $this->hasOneThrough(
-            CustomerAdminTemplate::class, // related
-            ChecklistMaster::class,     // through
-            'id',                       // through.firstKey      -> checklist_masters.id
-            'id',                       // related.secondKey     -> customer_admin_templates.id
-            'checklist_master_id',      // parent.localKey       -> equipment.checklist_master_id
-            'customer_admin_template_id'// through.secondLocalKey-> checklist_masters.customer_admin_template_id
-        );
-
+        return $this->checklistMaster?->customerAdminTemplate;
     }
 
     public function linkWithTitle()

@@ -298,6 +298,7 @@ $templateQuestions = $template->questions->map(function($q) {
                         Template Questions (<span id="templateCount">0</span>)
                     </h3>
                     <div id="template" class="space-y-2 h-600 overflow-y-auto bg-white border-2 border-dashed border-gray-300 p-3 rounded-md"></div>
+                    <p id="questionsRequiredWarning" class="hidden text-xs text-red-600 mt-2">Please add at least one question to this template.</p>
                 </div>
 
 
@@ -766,6 +767,29 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <!-- delete- -->
+
+<!-- CLEAN-10 (Phase 3 housekeeping): client-side "must not be empty" guard for
+     the template builder's hidden questions input. Server-side does not
+     currently reject an empty question list either (verified directly; the
+     prior audit note that "server-side rejection still applies" does not
+     match current code) — this adds the missing inline warning without
+     changing any server-side behavior. See
+     docs/checklist-system-audit/P3_4_HOUSEKEEPING.md. -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const templateForm = document.getElementById('templateForm');
+    const questionsRequiredWarning = document.getElementById('questionsRequiredWarning');
+
+    templateForm.addEventListener('submit', function (e) {
+        if (!window.templateData || window.templateData.length === 0) {
+            e.preventDefault();
+            questionsRequiredWarning.classList.remove('hidden');
+        } else {
+            questionsRequiredWarning.classList.add('hidden');
+        }
+    });
+});
+</script>
 
 <!-- search  -->
  <script>

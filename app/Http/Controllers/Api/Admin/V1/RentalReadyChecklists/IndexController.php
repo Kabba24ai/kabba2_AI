@@ -55,10 +55,17 @@ class IndexController extends BaseController
 
         if (isset($equipment->orderProduct)) {
             // find from order product's rental ready checklist if exists
-            $questions = optional($equipment->orderProduct->equipmentRentalReadyTemplate?->checklistQuestions)
+            // BUG-11: an order product may have no EquipmentRentalReadyTemplate yet
+            // (no prior inspection recorded against it) — optional() only proxies the
+            // first call in the chain, so a null template still threw "Call to a member
+            // function filter() on null" from the ->pluck()->filter() chain. collect()
+            // on a null/empty relation safely yields an empty collection instead, which
+            // falls through to the existing empty-questions 404 below.
+            // See docs/checklist-system-audit/P3_1_BUG11_NULL_GUARD.md.
+            $questions = collect($equipment->orderProduct->equipmentRentalReadyTemplate?->checklistQuestions)
                         ->pluck('rental_ready_qa_json')   // same as map->question but clearer
                         ->filter()            // remove nulls
-                        ->values() ?? collect();
+                        ->values();
 
             $questions = collect($questions)->map(function ($item) {
                             return is_string($item) ? json_decode($item, true) : $item; // decode to array

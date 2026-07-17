@@ -758,6 +758,11 @@
         }
 
         // ---- Customer Admin Templates ----
+        // BUG-15 (Phase 3): Step 3's Continue button state is NOT managed here.
+        // It is owned entirely by setStep3ContinueButtonState() below, the single
+        // source of truth for that button — restoring the selected radio/summary
+        // text here must never also touch continue3Btn.disabled. See
+        // docs/checklist-system-audit/P3_BUG15_STEP3_GATING.md.
         const customerTemplateId = document.getElementById('hiddenCustomerTemplateId').value;
         if (customerTemplateId) {
             const selectedRadio2 = document.querySelector(`input[name="templatetwo"][data-id="${customerTemplateId}"]`);
@@ -766,7 +771,6 @@
                 document.getElementById('templatecustomer').classList.remove('hidden');
                 document.getElementById('selectedTemplateCustomer').textContent = selectedRadio2.dataset.templateName;
                 document.getElementById('Assigned-customer-template').textContent = `"${selectedRadio2.dataset.templateName}"`;
-                document.getElementById('continueStep3Btn').disabled = true;
             }
         }
 
@@ -1001,11 +1005,33 @@ document.addEventListener('DOMContentLoaded', function () {
         const customerBox = document.getElementById('templatecustomer');
         const selectedCustomer = document.getElementById('selectedTemplateCustomer');
         const continue3Btn = document.getElementById('continueStep3Btn');
+        const hiddenCustomerTemplateId = document.getElementById('hiddenCustomerTemplateId');
 
-        // --- Always keep Step 3 Continue button enabled for Edit mode ---
-        continue3Btn.disabled = false;
-        continue3Btn.classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
-        continue3Btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
+        // BUG-15 (Phase 3): single source of truth for Step 3's Continue button
+        // state. Previously two separate DOMContentLoaded blocks each touched
+        // continue3Btn.disabled — one (removed) always set it to true when a
+        // template was already assigned, the other (this one) set it to false in
+        // that same case; the button only ended up correct because this block
+        // happened to run after the other one. This function is now the ONLY
+        // place that manages continue3Btn's state, called both on initial load
+        // and on template selection, so no ordering dependency exists. See
+        // docs/checklist-system-audit/P3_BUG15_STEP3_GATING.md.
+        function setStep3ContinueButtonState(hasCustomerTemplateSelected) {
+            continue3Btn.disabled = !hasCustomerTemplateSelected;
+            if (hasCustomerTemplateSelected) {
+                continue3Btn.classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+                continue3Btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
+            } else {
+                continue3Btn.classList.remove('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
+                continue3Btn.classList.add('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+            }
+        }
+
+        // Initial state: enabled only if a customer admin template is already
+        // assigned (the normal case, since this field is required at creation
+        // time); otherwise disabled until the user picks one, matching Create
+        // mode's behavior.
+        setStep3ContinueButtonState(Boolean(hiddenCustomerTemplateId.value));
 
         radios.forEach(radio => {
             radio.addEventListener('change', function() {
@@ -1019,6 +1045,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 document.getElementById('hiddenCustomerTemplateId').value = this.value;
+
+                // Enable once a template is selected
+                setStep3ContinueButtonState(true);
             });
         });
 

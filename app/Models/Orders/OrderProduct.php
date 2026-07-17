@@ -86,7 +86,14 @@ class OrderProduct extends Model
         'assigned_by',
         'assigned_at',
 
-        'dispatch_checklist',   // JSON: driver pre-delivery checklist state
+        // TD-4 (Phase 3 tech debt): JSON driver pre-delivery SOP checklist state
+        // (customer called/texted, keys location, fuel level, dispatched product
+        // options). Despite the name, this has ZERO relation to ChecklistMaster,
+        // RentalReadyChecklistTemplate, or CustomerAdminTemplate — a completely
+        // separate "checklist" concept that happens to share the English word.
+        // Written/read only by Dispatch\ShowController. See
+        // docs/checklist-system-audit/P3_5_TECHNICAL_DEBT.md.
+        'dispatch_checklist',
         'dispatch_delivery_date',
         'dispatch_return_date',
 

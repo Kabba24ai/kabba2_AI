@@ -39,8 +39,8 @@ class EquipmentStatusService
         ?int $actorId = null,
         string $source = 'mobile_delivery'
     ): void {
-        $old    = $equipment->current_status?->value ?? 'unknown';
         $oldRaw = $equipment->current_status?->value;
+        $old    = $oldRaw ?? 'unknown';
 
         $equipment->current_status              = EquipmentCurrentStatus::Rented->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -65,8 +65,8 @@ class EquipmentStatusService
         ?int $storeId = null,
         ?int $actorId = null
     ): void {
-        $old    = $equipment->current_status?->value ?? 'unknown';
         $oldRaw = $equipment->current_status?->value;
+        $old    = $oldRaw ?? 'unknown';
 
         $equipment->current_status              = EquipmentCurrentStatus::Maintenance->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -95,8 +95,8 @@ class EquipmentStatusService
         ?int $storeId = null,
         ?int $actorId = null
     ): void {
-        $old    = $equipment->current_status?->value ?? 'unknown';
         $oldRaw = $equipment->current_status?->value;
+        $old    = $oldRaw ?? 'unknown';
 
         $equipment->current_status              = EquipmentCurrentStatus::Damaged->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -140,8 +140,8 @@ class EquipmentStatusService
         int $orderProductId,
         ?int $actorId = null
     ): void {
-        $old    = $equipment->current_status?->value ?? 'unknown';
         $oldRaw = $equipment->current_status?->value;
+        $old    = $oldRaw ?? 'unknown';
 
         $equipment->current_status              = EquipmentCurrentStatus::Available->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -163,8 +163,8 @@ class EquipmentStatusService
         Equipment $equipment,
         ?int $actorId = null
     ): void {
-        $old            = $equipment->current_status?->value ?? 'unknown';
         $oldRaw         = $equipment->current_status?->value;
+        $old            = $oldRaw ?? 'unknown';
         $orderId        = $equipment->current_order_id;         // capture before clearing
         $orderProductId = $equipment->current_order_product_id; // capture before clearing
 
@@ -187,8 +187,8 @@ class EquipmentStatusService
         Equipment $equipment,
         ?int $actorId = null
     ): void {
-        $old    = $equipment->current_status?->value ?? 'unknown';
         $oldRaw = $equipment->current_status?->value;
+        $old    = $oldRaw ?? 'unknown';
 
         $equipment->current_status              = EquipmentCurrentStatus::Maintenance->value;
         $equipment->current_status_updated_by   = $actorId;
@@ -213,8 +213,8 @@ class EquipmentStatusService
         Equipment $equipment,
         ?int $actorId = null
     ): void {
-        $old    = $equipment->current_status?->value ?? 'unknown';
         $oldRaw = $equipment->current_status?->value;
+        $old    = $oldRaw ?? 'unknown';
 
         $equipment->current_status              = EquipmentCurrentStatus::Damaged->value;
         $equipment->current_status_updated_by   = $actorId;

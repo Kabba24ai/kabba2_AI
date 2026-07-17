@@ -15,7 +15,6 @@ use App\Models\Orders\Order;
 use App\Services\BillingEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class RentalExtensionBridgeTest extends TestCase
@@ -70,6 +69,27 @@ class RentalExtensionBridgeTest extends TestCase
                     'notes'              => null,
                 ], $overrides)
             );
+    }
+
+    /**
+     * TD-16 (Phase 3 tech debt): force BillingEngine::charge()'s underlying
+     * BillingCharge::create() insert to throw, without touching schema.
+     * Schema::drop() mid-transaction causes MySQL to implicitly commit,
+     * corrupting Laravel's transaction/savepoint bookkeeping — see
+     * docs/checklist-system-audit/P3_TD16_TRANSACTION_SAFE_FAILURE_TESTS.md.
+     * A one-shot Eloquent 'creating' listener produces the same forced
+     * failure deterministically, with no effect on any other test (the flag
+     * disarms itself after firing once).
+     */
+    private function forceBillingChargeCreationFailure(): void
+    {
+        $shouldThrow = true;
+        BillingCharge::creating(function () use (&$shouldThrow) {
+            if ($shouldThrow) {
+                $shouldThrow = false;
+                throw new \RuntimeException('Simulated BillingEngine charge failure (test-only, TD-16)');
+            }
+        });
     }
 
     // ── Suffix bug fix: soft-delete collision ─────────────────────────────
@@ -327,7 +347,7 @@ class RentalExtensionBridgeTest extends TestCase
 
     public function test_billing_engine_failure_does_not_break_extension_creation(): void
     {
-        Schema::drop('billing_charges');
+        $this->forceBillingChargeCreationFailure();
 
         $response = $this->postExtension();
 
@@ -342,7 +362,7 @@ class RentalExtensionBridgeTest extends TestCase
         Log::shouldReceive('error')->once();
         Log::shouldReceive('info')->andReturn(null);
 
-        Schema::drop('billing_charges');
+        $this->forceBillingChargeCreationFailure();
 
         $this->postExtension();
     }

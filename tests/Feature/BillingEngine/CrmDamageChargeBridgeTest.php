@@ -14,7 +14,6 @@ use App\Models\Orders\BillingCharge;
 use App\Services\BillingEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class CrmDamageChargeBridgeTest extends TestCase
@@ -55,6 +54,27 @@ class CrmDamageChargeBridgeTest extends TestCase
                 'sales_tax'          => 'free',
                 'notes'              => 'Test CRM damage charge',
             ], $overrides));
+    }
+
+    /**
+     * TD-16 (Phase 3 tech debt): force BillingEngine::charge()'s underlying
+     * BillingCharge::create() insert to throw, without touching schema.
+     * Schema::drop() mid-transaction causes MySQL to implicitly commit,
+     * corrupting Laravel's transaction/savepoint bookkeeping — see
+     * docs/checklist-system-audit/P3_TD16_TRANSACTION_SAFE_FAILURE_TESTS.md.
+     * A one-shot Eloquent 'creating' listener produces the same forced
+     * failure deterministically, with no effect on any other test (the flag
+     * disarms itself after firing once).
+     */
+    private function forceBillingChargeCreationFailure(): void
+    {
+        $shouldThrow = true;
+        BillingCharge::creating(function () use (&$shouldThrow) {
+            if ($shouldThrow) {
+                $shouldThrow = false;
+                throw new \RuntimeException('Simulated BillingEngine charge failure (test-only, TD-16)');
+            }
+        });
     }
 
     // ── Legacy behavior unchanged ─────────────────────────────────────────
@@ -199,7 +219,7 @@ class CrmDamageChargeBridgeTest extends TestCase
 
     public function test_legacy_charge_succeeds_even_when_billing_engine_bridge_fails(): void
     {
-        Schema::drop('billing_charges');
+        $this->forceBillingChargeCreationFailure();
 
         $response = $this->postCrmDamageCharge();
 
@@ -219,7 +239,7 @@ class CrmDamageChargeBridgeTest extends TestCase
         Log::shouldReceive('error')->once();
         Log::shouldReceive('info')->andReturn(null);
 
-        Schema::drop('billing_charges');
+        $this->forceBillingChargeCreationFailure();
 
         $this->postCrmDamageCharge();
     }

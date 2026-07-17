@@ -44,6 +44,12 @@ class OrderProductObserver
             return;
         }
 
+        // TD-6 (Phase 3 tech debt): delivery_status/pickup_status are also
+        // written by the checklist Save controllers (mobile delivery/return,
+        // customer/rental-ready checklists) — this auto-assign gate is
+        // implicitly coupled to whatever those controllers last set these
+        // fields to. Revisit if TD-1/ARCH-2 ever changes that write path. See
+        // docs/checklist-system-audit/P3_5_TECHNICAL_DEBT.md.
         if (
             $orderProduct->delivery_status === 'Reschedule' ||
             $orderProduct->pickup_status   === 'Reschedule'

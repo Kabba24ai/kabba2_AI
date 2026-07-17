@@ -48,6 +48,11 @@ class ShowController extends Controller
     /**
      * Save the dispatch checklist for one order product.
      * POST /dispatch/{unique_id}/checklist
+     *
+     * TD-4 (Phase 3 tech debt): "checklist" here means the driver's
+     * pre-delivery SOP (customer contact, keys, fuel) stored in
+     * order_products.dispatch_checklist — unrelated to ChecklistMaster or the
+     * Rental Ready/Customer Admin template system elsewhere in this app.
      */
     public function saveChecklist(Request $request, string $unique_id)
     {

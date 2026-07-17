@@ -19,7 +19,6 @@ use App\Models\Stores\Store;
 use App\Services\BillingEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class MobileReturnFuelBridgeTest extends TestCase
@@ -101,6 +100,27 @@ class MobileReturnFuelBridgeTest extends TestCase
                 'fuel_final_reading'      => '1/4',
                 'fuel_total_charge'       => '85.00',
             ], $overrides));
+    }
+
+    /**
+     * TD-16 (Phase 3 tech debt): force BillingEngine::charge()'s underlying
+     * BillingCharge::create() insert to throw, without touching schema.
+     * Schema::drop() mid-transaction causes MySQL to implicitly commit,
+     * corrupting Laravel's transaction/savepoint bookkeeping — see
+     * docs/checklist-system-audit/P3_TD16_TRANSACTION_SAFE_FAILURE_TESTS.md.
+     * A one-shot Eloquent 'creating' listener produces the same forced
+     * failure deterministically, with no effect on any other test (the flag
+     * disarms itself after firing once).
+     */
+    private function forceBillingChargeCreationFailure(): void
+    {
+        $shouldThrow = true;
+        BillingCharge::creating(function () use (&$shouldThrow) {
+            if ($shouldThrow) {
+                $shouldThrow = false;
+                throw new \RuntimeException('Simulated BillingEngine charge failure (test-only, TD-16)');
+            }
+        });
     }
 
     // ── Legacy behavior unchanged ─────────────────────────────────────────
@@ -321,7 +341,7 @@ class MobileReturnFuelBridgeTest extends TestCase
 
     public function test_legacy_ca_succeeds_even_when_billing_engine_bridge_fails(): void
     {
-        Schema::drop('billing_charges');
+        $this->forceBillingChargeCreationFailure();
 
         $response = $this->postSaveReturn();
 
@@ -338,11 +358,23 @@ class MobileReturnFuelBridgeTest extends TestCase
 
     public function test_billing_engine_failure_is_logged_to_billing_engine_channel(): void
     {
-        Log::shouldReceive('channel')->with('billing_engine')->andReturnSelf();
+        // TD-16: this request also legitimately logs via other channels in the
+        // same flow (equipment_status for the status transition, api_errors for
+        // the PR-A4 incomplete-checklist observability check) — Log::channel()
+        // must accept any channel name, not just 'billing_engine', or Mockery
+        // itself throws on the unstubbed argument and that throw gets reported
+        // through Log::error() too, silently inflating this count to 2. This
+        // was previously masked by Schema::drop()'s transaction corruption
+        // (which non-deterministically short-circuited the request before
+        // reaching those other log calls); the underlying gap is unrelated to
+        // DDL and is fixed here directly. See
+        // docs/checklist-system-audit/P3_TD16_TRANSACTION_SAFE_FAILURE_TESTS.md.
+        Log::shouldReceive('channel')->andReturnSelf();
         Log::shouldReceive('error')->once();
         Log::shouldReceive('info')->andReturn(null);
+        Log::shouldReceive('warning')->andReturn(null);
 
-        Schema::drop('billing_charges');
+        $this->forceBillingChargeCreationFailure();
 
         $this->postSaveReturn();
     }

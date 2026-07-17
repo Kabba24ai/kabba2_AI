@@ -132,7 +132,7 @@
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <a href="{{ route('admin.checklist-management.rental-ready.index') }}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-cog-6-tooth class="w-4 h-4" /> Rental Ready Admin</a>
-                    <button class="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-users class="w-4 h-4" />Customer Admin</button>
+                    <a href="{{ route('admin.checklist-management.customer-admin.index') }}" class="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"><x-heroicon-o-users class="w-4 h-4" />Customer Admin</a>
                 </div>
             </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

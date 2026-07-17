@@ -16,6 +16,18 @@ Phase 1 (PR-A1–A5) and Phase 2 Track B (PR-B3, PR-B1, PR-B2, PR-B4.1, PR-B4.2,
 
 **Revision note (this update):** an independent review of the initial plan added two previously-missing items (**BUG-12**, **DB-6**), reclassified **DB-5** from Low to Medium severity, clarified **SEC-1**'s severity rationale, reworded the Sprint 5 description to remove an implied completion date for ARCH-2, and added a Phase 3 Decision Log (D6, D7) for the two register items that need a product/investigation decision before implementation. See §8.
 
+**Revision note (2026-07-15):** Sprint 1's independent review of **BUG-11** (P3-1, merged) surfaced a new follow-up item, **BUG-13** — a read/write behavior inconsistency between Rental Ready `IndexController` and `SaveController` for equipment on an order with no rental-ready template yet. Added to §2.1 with a corresponding **D8** entry in the §8 Decision Log (Pending). Not implemented — awaiting a product/engineering decision, per this document's own discipline for undecided register items.
+
+**Revision note (2026-07-15, later same day):** the independent review of **CLEAN-9** (P3-4, merged) surfaced a new follow-up item, **BUG-15** — contradictory JavaScript gating on the Checklist Master edit page's Step 3 Continue button, currently correct only by accident of script-execution order. Added to §2.1. Pre-existing, not caused by P3-4. Not implemented — small, no product decision needed, just not yet picked up.
+
+**Revision note (2026-07-15, evening):** the independent review of **TD-13** (P3-5, merged) surfaced a new follow-up item, **TD-16** — the same `Schema::drop()`-inside-transaction test anti-pattern TD-13 diagnosed in one test also appears in 7 additional BillingEngine test files, independently corroborated by a pre-existing comment in `ChecklistTransactionTest.php`. Added to §2.2. Test-only, no production impact. Not implemented — not yet picked up.
+
+**Revision note (2026-07-15, night):** the P3-6 readiness review (mobile-facing API cleanup — BUG-6, API-1, API-2) found BUG-6's scope was one bug short: the same array branch also returns `id` as always `0` (reads a nonexistent `main_id` key). BUG-6's entry expanded to cover both bugs together. Added three new Decision Log entries, **D9-D11**, one per P3-6 item — all three require mobile-team input that cannot be resolved by backend code inspection alone, tracked via a new `P3_6_MOBILE_COMPATIBILITY_QUESTIONNAIRE.md`. P3-6 implementation remains blocked on D9-D11 being recorded. See `P3_6_READINESS_REVIEW.md` for the full investigation.
+
+**Revision note (2026-07-15, late night):** **BUG-15 resolved.** Consolidated the Checklist Master edit page's contradictory Step 3 JavaScript gating into a single named function, removing the earlier block's contradictory `disabled = true` assignment. See `P3_BUG15_STEP3_GATING.md` for full root cause, before/after behavior, and test results. DB-1's prerequisite audit (P3-7) also completed this session — see `P3_7_DB1_FK_READINESS.md` — verdict READY, no migration created yet per its own scope.
+
+**Revision note (2026-07-16):** **TD-16 resolved.** Replaced all 14 `Schema::drop()`-inside-transaction failure simulations across 7 BillingEngine test files with a deterministic, non-DDL Eloquent listener technique. Also found and fixed a genuine, separate pre-existing Mockery-setup gap in one of those tests (an incomplete `Log::channel()` stub), uncovered only once the DDL-corruption noise was removed — the test's real assertion was preserved, not weakened. Zero production code changed. See `P3_TD16_TRANSACTION_SAFE_FAILURE_TESTS.md` for full detail.
+
 ---
 
 ## 1. Outstanding Phase 1/2 process gates (not new Phase 3 work — carried forward, tracked here so they aren't lost)
@@ -103,16 +115,18 @@ Each item lists: root cause, current behavior, desired behavior, business impact
 
 ---
 
-**BUG-6 — `unique_id` populated from numeric `id` in `RentalReadyChecklistQuestions\ListResource`** — **Medium**
-- **Root cause:** The resource's `unique_id` JSON key is populated from the record's numeric `id`, not an actual unique-id string.
-- **Current behavior:** Any mobile client expecting a stable string identifier receives a numeric value instead — works today only because nothing has yet compared it against a real `unique_id` elsewhere.
-- **Desired behavior:** `unique_id` reflects the model's actual `unique_id` column.
-- **Business impact:** Low today (latent), but breaks silently the moment any client starts trusting it as a stable string key (e.g., for caching or offline dedup).
-- **Technical impact:** One-line resource fix, but a **breaking change in value** for any code currently (mis)treating it as numeric.
-- **Dependencies:** **Requires mobile-team coordination before deploy** — confirm no mobile client build currently parses this field as numeric.
-- **Recommended solution:** Fix the resource; coordinate a mobile-app version check before shipping; consider a brief dual-field period (`unique_id` + a temporary `numeric_id`) if any client dependency is found.
-- **Estimated effort:** Small (1 day code, but coordination overhead).
-- **Risk:** Medium — the only risk is entirely about *external* client assumptions, not the codebase itself.
+**BUG-6 — `unique_id` populated from numeric `id`, and `id` returns 0, in `RentalReadyChecklistQuestions\ListResource`'s array branch** — **Medium**
+- **Root cause (expanded during the P3-6 readiness review):** Two bugs in the same array branch (the order-scoped, decoded-`rental_ready_qa_json` path — the object/checklistMaster branch is unaffected):
+  1. `'unique_id' => $this['id'] ?? ''` — populated from the record's numeric `id`, not the actual `unique_id` string, even though the source array already carries a correct `unique_id` key alongside it.
+  2. `'id' => $this['main_id'] ?? 0` — reads a `main_id` key that **does not exist anywhere in the array** (confirmed by reading `SaveController.php`'s construction of the underlying `rental_ready_qa_json` payload — it only ever writes `id` and `unique_id`, never `main_id`). As a result, **`id` is always `0` for every array-shaped question in production today**, not just a latent risk.
+- **Current behavior:** Any mobile client expecting a stable string identifier in `unique_id` receives a numeric value instead; any client reading `id` always receives `0` regardless of the real question.
+- **Desired behavior:** `unique_id` reflects the model's actual `unique_id` column; `id` reflects the model's actual numeric `id` (reading the array's existing `id` key, not the nonexistent `main_id`).
+- **Business impact:** Low today (latent for `unique_id`, and `id`'s constant-`0` bug has had no reported impact since nothing meaningful can depend on an always-zero value) — but breaks silently the moment any client starts trusting either field.
+- **Technical impact:** Two one-line resource fixes in the same branch, **both must be addressed together** — fixing only `unique_id` while leaving `id` reading `main_id` would still return a broken `id`, and fixing only `id` without also fixing `unique_id` would leave the original, higher-risk part of this bug in place. Both changes belong in the same PR/decision, not sequenced separately.
+- **Dependencies:** **Requires mobile-team coordination before deploy** — confirm no mobile client build currently parses `unique_id` as numeric. The `id`-always-`0` fix is lower risk (nothing can meaningfully depend on a constant), but ship it in the same decision, not silently ahead of it.
+- **Recommended solution:** Fix both resource lines; coordinate a mobile-app version check before shipping `unique_id`'s correction; consider a brief additive-field transition period if any client dependency on the numeric `unique_id` value is found. See **D9** in §8.
+- **Estimated effort:** Small (1 day code — both lines are in the same file — but coordination overhead for `unique_id`).
+- **Risk:** Medium — the risk is entirely about *external* client assumptions on `unique_id`, not the codebase itself; the `id`/`main_id` fix carries no meaningful external risk on its own.
 
 ---
 
@@ -175,6 +189,32 @@ Each item lists: root cause, current behavior, desired behavior, business impact
 - **Dependencies:** Same investigation/code area as **BUG-2**/**BUG-4** (delivery-time controllers) — sequence together in the same pass for efficiency, though independently shippable. Also relevant context for **ARCH-1**'s eventual feasibility study, since category-matching logic would need to be designed once, not per-tree, if the Rental Ready/Customer Admin trees are ever unified.
 - **Estimated effort:** Small-Medium (2-3 days including regression tests, since delivery-controller characterization tests are already being written for BUG-2/BUG-4/BUG-5 — see PR order item 8).
 - **Priority:** Medium — real business risk, but no confirmed live incident found in any of the reviewed audit/runtime-validation documents; treat as "close the gap," not "emergency fix."
+
+---
+
+**BUG-13 — Rental Ready `IndexController`/`SaveController` fallback inconsistency for "order product, no template yet"** — **Medium**
+- **Root cause:** Surfaced during the independent review of **BUG-11**'s fix (P3-1). `RentalReadyChecklists\IndexController` now safely returns a `404 no_questions_found` when equipment has an order product but that order product's `EquipmentRentalReadyTemplate` is null (no inspection recorded yet). But the sibling write path, `Orders\RentalReadyChecklists\SaveController`, already treats this exact state as normal: when `equipmentRentalReadyTemplate` is not set, it falls back to `checklistMaster->rentalReadyTemplate->templateQuestions` and creates a fresh `EquipmentRentalReadyTemplate` from those questions. The read path (Index) and the write path (Save) disagree on what "no template yet" means for the same equipment state.
+- **Current behavior:** For equipment on an order with no prior order-scoped inspection, `GET`-style listing (Index) reports "no questions found," while the corresponding `POST` save (Save) would succeed immediately using checklistMaster's template as a fallback.
+- **Desired behavior:** Index and Save agree on the same fallback convention for this state — either both use checklistMaster's template as a fallback, or Save is changed to match Index's stricter behavior. Which direction is correct is a product/engineering decision, not a null-guard.
+- **Business impact:** An admin screen driven by the Index endpoint could show "no checklist found" for equipment that could actually be inspected right now via Save — a confusing, avoidable UX gap, not a crash or data-integrity issue.
+- **Technical impact:** `RentalReadyChecklistQuestions\ListResource` already handles both the raw-model shape (checklistMaster path) and the decoded-JSON shape (order-product path), so implementing a fallback in Index is structurally straightforward once the direction is decided.
+- **Dependencies:** Builds on **BUG-11** (P3-1); do not begin until a decision is recorded — see the Decision Log entry to be added in §8.
+- **Recommended solution:** Not yet decided — see dependency note above. **Do not implement BUG-13 now.**
+- **Estimated effort:** Small (1-2 days, once a direction is decided).
+- **Risk:** Low — read-only listing behavior change, no schema or write-path risk either way.
+
+---
+
+**BUG-15 — Checklist Master edit Step 3 contains contradictory JavaScript gating** — **Medium** — ✅ **RESOLVED (2026-07-15)**
+- **Root cause:** Surfaced during the independent review of **CLEAN-9** (P3-4). `checklist_master/edit.blade.php` has an earlier `DOMContentLoaded` script block that sets `continueStep3Btn.disabled = true` precisely when `customer_admin_template_id` is already present and restored (the opposite of the analogous Step 2 line right above it, `continueStep2Btn.disabled = false`, which looks like a copy-paste boolean-flip bug). CLEAN-9's fix added a second, later `DOMContentLoaded` block that correctly re-enables the button whenever a template is assigned, which currently overrides the earlier block's incorrect disable.
+- **Previous behavior:** The button ended up in the correct (enabled) state only because browsers fire multiple `DOMContentLoaded` listeners in registration order, and the earlier (incorrect) block happened to run before the later (correct) one. This was not a designed guarantee — it was an accident of script ordering.
+- **Resolution:** Consolidated both script blocks' Step-3-button logic into a single named function, `setStep3ContinueButtonState()`, called from both the initial-restore block and the radio-change handler. The earlier block's contradictory `continueStep3Btn.disabled = true` line was removed entirely (that block now only restores the selected radio and summary text, nothing about button state). No ordering dependency exists anymore — the consolidated function is the only code that ever touches `continue3Btn.disabled`. See `P3_BUG15_STEP3_GATING.md` for full before/after detail.
+- **Business impact:** None currently live — the net visible behavior was already correct for every real record; this closed the latent risk of a future script reorder silently reintroducing a genuinely disabled Continue button.
+- **Technical impact:** Contained to one Blade file (`edit.blade.php`); no server-side code involved.
+- **Dependencies:** None — pre-existing, **not caused by P3-4**.
+- **Files changed:** `resources/views/admin/checklist_management/checklist_master/edit.blade.php`; `tests/Feature/ChecklistManagement/ChecklistMasterEditStep3ValidationTest.php` (extended, 3 new tests).
+- **Estimated effort:** Small (half a day, contained to one file) — matched actual effort.
+- **Risk:** Low — a JS-only consolidation, no behavior change for any currently-valid record; confirmed by 5 passing render-level tests. See `P3_BUG15_STEP3_GATING.md` for the one honest limitation (no browser/JS test runner in this project, so the actual click-blocking behavior is verified by DOM-semantics reasoning and render-level assertions, not an executed browser test).
 
 ---
 
@@ -304,6 +344,19 @@ Each item lists: root cause, current behavior, desired behavior, business impact
 - **Recommended solution:** Derive `$old = $oldRaw ?? 'unknown'` from one shared capture. Purely cosmetic simplification.
 - **Estimated effort:** Trivial (half a day).
 - **Risk:** None.
+
+---
+
+**TD-16 — Audit and replace `Schema::drop()`-inside-transaction failure simulations across BillingEngine tests** — **Medium** — ✅ **RESOLVED (2026-07-16)**
+- **Root cause:** Surfaced during the independent review of **TD-13** (P3-5). 7 test files — `MobileReturnFuelBridgeTest`, `RentalExtensionBridgeTest`, `FuelChargeBridgeTest`, `DashboardDamageChargeBridgeTest`, `FuelAlertChargeBridgeTest`, `CrmDamageChargeBridgeTest`, `CrmFuelChargeBridgeTest`, `DamageAlertChargeBridgeTest` — simulated a billing-charge database failure by calling `Schema::drop('billing_charges')` in the middle of a test, while already inside nested `DB::transaction()` calls (the outer test-framework transaction, the controller's own transaction, and `BillingEngine::charge()`'s internal transaction). MySQL DDL statements (including `DROP TABLE`) always issue an implicit `COMMIT`, which silently desynchronized Laravel's PHP-side transaction-nesting/savepoint counter from the database's real state. This was independently corroborated by an explicit comment already present in `tests/Feature/CustomerChecklists/ChecklistTransactionTest.php`, written by whoever discovered the same mechanism while building that test and deliberately avoided the pattern there.
+- **Resolution:** Replaced all 14 `Schema::drop()` call sites (2 per file × 7 files) with a deterministic, self-disarming Eloquent `BillingCharge::creating()` listener that throws once, forcing `BillingEngine::charge()`'s insert to fail without any DDL. **A separate, genuine pre-existing bug was found and fixed along the way** (not caused by this change, uncovered only once the DDL-corruption noise was removed): `MobileReturnFuelBridgeTest`'s `test_billing_engine_failure_is_logged_to_billing_engine_channel` legitimately exercises 3 different `Log::channel()` calls in one request (`billing_engine`, `equipment_status`, `api_errors`) but its Mockery setup only stubbed one — the other two caused Mockery itself to throw, and that throw was in turn logged via `Log::error()`, inflating the expected 1 call to 2. Fixed by broadening the channel stub to accept any channel name (the test's real assertion, `error()->once()`, was left exactly as strict as before — not weakened). See `P3_TD16_TRANSACTION_SAFE_FAILURE_TESTS.md` for full detail.
+- **Business impact:** None — this was a test-suite reliability issue only; no production code or behavior was involved.
+- **Technical impact:** Contained to the 8 test files; **zero application code changed**.
+- **Dependencies:** None.
+- **Files changed:** all 8 files listed above (`Schema::drop()` calls replaced, unused `Schema` import removed, a `forceBillingChargeCreationFailure()` helper added to each) plus `docs/checklist-system-audit/P3_TD16_TRANSACTION_SAFE_FAILURE_TESTS.md` (new).
+- **One out-of-scope, related finding documented, not fixed:** `tests/Feature/WaitList/EquipmentWaitListTest.php` uses `DB::statement('DROP TABLE equipment_wait_list_alerts')` in `test_matcher_errors_do_not_break_returns`. Classified as **unrelated to this issue** — its underlying code path (`EquipmentStatusService::markReturnedToMaintenance()`) contains no nested `DB::transaction()` call, so the savepoint-corruption mechanism this item addresses does not apply. Left unchanged as explicitly outside TD-16's BillingEngine/checklist scope; noted here for visibility, not folded in.
+- **Estimated effort:** Medium (1-2 days) — matched actual effort.
+- **Risk:** Low — test-only change confirmed by re-running the full `BillingEngine` suite (206 passed), `ChecklistTransactionTest` (8 passed), and broader `CustomerChecklists`/`WaitList`/`OrderManagement` regression (259 passed total) — no production behavior affected either way.
 
 ---
 
@@ -462,15 +515,15 @@ Each item lists: root cause, current behavior, desired behavior, business impact
 **API-1 — Standardize `{success,message}` vs. `{status,message}` response envelopes** — **Medium**
 - **Root cause:** Most endpoints use `{success, message}`; `DriverChecklistController` and `UpdateDeliveryPickupInputsController` both independently use `{status, message}` with hardcoded strings instead of the shared `ApiResponseHelper`/translation pattern.
 - **Current behavior:** Confirmed inconsistency on both controllers (the second one discovered only during Phase 3 runtime testing, not in the original audit).
-- **Recommended solution:** Standardize both onto the shared helper/pattern; requires mobile-team confirmation that no client parses the `{status}` key specifically (a breaking-change risk if they do).
+- **Recommended solution:** Standardize both onto the shared helper/pattern; requires mobile-team confirmation that no client parses the `{status}` key specifically (a breaking-change risk if they do). See **D10** in §8.
 - **Estimated effort:** Small-Medium (2-3 days incl. mobile coordination).
 - **Risk:** Medium — coordinate with mobile before deploying, same caution as BUG-6.
 
 ---
 
 **API-2 — Response-shape inconsistencies between Customer/Rental-Ready checklist question list resources** — **Low**
-- **Root cause:** `required_question` defaults to `true` in the customer resource but `false` in the rental-ready resource (opposite fallback, same field name); `selected_answer` is a nested object in one, a bare string in the other.
-- **Recommended solution:** Standardize both resources' shapes; requires mobile coordination since this changes response shape.
+- **Root cause:** `required_question` defaults to `true` in the customer resource but `false` in the rental-ready resource (opposite fallback, same field name); the selected-answer field is a full nested object (`deliverAnswer`/`returnAnswer`) in the customer resource vs. a bare string-or-null (`selected_answer`) in the rental-ready resource — different field names *and* different shapes, not just a default-value difference.
+- **Recommended solution:** Standardize both resources' shapes; requires mobile coordination since this changes response shape. See **D11** in §8 for whether to standardize now, version, or defer.
 - **Estimated effort:** Small-Medium (2-3 days incl. coordination).
 - **Risk:** Medium (client-facing shape change).
 
@@ -732,6 +785,15 @@ Two register items need an explicit stakeholder/product decision before implemen
 |---|---|---|---|---|---|
 | D6 | Should `RemoveController` cascade its revert to return-side fields (`pickup_*`/`is_returned`), or explicitly refuse to remove a checklist when a return has already occurred? | BUG-5 | Low-Medium — a product/UX call on what staff expect this button to do in an edge case | Medium — confusing, contradictory order-history state persists until decided | **Decide before implementing BUG-5** — no engineering default is obviously correct here |
 | D7 | For a checklist submission referencing a stale/deleted question or answer, should the system reject the entire batch (current, unconfirmed behavior) or partially accept the valid portions? | BUG-8 | Low — investigation-first, no behavior changes until the current mechanism is actually observed | Low-Medium — unclear until BUG-8's investigation step runs | **Investigate first (BUG-8's own recommended first step), then decide** — same "investigate before deciding" pattern used for D4 in Phase 2 |
+| D8 | Should Rental Ready `IndexController`'s read path adopt `SaveController`'s checklistMaster-template fallback for "order product, no template yet," or should `SaveController` be tightened to match Index's stricter (no-fallback) behavior instead? | BUG-13 | Low — read-only listing behavior either way, no schema/write-path risk | Low-Medium — a UX/consistency gap persists (Index and Save disagree) but no crash, data-loss, or security exposure | **Decide before implementing BUG-13** — both directions are technically safe; this is a product/UX call on which endpoint's convention should win |
+
+**P3-6 compatibility decisions** (added per the P3-6 readiness review — none of these three can be resolved by backend code inspection alone; all require mobile-team input, tracked in `P3_6_MOBILE_COMPATIBILITY_QUESTIONNAIRE.md`):
+
+| # | Decision | Related item | Cost if changed | Risk if unchanged | Recommendation |
+|---|---|---|---|---|---|
+| D9 | Should BUG-6 ship an additive transition field (e.g. a temporary `question_unique_id` alongside the existing `unique_id`) before correcting `unique_id` in place, or is a direct in-place fix safe? | BUG-6 | Low — an additive field is a small, reversible addition either way | Medium — if a mobile client currently parses `unique_id` as numeric and it silently starts returning a string, that client could crash or misbehave with no advance warning | **Decide only after mobile-team questionnaire response** — do not fix `unique_id` in place until confirmed safe |
+| D10 | Should API-1 emit both `success` and `status` keys simultaneously during a transition period, or cut over directly to `{success, message}` on both endpoints? | API-1 | Low — dual-key emission is a trivial additive change | Medium — a client checking `response.status === true` literally would break on direct cutover with no warning | **Decide only after mobile-team questionnaire response** |
+| D11 | Should API-2's resource-shape standardization (field names and `required_question`/selected-answer shapes) happen now, be shipped behind a new API version, or be deferred entirely? | API-2 | Low-Medium depending on direction chosen | Medium — the two resources will keep drifting further apart the longer this is deferred, but forcing a shape change without mobile confirmation risks a live break | **Decide only after mobile-team questionnaire response** — this is the most invasive of the three P3-6 items in terms of shape change, so lean toward versioning or deferral unless mobile confirms tolerance |
 
 ### Decision log (fill in once decided)
 
@@ -739,8 +801,12 @@ Two register items need an explicit stakeholder/product decision before implemen
 |---|---|---|---|---|
 | D6 | RemoveController cascade vs. refuse-if-returned? | | | **Pending** |
 | D7 | Partial-accept vs. reject-entire-batch on stale reference? | | | **Pending** |
+| D8 | Index fallback-to-checklistMaster vs. tighten Save to match Index? | | | **Pending** |
+| D9 | BUG-6: additive transition field vs. direct in-place fix? | | | **Pending** |
+| D10 | API-1: dual-key transition vs. direct cutover? | | | **Pending** |
+| D11 | API-2: standardize now, version, or defer? | | | **Pending** |
 
-No PR touching BUG-5 or BUG-8 should begin implementation ahead of its corresponding decision above being recorded in this log, consistent with this project's established Phase 2 discipline.
+No PR touching BUG-5, BUG-8, or BUG-13 should begin implementation ahead of its corresponding decision above being recorded in this log, consistent with this project's established Phase 2 discipline. **The same rule applies to BUG-6, API-1, and API-2 for D9-D11** — none of P3-6 should begin implementation until its corresponding decision here is recorded, and none of D9-D11 should be recorded until the mobile-team questionnaire response is in hand.
 
 ---
 

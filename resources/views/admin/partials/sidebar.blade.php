@@ -55,11 +55,6 @@
                         'admin.wait-list.*',
                     ]);
 
-                    $customerChecklistActive = Route::is([
-                        // Add the correct route for customer checklist when ready
-                        'admin.checklist-management.customer_checklist.*',
-                    ]);
-
                     $crmActive = Route::is([
                         'admin.crm.customers.*',
                         'admin.crm.billing-summary.*',
@@ -517,17 +512,6 @@
 
                         // Checklist Management
                         $checklistManagementActive = Route::is(['admin.checklist-management.*']);
-
-                        $rentalReadyActive = Route::is([
-                            'admin.checklist-management.rental-ready.question_and_categories.*',
-                            'admin.checklist-management.rental-ready.templates.*',
-                        ]);
-
-                        $rentalReadyquestion = Route::is([
-                            'admin.checklist-management.rental-ready.question_and_categories.*',
-                        ]);
-
-                        $rentalReadytemplates = Route::is(['admin.checklist-management.rental-ready.templates.*']);
 
                     @endphp
 

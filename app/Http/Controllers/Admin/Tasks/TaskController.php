@@ -254,7 +254,7 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'comments.user', 'activityLogs.user']);
+        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'customer', 'supplier', 'comments.user', 'activityLogs.user']);
         $users = User::active()->orderBy('first_name')->get();
 
         return view('admin.tasks.show', compact('task', 'users'));

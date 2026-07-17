@@ -25,6 +25,8 @@ class Task extends Model
         'due_date',
         'related_order_id',
         'related_customer_id',
+        'related_supplier_id',
+        'related_other',
         'related_equipment_id',
         'completed_at',
         'completed_by_user_id',
@@ -58,6 +60,16 @@ class Task extends Model
     public function equipment()
     {
         return $this->belongsTo(Equipment::class, 'related_equipment_id');
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(\App\Models\Customers\Customer::class, 'related_customer_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(\App\Models\MaintenanceManagement\Supplier::class, 'related_supplier_id');
     }
 
     public function comments()

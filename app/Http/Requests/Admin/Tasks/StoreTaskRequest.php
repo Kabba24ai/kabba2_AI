@@ -22,7 +22,9 @@ class StoreTaskRequest extends FormRequest
             'assigned_to_user_id' => ['nullable', 'exists:users,id'],
             'due_date'            => ['nullable', 'date'],
             'related_order_id'      => ['nullable', 'integer'],
-            'related_customer_id'   => ['nullable', 'integer'],
+            'related_customer_id'   => ['nullable', 'exists:customers,id'],
+            'related_supplier_id'   => ['nullable', 'exists:suppliers,id'],
+            'related_other'         => ['nullable', 'string', 'max:255'],
             'related_equipment_id'  => ['nullable', 'exists:equipment,id'],
         ];
     }

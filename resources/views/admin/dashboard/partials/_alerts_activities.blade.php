@@ -41,13 +41,6 @@
         <div class="flex items-center gap-3">
             <button
                 type="button"
-                onclick="openCallNeededModal()"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium shadow-sm hover:bg-red-700 transition-all">
-                <x-heroicon-o-phone class="w-4 h-4" />
-                Call Needed
-            </button>
-            <button
-                type="button"
                 onclick="openNewTaskModal()"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 text-white text-sm font-medium shadow-sm hover:bg-brand-600 transition-all">
                 + New Task
@@ -119,5 +112,7 @@
 
 </div>
 
-@include('admin.tasks.partials._new_task_modal')
+{{-- Unified New Task modal (operational + phone call). The call modal
+     partial stays for the Call Needed widget's edit/complete/reschedule. --}}
+@include('admin.tasks.partials._unified_task_modal')
 @include('admin.dashboard.partials._call_needed_modal')

@@ -130,6 +130,46 @@
     {{-- Sidebar --}}
     <div class="space-y-5">
 
+        {{-- Related To Panel --}}
+        @if ($task->customer || $task->supplier || $task->related_other)
+        <div class="bg-white rounded-lg border border-brand-200 shadow-sm p-5">
+            <h4 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <x-heroicon-o-user class="w-4 h-4 text-brand-500" />
+                Related To
+            </h4>
+            <dl class="space-y-2 text-sm">
+                @if ($task->customer)
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Customer</dt>
+                    <dd class="font-semibold text-gray-900 text-right max-w-[180px]">{{ $task->customer->full_name }}</dd>
+                </div>
+                @if (trim((string) $task->customer->phone))
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Phone</dt>
+                    <dd class="font-medium text-gray-800">{{ \App\Helpers\CustomHelper::formatPhone($task->customer->phone) }}</dd>
+                </div>
+                @endif
+                @elseif ($task->supplier)
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Supplier</dt>
+                    <dd class="font-semibold text-gray-900 text-right max-w-[180px]">{{ $task->supplier->name }}</dd>
+                </div>
+                @if (trim((string) $task->supplier->phone))
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Phone</dt>
+                    <dd class="font-medium text-gray-800">{{ \App\Helpers\CustomHelper::formatPhone($task->supplier->phone) }}</dd>
+                </div>
+                @endif
+                @else
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Other</dt>
+                    <dd class="font-semibold text-gray-900 text-right max-w-[180px]">{{ $task->related_other }}</dd>
+                </div>
+                @endif
+            </dl>
+        </div>
+        @endif
+
         {{-- Equipment Panel --}}
         @if ($task->equipment)
         <div class="bg-white rounded-lg border border-brand-200 shadow-sm p-5">

@@ -12,13 +12,6 @@
         <p class="text-sm text-gray-500 mt-1">Daily operational tasks for Sales, Yard, Shop, and Admin teams.</p>
     </div>
     <div class="flex items-center gap-3">
-        <button
-            type="button"
-            onclick="openCallNeededModal()"
-            class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-red-700">
-            <x-heroicon-o-phone class="w-4 h-4" />
-            Call Needed
-        </button>
         <button type="button" onclick="openNewTaskModal()"
             class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600">
             + New Task
@@ -444,9 +437,11 @@
 
 </div>
 
-{{-- Task manager mode flag + shared Call Needed modal --}}
+{{-- Task manager mode flag + unified New Task modal.
+     The call modal partial stays included for the Edit / Complete /
+     Reschedule flows on call rows — only its create entry point is gone. --}}
 <script>window.taskManagerMode = true;</script>
-@include('admin.tasks.partials._new_task_modal')
+@include('admin.tasks.partials._unified_task_modal')
 @include('admin.dashboard.partials._call_needed_modal')
 
 @push('js')
